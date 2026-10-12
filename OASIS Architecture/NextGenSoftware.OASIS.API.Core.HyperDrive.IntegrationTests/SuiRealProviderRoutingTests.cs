@@ -320,6 +320,25 @@ public sealed class SuiRealProviderRoutingTests
             loaded.Result.Name.Should().Be(holon.Name);
             manager.PerformanceMonitor.GetMetrics(expected).TotalRequests.Should().Be(before + 1);
 
+            var roundRobinBefore = new Dictionary<ProviderType, int>();
+            // This local runtime test exercises paid-provider routing, not Free-tier admission.
+            dna.OASIS.SubscriptionConfig.PlanType = "Gold";
+            foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.SuiOASIS })
+                roundRobinBefore[providerType] = (int)manager.PerformanceMonitor.GetMetrics(providerType).TotalRequests;
+            for (var index = 0; index < 6; index++)
+            {
+                var request = new StorageOperationRequest { Operation = "LoadHolon", HolonId = holon.Id, LoadChildren = false };
+                var balanced = index % 2 == 0
+                    ? router.RouteRequest<IHolon>(request, LoadBalancingStrategy.RoundRobin)
+                    : await router.RouteRequestAsync<IHolon>(request, LoadBalancingStrategy.RoundRobin);
+                balanced.IsError.Should().BeFalse(balanced.Message);
+                balanced.Result.Id.Should().Be(holon.Id);
+                balanced.Result.Name.Should().Be(holon.Name);
+            }
+            foreach (var providerType in roundRobinBefore.Keys)
+                manager.PerformanceMonitor.GetMetrics(providerType).TotalRequests.Should().Be(roundRobinBefore[providerType] + 3,
+                    "six real V2 round-robin reads must use both registered providers equally across sync and async calls");
+
             manager.IsAutoLoadBalanceEnabled = false;
             manager.IsAutoReplicationEnabled = true;
             var removed = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest

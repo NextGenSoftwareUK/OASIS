@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Live Sui V2 round-robin spans sync and async routing (2026-10-12)
+
+Expanded retained-node healthy V2 scenario adds six real round-robin holon reads alternating synchronous/asynchronous router calls, verifying exact owned ID/name and exactly three measured provider executions each for LocalFile and Sui. Existing actual replication, indexed/list/metadata/search reads, measured performance selection and replicated hard-delete assertions remain. Initial expanded run failed closed when default Free policy denied Sui selected by round-robin; the **test-only** DNA policy is now explicitly Gold for these paid-provider reads. No production entitlement bypass/config change was made. That initial failure does not by itself certify subscription filtering behavior for all strategies; complete policy-filtered selection remains a separate gate.
+
+Current live scenario **1/1, zero skips**, 69 seconds, `TestResults/SuiCurrent/sui-v2-healthy-current.trx`; integration build zero errors/five warnings. Same retained Sui v1.81.1 node, package, ledger, SDK and fixed `HyperDriveSui` directory reused; owned test records removed by finally, exact owned PID **186486** stopped afterward. No downloads/new environment/genesis reset/public funds. This is scoped live round-robin proof, not weighted/cost/Auto strategies, all storage options, funded Hedera, blocked Cosmos fixtures, mint billing or full API/release certification.
+
 ### Priority provider regressions refreshed after shared integrity changes (2026-10-12)
 
 Rebuilt all four priority providers against the edited shared library, no restore/download/new environment, bounded workers and disabled compiler reuse. Builds zero errors (Sui/Cosmos two warnings each, TRON 23, Hedera four). Refreshed unit suites: Sui **32/32**, Cosmos **56/56**, TRON **193/193**, stored at fixed `TestResults/PriorityProviderCurrent/{ProviderName}-unit-current.trx`. Hedera existing non-funded runner verifies SDK syntax/import pins, test build zero errors/three warnings, **218/218** in `TestResults/HederaCurrent/hedera-nonfunded-current.trx`. Refreshed Core **378/378** in `TestResults/CoreCurrent/core-current.trx`. All zero skips; shared **61/61** checkpoint retained. No funded submissions or local-node restarts in this regression checkpoint. Free C **102945689600 bytes** after provider runs; checkout clean before documentation update.
