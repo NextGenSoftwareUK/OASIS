@@ -260,6 +260,33 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => LoadAllAvatarsAsync(version).GetAwaiter().GetResult();
 
+        private async Task<OASISResult<IAvatar>> LoadAvatarByTokenAsync(string token, Func<IAvatar, bool> matches, int version)
+        {
+            if (string.IsNullOrWhiteSpace(token)) return Fail<IAvatar>("A nonempty avatar token is required.");
+            var avatars = await LoadAllAvatarsAsync(version);
+            if (avatars.IsError) return Fail<IAvatar>(avatars.Message, avatars.Exception, avatars.ErrorCode);
+            if (avatars.Result == null) return Fail<IAvatar>("Avatar token lookup returned no collection.");
+            var found = avatars.Result.Where(matches).Take(2).ToList();
+            if (found.Count > 1) return Fail<IAvatar>("Avatar token matches multiple identities.");
+            return found.Count == 0
+                ? Fail<IAvatar>("Avatar token was not found.", errorCode: OASISResultErrorCodes.RecordNotFound)
+                : Ok(found[0]);
+        }
+
+        public override Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string token, int version = 0)
+            => LoadAvatarByTokenAsync(token, avatar => string.Equals(avatar.VerificationToken, token, StringComparison.Ordinal), version);
+        public override OASISResult<IAvatar> LoadAvatarByVerificationToken(string token, int version = 0)
+            => LoadAvatarByVerificationTokenAsync(token, version).GetAwaiter().GetResult();
+        public override Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string token, int version = 0)
+            => LoadAvatarByTokenAsync(token, avatar => string.Equals(avatar.ResetToken, token, StringComparison.Ordinal), version);
+        public override OASISResult<IAvatar> LoadAvatarByResetToken(string token, int version = 0)
+            => LoadAvatarByResetTokenAsync(token, version).GetAwaiter().GetResult();
+        public override Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string token, int version = 0)
+            => LoadAvatarByTokenAsync(token, avatar => avatar.RefreshTokens?.Any(value =>
+                value != null && string.Equals(value.Token, token, StringComparison.Ordinal)) == true, version);
+        public override OASISResult<IAvatar> LoadAvatarByRefreshToken(string token, int version = 0)
+            => LoadAvatarByRefreshTokenAsync(token, version).GetAwaiter().GetResult();
+
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
             try

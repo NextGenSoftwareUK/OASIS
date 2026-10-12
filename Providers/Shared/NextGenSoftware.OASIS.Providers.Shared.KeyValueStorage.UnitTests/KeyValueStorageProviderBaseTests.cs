@@ -42,6 +42,36 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
     [TestClass]
     public class KeyValueStorageProviderBaseTests
     {
+        [DataTestMethod]
+        [DataRow("verification")]
+        [DataRow("reset")]
+        [DataRow("refresh")]
+        public async Task Token_lookup_uses_real_records_and_rejects_ambiguous_or_missing_identity(string kind)
+        {
+            var avatar = NewAvatar(); avatar.VerificationToken = "CaseSensitiveToken"; avatar.ResetToken = "CaseSensitiveToken";
+            avatar.RefreshTokens = new() { new NextGenSoftware.OASIS.API.Core.Objects.RefreshToken { Token = "CaseSensitiveToken" } };
+            Assert.IsFalse((await _provider.SaveAvatarAsync(avatar)).IsError);
+            Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>> Lookup(string token) => kind switch {
+                "verification" => _provider.LoadAvatarByVerificationTokenAsync(token),
+                "reset" => _provider.LoadAvatarByResetTokenAsync(token),
+                _ => _provider.LoadAvatarByRefreshTokenAsync(token) };
+            var found = await Lookup("CaseSensitiveToken"); Assert.IsFalse(found.IsError); Assert.AreEqual(avatar.Id, found.Result.Id);
+            var sync = kind switch { "verification" => _provider.LoadAvatarByVerificationToken("CaseSensitiveToken"),
+                "reset" => _provider.LoadAvatarByResetToken("CaseSensitiveToken"), _ => _provider.LoadAvatarByRefreshToken("CaseSensitiveToken") };
+            Assert.IsFalse(sync.IsError); Assert.AreEqual(avatar.Id, sync.Result.Id);
+            var missing = await Lookup("casesensitivetoken"); Assert.IsTrue(missing.IsError);
+            Assert.AreEqual("OASIS_RECORD_NOT_FOUND", missing.ErrorCode);
+            Assert.IsTrue((await Lookup(" ")).IsError);
+            var duplicate = NewAvatar("other", "other@example.invalid");
+            duplicate.VerificationToken = avatar.VerificationToken; duplicate.ResetToken = avatar.ResetToken; duplicate.RefreshTokens = avatar.RefreshTokens;
+            Assert.IsFalse((await _provider.SaveAvatarAsync(duplicate)).IsError);
+            var ambiguous = await Lookup("CaseSensitiveToken"); Assert.IsTrue(ambiguous.IsError); Assert.IsNull(ambiguous.Result);
+            Assert.AreNotEqual("OASIS_RECORD_NOT_FOUND", ambiguous.ErrorCode);
+            _backend.ThrowReads = true;
+            var failure = await Lookup("CaseSensitiveToken"); Assert.IsTrue(failure.IsError); Assert.IsNotNull(failure.Exception);
+            Assert.AreNotEqual("OASIS_RECORD_NOT_FOUND", failure.ErrorCode);
+        }
+
         [TestMethod]
         public async Task Holon_lists_children_metadata_and_exports_read_requested_history()
         {
