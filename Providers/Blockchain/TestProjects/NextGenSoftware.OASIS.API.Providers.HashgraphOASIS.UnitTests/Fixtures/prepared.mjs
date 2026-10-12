@@ -16,5 +16,5 @@ else try{
  else if(request.mode==='bad-utf8')process.stdout.write(Buffer.from([255]));
  else if(request.mode==='bad-json')process.stdout.write('invalid JSON');
  else process.stdout.write(JSON.stringify({transactionId:request.mode==='wrong'?'0.0.1001@1700000001.000000001':request.transactionId,status:'SUCCESS',
-  ...(request.approvalTransactionId?{approvalTransactionId:request.mode==='skip-approval'?null:request.approvalTransactionId}:{})}));
+  ...(request.approvalTransactionId?{approvalTransactionId:request.mode==='skip-approval'||request.mode==='hide-approval'?null:request.approvalTransactionId}:{})}));
 }catch{process.stderr.write(JSON.stringify({error:'controlled rejection'}));process.exitCode=1;}
