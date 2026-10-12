@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON real signed contract rejection matrix — 2026-10-12
+
+Added actual TronNet signing cases for empty contract list, unsupported contract enum and encoded owner differing from trusted sender. Each original signed hash is valid, but verifier rejects at the intended operation-owner boundary. Entire unit project **207/207**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`. SDK channels are constructed/reused and disposed without RPC; no ledger transaction submitted.
+
+Multi-contract/multisig/permission policies and complete fee/window/admitted-request binding, live original recovery and deployed gates remain open. Existing dependencies reused; no installs or release merge.
+
 ### TRON prepared contract-owner binding — 2026-10-12
 
 Verifier now requires exactly one supported operation contract and binds its protobuf owner to trusted expected signature sender. Explicit owner mappings cover native transfer/account create/account update/contract trigger/contract deploy; unknown mappings fail closed. Offline signed tests/Mongo fixture now include actual transfer contract protobuf rather than empty raw transaction. Full unit project **204/204**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`; build 0 errors/21 existing warnings.
