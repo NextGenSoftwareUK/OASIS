@@ -252,6 +252,8 @@ public sealed class TronNativeTransferClient
                 from = accountCreation.OwnerAddress; to = accountCreation.AccountAddress; amount = 0; break;
             case Transaction.Types.Contract.Types.ContractType.TransferContract:
                 var transfer = contract.Parameter.Unpack<TransferContract>(); from = transfer.OwnerAddress; to = transfer.ToAddress; amount = transfer.Amount; break;
+            case Transaction.Types.Contract.Types.ContractType.AccountUpdateContract:
+                var update = contract.Parameter.Unpack<AccountUpdateContract>(); from = update.OwnerAddress; to = update.OwnerAddress; amount = 0; break;
             case Transaction.Types.Contract.Types.ContractType.TriggerSmartContract:
                 var call = contract.Parameter.Unpack<TriggerSmartContract>(); from = call.OwnerAddress; to = call.ContractAddress; amount = call.CallValue; break;
             case Transaction.Types.Contract.Types.ContractType.CreateSmartContract:
