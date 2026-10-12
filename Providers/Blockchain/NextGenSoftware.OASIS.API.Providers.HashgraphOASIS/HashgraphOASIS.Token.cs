@@ -141,6 +141,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 if (request.Amount <= 0) throw new ArgumentOutOfRangeException(nameof(request.Amount), "An explicit positive burn amount is required.");
                 if (!System.Text.RegularExpressions.Regex.IsMatch(request.TokenAddress ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+\z"))
                     throw new ArgumentException("A numeric HTS token ID is required.");
+                if (!string.IsNullOrWhiteSpace(request.OwnerSeedPhrase))
+                    throw new ArgumentException("Recover an explicit Hedera signing key before burning a token.");
                 if (request.BurntByAvatarId == Guid.Empty)
                     throw new ArgumentException("The burning avatar's real treasury wallet is required.");
                 var walletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(request.BurntByAvatarId,
@@ -148,12 +150,15 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 if (walletResult.IsError || walletResult.Result == null)
                     throw new InvalidOperationException("Could not retrieve the burning avatar's Hedera wallet.");
                 var wallet = walletResult.Result;
+                if (!string.IsNullOrWhiteSpace(request.OwnerPrivateKey)
+                    && !string.Equals(request.OwnerPrivateKey, wallet.PrivateKey, StringComparison.OrdinalIgnoreCase))
+                    throw new ArgumentException("Supplied signing key does not match the burning avatar's Hedera wallet.");
                 var committed = await HederaSdkClient.InvokeAsync("tokenBurn", new
                 {
                     network = _hederaNetwork, nodes = _consensusNodes, sender = wallet.WalletAddress,
                     recipient = wallet.WalletAddress, tokenId = request.TokenAddress,
                     amount = request.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                    privateKey = wallet.PrivateKey, publicKey = wallet.PublicKey, keyType = "der",
+                    privateKey = wallet.PrivateKey, publicKey = string.IsNullOrWhiteSpace(request.OwnerPublicKey) ? wallet.PublicKey : request.OwnerPublicKey, keyType = "der",
                     transactionId = HederaSdkClient.CreateTransactionId(wallet.WalletAddress)
                 });
                 if (committed.GetProperty("status").GetString() != "SUCCESS")
