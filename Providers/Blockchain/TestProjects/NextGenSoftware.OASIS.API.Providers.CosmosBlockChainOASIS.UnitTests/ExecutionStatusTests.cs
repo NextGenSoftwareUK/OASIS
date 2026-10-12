@@ -5,6 +5,28 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 [TestClass]
 public sealed class ExecutionStatusTests
 {
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public void StatusRequiresRequestedHashAndCommittedHeight(bool failed)
+    {
+        var hash = new string('a', 64);
+        using var json = System.Text.Json.JsonDocument.Parse($"{{\"hash\":\"{hash.ToUpperInvariant()}\",\"height\":42,\"code\":{(failed ? 5 : 0)}}}");
+        var method = typeof(CosmosBlockChainOASIS).GetMethod("MapTransactionStatus", BindingFlags.NonPublic | BindingFlags.Static)!;
+        Assert.AreEqual(failed ? BridgeTransactionStatus.Failed : BridgeTransactionStatus.Completed, method.Invoke(null, new object[] { json.RootElement, hash }));
+    }
+
+    [DataTestMethod]
+    [DataRow("{}")]
+    [DataRow("{\"hash\":\"wrong\",\"height\":42,\"code\":0}")]
+    [DataRow("{\"hash\":null,\"height\":42,\"code\":0}")]
+    public void MalformedOrMismatchedIdentityCannotReportCompletion(string response)
+    {
+        using var json = System.Text.Json.JsonDocument.Parse(response);
+        var method = typeof(CosmosBlockChainOASIS).GetMethod("MapTransactionStatus", BindingFlags.NonPublic | BindingFlags.Static)!;
+        var error = Assert.ThrowsException<TargetInvocationException>(() => method.Invoke(null, new object[] { json.RootElement, new string('a', 64) }));
+        Assert.IsInstanceOfType<InvalidOperationException>(error.InnerException);
+    }
     [TestMethod]
     public void InvalidCodeCannotBeReportedAsConsensusFailure()
     {

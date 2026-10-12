@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Cosmos transaction status validates native identity before classification (2026-10-12)
+
+C# status lookup previously classified only the returned code, ignoring returned hash/height. Requests now require exact 64-hex hashes; non-null SDK responses must match that hash (hex case-insensitive) and expose a positive committed int64 height before existing code-to-Completed/Failed mapping. Null indexed results remain NotFound. Five new pure JSON boundary cases cover matching successful/failed identity, empty/mismatched/null identity rejection; full Cosmos units pass **39/39**, zero skips (`cosmos-unit-current.trx`). Explicit provider rebuild succeeds (zero errors/two warnings). This prevents classifying unrelated responses but is not current live status readback/timeout/HTTP proof; those gates remain pending. No installs/downloads/new environment/network mutation/merge.
+
 ### Cosmos official SDK timeout reconciliation wording (2026-10-12)
 
 Installed exact-pinned CosmJS source confirms TimeoutError carries txId after submission polling expires. Bridge error formatting now recognizes that actual SDK class with a valid 64-hex identity, retains the original hash and explicitly says outcome unverified/reconcile before retrying, without inferring failed/successful execution or echoing its arbitrary message. Ordinary errors merely carrying a txId property remain unchanged. Two actual SDK exception-construction cases expand bridge suite to **11/11**, zero skips; syntax/import/direct-pin verifier passes. This is exception-contract evidence, not a live timeout or every unknown submission path; no resubmission or alternate mutation pipeline added. No network mutation/install/download/new environment/merge; remaining gates stay open.
