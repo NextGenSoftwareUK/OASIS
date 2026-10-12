@@ -395,6 +395,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             if (Avatar?.AvatarType.Value != AvatarType.Wizard)
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = "NFT minting requires an active subscription. Please upgrade to a paid plan to use this feature." };
+            if (request == null)
+                return new OASISResult<IWeb4NFT> { IsError = true, Message = "NFT mint request body is required." };
 
             ProviderType onChainProvider = ProviderType.None;
             ProviderType offChainProvider = ProviderType.None;
@@ -434,6 +436,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
             var mintedByAvatarId = AvatarId;
             bool callerIsWizard = Avatar?.AvatarType.Value == AvatarType.Wizard;
+            if (!string.IsNullOrEmpty(request.MintedByAvatarId)
+                && (!Guid.TryParse(request.MintedByAvatarId,out var explicitMintActor) || explicitMintActor == Guid.Empty))
+                return new OASISResult<IWeb4NFT> { IsError = true, Message = "MintedByAvatarId must be a nonempty valid GUID when supplied." };
             // Wizards (e.g. oasismint service account) can mint on behalf of another avatar
             if (callerIsWizard && !string.IsNullOrEmpty(request.MintedByAvatarId) && Guid.TryParse(request.MintedByAvatarId, out Guid requestedMintedByAvatarId) && requestedMintedByAvatarId != Guid.Empty)
                 mintedByAvatarId = requestedMintedByAvatarId;
