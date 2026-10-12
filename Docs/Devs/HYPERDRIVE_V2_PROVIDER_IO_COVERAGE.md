@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Token recipient selector/default-wallet implementation (2026-10-11)
+
+Async public token send now resolves every supplied recipient ID/username/email through the existing default-wallet APIs and requires all resulting addresses to agree with any explicit destination. It no longer skips avatar selectors when a literal destination is present or picks the first wallet/list selector. Missing, blank or conflicting destinations return explicit errors before native submission. Full Core unit suite **362/362**, zero skips (`core-current.trx`), includes six pure address-agreement cases; dual-framework bounded build succeeds. Core `d7b3f89d0c1b8d87046ce95dfda7796581f6699b` pushed; manifest/gitlink advanced together. Real default-wallet/avatar lookup, conflicting-recipient HTTP no-submission and positive native send at this pin still require execution. Sync legacy gaps remain documentation only; no install/download/ledger mutation/deploy/merge.
+
 ### Token-send complete caller selector agreement (2026-10-11)
 
 HTTP send validates every supplied sender avatar ID/username/email against the authenticated avatar; username/email comparisons are ordinal case-insensitive. Conflicting selectors can no longer be ignored while the action silently uses caller ID. Three actual HTTP denial cases pass **3/3**, zero skips (`web4-token-send-identity.trx`), before manager/provider access. Positive real-JWT Sui HTTP transfer with all three matching selectors passes **1/1** and still verifies native digest, exact 0.001 SUI recipient increase and encrypted stored signer. Owned avatar/wallet data cleaned; retained Sui PID 43893 stopped after completion. Host build succeeds; no installs/download/reset/public spending/merge. Receiver-selector semantics, remaining assets/providers/business routes and deployment gates remain open.
