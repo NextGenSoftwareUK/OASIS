@@ -401,7 +401,7 @@ public sealed class TronNativeTransferClient
         }
         catch (Exception ex)
         {
-            throw new InvalidOperationException("TRON account creation " + hash + " committed but readback failed; reconcile before retrying.",ex);
+            throw new TronCommittedReadbackException(hash,_genesisBlockId,ex);
         }
         return hash;
     }
