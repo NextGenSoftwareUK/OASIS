@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON permission-update original-owner mapping — 2026-10-12
+
+Shipping-path audit found wallet history already maps `AccountPermissionUpdateContract`, while the shared original-operation-owner mapper used by prepared verification and native fee receipts omitted it. Added the actual protobuf owner address mapping so these paths agree; no transaction is fabricated or broadcast. New controlled receipt test proves exact original payer and total fee beyond JavaScript precision, without requiring a VM execution receipt for a native permission update. Full TRON unit suite **239/239** passed, zero skips (`tron-current.trx`); build zero errors/21 existing warnings. Signed permission-update and live receipt verification remain separate gates; no account permissions changed, installation, network call or merge.
+
 ### Hedera activation sequencing guard and Cosmos runtime inspection — 2026-10-12
 
 Added a controlled child accepting only `storageProbe`; actual C# `HederaStorageBackend.VerifyAsync` completes through it and would fail if implicit put/delete activation transactions returned. Complete Hedera C# suite **37/37** passed, zero skips (`hedera-current.trx`). This proves C# sequencing, not funded account authority or free queries; Hedera consensus query fees and funded verification remain separate gates.
