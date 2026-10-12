@@ -132,6 +132,11 @@ internal static class HederaSdkClient
                 || returnedStatus.GetString() != "SUCCESS"))
                 throw new HederaNativeMutationReconciliationException("Hedera mutation reply does not establish SUCCESS for the original transaction; reconcile before retrying.",
                     new HederaNativeMutationEvidence(originalId, null, originalId, "process-output-unverified", null));
+            if (isMutation && document.RootElement.TryGetProperty("approvalTransactionId", out var returnedApproval)
+                && returnedApproval.ValueKind != JsonValueKind.Null
+                && (returnedApproval.ValueKind != JsonValueKind.String || returnedApproval.GetString() != originalApprovalId))
+                throw new HederaNativeMutationReconciliationException("Hedera mutation reply reports an unverified approval identity; reconcile original transactions before retrying.",
+                    new HederaNativeMutationEvidence(originalId, null, originalId, "process-output-unverified", null));
             return document.RootElement.Clone();
         }
         catch (OperationCanceledException errorException)
