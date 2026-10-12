@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Shared corruption versus authoritative absence (2026-10-11)
+
+Shared reads now reject present JSON `null` payloads and malformed/empty-GUID avatar indexes as explicit `InvalidDataException` errors instead of treating them as missing records. Only an absent backend value is authoritative absence. Added controlled backend tests verify transport error, corrupt record/index and missing detail-index code propagation; full shared suite **33/33**, zero skips (`shared-current.trx`), bounded build succeeds. This fixes the common storage boundary without parsing message strings or adding another load path; direct provider missing-record error semantics remain unchanged. Current live provider/API regressions still need recheck after this shared-layer revision; broader release gates remain open. No installs/downloads or ledger mutation.
+
 ### Authoritative absence regression/live HTTP proof (2026-10-11)
 
 Current Core suite **356/356**, shared storage **29/29**, zero skips (`core-current.trx`, `TestResults/SharedStorageCurrent/shared-current.trx`). Added converter guards prove legacy-coded absence and exception/payload-bearing errors retain `IsError`; terminal V2 absence tests prevent secondary reads. Rebuilt WEB4 host succeeds; real HTTP suite **11/11**, zero skips, 17 seconds verifies the same valid JWT returns HTTP **401/INVALID_AVATAR** after its avatar is hard-deleted from LocalFile and the retained real Sui ledger, not HTTP 503. Existing-avatar requests still perform one measured V2 provider read each. Owned Sui PID 36020 stopped by validated helper; test avatars removed and static DNA/manager restored. This closes the scoped deleted-avatar mismatch for shared/Sui storage, not all provider error-code adoption, complete operation matrix, Hedera or remaining API/deployment gates. No downloads/install/ledger reset/merge.

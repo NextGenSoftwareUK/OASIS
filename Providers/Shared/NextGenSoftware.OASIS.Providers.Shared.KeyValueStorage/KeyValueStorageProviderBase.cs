@@ -130,13 +130,19 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         private async Task<T> ReadAsync<T>(string key) where T : class
         {
             var json = await Backend.GetAsync(key);
-            return json == null ? null : OasisJson.Deserialize<T>(json);
+            if (json == null) return null;
+            var record = OasisJson.Deserialize<T>(json);
+            if (record == null) throw new System.IO.InvalidDataException("Stored record contains a null payload.");
+            return record;
         }
 
         private async Task<Guid?> ReadIdAsync(string key)
         {
             var value = await Backend.GetAsync(key);
-            return Guid.TryParse(value, out var id) ? id : null;
+            if (value == null) return null;
+            if (!Guid.TryParse(value, out var id) || id == Guid.Empty)
+                throw new System.IO.InvalidDataException("Stored avatar index contains an invalid record ID.");
+            return id;
         }
 
         private async Task<List<T>> ReadAllAsync<T>(IEnumerable<string> keys) where T : class
