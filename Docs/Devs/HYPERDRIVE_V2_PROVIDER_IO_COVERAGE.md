@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Actual signed TRON authority-refresh gRPC/Mongo callback integration — 2026-10-12
+
+Added runtime account-authority prepared view integration using actual TronNet signing, controlled official-descriptor loopback gRPC responses and existing real Mongo. Callback refreshes account (second query), verifies owner permission/signature, then persists exact original ID/signed bytes with no ledger acknowledgement. RPC selection **7/7**, zero skips, `TestResults/PriorityProviderCurrent/tron-permission-rpc.trx`. Shared offline authority fixture reused. Owned `usage_tron_rpc_test_<guid>` database/server/channels removed/shut down in finally, regenerable by rerun.
+
+This is controlled authority transport plus real signing/storage, not consensus proof or native spending permission. No broadcast; fixture transfer is not valid-economic ledger submission. Live network/account authority, actual admitted requests/cost settlement/submission/recovery and full deployed gates remain open. No installs or release merge.
+
 ### TRON gRPC authority failure matrix — 2026-10-12
 
 Expanded controlled actual-gRPC loader cases to independently reject wrong solidity genesis after matching full-node genesis, empty account record and unavailable account query. No usable authority returned; original RPC error preserved. Initial handler lambda was ambiguous between gRPC overloads; fixed explicit request/context types. Full unit project **232/232**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`. Owned ephemeral servers/channels shut down; no real ledger, installs or submissions. Actual live authority/admission/recovery and full deployed gates remain open, no release merge.
