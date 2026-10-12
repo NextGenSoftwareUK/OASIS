@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Post-SDK-owner full regressions and Cosmos dependency-resolution gate — 2026-10-12
+
+Sui complete C# suite **75/75 passed**, zero skips, including the actual two-minute process deadline (`sui-current.trx`). Cosmos complete C# suite **97 passed / 2 failed / 99 total**, zero skips (`cosmos-current.trx`): both failures launched SDK code from the build-output bridge without its installed dependencies. Reusing the existing source bridge through explicit `OASIS_COSMOS_SDK_BRIDGE` made the complete preparation class **17/17 pass** (`cosmos-preparation-current.trx`), including real offline signing, cryptographic verification and Mongo persistence. No assertion or production exception was weakened; no dependencies were installed.
+
+Do not label the Cosmos full run green: a full rerun with the retained bridge configured remains required. This also leaves published bridge dependency packaging as an explicit release gate; source-path success does not prove a deployed output has its dependencies. Neither run is live consensus or deployed API evidence. No ledger reset, merge or deployment performed.
+
 ### Full controlled TRON post-approval escrow branch — 2026-10-12
 
 Verified the pending full-suite result directly from `TestResults/PriorityProviderCurrent/tron-current.trx`: **253/253 passed**, zero failures, skips or pending cases. Three new cases use the installed real TronNet SDK against an owned loopback gRPC server: approval is constructed, signed, broadcast and confirmed, then deposit construction is rejected, altered or unavailable. Each case preserves the exact approval ID and original cause, exposes the existing Core reconciliation marker, and asserts exactly one broadcast and two construction calls. No deposit is broadcast after those failures.
