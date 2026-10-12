@@ -59,7 +59,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 => type.Namespace != null && (type.Namespace.StartsWith("NextGenSoftware.", StringComparison.Ordinal)
                     || type.Namespace == "System.Collections.Generic"
                     || type.Namespace == "System.Collections.ObjectModel"
-                    || type.IsPrimitive || type == typeof(string) || type == typeof(Guid) || type == typeof(DateTime) || type == typeof(decimal));
+                    || type.IsPrimitive || type == typeof(object) || type == typeof(string) || type == typeof(Guid) || type == typeof(DateTime) || type == typeof(decimal));
         }
 
         private sealed class SkipHolonNavigationResolver : DefaultContractResolver
