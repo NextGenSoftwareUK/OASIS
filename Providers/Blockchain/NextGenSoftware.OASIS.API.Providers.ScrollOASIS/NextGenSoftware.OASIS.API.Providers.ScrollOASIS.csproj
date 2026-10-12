@@ -37,6 +37,6 @@
     <PackageReference Include="Nethereum.Web3" Version="7.0.0" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="README.md" Pack="true" PackagePath="/" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>

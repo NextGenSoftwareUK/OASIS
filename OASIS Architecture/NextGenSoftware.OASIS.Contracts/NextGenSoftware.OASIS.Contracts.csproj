@@ -20,6 +20,6 @@
     <PackageReference Include="System.Text.Json" Version="8.0.6" Condition="'$(TargetFramework)' == 'netstandard2.1'" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="README.md" Pack="true" PackagePath="/" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>

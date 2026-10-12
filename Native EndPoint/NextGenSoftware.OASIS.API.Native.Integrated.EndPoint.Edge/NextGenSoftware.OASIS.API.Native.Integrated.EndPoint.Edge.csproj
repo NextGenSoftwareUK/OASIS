@@ -20,6 +20,6 @@
     <ProjectReference Include="../../OASIS Architecture/NextGenSoftware.OASIS.ONET/NextGenSoftware.OASIS.ONET.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="README.md" Pack="true" PackagePath="/" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>

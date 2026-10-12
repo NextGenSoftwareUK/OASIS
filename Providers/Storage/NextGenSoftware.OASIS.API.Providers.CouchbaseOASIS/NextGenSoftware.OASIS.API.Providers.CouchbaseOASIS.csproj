@@ -33,6 +33,6 @@
     <PackageReference Include="CouchbaseNetClient" Version="3.7.1" />
   </ItemGroup>
   <ItemGroup>
-    <None Update="README.md" Pack="true" PackagePath="/" />
+    <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>
