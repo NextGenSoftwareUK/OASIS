@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public class TronPreparedOutboxTests
 {
-    private sealed class OfflineAuthority(string user):HttpMessageHandler
+    internal sealed class OfflineAuthority(string user):HttpMessageHandler
     {
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
         {
