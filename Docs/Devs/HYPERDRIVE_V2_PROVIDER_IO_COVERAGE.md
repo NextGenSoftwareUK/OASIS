@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON protocol-default owner permission compatibility — 2026-10-12
+
+Live solidified account inspection initially failed our strict permission validator. Verified the pinned [java-tron 4.8.2 AccountCapsule source](https://raw.githubusercontent.com/tronprotocol/java-tron/GreatVoyage-v4.8.2/chainbase/src/main/java/org/tron/core/capsule/AccountCapsule.java): `getPermissionById(0)` explicitly uses the protocol's owner-address, threshold-one/weight-one permission when the owner protobuf message is absent. Implemented that exact rule after verified account/address validation. This supersedes earlier assertions that absent owner messages always mean unavailable authority; it is specified protocol behavior, not an error fallback. Explicit malformed owner permissions still fail, as do foreign/duplicate signers; active permissions are not synthesized.
+
+Complete TRON unit suite **238/238** passed, zero skips. Live read-only inspection/current V2 selector and closed-transport failover test **1/1** passed (`tron-original-fixture-readback.trx`) against the actual solidified account response, after an initial failed run exposed the gap. Provider build zero errors with 21 existing warnings. Same container returned to paused; no ledger mutation/replay. This proves real owner permission compatibility and existing read-only routing scope, not active/multisig signing flow, native spending admission or resolution of the original transaction.
+
 ### Hedera activation account-authority rejection boundary — 2026-10-12
 
 Factored the new actual account-check invariant into one SDK helper and tested matching real SDK AccountId/PublicKey objects, foreign ID/key, null/missing keys, deleted account and absent deletion state. Authority now requires explicit `isDeleted=false`, not merely a falsy missing value. The storage probe calls this helper before its owner query. SDK suite **101/101** passed, zero skips; no network queries or funded operations performed. Controlled account records with real SDK keys do not prove funded consensus account authority; live probe/aggregate query authorization remain open. No install, deployment or merge.
