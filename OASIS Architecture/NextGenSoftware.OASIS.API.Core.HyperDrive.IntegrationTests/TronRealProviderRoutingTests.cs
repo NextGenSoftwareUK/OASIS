@@ -57,6 +57,29 @@ public sealed class TronRealProviderRoutingTests
         try
         {
             var router = new OASISHyperDrive(manager);
+            async Task AssertIndexedRoutes<T>(string operation, bool absent, Func<T, Guid> identity) where T : class
+            {
+                foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.TRONOASIS })
+                {
+                    var request = new StorageOperationRequest { Operation = operation, Username = avatar.Username,
+                        Email = avatar.Email, PreferredProvider = providerType };
+                    var sync = router.RouteRequest<T>(request);
+                    var asyncResult = await router.RouteRequestAsync<T>(request);
+                    foreach (var result in new[] { sync, asyncResult })
+                    {
+                        result.IsError.Should().BeFalse(result.Message);
+                        if (absent) result.Result.Should().BeNull("deleted indexes must resolve to authoritative absence");
+                        else identity(result.Result).Should().Be(avatar.Id);
+                    }
+                }
+            }
+            async Task AssertAllIndexedRoutes(bool absent)
+            {
+                await AssertIndexedRoutes<IAvatar>("LoadAvatarByUsername", absent, value => value.Id);
+                await AssertIndexedRoutes<IAvatar>("LoadAvatarByEmail", absent, value => value.Id);
+                await AssertIndexedRoutes<IAvatarDetail>("LoadAvatarDetailByUsername", absent, value => value.Id);
+                await AssertIndexedRoutes<IAvatarDetail>("LoadAvatarDetailByEmail", absent, value => value.Id);
+            }
             var savedAvatar = await router.RouteRequestAsync<IAvatar>(new StorageOperationRequest
                 { Operation = "SaveAvatar", Payload = avatar, PreferredProvider = ProviderType.LocalFileOASIS });
             avatarSaved = !savedAvatar.IsError;
@@ -85,6 +108,7 @@ public sealed class TronRealProviderRoutingTests
                 provider.LoadAvatarDetailByUsername(avatar.Username).Result.Id.Should().Be(avatar.Id);
                 provider.LoadAvatarDetailByEmail(avatar.Email).Result.Id.Should().Be(avatar.Id);
             }
+            await AssertAllIndexedRoutes(absent: false);
             var deletedAvatar = await router.RouteRequestAsync<bool>(new StorageOperationRequest
                 { Operation = "DeleteAvatar", AvatarId = avatar.Id, SoftDelete = false, PreferredProvider = ProviderType.LocalFileOASIS });
             deletedAvatar.IsError.Should().BeFalse(deletedAvatar.Message);
@@ -98,6 +122,7 @@ public sealed class TronRealProviderRoutingTests
             (await tron.LoadAvatarDetailAsync(avatar.Id)).Result.Should().BeNull();
             (await tron.LoadAvatarByUsernameAsync(avatar.Username)).Result.Should().BeNull();
             (await tron.LoadAvatarByEmailAsync(avatar.Email)).Result.Should().BeNull();
+            await AssertAllIndexedRoutes(absent: true);
             avatarSaved = false;
             var saved = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
                 { Operation = "SaveHolon", Payload = holon, PreferredProvider = ProviderType.LocalFileOASIS });
