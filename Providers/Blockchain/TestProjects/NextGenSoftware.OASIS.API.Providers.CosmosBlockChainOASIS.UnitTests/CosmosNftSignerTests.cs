@@ -7,6 +7,35 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 public class CosmosNftSignerTests
 {
     [DataTestMethod]
+    [DataRow("failed")] [DataRow("executed")] [DataRow("unknown")]
+    [DataRow("bad-status")] [DataRow("bad-shape")] [DataRow("missing-status")]
+    [DataRow("bad-error")] [DataRow("missing-error")] [DataRow("ordinary")]
+    public async Task NativeEvidenceSurvivesSdkBoundaryAndMalformedEvidenceCannotEnableReplay(string mode)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","nft-signer.mjs"));
+        try
+        {
+            using var provider=new CosmosBlockChainOASIS("http://127.0.0.1:1","fixture-chain","configured-test-key","fixture-contract");
+            var result=await provider.BurnNFTAsync(new BurnWeb3NFTRequest { NFTTokenAddress="fixture-contract#native-evidence-"+mode,OwnerPrivateKey="test-only-explicit",OwnerPublicKey=null,OwnerSeedPhrase=null });
+            Assert.IsTrue(result.IsError);
+            Assert.IsNull(result.Result);
+            Assert.AreEqual(mode!="ordinary",Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception));
+            if(mode!="ordinary")
+            {
+                Assert.IsInstanceOfType<CosmosNativeMutationReconciliationException>(result.Exception);
+                var evidence=(CosmosNativeMutationReconciliationException)result.Exception;
+                Assert.AreEqual(mode is "unknown" or "bad-shape" or "bad-error" or "missing-error" ? null : new string('a',64),evidence.OriginalTransactionId);
+                Assert.AreEqual(mode=="failed" ? (bool?)false : mode=="executed" ? (bool?)true : null,evidence.ExecutionSucceeded);
+                if(mode is "bad-status" or "bad-shape" or "missing-status" or "bad-error" or "missing-error") Assert.IsNotNull(evidence.InnerException);
+            }
+            StringAssert.Contains(result.Message,mode is "bad-error" or "missing-error" ? "Malformed Cosmos native mutation error envelope" : "original controlled native error");
+            Assert.IsFalse(result.Message.Contains("test-only-explicit"));
+        }
+        finally {Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",previous);}
+    }
+
+    [DataTestMethod]
     [DataRow("a", false)]
     [DataRow("b", true)]
     [DataRow("c", true)]

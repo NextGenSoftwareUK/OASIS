@@ -2,6 +2,27 @@ import { TimeoutError } from '@cosmjs/stargate';
 import { fromBech32 } from '@cosmjs/encoding';
 import { decodeTxRaw } from '@cosmjs/proto-signing';
 
+export class CosmosNativeMutationReconciliationError extends Error {
+  constructor(message, transactionHash, executionSucceeded) {
+    super(message);
+    this.nativeMutation = { transactionHash: typeof transactionHash === 'string' && /^[0-9a-fA-F]{64}$/.test(transactionHash) ? transactionHash : null, executionSucceeded };
+  }
+}
+
+export function cosmosErrorEnvelope(error) {
+  const nativeMutation = error instanceof CosmosNativeMutationReconciliationError ? error.nativeMutation
+    : error instanceof TimeoutError ? { transactionHash: typeof error.txId === 'string' && /^[0-9a-fA-F]{64}$/.test(error.txId) ? error.txId : null, executionSucceeded: null } : null;
+  return { ok: false, error: cosmosFailureMessage(error), ...(nativeMutation ? { nativeMutation } : {}) };
+}
+
+// CosmJS execute/upload/instantiate discard failed DeliverTxResponse fields in plain errors.
+// Validate the one real broadcast response before their higher-level mapping runs.
+export function guardCosmosSigningClient(client) {
+  const submit = client.signAndBroadcast.bind(client);
+  client.signAndBroadcast = async (...args) => verifiedBankTransfer(await submit(...args));
+  return client;
+}
+
 export async function indexedHistorySnapshot(client, address) {
   fromBech32(address, 90);
   const height = await client.getHeight();
@@ -91,7 +112,7 @@ export function bankTransferLegs(encoded, registry) {
 export function verifiedUpload(result) {
   verifiedContractExecution(result);
   if (!Number.isSafeInteger(result.codeId) || result.codeId <= 0)
-    throw new Error(`Cosmos upload returned an invalid code ID. Original transaction ${result.transactionHash}. Reconcile submission before retrying.`);
+    throw new CosmosNativeMutationReconciliationError(`Cosmos upload returned an invalid code ID. Original transaction ${result.transactionHash}. Reconcile submission before retrying.`, result.transactionHash, true);
   return result;
 }
 
@@ -101,7 +122,7 @@ export function verifiedInstantiation(result, expectedPrefix) {
     const decoded = fromBech32(result.contractAddress, 90);
     if (decoded.data.length === 0 || (expectedPrefix && decoded.prefix !== expectedPrefix)) throw new Error('Invalid contract address');
   } catch {
-    throw new Error(`Cosmos instantiation returned an invalid contract address. Original transaction ${result.transactionHash}. Reconcile submission before retrying.`);
+    throw new CosmosNativeMutationReconciliationError(`Cosmos instantiation returned an invalid contract address. Original transaction ${result.transactionHash}. Reconcile submission before retrying.`, result.transactionHash, true);
   }
   return result;
 }
@@ -110,22 +131,22 @@ export function verifiedContractExecution(result) {
   const hash = result?.transactionHash;
   const validHash = typeof hash === 'string' && /^[0-9a-fA-F]{64}$/.test(hash);
   if (!validHash || !Number.isSafeInteger(result.height) || result.height <= 0)
-    throw new Error(`Cosmos contract execution lacks valid committed hash/height evidence.${validHash ? ` Original transaction ${hash}.` : ''} Reconcile submission before retrying.`);
+    throw new CosmosNativeMutationReconciliationError(`Cosmos contract execution lacks valid committed hash/height evidence.${validHash ? ` Original transaction ${hash}.` : ''} Reconcile submission before retrying.`, hash, null);
   return result;
 }
 
 export function cosmosFailureMessage(error) {
-  if (error instanceof TimeoutError && /^[0-9a-fA-F]{64}$/.test(error.txId ?? ''))
-    return `Cosmos submission outcome is not verified; original transaction ${error.txId}. Reconcile this transaction before retrying.`;
+  if (error instanceof TimeoutError)
+    return `Cosmos submission outcome is not verified; ${typeof error.txId === 'string' && /^[0-9a-fA-F]{64}$/.test(error.txId) ? `original transaction ${error.txId}` : 'original transaction identity is unavailable'}. Reconcile this transaction before retrying.`;
   return error instanceof Error ? error.message : String(error);
 }
 
 export function verifiedBankTransfer(result) {
-  if (!result || !Number.isSafeInteger(result.code) || result.code < 0
+  if (!result || !Number.isSafeInteger(result.code) || result.code < 0 || result.code > 4294967295
       || !/^[0-9a-fA-F]{64}$/.test(result.transactionHash ?? ''))
-    throw new Error('Cosmos transfer response does not establish an exact execution code and transaction hash. Reconcile submission before retrying.');
+    throw new CosmosNativeMutationReconciliationError('Cosmos transfer response does not establish an exact execution code and transaction hash. Reconcile submission before retrying.', result?.transactionHash, null);
   if (result.code !== 0)
-    throw new Error(`Cosmos transfer failed with execution code ${result.code}; transaction ${result.transactionHash}. Reconcile this original transaction before retrying.`);
+    throw new CosmosNativeMutationReconciliationError(`Cosmos transfer failed with execution code ${result.code}; transaction ${result.transactionHash}. Reconcile this original transaction before retrying.`, result.transactionHash, Number.isSafeInteger(result.height) && result.height > 0 ? false : null);
   verifiedContractExecution(result);
   return result;
 }

@@ -1,6 +1,6 @@
 import { CosmWasmClient, SigningCosmWasmClient, wasmTypes } from "@cosmjs/cosmwasm";
 import { DirectSecp256k1Wallet, DirectSecp256k1HdWallet, decodeTxRaw, Registry } from "@cosmjs/proto-signing";
-import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, verifiedNftCustodyReceipt, cosmosNativeFeeReceipt, bankTransferLegs, cosmosFailureMessage, indexedHistorySnapshot } from './transaction-results.mjs';
+import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, verifiedNftCustodyReceipt, cosmosNativeFeeReceipt, bankTransferLegs, cosmosErrorEnvelope, guardCosmosSigningClient, indexedHistorySnapshot } from './transaction-results.mjs';
 import { GasPrice, defaultRegistryTypes } from "@cosmjs/stargate";
 import { fromHex, toHex, fromBech32 } from "@cosmjs/encoding";
 
@@ -36,6 +36,7 @@ async function execute(input) {
       broadcastPollIntervalMs: 500,
     })
     : await CosmWasmClient.connect(input.rpcEndpoint);
+  if (isSigned) guardCosmosSigningClient(client);
   try {
     const chainId = await client.getChainId();
     if (input.chainId && input.chainId !== chainId)
@@ -135,6 +136,6 @@ async function execute(input) {
 try {
   process.stdout.write(JSON.stringify({ ok: true, result: await execute(await readInput()) }));
 } catch (error) {
-  process.stdout.write(JSON.stringify({ ok: false, error: cosmosFailureMessage(error) }));
+  process.stdout.write(JSON.stringify(cosmosErrorEnvelope(error)));
   process.exitCode = 1;
 }
