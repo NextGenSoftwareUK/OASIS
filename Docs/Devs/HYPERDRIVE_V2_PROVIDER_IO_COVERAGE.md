@@ -22,6 +22,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Rejected verifier leaves durable preparation untouched — 2026-10-12
+
+Real Mongo protocol test now proves adapter verification rejection propagates its original failure, leaves provider attempts empty and consumes no native evidence bytes. Missing verifier cannot construct the adapter. Suite **76/76**, zero skips, fixed report `TestResults/SubscriptionUsageCurrent/subscription-usage-current.trx`; controlled verifier rejection, not native crypto proof. Core test commit `0eb07cdaa5a030cc33c2b6fe7c90ef9f4faf1600` published; parent pin synchronized. Production lifecycle, full signed-provider/pipe/outbox recovery, billing and live/deployed gates remain open. No install, ledger mutation, charging change or release merge.
+
 ### Sui preparation server connected to execution adapter/verifier — 2026-10-12
 
 `SuiOASIS.CreateNativePreparationServer` now combines the existing execution-owned native persistence adapter, explicit expected chain/signer/correlation and the actual official-SDK C# verifier into one parent-server callback. It requires a supplied admitted execution rather than inventing authority; owner must provide trusted admission context. Shared/Sui builds passed 0 errors/warnings; focused real preparation suite **2/2**, zero skips, including null-execution rejection and the actual signed-verification path. Report `TestResults/SuiCurrent/sui-real-preparation.trx`.
