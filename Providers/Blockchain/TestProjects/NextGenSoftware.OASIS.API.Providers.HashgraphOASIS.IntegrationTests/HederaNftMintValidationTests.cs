@@ -99,7 +99,7 @@ public class HederaNftMintValidationTests
         var request = Valid(); request.NFTStandardType = NextGenSoftware.OASIS.API.Core.Enums.NFTStandardType.ERC721;
         var result = await new HashgraphOASIS().MintNFTAsync(request);
         Assert.IsTrue(result.IsError);
-        StringAssert.Contains(result.Message, "native HTS");
+        StringAssert.Contains(result.Message, "HederaHTS");
     }
 
     private static MintWeb3NFTRequest Valid() => new() { CollectionPublicKey = "0.0.1234", JSONMetaDataURL = "ipfs://metadata" };

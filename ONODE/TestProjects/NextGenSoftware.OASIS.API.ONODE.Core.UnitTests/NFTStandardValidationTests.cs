@@ -36,6 +36,14 @@ public sealed class NFTStandardValidationTests : IDisposable
 
     [Theory]
     [InlineData(NFTStandardType.SuiObject, ProviderType.SuiOASIS, true)]
+    [InlineData(NFTStandardType.HederaHTS, ProviderType.HashgraphOASIS, true)]
+    [InlineData(NFTStandardType.OASISCosmWasm, ProviderType.CosmosBlockChainOASIS, true)]
+    [InlineData(NFTStandardType.HederaHTS, ProviderType.SuiOASIS, false)]
+    [InlineData(NFTStandardType.OASISCosmWasm, ProviderType.HashgraphOASIS, false)]
+    [InlineData(NFTStandardType.HederaHTS, ProviderType.EthereumOASIS, false)]
+    [InlineData(NFTStandardType.OASISCosmWasm, ProviderType.EthereumOASIS, false)]
+    [InlineData(NFTStandardType.ERC721, ProviderType.HashgraphOASIS, false)]
+    [InlineData(NFTStandardType.ERC721, ProviderType.CosmosBlockChainOASIS, false)]
     [InlineData(NFTStandardType.SuiObject, ProviderType.EthereumOASIS, false)]
     [InlineData(NFTStandardType.SuiObject, ProviderType.SolanaOASIS, false)]
     [InlineData(NFTStandardType.SuiObject, ProviderType.Default, false)]
@@ -85,6 +93,25 @@ public sealed class NFTStandardValidationTests : IDisposable
         Assert.Equal(1, (int)NFTStandardType.ERC1155);
         Assert.Equal(2, (int)NFTStandardType.SPL);
         Assert.Equal(3, (int)NFTStandardType.SuiObject);
+        Assert.Equal(4, (int)NFTStandardType.HederaHTS);
+        Assert.Equal(5, (int)NFTStandardType.OASISCosmWasm);
+    }
+
+    [Theory]
+    [InlineData(NFTStandardType.SuiObject, ProviderType.SuiOASIS)]
+    [InlineData(NFTStandardType.HederaHTS, ProviderType.HashgraphOASIS)]
+    [InlineData(NFTStandardType.OASISCosmWasm, ProviderType.CosmosBlockChainOASIS)]
+    public void NativeModelsReuseNonemptyPresentationMetadata(NFTStandardType model, ProviderType provider)
+    {
+        var manager = new NFTManager((IOASISStorageProvider)null!, Guid.NewGuid(), new OASISDNA());
+        var request = new NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests.MintWeb4NFTRequest {
+            Title = "Living Oak", ImageUrl = "https://example.invalid/oak.png", Price = 12.5m,
+            OnChainProvider = new EnumValue<ProviderType>(provider),
+        };
+        using var json = System.Text.Json.JsonDocument.Parse(manager.CreateMetaDataJson(request, model));
+        Assert.Equal("Living Oak", json.RootElement.GetProperty("title").GetString());
+        Assert.Equal(request.ImageUrl, json.RootElement.GetProperty("image").GetString());
+        Assert.Equal(12.5m, json.RootElement.GetProperty("price").GetDecimal());
     }
 }
 
