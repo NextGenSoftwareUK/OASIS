@@ -20,8 +20,7 @@ if (existsSync(journalPath)) {
   if (failed?.digest !== journal.digest || failed.status?.success !== false)
     throw new Error('Retained submission is not verified as failed; reconcile original digest, never resubmit');
   console.log(journal.digest);
-  process.exit(0);
-}
+} else {
 const tx = new Transaction();
 tx.setSender(signer.toSuiAddress());
 tx.setGasBudget(10000000);
@@ -46,3 +45,4 @@ const failed = response.FailedTransaction;
 if (failed?.digest !== originalDigest || failed.status?.success !== false) throw new Error('Expected original committed failed transaction; reconcile journal before retrying');
 await client.waitForTransaction({ digest: failed.digest });
 console.log(failed.digest);
+}
