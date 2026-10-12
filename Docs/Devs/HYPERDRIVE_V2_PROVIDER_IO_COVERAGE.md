@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Independent TRON prepared signature recovery — 2026-10-12
+
+Added bounded canonical signed-byte verifier binding SHA256 raw identity and recovering single-signature sender via installed Nethereum 7.0.0 APIs against explicitly trusted 21-byte sender. Actual TronNet signing accepts correct sender and rejects altered expected sender. Focused suite **8/8**, zero skips (console result, no refreshed TRX this invocation); build 0 errors/21 existing warnings. No new packages.
+
+Verifier is not yet wired to execution-owned runtime persistence. Contract owner/permission/fee/window binding, malformed signature matrix, actual live recovery and full deployed gates remain required. Live original fenced; no RPC/submissions or release merge.
+
 ### Complete TRON unit project regression and signer-verification audit — 2026-10-12
 
 Entire current TRON unit project passed **202/202**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`, after preparation-ordering and confirmation-fence changes. Existing retained packages are TronNet 0.2.0 and Nethereum.Signer 7.0.0; no installs. This full project regression supersedes earlier 199-case unit count, not live-node proof.

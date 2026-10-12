@@ -76,6 +76,11 @@ public class TronUnknownBroadcastEvidenceTests
             var prepared=Transaction.Parser.ParseFrom(Convert.FromBase64String(bytes));
             Assert.Equal(Convert.ToHexString(SHA256.HashData(prepared.RawData.ToByteArray())).ToLowerInvariant(),id);
             Assert.Single(prepared.Signature);await Task.Yield();preparationCalls++;persistedId=id;
+            var expectedSender=new byte[21];expectedSender[0]=0x41;
+            new Nethereum.Signer.EthECKey(new string('0',63)+"1").GetPublicAddressAsBytes().CopyTo(expectedSender,1);
+            TronPreparationVerifier.VerifyOriginal(bytes,id,expectedSender);
+            expectedSender[1]^=1;
+            Assert.Throws<System.IO.InvalidDataException>(()=>TronPreparationVerifier.VerifyOriginal(bytes,id,expectedSender));
             if(persistenceRejected)throw persistenceFailure;
         }:null);
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
