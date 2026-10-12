@@ -42,6 +42,33 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
     [TestClass]
     public class KeyValueStorageProviderBaseTests
     {
+        [TestMethod]
+        public async Task Object_metadata_still_rejects_nested_non_OASIS_runtime_types()
+        {
+            var holon = new Holon { MetaData = new Dictionary<string, object>() };
+            Assert.IsFalse((await _provider.SaveHolonAsync(holon)).IsError);
+            var json = Newtonsoft.Json.Linq.JObject.Parse(OasisJson.Serialize<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(holon));
+            json["MetaData"]["unsafe"] = new Newtonsoft.Json.Linq.JObject {
+                ["$type"] = "System.IO.FileInfo, System.Private.CoreLib", ["OriginalPath"] = "never-open-this-path" };
+            _backend.Items[$"oasis/holon/{holon.Id:N}"] = json.ToString();
+            var loaded = await _provider.LoadHolonAsync(holon.Id, loadChildren: false);
+            Assert.IsTrue(loaded.IsError); Assert.IsNotNull(loaded.Exception);
+            Assert.AreNotEqual("OASIS_RECORD_NOT_FOUND", loaded.ErrorCode);
+        }
+
+        [TestMethod]
+        public async Task Structured_karma_history_metadata_round_trips_without_allowing_arbitrary_types()
+        {
+            var avatarId = Guid.NewGuid();
+            var holon = new Holon { MetaData = new Dictionary<string, object> {
+                ["history"] = new List<Dictionary<string, object>> { new() { ["avatarId"] = avatarId, ["amount"] = 25L } } } };
+            Assert.IsFalse((await _provider.SaveHolonAsync(holon)).IsError);
+            var loaded = await _provider.LoadHolonAsync(holon.Id, loadChildren: false);
+            Assert.IsFalse(loaded.IsError, loaded.Message);
+            var history = (List<Dictionary<string, object>>)loaded.Result.MetaData["history"];
+            Assert.AreEqual(avatarId.ToString(), history.Single()["avatarId"]); Assert.AreEqual(25L, history.Single()["amount"]);
+        }
+
         [DataTestMethod]
         [DataRow("id", false)] [DataRow("id", true)]
         [DataRow("username", false)] [DataRow("username", true)]
