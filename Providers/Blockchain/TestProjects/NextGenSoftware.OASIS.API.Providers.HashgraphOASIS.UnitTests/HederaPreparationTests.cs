@@ -22,7 +22,9 @@ public class HederaPreparationTests
     [DataRow("no-ack")] [DataRow("bad-utf8")] [DataRow("bad-json")]
     [DataRow("generic-error")]
     [DataRow("foreign-preparation")]
-    public async Task PreparedChildLifecycle(string mode)
+    [DataRow("accept","nftEscrowUnlock")] [DataRow("accept","tokenEscrowUnlock")]
+    [DataRow("reject","nftEscrowUnlock")] [DataRow("reject","tokenEscrowUnlock")]
+    public async Task PreparedChildLifecycle(string mode,string action="transfer")
     {
         var previous=Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE");
         Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","prepared.mjs"));
@@ -33,7 +35,7 @@ public class HederaPreparationTests
             using var server=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer((_,_)=>{calls++;return mode=="reject"?Task.FromException(failure):Task.CompletedTask;},"0.0.1001@1700000000.000000001");
             using var cancellation=new CancellationTokenSource();if(mode=="hold")cancellation.CancelAfter(1000);
             const string original="0.0.1001@1700000000.000000001";
-            var operation=(Task<JsonElement>)method.Invoke(null,new object[]{"transfer",new{transactionId=original,mode},server,cancellation.Token})!;
+            var operation=(Task<JsonElement>)method.Invoke(null,new object[]{action,new{transactionId=original,mode},server,cancellation.Token})!;
             if(mode=="reject")Assert.AreSame(failure,await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>operation));
             else if(mode=="foreign-preparation")await Assert.ThrowsExceptionAsync<InvalidDataException>(()=>operation);
             else if(mode=="wrong"||mode=="no-ack"||mode=="bad-utf8"||mode=="bad-json"||mode=="generic-error"){
@@ -51,7 +53,7 @@ public class HederaPreparationTests
     {
         var client=typeof(HashgraphOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.HederaSdkClient")!;
         var method=client.GetMethod("InvokePreparedAsync",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!;
-        foreach(var action in new[]{"verifyNativePreparation","nftEscrowLock"}){
+        foreach(var action in new[]{"verifyNativePreparation","nftEscrowLock","tokenEscrowLock"}){
             var calls=0;using var server=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer((_,_)=>{calls++;return Task.CompletedTask;});
             var operation=(Task<JsonElement>)method.Invoke(null,new object[]{action,new{transactionId="0.0.1001@1700000000.000000001"},server,CancellationToken.None})!;
             await Assert.ThrowsExceptionAsync<ArgumentException>(()=>operation);Assert.AreEqual(0,calls);
