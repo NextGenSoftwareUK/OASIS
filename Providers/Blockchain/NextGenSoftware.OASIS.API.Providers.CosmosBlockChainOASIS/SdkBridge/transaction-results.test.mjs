@@ -27,6 +27,35 @@ test('official broadcast clears its polling timer when synchronous broadcast rej
   }
 });
 const hash = 'ab'.repeat(32);
+test('prepared await cannot change the signed bytes bound to persisted identity', async () => {
+  const bytes=new Uint8Array([1,2,3]), original=Uint8Array.from(bytes);
+  const expected=createHash('sha256').update(original).digest('hex').toUpperCase();
+  const client={async broadcastTx(sent){assert.deepEqual(sent,original);return {transactionHash:expected,height:42,code:0};},async signAndBroadcast(){}};
+  guardCosmosSigningClient(client,async evidence=>{assert.equal(evidence.transactionHash,expected);bytes.fill(9);await Promise.resolve();});
+  assert.equal((await client.broadcastTx(bytes)).transactionHash,expected);
+});
+test('prepared persistence is awaited before broadcast and rejection prevents native submission', async () => {
+  const bytes=new Uint8Array([1,2,3]);
+  const expected=createHash('sha256').update(bytes).digest('hex').toUpperCase();
+  for(const reject of [false,true]) {
+    const order=[];const failure=new Error('controlled durable persistence failure');
+    const client={async broadcastTx(){order.push('broadcast');return {transactionHash:expected,height:42,code:0};},async signAndBroadcast(){}};
+    guardCosmosSigningClient(client,async evidence=>{
+      order.push('prepare');assert.deepEqual(evidence,{transactionHash:expected});
+      await Promise.resolve();
+      if(reject)throw failure;
+      order.push('persisted');
+    });
+    if(reject) {
+      await assert.rejects(withCosmosNativeEvidence(()=>client.broadcastTx(bytes)),error=>error===failure);
+      assert.deepEqual(order,['prepare']);
+      assert.equal(cosmosErrorEnvelope(failure).nativeMutation,undefined);
+    } else {
+      assert.equal((await client.broadcastTx(bytes)).transactionHash,expected);
+      assert.deepEqual(order,['prepare','persisted','broadcast']);
+    }
+  }
+});
 for (const mode of ['success','poll-error','deadline']) {
  test(`official broadcast clears polling timers on ${mode}`, async () => {
   const client = new StargateClient(undefined, {});
