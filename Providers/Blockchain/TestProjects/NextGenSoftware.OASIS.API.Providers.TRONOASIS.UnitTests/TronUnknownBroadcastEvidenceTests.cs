@@ -54,6 +54,7 @@ public class TronUnknownBroadcastEvidenceTests
             new object?[] { transaction, new string('0', 63) + "1", "controlled public memo", CancellationToken.None, false, false, false, null })!;
         var evidence = await Assert.ThrowsAsync<TronBroadcastOutcomeUnknownException>(() => submit);
         Assert.Equal(1, controlled.BroadcastCount);
+        Assert.Equal(evidence.TransactionId, ((Core.Interfaces.INativeMutationReconciliationRequired)evidence).OriginalTransactionId);
         Assert.Equal(1, controlled.SignCount);
         Assert.Single(controlled.Signed.Signature);
         Assert.Equal(65, controlled.Signed.Signature[0].Length);

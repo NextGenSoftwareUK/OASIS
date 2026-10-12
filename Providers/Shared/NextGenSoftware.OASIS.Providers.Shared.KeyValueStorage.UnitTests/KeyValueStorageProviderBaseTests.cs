@@ -22,13 +22,14 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
         public string FailGetKey;
         public Exception FailGetException;
         public string FailPutKey;
+        public Exception FailPutException;
         public string FailDeleteKey;
         public int ListCalls;
 
         public Task<string> GetAsync(string key, CancellationToken ct = default) => key == FailGetKey
             ? throw (FailGetException ?? new System.IO.IOException("controlled child read outage")) : ThrowReads
             ? throw new InvalidOperationException("store read unavailable") : Task.FromResult(Items.TryGetValue(key, out var v) ? v : null);
-        public Task PutAsync(string key, string value, CancellationToken ct = default) { if (key == FailPutKey) throw new InvalidOperationException("controlled write failure"); Items[key] = value; return Task.CompletedTask; }
+        public Task PutAsync(string key, string value, CancellationToken ct = default) { if (key == FailPutKey) throw (FailPutException ?? new InvalidOperationException("controlled write failure")); Items[key] = value; return Task.CompletedTask; }
         public Task DeleteAsync(string key, CancellationToken ct = default) { if (key == FailDeleteKey) throw new InvalidOperationException("controlled delete failure"); Items.TryRemove(key, out _); return Task.CompletedTask; }
         public Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken ct = default)
         { ListCalls++; return Task.FromResult<IReadOnlyList<string>>(Items.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal)).OrderBy(k => k).ToList()); }
@@ -48,6 +49,48 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
     [TestClass]
     public class KeyValueStorageProviderBaseTests
     {
+        private sealed class UnknownMutationException : InvalidOperationException, API.Core.Interfaces.INativeMutationReconciliationRequired
+        {
+            public string OriginalTransactionId => "original-controlled-submission";
+        }
+
+        [DataTestMethod]
+        [DataRow(false, false)] [DataRow(false, true)]
+        [DataRow(true, false)] [DataRow(true, true)]
+        public async Task Child_and_batch_saves_stop_on_native_uncertainty_and_preserve_original_exception(bool children, bool continueOnError)
+        {
+            var interrupted = new Holon { Id = Guid.NewGuid() };
+            var remaining = new Holon { Id = Guid.NewGuid() };
+            var evidence = new UnknownMutationException();
+            var backend = new InMemoryBackend { FailPutKey = "oasis/holon/" + interrupted.Id.ToString("N"), FailPutException = evidence };
+            var provider = new TestProvider(backend);
+            if (children)
+            {
+                var parent = new Holon { Id = Guid.NewGuid(), Children = new List<API.Core.Interfaces.IHolon> { interrupted, remaining } };
+                var result = await provider.SaveHolonAsync(parent, continueOnError: continueOnError);
+                Assert.IsTrue(result.IsError);
+                Assert.AreSame(evidence, result.Exception);
+            }
+            else
+            {
+                var result = await provider.SaveHolonsAsync(new[] { interrupted, remaining }, continueOnError: continueOnError);
+                Assert.IsTrue(result.IsError);
+                Assert.AreSame(evidence, result.Exception);
+            }
+            Assert.IsFalse(backend.Items.ContainsKey("oasis/holon/" + remaining.Id.ToString("N")));
+        }
+
+        [TestMethod]
+        public async Task Import_preserves_native_mutation_evidence()
+        {
+            var interrupted = new Holon { Id = Guid.NewGuid() };
+            var evidence = new UnknownMutationException();
+            var provider = new TestProvider(new InMemoryBackend { FailPutKey = "oasis/holon/" + interrupted.Id.ToString("N"), FailPutException = evidence });
+            var result = await provider.ImportAsync(new[] { interrupted });
+            Assert.IsTrue(result.IsError);
+            Assert.AreSame(evidence, result.Exception);
+        }
+
         [DataTestMethod]
         [DataRow("cancelled")]
         [DataRow("unsupported")]

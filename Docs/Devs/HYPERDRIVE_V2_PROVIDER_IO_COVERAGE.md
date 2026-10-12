@@ -5,7 +5,7 @@
 
 ## Current provider status — not full certification
 
-Latest refreshed regression checkpoints (2026-10-12; separate suites, not one end-to-end run): **Core 412/412; shared storage 69/69; Sui C# 32/32 and SDK 9/9; Cosmos C# 56/56 and SDK 34/34; TRON C# 198/198; Hedera non-funded 218/218; WEB4 141/141; ONODE Core 244/244**. Zero skips in those selections. These counts supersede older counts below; they do not expand test scope or establish missing live/deployed gates.
+Latest refreshed regression checkpoints (2026-10-12; separate suites, not one end-to-end run): **Core 428/428; shared storage 74/74; Sui C# 35/35 and SDK 12/12; Cosmos C# 56/56 and SDK 34/34; TRON C# 198/198; Hedera non-funded 218/218; WEB4 141/141; ONODE Core 244/244**. Zero skips in those selections. These counts supersede older counts below; they do not expand test scope or establish missing live/deployed gates.
 
 No provider is currently certified against the entire requested combination of relevant interfaces, live V2 failover/replication/load balancing, and deployed authenticated API behavior. Historical PASS labels mean the stated tests passed; they must not be read as complete provider certification. Controlled/unit tests, official local runtimes, cloud emulators and hosted production/testnet execution are distinct evidence categories.
 
@@ -21,6 +21,14 @@ Broader providers with narrower recorded real-runtime/SDK/API evidence: MongoDB,
 Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 244/244, Cosmos C# 56/56/SDK 29/29, Hedera non-funded 209/209; zero skips in the stated selections. Exact revisions and limitations are recorded below. Task branch contains Development reconciliation, but Development/master have not received this task's release merge. Hosted dev revision last checked was `77c65eaa80aa06fb767715322eb97d8d3844282f`, not this task code. User authorizes a safe Development merge/automatic Railway deployment; resolve regression/deployment gates before claiming release success. Native NFT models and mint actor/recipient/batch safety have changed; positive authenticated minting, durable subscription/fee integration, live Cosmos corrected assets/multi-send/bridge receipt, funded Hedera storage/NFT/V2, full interface/options/hosted API and broader provider gates remain open. Update this summary whenever coverage or remaining gates change; retain exact checkpoint reports below rather than silently promote narrow evidence to broader claims.
 
 ## Routing contract
+
+### Native uncertain-mutation replay guard (2026-10-12)
+
+Core `c3a1c81d641f75552cea3b570a1e507cd0fd8415` adds `INativeMutationReconciliationRequired` and one shared exception-tree inspector, used by V2 failover and shared save aggregation. TRON's existing real signed-broadcast uncertainty exception implements the contract with its exact original transaction ID. V2 preserves that failure instead of replaying it on another provider; direct, wrapped and aggregate exception paths are recognized. Terminal errors encountered at an alternate provider no longer mark failover diagnostics successful or record successful failover quota usage. Ordinary provider availability failures remain eligible for failover.
+
+Shared child and batch save aggregation previously dropped original exceptions, which could erase this evidence before V2 saw it. It now preserves the exception and terminates saves on reconciliation-required native outcomes regardless of `continueOnError`; import also preserves the underlying exception. This does not roll back already committed parent/earlier records or automatically reconcile them. Sixteen controlled sync/async routing cases cover primary/alternate uncertainty, direct/wrapped/aggregate evidence, unchanged ordinary availability failover and no subsequent provider writes. Five shared cases cover child/batch continuation flags and import evidence. Existing actual official TRON signing-helper interruption test now asserts the new contract retains its signed transaction ID; no native broadcast was sent by that controlled test.
+
+Full Core **428/428**, shared **74/74**, TRON C# **198/198**, zero skips; reused current TRX report paths. Core build zero errors/131 warnings, shared zero errors/two warnings, TRON zero errors/23 warnings. No runtime restart, download or fenced TRON mutation retry. Existing TRON original uncertain transaction remains unresolved. This is an in-process typed-evidence guard, not durable pre-submit journaling, arbitrary remote-error recognition or all-provider completion. Sui/Cosmos/Hedera SDK outcome transport still needs equivalent structured adoption; message-only digests are not this contract.
 
 ### Sui original execution identity on readback failure (2026-10-12)
 
