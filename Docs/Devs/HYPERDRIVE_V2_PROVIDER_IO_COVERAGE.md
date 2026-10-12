@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Live Sui V2 verification/reset/refresh-token presence and absence (2026-10-12)
+
+Existing healthy real-replica scenario adds 24 token-storage assertions: verification/reset/refresh lookups, sync/async on Sui/LocalFile, matching owned avatar before and authoritative null after replicated deletion. All pass in **1/1** scenario, zero skips, 77 seconds (`sui-v2-healthy-current.trx`), with prior indexed/list/metadata/search/replication/measured-selection assertions still green. These are storage lookups, not expiry/revocation/authentication proof. Existing node/package/ledger/SDK/fixed fixture directory reused and cleaned; exact owned PID 125720 stopped after terminal completion, no remaining Sui process. No install/download/new environment/reset/public assets/merge; complete option/native/API/image gates remain open.
+
 ### Live Sui V2 holon list/metadata/text-search expansion (2026-10-12)
 
 Healthy retained-node scenario adds 16 real routing assertions: LoadAllHolons, single-key/pair metadata collections and existing SearchTextGroup holon search, sync/async on both Sui/LocalFile. Each verifies the owned replicated holon's ID/name; metadata uses its unique owned marker. Expanded scenario passes **1/1**, zero skips, 72 seconds (`sui-v2-healthy-current.trx`), retaining indexed/list avatar/detail presence/deletion and replication/measured selection checks. Original node/package/ledger/SDK/fixed fixture directory reused; finally removes owned records. Exact owned PID 124173 stopped after terminal completion, no Sui process remains. No reset/install/download/new environment/public assets/merge. This is selected query-type/option proof, not all searches, all 42 operations or every native/API/image release gate.

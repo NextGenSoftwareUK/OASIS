@@ -109,6 +109,9 @@ public sealed class SuiRealProviderRoutingTests
         var deletedThroughRouter = false;
         var avatar = new Avatar { Id = Guid.NewGuid(), Username = "sui-v2-" + Guid.NewGuid().ToString("N"),
             Email = Guid.NewGuid().ToString("N") + "@example.invalid" };
+        avatar.VerificationToken = "owned-sui-verification-" + avatar.Id;
+        avatar.ResetToken = "owned-sui-reset-" + avatar.Id;
+        avatar.RefreshTokens = new() { new RefreshToken { Token = "owned-sui-refresh-" + avatar.Id } };
         var detail = new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Email = avatar.Email };
         var avatarSaved = false;
         (await local.ActivateProviderAsync()).IsError.Should().BeFalse();
@@ -155,6 +158,22 @@ public sealed class SuiRealProviderRoutingTests
                 }
             }
             await AssertAvatarLists(true);
+            async Task AssertTokenLookups(bool present)
+            {
+                foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.SuiOASIS })
+                    foreach (var operation in new[] { "LoadAvatarByVerificationToken", "LoadAvatarByResetToken", "LoadAvatarByRefreshToken" })
+                    {
+                        var request = new StorageOperationRequest { Operation = operation, PreferredProvider = providerType,
+                            VerificationToken = avatar.VerificationToken, ResetToken = avatar.ResetToken, RefreshToken = avatar.RefreshTokens[0].Token };
+                        foreach (var read in new[] { router.RouteRequest<IAvatar>(request), await router.RouteRequestAsync<IAvatar>(request) })
+                        {
+                            read.IsError.Should().BeFalse(read.Message);
+                            if (present) read.Result.Id.Should().Be(avatar.Id);
+                            else read.Result.Should().BeNull("deleted token indexes must resolve to authoritative absence");
+                        }
+                    }
+            }
+            await AssertTokenLookups(true);
             foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.SuiOASIS })
             {
                 foreach (var operation in new[] { "LoadAvatar", "LoadAvatarByUsername", "LoadAvatarByEmail" })
@@ -278,6 +297,7 @@ public sealed class SuiRealProviderRoutingTests
             }
             avatarSaved = false;
             await AssertAvatarLists(false);
+            await AssertTokenLookups(false);
         }
         finally
         {
