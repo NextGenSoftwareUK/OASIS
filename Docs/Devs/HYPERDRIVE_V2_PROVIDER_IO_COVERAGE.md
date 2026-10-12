@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Packaging verifier enforces actual direct SDK versions (2026-10-11)
+
+Bridge verifier previously proved imports but accepted any installed importable SDK version. It now requires exact direct dependency pins, agreement between package manifest and lockfile root/resolved package entries, and matching installed package name/version after ESM import verification. Controlled wrong-installed-version and wrong-lockfile cases join existing syntax/import/module checks: **7/7** pass. Existing Cosmos/Hedera/Sui/Near source installations pass the enhanced verifier without reinstall/download, and Railway manifest/seven Dockerfiles/gitlinks validation passes. This verifies **direct Node SDK pins**, not complete transitive integrity, NuGet runtime versions or actual published image execution. Cached Podman images comprise retained Azure Cosmos emulator/TRON/wasmd runtimes, not an API build image; actual-image release gate remains open. Approximately 109.18 GB decimal free. No installs/downloads/new runtime/environment/ledger mutation/merge.
+
 ### Cosmos avatar mint signer resolution with real encrypted wallet store (2026-10-11)
 
 `CosmosAvatarMintSignerTests` passes **1/1**, zero skips: real V2 WalletManager/LocalFile persisted wallet lookup and decryption selects the marked default Cosmos wallet even with a non-default decoy first, instead of the provider-configured key. Controlled Node transport rejects the wrong signing key and returns a fixture digest for the selected key; stored private key remains encrypted. Missing actor wallet fails explicitly before mint with no result rather than configured-key fallback. This is **real encrypted wallet-resolution plus controlled transport evidence**, not a real Cosmos signing key, native mint receipt or authenticated HTTP. It reuses fixed `HyperDriveCosmos/files`, rejects pre-existing nonempty/error wallet maps, restores the bridge environment and clears only its owned map.

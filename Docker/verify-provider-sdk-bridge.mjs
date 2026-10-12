@@ -30,4 +30,17 @@ for(const entry of fs.readdirSync(root).filter(name=>name.endsWith('.mjs'))){
 for(const dependency of Object.keys(manifest.dependencies??{}))
  if(![...external].some(name=>name===dependency||name.startsWith(`${dependency}/`)))
   throw new Error(`Declared SDK ${dependency} has no verified bridge import`);
-console.log(`${manifest.name}: bridge syntax and import resolution verified`);
+const dependencies=Object.entries(manifest.dependencies??{});
+if(dependencies.length){
+ const lock=JSON.parse(fs.readFileSync(path.join(root,'package-lock.json'),'utf8'));
+ for(const [name,pin] of dependencies){
+  if(!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/.test(pin))
+   throw new Error(`SDK ${name} must use an exact version pin`);
+  if(lock.packages?.['']?.dependencies?.[name]!==pin||lock.packages?.[`node_modules/${name}`]?.version!==pin)
+   throw new Error(`SDK ${name} manifest/lockfile version mismatch`);
+  const installed=JSON.parse(fs.readFileSync(path.join(root,'node_modules',name,'package.json'),'utf8'));
+  if(installed.name!==name||installed.version!==pin)
+   throw new Error(`Installed SDK ${name} does not match pinned version ${pin}`);
+ }
+}
+console.log(`${manifest.name}: bridge syntax, import resolution and direct SDK pins verified`);
