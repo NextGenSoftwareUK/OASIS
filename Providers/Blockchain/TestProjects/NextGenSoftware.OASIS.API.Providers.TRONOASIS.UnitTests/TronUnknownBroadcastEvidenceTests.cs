@@ -42,6 +42,19 @@ public class TronUnknownBroadcastEvidenceTests
         var id=Convert.ToHexString(SHA256.HashData(signed.RawData.ToByteArray())).ToLowerInvariant();
         var error=Assert.Throws<System.IO.InvalidDataException>(()=>TronPreparationVerifier.VerifyOriginal(Convert.ToBase64String(signed.ToByteArray()),id,sender,100));
         Assert.Contains(mode=="empty"?"One original":mode=="unsupported"?"not supported":mode=="wrong-owner"?"owner differs":mode=="excess-fee"?"ceiling":mode=="active-permission"?"permission authority":"validity window",error.Message);
+        if(mode=="active-permission"){
+            transaction.RawData.Contract[0].PermissionId=2;
+            signed=signer.GetTransactionSign(transaction,new string('0',63)+"1");
+            id=Convert.ToHexString(SHA256.HashData(signed.RawData.ToByteArray())).ToLowerInvariant();
+            var mask=new byte[32];mask[0]=2;
+            var permission=new Permission{Id=2,Type=(Permission.Types.PermissionType)2,Threshold=1,Operations=ByteString.CopyFrom(mask)};
+            permission.Keys.Add(new Key{Address=ByteString.CopyFrom(sender),Weight=1});
+            var account=new Account{Address=ByteString.CopyFrom(sender)};account.ActivePermission.Add(permission);
+            var encoded=Convert.ToBase64String(signed.ToByteArray());
+            TronPreparationVerifier.VerifyWithAccountAuthority(encoded,id,sender,100,account);
+            permission.Threshold=2;
+            Assert.Throws<System.IO.InvalidDataException>(()=>TronPreparationVerifier.VerifyWithAccountAuthority(encoded,id,sender,100,account));
+        }
     }
     [Fact]
     public async Task PreparedRuntimeViewReusesExistingSdkServicesWithoutChangingOrdinaryClient()
