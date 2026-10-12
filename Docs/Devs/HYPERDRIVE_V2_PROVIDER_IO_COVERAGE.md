@@ -5,6 +5,12 @@
 
 ## Routing contract
 
+### Live stored-wallet public/private-key lookup routes (2026-10-11)
+
+Expanded retained TRON V2 scenario passes **1/1**, zero skips, 77 seconds (`tron-v2-routing.trx`). Avatar embeds the real public-local TRON fixture wallet/public key with its private key encrypted using the installed existing encryption library. Both public-key and **exact stored encrypted private-key value** lookups execute sync/async via V2 on LocalFile/TRON, returning the owned identity before deletion and non-error null afterward (**16 additional routed checks**). This is stored-value lookup, **not plaintext credential lookup, signature/proof-of-possession authentication or authorization**. No real user private key is used/printed. Existing replication, actual outage failover, balancing/deletion/search checks remain passing; owned records cleaned and runtime paused.
+
+Only add/remove karma operation names remain absent from this scenario's static 42-handler comparison. Presence of the other 40 names does not prove every sync/async projection, option/provider combination, HTTP route or deployment. Karma still needs live single-owner ledger/projection proof without command replay. No install/download/environment duplication/merge; full remaining release gates stay open.
+
 ### Live delete-by-identity/provider-key handler extension (2026-10-11)
 
 Expanded retained TRON V2 scenario passes **1/1**, zero skips, 79 seconds (`tron-v2-routing.trx`). Username/email/provider-key avatar permanent deletion now runs sync/async with TRON primary and successful LocalFile replication (six mutations), verifying avatar ID/username/email and detail absence independently at both replicas. Fixed avatar/detail is restored by explicit replicated saves before each case, with cleanup tracking preserved. Holon provider-key deletion also runs sync/async with replication (two mutations), restoring only the owned fixed batch fixture before each deletion and verifying both stores afterward. Existing other storage paths and actual outage/failover/balancing remain passing. Public LocalFile fixture keys are explicit stable IDs; no fake chain identity is generated.

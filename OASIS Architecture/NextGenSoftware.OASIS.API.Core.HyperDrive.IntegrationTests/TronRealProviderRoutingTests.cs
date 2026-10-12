@@ -55,11 +55,17 @@ public sealed class TronRealProviderRoutingTests
         var failedOver = new Holon { Id = Guid.Parse("c8752504-dff2-44c6-99d9-32a601ae9670"), Name = "Real V2 TRON outage" };
         var partial = new Holon { Id = Guid.Parse("f8882565-96ba-40f5-b2ac-a47e78ab8ea9"), Name = "Real V2 partial replication" };
         var paused = false;
+        var publicKey = Convert.ToHexString(new Nethereum.Signer.EthECKey(key).GetPubKey());
+        var encryptedKey = Rijndael256.Rijndael.Encrypt(key, new string('k', 32), Rijndael256.KeySize.Aes256);
         var avatar = new Avatar { Id = Guid.Parse("b531a581-5627-451c-9de5-95c198646c20"),
             Username = "tron-real-v2-avatar", Email = "tron-real-v2-avatar@example.invalid",
             ProviderUniqueStorageKey = new() { [ProviderType.LocalFileOASIS] = "b531a581-5627-451c-9de5-95c198646c20" },
             VerificationToken = "PublicLocalV2Verification", ResetToken = "PublicLocalV2Reset",
             RefreshTokens = new() { new RefreshToken { Token = "PublicLocalV2Refresh" } } };
+        avatar.ProviderWallets = new() { [ProviderType.TRONOASIS] = new List<IProviderWallet> {
+            new ProviderWallet { Id = Guid.Parse("20e85856-3c4c-4acd-bca4-b07c2af07c34"), AvatarId = avatar.Id,
+                ProviderType = ProviderType.TRONOASIS, PublicKey = publicKey, PrivateKey = encryptedKey,
+                WalletAddress = new TronECKey(key, TronNetwork.MainNet).GetPublicAddress(), IsDefaultWallet = true } } };
         var detail = new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Email = avatar.Email };
         var batch = new IHolon[] {
             new Holon { Id = Guid.Parse("9e5be296-e435-44a5-838b-cbfcd8918c22"), Name = "V2 TRON batch first", CreatedByAvatarId = avatar.Id,
@@ -76,7 +82,8 @@ public sealed class TronRealProviderRoutingTests
                 {
                     var request = new StorageOperationRequest { Operation = operation, AvatarId = avatar.Id, Username = avatar.Username,
                         Email = avatar.Email, VerificationToken = avatar.VerificationToken, ResetToken = avatar.ResetToken,
-                        RefreshToken = avatar.RefreshTokens[0].Token, ProviderKey = avatar.Id.ToString(), PreferredProvider = providerType };
+                        RefreshToken = avatar.RefreshTokens[0].Token, ProviderKey = avatar.Id.ToString(),
+                        PublicKey = publicKey, PrivateKey = encryptedKey, PreferredProvider = providerType };
                     var sync = router.RouteRequest<T>(request);
                     var asyncResult = await router.RouteRequestAsync<T>(request);
                     foreach (var result in new[] { sync, asyncResult })
@@ -94,6 +101,8 @@ public sealed class TronRealProviderRoutingTests
                 await AssertIndexedRoutes<IAvatar>("LoadAvatarByUsername", absent, value => value.Id);
                 await AssertIndexedRoutes<IAvatar>("LoadAvatarByEmail", absent, value => value.Id);
                 await AssertIndexedRoutes<IAvatar>("LoadAvatarByProviderKey", absent, value => value.Id);
+                await AssertIndexedRoutes<IAvatar>("LoadAvatarByPublicKey", absent, value => value.Id);
+                await AssertIndexedRoutes<IAvatar>("LoadAvatarByPrivateKey", absent, value => value.Id);
                 await AssertIndexedRoutes<IAvatar>("LoadAvatarByVerificationToken", absent, value => value.Id);
                 await AssertIndexedRoutes<IAvatar>("LoadAvatarByResetToken", absent, value => value.Id);
                 await AssertIndexedRoutes<IAvatar>("LoadAvatarByRefreshToken", absent, value => value.Id);
