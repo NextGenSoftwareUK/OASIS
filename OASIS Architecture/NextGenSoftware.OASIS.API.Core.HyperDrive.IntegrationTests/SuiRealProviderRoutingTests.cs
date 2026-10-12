@@ -321,7 +321,27 @@ public sealed class SuiRealProviderRoutingTests
             manager.PerformanceMonitor.GetMetrics(expected).TotalRequests.Should().Be(before + 1);
 
             var roundRobinBefore = new Dictionary<ProviderType, int>();
-            // This local runtime test exercises paid-provider routing, not Free-tier admission.
+            dna.OASIS.SubscriptionConfig.PlanType = "Free";
+            var excludedSuiBefore = manager.PerformanceMonitor.GetMetrics(ProviderType.SuiOASIS).TotalRequests;
+            foreach (var strategy in new[] { LoadBalancingStrategy.RoundRobin, LoadBalancingStrategy.WeightedRoundRobin,
+                LoadBalancingStrategy.LeastConnections, LoadBalancingStrategy.Geographic, LoadBalancingStrategy.Performance })
+            {
+                var request = new StorageOperationRequest { Operation = "LoadHolon", HolonId = holon.Id, LoadChildren = false };
+                foreach (var permitted in new[] { router.RouteRequest<IHolon>(request, strategy),
+                    await router.RouteRequestAsync<IHolon>(request, strategy) })
+                {
+                    permitted.IsError.Should().BeFalse(permitted.Message);
+                    permitted.Result.Id.Should().Be(holon.Id);
+                    permitted.Result.Name.Should().Be(holon.Name);
+                    manager.LastProviderSelectionDiagnostic.Candidates.Select(value => value.Provider)
+                        .Should().Equal(ProviderType.LocalFileOASIS);
+                }
+            }
+            manager.PerformanceMonitor.GetMetrics(ProviderType.SuiOASIS).TotalRequests.Should().Be(excludedSuiBefore,
+                "the configured real Sui provider must not execute a Free-policy automatic read");
+            manager.GetProviderAutoLoadBalanceList().Select(value => value.Value).Should()
+                .BeEquivalentTo(new[] { ProviderType.LocalFileOASIS, ProviderType.SuiOASIS });
+            // The next phase permits both providers and verifies actual distribution.
             dna.OASIS.SubscriptionConfig.PlanType = "Gold";
             foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.SuiOASIS })
                 roundRobinBefore[providerType] = (int)manager.PerformanceMonitor.GetMetrics(providerType).TotalRequests;

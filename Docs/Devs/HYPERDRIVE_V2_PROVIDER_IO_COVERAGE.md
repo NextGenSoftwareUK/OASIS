@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Subscription-filtered V2 selection repair passes actual provider routing (2026-10-12)
+
+Expanded retained-node live scenario against Core `998d4cc22a8f2633ef0f4e9367025ac36acc3268`: under explicit Free test DNA policy, RoundRobin/WeightedRoundRobin/LeastConnections/Geographic/Performance each execute sync and async owned holon reads through LocalFile only. Real configured Sui execution metrics remain unchanged; diagnostics list only permitted LocalFile; configured list still contains both. Then explicit Gold test policy restores both candidates and six real round-robin reads divide three each. Existing selected replication/list/index/search/deletion and measured-read assertions remain. This verifies repaired automatic selection with actual registered providers, not authenticated paid subscription/webhook/mint charging or every native/interface/policy option.
+
+Live scenario **1/1, zero skips**, 68 seconds (`TestResults/SuiCurrent/sui-v2-healthy-current.trx`); integration build zero errors/five warnings. Fixed existing `HyperDriveSui` directory and original runtime/ledger/package/SDK reused; finally cleans owned test records. Exact owned Sui PID **188189** stopped afterward, no new runtime/download/genesis/private-key setup. No production config/entitlement change or release merge. Cosmos policy-blocked reruns, funded Hedera, durable mint billing and full interface/API/deployment gates remain open.
+
 ### V2 strategies now receive subscription-permitted candidates (2026-10-12)
 
 Fixed the confirmed selector gap below in Core `998d4cc22a8f2633ef0f4e9367025ac36acc3268`. Existing public selector delegates unchanged to an internal request-local candidate overload. Sync/async routing now pass their already-filtered candidate list; each existing strategy uses that list and diagnostics describe it, rather than retrying a forbidden selection or mutating global configuration. Explicit empty permitted lists fail closed. Weighted selection retains configured-provider counters without retiring state merely because one request excludes a provider. Existing router CostBased/Auto branches retain their specified behavior; this does not change authentication/entitlements or remove the NFT admission gate.
