@@ -32,15 +32,21 @@ export function cosmosErrorEnvelope(error) {
 
 // CosmJS execute/upload/instantiate discard failed DeliverTxResponse fields in plain errors.
 // Validate the one real broadcast response before their higher-level mapping runs.
-export function guardCosmosSigningClient(client) {
+export function guardCosmosSigningClient(client, persistPreparedSubmission) {
+  if (persistPreparedSubmission !== undefined && typeof persistPreparedSubmission !== 'function')
+    throw new TypeError('Prepared Cosmos submission persistence must be an awaited callback');
   const broadcast = client.broadcastTx.bind(client);
   client.broadcastTx = async (bytes, ...args) => {
     if (!(bytes instanceof Uint8Array)) throw new Error('Cosmos broadcast requires exact signed transaction bytes');
-    const hash = createHash('sha256').update(bytes).digest('hex').toUpperCase();
+    const signedBytes = Uint8Array.from(bytes);
+    const hash = createHash('sha256').update(signedBytes).digest('hex').toUpperCase();
+    // Persistence failure is pre-submission: no broadcast or native-outcome claim.
+    // The callback must durably bind this identity to its authenticated operation.
+    if (persistPreparedSubmission) await persistPreparedSubmission({ transactionHash: hash });
     const context = nativeContext.getStore();
     if (context) context.evidence = { transactionHash: hash, executionSucceeded: null };
     let receipt;
-    try { receipt = await broadcast(bytes, ...args); }
+    try { receipt = await broadcast(signedBytes, ...args); }
     catch (error) { throw new CosmosNativeMutationReconciliationError('Cosmos original signed submission outcome is unverified; reconcile before retrying.', hash, null, error); }
     if (typeof receipt?.transactionHash !== 'string' || receipt.transactionHash.toUpperCase() !== hash)
       throw new CosmosNativeMutationReconciliationError('Cosmos delivery identity does not match the original signed transaction; reconcile before retrying.', hash, null);
