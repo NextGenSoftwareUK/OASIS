@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera lock optional-stage wiring — 2026-10-12
+
+`ExecutePreparedNativeAsync` now selects an explicit escrow preparation factory for NFT/token locks. It validates a bounded request correlation and persists independently verified approval and mutation signed evidence under distinct `:approval` and `:mutation` correlations using the same execution owner and existing native-evidence budget. C# child launch requires the server's exact optional approval/mutation sequence and supplies those IDs only to its owned child; ambient stage environment is cleared. The CLI checks those IDs against its request before enabling lock preparation. Successful child output must match whether approval evidence was persisted. Generic post-preparation failures preserve any persisted approval ID as well as the mutation ID.
+
+Provider/shared builds passed; provider retains two existing warnings. C# project **28/28** passed with the retained source SDK environment, including controlled NFT/token lock children with approval present and absent. SDK **98/98** passed. These tests prove process sequencing, not the new factory's two signed SDK transactions through Mongo or funded consensus/custody readback; those verification gates remain open. Lock SDK queries can themselves incur fees: this opt-in library flow is not production spending admission and does not authorize enabling sponsored NFT routes. No funded submission, download, deployment or development merge occurred.
+
 ### Optional approval preparation transport — 2026-10-12
 
 Added `PreparedSubmissionServer.ForOptionalApproval`: accepts exactly approval then mutation, or mutation alone; only the first stage may be omitted. Each received identity remains validated against the caller's trusted sequence before its own persistence/acknowledgement. Receiving mutation first completes the sequence instead of waiting for an approval that the real escrow flow can legitimately skip. Shared build passed with zero warnings/errors; **92/92** shared tests passed with no skips (`TestResults/SharedCurrent/shared-current.trx`), including optional approval present, omitted, and replacement mutation rejected after approval persistence. No runtime installation or ledger submission was performed. Hedera lock factory/invocation integration and stage-specific outbox correlation remain required before removing the lock guard; this transport test is not that integration or live consensus proof.

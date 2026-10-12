@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
 
 public partial class HashgraphOASIS
 {
-    /// <summary>Single-stage native preparation; caller supplies admission and independently trusted signer context.</summary>
+    /// <summary>Native preparation; caller supplies admission and independently trusted signer context.</summary>
     public async Task<JsonElement> ExecutePreparedNativeAsync(string action,object request,UsageExecutionHandle execution,
         string clientRequestId,string expectedNetwork,string expectedSender,string expectedPublicKey,CancellationToken token=default)
     {
@@ -19,8 +19,27 @@ public partial class HashgraphOASIS
         using var document=JsonDocument.Parse(JsonSerializer.Serialize(request));
         var original=document.RootElement.GetProperty("transactionId").GetString();
         ArgumentException.ThrowIfNullOrWhiteSpace(original);
-        using var server=CreateNativePreparationServer(execution,clientRequestId,expectedNetwork,expectedSender,expectedPublicKey,original);
+        using var server=action is "nftEscrowLock" or "tokenEscrowLock"
+            ? CreateEscrowPreparationServer(execution,clientRequestId,expectedNetwork,expectedSender,expectedPublicKey,
+                document.RootElement.GetProperty("approvalTransactionId").GetString(),original)
+            : CreateNativePreparationServer(execution,clientRequestId,expectedNetwork,expectedSender,expectedPublicKey,original);
         return await HederaSdkClient.InvokePreparedAsync(action,request,server,token);
+    }
+
+    /// <summary>Optional approval and required mutation persist as distinct attempts owned by the same admitted execution.</summary>
+    public PreparedSubmissionServer CreateEscrowPreparationServer(UsageExecutionHandle execution,string clientRequestId,
+        string expectedNetwork,string expectedSender,string expectedPublicKey,string approvalId,string mutationId)
+    {
+        if(execution==null)throw new ArgumentNullException(nameof(execution));
+        ArgumentException.ThrowIfNullOrWhiteSpace(expectedPublicKey);
+        if(string.IsNullOrWhiteSpace(clientRequestId)||clientRequestId.Length>119)
+            throw new ArgumentException("Escrow request correlation must leave space for bounded stage suffixes.",nameof(clientRequestId));
+        var approval=execution.NativePreparationPersistence("HashgraphOASIS",null,clientRequestId+":approval",expectedNetwork,expectedSender,
+            (evidence,token)=>VerifyOriginalSignedPreparationAsync(evidence,expectedPublicKey,token));
+        var mutation=execution.NativePreparationPersistence("HashgraphOASIS",null,clientRequestId+":mutation",expectedNetwork,expectedSender,
+            (evidence,token)=>VerifyOriginalSignedPreparationAsync(evidence,expectedPublicKey,token));
+        return PreparedSubmissionServer.ForOptionalApproval((evidence,token)=>
+            evidence.GetProperty("transactionHash").GetString()==approvalId?approval(evidence,token):mutation(evidence,token),approvalId,mutationId);
     }
 
     /// <summary>Caller must supply a public key independently authorised for the expected account.</summary>
