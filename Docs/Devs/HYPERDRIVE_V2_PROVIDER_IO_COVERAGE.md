@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Actual signed Hedera evidence through C# verifier — 2026-10-12
+
+Added real offline Hiero signed transfer generation and C# original-evidence verification: matching expected public key accepts, independently generated unrelated key rejects; provider remains inactive. Initial test generator failed because it passed a string instead of SDK `TransactionId`; corrected the test to use the official typed constructor and reran. Preparation suite **2/2**, zero skips, `TestResults/PriorityProviderCurrent/hedera-preparation.trx`; existing nullable test-field warning remains. Owned child closed, keys stayed in memory, no consensus submission.
+
+This is offline key/signature identity proof, not live account-key authorisation or network identity. Parent/outbox lifecycle, stage-aware escrow, funded operations and full live/deployed gates remain open. No downloads, installs or release merge.
+
 ### Hedera missing-assets guard test verified — 2026-10-12
 
 Restored only missing test-project assets with `--no-dependencies --source C:/Users/david/.nuget/packages` using retained cache; no network package downloads. Compilation exposed stale enum-wrapper assertion and removed `GetProviderVersion` call; corrected wrapper comparison and replaced nonexistent-version test with current declared blockchain-capability check (not a version certification). Focused preparation guard **1/1**, zero skips, `TestResults/PriorityProviderCurrent/hedera-preparation.trx`; existing nullable test-field warning remains. Other historical activation tests in this project still need contract audit before claiming its complete suite.
