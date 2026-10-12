@@ -19,7 +19,7 @@ public class CosmosWalletHistoryProjectionTests
     public void MalformedIndexerRowIsNotProjectedAsSuccess(string field, string value)
     {
         var row = new System.Collections.Generic.Dictionary<string,object> {
-            ["hash"] = new string('a',64), ["messageIndex"] = 0, ["code"] = 0,
+            ["hash"] = new string('a',64), ["messageIndex"] = 0, ["transferIndex"] = 0, ["operation"] = "/cosmos.bank.v1beta1.MsgSend", ["code"] = 0,
             ["from"] = "sender", ["to"] = "recipient", ["amountUnits"] = "1",
             ["denom"] = "uatom", ["time"] = "2026-10-12T00:00:00Z", ["memo"] = "fixture" };
         row[field] = value;
@@ -37,7 +37,7 @@ public class CosmosWalletHistoryProjectionTests
     public void NativeHistoryPreservesExactUnitsAndBothDirections(long code)
     {
         var hash = new string('a',64);
-        using var json = JsonDocument.Parse("{\"code\":"+code+",\"hash\":\""+hash+"\",\"messageIndex\":0,\"from\":\"sender\",\"to\":\"recipient\",\"amountUnits\":\"9007199254740993\",\"denom\":\"uatom\",\"time\":\"2026-10-12T00:00:00Z\",\"memo\":\"fixture\"}");
+        using var json = JsonDocument.Parse("{\"transferIndex\":0,\"operation\":\"/cosmos.bank.v1beta1.MsgSend\",\"code\":"+code+",\"hash\":\""+hash+"\",\"messageIndex\":0,\"from\":\"sender\",\"to\":\"recipient\",\"amountUnits\":\"9007199254740993\",\"denom\":\"uatom\",\"time\":\"2026-10-12T00:00:00Z\",\"memo\":\"fixture\"}");
         using var provider = new CosmosBlockChainOASIS();
         var method = typeof(CosmosBlockChainOASIS).GetMethod("MapIndexedWalletTransaction",BindingFlags.Instance|BindingFlags.NonPublic)!;
         foreach (var wallet in new[] {"sender","recipient"})

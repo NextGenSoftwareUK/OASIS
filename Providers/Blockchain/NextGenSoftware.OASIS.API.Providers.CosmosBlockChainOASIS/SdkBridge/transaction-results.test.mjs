@@ -1,9 +1,22 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, cosmosFailureMessage } from './transaction-results.mjs';
+import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, bankTransferLegs, cosmosFailureMessage } from './transaction-results.mjs';
+import { Registry } from '@cosmjs/proto-signing';
+import { defaultRegistryTypes } from '@cosmjs/stargate';
 import { toBech32 } from '@cosmjs/encoding';
 import { TimeoutError } from '@cosmjs/stargate';
 const hash = 'ab'.repeat(32);
+test('official protobuf multi-send decoding preserves each actual output and exact units', () => {
+  const registry = new Registry(defaultRegistryTypes);
+  const typeUrl = '/cosmos.bank.v1beta1.MsgMultiSend';
+  const value = {inputs:[{address:'sender',coins:[{denom:'uatom',amount:'9007199254740994'}]}],outputs:[
+    {address:'one',coins:[{denom:'uatom',amount:'9007199254740993'}]},
+    {address:'two',coins:[{denom:'uatom',amount:'1'}]}]};
+  const legs = bankTransferLegs(registry.encodeAsAny({typeUrl,value}),registry);
+  assert.deepEqual(legs.map(leg => [leg.from,leg.to,leg.transferIndex,leg.coins[0].amount]),
+    [['sender','one',0,'9007199254740993'],['sender','two',1,'1']]);
+  assert.throws(() => bankTransferLegs(registry.encodeAsAny({typeUrl,value:{...value,inputs:[...value.inputs,...value.inputs]}}),registry), /ambiguous/);
+});
 test('upload requires exact positive code ID and retains original digest on invalid identity', () => {
   const result = { transactionHash:hash,height:42,codeId:7 };
   assert.equal(verifiedUpload(result),result);
