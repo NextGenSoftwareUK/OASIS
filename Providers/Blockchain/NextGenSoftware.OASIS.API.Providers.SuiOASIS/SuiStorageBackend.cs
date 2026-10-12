@@ -52,13 +52,6 @@ internal sealed class SuiStorageBackend : IKeyValueBackend
     public async Task VerifyAsync(CancellationToken cancellationToken = default)
     {
         await _invoke("storageProbe", null, cancellationToken);
-        var key = "oasis/probe/" + Guid.NewGuid().ToString("N");
-        await PutAsync(key, key, cancellationToken);
-        try
-        {
-            if (await GetAsync(key, cancellationToken) != key)
-                throw new InvalidDataException("Sui committed storage readback did not match its value.");
-        }
-        finally { await DeleteAsync(key, cancellationToken); }
+        // SDK probe verifies package ABI and owner without a paid mutation.
     }
 }

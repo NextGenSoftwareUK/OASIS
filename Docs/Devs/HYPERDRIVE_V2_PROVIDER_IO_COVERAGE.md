@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui activation no longer submits paid probe writes — 2026-10-12
+
+Removed implicit put/get/delete probe transactions from Sui storage activation. The existing SDK storageProbe now verifies the storage object's configured package ABI and compares its BCS owner to the actual configured Ed25519 signer address, rejecting missing/foreign/invalid identities. Activation is now read-only authority/reachability verification, not a guarantee that every future mutation will succeed. SDK suite **26/26** passed, zero skips, including authority rejection cases; current provider build zero warnings/errors. Initial multi-file patch failed validation atomically and was corrected before final build. Live activation regression after this change is still required; prior paid-probe integration runs do not certify the changed behavior. No ledger startup, mutation, installs, deployment or merge.
+
 ### Cosmos activation no longer submits paid probe writes — 2026-10-12
 
 Removed implicit put/get/delete probe transactions from `CosmosSdkBackend.VerifyAsync`. Activation now requires a configured key and the existing real SDK probe: verified chain, contract query and config owner matched against the actual configured wallet-derived sender. Missing/foreign owner or missing sender fails explicitly. This changes activation to read-only authority/reachability verification, not proof that a future write will succeed; positive writes remain separate admitted integration gates.
