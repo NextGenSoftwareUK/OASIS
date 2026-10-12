@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera storage/file/direct mutation preparation hooks — 2026-10-12
+
+Prepared dispatcher now permits storage writes/deletes, file create/update/delete and direct native/HTS/NFT transfer/mint/burn. Shared signed-submission helper binds original ID and awaits actual SDK-byte persistence between signing and execute; preparation rejection preserves the original error. Escrow and read/query actions remain explicitly rejected in prepared mode. Real SDK serialized transaction helper test checks exact bytes, rejection identity and foreign-ID refusal. SDK regression **98/98**, zero skips/todos; this does not separately execute every new callsite with persistence failure or a funded transaction.
+
+Escrow approval/execution hooks, independent signature verification, C# parent/outbox lifecycle and complete funded/live/deployed gates remain open. Retained SDK reused, no install, ledger submission or release merge.
+
 ### Hedera prepared deployment dispatcher/CLI transport — 2026-10-12
 
 Dispatcher now accepts trusted awaited preparation callback and passes it to deployment actions. CLI can load the existing shared parent transport from complete child environment configuration; project copies one authoritative module into output/publish. Invalid callback and currently unwired actions reject before network use rather than silently ignoring a configured preparation gate. SDK suite **98/98**, zero skips/todos; provider build 0 errors/2 existing unused-variable warnings.
