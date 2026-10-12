@@ -30,13 +30,22 @@ public class TronParentCycleTests
             (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
             var prior = await provider.LoadHolonAsync(id, loadChildren: false);
             prior.ErrorCode.Should().Be("OASIS_RECORD_NOT_FOUND"); prior.Result.Should().BeNull();
-            (await provider.SaveHolonAsync(new Holon { Id = id, ParentHolonId = id, Name = "Owned real parent-cycle fixture" })).IsError.Should().BeFalse(); saved = true;
+            (await provider.SaveHolonAsync(new Holon { Id = id, ParentHolonId = id, Name = "Owned real parent-cycle fixture",
+                MetaData = new() { ["owned-cycle-fixture"] = id.ToString() } })).IsError.Should().BeFalse(); saved = true;
             var cyclic = await provider.LoadHolonAsync(id, continueOnError: false);
             cyclic.IsError.Should().BeTrue(); cyclic.Exception.Should().BeOfType<InvalidDataException>();
             cyclic.Message.Should().Contain("Cyclic holon parent relationship");
             provider.LoadHolonsForParent(id).IsError.Should().BeTrue();
             var bounded = await provider.LoadHolonAsync(id, maxChildDepth: 1);
             bounded.IsError.Should().BeFalse(bounded.Message); bounded.Result.Children.Should().ContainSingle(value => value.Id == id);
+            var collection = await provider.LoadAllHolonsAsync(maxChildDepth: 1);
+            collection.IsError.Should().BeFalse(collection.Message);
+            collection.Result.Single(value => value.Id == id).Children.Should().ContainSingle(value => value.Id == id);
+            var metadata = provider.LoadHolonsByMetaData("owned-cycle-fixture", id.ToString(), maxChildDepth: 1);
+            metadata.IsError.Should().BeFalse(metadata.Message); metadata.Result.Should().ContainSingle();
+            metadata.Result.Single().Children.Should().ContainSingle(value => value.Id == id);
+            var recursiveCollection = await provider.LoadAllHolonsAsync();
+            recursiveCollection.IsError.Should().BeTrue(); recursiveCollection.Message.Should().Contain("Cyclic holon parent relationship");
         }
         finally
         {
