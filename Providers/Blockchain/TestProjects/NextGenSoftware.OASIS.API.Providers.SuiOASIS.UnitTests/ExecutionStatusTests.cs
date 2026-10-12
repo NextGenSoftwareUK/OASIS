@@ -6,6 +6,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 [TestClass]
 public sealed class ExecutionStatusTests
 {
+    [DataTestMethod]
+    [DataRow("{\"transactionHash\":\"requested\",\"status\":{\"success\":true}}", true)]
+    [DataRow("{\"transactionHash\":\"different\",\"status\":{\"success\":true}}", false)]
+    [DataRow("{\"status\":{\"success\":true}}", false)]
+    public void ReceiptMustMatchRequestedDigest(string json, bool matching)
+    {
+        using var document = JsonDocument.Parse(json);
+        var method = typeof(SuiOASIS).GetMethod("MapTransactionReceiptStatus", BindingFlags.NonPublic | BindingFlags.Static)!;
+        if (matching) Assert.AreEqual(BridgeTransactionStatus.Completed, method.Invoke(null, new object[] { document.RootElement, "requested" }));
+        else Assert.ThrowsException<TargetInvocationException>(() => method.Invoke(null, new object[] { document.RootElement, "requested" }));
+    }
+
     [TestMethod]
     [DataRow("{}")]
     [DataRow("{\"success\":null}")]
