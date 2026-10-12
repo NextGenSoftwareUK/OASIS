@@ -14,6 +14,35 @@ public class PreparedSubmissionServerTests
 {
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
+    public async Task RealNodeClientOnlyAcceptsSuccessfulParentPersistence(bool reject)
+    {
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        var calls=0;
+        using var server = new PreparedSubmissionServer((evidence, token) => {
+            calls++; Assert.AreEqual("AQID", evidence.GetProperty("signedTransactionBase64").GetString());
+            if(reject)throw new InvalidOperationException("controlled persistence failure");
+            return Task.CompletedTask;
+        });
+        var serving=server.ServeAsync(deadline.Token);
+        var start=new System.Diagnostics.ProcessStartInfo("node") { UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true };
+        start.ArgumentList.Add("--input-type=module");start.ArgumentList.Add("-e");
+        start.ArgumentList.Add("import {pathToFileURL} from 'node:url'; const {preparationClient}=await import(pathToFileURL(process.argv[1]).href); try {await preparationClient(process.argv[2],5000)({transactionHash:'original',signedTransactionBase64:'AQID'});} catch {process.exitCode=2;}");
+        start.ArgumentList.Add(Path.Combine(AppContext.BaseDirectory,"prepared-submission.mjs"));start.ArgumentList.Add(server.Endpoint);
+        using var process=System.Diagnostics.Process.Start(start);
+        try {
+            var output=process.StandardOutput.ReadToEndAsync(deadline.Token);
+            var error=process.StandardError.ReadToEndAsync(deadline.Token);
+            if(reject)await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>serving);else await serving;
+            await process.WaitForExitAsync(deadline.Token);
+            Assert.AreEqual(reject?2:0,process.ExitCode);
+            Assert.AreEqual(1,calls);Assert.AreEqual("",await output);Assert.AreEqual("",await error);
+        } finally {
+            if(!process.HasExited){process.Kill(entireProcessTree:true);await process.WaitForExitAsync();}
+        }
+    }
+
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
     public async Task AcknowledgementWaitsForPersistenceAndFailureNeverAcknowledges(bool reject)
     {
         var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
