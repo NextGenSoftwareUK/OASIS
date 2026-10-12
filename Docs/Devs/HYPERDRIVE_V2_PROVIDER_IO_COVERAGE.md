@@ -22,6 +22,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui malformed error identity/outcome — 2026-10-12
+
+Sui C# native error replies now validate non-null digests using the same exact base58 decoded-width rule as successful replies. Invalid digests and claimed execution outcomes without a valid original identity retain the reconciliation marker but discard invalid identity/outcome evidence. Added controlled invalid-digest and unknown-identity/executed cases. Build passed with 0 errors/warnings; selected C# suite **59/59**, zero skips, report `TestResults/SuiCurrent/sui-digest-error-current.trx` (actual deadline excluded). No live submission, install or deployment. Durable prepared-byte binding across IPC/outbox and complete live/interface/hosted verification remain outstanding.
+
 ### Sui successful digest decoded width — 2026-10-12
 
 C# successful mutation replies now require base58 digests decoding to exactly 32 bytes, including leading-zero handling; invalid alphabet, wrong decoded width and overflow are rejected rather than treated as successful native results. Controlled fixtures use a valid-shaped zero-byte digest instead of human-readable invented IDs, with no ledger claim. Provider build passed with 0 errors/warnings. Existing full C# suite **57/57**, zero skips, including its actual two-minute deadline, report `TestResults/SuiCurrent/sui-digest-current.trx`; subsequent new focused shape case **1/1**, report `sui-digest-shape.trx`. No runtime/node submission or install. Error-envelope identity validation, durable preparation IPC/outbox and full live/deployed gates remain open.
