@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Live Hedera mirror status reuses original failed transaction (2026-10-12)
+
+Read-only official testnet mirror query confirms retained `0.0.10993779@1791758571.546470406` has exactly one nonce-zero/non-scheduled record with INSUFFICIENT_TX_FEE. New helper live test initially fails HTTP 400 because native SDK ID spelling was passed directly to the mirror URL; one normalization helper now converts native/mirror spellings consistently for request and identity check. HTTP lookup has a bounded 20-second timeout. Focused suite passes **8/8**, zero skips (`hedera-mirror-status-current.trx`), including real retained transaction classified InsufficientFundsForFee and seven controlled parsing cases; provider build succeeds (zero errors/four warnings). No transaction/funding/deployment attempt, credentials, new runtime/install/download/environment/merge. This proves selected mirror readback, not funded storage/NFT/V2 routing or all duplicate/child/scheduled semantics.
+
 ### Hedera mirror helper truthful status parsing (2026-10-12)
 
 Public HashgraphClient helper previously read a nonexistent root status and swallowed HTTP/parse exceptions as NotFound. It now reads exactly one transactions record, verifies transaction_id against the requested native/mirror ID spelling, and reuses existing provider receipt classification; only actual HTTP 404 becomes NotFound, while HTTP/parse/unknown-result errors propagate. Initial attempt to delegate to the provider overload failed compilation because this helper is a separate class; no failing source build was accepted. Corrected provider build succeeds (zero errors/four warnings). Seven pure response cases cover success/pending/failed/fee failure and empty/mismatched/unclassified rejection; current full non-funded suite passes **202/202**, zero skips (`hedera-nonfunded-current.trx`). This does not prove real mirror multi-child/duplicate/scheduled transaction semantics or live helper HTTP; strict ambiguous-result rejection remains intentional pending those tests. No HyperDrive Legacy feature work, funded mutation/install/download/new environment/merge; remaining gates stay open.
