@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos verifier dispatcher, canonical encoding and direct pins — 2026-10-12
+
+Read-only dispatcher now tested with actual signed evidence and an intentionally unreachable RPC endpoint: verification succeeds without RPC activation, mismatched chain rejects. Verifier rejects noncanonical TxRaw/SignDoc protobuf encodings and requires compressed 33-byte secp256k1 keys; added unknown-field SignDoc rejection. Explicit offline suite **50/50**, zero skips/todos. Crypto/amino promoted to direct exact 0.39.0 dependencies in manifest/root lock entry; `npm ls --depth=0` confirms the already-installed versions, no install/download required.
+
+Core SignDoc evidence schema/persistence, C# prepared lifecycle, actual native admission, crash recovery and live/deployed gates remain open. These format/dispatcher checks do not certify ledger behavior or sponsored spending.
+
 ### Cosmos independent signed preparation verification — 2026-10-12
 
 Added offline `verifyCosmosPreparedIdentity` and read-only `verifyNativePreparation` dispatch before RPC activation. Retained official CosmJS crypto/amino/protobuf libraries verify original TxRaw SHA256, matching SignDoc chain/body/auth bytes, exactly one direct-mode secp256k1 signer, public-key-derived sender and signature over SHA256(SignDoc). Bounded canonical base64 required. Real offline signing case accepts its original and rejects altered chain/sender/hash/document/encoding plus a changed signature with recomputed transaction hash. Explicit offline suite **50/50**, zero skips/todos (dispatcher added afterward; exercised helper covers verifier, dispatcher-specific test remains needed).
