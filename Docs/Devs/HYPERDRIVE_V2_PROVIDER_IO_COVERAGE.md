@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Retained TRON paused-state diagnosis and original readback — 2026-10-12
+
+Direct read-only inspection as the retained container owner confirms `oasis-tron-tre` was **paused**, PID 193579, current OOMKilled false/exit code 0. This explains current HTTP timeouts without asserting the historical OOM never occurred. Briefly unpaused the same container; its genesis matches `0000000000000000c93baa76a4a508f798a96f59156d9eb17ecede8ec845df2f`. For original unknown `db05ea6d3067038a56dfc75b64d2c46c32824282e8242335ce007d1e34a415bb`, full-node transaction, full receipt and solidity receipt queries each return empty objects. Returned container to paused and verified state. No reset, restart, download or mutation replay performed.
+
+Empty indexes do not prove non-submission or a terminal outcome. `TestResults/HyperDriveTron/pending-native-outcome.json` remains unchanged and its mutation fence remains active. Healthy response now proves the retained runtime is accessible when unpaused; it does not resolve the original transaction or certify live V2 native mutations. Further safe reconciliation must inspect authoritative original evidence and exact owned fixture state without replaying that operation.
+
 ### Current live Sui V2 routing matrix — 2026-10-12
 
 Resumed the retained root-owned Sui 1.81.1 ledger without installation/reset and rebuilt the existing HyperDrive integration test project using no restore and bounded workers. `V2ReplicatesToSuiAndSelectsFromMeasuredRealProviderReads` passed **1/1**, zero skips, 1m1s (`TestResults/SuiCurrent/sui-v2-healthy-current.trx`). Current real Sui + LocalFile V2 assertions cover replicated avatar/detail/holon writes, updates, indexed sync/async reads and deletions; measured-performance selection; Free DNA policy exclusion across five selectors; and six Gold round-robin reads evenly distributed between both real providers. Cleanup removes exact owned fixture records.
