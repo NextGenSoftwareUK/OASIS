@@ -13,7 +13,7 @@ if (Test-Path -LiteralPath $stage) { throw 'Public packaging stage already exist
 New-Item -ItemType Directory -Path $extracted,$public -Force | Out-Null
 & tar -xzf $package -C $extracted
 if ($LASTEXITCODE -ne 0) { throw 'Runtime package extraction failed.' }
-$source = Join-Path $extracted 'package'
+$source = Join-Path $extracted 'com.nextgensoftware.oasis.edge'
 if (-not (Test-Path (Join-Path $source 'Runtime')) -or -not (Test-Path (Join-Path $source 'package.json'))) {
     throw 'The validated package lacks Runtime or package.json.'
 }
