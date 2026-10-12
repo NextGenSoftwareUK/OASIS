@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON permission-update history mapping — 2026-10-12
+
+Native wallet history now maps official TronNet `AccountPermissionUpdateContract` records to their actual owner with zero requested transferred SUN, retaining native operation/execution evidence. This prevents a legitimate wallet administration event aborting an otherwise readable history; it does not invent token transfers or imply permissions actually applied on failed execution. Owner-involvement validation remains mandatory. Unit coverage constructs the actual protobuf contract, checks zero amount and owner mapping, and rejects an unrelated wallet. Provider build passed (0 errors, 21 existing warnings); full TRON unit suite **199/199**, zero skips, fixed report `TestResults/PriorityProviderCurrent/TRONOASIS-unit-current.trx`.
+
+No TRON node was started and no mutation was submitted. The unresolved original native outcome fence remains intact. This mapping is controlled protobuf evidence, not live history, ledger stability or full native-operation support; other unrecognized contract types still fail explicitly rather than fabricate transactions.
+
 ### Hedera fee coverage for implemented mutations — 2026-10-12
 
 Expanded native fee attribution to `FILEUPDATE`, `FILEDELETE`, `TOKENDELETION`, `TOKENUPDATENFTS` and `CRYPTOAPPROVEALLOWANCE`, matching already-implemented file, NFT metadata/collection and escrow approval operations. Read-only official testnet mirror queries for each transaction-type filter returned matching record names; no new transaction was submitted. Existing exact transaction identity, unscheduled nonce-zero parent, terminal status, duplicate-record and integer-fee validation remains unchanged. Ethereum/batch/scheduled attribution remains rejected rather than guessed.
