@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Live TRON retained historical reparenting verification (2026-10-11)
+
+Expanded owned real encrypted-storage scenario passes **1/1**, zero skips (`tron-parent-cycle.trx`), retaining cycle/depth assertions and enabling existing version control. After moving the fixture, async version-one old-parent read returns the old name/membership, sync version-one new-parent read is empty, and latest sync/async membership follows the new parent. Historical self-parent reads explicitly disable recursive expansion, since the old version intentionally contains a cycle. Finally deletes the owned record/history using the existing deletion operation; retained runtime paused after terminal completion. No new environment/install/download/reset/public assets/merge. This proves selected real per-record retained history, not global snapshots/deleted history/every provider/HTTP option or full completion.
+
 ### Retained historical parent membership after reparenting (2026-10-11)
 
 Versioned child reads previously enumerated only the latest parent index, losing an old parent's child and potentially associating the child's old version with its new parent. For explicit version > 0, shared child loading now enumerates retained current holon identities, loads the requested version and filters its persisted ParentHolonId; latest reads retain the indexed fast path. Regression proves version-one membership/name at the old parent, no historical membership at the new parent, and correct latest membership after reparenting across sync/async calls. Full shared suite passes **53/53**, zero skips (`shared-current.trx`); provider rebuild succeeds (zero errors/two warnings). This is per-record numbered-version reconstruction for retained records, not a global timestamp snapshot or recovery of permanently deleted records/history. Historical scans cost more reads; real-provider/options regression remains required. No network mutation/install/download/new environment/merge; release gates stay open.
