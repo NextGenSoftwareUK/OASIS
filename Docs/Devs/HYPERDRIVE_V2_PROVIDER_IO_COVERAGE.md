@@ -5,13 +5,13 @@
 
 ## Current provider status — not full certification
 
-Latest refreshed regression checkpoint (2026-10-12, after shared identity/version validation): **Core 378/378; shared storage 61/61; Sui C# 32/32 and SDK 9/9; Cosmos C# 56/56 and SDK 34/34; TRON C# 193/193; Hedera non-funded 218/218**. Zero skips in those selections. These counts supersede older counts below; they do not expand test scope or establish missing live/deployed gates.
+Latest refreshed regression checkpoints (2026-10-12; separate suites, not one end-to-end run): **Core 412/412; shared storage 69/69; Sui C# 32/32 and SDK 9/9; Cosmos C# 56/56 and SDK 34/34; TRON C# 198/198; Hedera non-funded 218/218; WEB4 141/141; ONODE Core 244/244**. Zero skips in those selections. These counts supersede older counts below; they do not expand test scope or establish missing live/deployed gates.
 
 No provider is currently certified against the entire requested combination of relevant interfaces, live V2 failover/replication/load balancing, and deployed authenticated API behavior. Historical PASS labels mean the stated tests passed; they must not be read as complete provider certification. Controlled/unit tests, official local runtimes, cloud emulators and hosted production/testnet execution are distinct evidence categories.
 
 | Provider | Real SDK/runtime evidence | Outstanding completion work |
 |---|---|---|
-| TRONOASIS | Signed real node operations; ten current live SDK cases; current selected V2 outage failover, replication/measured selection and karma projection; current real-JWT native HTTP send | Remaining native/history paths; complete interface/options matrix and hosted routes |
+| TRONOASIS | Historical signed real node operations, ten live SDK cases, selected V2 policies/karma and real-JWT HTTP send; current controlled SDK/unit regressions | Fresh routing run failed after node OOM with original native outcome unknown; mutation reruns fenced. Original transaction/owned-state reconciliation, stable runtime, remaining native/history paths, complete interface/options matrix and hosted routes remain open |
 | SuiOASIS | Official SDK; live storage/transfers/token/NFT lifecycle; current combined-branch selected real V2 failover/replication/measured selection; eight native and four deployed-custom-coin named transfer variants | Remaining native/interface/options matrix and hosted routes |
 | CosmosBlockChainOASIS | Official SDK and retained wasmd; current selected live V2 replication/measured selection and two failover cases | Remaining native/history/interface/options matrix and hosted routes |
 | HashgraphOASIS | Official Hiero SDK; real funded HBAR transfer; latest 218/218 non-funded tests; read-only charged-failure fee proof | Additional test HBAR; retained-file storage deployment; funded NFT/escrow and real V2 storage/orchestration; hosted routes |
@@ -21,6 +21,10 @@ Broader providers with narrower recorded real-runtime/SDK/API evidence: MongoDB,
 Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 244/244, Cosmos C# 56/56/SDK 29/29, Hedera non-funded 209/209; zero skips in the stated selections. Exact revisions and limitations are recorded below. Task branch contains Development reconciliation, but Development/master have not received this task's release merge. Hosted dev revision last checked was `77c65eaa80aa06fb767715322eb97d8d3844282f`, not this task code. User authorizes a safe Development merge/automatic Railway deployment; resolve regression/deployment gates before claiming release success. Native NFT models and mint actor/recipient/batch safety have changed; positive authenticated minting, durable subscription/fee integration, live Cosmos corrected assets/multi-send/bridge receipt, funded Hedera storage/NFT/V2, full interface/options/hosted API and broader provider gates remain open. Update this summary whenever coverage or remaining gates change; retain exact checkpoint reports below rather than silently promote narrow evidence to broader claims.
 
 ## Routing contract
+
+### GBP subscription catalogue correction (2026-10-12)
+
+User approved GBP to match existing Stripe monthly prices. WEB4 catalogue now advertises GBP 9/29/99; signed paid-invoice ingestion requires GBP and new invoice orders record GBP. Enterprise remains contact-sales-only; configured GBP 999 Stripe price is not enabled as self-service. Existing stored orders, USD usage budgets and the separately denominated USD overage estimate are unchanged. Controlled signed webhook tests accept GBP, preserve historical invoice-line plan mapping and actual amount, and reject USD/EUR before any billing-repository call. Full WEB4 unit suite **141/141**, zero skips, `TestResults/Web4Current/web4-unit-current.trx`; WEB4 build zero errors/255 warnings. Same retained checkout/dependencies, no downloads/runtime installs. This is not deployed readback or live Stripe delivery/checkout proof; NFT fee authorization and release gates remain open.
 
 ### Avatar-scoped partial reads verified with real Sui storage and controlled fault (2026-10-12)
 
