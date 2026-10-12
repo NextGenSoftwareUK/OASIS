@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON gRPC authority failure matrix — 2026-10-12
+
+Expanded controlled actual-gRPC loader cases to independently reject wrong solidity genesis after matching full-node genesis, empty account record and unavailable account query. No usable authority returned; original RPC error preserved. Initial handler lambda was ambiguous between gRPC overloads; fixed explicit request/context types. Full unit project **232/232**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`. Owned ephemeral servers/channels shut down; no real ledger, installs or submissions. Actual live authority/admission/recovery and full deployed gates remain open, no release merge.
+
 ### TRON authority loader actual gRPC transport tests — 2026-10-12
 
 Added bounded in-process loopback gRPC fixture using retained official SDK descriptors/protobuf serializers, ephemeral port and owned shutdown. Loader accepts matching account, rejects mismatched address, and rejects wrong genesis before account query: **3/3**, zero skips, `TestResults/PriorityProviderCurrent/tron-permission-rpc.trx`. Initial generated-server-base assumption failed compile (SDK contains clients only); fixture now uses actual service descriptors with generic gRPC handlers.
