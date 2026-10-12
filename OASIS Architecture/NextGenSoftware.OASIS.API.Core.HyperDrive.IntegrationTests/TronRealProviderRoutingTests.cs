@@ -73,6 +73,18 @@ public sealed class TronRealProviderRoutingTests
             (await local.LoadAvatarDetailAsync(avatar.Id)).Result.Username.Should().Be(avatar.Username);
             manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
             manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
+            // Exercise both username/email indexes and sync/async projections against real replicas.
+            foreach (var provider in new IOASISStorageProvider[] { local, tron })
+            {
+                (await provider.LoadAvatarByUsernameAsync(avatar.Username)).Result.Id.Should().Be(avatar.Id);
+                (await provider.LoadAvatarByEmailAsync(avatar.Email)).Result.Id.Should().Be(avatar.Id);
+                provider.LoadAvatarByUsername(avatar.Username).Result.Id.Should().Be(avatar.Id);
+                provider.LoadAvatarByEmail(avatar.Email).Result.Id.Should().Be(avatar.Id);
+                (await provider.LoadAvatarDetailByUsernameAsync(avatar.Username)).Result.Id.Should().Be(avatar.Id);
+                (await provider.LoadAvatarDetailByEmailAsync(avatar.Email)).Result.Id.Should().Be(avatar.Id);
+                provider.LoadAvatarDetailByUsername(avatar.Username).Result.Id.Should().Be(avatar.Id);
+                provider.LoadAvatarDetailByEmail(avatar.Email).Result.Id.Should().Be(avatar.Id);
+            }
             var deletedAvatar = await router.RouteRequestAsync<bool>(new StorageOperationRequest
                 { Operation = "DeleteAvatar", AvatarId = avatar.Id, SoftDelete = false, PreferredProvider = ProviderType.LocalFileOASIS });
             deletedAvatar.IsError.Should().BeFalse(deletedAvatar.Message);
