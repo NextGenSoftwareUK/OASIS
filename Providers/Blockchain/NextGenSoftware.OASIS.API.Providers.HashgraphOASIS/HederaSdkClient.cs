@@ -50,6 +50,13 @@ internal static class HederaSdkClient
             ? requestedId.GetString() : null;
         var originalApprovalId = requestDocument.RootElement.GetProperty("request").TryGetProperty("approvalTransactionId", out var requestedApprovalId)
             ? requestedApprovalId.GetString() : null;
+        var isMutation = action is "storagePut" or "storageDelete" or "fileCreate" or "fileUpdate" or "fileDelete"
+            or "transfer" or "tokenTransfer" or "tokenMint" or "tokenBurn" or "nftTransfer" or "nftMint" or "nftBurn"
+            or "nftEscrowLock" or "nftEscrowUnlock" or "tokenEscrowLock" or "tokenEscrowUnlock"
+            or "bytecodeFileCreate" or "bytecodeFileAppend" or "contractCreate" or "nftCollectionCreate"
+            or "tokenCollectionDelete" or "nftMetadataUpdate";
+        if (isMutation && string.IsNullOrWhiteSpace(originalId))
+            throw new ArgumentException("Hedera native mutations require an explicit original transaction ID before SDK launch.");
         using var process = new Process { StartInfo = start };
         if (!process.Start()) throw new InvalidOperationException("Hedera SDK process could not start.");
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -68,10 +75,16 @@ internal static class HederaSdkClient
             {
                 string transactionId = originalId;
                 string approvalId = null, mutationId = null, stage = null, status = null;
+                bool nativeIdReported = false;
+                Exception evidenceParseError = null;
                 try
                 {
                     using var parsed = JsonDocument.Parse(failure);
-                    if (parsed.RootElement.TryGetProperty("transactionId", out var id)) transactionId = id.GetString();
+                    if (parsed.RootElement.TryGetProperty("transactionId", out var id))
+                    {
+                        transactionId = id.GetString();
+                        nativeIdReported = transactionId != null;
+                    }
                     if (parsed.RootElement.TryGetProperty("approvalTransactionId", out var approval)) approvalId = approval.GetString();
                     if (parsed.RootElement.TryGetProperty("mutationTransactionId", out var mutation)) mutationId = mutation.GetString();
                     if (parsed.RootElement.TryGetProperty("stage", out var phase)) stage = phase.GetString();
@@ -81,13 +94,18 @@ internal static class HederaSdkClient
                         if (System.Text.RegularExpressions.Regex.IsMatch(value ?? "", @"\A[A-Z][A-Z0-9_]{0,100}\z")) status = value;
                     }
                 }
-                catch (JsonException) { }
+                catch (Exception ex) when (ex is JsonException || ex is InvalidOperationException) { evidenceParseError = ex; }
                 var reconciliation = (approvalId == null ? "" : $" Confirmed approval: {approvalId}.")
                     + (mutationId == null ? "" : $" Original escrow mutation: {mutationId}.")
                     + (stage == null ? "" : $" Failure stage: {stage}.")
                     + (status == null ? "" : $" Native status: {status}.");
-                throw new InvalidOperationException((transactionId == null ? "Hedera SDK operation failed."
-                    : $"Hedera verified success was not established for {transactionId}. Track the original transaction before retrying.") + reconciliation);
+                var message = (transactionId == null ? "Hedera SDK operation failed."
+                    : $"Hedera verified success was not established for {transactionId}. Track the original transaction before retrying.") + reconciliation;
+                if (isMutation && (approvalId != null || stage is "submission" or "receipt" or "approval" or "mutation" or "readback"
+                    || (stage == null && nativeIdReported) || (evidenceParseError != null && originalId != null)))
+                    throw new HederaNativeMutationReconciliationException(message,
+                        new HederaNativeMutationEvidence(transactionId, approvalId, mutationId, stage, status), evidenceParseError);
+                throw new InvalidOperationException(message, evidenceParseError);
             }
             using var document = JsonDocument.Parse(response);
             return document.RootElement.Clone();
@@ -100,7 +118,15 @@ internal static class HederaSdkClient
                 + (originalApprovalId == null ? "" : $" Possible approval transaction (outcome unverified): {originalApprovalId}.")
                 + " Reconcile original transactions before retrying; process termination does not cancel a ledger submission.";
             if (cancellationToken.IsCancellationRequested)
+            {
+                if (isMutation)
+                    throw new HederaNativeMutationCanceledException(message,
+                        new HederaNativeMutationEvidence(originalId, originalApprovalId, originalId, "process-canceled", null), errorException, cancellationToken);
                 throw new OperationCanceledException(message, errorException, cancellationToken);
+            }
+            if (isMutation)
+                throw new HederaNativeMutationTimeoutException(message,
+                    new HederaNativeMutationEvidence(originalId, originalApprovalId, originalId, "process-timed-out", null), errorException);
             throw new TimeoutException(message, errorException);
         }
         finally

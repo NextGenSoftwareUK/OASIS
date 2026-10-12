@@ -37,17 +37,23 @@ async function storageWrite(action, request) {
   if (!/^[1-9][0-9]*$/.test(request.maxFeeTinybars ?? '') || BigInt(request.maxFeeTinybars) > 9223372036854775807n)
     throw new Error('An explicit positive int64 fee ceiling is required.');
   const client = await createClient(request);
+  let stage = 'construction';
   try {
     client.setOperator(payer, key);
     singleSubmission(mutation, id).setMaxTransactionFee(Hbar.fromTinybars(request.maxFeeTinybars)).freezeWith(client);
-    const submitted = await (await mutation.sign(key)).execute(client);
+    stage = 'signing';
+    const signed = await mutation.sign(key);
+    stage = 'submission';
+    const submitted = await signed.execute(client);
+    stage = 'receipt';
     const receipt = await submitted.getReceipt(client);
     if (receipt.status.toString() !== 'SUCCESS') throw new Error('Storage mutation failed consensus.');
     return { transactionId: submitted.transactionId.toString(), status: 'SUCCESS' };
   } catch (cause) {
     const error = new Error('Hedera storage mutation did not establish consensus success. Track the original transaction before retrying.');
     error.transactionId = id.toString();
-    error.status = cause.status?.toString();
+    error.stage = stage;
+    error.status = nativeFailureStatus(cause);
     throw error;
   } finally { client.close(); }
 }
@@ -203,6 +209,7 @@ async function executeFile(action, request) {
   if (!/^[1-9][0-9]*$/.test(request.maxFeeTinybars ?? '') || BigInt(request.maxFeeTinybars) > 9223372036854775807n)
     throw new Error('An explicit positive int64 fee ceiling is required.');
   const client = await createClient(request);
+  let stage = 'construction';
   try {
     client.setOperator(payer, key);
     const ceiling = Hbar.fromTinybars(request.maxFeeTinybars);
@@ -211,7 +218,11 @@ async function executeFile(action, request) {
       return { fileId: FileId.fromString(request.fileId).toString(), contents: new TextDecoder('utf-8', { fatal: true }).decode(bytes) };
     }
     singleSubmission(mutation, id).setMaxTransactionFee(ceiling).freezeWith(client);
-    const submitted = await (await mutation.sign(key)).execute(client);
+    stage = 'signing';
+    const signed = await mutation.sign(key);
+    stage = 'submission';
+    const submitted = await signed.execute(client);
+    stage = 'receipt';
     const receipt = await submitted.getReceipt(client);
     if (receipt.status.toString() !== 'SUCCESS') throw new Error('File mutation failed consensus.');
     return { transactionId: submitted.transactionId.toString(), status: 'SUCCESS',
@@ -219,7 +230,8 @@ async function executeFile(action, request) {
   } catch (cause) {
     const error = new Error('Hedera file operation failed.');
     error.transactionId = id?.toString();
-    error.status = cause.status?.toString();
+    error.stage = stage;
+    error.status = nativeFailureStatus(cause);
     throw error;
   } finally { client.close(); }
 }
