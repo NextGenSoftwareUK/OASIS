@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Parent acknowledgement after actual existing Mongo outbox write — 2026-10-12
+
+Added a bounded integration case using the already-running local MongoDB service and existing `MongoUsageOutboxStore` (majority/journal write settings). The pipe parent writes a prepared provider attempt before acknowledging; readback confirms exactly one original provider identity and null ledger acknowledgement timestamp. Full shared suite **83/83**, zero skips; fixed report `TestResults/SharedStorageCurrent/shared-current.trx`. The freshly generated owned `usage_pipe_test_...` database was dropped in finally; source, credentials, user data and shared services retained. Initial test compilation error was corrected before successful execution.
+
+This proves actual local outbox ordering with a C# pipe client, separately from the preceding real Node transport tests. It is not a combined signed-SDK/Node/Mongo end-to-end test, authenticated WEB4 admission, signed-byte/chain/payer durability or replica failover proof. Provider lifecycle/binding, original signed evidence persistence and crash/recovery gates remain open; no install, ledger submission, deployment or release merge.
+
 ### Preparation cancellation and frame rejection — 2026-10-12
 
 Added actual parent-pipe checks for cancellation before connection, retained caller cancellation token, prohibited second use, wrong protocol, absent identity and coalesced extra frames. No invalid frame reaches persistence. Initial cancellation assertion expected the base exception exactly; corrected it to the actual `TaskCanceledException` and verified its token. Full shared suite **82/82**, zero skips; fixed report `TestResults/SharedStorageCurrent/shared-current.trx`. This is transport evidence, not actual outbox durability or provider lifecycle integration; those gates remain open. No new environment, download or ledger mutation.
