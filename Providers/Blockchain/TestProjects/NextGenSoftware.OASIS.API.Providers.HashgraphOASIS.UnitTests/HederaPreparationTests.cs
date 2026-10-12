@@ -4,7 +4,7 @@ using System.Diagnostics;
 
 namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests;
 
-[TestClass]
+[TestClass,DoNotParallelize]
 public class HederaPreparationTests
 {
     [TestMethod]
@@ -28,8 +28,18 @@ public class HederaPreparationTests
             var output=child.StandardOutput.ReadToEndAsync(deadline.Token);var error=child.StandardError.ReadToEndAsync(deadline.Token);
             await child.WaitForExitAsync(deadline.Token);Assert.AreEqual(0,child.ExitCode);Assert.AreEqual("",await error);
             using var signed=JsonDocument.Parse(await output);var provider=new HashgraphOASIS();
-            await provider.VerifyOriginalSignedPreparationAsync(signed.RootElement.GetProperty("preparation"),signed.RootElement.GetProperty("publicKey").GetString()!,deadline.Token);
-            await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>provider.VerifyOriginalSignedPreparationAsync(signed.RootElement.GetProperty("preparation"),signed.RootElement.GetProperty("otherKey").GetString()!,deadline.Token));
+            var previousPipe=Environment.GetEnvironmentVariable("OASIS_NATIVE_PREPARATION_PIPE");
+            var previousModule=Environment.GetEnvironmentVariable("OASIS_NATIVE_PREPARATION_MODULE");
+            try{
+                Environment.SetEnvironmentVariable("OASIS_NATIVE_PREPARATION_PIPE","controlled-unrelated-pipe");
+                Environment.SetEnvironmentVariable("OASIS_NATIVE_PREPARATION_MODULE","controlled-unrelated-module");
+                await provider.VerifyOriginalSignedPreparationAsync(signed.RootElement.GetProperty("preparation"),signed.RootElement.GetProperty("publicKey").GetString()!,deadline.Token);
+                await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>provider.VerifyOriginalSignedPreparationAsync(signed.RootElement.GetProperty("preparation"),signed.RootElement.GetProperty("otherKey").GetString()!,deadline.Token));
+                Assert.AreEqual("controlled-unrelated-pipe",Environment.GetEnvironmentVariable("OASIS_NATIVE_PREPARATION_PIPE"));
+            }finally{
+                Environment.SetEnvironmentVariable("OASIS_NATIVE_PREPARATION_PIPE",previousPipe);
+                Environment.SetEnvironmentVariable("OASIS_NATIVE_PREPARATION_MODULE",previousModule);
+            }
             Assert.IsFalse(provider.IsProviderActivated);
         }finally{if(!child.HasExited){child.Kill(entireProcessTree:true);await child.WaitForExitAsync();}}
     }

@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera ambient preparation isolation — 2026-10-12
+
+Canonical ordinary C# invocation removes inherited preparation pipe/module variables from its child environment without changing host state. Actual signed-verifier test sets unrelated ambient values and proves verification still succeeds, unrelated key rejects and host pipe remains unchanged; settings restored in finally. Preparation selection **2/2**, zero skips, `TestResults/PriorityProviderCurrent/hedera-preparation.trx`; provider build 0 errors/2 existing warnings, test nullable warning remains.
+
+Explicit prepared C# invocation is not yet wired; ambient state must not substitute for admission. Parent/outbox and multi-stage escrow, funded/live/deployed gates remain open. Existing environment reused; no downloads, ledger submissions or release merge.
+
 ### Actual signed Hedera evidence through C# verifier — 2026-10-12
 
 Added real offline Hiero signed transfer generation and C# original-evidence verification: matching expected public key accepts, independently generated unrelated key rejects; provider remains inactive. Initial test generator failed because it passed a string instead of SDK `TransactionId`; corrected the test to use the official typed constructor and reran. Preparation suite **2/2**, zero skips, `TestResults/PriorityProviderCurrent/hedera-preparation.trx`; existing nullable test-field warning remains. Owned child closed, keys stayed in memory, no consensus submission.

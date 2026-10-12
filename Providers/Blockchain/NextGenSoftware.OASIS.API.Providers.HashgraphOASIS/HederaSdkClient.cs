@@ -44,6 +44,9 @@ internal static class HederaSdkClient
             StandardErrorEncoding = new UTF8Encoding(false, true), WorkingDirectory = Path.GetDirectoryName(script)
         };
         start.ArgumentList.Add(script);
+        // Preparation belongs to an explicitly configured owned invocation, never ambient host state.
+        start.Environment.Remove("OASIS_NATIVE_PREPARATION_PIPE");
+        start.Environment.Remove("OASIS_NATIVE_PREPARATION_MODULE");
         var requestJson = JsonSerializer.Serialize(new { action, request });
         using var requestDocument = JsonDocument.Parse(requestJson);
         var originalId = requestDocument.RootElement.GetProperty("request").TryGetProperty("transactionId", out var requestedId)
