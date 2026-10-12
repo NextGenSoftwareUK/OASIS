@@ -24,6 +24,21 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive;
 public sealed class HyperDriveProviderExecutionTests
 {
     [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public void HighLevelKarmaRetainsCommittedResultAndReportsProjectionReplicaWarning(bool ledger)
+    {
+        var record = new KarmaAkashicRecord();
+        var result = new OASISResult<KarmaAkashicRecord>(record);
+        var ledgerResult = new OASISResult<bool>(true) { IsWarning = ledger, Message = "ledger replica unavailable" };
+        var projection = new OASISResult<IAvatarDetail>(new AvatarDetail()) { IsWarning = !ledger, Message = "detail replica unavailable" };
+        var method = typeof(KarmaManager).GetMethod("AddKarmaProjectionWarnings", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)!;
+        object[] arguments = { result, ledgerResult, projection }; method.Invoke(null, arguments);
+        result = (OASISResult<KarmaAkashicRecord>)arguments[0];
+        result.IsError.Should().BeFalse(); result.Result.Should().BeSameAs(record);
+        result.IsWarning.Should().BeTrue(); result.WarningCount.Should().BeGreaterThan(0);
+    }
+
+    [Theory]
     [InlineData(false, false, false)] [InlineData(true, false, false)]
     [InlineData(false, true, false)] [InlineData(true, true, false)]
     [InlineData(false, true, true)] [InlineData(true, true, true)]
