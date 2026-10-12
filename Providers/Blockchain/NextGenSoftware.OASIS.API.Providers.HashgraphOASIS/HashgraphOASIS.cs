@@ -137,12 +137,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         private readonly string _networkUrl;
         private readonly string _accountId;
         private readonly string _privateKey;
+        private readonly string _transferNetwork;
 
-        public HashgraphClient(string networkUrl = "https://mainnet-public.mirrornode.hedera.com", string accountId = "", string privateKey = "")
+        public HashgraphClient(string networkUrl = "https://mainnet-public.mirrornode.hedera.com", string accountId = "", string privateKey = "", string transferNetwork = "mainnet")
         {
             _networkUrl = networkUrl;
             _accountId = accountId;
             _privateKey = privateKey;
+            _transferNetwork = transferNetwork;
         }
 
         public async Task<string> ResolveAccountIdFromKeysAsync(string publicKey)
@@ -264,91 +266,21 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         /// <summary>
         /// Send transaction to Hashgraph network
         /// </summary>
-        public async Task<HashgraphTransactionData> SendTransactionAsync(HashgraphTransactionData transactionData)
+public async Task<HashgraphTransactionData> SendTransactionAsync(HashgraphTransactionData transactionData)
         {
-            try
-            {
-                using (var httpClient = new System.Net.Http.HttpClient())
-                {
-                    var json = System.Text.Json.JsonSerializer.Serialize(transactionData);
-                    var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
-
-                    var response = await httpClient.PostAsync($"{_networkUrl}/api/v1/transactions", content);
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var responseContent = await response.Content.ReadAsStringAsync();
-                        var transactionResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                        var txId = transactionResponse.TryGetProperty("transaction_id", out var txIdProp)
-                            ? txIdProp.GetString()
-                            : string.Empty;
-
-                        // If the mirror node did not return a transaction_id, treat as an error rather than inventing one.
-                        if (string.IsNullOrWhiteSpace(txId))
-                            return null;
-
-                        return new HashgraphTransactionData
-                        {
-                            FromAddress = transactionData.FromAddress,
-                            ToAddress = transactionData.ToAddress,
-                            Amount = transactionData.Amount,
-                            Memo = transactionData.Memo,
-                            TransactionId = txId,
-                            Status = "Success"
-                        };
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // Return null if transaction fails
-            }
-            return null;
+            ArgumentNullException.ThrowIfNull(transactionData);
+            var provider = new HashgraphOASIS(network: _transferNetwork, rawTransferAccountId: _accountId, rawTransferSigningKey: () => _privateKey);
+            var result = await provider.SendTransactionAsync(transactionData.FromAddress, transactionData.ToAddress, transactionData.Amount, transactionData.Memo);
+            if (result.IsError) throw new InvalidOperationException(result.Message, result.Exception);
+            return new HashgraphTransactionData { FromAddress = transactionData.FromAddress, ToAddress = transactionData.ToAddress,
+                Amount = transactionData.Amount, Memo = transactionData.Memo, TransactionId = result.Result.TransactionResult, Status = "Success" };
         }
 
         /// <summary>
         /// Send transaction to Hashgraph network synchronously
         /// </summary>
-        public HashgraphTransactionData SendTransaction(HashgraphTransactionData transactionData)
-        {
-            try
-            {
-                using (var httpClient = new System.Net.Http.HttpClient())
-                {
-                    var json = System.Text.Json.JsonSerializer.Serialize(transactionData);
-                    var content = new System.Net.Http.StringContent(json, System.Text.Encoding.UTF8, "application/json");
-
-                    var response = httpClient.PostAsync($"{_networkUrl}/api/v1/transactions", content).Result;
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var responseContent = response.Content.ReadAsStringAsync().Result;
-                        var transactionResponse = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(responseContent);
-
-                        var txId = transactionResponse.TryGetProperty("transaction_id", out var txIdProp)
-                            ? txIdProp.GetString()
-                            : string.Empty;
-
-                        if (string.IsNullOrWhiteSpace(txId))
-                            return null;
-
-                        return new HashgraphTransactionData
-                        {
-                            FromAddress = transactionData.FromAddress,
-                            ToAddress = transactionData.ToAddress,
-                            Amount = transactionData.Amount,
-                            Memo = transactionData.Memo,
-                            TransactionId = txId,
-                            Status = "Success"
-                        };
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // Return null if transaction fails
-            }
-            return null;
-        }
+public HashgraphTransactionData SendTransaction(HashgraphTransactionData transactionData)
+            => SendTransactionAsync(transactionData).GetAwaiter().GetResult();
 
         /// <summary>
         /// Get NFT data from Hashgraph network
