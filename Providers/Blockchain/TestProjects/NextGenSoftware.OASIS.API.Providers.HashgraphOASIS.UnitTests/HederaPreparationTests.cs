@@ -10,25 +10,30 @@ public class HederaPreparationTests
 {
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
-    public async Task SignedEscrowStagesPersistExactEvidenceWithDistinctCorrelations(bool skipApproval)
+    [DataRow(false,true)] [DataRow(true,true)]
+    public async Task SignedEscrowStagesPersistExactEvidenceWithDistinctCorrelations(bool skipApproval,bool fungible=false)
     {
         var bridge=Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE")??Path.Combine(AppContext.BaseDirectory,"HederaSdkBridge","bridge.mjs");
         var start=new ProcessStartInfo("node"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true,WorkingDirectory=Path.GetDirectoryName(bridge)};
         start.ArgumentList.Add("--input-type=module");start.ArgumentList.Add("-e");
         start.ArgumentList.Add("""
             import {PrivateKey,AccountId} from '@hiero-ledger/sdk';
-            import {escrowTransaction,escrowApprovalTransaction} from './escrow.mjs';
+            import {escrowTransaction,escrowApprovalTransaction,tokenEscrowTransaction,tokenEscrowApprovalTransaction} from './escrow.mjs';
             const key=PrivateKey.generateECDSA();
             const request={sender:'0.0.1001',contractId:'0.0.2001',tokenId:'0.0.3001',serial:'1',gas:400000,
               maxFeeTinybars:'100000000',runtimeCodeHash:'0x'+'11'.repeat(32),transactionId:'0.0.1001@1700000000.000000001',
-              approvalTransactionId:'0.0.1001@1700000000.000000002'};
+              approvalTransactionId:'0.0.1001@1700000000.000000002',amountUnits:'9007199254740993'};
             const evidence=[];
-            for(const tx of [escrowApprovalTransaction(request),escrowTransaction('nftEscrowLock',request)]){
+            const stages=process.argv[1]==='token'
+              ?[tokenEscrowApprovalTransaction(request),tokenEscrowTransaction('tokenEscrowLock',request)]
+              :[escrowApprovalTransaction(request),escrowTransaction('nftEscrowLock',request)];
+            for(const tx of stages){
               tx.setNodeAccountIds([AccountId.fromString('0.0.3')]).freeze();const signed=await tx.sign(key);
               evidence.push({transactionHash:tx.transactionId.toString(),sender:request.sender,chainId:'offline-test',signedTransactionBase64:Buffer.from(signed.toBytes()).toString('base64')});
             }
             process.stdout.write(JSON.stringify({publicKey:key.publicKey.toStringDer(),evidence}));
             """);
+        start.ArgumentList.Add(fungible?"token":"nft");
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(20));
         using var child=Process.Start(start)??throw new InvalidOperationException("Cannot start retained SDK.");
         const string connection="mongodb://127.0.0.1:27017/?serverSelectionTimeoutMS=3000";
