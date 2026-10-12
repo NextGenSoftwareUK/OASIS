@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera escrow unlock preparation — 2026-10-12
+
+Enabled the existing single-stage prepared invocation for `nftEscrowUnlock` and `tokenEscrowUnlock` in both C# admission and CLI transport configuration. Both SDK operations already await signed mutation persistence before execution. Lock operations remain explicitly guarded: an existing allowance can skip approval, so their protocol must support the exact optional approval followed by mandatory mutation, with separate outbox correlations. Do not wire them to a mandatory two-message sequence or remove that remaining guard prematurely.
+
+Provider build passed (two existing unused-variable warnings). C# unit project **24/24** passed in `TestResults/PriorityProviderCurrent/hedera-current.trx`, including controlled unlock acknowledgement and parent-rejection cases. SDK suite **98/98** passed. The first C# run was **23/24** because the default output bridge lacked installed Node dependencies; rerunning with `OASIS_HEDERA_SDK_BRIDGE` explicitly pointing to the retained source bridge succeeded without installing dependencies. Output packaging is therefore not certified by this run. Controlled lifecycle tests do not prove funded unlock consensus or custody readback. No funded transaction, deployment, subscription spending, or development merge occurred.
+
 ### Ordered preparation transport — 2026-10-12
 
 The shared `PreparedSubmissionServer.ForStages` now accepts an explicit copied sequence of 2–16 distinct bounded original transaction IDs. Each stage connects separately, validates its expected original ID before persistence, awaits its own persistence callback, and receives only its own acknowledgement. Before accepting the next connection the server observes the previous client's close so it cannot discard an unread acknowledgement. Immutable snapshots expose all persisted original IDs, including the first stage when a later stage is rejected. Existing single-stage constructors retain their contract.

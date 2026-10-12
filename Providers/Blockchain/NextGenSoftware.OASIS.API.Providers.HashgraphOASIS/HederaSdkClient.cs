@@ -66,7 +66,7 @@ internal static class HederaSdkClient
         if (isMutation && string.IsNullOrWhiteSpace(originalId))
             throw new ArgumentException("Hedera native mutations require an explicit original transaction ID before SDK launch.");
         if(preparationServer!=null){
-            if(!isMutation||action is "nftEscrowLock" or "nftEscrowUnlock" or "tokenEscrowLock" or "tokenEscrowUnlock")
+            if(!isMutation||action is "nftEscrowLock" or "tokenEscrowLock")
                 throw new ArgumentException("Prepared Hedera invocation requires a single-stage native mutation.");
             preparationServer.ConfigureChild(start,Path.Combine(AppContext.BaseDirectory,"HederaSdkBridge","prepared-submission.mjs"));
         }
