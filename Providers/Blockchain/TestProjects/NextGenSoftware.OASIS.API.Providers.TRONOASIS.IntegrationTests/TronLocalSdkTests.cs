@@ -26,7 +26,9 @@ public sealed class TronLocalSdkTests
         var provider = new TRONOASIS(rpcEndpoint: "http://127.0.0.1:9090", nativeTransfers: runtime.NativeTransfers, storageBackend: backend)
             { IsVersionControlEnabled = true };
         var avatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = Guid.Parse("89139d63-b8d5-4540-9ee4-10495178ef31"),
-            Username = "tron-history-owner", Email = "tron-history-owner@example.invalid", FirstName = "first" };
+            Username = "tron-history-owner", Email = "tron-history-owner@example.invalid", FirstName = "first",
+            VerificationToken = "PublicLocalVerificationFixture", ResetToken = "PublicLocalResetFixture",
+            RefreshTokens = new() { new NextGenSoftware.OASIS.API.Core.Objects.RefreshToken { Token = "PublicLocalRefreshFixture" } } };
         var other = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = Guid.Parse("847b058a-7229-47fb-97d4-933d071da31f"),
             Username = "tron-history-other", Email = "tron-history-other@example.invalid" };
         var detail = new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id = avatar.Id, Karma = 10 };
@@ -49,6 +51,11 @@ public sealed class TronLocalSdkTests
             foreach (var result in new[] { provider.LoadAllHolons(version: 1), await provider.LoadAllHolonsAsync(version: 1) })
             { Assert.False(result.IsError, result.Message); Assert.Equal("first", result.Result.Single(value => value.Id == holon.Id).Name); }
             Assert.Equal("second", (await provider.LoadAllAvatarsAsync()).Result.Single(value => value.Id == avatar.Id).FirstName);
+            foreach (var lookup in new[] {
+                provider.LoadAvatarByVerificationToken(avatar.VerificationToken), await provider.LoadAvatarByVerificationTokenAsync(avatar.VerificationToken),
+                provider.LoadAvatarByResetToken(avatar.ResetToken), await provider.LoadAvatarByResetTokenAsync(avatar.ResetToken),
+                provider.LoadAvatarByRefreshToken(avatar.RefreshTokens[0].Token), await provider.LoadAvatarByRefreshTokenAsync(avatar.RefreshTokens[0].Token) })
+            { Assert.False(lookup.IsError, lookup.Message); Assert.Equal(avatar.Id, lookup.Result.Id); }
             foreach (var conflictingEmail in new[] { false, true })
             {
                 var rejected = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id = avatar.Id,
