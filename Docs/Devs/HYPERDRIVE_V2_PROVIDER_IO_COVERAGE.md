@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Execution-owned preparation persistence adapter — 2026-10-12
+
+Added `UsageExecutionHandle.NativePreparationPersistence`: requires expected chain/signer and an explicit original cryptographic-identity verifier, checks descriptor binding/encoding, awaits verification, then atomically stores complete signed evidence under the existing execution owner. No permissive default verifier. Sui preparation now uses canonical `chainId` for its verified genesis identifier, matching the adapter/Cosmos descriptor contract. Real Mongo suite **75/75**, zero skips, including mismatch-before-callback/write and successful descriptor persistence; verifier in that case is controlled, not native crypto proof. Sui SDK **24/24**; net10 Core build 0 errors/129 existing warnings. Core `8e6278a72e7b83c6402139de9ad7240fa25c2a3d` published and parent pin synchronized.
+
+Production caller must supply provider-specific signature/hash verification and trusted identity from authenticated admission. Lifecycle wiring, native billing, crash/recovery and complete live/deployed gates remain open; no submission or release merge.
+
 ### Native outbox evidence limit admission — 2026-10-12
 
 Real Mongo cases now reject malformed/empty/noncanonical signed evidence without inserting attempts, and exercise the exact aggregate byte-counter boundary: one fitting atomic write, then denied additional admission with count/counter unchanged. Capacity failures report `NATIVE_PREPARATION_BUDGET_EXCEEDED` rather than claiming a duplicate. The boundary counter is seeded as a controlled fixture, not an actual 8 MiB ledger population. Suite **74/74**, zero skips; net10 build 0 errors/129 existing warnings. Core `cb65129d5cb2789a4c13287232ca08c12026a686` published and parent manifest/gitlink synchronized. No provider submission, install or release merge; production cryptographic/lifecycle/billing/live/deployed gates remain open.
