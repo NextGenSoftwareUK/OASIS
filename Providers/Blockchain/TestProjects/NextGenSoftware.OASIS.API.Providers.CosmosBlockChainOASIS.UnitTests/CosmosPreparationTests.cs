@@ -9,6 +9,15 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 public class CosmosPreparationTests
 {
     [TestMethod]
+    public void StorageAndNativeOperationsRetainOneSdkBackend()
+    {
+        using var provider=new CosmosBlockChainOASIS("http://127.0.0.1:1");
+        var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+        var storage=typeof(CosmosBlockChainOASIS).GetProperty("Backend",flags)!.GetValue(provider);
+        var native=typeof(CosmosBlockChainOASIS).GetField("_sdkBackend",flags)!.GetValue(provider);
+        Assert.AreSame(storage,native,"Native invocation must reuse the configured storage SDK transport.");
+    }
+    [TestMethod]
     public async Task StorageActivationInvokesOnlyReadOnlyProbe()
     {
         var type=typeof(CosmosBlockChainOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.CosmosSdkBackend")!;
