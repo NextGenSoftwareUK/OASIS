@@ -19,6 +19,7 @@ public class TronUnknownBroadcastEvidenceTests
         public int BroadcastCount;
         public int SignCount;
         public bool BroadcastAccepted;
+        public Action? BeforeBroadcast;
         public Exception Interruption = new TimeoutException("controlled transport interruption");
         protected override object? Invoke(MethodInfo? method, object?[]? args)
         {
@@ -30,6 +31,7 @@ public class TronUnknownBroadcastEvidenceTests
             if (method.Name == nameof(ITransactionClient.BroadcastTransactionAsync))
             {
                 Signed = ((Transaction)args![0]!).Clone();
+                BeforeBroadcast?.Invoke();
                 BroadcastCount++;
                 return BroadcastAccepted ? Task.FromResult(new Return{Result=true}) : Task.FromException<Return>(Interruption);
             }
@@ -48,8 +50,8 @@ public class TronUnknownBroadcastEvidenceTests
         }
     }
     [Theory]
-    [InlineData(false,false)] [InlineData(true,false)] [InlineData(false,true)]
-    public async Task ActualClientSignsOnceAndPreservesOriginalEvidenceWhenBroadcastOrConfirmationIsInterrupted(bool broadcastAccepted,bool persistenceRejected)
+    [InlineData(false,false,false)] [InlineData(true,false,false)] [InlineData(false,true,false)] [InlineData(false,false,true)]
+    public async Task ActualClientSignsOnceAndPreservesOriginalEvidenceWhenBroadcastOrConfirmationIsInterrupted(bool broadcastAccepted,bool persistenceRejected,bool prepared)
     {
         const string genesis = "0000000000000000c93baa76a4a508f798a96f59156d9eb17ecede8ec845df2f";
         await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"), new Uri("http://127.0.0.1:50052"), genesis);
@@ -67,11 +69,14 @@ public class TronUnknownBroadcastEvidenceTests
             wallet=confirmationWallet;
         }
         var preparationCalls=0;var persistenceFailure=new InvalidOperationException("controlled persistence failure");
-        var client = new TronNativeTransferClient(wallet, proxy, genesis,100000000,persistenceRejected?async(id,chain,bytes,token)=>{
-            preparationCalls++;Assert.Equal(genesis,chain);
+        if(prepared)controlled.BeforeBroadcast=()=>Assert.Equal(1,preparationCalls);
+        string? persistedId=null;
+        var client = new TronNativeTransferClient(wallet, proxy, genesis,100000000,persistenceRejected||prepared?async(id,chain,bytes,token)=>{
+            Assert.Equal(genesis,chain);
             var prepared=Transaction.Parser.ParseFrom(Convert.FromBase64String(bytes));
             Assert.Equal(Convert.ToHexString(SHA256.HashData(prepared.RawData.ToByteArray())).ToLowerInvariant(),id);
-            Assert.Single(prepared.Signature);await Task.CompletedTask;throw persistenceFailure;
+            Assert.Single(prepared.Signature);await Task.Yield();preparationCalls++;persistedId=id;
+            if(persistenceRejected)throw persistenceFailure;
         }:null);
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         var transaction = new Transaction { RawData = new Transaction.Types.raw { Timestamp = now, Expiration = now + 60000 } };
@@ -82,6 +87,7 @@ public class TronUnknownBroadcastEvidenceTests
             Assert.Equal(1,preparationCalls);Assert.Equal(1,controlled.SignCount);Assert.Equal(0,controlled.BroadcastCount);return;
         }
         var evidence = await Assert.ThrowsAsync<TronBroadcastOutcomeUnknownException>(() => submit);
+        if(prepared){Assert.Equal(1,preparationCalls);Assert.Equal(persistedId,evidence.TransactionId);}
         Assert.Equal(1, controlled.BroadcastCount);
         Assert.Equal(evidence.TransactionId, ((Core.Interfaces.INativeMutationReconciliationRequired)evidence).OriginalTransactionId);
         Assert.Equal(1, controlled.SignCount);

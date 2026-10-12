@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON preparation completion precedes broadcast — 2026-10-12
+
+Actual SDK signing test now accepts an asynchronous preparation callback (yields before completing) and asserts controlled broadcast sees exactly one completed callback. Subsequent broadcast transport failure retains the same prepared original ID and one broadcast; no new signing/replacement. Unknown-evidence suite **8/8**, zero skips, `TestResults/PriorityProviderCurrent/tron-unknown-evidence.trx`. Callback remains controlled/in-memory, not durable database proof.
+
+Runtime/provider outbox binding, independent sender/signature checks, actual submission/recovery and all live/deployed gates remain open. Fenced live original untouched; no RPC, installs or release merge.
+
 ### TRON original signed preparation hook before broadcast — 2026-10-12
 
 Canonical native client has explicit constructor-supplied awaited persistence callback after real SDK signing/raw-data validation and original SHA256 identity derivation, before broadcast. Callback receives original ID, expected genesis and immutable base64 signed protobuf bytes; original constructor retained. Actual SDK signing with rejected callback proves exact signed-byte hash, one sign/one callback, zero broadcasts and preserved original rejection. Unknown-evidence suite **7/7**, zero skips, `TestResults/PriorityProviderCurrent/tron-unknown-evidence.trx`; provider build 0 errors/21 existing warnings.
