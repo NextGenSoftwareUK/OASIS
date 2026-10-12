@@ -1,6 +1,20 @@
 import { TimeoutError } from '@cosmjs/stargate';
 import { fromBech32 } from '@cosmjs/encoding';
 
+export function bankTransferLegs(encoded, registry) {
+  if (encoded.typeUrl === '/cosmos.bank.v1beta1.MsgSend') {
+    const value = registry.decode(encoded);
+    return [{from:value.fromAddress,to:value.toAddress,coins:value.amount,transferIndex:0,operation:encoded.typeUrl}];
+  }
+  if (encoded.typeUrl === '/cosmos.bank.v1beta1.MsgMultiSend') {
+    const value = registry.decode(encoded);
+    if (value.inputs.length !== 1 || !value.inputs[0].address || value.outputs.length === 0)
+      throw new Error('Cosmos multi-send requires one identifiable input and outputs; ambiguous transfer pairings are not fabricated');
+    return value.outputs.map((output,transferIndex) => ({from:value.inputs[0].address,to:output.address,coins:output.coins,transferIndex,operation:encoded.typeUrl}));
+  }
+  return [];
+}
+
 export function verifiedUpload(result) {
   verifiedContractExecution(result);
   if (!Number.isSafeInteger(result.codeId) || result.codeId <= 0)
