@@ -1,6 +1,20 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {PrivateKey,Transaction,AccountId} from '@hiero-ledger/sdk';
-import {deploymentTransaction} from './deployment.mjs';
+import {PrivateKey,Transaction,AccountId,Client} from '@hiero-ledger/sdk';
+import {deploymentTransaction,executeDeployment} from './deployment.mjs';
+test('real SDK signed deployment waits for persistence and rejection prevents submission',async()=>{
+ const key=PrivateKey.generateECDSA(),client=Client.forNetwork({'127.0.0.1:1':'0.0.3'});
+ let calls=0,closed=false;const close=client.close.bind(client);client.close=()=>{closed=true;close();};
+ const failure=new Error('controlled persistence rejected');
+ await assert.rejects(executeDeployment('contractCreate',{...request,network:'controlled-local'}, {
+  createClient:async()=>client,restoreKey:()=>key,persistPreparedSubmission:async evidence=>{
+   calls++;assert.equal(evidence.transactionHash,request.transactionId);assert.equal(evidence.sender,request.sender);
+   const original=Transaction.fromBytes(Buffer.from(evidence.signedTransactionBase64,'base64'));
+   assert.equal(original.transactionId.toString(),request.transactionId);assert.equal(Object.isFrozen(evidence),true);
+   throw failure;
+  }
+ }),error=>error===failure);
+ assert.equal(calls,1);assert.equal(closed,true);
+});
 for (const action of ['bytecodeFileCreate','bytecodeFileAppend','contractCreate','nftCollectionCreate','tokenCollectionDelete','nftMetadataUpdate']) {
  test(`${action} constructor refuses absent original identity`, () => {
   const key=PrivateKey.generateECDSA().publicKey;
