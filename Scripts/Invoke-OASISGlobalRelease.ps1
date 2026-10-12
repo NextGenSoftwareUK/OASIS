@@ -27,6 +27,7 @@ param(
     [bool]$AdvanceWeb6ApiVersion = $false,
     [int]$ApiMinorIncrement = 2,
     [string]$ReleaseNotes = '',
+    [string]$ReviewedPlanPath = '',
     [string]$OutputDirectory = (Join-Path $PSScriptRoot '..\artifacts\global-release'),
     [string]$NuGetApiKey = $env:NUGET_API_KEY,
     [switch]$Offline
@@ -36,6 +37,14 @@ $ErrorActionPreference = 'Stop'
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $OutputDirectory = [IO.Path]::GetFullPath($OutputDirectory)
 $planPath = Join-Path $OutputDirectory 'release-plan.json'
+$reviewedPlan = $null
+if ($ReviewedPlanPath) {
+    if ($Operation -ne 'Pack') { throw 'ReviewedPlanPath is supported only for Pack.' }
+    $reviewedPlan = Get-Content -LiteralPath $ReviewedPlanPath -Raw | ConvertFrom-Json
+    $sourceCommit = (& git -C $repoRoot rev-parse HEAD).Trim()
+    if ($reviewedPlan.sourceCommit -ne $sourceCommit) { throw 'The reviewed plan does not match the checked-out source commit.' }
+    if ($reviewedPlan.nugetPackageScope -ne $NuGetPackageScope) { throw 'The reviewed plan package scope does not match packing.' }
+}
 $packageOutput = Join-Path $OutputDirectory 'nuget'
 $planBlockers = [Collections.Generic.List[string]]::new()
 $versionDecisions = [Collections.Generic.List[object]]::new()
@@ -455,6 +464,17 @@ if ($NuGetPackages) {
         }
     }
     Assert-PackageMetadata $packageProjects
+    if ($reviewedPlan) {
+        if (@($reviewedPlan.packages).Count -ne $packageProjects.Count) { throw 'Reviewed package coverage differs from source.' }
+        foreach ($project in $packageProjects) {
+            $matches = @($reviewedPlan.packages | Where-Object { $_.packageId -eq $project.PackageId })
+            $relative = $project.File.FullName.Substring($repoRoot.Length).TrimStart('\', '/').Replace('\', '/')
+            if ($matches.Count -ne 1 -or $matches[0].project -ne $relative -or $matches[0].version -notmatch '^\d+\.\d+\.\d+$') {
+                throw "Invalid reviewed package identity/path/version for $($project.PackageId)."
+            }
+        }
+        $packagePlan = @($reviewedPlan.packages)
+    } else {
     $packagePlan = @($packageProjects | ForEach-Object {
         $publishedRelease = Get-LatestNuGetRelease $_.PackageId
         $version = Get-PlannedPackageVersion $_ $publishedRelease
@@ -466,6 +486,7 @@ if ($NuGetPackages) {
             releaseNotes = Get-PackageReleaseNotes $_ $version $publishedRelease
         }
     })
+    }
 }
 
 $components = [ordered]@{

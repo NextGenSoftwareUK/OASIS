@@ -208,11 +208,15 @@ jobs:
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
+      - uses: actions/download-artifact@v7
+        with:
+          name: global-release-plan
+          path: artifacts/global-release-plan
       - name: Pack every selected first-party package
         shell: pwsh
         env:
           GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
-        run: ./Scripts/Invoke-OASISGlobalRelease.ps1 -Operation Pack -NuGetPackageScope '${{ inputs.nuget_package_scope }}' -OASISRuntime $false -STARRuntime $false -EdgeRuntime $false -OGEngineClient $false -NativeEndpoint $false -MCPServer $false
+        run: ./Scripts/Invoke-OASISGlobalRelease.ps1 -Operation Pack -ReviewedPlanPath artifacts/global-release-plan/release-plan.json -NuGetPackageScope '${{ inputs.nuget_package_scope }}' -OASISRuntime $false -STARRuntime $false -EdgeRuntime $false -OGEngineClient $false -NativeEndpoint $false -MCPServer $false
       - uses: actions/upload-artifact@v7
         with:
           name: global-release-nuget-packages
@@ -223,6 +227,7 @@ jobs:
     needs: [plan, nuget, edge-runtime-validation]
     runs-on: windows-latest
     steps:
+      - uses: actions/checkout@v7
       - uses: actions/download-artifact@v7
         with:
           name: global-release-plan
@@ -250,9 +255,8 @@ jobs:
             $expectedName = "$($planned.packageId).$($planned.version).nupkg"
             $package = @($packages | Where-Object Name -eq $expectedName)
             if ($package.Count -ne 1) { throw "Expected exactly one reviewed package '$expectedName'." }
-            dotnet nuget push $package[0].FullName --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY
-            if ($LASTEXITCODE -ne 0) { throw "Publishing '$expectedName' failed." }
           }
+          ./Scripts/Publish-OASISReviewedNuGet.ps1 -PlanPath artifacts/global-release-plan/release-plan.json -PackageDirectory artifacts/global-release-nuget -Publish
 
   edge-runtime-validation:
     if: inputs.edge_runtime
