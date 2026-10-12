@@ -9,6 +9,31 @@ using NextGenSoftware.Utilities;
 public class NftMintOptionValidationTests
 {
     [Theory]
+    [InlineData(false, null)]
+    [InlineData(false, "")]
+    [InlineData(true, null)]
+    [InlineData(true, "")]
+    public void OmittedMintActorIsAlwaysTheAuthenticatedCaller(bool wizard, string? supplied)
+    {
+        var id = Guid.NewGuid();
+        Assert.Equal(id, ResolveActor(id, wizard, supplied));
+    }
+
+    [Fact]
+    public void OnlyWizardCanSupplyMintActorAndMissingCallerIsNeverReplaced()
+    {
+        var caller = Guid.NewGuid(); var other = Guid.NewGuid();
+        Assert.Equal(other, ResolveActor(caller, true, other.ToString()));
+        foreach (var supplied in new[] { caller.ToString(), other.ToString() })
+            Assert.IsType<UnauthorizedAccessException>(Assert.Throws<System.Reflection.TargetInvocationException>(() => ResolveActor(caller, false, supplied)).InnerException);
+        Assert.IsType<UnauthorizedAccessException>(Assert.Throws<System.Reflection.TargetInvocationException>(() => ResolveActor(Guid.Empty, true, other.ToString())).InnerException);
+    }
+
+    private static Guid ResolveActor(Guid caller, bool wizard, string? supplied)
+        => (Guid)typeof(NftController).GetMethod("ResolveMintActorAvatarId", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!
+            .Invoke(null, new object?[] { caller, wizard, supplied })!;
+
+    [Theory]
     [InlineData("not-a-guid")]
     [InlineData("00000000-0000-0000-0000-000000000000")]
     public async Task ExplicitInvalidMintActorDoesNotSilentlyBecomeCaller(string actor)

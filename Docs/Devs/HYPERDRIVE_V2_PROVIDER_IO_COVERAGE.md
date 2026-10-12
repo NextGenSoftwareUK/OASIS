@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### WEB4 mint actor defaults and delegation are explicit (2026-10-12)
+
+Controller now uses one tested mint-actor resolver: omitted/empty field returns the nonempty authenticated caller ID; only a Wizard may supply an override (including an explicit self ID); invalid/empty GUID rejects; a missing authenticated caller cannot be substituted with the recipient or even a Wizard's supplied actor. Removed recipient fallback. Temporary Wizard-only mint admission remains until subscription/fee integration passes—these helper tests do not enable normal-user minting. Current rebuilt WEB4 zero errors/255 warnings; full WEB4 units **138/138, zero skips**, `web4-unit-current.trx`. Four default-field cases and one delegation/security case added; prior invalid actor/controller option tests still pass. No positive JWT mint, live payment, deployment or release merge is claimed.
+
 ### NFT recipient selectors must agree before request updates (2026-10-12)
 
 ONODE `f67ed3a0e306141905883168331d5cfdf9441c64` resolves email/username into a local recipient ID and rejects disagreement with another resolved selector or explicit ID. An explicit address plus an avatar now also loads that avatar's default wallet and requires exact address agreement; it cannot bypass lookup. Request recipient fields update only after successful validation. Existing WalletManager handles actual default-wallet reads; no additional database/provider or first-wallet fallback introduced. Five new helper cases prove matching/conflicting/empty IDs and wallet addresses. Full ONODE Core **238/238, zero skips**, `onode-unit-current.trx`; build zero errors/154 warnings. Address comparison is exact canonical-string equality; equivalent noncanonical aliases are not claimed as supported. Controlled tests do not prove live multi-selector avatar resolution or positive JWT minting; these remain required gates.
