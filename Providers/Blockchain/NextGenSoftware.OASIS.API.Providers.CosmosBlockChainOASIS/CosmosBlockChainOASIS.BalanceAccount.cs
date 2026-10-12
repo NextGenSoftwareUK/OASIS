@@ -183,14 +183,15 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             var result = new OASISResult<BridgeTransactionStatus>();
             try
             {
-                if (string.IsNullOrWhiteSpace(transactionHash)) throw new ArgumentException("Transaction hash is required.");
+                if (!System.Text.RegularExpressions.Regex.IsMatch(transactionHash ?? "", @"\A[0-9a-fA-F]{64}\z"))
+                    throw new ArgumentException("An exact 64-hex Cosmos transaction hash is required.");
                 var tx = await ((CosmosSdkBackend)Backend).InvokeAsync("transactionStatus", new { transactionHash }, token);
                 if (tx.ValueKind == JsonValueKind.Null)
                 {
                     result.Result = BridgeTransactionStatus.NotFound;
                     result.Message = "Transaction is not indexed on the configured chain.";
                 }
-                else result.Result = MapExecutionCode(tx.GetProperty("code").GetInt32());
+                else result.Result = MapTransactionStatus(tx, transactionHash);
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
             return result;
@@ -205,6 +206,15 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
         {
             if (code < 0) throw new ArgumentOutOfRangeException(nameof(code), "Native execution codes must be nonnegative.");
             return code == 0 ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Failed;
+        }
+
+        internal static BridgeTransactionStatus MapTransactionStatus(JsonElement tx, string requestedHash)
+        {
+            if (tx.ValueKind != JsonValueKind.Object || !tx.TryGetProperty("hash", out var hash)
+                || hash.ValueKind != JsonValueKind.String || !string.Equals(hash.GetString(), requestedHash, StringComparison.OrdinalIgnoreCase)
+                || !tx.TryGetProperty("height", out var height) || !height.TryGetInt64(out var blockHeight) || blockHeight <= 0)
+                throw new InvalidOperationException("Cosmos transaction status does not establish the requested hash and committed block height.");
+            return MapExecutionCode(tx.GetProperty("code").GetInt32());
         }
     }
 }
