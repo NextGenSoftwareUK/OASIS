@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Sui V2 indexed read absence after replicated deletion (2026-10-12)
+
+Healthy retained-node V2 scenario adds 24 post-deletion assertions matching the existing presence matrix: ID/username/email avatar/detail, sync/async on both Sui/LocalFile targets. Router reports non-error authoritative null results after successful replicated identity/detail deletion; no stale record/index is returned. Expanded scenario passes **1/1**, zero skips, 56 seconds (`sui-v2-healthy-current.trx`), including prior presence/replication/measured selection checks. Original runtime/package/ledger/SDK/fixed fixtures reused and cleaned by existing finally. Exact owned PID 121231 stopped after terminal completion; no Sui process remains. No reset/install/download/new environment/public assets/merge. Complete operation/options/native/HTTP/image gates remain open.
+
 ### Expanded live Sui V2 indexed avatar/detail reads (2026-10-12)
 
 Existing retained-node healthy V2 scenario now executes 24 additional assertions: avatar and detail ID/username/email lookups, sync/async, explicitly targeted at both Sui and LocalFile real replicas. All pass within **1/1** scenario, zero skips, 52 seconds (`sui-v2-healthy-current.trx`), retaining replication diagnostics and measured real-provider selection/deletion assertions. Existing checkout/node/package/ledger/SDK/fixed fixtures reused; test finally cleans owned records. Exact owned PID 119626 stopped afterward; no Sui process remains. Approximately 105.77 GB decimal free during run. This expands actual routing evidence, not all 42 operations/options/native/HTTP/image gates. No installs/downloads/new environment/reset/public asset spending/merge.

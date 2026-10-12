@@ -227,6 +227,23 @@ public sealed class SuiRealProviderRoutingTests
             (await sui.LoadAvatarDetailAsync(avatar.Id)).Result.Should().BeNull();
             (await sui.LoadAvatarByUsernameAsync(avatar.Username)).Result.Should().BeNull();
             (await sui.LoadAvatarByEmailAsync(avatar.Email)).Result.Should().BeNull();
+            foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.SuiOASIS })
+            {
+                foreach (var operation in new[] { "LoadAvatar", "LoadAvatarByUsername", "LoadAvatarByEmail" })
+                {
+                    var request = new StorageOperationRequest { Operation = operation, AvatarId = avatar.Id,
+                        Username = avatar.Username, Email = avatar.Email, PreferredProvider = providerType };
+                    foreach (var read in new[] { router.RouteRequest<IAvatar>(request), await router.RouteRequestAsync<IAvatar>(request) })
+                    { read.IsError.Should().BeFalse(read.Message); read.Result.Should().BeNull("replicated deletion must retire identity indexes"); }
+                }
+                foreach (var operation in new[] { "LoadAvatarDetail", "LoadAvatarDetailByUsername", "LoadAvatarDetailByEmail" })
+                {
+                    var request = new StorageOperationRequest { Operation = operation, AvatarId = avatar.Id,
+                        Username = avatar.Username, Email = avatar.Email, PreferredProvider = providerType };
+                    foreach (var read in new[] { router.RouteRequest<IAvatarDetail>(request), await router.RouteRequestAsync<IAvatarDetail>(request) })
+                    { read.IsError.Should().BeFalse(read.Message); read.Result.Should().BeNull("replicated deletion must remove detail projections"); }
+                }
+            }
             avatarSaved = false;
         }
         finally
