@@ -93,8 +93,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                         || string.IsNullOrWhiteSpace(from) || string.IsNullOrWhiteSpace(to)
                         || (from != walletAddress && to != walletAddress))
                         throw new InvalidOperationException("Cosmos indexed transfer identity, amount, denomination or wallet participation is invalid.");
-                    var executionCode = tx.GetProperty("code").GetInt32();
-                    if (executionCode < 0) throw new InvalidOperationException("Invalid Cosmos indexed execution code.");
+                    var executionCode = tx.GetProperty("code").GetUInt32();
                     return new Core.Interfaces.Wallet.Response.WalletTransaction
                     {
                         TransactionId = CreateDeterministicGuid($"{ProviderType.Value}:tx:{hash}:{tx.GetProperty("messageIndex").GetInt32()}"),

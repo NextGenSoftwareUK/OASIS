@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Cosmos execution-code range and live-test authorization (2026-10-12)
+
+History projection reads the native unsigned 32-bit execution code rather than signed int32, retaining valid failures through uint32.MaxValue. Expanded exact-unit/direction/outcome regression covers 4294967295; complete C# suite **48/48**, zero skips; provider build zero errors/two warnings. Negative/noninteger/out-of-range codes cannot become success. Current live runtime start remains deferred under the recorded earlier policy denial; asked the user explicitly whether the already-installed retained wasmd node may resume, with no new download/environment/reset/public funds. No bypass or startup attempted. Balance/account source inspection found no additional fix established this checkpoint; full goal remains incomplete.
+
 ### Combined-branch shared-storage regression (2026-10-12)
 
 At parent `921ff9cec`, rebuilt shared key-value storage passes zero errors/two warnings; its full unit suite **59/59**, zero skips (`TestResults/SharedCurrent/shared-current.trx`). Railway manifest/seven Dockerfiles/committed gitlinks validation passes. This refreshes shared serialization, authoritative absence, indexes/history, child-depth/cycle and metadata-boundary evidence on reconciled dependencies; it is controlled-backend unit coverage, not independent live certification of each provider. Updated top-level Sui/TRON status rows to remove their now-completed selected combined-branch rerun item while preserving complete interface/hosted gaps. No restore/download/install/runtime startup; free C: 103.74 GB decimal. Full goal stays active, no release merge/deployment.
