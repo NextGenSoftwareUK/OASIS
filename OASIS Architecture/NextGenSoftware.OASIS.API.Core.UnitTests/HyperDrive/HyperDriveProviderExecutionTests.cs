@@ -24,6 +24,29 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive;
 public sealed class HyperDriveProviderExecutionTests
 {
     [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task SettingsSavePreservesRealRouterReplicaFailureWarning(bool synchronous)
+    {
+        var primary = CreateActiveProvider(); var replica = CreateActiveProvider(ProviderType.LocalFileOASIS, "unavailable-replica");
+        var settings = new Holon { Id = Guid.NewGuid(), MetaData = new Dictionary<string, object>() };
+        primary.Setup(value => value.LoadHolon(It.IsAny<Guid>(), true, true, 0, true, false, 0)).Returns(new OASISResult<IHolon>(settings));
+        primary.Setup(value => value.LoadHolonAsync(It.IsAny<Guid>(), true, true, 0, true, false, 0)).ReturnsAsync(new OASISResult<IHolon>(settings));
+        primary.Setup(value => value.SaveHolon(It.IsAny<IHolon>(), true, true, 0, true, false)).Returns((IHolon value, bool a, bool b, int c, bool d, bool e) => new OASISResult<IHolon>(value));
+        primary.Setup(value => value.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false)).ReturnsAsync((IHolon value, bool a, bool b, int c, bool d, bool e) => new OASISResult<IHolon>(value));
+        replica.Setup(value => value.SaveHolon(It.IsAny<IHolon>(), true, true, 0, true, false)).Returns(new OASISResult<IHolon> { IsError = true, Message = "replica unavailable" });
+        replica.Setup(value => value.SaveHolonAsync(It.IsAny<IHolon>(), true, true, 0, true, false)).ReturnsAsync(new OASISResult<IHolon> { IsError = true, Message = "replica unavailable" });
+        var dna = CreateDna(HyperDriveModes.V2); var providers = new ProviderManager(null, dna) { IsAutoReplicationEnabled = true, IsAutoFailOverEnabled = false, IsAutoLoadBalanceEnabled = false };
+        providers.RegisterProvider(primary.Object); providers.RegisterProvider(replica.Object); providers.SetAndActivateCurrentStorageProvider(primary.Object);
+        providers.SetAndReplaceAutoReplicationListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.LocalFileOASIS) });
+        var manager = new HolonManager(primary.Object, dna, providers);
+        var payload = new Dictionary<string, object> { ["totalKarma"] = 10L };
+        var result = synchronous ? manager.SaveSettings(Guid.NewGuid(), "karma", payload) : await manager.SaveSettingsAsync(Guid.NewGuid(), "karma", payload);
+        result.IsError.Should().BeFalse(result.Message); result.Result.Should().BeTrue();
+        providers.LastReplicationDiagnostic.FailedCount.Should().Be(1);
+        result.IsWarning.Should().BeTrue("settings wrappers must not conceal real replica failure");
+    }
+
+    [Theory]
     [InlineData(false, false, false)] [InlineData(false, true, false)]
     [InlineData(true, false, false)] [InlineData(true, true, false)]
     [InlineData(false, false, true)] [InlineData(false, true, true)]
