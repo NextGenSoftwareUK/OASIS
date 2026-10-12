@@ -19,7 +19,7 @@ using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
 {
-    public partial class LocalFileOASIS : OASISStorageProviderBase, IOASISLocalStorageProvider
+    public partial class LocalFileOASIS : OASISStorageProviderBase, IOASISLocalStorageProvider, IOASISStorageProvider
     {
         private static readonly JsonSerializerSettings AvatarDeserializeSettings = new JsonSerializerSettings
         {
