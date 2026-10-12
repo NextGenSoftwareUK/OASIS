@@ -6,6 +6,7 @@
     <ImplicitUsings>disable</ImplicitUsings>
     <Nullable>disable</Nullable>
     <PackageId>NextGenSoftware.OASIS.API.Managers</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <Company>NextGen Software Ltd</Company>
     <Product>WEB4 OASIS API Managers</Product>
     <Title>WEB4 OASIS API Managers</Title>
@@ -57,4 +58,7 @@
     <None Include="..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
 </Project>
