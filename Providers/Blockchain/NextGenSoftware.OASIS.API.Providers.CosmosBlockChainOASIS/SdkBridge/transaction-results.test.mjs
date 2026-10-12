@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, verifiedNftCustodyReceipt, cosmosNativeFeeReceipt, bankTransferLegs, cosmosFailureMessage, cosmosErrorEnvelope, guardCosmosSigningClient, indexedHistorySnapshot } from './transaction-results.mjs';
+import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, verifiedNftCustodyReceipt, cosmosNativeFeeReceipt, bankTransferLegs, cosmosFailureMessage, cosmosErrorEnvelope, guardCosmosSigningClient, withCosmosNativeEvidence, indexedHistorySnapshot } from './transaction-results.mjs';
+import { createHash } from 'node:crypto';
 import { SigningCosmWasmClient } from '@cosmjs/cosmwasm';
 import { DirectSecp256k1Wallet } from '@cosmjs/proto-signing';
 import { TxRaw, AuthInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
@@ -10,6 +11,75 @@ import { defaultRegistryTypes } from '@cosmjs/stargate';
 import { toBech32 } from '@cosmjs/encoding';
 import { TimeoutError } from '@cosmjs/stargate';
 const hash = 'ab'.repeat(32);
+
+test('official SDK signing retains exact signed hash before transport and rejects substituted delivery identity', async () => {
+  const wallet = await DirectSecp256k1Wallet.fromKey(new Uint8Array(32).fill(7), 'wasm');
+  const [{address}] = await wallet.getAccounts();
+  const recipient = toBech32('wasm',new Uint8Array(20).fill(2));
+  for (const mode of ['transport','mismatch','mapping','failed']) {
+    const client = await SigningCosmWasmClient.offline(wallet);
+    client.getSequence = async () => ({accountNumber:7,sequence:3});
+    client.getChainId = async () => 'controlled-chain';
+    let submissions = 0, expected;
+    const interruption = new Error('controlled transport interruption');
+    client.broadcastTx = async bytes => {
+      submissions++;
+      const raw = TxRaw.decode(bytes);
+      assert.equal(raw.signatures.length,1); assert.equal(raw.signatures[0].length,64);
+      expected = createHash('sha256').update(bytes).digest('hex').toUpperCase();
+      if(mode==='transport') throw interruption;
+      return {transactionHash:mode==='mismatch'?'C'.repeat(64):expected,height:42,code:mode==='failed'?5:0};
+    };
+    guardCosmosSigningClient(client);
+    await assert.rejects(withCosmosNativeEvidence(async () => {
+      await client.signAndBroadcast(address,[{typeUrl:'/cosmos.bank.v1beta1.MsgSend',value:{fromAddress:address,toAddress:recipient,amount:[{denom:'stake',amount:'1'}]}}],{amount:[],gas:'100000'},'controlled memo');
+      throw new Error('controlled post-execution mapping failure');
+    }), error => {
+      assert.deepEqual(cosmosErrorEnvelope(error).nativeMutation,{transactionHash:expected,executionSucceeded:mode==='mapping'?true:mode==='failed'?false:null});
+      if(mode==='transport')assert.equal(error.cause,interruption);
+      return true;
+    });
+    assert.equal(submissions,1);
+  }
+});
+
+test('ordinary SDK signing preparation failure performs no broadcast and does not manufacture native evidence', async () => {
+  const wallet = await DirectSecp256k1Wallet.fromKey(new Uint8Array(32).fill(7),'wasm');
+  const [{address}] = await wallet.getAccounts();
+  const client = await SigningCosmWasmClient.offline(wallet);
+  const preparation = new Error('controlled sequence lookup failure');
+  client.getSequence = async () => {throw preparation;};
+  let submissions = 0;
+  client.broadcastTx = async () => {submissions++;assert.fail('No signed transaction exists');};
+  guardCosmosSigningClient(client);
+  await assert.rejects(withCosmosNativeEvidence(()=>client.signAndBroadcast(address,[],{amount:[],gas:'1'},'')),error=>error===preparation&&!cosmosErrorEnvelope(error).nativeMutation);
+  assert.equal(submissions,0);
+});
+
+test('concurrent Cosmos evidence scopes remain isolated and ordinary preflight stays ordinary', async () => {
+  const results = await Promise.all([7,8].map(async seed => {
+    const wallet = await DirectSecp256k1Wallet.fromKey(new Uint8Array(32).fill(seed),'wasm');
+    const [{address}] = await wallet.getAccounts();
+    const client = await SigningCosmWasmClient.offline(wallet);
+    client.getSequence=async()=>({accountNumber:7,sequence:3});client.getChainId=async()=>'controlled-chain';
+    let expected;
+    client.broadcastTx=async bytes=>{
+      expected=createHash('sha256').update(bytes).digest('hex').toUpperCase();
+      await Promise.resolve();return{transactionHash:expected,height:42,code:0};
+    };
+    guardCosmosSigningClient(client);
+    try {
+      await withCosmosNativeEvidence(async()=>{
+        await client.signAndBroadcast(address,[],{amount:[],gas:'1'},'');
+        await Promise.resolve();throw new Error('post-execution mapping failure');
+      });
+      assert.fail('Expected mapping failure');
+    } catch(error){assert.equal(cosmosErrorEnvelope(error).nativeMutation.transactionHash,expected);return expected;}
+  }));
+  assert.notEqual(results[0],results[1]);
+  const preflight=new Error('ordinary preflight');
+  await assert.rejects(withCosmosNativeEvidence(async()=>{throw preflight;}),error=>error===preflight&&!cosmosErrorEnvelope(error).nativeMutation);
+});
 
 test('official CosmJS contract methods preserve failed delivery before plain error conversion and submit once', async () => {
   const wallet = await DirectSecp256k1Wallet.fromKey(new Uint8Array(32).fill(7), 'wasm');
@@ -43,7 +113,7 @@ test('official CosmJS contract methods preserve failed delivery before plain err
 
 test('signing boundary retains successful real SDK response and ordinary preflight errors unchanged', async () => {
   const receipt = { transactionHash: hash, height: 42, code: 0 };
-  const client = { async signAndBroadcast(...args) { assert.deepEqual(args, ['sender', [], 'auto', 'memo']); return receipt; } };
+  const client = { async broadcastTx() { assert.fail('Receipt-only fixture does not broadcast'); }, async signAndBroadcast(...args) { assert.deepEqual(args, ['sender', [], 'auto', 'memo']); return receipt; } };
   guardCosmosSigningClient(client);
   assert.equal(await client.signAndBroadcast('sender', [], 'auto', 'memo'), receipt);
   assert.deepEqual(cosmosErrorEnvelope(new Error('ordinary validation error')), { ok: false, error: 'ordinary validation error' });
