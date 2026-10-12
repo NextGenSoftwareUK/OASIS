@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Failed Sui test submission journals original digest before execution (2026-10-12)
+
+Existing local-only failed-status helper now requires an explicit fixed OASIS_SUI_TEST_FAILED_JOURNAL path. It derives the exact digest through installed SDK Transaction.getDigest after resolving/building inputs and exclusively creates a public-identity-only journal before submission. Subsequent calls validate deployment/chain/sender and only read that digest; missing/unverified/mismatched outcomes error without resubmission. Returned failure must match the journal digest. Syntax check passes; SDK installed declarations/source confirm getDigest support. No runtime/transaction was started during this change. Actual first execution and repeated read-only reuse remain required before accepting the helper as live proof; journal directories must already exist and existing foreign files are preserved/refused. No install/download/new environment/merge.
+
 ### Sui failed/missing status with matching receipt identity (2026-10-12)
 
 Two added pure receipt cases verify a matching digest with explicit false success maps Failed, while matching digest without an execution flag errors rather than inferring completion/failure. Full Sui units pass **32/32**, zero skips (`sui-unit-current.trx`). Read-only retained fixture-directory inventory found no failed-digest journal; earlier live failure evidence used OASIS_SUI_TEST_FAILED_DIGEST. No replacement failed transaction was submitted or current live failed-status pass claimed. Recover the original identity through bounded authoritative history or add durable pre-submission journaling before any intentionally new local failure test; do not blindly repeat submissions. No runtime/install/download/new environment/ledger mutation/merge; remaining gates stay open.
