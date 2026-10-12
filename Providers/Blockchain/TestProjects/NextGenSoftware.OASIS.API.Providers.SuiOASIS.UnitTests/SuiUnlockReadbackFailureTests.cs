@@ -195,6 +195,7 @@ public class SuiUnlockReadbackFailureTests
         {
             using var provider=new SuiOASIS("http://127.0.0.1:1","localnet",privateKey:"test-only-secret");
             var result=await provider.MintNFTAsync(new MintWeb3NFTRequest { Title="Receipt test",NumberToMint=1 });
+            AssertCommittedReadbackEvidence(result.Exception);
             Assert.IsTrue(result.IsError);Assert.IsNotNull(result.Result);
             Assert.AreEqual(new string('1',32),result.Result.TransactionResult);
             Assert.AreEqual(new string('1',32),result.Result.SendNFTTransactionResult);
@@ -217,6 +218,7 @@ public class SuiUnlockReadbackFailureTests
             var result=await provider.SendNFTAsync(new SendWeb3NFTRequest { FromNFTTokenAddress="fixture-nft",
                 TokenId=agreeingSelectors ? "fixture-nft" : null,TokenAddress=agreeingSelectors ? "fixture-nft" : null,
                 FromWalletAddress="fixture-owner",ToWalletAddress="fixture-recipient",OwnerPrivateKey="test-only-explicit",Amount=1 });
+            AssertCommittedReadbackEvidence(result.Exception);
             Assert.IsTrue(result.IsError);Assert.IsNotNull(result.Result);
             Assert.AreEqual(new string('1',32),result.Result.TransactionResult);
             Assert.AreEqual(new string('1',32),result.Result.SendNFTTransactionResult);
@@ -235,6 +237,7 @@ public class SuiUnlockReadbackFailureTests
         {
             using var provider=new SuiOASIS("http://127.0.0.1:1","localnet",privateKey:"test-only-secret");
             var result=await provider.UnlockNFTAsync(new UnlockWeb3NFTRequest { NFTTokenAddress="fixture-nft" });
+            AssertCommittedReadbackEvidence(result.Exception);
             Assert.IsTrue(result.IsError);Assert.IsNotNull(result.Result);
             Assert.AreEqual(new string('1',32),result.Result.TransactionResult);
             StringAssert.Contains(result.Message,new string('1',32));
@@ -242,5 +245,13 @@ public class SuiUnlockReadbackFailureTests
             Assert.IsFalse(result.Message.Contains("test-only-secret"));
         }
         finally {Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",previous);}
+    }
+    private static void AssertCommittedReadbackEvidence(Exception? error)
+    {
+        Assert.IsInstanceOfType<SuiNativeMutationReconciliationException>(error);
+        var evidence=(SuiNativeMutationReconciliationException)error;
+        Assert.AreEqual(new string('1',32),evidence.OriginalTransactionId);Assert.AreEqual(true,evidence.ExecutionSucceeded);
+        Assert.IsNotNull(evidence.InnerException);
+        Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(error));
     }
 }

@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui committed NFT readback now carries retry fence — 2026-10-12
+
+Audit found NFT mint/send/unlock kept successful original digests in response objects but threw ordinary InvalidOperationException on later NFT readback failure. Replaced those with the existing `SuiNativeMutationReconciliationException`, exact original digest, executionSucceeded true and original readback cause. Existing controlled process tests now require typed evidence, digest, cause and Core reconciliation classification, while preserving response identities and secret-redaction assertions. Focused **4/4 passed**, zero skips (`sui-committed-readback-current.trx`); provider build zero warnings/errors. Complete 75-case suite predates this change and must be rerun; no fresh full-suite claim.
+
+This is controlled process/provider evidence, not actual ledger readback outage, real V2 concrete-Sui marker propagation or hosted certification. Cosmos mint source reviewed in this audit has no analogous separate post-mint readback in the inspected method; that observation does not certify its other paths. No SDK install, live mutation, merge or deployment.
+
 ### Shipping TRON reconciliation exceptions through real V2 router — 2026-10-12
 
 Added `TronReconciliationRoutingTests`: **24/24 passed**, zero skips (`TestResults/TronRuntime/tron-reconciliation-routing.trx`). Real `KeyValueStorageProviderBase` converts controlled backend errors into storage results; real V2 router receives shipping `TronCommittedReadbackException`, `TronEscrowReconciliationException` and `TronBroadcastOutcomeUnknownException`, direct/ordinary-wrapper/aggregate-wrapper, synchronous/asynchronous. Original exception identity survives and alternate backend writes remain zero. Ordinary IOException controls successfully fail over and write through the alternate storage base.
