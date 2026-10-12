@@ -5,6 +5,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
 
@@ -29,7 +30,11 @@ internal static class HederaSdkClient
             + "." + ((epochTicks % TimeSpan.TicksPerSecond) * 100).ToString("D9", System.Globalization.CultureInfo.InvariantCulture);
     }
 
-    internal static async Task<JsonElement> InvokeAsync(string action, object request, CancellationToken cancellationToken = default)
+    internal static Task<JsonElement> InvokeAsync(string action, object request, CancellationToken cancellationToken = default)
+        => InvokeCoreAsync(action,request,cancellationToken,null);
+    internal static Task<JsonElement> InvokePreparedAsync(string action,object request,PreparedSubmissionServer server,CancellationToken token)
+        => InvokeCoreAsync(action,request,token,server??throw new ArgumentNullException(nameof(server)));
+    private static async Task<JsonElement> InvokeCoreAsync(string action,object request,CancellationToken cancellationToken,PreparedSubmissionServer preparationServer)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var script = Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE")
@@ -60,10 +65,16 @@ internal static class HederaSdkClient
             or "tokenCollectionDelete" or "nftMetadataUpdate";
         if (isMutation && string.IsNullOrWhiteSpace(originalId))
             throw new ArgumentException("Hedera native mutations require an explicit original transaction ID before SDK launch.");
+        if(preparationServer!=null){
+            if(!isMutation||action is "nftEscrowLock" or "nftEscrowUnlock" or "tokenEscrowLock" or "tokenEscrowUnlock")
+                throw new ArgumentException("Prepared Hedera invocation requires a single-stage native mutation.");
+            preparationServer.ConfigureChild(start,Path.Combine(AppContext.BaseDirectory,"HederaSdkBridge","prepared-submission.mjs"));
+        }
         using var process = new Process { StartInfo = start };
         if (!process.Start()) throw new InvalidOperationException("Hedera SDK process could not start.");
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(TimeSpan.FromMinutes(2));
+        var preparationTask=preparationServer?.ServeAsync(timeout.Token);var preparationObserved=false;
         var output = process.StandardOutput.ReadToEndAsync(timeout.Token);
         var error = process.StandardError.ReadToEndAsync(timeout.Token);
         try
@@ -72,6 +83,7 @@ internal static class HederaSdkClient
             await process.StandardInput.WriteAsync(requestJson.AsMemory(), timeout.Token);
             process.StandardInput.Close();
             await process.WaitForExitAsync(timeout.Token);
+            if(preparationTask?.IsFaulted==true){preparationObserved=true;await preparationTask;}
             var response = await output;
             var failure = await error;
             if (process.ExitCode != 0)
@@ -128,6 +140,9 @@ internal static class HederaSdkClient
                     new HederaNativeMutationEvidence(originalId, null, originalId, "process-output-unverified", null), ex);
             }
             using var document = parsedResponse;
+            if(preparationTask!=null&&(!preparationTask.IsCompletedSuccessfully||preparationServer.PreparedTransactionId!=originalId))
+                throw new HederaNativeMutationReconciliationException("Hedera success lacks matching durable original preparation acknowledgement.",
+                    new HederaNativeMutationEvidence(originalId,null,originalId,"preparation-unverified",null));
             if (isMutation && (document.RootElement.ValueKind != JsonValueKind.Object
                 || !document.RootElement.TryGetProperty("transactionId", out var returnedId) || returnedId.ValueKind != JsonValueKind.String
                 || returnedId.GetString() != originalId
@@ -169,6 +184,7 @@ internal static class HederaSdkClient
         }
         finally
         {
+            timeout.Cancel();preparationServer?.Dispose();
             if (!process.HasExited)
             {
                 process.Kill(entireProcessTree: true);
@@ -179,6 +195,11 @@ internal static class HederaSdkClient
             // These reader faults were already handled above (or accompany cancellation).
             // Observing them here must not replace the primary reconciliation exception.
             catch (Exception readerError) when (readerError is OperationCanceledException || readerError is IOException || readerError is DecoderFallbackException) { }
+            if(preparationTask!=null){
+                try{await preparationTask;}
+                catch(OperationCanceledException){}
+                catch(Exception) when(preparationObserved){}
+            }
         }
     }
 }

@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Explicit Hedera prepared process implementation — 2026-10-12
+
+Added opt-in single-stage prepared SDK invocation through the existing canonical C# process implementation: owned-child transport setup, parent task observation, successful reply requires completed matching original preparation, and cleanup cancels/disposes/observes owned preparation work. Read-only/escrow reject before launch/persistence. Preparation suite **3/3**, zero skips, `TestResults/PriorityProviderCurrent/hedera-preparation.trx`; provider build 0 errors/2 existing warnings, test nullable warning remains.
+
+Tests cover pre-execution guards and prior signed factory integration, not positive/rejected prepared child process lifecycle yet. Public native entry/production admission, interruption/error preservation audits, stage-aware escrow and all funded/live/deployed gates remain required. No installs, consensus submissions or release merge.
+
 ### Hedera duplicate signed preparation denied durably — 2026-10-12
 
 Integrated actual signed Hedera/pipe/Mongo factory test repeats the same original attempt through a fresh owned server. Durable store rejects `PROVIDER_ATTEMPT_ALREADY_STARTED`; no second acknowledgement or retained ID, original one-attempt record/evidence-byte count unchanged. Preparation selection **2/2**, zero skips, `TestResults/PriorityProviderCurrent/hedera-preparation.trx`; existing nullable warning remains. Owned database and processes cleaned, retained environment reused.
