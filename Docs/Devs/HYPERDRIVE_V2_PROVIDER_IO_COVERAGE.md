@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Full controlled TRON post-approval escrow branch — 2026-10-12
+
+Verified the pending full-suite result directly from `TestResults/PriorityProviderCurrent/tron-current.trx`: **253/253 passed**, zero failures, skips or pending cases. Three new cases use the installed real TronNet SDK against an owned loopback gRPC server: approval is constructed, signed, broadcast and confirmed, then deposit construction is rejected, altered or unavailable. Each case preserves the exact approval ID and original cause, exposes the existing Core reconciliation marker, and asserts exactly one broadcast and two construction calls. No deposit is broadcast after those failures.
+
+This proves the controlled shipping escrow failure branch, not actual ledger escrow or live V2 propagation. The server shuts down in `finally`; no retained ledger, funds, installation or data reset is affected. Original unknown TRON submission, delegated signer integration, private storage migration choice, funded Hedera, Cosmos runtime and deployed-route gates remain open. Free C: space at verification: 100,360,769,536 bytes; the requested 150 GB target remains unmet. No merge or deployment performed.
+
 ### TRON confirmed approval always fences failed escrow — 2026-10-12
 
 Fixed another shipping retry-classification gap: token escrow's post-approval catch returned ordinary InvalidOperationException if the subsequent deposit failed before getting a mutation ID. It now returns `TronEscrowReconciliationException`, always retaining confirmed approval ID/genesis/cause and the mutation ID only when supplied by verified original-submission/readback evidence. The existing Core classifier detects its marker through aggregate wrapping, so a lack of mutation identity cannot hide the already-confirmed approval side effect.
