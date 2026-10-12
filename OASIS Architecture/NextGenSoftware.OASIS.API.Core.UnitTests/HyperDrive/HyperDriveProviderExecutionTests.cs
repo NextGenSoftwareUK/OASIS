@@ -5395,6 +5395,26 @@ public sealed class HyperDriveProviderExecutionTests
             It.IsAny<int>(), It.IsAny<bool>(), It.IsAny<bool>(), It.IsAny<int>()), Times.Never);
     }
 
+    [Theory]
+    [InlineData(false, false, false)]
+    [InlineData(true, true, false)]
+    [InlineData(true, false, true)]
+    public void AuthoritativeAbsenceCodeDoesNotNormalizeLegacyOrCorruptErrors(bool v2, bool exception, bool payload)
+    {
+        var manager = new ProviderManager(null, CreateDna(v2 ? HyperDriveModes.V2 : HyperDriveModes.Legacy));
+        var router = new OASISHyperDrive(manager);
+        var response = new OASISResult<IHolon>
+        {
+            IsError = true, ErrorCount = 1, ErrorCode = OASISResultErrorCodes.RecordNotFound,
+            Exception = exception ? new InvalidOperationException("store read failed") : null,
+            Result = payload ? new Holon { Id = Guid.NewGuid() } : null!
+        };
+        var method = typeof(OASISHyperDrive).GetMethod("ConvertResult", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
+            .MakeGenericMethod(typeof(IHolon), typeof(IHolon));
+        var converted = (OASISResult<IHolon>)method.Invoke(router, new object[] { response })!;
+        converted.IsError.Should().BeTrue();
+    }
+
     [Fact]
     public async Task V2FailoverPublishesOrderedStructuredDiagnosticOnRecovery()
     {
