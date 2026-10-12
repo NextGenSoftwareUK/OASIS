@@ -4,6 +4,8 @@ using FluentAssertions;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -103,6 +105,7 @@ public sealed class SuiRealProviderRoutingTests
             settings.GetProperty("storageObjectId").GetString()!);
         var local = new LocalFileOASIS(storageDirectory: Path.Combine(root, "files"));
         var holon = new Holon { Id = Guid.NewGuid(), Name = "real-v2-sui-replication" };
+        holon.MetaData = new Dictionary<string, object> { ["owned-routing-fixture"] = holon.Id.ToString() };
         var deletedThroughRouter = false;
         var avatar = new Avatar { Id = Guid.NewGuid(), Username = "sui-v2-" + Guid.NewGuid().ToString("N"),
             Email = Guid.NewGuid().ToString("N") + "@example.invalid" };
@@ -176,6 +179,22 @@ public sealed class SuiRealProviderRoutingTests
             replicated.IsError.Should().BeFalse(replicated.Message);
             replicated.Result.Name.Should().Be(holon.Name);
             (await local.LoadHolonAsync(holon.Id)).Result.Name.Should().Be(holon.Name);
+            foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.SuiOASIS })
+            {
+                foreach (var operation in new[] { "LoadAllHolons", "LoadHolonsByMetaData", "LoadHolonsByMetaDataPairs" })
+                {
+                    var request = new StorageOperationRequest { Operation = operation, PreferredProvider = providerType, LoadChildren = false,
+                        MetaKey = "owned-routing-fixture", MetaValue = holon.Id.ToString(),
+                        MetaKeyValuePairs = new Dictionary<string, string> { ["owned-routing-fixture"] = holon.Id.ToString() } };
+                    foreach (var read in new[] { router.RouteRequest<IEnumerable<IHolon>>(request), await router.RouteRequestAsync<IEnumerable<IHolon>>(request) })
+                    { read.IsError.Should().BeFalse(read.Message); read.Result.Single(value => value.Id == holon.Id).Name.Should().Be(holon.Name); }
+                }
+                var search = new StorageOperationRequest { Operation = "Search", PreferredProvider = providerType, LoadChildren = false,
+                    SearchParams = new SearchParams { SearchGroups = new List<ISearchGroupBase> {
+                        new SearchTextGroup { SearchQuery = holon.Name, SearchHolons = true, SearchAvatars = false } } } };
+                foreach (var read in new[] { router.RouteRequest<ISearchResults>(search), await router.RouteRequestAsync<ISearchResults>(search) })
+                { read.IsError.Should().BeFalse(read.Message); read.Result.SearchResultHolons.Single(value => value.Id == holon.Id).Name.Should().Be(holon.Name); }
+            }
             manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
             manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
 
