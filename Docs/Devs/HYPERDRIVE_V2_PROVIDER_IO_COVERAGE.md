@@ -5,7 +5,7 @@
 
 ## Current provider status — not full certification
 
-Latest refreshed regression checkpoints (2026-10-12; separate suites, not one end-to-end run): **Core 430/430; shared storage 74/74; Sui C# 57/57 and SDK 21/21; Cosmos C# 65/65 and SDK 38/38; TRON C# 198/198; Hedera non-funded selection 231/231 and SDK 85/85; WEB4 141/141; ONODE Core 244/244**. Zero skips in those selections. Exact selection scopes below apply; these counts do not expand test scope or establish missing live/deployed gates.
+Latest refreshed regression checkpoints (2026-10-12; separate suites, not one end-to-end run): **Core 430/430; shared storage 74/74; Sui C# 57/57 and SDK 21/21; Cosmos C# 79/79 and SDK 38/38; TRON C# 198/198; Hedera non-funded selection 231/231 and SDK 85/85; WEB4 141/141; ONODE Core 244/244**. Zero skips in those selections. Exact selection scopes below apply; these counts do not expand test scope or establish missing live/deployed gates.
 
 No provider is currently certified against the entire requested combination of relevant interfaces, live V2 failover/replication/load balancing, and deployed authenticated API behavior. Historical PASS labels mean the stated tests passed; they must not be read as complete provider certification. Controlled/unit tests, official local runtimes, cloud emulators and hosted production/testnet execution are distinct evidence categories.
 
@@ -21,6 +21,14 @@ Broader providers with narrower recorded real-runtime/SDK/API evidence: MongoDB,
 Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 244/244, Cosmos C# 56/56/SDK 29/29, Hedera non-funded 209/209; zero skips in the stated selections. Exact revisions and limitations are recorded below. Task branch contains Development reconciliation, but Development/master have not received this task's release merge. Hosted dev revision last checked was `77c65eaa80aa06fb767715322eb97d8d3844282f`, not this task code. User authorizes a safe Development merge/automatic Railway deployment; resolve regression/deployment gates before claiming release success. Native NFT models and mint actor/recipient/batch safety have changed; positive authenticated minting, durable subscription/fee integration, live Cosmos corrected assets/multi-send/bridge receipt, funded Hedera storage/NFT/V2, full interface/options/hosted API and broader provider gates remain open. Update this summary whenever coverage or remaining gates change; retain exact checkpoint reports below rather than silently promote narrow evidence to broader claims.
 
 ## Routing contract
+
+### Cosmos process interruption and response integrity (2026-10-12)
+
+Cosmos now rejects already-canceled invocations before child launch and prevents arguments overriding the authoritative operation. Started mutation cancellation/deadline expiry carries reconciliation-required cancellation/timeout types, preserving the caller cancellation token and leaving unavailable identity null. Missing output, invalid UTF-8/JSON, malformed boolean/outcome envelopes and mutation success without transaction identity cannot become retryable ordinary errors or saved-success results. Valid explicit SDK preflight failures remain ordinary; read cancellation does not become mutation evidence. Process encoding is strict UTF-8. One finalizer terminates owned children and observes readers, preserving primary cancellation/I/O failures; untrusted stderr is drained rather than exposed in API errors.
+
+Fourteen additional controlled cases cover malformed responses, cancellation/read distinction, pre-cancellation, operation override, valid mutation reply and actual two-minute process deadline. Full Cosmos C# **79/79**, zero skips, in two minutes four seconds; SDK **38/38**, zero skips; provider build zero errors/two warnings. Reports reuse fixed current paths. These process fixtures perform no SDK/ledger transaction; SDK tests' official offline-method/crypto scope remains distinct. No installation, download, ledger reset, native mutation or Cosmos startup-policy bypass. Free C approximately 101.4 GB decimal, not the user's 150 GB target.
+
+Remaining: original signed identity is not durably persisted before submission, and a terminated child still cannot supply a lost hash. This guards in-process V2 replay, not independent API retries, durable fee reconciliation, funded/live proof, deployed routes or all interface/policy cases. The retained Cosmos live runtime gate and other provider/billing/release gates remain open; no merge authorization is inferred from these tests.
 
 ### Sui process interruption and missing-response replay protection (2026-10-12)
 

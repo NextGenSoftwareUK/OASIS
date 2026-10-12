@@ -84,7 +84,9 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
 
     internal async Task<JsonElement> InvokeAsync(string operation, object args = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ObjectDisposedException.ThrowIf(_disposed, this);
+        var isMutation = operation is "put" or "delete" or "execute" or "transfer" or "upload" or "instantiate";
         if (!File.Exists(_bridgePath))
             throw new FileNotFoundException("Install the locked official CosmJS SDK bridge before activating Cosmos.", _bridgePath);
         var request = new Dictionary<string, object>
@@ -94,28 +96,41 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
             ["addressPrefix"] = _addressPrefix, ["gasPrice"] = _gasPrice
         };
         if (args != null)
-            foreach (var property in args.GetType().GetProperties()) request[property.Name] = property.GetValue(args);
+            foreach (var property in args.GetType().GetProperties())
+            {
+                if (property.Name == "operation") throw new ArgumentException("SDK arguments cannot override the authoritative operation.");
+                request[property.Name] = property.GetValue(args);
+            }
         var start = new ProcessStartInfo
         {
             FileName = _nodeExecutable, RedirectStandardInput = true, RedirectStandardOutput = true,
-            RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true
+            RedirectStandardError = true, UseShellExecute = false, CreateNoWindow = true,
+            StandardInputEncoding = new System.Text.UTF8Encoding(false, true),
+            StandardOutputEncoding = new System.Text.UTF8Encoding(false, true),
+            StandardErrorEncoding = new System.Text.UTF8Encoding(false, true)
         };
         start.ArgumentList.Add(_bridgePath);
         using var process = Process.Start(start) ?? throw new InvalidOperationException("Cannot start Cosmos SDK bridge.");
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(TimeSpan.FromMinutes(2));
+        var outputTask = process.StandardOutput.ReadToEndAsync(timeout.Token);
+        var errorTask = process.StandardError.ReadToEndAsync(timeout.Token);
         try
         {
-            var outputTask = process.StandardOutput.ReadToEndAsync(timeout.Token);
-            var errorTask = process.StandardError.ReadToEndAsync(timeout.Token);
             await process.StandardInput.WriteAsync(JsonSerializer.Serialize(request).AsMemory(), timeout.Token);
             process.StandardInput.Close();
             await process.WaitForExitAsync(timeout.Token);
             var output = await outputTask;
-            var error = await errorTask;
+            await errorTask;
             if (string.IsNullOrWhiteSpace(output))
-                throw new InvalidOperationException($"Cosmos SDK exited {process.ExitCode} without a response: {error}");
-            using var envelope = JsonDocument.Parse(output);
+                throw InvalidEnvelope(isMutation, $"Cosmos SDK exited {process.ExitCode} without a response; native outcome is not established.");
+            JsonDocument parsed;
+            try { parsed = JsonDocument.Parse(output); }
+            catch (JsonException ex) { throw InvalidEnvelope(isMutation, "Cosmos SDK returned invalid JSON; native outcome is not established.", ex); }
+            using var envelope = parsed;
+            if (envelope.RootElement.ValueKind != JsonValueKind.Object || !envelope.RootElement.TryGetProperty("ok", out var ok)
+                || ok.ValueKind is not (JsonValueKind.True or JsonValueKind.False))
+                throw InvalidEnvelope(isMutation, "Cosmos SDK response lacks its required boolean outcome; native outcome is not established.");
             if (!envelope.RootElement.GetProperty("ok").GetBoolean() || process.ExitCode != 0)
             {
                 if (envelope.RootElement.TryGetProperty("nativeMutation", out var mutation))
@@ -137,17 +152,39 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
                     }
                     throw new CosmosNativeMutationReconciliationException(errorMessage.GetString(), transactionHash, executionSucceeded);
                 }
-                throw new InvalidOperationException(envelope.RootElement.TryGetProperty("error", out var failure)
-                    ? failure.GetString() : $"Cosmos SDK exited {process.ExitCode}.");
+                if (!envelope.RootElement.TryGetProperty("error", out var failure) || failure.ValueKind != JsonValueKind.String || ok.GetBoolean())
+                    throw InvalidEnvelope(isMutation, "Cosmos SDK returned an inconsistent error envelope; native outcome is not established.");
+                throw new InvalidOperationException(failure.GetString());
             }
-            return envelope.RootElement.GetProperty("result").Clone();
+            if (!envelope.RootElement.TryGetProperty("result", out var payload))
+                throw InvalidEnvelope(isMutation, "Cosmos SDK success envelope has no result; native outcome is not established.");
+            if (isMutation && (payload.ValueKind != JsonValueKind.Object || !payload.TryGetProperty("transactionHash", out var hash)
+                || hash.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(hash.GetString())))
+                throw InvalidEnvelope(true, "Cosmos SDK mutation result lacks transaction identity; native outcome is not established.");
+            return payload.Clone();
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ex)
         {
-            if (!process.HasExited) process.Kill(entireProcessTree: true);
+            if (isMutation)
+            {
+                const string message = "Cosmos native mutation process was interrupted with outcome unverified and original signed identity unavailable. Reconcile before retrying; process termination does not cancel a ledger submission.";
+                if (cancellationToken.IsCancellationRequested) throw new CosmosNativeMutationCanceledException(message, ex, cancellationToken);
+                throw new CosmosNativeMutationTimeoutException(message, ex);
+            }
             throw;
         }
+        catch (Exception ex) when (isMutation && (ex is IOException || ex is System.Text.DecoderFallbackException))
+        { throw InvalidEnvelope(true, "Cosmos SDK process I/O failed; native outcome is not established.", ex); }
+        finally
+        {
+            if (!process.HasExited) { process.Kill(entireProcessTree: true); await process.WaitForExitAsync(); }
+            try { await Task.WhenAll(outputTask, errorTask); }
+            catch (Exception ex) when (ex is OperationCanceledException || ex is IOException || ex is System.Text.DecoderFallbackException) { }
+        }
     }
+
+    private static Exception InvalidEnvelope(bool isMutation, string message, Exception cause = null)
+        => isMutation ? new CosmosNativeMutationReconciliationException(message, null, null, cause) : new InvalidDataException(message, cause);
 
     public void Dispose() => _disposed = true;
 }

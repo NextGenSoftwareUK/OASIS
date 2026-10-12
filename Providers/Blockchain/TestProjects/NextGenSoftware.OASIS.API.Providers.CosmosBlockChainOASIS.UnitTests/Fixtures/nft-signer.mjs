@@ -1,7 +1,20 @@
 // Controlled transport fixture only. No CosmJS, node or ledger is used.
 let input='';for await(const chunk of process.stdin)input+=chunk;const request=JSON.parse(input);
-let result,error,failureEnvelope;
-if(request.operation==='restoreKey')result={publicKey:'fixture-public',address:'fixture-owner'};
+let result,error,failureEnvelope,handled=false;
+if(['put','get'].includes(request.operation)) {
+ handled=true;const mode=request.mode;
+ if(mode==='hold')setInterval(()=>{},1000);
+ else if(mode==='empty'){process.stderr.write('untrusted test-only-secret');process.exitCode=1;}
+ else if(mode==='bad-json'){process.stdout.write('invalid JSON');process.exitCode=1;}
+ else if(mode==='bad-utf8'){process.stdout.write(Buffer.from([255]));process.exitCode=1;}
+ else {
+  const envelope=mode==='no-ok'?{}:mode==='bad-ok'?{ok:'true'}:mode==='no-result'?{ok:true}
+   :mode==='null-result'?{ok:true,result:null}:mode==='no-hash'?{ok:true,result:{}}
+   :mode==='preflight'?{ok:false,error:'controlled preflight error'}:{ok:true,result:{transactionHash:'a'.repeat(64)}};
+  process.stdout.write(JSON.stringify(envelope));if(mode==='preflight')process.exitCode=1;
+ }
+}
+else if(request.operation==='restoreKey')result={publicKey:'fixture-public',address:'fixture-owner'};
 else if(request.operation==='verifyNftCustodyReceipt'){
  if(request.contractAddress!=='fixture-contract'||request.tokenId!=='fixture-token'||request.custody!=='fixture-owner')
   error='Custody selectors were not forwarded';
@@ -27,4 +40,4 @@ else if(request.operation==='execute'){
  else result={transactionHash:'fixture-committed-cosmos-nft'};
 }else if(request.operation==='query')error='forced separate NFT readback failure';
 else error='Unexpected fixture operation';
-process.stdout.write(JSON.stringify(failureEnvelope??(error?{ok:false,error}:{ok:true,result})));if(error||failureEnvelope)process.exitCode=1;
+if(!handled)process.stdout.write(JSON.stringify(failureEnvelope??(error?{ok:false,error}:{ok:true,result})));if(error||failureEnvelope)process.exitCode=1;
