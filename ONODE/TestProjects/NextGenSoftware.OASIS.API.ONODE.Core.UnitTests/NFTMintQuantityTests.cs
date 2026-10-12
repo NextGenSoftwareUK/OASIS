@@ -46,6 +46,8 @@ public sealed class NFTMintQuantityTests
         var method = typeof(NFTManager).GetMethod("ExpandDefaultWeb3MintRequests", BindingFlags.Static | BindingFlags.NonPublic)!;
         method.Invoke(null, new object[] { request });
         Assert.Equal(Math.Max(requested, existing), request.Web3NFTs.Count);
+        Assert.All(request.Web3NFTs.Skip(existing), entry => Assert.Equal(1, entry.NumberToMint));
+        Assert.Equal(existing * 7 + Math.Max(0, requested - existing), request.Web3NFTs.Sum(entry => entry.NumberToMint!.Value));
         for (var index = 0; index < existing; index++)
         {
             Assert.Same(entries[index], request.Web3NFTs[index]);

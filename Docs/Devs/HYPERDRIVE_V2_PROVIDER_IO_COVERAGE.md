@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Generated NFT entries no longer multiply parent quantity (2026-10-12)
+
+Further source tracing showed nullable `MintWeb3NFTRequest.NumberToMint` inherits the parent count in `MintWeb3NFTsAsync`, and the inner mint loop submits that many single NFT calls. The earlier exact-list-count fix alone therefore did not establish exact total mints. ONODE Core `c67c6f952123e32db31324b70ff4468c927fce98` sets only generated entries to `NumberToMint=1`; explicit user entries retain their documented override/inheritance semantics. Regression now checks generated entry counts and the sum of effective explicit/generated quantities, rather than list size alone. Current full ONODE Core suite **217/217, zero skips**, reusable `onode-unit-current.trx`; full Core **378/378, zero skips**, `core-current.trx`. Both builds zero errors, existing warnings remain. Actual default-entry-to-provider end-to-end submissions and durable mint-fee/subscription admission still require verification; no live mints were submitted.
+
 ### Full ONODE regression exposed and fixed capability enumeration failure (2026-10-12)
 
 Full current ONODE Core unit run initially failed two ERC standard checks (214 passed/2 failed/0 skipped). TRX stack traces identified `ProviderManager.GetAllEVMBlockchainProviders` calling `Any` on an unrelated provider's null optional secondary capabilities. Core `b5ae87672911f8fa70f69cb6705507c0c301da33` treats an absent secondary list as no secondary capabilities in blockchain/EVM enumeration; primary categories remain authoritative. A new isolated registry regression covers both enumerators. Rebuilt Core zero errors/254 warnings; full ONODE Core unit rerun **217/217, zero skips**, `TestResults/OnodeCurrent/onode-unit-current.trx`. No external provider calls or live minting; full Core-suite/deployed verification remains a separate gate.
