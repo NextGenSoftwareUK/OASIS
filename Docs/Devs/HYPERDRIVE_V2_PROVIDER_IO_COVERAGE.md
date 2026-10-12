@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Retained historical parent membership after reparenting (2026-10-11)
+
+Versioned child reads previously enumerated only the latest parent index, losing an old parent's child and potentially associating the child's old version with its new parent. For explicit version > 0, shared child loading now enumerates retained current holon identities, loads the requested version and filters its persisted ParentHolonId; latest reads retain the indexed fast path. Regression proves version-one membership/name at the old parent, no historical membership at the new parent, and correct latest membership after reparenting across sync/async calls. Full shared suite passes **53/53**, zero skips (`shared-current.trx`); provider rebuild succeeds (zero errors/two warnings). This is per-record numbered-version reconstruction for retained records, not a global timestamp snapshot or recovery of permanently deleted records/history. Historical scans cost more reads; real-provider/options regression remains required. No network mutation/install/download/new environment/merge; release gates stay open.
+
 ### Live TRON collection depth projection and current routing regression (2026-10-11)
 
 Expanded `TronParentCycleTests` passes **1/1**, zero skips (`tron-parent-cycle.trx`): real encrypted list and metadata collection reads at depth one include the separately persisted child relationship, while unlimited recursive collection loading fails explicitly on the owned self-parent cycle. Owned fixture deleted by finally. After current shared DLL propagation, broader TRON V2 storage-routing/karma scenarios pass **2/2**, zero skips, 141 seconds (`tron-v2-current-combined.trx`), retaining real failover/replication/measured selection and ledger/projection checks. Railway manifest/seven Dockerfiles/gitlinks validator passes. Retained runtime paused after terminal completion; no download/install/new environment/reset/merge. This remains selected live option evidence, not full provider/API/deployed-image coverage; remaining gates stay open.

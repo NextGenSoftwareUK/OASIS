@@ -43,6 +43,25 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
     public class KeyValueStorageProviderBaseTests
     {
         [TestMethod]
+        public async Task Historical_child_membership_uses_requested_version_after_reparenting()
+        {
+            _provider.IsVersionControlEnabled = true;
+            var oldParent = Guid.NewGuid(); var newParent = Guid.NewGuid();
+            var child = new Holon { Id = Guid.NewGuid(), ParentHolonId = oldParent, Name = "before" };
+            Assert.IsFalse((await _provider.SaveHolonAsync(child)).IsError);
+            child.ParentHolonId = newParent; child.Name = "after";
+            Assert.IsFalse((await _provider.SaveHolonAsync(child)).IsError);
+            var currentOld = await _provider.LoadHolonsForParentAsync(oldParent);
+            Assert.IsFalse(currentOld.IsError); Assert.AreEqual(0, currentOld.Result.Count());
+            var historicalOld = await _provider.LoadHolonsForParentAsync(oldParent, version: 1);
+            Assert.IsFalse(historicalOld.IsError, historicalOld.Message); Assert.AreEqual("before", historicalOld.Result.Single().Name);
+            var historicalNew = _provider.LoadHolonsForParent(newParent, version: 1);
+            Assert.IsFalse(historicalNew.IsError); Assert.AreEqual(0, historicalNew.Result.Count());
+            var currentNew = _provider.LoadHolonsForParent(newParent);
+            Assert.IsFalse(currentNew.IsError); Assert.AreEqual("after", currentNew.Result.Single().Name);
+        }
+
+        [TestMethod]
         public async Task Collection_and_metadata_reads_honor_child_loading_and_depth()
         {
             var parent = new Holon { Id = Guid.NewGuid(), Name = "parent", MetaData = new Dictionary<string, object> { ["owned"] = "tree" } };
