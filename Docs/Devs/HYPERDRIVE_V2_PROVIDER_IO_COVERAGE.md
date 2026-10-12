@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Corrected Cosmos rerun denied; current Sui regression (2026-10-12)
+
+Attempted retained wasmd startup plus corrected token/NFT lifecycle and original failed-hash status tests. Execution policy rejected the entire command before process creation, despite earlier user approval. No live test session/node startup or mutation was produced; did not bypass through split commands/another shell. Read-only process check confirms no wasmd process. Corrected fixture lifecycle/cleanup and retained E2BEB... status recheck remain pending, while the earlier current Cosmos V2 routing evidence remains valid at its recorded scope. Separately current complete Sui C# unit suite passes **32/32**, zero skips (`sui-unit-current.trx`) using explicitly selected current source SDK bridge, no installs/new runtime. This is not a replacement for the blocked Cosmos/live release gates.
+
 ### Cosmos asset fixture reuse and owned cleanup (2026-10-12)
 
 Asset tests now reuse the existing public local recipient key 2 via the official SDK instead of generating/discarding a new signer per run. Funding tops up only the measured shortfall. Exact owned token symbol/NFT locator are logged as public TRX evidence; no signing secret is logged. Test cleanup reads owned token balances and burns remaining issuer/recipient amounts, and reads exact NFT ownership/lock state before unlocking with its actual owner and burning; refuses unknown owners and disposes provider in finally. Existing single-test symbol is unique, and asset flags are set only after successful mint/readback. Previous failed run used ephemeral signers and did not record exact asset locators; those historical leftovers cannot be claimed cleaned or deleted by broad guesses. Current fixture integration build passes zero errors/two warnings before final conditional-NFT-unlock adjustment; final rebuild and live failure/success cleanup verification remain due. This change improves future reconciliation, not crash-atomic minting or full provider completion.
