@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui preparation server connected to execution adapter/verifier — 2026-10-12
+
+`SuiOASIS.CreateNativePreparationServer` now combines the existing execution-owned native persistence adapter, explicit expected chain/signer/correlation and the actual official-SDK C# verifier into one parent-server callback. It requires a supplied admitted execution rather than inventing authority; owner must provide trusted admission context. Shared/Sui builds passed 0 errors/warnings; focused real preparation suite **2/2**, zero skips, including null-execution rejection and the actual signed-verification path. Report `TestResults/SuiCurrent/sui-real-preparation.trx`.
+
+The factory is not yet called by provider submission process lifecycle; production mutations still are not durably gated. Combined signed-SDK/parent/outbox and crash/recovery testing, native admission/billing and full live/deployed gates remain required. No installation, ledger submission, charging change or release merge.
+
 ### Actual C# to official Sui preparation verification — 2026-10-12
 
 Added a bounded C# test generating actual offline SDK-signed transaction bytes from a fixed non-funded test seed, then calling `VerifyOriginalSignedPreparationAsync` through the real retained bridge/process. Valid signature/digest/sender succeeds; altered signature rejects; provider stays inactive and loopback-unreachable RPC is never needed. **1/1 passed**, zero skips, report `TestResults/SuiCurrent/sui-real-preparation.trx`. Public signed evidence is parsed in memory, not printed. Owned child exits; no install, node, ledger mutation or test-data file allocated.

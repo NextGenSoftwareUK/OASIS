@@ -8,6 +8,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 public class SuiRealPreparationTests
 {
     [TestMethod]
+    public void PreparationFactoryCannotInventAnAdmittedExecution()
+    {
+        using var provider=new SuiOASIS("http://127.0.0.1:1","localnet");
+        Assert.ThrowsException<ArgumentNullException>(()=>provider.CreateNativePreparationServer(null!,"attempt","chain","sender"));
+        Assert.IsFalse(provider.IsProviderActivated);
+    }
+
+    [TestMethod]
     public async Task RealSignedEvidenceIsVerifiedThroughCSharpWithoutLedgerSubmission()
     {
         var bridge=Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE") ?? Path.Combine(AppContext.BaseDirectory,"SuiSdkBridge","bridge.mjs");
