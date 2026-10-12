@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Shared explicit avatar-detail deletion implementation (2026-10-11)
+
+Shared providers previously inherited default interface soft-detail deletion and explicit hard-delete rejection. They now implement all six ID/username/email sync/async detail deletion contracts over the real backend. Soft delete saves a timestamped inactive detail using existing versioned save; hard delete removes only its current/detail-history keys, leaving avatar identity and username/email indexes untouched. Missing/failed deletes return errors, not normalized record-read absence. Six interface-dispatch regressions prove retained soft history, hard history removal, unaffected avatar lookup and repeat-delete rejection; full shared suite passes **47/47**, zero skips. Real encrypted TRON scenario passes **1/1**, zero skips, 6 seconds (`tron-history-index-integrity.trx`), including username soft delete then email hard delete, missing historical detail and surviving avatar lookup. This is selected direct live deletion evidence, not all six live projections/V2 delete routes/other providers. Owned records cleaned and retained runtime paused after completion. No install/download/environment duplication/merge; full remaining gates and documented Hedera cooldown remain outstanding.
+
 ### Deferred Hedera funded verification — faucet cooldown (2026-10-11)
 
 User confirmed the faucet will not permit more funding for **20 hours** and requested this follow-up be documented. Do not treat funded Hedera gates as passed or repeatedly submit the underfunded deployment. Last official mirror balance: **391606260 tinybars (3.91606260 test HBAR)**; prior SDK contract-creation estimate is approximately **10.6 test HBAR**, subject to re-estimation. No real-money HBAR is authorized.

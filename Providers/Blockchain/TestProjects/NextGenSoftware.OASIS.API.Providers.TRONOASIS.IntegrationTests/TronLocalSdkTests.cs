@@ -66,6 +66,13 @@ public sealed class TronLocalSdkTests
                 Assert.Equal(avatar.Id, (await provider.LoadAvatarByEmailAsync(avatar.Email)).Result.Id);
                 Assert.Equal("second", (await provider.LoadAvatarAsync(avatar.Id)).Result.FirstName);
             }
+            Assert.False((await provider.DeleteAvatarDetailByUsernameAsync(avatar.Username)).IsError);
+            Assert.False((await provider.LoadAvatarDetailAsync(avatar.Id)).Result.IsActive);
+            Assert.False((await provider.DeleteAvatarDetailByEmailAsync(avatar.Email, softDelete: false)).IsError);
+            Assert.Null((await provider.LoadAvatarDetailAsync(avatar.Id)).Result);
+            Assert.Null((await provider.LoadAvatarDetailAsync(avatar.Id, version: 1)).Result);
+            Assert.Equal(avatar.Id, (await provider.LoadAvatarByUsernameAsync(avatar.Username)).Result.Id);
+            Assert.Equal(avatar.Id, (await provider.LoadAvatarByEmailAsync(avatar.Email)).Result.Id);
         }
         finally
         {
