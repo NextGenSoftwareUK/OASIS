@@ -7,6 +7,22 @@ import { ObjectError } from '@mysten/sui/client';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { AsyncLocalStorage } from 'node:async_hooks';
+import { verifyTransactionSignature } from '@mysten/sui/verify';
+
+export async function verifyPreparedIdentity(evidence) {
+  if(typeof evidence?.signedTransactionBase64!=='string' || !evidence.signedTransactionBase64
+      || evidence.signedTransactionBase64.length>1048576 || typeof evidence.signature!=='string' || evidence.signature.length>4096)
+    throw new Error('Bounded original signed Sui evidence is required');
+  const bytes=Buffer.from(evidence.signedTransactionBase64,'base64');
+  if(!bytes.length || bytes.toString('base64')!==evidence.signedTransactionBase64)
+    throw new Error('Original Sui bytes must be canonical base64');
+  const tx=Transaction.from(bytes);
+  if(await tx.getDigest()!==evidence.transactionHash)throw new Error('Prepared Sui digest does not match original bytes');
+  const signer=await verifyTransactionSignature(bytes,evidence.signature);
+  if(signer.toSuiAddress()!==evidence.sender || tx.getData().sender!==evidence.sender)
+    throw new Error('Prepared Sui signature/sender does not match original transaction');
+  return {verified:true,transactionHash:evidence.transactionHash,sender:evidence.sender};
+}
 import { generateMnemonic } from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english.js';
 
@@ -190,6 +206,7 @@ export async function invoke(request, persistPreparedSubmission) {
 }
 
 async function invokeCore(request) {
+  if(request.operation==='verifyNativePreparation')return verifyPreparedIdentity(request.preparation);
   if (request.operation === 'generateKey') return wallet(Ed25519Keypair.generate());
   if (request.operation === 'restoreKey') return wallet(Ed25519Keypair.fromSecretKey(request.privateKey));
   if (request.operation === 'createAccount') {
