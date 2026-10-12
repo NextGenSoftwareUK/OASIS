@@ -6,6 +6,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class SuiUnlockReadbackFailureTests
 {
+    [TestMethod]
+    public async Task PreparedProcessCannotReturnSuccessWithoutPersistenceAcknowledgement()
+    {
+        await WithProcessFixture(async provider=>{
+            var backend=typeof(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase)
+                .GetProperty("Backend",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.GetValue(provider)!;
+            var client=backend.GetType().GetProperty("Client",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Public)!.GetValue(backend)!;
+            var calls=0;
+            using var server=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer((_,_)=>{calls++;return Task.CompletedTask;});
+            var operation=(Task<System.Text.Json.JsonElement>)client.GetType().GetMethod("InvokePreparedAsync",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!
+                .Invoke(client,new object[]{"put",new{mode="valid"},server,CancellationToken.None})!;
+            var error=await Assert.ThrowsExceptionAsync<SuiNativeMutationReconciliationException>(()=>operation);
+            StringAssert.Contains(error.Message,"preparation acknowledgement");Assert.AreEqual(0,calls);
+        });
+    }
+
     [DataTestMethod]
     [DataRow("valid")] [DataRow("rejected")]
     public async Task OriginalPreparationVerifierRequiresExplicitMatchingSdkAcknowledgement(string mode)
