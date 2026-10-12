@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Best-effort holon collection cannot report total read failure as empty success (2026-10-12)
+
+Follow-up edge-case repair: all-holon/metadata collection keeps actual read exceptions alongside safe partial diagnostics; when no record payload can be returned and record reads failed, it raises an AggregateException through existing error handling rather than returning an empty warning-only success. Genuine absent/empty collections without read failures remain unaffected; collections with valid partial data retain explicit warnings. Aggregate preserves original underlying errors for diagnosis/failover, without constructing replacement data or suppressing corruption. This specifically covers collection root reads; single valid-parent child-partial semantics remain their own documented behavior.
+
+New controlled total-read-outage case proves `IsError`, null payload, original IOException inside aggregate and explicit no-partial-data message. Full shared **65/65, zero skips**, `TestResults/SharedStorageCurrent/shared-current.trx`; library build zero errors/two warnings. No runtime/download/new environment or historical TRON mutation retried. Native live continuation experiments, cross-layer HTTP proof, full provider/options/billing and release gates remain open.
+
 ### V2 conversion preserves partial-read warnings and diagnostics (2026-10-12)
 
 Inspected actual result conversion: existing OASISResultHelper copy path preserves provider warning metadata; no production copy/fallback change needed. Added sync/async controlled boundary cases returning requested best-effort holon result with partial flag, count and failed IDs. Router preserves `IsWarning`, message, exact record ID and all partial metadata; enabled automatic failover does not execute the configured alternate or create a failover diagnostic for this non-error partial result. This proves router conversion semantics, not HTTP serialization or a real native partial-outage run.

@@ -47,6 +47,21 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
     [TestClass]
     public class KeyValueStorageProviderBaseTests
     {
+        [TestMethod]
+        public async Task Best_effort_collection_cannot_turn_total_read_failure_into_empty_success()
+        {
+            var holon = new Holon { Id = Guid.NewGuid() };
+            Assert.IsFalse((await _provider.SaveHolonAsync(holon)).IsError);
+            _backend.FailGetKey = "oasis/holon/" + holon.Id.ToString("N");
+            var result = await _provider.LoadAllHolonsAsync(loadChildren: false, continueOnError: true);
+            Assert.IsTrue(result.IsError);
+            Assert.IsNull(result.Result);
+            Assert.IsInstanceOfType<AggregateException>(result.Exception);
+            var errors = (AggregateException)result.Exception;
+            Assert.IsInstanceOfType<System.IO.IOException>(errors.InnerExceptions.Single());
+            StringAssert.Contains(result.Message, "No partial holon collection");
+        }
+
         [DataTestMethod]
         [DataRow(false)]
         [DataRow(true)]
