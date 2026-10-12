@@ -1,0 +1,11 @@
+{
+  "repository": "NextGenSoftwareUK/android-service-runtime",
+  "tag": "oasis-holochain-0.7-v1.0.0",
+  "commit": "aaab9500bb2fffd32ce26f3c3d76c6c8cc0dedf3",
+  "holochainCompatibility": "0.7",
+  "assets": [
+    { "name": "HolochainConductor.xcframework.zip", "sha256": "1b8dd77764ffead1cf7b38b391abf7d8b3f12c91f0ed7b3f5a2ef21c56a88022" },
+    { "name": "HolochainConductorSwift.zip", "sha256": "c9ab4e8cb7a2d48a9e1a8a8dabedf9f9afa7a0396b6ba4d3d5bda20129ce0ffa" },
+    { "name": "build-manifest.json", "sha256": "13bbcdccdd387013a9087604c649a21de00a8044f06bda957c911c773bb00a09" }
+  ]
+}
