@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Reparent save no longer removes old index before record write (2026-10-11)
+
+Shared holon save previously deleted the former-parent index before writing the replacement record. It now writes the record/new-parent index first, then retires the old index. Controlled backend failure on the replacement record proves the previous record/index snapshot remains unchanged and the old parent still resolves its child. Full shared suite passes **57/57**, zero skips (`shared-current.trx`); explicit provider rebuild succeeds (zero errors/two warnings). This ordering fixes the demonstrated pre-write relationship loss, not multi-key transactional atomicity: later index/delete failure, concurrent writers and unknown committed ledger outcomes still need explicit auditing/reconciliation. No blind retry/rollback or secondary save pipeline added. No network mutation/install/download/new environment/merge; full release gates remain open.
+
 ### Real encrypted TRON unmatched metadata query scope (2026-10-11)
 
 Expanded real encrypted-storage scenario passes **1/1**, zero skips (`tron-parent-cycle.trx`): with a persisted owned cyclic tree, async single-key and sync pair metadata queries for an unmatched owned marker return successful empty collections. Unrestricted recursive collection read still reports the cycle, so filtering does not suppress errors in a selected tree. Existing save rejection/read/depth/history checks and fixture cleanup remain passing. Runtime reused and paused after terminal completion; no reset/install/download/new environment/public assets/merge. Positive selected-acyclic real query and full cross-provider/API/image options remain distinct gates.

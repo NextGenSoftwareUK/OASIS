@@ -456,13 +456,12 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 holon.ProviderUniqueStorageKey[StorageType] = holon.Id.ToString();
 
                 var previous = await ReadAsync<IHolon>(HolonKey(holon.Id));
-                if (previous != null && previous.ParentHolonId != Guid.Empty && previous.ParentHolonId != holon.ParentHolonId)
-                    await Backend.DeleteAsync(ParentKey(previous.ParentHolonId, holon.Id));
-
                 await StampVersionAsync(HolonKey(holon.Id), holon, previous);
                 await Backend.PutAsync(HolonKey(holon.Id), OasisJson.Serialize(holon));
                 if (holon.ParentHolonId != Guid.Empty)
                     await Backend.PutAsync(ParentKey(holon.ParentHolonId, holon.Id), holon.Id.ToString());
+                if (previous != null && previous.ParentHolonId != Guid.Empty && previous.ParentHolonId != holon.ParentHolonId)
+                    await Backend.DeleteAsync(ParentKey(previous.ParentHolonId, holon.Id));
 
                 var result = new OASISResult<IHolon>(holon) { IsSaved = true, Message = $"Holon {holon.Id} saved to {Name}." };
                 var reachedDepth = maxChildDepth > 0 && depth + 1 >= maxChildDepth;
