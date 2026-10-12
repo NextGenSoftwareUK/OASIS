@@ -60,6 +60,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
                     transactions.Add(new WalletTransaction
                     {
                         TransactionId = CreateDeterministicGuid(digest + ":" + coinType),
+                        NativeTransactionId = digest,
+                        RawAmount = units.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                        AmountUnit = coinType == null ? "non-monetary object change" : coinType + ":base-unit",
+                        NativeOperation = "WalletNetBalanceChange",
+                        NativeExecutionResult = record.GetProperty("success").GetBoolean() ? "Success" : "Failed",
                         FromWalletAddress = positive ? record.GetProperty("sender").GetString() : record.GetProperty("walletAddress").GetString(),
                         ToWalletAddress = positive ? record.GetProperty("walletAddress").GetString() : recipients.Length == 1 ? recipients[0] : null,
                         Amount = (double)System.Numerics.BigInteger.Abs(units) / Math.Pow(10, record.GetProperty("decimals").GetInt32()),
