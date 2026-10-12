@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos prepared foreign-error and output-failure evidence — 2026-10-12
+
+Extended actual parent-pipe controlled child lifecycle: foreign error receipt claiming execution success, invalid UTF8 and malformed JSON after preparation all retain the persisted original ID with unknown execution outcome. Prepared process selection **8/8**, zero skips, `TestResults/PriorityProviderCurrent/cosmos-prepared-process.trx`; existing nullable test-field compiler warning remains. No implementation fallback/retry added. Actual two-minute prepared deadline still not exercised in this checkpoint.
+
+These are controlled transport cases, not ledger submissions or signature/database integration. Positive real signed/pipe/Mongo factory execution, crash recovery, actual native admission and full provider/live/deployed gates remain required. Existing environment reused; no installs, ledger changes or release merge.
+
 ### Explicit Cosmos execution-owned prepared entry — 2026-10-12
 
 Public `ExecutePreparedNativeAsync` now connects a supplied execution/trusted chain/signer to the preparation factory and canonical gated backend invocation. Missing execution and pre-cancellation reject before child launch/activation. This is a library entry, not an HTTP route or automatic replacement of production submissions. Provider build 0 errors/warnings. Broader Cosmos C# regression **90/90**, zero skips, excluding `RealProcessDeadline`, `TestResults/PriorityProviderCurrent/cosmos-preparation-current.trx`; existing nullable test-field warning remains. Retained official SDK used for offline signature cases.

@@ -18,6 +18,7 @@ public class CosmosPreparationTests
     }
     [DataTestMethod]
     [DataRow("prepared")] [DataRow("reject")] [DataRow("prepared-wrong")] [DataRow("prepared-hold")] [DataRow("valid")]
+    [DataRow("prepared-foreign-error")] [DataRow("prepared-bad-utf8")] [DataRow("prepared-bad-json")]
     public async Task PreparedProcessRequiresPersistenceAndRetainsOriginal(string mode)
     {
         var previous=Environment.GetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE");
@@ -32,7 +33,7 @@ public class CosmosPreparationTests
             if(mode=="reject")Assert.AreSame(failure,await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>operation));
             else if(mode=="prepared-hold"){
                 var error=await Assert.ThrowsExceptionAsync<CosmosNativeMutationCanceledException>(()=>operation);Assert.AreEqual(new string('a',64),error.OriginalTransactionId);Assert.AreEqual(cancellation.Token,error.CancellationToken);
-            }else if(mode=="prepared-wrong"||mode=="valid"){
+            }else if(mode=="prepared-wrong"||mode=="valid"||mode=="prepared-foreign-error"||mode=="prepared-bad-utf8"||mode=="prepared-bad-json"){
                 var error=await Assert.ThrowsExceptionAsync<CosmosNativeMutationReconciliationException>(()=>operation);Assert.IsNull(error.ExecutionSucceeded);Assert.AreEqual(mode=="valid"?null:new string('a',64),error.OriginalTransactionId);
             }else Assert.AreEqual(new string('a',64),(await operation).GetProperty("transactionHash").GetString());
             Assert.AreEqual(mode=="valid"?0:1,calls);
