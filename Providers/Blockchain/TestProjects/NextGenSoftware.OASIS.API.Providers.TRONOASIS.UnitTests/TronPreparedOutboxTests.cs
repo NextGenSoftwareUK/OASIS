@@ -46,12 +46,15 @@ public class TronPreparedOutboxTests
             var id=Convert.ToHexString(SHA256.HashData(signed.RawData.ToByteArray())).ToLowerInvariant();var bytes=Convert.ToBase64String(signed.ToByteArray());
             var sender=new byte[21];sender[0]=0x41;new Nethereum.Signer.EthECKey(new string('0',63)+"1").GetPublicAddressAsBytes().CopyTo(sender,1);
             var view=runtime.CreatePreparedNativeTransfers(execution,"signed-attempt",sender);
+            sender[1]^=1; // Caller mutation must not alter the trusted sender snapshot held by the view.
             var callback=(Func<string,string,string,CancellationToken,Task>)typeof(TronNativeTransferClient).GetField("_persistPreparedSubmission",flags)!.GetValue(view)!;
             await callback(id,genesis,bytes,deadline.Token);
             var stored=await store.GetAsync(execution.OperationId,deadline.Token);
             Assert.Single(stored.ProviderAttempts);Assert.Equal(id,stored.ProviderAttempts[0].ProviderRequestId);
             Assert.Equal(bytes,stored.ProviderAttempts[0].NativePreparation.SignedTransactionBase64);Assert.Null(stored.ProviderAttempts[0].AcknowledgedAtUtc);
-            sender[1]^=1;
+            var duplicate=await Assert.ThrowsAsync<UsageProtocolException>(()=>callback(id,genesis,bytes,deadline.Token));
+            Assert.Equal("PROVIDER_ATTEMPT_ALREADY_STARTED",duplicate.Code);
+            await Assert.ThrowsAsync<InvalidOperationException>(()=>callback(id,new string('b',64),bytes,deadline.Token));
             var wrong=runtime.CreatePreparedNativeTransfers(execution,"wrong-sender",sender);
             var wrongCallback=(Func<string,string,string,CancellationToken,Task>)typeof(TronNativeTransferClient).GetField("_persistPreparedSubmission",flags)!.GetValue(wrong)!;
             await Assert.ThrowsAsync<System.IO.InvalidDataException>(()=>wrongCallback(id,genesis,bytes,deadline.Token));
