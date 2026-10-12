@@ -441,32 +441,27 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         /// </summary>
         public async Task<NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus> GetTransactionStatusAsync(string transactionId)
         {
-            try
-            {
-                using (var httpClient = new System.Net.Http.HttpClient())
-                {
-                    var response = await httpClient.GetAsync($"{_networkUrl}/api/v1/transactions/{transactionId}");
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var content = await response.Content.ReadAsStringAsync();
-                        var txData = System.Text.Json.JsonSerializer.Deserialize<JsonElement>(content);
-                        var statusStr = txData.TryGetProperty("status", out var status) ? status.GetString() : "Unknown";
-                        
-                        // Convert string status to BridgeTransactionStatus enum
-                        if (statusStr == "SUCCESS" || statusStr == "Completed")
-                            return NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed;
-                        else if (statusStr == "PENDING" || statusStr == "Pending")
-                            return NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Pending;
-                        else
-                            return NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.NotFound;
-                    }
-                }
-            }
-            catch (Exception)
-            {
-                // Return NotFound if query fails
-            }
-            return NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.NotFound;
+            using var httpClient = new System.Net.Http.HttpClient();
+            var response = await httpClient.GetAsync($"{_networkUrl.TrimEnd('/')}/api/v1/transactions/{Uri.EscapeDataString(transactionId)}");
+            if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
+                return NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.NotFound;
+            response.EnsureSuccessStatusCode();
+            using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+            return MapMirrorTransactionStatus(document.RootElement, transactionId);
+        }
+
+        internal static NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus MapMirrorTransactionStatus(JsonElement body, string transactionId)
+        {
+            var transactions = body.GetProperty("transactions");
+            if (transactions.GetArrayLength() != 1)
+                throw new InvalidOperationException("Mirror transaction lookup must return exactly one record.");
+            var record = transactions[0];
+            var expected = transactionId.Replace('@', '-');
+            var separator = expected.LastIndexOf('.');
+            if (separator > expected.LastIndexOf('-')) expected = expected[..separator] + "-" + expected[(separator + 1)..];
+            if (record.GetProperty("transaction_id").GetString() != expected)
+                throw new InvalidOperationException("Mirror returned a different transaction identity.");
+            return HashgraphOASIS.MapReceiptStatus(record.GetProperty("result").GetString());
         }
     }
 

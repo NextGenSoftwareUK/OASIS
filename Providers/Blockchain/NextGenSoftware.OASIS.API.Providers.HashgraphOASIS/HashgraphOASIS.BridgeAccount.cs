@@ -150,7 +150,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             return result;
         }
 
-        private static BridgeTransactionStatus MapReceiptStatus(string status) => status switch
+        internal static BridgeTransactionStatus MapReceiptStatus(string status) => status switch
         {
             "SUCCESS" => BridgeTransactionStatus.Completed,
             "UNKNOWN" => BridgeTransactionStatus.Pending,
