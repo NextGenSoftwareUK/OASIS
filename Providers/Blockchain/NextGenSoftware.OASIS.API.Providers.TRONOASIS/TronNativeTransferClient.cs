@@ -16,12 +16,18 @@ public sealed class TronNativeTransferClient
     private readonly ITransactionClient _transactions;
     private readonly string _genesisBlockId;
     private readonly long _contractFeeLimitSun;
+    private readonly Func<string,string,string,CancellationToken,Task> _persistPreparedSubmission;
     internal string ExpectedGenesisBlockId => _genesisBlockId;
 
     public TronNativeTransferClient(IWalletClient wallet, ITransactionClient transactions, string genesisBlockId, long contractFeeLimitSun = 100000000)
+        : this(wallet,transactions,genesisBlockId,contractFeeLimitSun,null) { }
+
+    public TronNativeTransferClient(IWalletClient wallet,ITransactionClient transactions,string genesisBlockId,long contractFeeLimitSun,
+        Func<string,string,string,CancellationToken,Task> persistPreparedSubmission)
     {
         _wallet = wallet ?? throw new ArgumentNullException(nameof(wallet));
         _transactions = transactions ?? throw new ArgumentNullException(nameof(transactions));
+        _persistPreparedSubmission=persistPreparedSubmission;
         if (string.IsNullOrWhiteSpace(genesisBlockId) || genesisBlockId.Length != 64
             || !System.Text.RegularExpressions.Regex.IsMatch(genesisBlockId, "\\A[0-9a-fA-F]{64}\\z"))
             throw new ArgumentException("The expected 32-byte genesis block ID is required.", nameof(genesisBlockId));
@@ -994,6 +1000,8 @@ public sealed class TronNativeTransferClient
             throw new InvalidOperationException("TRON signer returned an unsigned or altered transaction.");
         var digest = SHA256.HashData(signed.RawData.ToByteArray());
         var transactionId = Convert.ToHexString(digest).ToLowerInvariant();
+        if(_persistPreparedSubmission!=null)
+            await _persistPreparedSubmission(transactionId,_genesisBlockId,Convert.ToBase64String(signed.ToByteArray()),cancellationToken);
         // Broadcast exactly once; receipt polling never constructs or submits a replacement.
         Return broadcast;
         try
