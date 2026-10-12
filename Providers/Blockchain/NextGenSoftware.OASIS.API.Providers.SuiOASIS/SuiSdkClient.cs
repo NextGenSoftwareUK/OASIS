@@ -58,6 +58,8 @@ internal sealed class SuiSdkClient : IDisposable
             foreach (var property in args.GetType().GetProperties())
             {
                 if (property.Name == "operation") throw new ArgumentException("SDK arguments cannot override the authoritative operation.");
+                if(property.Name is "rpcEndpoint" or "network" or "chainId")
+                    throw new ArgumentException("SDK arguments cannot override the configured network identity.");
                 request[property.Name] = property.GetValue(args);
             }
         var start = new ProcessStartInfo(Environment.GetEnvironmentVariable("OASIS_SUI_NODE") ?? "node")

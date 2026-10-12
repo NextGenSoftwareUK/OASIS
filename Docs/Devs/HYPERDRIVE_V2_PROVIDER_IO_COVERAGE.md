@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui configured-network argument boundary — 2026-10-12
+
+Review of the prepared live entry identified that reflected per-operation arguments could overwrite the client's configured RPC endpoint, network or chain ID before child launch. `SuiSdkClient` now rejects those three overrides at its single request-construction boundary. Explicit per-operation signing keys/collection identifiers remain supported for existing wallet/NFT operations; cryptographic expected-sender checks remain separate. Three negative cases prove rejection through the actual C# SDK invocation method before child execution. Provider build passed with zero warnings/errors; selected real-preparation tests **6/6** passed, zero skips (`TestResults/PriorityProviderCurrent/sui-preparation-current.trx`). This selected suite is not a full regression count. No node startup, submission or installs. Positive prepared submission on the retained ledger and crash recovery remain open gates.
+
 ### Live TRON read failover after actual SDK transport closure — 2026-10-12
 
 After healthy read/distribution checks, the read-only harness enables Gold V2 failover, activates TRON as current provider, closes the actual runtime channels, and proves synchronous and asynchronous `LoadAvatar` requests succeed through LocalFile with `LastFailoverDiagnostic.SelectedProvider=LocalFileOASIS`. The original native fence and records are untouched. Runtime disposal is now idempotent so deliberate transport closure and subsequent owned cleanup do not shut the same channels twice.
