@@ -96,10 +96,17 @@ internal sealed class SuiSdkClient : IDisposable
                     try
                     {
                         transactionHash = mutation.GetProperty("transactionHash").GetString();
+                        if (transactionHash != null && !IsValidDigest(transactionHash))
+                        {
+                            transactionHash = null;
+                            throw new InvalidDataException("Native mutation digest is not a valid 32-byte base58 identity.");
+                        }
                         var status = mutation.GetProperty("executionSucceeded");
                         executionSucceeded = status.ValueKind == JsonValueKind.Null ? null : status.GetBoolean();
+                        if (transactionHash == null && executionSucceeded.HasValue)
+                            throw new InvalidDataException("Native execution outcome requires a valid original digest.");
                     }
-                    catch (Exception ex) when (ex is InvalidOperationException || ex is KeyNotFoundException)
+                    catch (Exception ex) when (ex is InvalidOperationException || ex is KeyNotFoundException || ex is InvalidDataException)
                     {
                         // Declared mutation evidence cannot become retryable when its schema is malformed.
                         throw new SuiNativeMutationReconciliationException(message, transactionHash, null, ex);
