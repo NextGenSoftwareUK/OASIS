@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON protobuf permission-authority validator — 2026-10-12
+
+Added explicit validator for caller-supplied verified account snapshot: trusted account address, exact owner/active permission ID/type, positive threshold, active operation mask, unique valid weighted keys, unique recovered authorised signers and checked weight meeting threshold. Witness permission rejected for transaction authority. Controlled real-protobuf cases accept active transfer permission and reject insufficient weight, mask denial, duplicate keys, foreign signer and foreign account: **6/6**, zero skips, `TestResults/PriorityProviderCurrent/tron-permissions.trx`. Build 0 errors/21 existing warnings.
+
+This does not fetch/verify live account snapshot, connect recovered signatures to active permission in preparation, or implement multisign submission. Existing prepared path still rejects nonzero permission IDs until that integration is complete. Authority test data is controlled; full live/deployed/admission/recovery gates remain open. No RPC, installs, submissions or release merge.
+
 ### Retained TRON read-only recovery recheck and permission metadata — 2026-10-12
 
 Original WSL inspection finally terminated with `sudo: timed out`; it never established container state. Windows TCP 9090 accepted connection, but bounded read-only genesis and exact-original transaction HTTP queries both timed out at 10 seconds. No genesis/receipt/outcome proof obtained; existing original `db05ea6d3067038a56dfc75b64d2c46c32824282e8242335ce007d1e34a415bb` fence remains. No node restart/reset/replay issued. Do not report the old inspection as still live after this checkpoint.
