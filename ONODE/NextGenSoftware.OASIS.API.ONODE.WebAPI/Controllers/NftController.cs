@@ -763,7 +763,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("import-web4-nft/{importedByAvatarId}")]
         [ProducesResponseType(typeof(OASISResult<IWeb4NFT>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
-        public async Task<OASISResult<IWeb4NFT>> ImportWeb4NFTAsync(Guid importedByAvatarId, [FromBody] IWeb4NFT oasisNFT, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4NFT>> ImportWeb4NFTAsync(Guid importedByAvatarId, [FromBody] Web4NFT oasisNFT, ProviderType providerType = ProviderType.Default)
         {
             if (importedByAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = "Unauthorized. You can only import NFTs for your own avatar." };
@@ -799,7 +799,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("export-web4-nft")]
         [ProducesResponseType(typeof(OASISResult<IWeb4NFT>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
-        public async Task<OASISResult<IWeb4NFT>> ExportWeb4NFTAsync([FromBody] IWeb4NFT oasisNFT, string fullPathToExportTo, ProviderType providerType = ProviderType.Default)
+        public async Task<OASISResult<IWeb4NFT>> ExportWeb4NFTAsync([FromBody] Web4NFT oasisNFT, string fullPathToExportTo, ProviderType providerType = ProviderType.Default)
         {
             if (oasisNFT == null)
                 return new OASISResult<IWeb4NFT> { IsError = true, Message = "The request body is required. Please provide a valid Web4 NFT object to export." };
