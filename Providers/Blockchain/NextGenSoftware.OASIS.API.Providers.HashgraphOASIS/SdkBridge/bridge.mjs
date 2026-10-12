@@ -86,6 +86,12 @@ export function validateStoragePage(page, cursor, total) {
     throw new Error('Storage pagination is inconsistent.');
 }
 
+export function verifyStorageAccount(account,payer,key) {
+  if(!account||account.accountId?.toString()!==payer.toString()||account.isDeleted!==false||typeof account.key?.toStringDer!=='function'
+      ||account.key.toStringDer().toLowerCase()!==key.publicKey.toStringDer().toLowerCase())
+    throw new Error('Storage activation requires the real active sender single signing key');
+}
+
 async function storageRead(action, request) {
   ContractId.fromString(request.contractId);
   if (action === 'storageGet' && typeof request.key !== 'string') throw new Error('An explicit storage key is required.');
@@ -109,9 +115,7 @@ async function storageRead(action, request) {
     if(action==='storageProbe'){
       const payment=Hbar.fromTinybars(request.maxFeeTinybars);
       const account=await new AccountInfoQuery().setAccountId(payer).setMaxQueryPayment(payment).execute(client);
-      if(account.accountId.toString()!==payer.toString()||account.isDeleted||typeof account.key?.toStringDer!=='function'
-          ||account.key.toStringDer().toLowerCase()!==key.publicKey.toStringDer().toLowerCase())
-        throw new Error('Storage activation requires the real active sender single signing key');
+      verifyStorageAccount(account,payer,key);
       const owner=(await query('owner',[]))[0];
       await verifyDepositorAccount(payer,owner,alias=>new AccountInfoQuery().setAccountId(alias).setMaxQueryPayment(payment).execute(client));
       return {owner,sender:payer.toString(),contractId:request.contractId};
