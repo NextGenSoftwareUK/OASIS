@@ -11,6 +11,46 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 public class TronPermissionRpcTests
 {
     [Theory]
+    [InlineData("rotated")] [InlineData("foreign")] [InlineData("threshold")]
+    public async Task NativeSendUsesSolidifiedOwnerPermissionBeforeConstruction(string mode)
+    {
+        var genesis=new string('a',64);var block=ByteString.CopyFrom(Convert.FromHexString(genesis));
+        var key=new string('0',63)+"1";var ownerKey=new string('0',63)+"2";
+        var owner=new TronNet.TronECKey(ownerKey,TronNet.TronNetwork.MainNet).GetPublicAddress();
+        var signer=new TronNet.TronECKey(key,TronNet.TronNetwork.MainNet).GetPublicAddress();
+        var address=ByteString.CopyFrom(Convert.FromHexString(new Nethereum.Signer.EthECKey(mode=="foreign"?ownerKey:key).GetPublicAddress()[2..]));
+        var signerBytes=ByteString.CopyFrom(new byte[]{0x41}.Concat(address.ToByteArray()).ToArray());
+        var constructions=0;var broadcasts=0;var id=ByteString.Empty;
+        var service=ServerServiceDefinition.CreateBuilder()
+            .AddMethod(Rpc(Wallet.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=block}))
+            .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=block}))
+            .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetAccount",Account.Parser,Account.Parser),(Account request,ServerCallContext context)=>{
+                var account=new Account{Address=request.Address,OwnerPermission=new Permission{Id=0,Threshold=mode=="threshold"?2:1}};
+                account.OwnerPermission.Keys.Add(new Key{Address=signerBytes,Weight=1});return Task.FromResult(account);
+            })
+            .AddMethod(Rpc(Wallet.Descriptor.FullName,"CreateTransaction2",TransferContract.Parser,TransactionExtention.Parser),(TransferContract request,ServerCallContext context)=>{
+                constructions++;var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();var tx=new Transaction{RawData=new Transaction.Types.raw{Timestamp=now,Expiration=now+60000}};
+                tx.RawData.Contract.Add(new Transaction.Types.Contract{Type=Transaction.Types.Contract.Types.ContractType.TransferContract,Parameter=Google.Protobuf.WellKnownTypes.Any.Pack(request)});
+                return Task.FromResult(new TransactionExtention{Transaction=tx,Result=new Return{Result=true}});
+            })
+            .AddMethod(Rpc(Wallet.Descriptor.FullName,"BroadcastTransaction",Transaction.Parser,Return.Parser),(Transaction request,ServerCallContext context)=>{
+                broadcasts++;Assert.Single(request.Signature);id=ByteString.CopyFrom(SHA256.HashData(request.RawData.ToByteArray()));return Task.FromResult(new Return{Result=true});
+            })
+            .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetTransactionInfoById",BytesMessage.Parser,TransactionInfo.Parser),(BytesMessage request,ServerCallContext context)=>Task.FromResult(new TransactionInfo{Id=id,BlockNumber=1})).Build();
+        var server=new Server{Services={service},Ports={new ServerPort("127.0.0.1",0,ServerCredentials.Insecure)}};server.Start();
+        try{
+            var port=server.Ports.Single().BoundPort;await using var runtime=new TronSdkRuntime(new Uri($"http://127.0.0.1:{port}"),new Uri($"http://127.0.0.1:{port}"),genesis);
+            using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            if(mode=="rotated"){
+                var result=await runtime.NativeTransfers.SendAsync(owner,signer,0.000001m,key,"",deadline.Token);
+                Assert.Equal(Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),result);Assert.Equal(1,constructions);Assert.Equal(1,broadcasts);
+            }else{
+                await Assert.ThrowsAsync<System.IO.InvalidDataException>(()=>runtime.NativeTransfers.SendAsync(owner,signer,0.000001m,key,"",deadline.Token));
+                Assert.Equal(0,constructions);Assert.Equal(0,broadcasts);
+            }
+        }finally{await server.ShutdownAsync();}
+    }
+    [Theory]
     [InlineData("rejected")] [InlineData("changed")] [InlineData("unavailable")] [InlineData("permission")]
     public async Task EscrowConstructionFailureAfterSdkApprovalRequiresOriginalReconciliation(string mode)
     {

@@ -58,16 +58,6 @@ public class TronRuntimeSafetyTests
             key.GetPublicAddress(), prefix + new string('0', payloadBytes * 2), 1m, key.GetPrivateKey(), ""));
     }
 
-    [Fact]
-    public async Task NativeTransferRejectsUnownedSenderBeforeContactingNode()
-    {
-        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),
-            new Uri("http://127.0.0.1:50052"), new string('0', 64));
-        var key = new TronNet.TronECKey(new string('1', 64), TronNet.TronNetwork.MainNet);
-        await Assert.ThrowsAsync<ArgumentException>(() => runtime.NativeTransfers.SendAsync(
-            "41" + new string('0', 40), key.GetPublicAddress(), 1m, key.GetPrivateKey(), ""));
-    }
-
     [Theory]
     [InlineData("http://example.org:50051")]
     [InlineData("https://user:password@example.org")]

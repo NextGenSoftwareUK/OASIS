@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON native send resolves actual owner authority — 2026-10-12
+
+`SendAsync` now loads the configured-network solidified account and verifies the actual signing-key address against owner permission weights before construction, rather than assuming account-address equality establishes authority. Controlled real SDK/gRPC cases prove a rotated owner signer reaches one construction/broadcast/confirmation, while foreign keys and insufficient threshold stop with zero constructions/broadcasts. Removed the obsolete address-equality test; these three authority cases replace its incorrect assumption. Complete suite **256/256 passed**, zero skips (`tron-current.trx`); provider build zero errors/21 existing warnings.
+
+Scope is native transfer owner permission only: account creation, token/NFT/escrow and other mutation preflights still require integration; active permission selection and multisignature requests remain open. Prepared owner-only views intentionally reject rotated signatures unless the account-authority preparation view is selected. No real ledger transaction, credentials, installation, merge or deployment affected. This is controlled shipping-path evidence, not live rotated-account certification.
+
 ### TRON node cannot select an unrequested active permission — 2026-10-12
 
 Shipping mutation calls currently request owner permission only. Added the invariant at the single signing/broadcast boundary: exactly one contract with permission ID zero is required before SDK signing, persistence or broadcast. A node cannot silently substitute an active permission. The controlled SDK escrow test now includes a changed deposit permission ID; approval stays confirmed and its exact ID is preserved, while the deposit is never broadcast. Complete TRON suite **254/254 passed**, zero skips (`tron-current.trx`); provider build zero errors/21 existing warnings.
