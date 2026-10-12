@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### WEB4 explicit NFT mint actor integrity (2026-10-12)
+
+Wizard mint request with an explicitly malformed/empty GUID MintedByAvatarId now returns an error before manager access instead of silently attributing the mint to the caller. Omitted/empty string continues the existing authenticated-caller default; valid delegated Wizard actor remains unchanged. Missing request body has explicit error. Three direct-controller regressions pass within full WEB4 units **133/133**, zero skips; host build zero errors/255 warnings. This establishes input/attribution preflight, not positive real-JWT NFT minting, subscriber-role policy, provider/off-chain persistence or hosted deployment. No installs/downloads/ledger mutation/new environment; broader completion gates remain open.
+
 ### WEB4 NFT mint defined-option validation (2026-10-12)
 
 Mint endpoint now rejects undefined numeric values for on-chain/off-chain provider, off-chain metadata type and NFT standard, using Enum.IsDefined after Enum.TryParse. Four direct-controller regression cases use a test-owned Wizard HttpContext and valid surrounding options, verifying explicit null-error result before mint-manager/provider access. Full WEB4 units **130/130**, zero skips; rebuilt host zero errors/255 warnings. This is controller preflight, not real-JWT positive mint/provider persistence or hosted behavior. Source audit also confirms the existing endpoint gates on Wizard avatar type despite a subscription-worded error; no billing/role policy was changed or bypassed. Positive NFT HTTP mint remains due, including real manager/off-chain persistence and exact on-chain receipt/reconciliation. No installs/downloads/runtime mutations/deployment.
