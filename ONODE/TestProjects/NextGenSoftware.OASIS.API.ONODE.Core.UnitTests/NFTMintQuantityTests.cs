@@ -12,6 +12,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests;
 [Collection("NFT provider registry")]
 public sealed class NFTMintQuantityTests
 {
+    [Fact]
+    public async Task InvalidFirstEntryStopsBeforeChangingOrProcessingLaterEntry()
+    {
+        var manager = new NFTManager((IOASISStorageProvider)null!, Guid.NewGuid(), new NextGenSoftware.OASIS.API.DNA.OASISDNA());
+        var later = new MintWeb3NFTRequest { NumberToMint = 0 };
+        var request = new MintWeb4NFTRequest {
+            NumberToMint = 1,
+            OnChainProvider = new NextGenSoftware.Utilities.EnumValue<NextGenSoftware.OASIS.API.Core.Enums.ProviderType>(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SuiOASIS),
+            OffChainProvider = new NextGenSoftware.Utilities.EnumValue<NextGenSoftware.OASIS.API.Core.Enums.ProviderType>(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.LocalFileOASIS),
+            NFTStandardType = new NextGenSoftware.Utilities.EnumValue<NextGenSoftware.OASIS.API.Core.Enums.NFTStandardType>(NextGenSoftware.OASIS.API.Core.Enums.NFTStandardType.ERC721),
+            NFTOffChainMetaType = new NextGenSoftware.Utilities.EnumValue<NextGenSoftware.OASIS.API.Core.Enums.NFTOffChainMetaType>(NextGenSoftware.OASIS.API.Core.Enums.NFTOffChainMetaType.OASIS),
+            Web3NFTs = new List<IMintWeb3NFTRequest> { new MintWeb3NFTRequest { NumberToMint = 1 }, later },
+        };
+        var result = await manager.MintNftAsync(request);
+        Assert.True(result.IsError);
+        Assert.Contains("SuiObject", result.Message);
+        Assert.Equal(0, later.NumberToMint);
+    }
+
     [Theory]
     [InlineData(0, false)]
     [InlineData(0, true)]
