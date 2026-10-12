@@ -44,6 +44,14 @@ public partial class SubscriptionEndpointsTests
             Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE", Path.Combine(directory.FullName, "Scripts/TestHosts/hedera-burn-wallet-fixture.mjs"));
             var request = new BurnWeb3TokenRequest { BurntByAvatarId = avatarId, Amount = 1, TokenAddress = "0.0.2001", OwnerPrivateKey = null, OwnerPublicKey = null, OwnerSeedPhrase = null };
             var result = await provider.BurnTokenAsync(request); result.IsError.Should().BeFalse(result.Message); result.Result.TransactionResult.Should().StartWith("0.0.1001@");
+            var matching = new BurnWeb3TokenRequest { BurntByAvatarId = avatarId, Amount = 1, TokenAddress = "0.0.2001", OwnerPrivateKey = "fixture-burn-key", OwnerPublicKey = "fixture-public", OwnerSeedPhrase = null };
+            var syncBurn = provider.BurnToken(matching); syncBurn.IsError.Should().BeFalse(syncBurn.Message);
+            syncBurn.Result.TransactionResult.Should().NotBe(result.Result.TransactionResult);
+            var mintRequest = new MintWeb3TokenRequest { MintedByAvatarId = avatarId, Amount = 1,
+                MetaData = new() { ["TokenAddress"] = "0.0.2001" } };
+            var minted = await provider.MintTokenAsync(mintRequest); minted.IsError.Should().BeFalse(minted.Message); minted.Result.TransactionResult.Should().StartWith("0.0.1001@");
+            var syncMint = provider.MintToken(mintRequest); syncMint.IsError.Should().BeFalse(syncMint.Message);
+            syncMint.Result.TransactionResult.Should().NotBe(minted.Result.TransactionResult);
             var conflicting = new BurnWeb3TokenRequest { BurntByAvatarId = avatarId, Amount = 1, TokenAddress = "0.0.2001", OwnerPrivateKey = "conflicting-key", OwnerPublicKey = null, OwnerSeedPhrase = null };
             var rejected = await provider.BurnTokenAsync(conflicting); rejected.IsError.Should().BeTrue(); rejected.Result.Should().BeNull(); rejected.Message.Should().Contain("does not match");
             (await local.LoadProviderWalletsForAvatarByIdAsync(avatarId)).Result[ProviderType.HashgraphOASIS][1].PrivateKey.Should().Be(encrypted);
