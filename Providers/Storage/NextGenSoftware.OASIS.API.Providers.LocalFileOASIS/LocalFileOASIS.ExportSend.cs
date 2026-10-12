@@ -331,10 +331,10 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                     continueOnError, 
                                     false, 
                                     version);
-                                if (!parentHolonsResult.IsError && parentHolonsResult.Result != null)
-                                {
-                                    holonsToSearch.AddRange(parentHolonsResult.Result);
-                                }
+                                if (parentHolonsResult.IsError)
+                                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>, ISearchResults>(parentHolonsResult);
+                                if (parentHolonsResult.Result == null) throw new InvalidOperationException("Parent search returned no holon collection.");
+                                holonsToSearch.AddRange(parentHolonsResult.Result);
                             }
                             else
                             {
@@ -348,10 +348,10 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                     continueOnError, 
                                     false, 
                                     version);
-                                if (!allHolonsResult.IsError && allHolonsResult.Result != null)
-                                {
-                                    holonsToSearch.AddRange(allHolonsResult.Result);
-                                }
+                                if (allHolonsResult.IsError)
+                                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>, ISearchResults>(allHolonsResult);
+                                if (allHolonsResult.Result == null) throw new InvalidOperationException("Search returned no holon collection.");
+                                holonsToSearch.AddRange(allHolonsResult.Result);
                             }
 
                             // Filter holons based on search criteria
@@ -383,10 +383,10 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             
                             // Load all avatars
                             var allAvatarsResult = await LoadAllAvatarsAsync(version);
-                            if (!allAvatarsResult.IsError && allAvatarsResult.Result != null)
-                            {
-                                avatarsToSearch.AddRange(allAvatarsResult.Result);
-                            }
+                            if (allAvatarsResult.IsError)
+                                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IAvatar>, ISearchResults>(allAvatarsResult);
+                            if (allAvatarsResult.Result == null) throw new InvalidOperationException("Search returned no avatar collection.");
+                            avatarsToSearch.AddRange(allAvatarsResult.Result);
 
                             // Filter avatars based on search criteria
                             foreach (var avatar in avatarsToSearch)

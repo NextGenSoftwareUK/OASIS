@@ -1,7 +1,9 @@
 using FluentAssertions;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 using Xunit;
 
@@ -9,6 +11,37 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 
 public class LocalFileLatestVersionTests
 {
+    private sealed class FailedReadLocalFile : LocalFileOASIS
+    {
+        public FailedReadLocalFile(string path) : base(storageDirectory: path) { }
+        private static OASISResult<T> Failure<T>() => new() { IsError = true, ErrorCode = "CONTROLLED_READ_FAILURE", Message = "store unavailable", Exception = new IOException("controlled read failure") };
+        public override Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0) => Task.FromResult(Failure<IEnumerable<IAvatar>>());
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => Task.FromResult(Failure<IEnumerable<IHolon>>());
+    }
+
+    [Theory]
+    [InlineData(false, false)] [InlineData(false, true)] [InlineData(true, false)]
+    public async Task SearchReadFailuresCannotBecomeSuccessfulEmptyResults(bool avatars, bool parent)
+    {
+        var root = Path.GetFullPath(Path.Combine("TestResults", "HyperDriveLocalVersion")); Directory.CreateDirectory(root);
+        using var lease = new FileStream(Path.Combine(root, "store.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        var provider = new FailedReadLocalFile(Path.Combine(root, "files"));
+        var search = new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+            ParentId = parent ? Guid.Parse("9429b874-cd50-45ee-87d0-d2dfd4b9b16c") : Guid.Empty,
+            SearchGroups = new() { new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup {
+                SearchQuery = "fixture", SearchHolons = !avatars, SearchAvatars = avatars } } };
+        try
+        {
+            foreach (var result in new[] { provider.Search(search), await provider.SearchAsync(search) })
+            {
+                result.IsError.Should().BeTrue(); result.Result.Should().BeNull();
+                result.ErrorCode.Should().Be("CONTROLLED_READ_FAILURE"); result.Exception.Should().BeOfType<IOException>();
+            }
+        }
+        finally { await provider.DeActivateProviderAsync(); }
+    }
+
     [Fact]
     public async Task TextSearchUsesQueryWithoutUnrelatedParameterObjects()
     {
