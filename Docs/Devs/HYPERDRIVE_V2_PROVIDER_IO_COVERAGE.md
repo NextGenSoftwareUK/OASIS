@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera missing-assets guard test verified — 2026-10-12
+
+Restored only missing test-project assets with `--no-dependencies --source C:/Users/david/.nuget/packages` using retained cache; no network package downloads. Compilation exposed stale enum-wrapper assertion and removed `GetProviderVersion` call; corrected wrapper comparison and replaced nonexistent-version test with current declared blockchain-capability check (not a version certification). Focused preparation guard **1/1**, zero skips, `TestResults/PriorityProviderCurrent/hedera-preparation.trx`; existing nullable test-field warning remains. Other historical activation tests in this project still need contract audit before claiming its complete suite.
+
+Full positive signed Hedera C#/pipe/Mongo, stage-aware escrow, funded/live/deployed gates remain open. No new environment, funded submissions or release merge.
+
 ### Hedera C# trusted-key verifier/factory — 2026-10-12
 
 Added public offline signature-verification callback and execution-owned preparation factory requiring an independently trusted expected account public key. Verifier requires explicit matching SDK acknowledgement; factory binds expected network/sender via execution adapter. Provider build passed 0 errors/2 existing unused-variable warnings. Added missing-execution/key guard test, but attempted no-restore run failed `NETSDK1004`: this MSTest project's assets file is absent. No passing C# test claim; existing NuGet cache is present and cache-only restore remains next check.

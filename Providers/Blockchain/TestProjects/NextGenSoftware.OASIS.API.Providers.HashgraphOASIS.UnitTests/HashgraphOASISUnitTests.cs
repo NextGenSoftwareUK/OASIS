@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests
             var providerType = _provider.ProviderType;
 
             // Assert
-            Assert.AreEqual(ProviderType.HashgraphOASIS, providerType);
+            Assert.AreEqual(ProviderType.HashgraphOASIS, providerType.Value);
         }
 
         [TestMethod]
@@ -89,14 +89,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests
         }
 
         [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
+        public void ProviderCapabilities_ShouldDeclareBlockchain()
         {
             // Arrange & Act
-            var version = _provider.GetProviderVersion();
-
-            // Assert
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
+            Assert.IsTrue(_provider.ProviderCapabilities.Any(capability => capability.Value == ProviderCategory.Blockchain));
         }
 
         [TestCleanup]
