@@ -19,6 +19,50 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 
 public sealed class SuiRealProviderRoutingTests
 {
+    [Fact]
+    public async Task ReconcileExactOwnedInterruptedAvatarFixture()
+    {
+        var rpc = Required("OASIS_SUI_TEST_RPC"); new Uri(rpc).IsLoopback.Should().BeTrue();
+        var root = Path.GetFullPath(Required("OASIS_HYPERDRIVE_TEST_ROOT")); Path.GetFileName(root).Should().Be("HyperDriveSui");
+        using var lease = new FileStream(Path.Combine(root, "store.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        using var fixture = JsonDocument.Parse(File.ReadAllText(Required("OASIS_SUI_TEST_DEPLOYMENT")));
+        var settings = fixture.RootElement;
+        using var sui = new SuiOASIS(rpc, "localnet", settings.GetProperty("chainId").GetString()!, settings.GetProperty("packageAddress").GetString()!,
+            settings.GetProperty("privateKey").GetString()!, settings.GetProperty("storageObjectId").GetString()!);
+        var local = new LocalFileOASIS(storageDirectory: Path.Combine(root, "files"));
+        var id = Guid.Parse("c63bdd86-cf89-49ca-8e7f-8a4099b335f8");
+        const string username = "sui-v2-1b84cc7a726345119c8425bbe7c0a43a";
+        try
+        {
+            (await local.ActivateProviderAsync()).IsError.Should().BeFalse(); (await sui.ActivateProviderAsync()).IsError.Should().BeFalse();
+            var present = new List<IOASISStorageProvider>();
+            foreach (var provider in new IOASISStorageProvider[] { local, sui })
+            {
+                var read = await provider.LoadAvatarAsync(id);
+                if (read.Result == null)
+                {
+                    read.Exception.Should().BeNull();
+                    (!read.IsError || read.ErrorCode == "OASIS_RECORD_NOT_FOUND").Should().BeTrue(read.Message);
+                    continue;
+                }
+                read.IsError.Should().BeFalse(read.Message); read.Result.Username.Should().Be(username);
+                read.Result.Id.Should().Be(id); read.Result.Email.Should().EndWith("@example.invalid");
+                present.Add(provider);
+            }
+            var detailPath = Path.GetFullPath(Path.Combine(root, "files", "AvatarDetails", id + ".json"));
+            detailPath.StartsWith(root + Path.DirectorySeparatorChar, StringComparison.OrdinalIgnoreCase).Should().BeTrue();
+            if (File.Exists(detailPath))
+            {
+                var detail = await local.LoadAvatarDetailAsync(id); detail.IsError.Should().BeFalse(detail.Message);
+                detail.Result.Id.Should().Be(id); detail.Result.Username.Should().Be(username);
+            }
+            foreach (var provider in present) (await provider.DeleteAvatarAsync(id, softDelete: false)).IsError.Should().BeFalse();
+            File.Delete(detailPath);
+            (await sui.LoadAvatarAsync(id)).Result.Should().BeNull(); (await local.LoadAvatarAsync(id)).Result.Should().BeNull();
+        }
+        finally { await sui.DeActivateProviderAsync(); await local.DeActivateProviderAsync(); }
+    }
+
     private static string Required(string name) => Environment.GetEnvironmentVariable(name)
         ?? throw new InvalidOperationException($"Real provider setting {name} is required; no skipped evidence.");
 
@@ -112,9 +156,11 @@ public sealed class SuiRealProviderRoutingTests
         var parentSaved = false;
         holon.MetaData = new Dictionary<string, object> { ["owned-routing-fixture"] = holon.Id.ToString() };
         var deletedThroughRouter = false;
+        var holonSaved = false;
         var avatar = new Avatar { Id = Guid.NewGuid(), Username = "sui-v2-" + Guid.NewGuid().ToString("N"),
             Email = Guid.NewGuid().ToString("N") + "@example.invalid" };
         avatar.VerificationToken = "owned-sui-verification-" + avatar.Id;
+        avatar.ProviderUniqueStorageKey = new() { [ProviderType.LocalFileOASIS] = avatar.Id.ToString() };
         avatar.ResetToken = "owned-sui-reset-" + avatar.Id;
         avatar.RefreshTokens = new() { new RefreshToken { Token = "owned-sui-refresh-" + avatar.Id } };
         var detail = new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Email = avatar.Email };
@@ -181,23 +227,24 @@ public sealed class SuiRealProviderRoutingTests
             await AssertTokenLookups(true);
             foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.SuiOASIS })
             {
-                foreach (var operation in new[] { "LoadAvatar", "LoadAvatarByUsername", "LoadAvatarByEmail" })
+                foreach (var operation in new[] { "LoadAvatar", "LoadAvatarByUsername", "LoadAvatarByEmail", "LoadAvatarByProviderKey" })
                 {
                     var request = new StorageOperationRequest { Operation = operation, AvatarId = avatar.Id,
-                        Username = avatar.Username, Email = avatar.Email, PreferredProvider = providerType };
+                        Username = avatar.Username, Email = avatar.Email, ProviderKey = avatar.Id.ToString(), PreferredProvider = providerType };
                     foreach (var read in new[] { router.RouteRequest<IAvatar>(request), await router.RouteRequestAsync<IAvatar>(request) })
                     { read.IsError.Should().BeFalse(read.Message); read.Result.Id.Should().Be(avatar.Id); }
                 }
                 foreach (var operation in new[] { "LoadAvatarDetail", "LoadAvatarDetailByUsername", "LoadAvatarDetailByEmail" })
                 {
                     var request = new StorageOperationRequest { Operation = operation, AvatarId = avatar.Id,
-                        Username = avatar.Username, Email = avatar.Email, PreferredProvider = providerType };
+                        Username = avatar.Username, Email = avatar.Email, ProviderKey = avatar.Id.ToString(), PreferredProvider = providerType };
                     foreach (var read in new[] { router.RouteRequest<IAvatarDetail>(request), await router.RouteRequestAsync<IAvatarDetail>(request) })
                     { read.IsError.Should().BeFalse(read.Message); read.Result.Id.Should().Be(avatar.Id); }
                 }
             }
             var saved = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
                 { Operation = "SaveHolon", Payload = holon, PreferredProvider = ProviderType.LocalFileOASIS });
+            holonSaved = !saved.IsError;
             var savedParent = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
                 { Operation = "SaveHolon", Payload = parent, PreferredProvider = ProviderType.LocalFileOASIS });
             parentSaved = !savedParent.IsError;
@@ -300,17 +347,17 @@ public sealed class SuiRealProviderRoutingTests
             (await sui.LoadAvatarByEmailAsync(avatar.Email)).Result.Should().BeNull();
             foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.SuiOASIS })
             {
-                foreach (var operation in new[] { "LoadAvatar", "LoadAvatarByUsername", "LoadAvatarByEmail" })
+                foreach (var operation in new[] { "LoadAvatar", "LoadAvatarByUsername", "LoadAvatarByEmail", "LoadAvatarByProviderKey" })
                 {
                     var request = new StorageOperationRequest { Operation = operation, AvatarId = avatar.Id,
-                        Username = avatar.Username, Email = avatar.Email, PreferredProvider = providerType };
+                        Username = avatar.Username, Email = avatar.Email, ProviderKey = avatar.Id.ToString(), PreferredProvider = providerType };
                     foreach (var read in new[] { router.RouteRequest<IAvatar>(request), await router.RouteRequestAsync<IAvatar>(request) })
                     { read.IsError.Should().BeFalse(read.Message); read.Result.Should().BeNull("replicated deletion must retire identity indexes"); }
                 }
                 foreach (var operation in new[] { "LoadAvatarDetail", "LoadAvatarDetailByUsername", "LoadAvatarDetailByEmail" })
                 {
                     var request = new StorageOperationRequest { Operation = operation, AvatarId = avatar.Id,
-                        Username = avatar.Username, Email = avatar.Email, PreferredProvider = providerType };
+                        Username = avatar.Username, Email = avatar.Email, ProviderKey = avatar.Id.ToString(), PreferredProvider = providerType };
                     foreach (var read in new[] { router.RouteRequest<IAvatarDetail>(request), await router.RouteRequestAsync<IAvatarDetail>(request) })
                     { read.IsError.Should().BeFalse(read.Message); read.Result.Should().BeNull("replicated deletion must remove detail projections"); }
                 }
@@ -323,7 +370,7 @@ public sealed class SuiRealProviderRoutingTests
         {
             try
             {
-            if (!deletedThroughRouter)
+            if (!deletedThroughRouter && holonSaved)
             {
                 var deleted = await sui.DeleteHolonAsync(holon.Id);
                 deleted.IsError.Should().BeFalse(deleted.Message);

@@ -5,6 +5,12 @@
 
 ## Routing contract
 
+### Corrected Sui provider-key scope and owned-fixture reconciliation (2026-10-12)
+
+Attempted detail-by-provider-key assertions used an invented operation: IOASISStorageProvider/router defines avatar provider-key lookup but no detail provider-key method. Removed that test mistake, retaining eight real avatar-provider-key presence/deletion assertions. Initial failure was masked by unconditional cleanup deletion of a not-yet-saved holon; test now tracks actual save success before deletion. Corrected healthy V2 scenario plus repeat-safe exact-fixture reconciliation pass **2/2**, zero skips, 117 seconds (`sui-v2-corrected-current.trx`), verifying current cleanup ordering and all earlier scoped assertions.
+
+Interrupted fixture `c63bdd86-cf89-49ca-8e7f-8a4099b335f8` was verified by exact ID/username and test-domain email on both stores, deleted through provider APIs, and its exact validated LocalFile detail path removed. Original reconciliation passed **1/1** (`sui-owned-reconciliation.trx`); repeated reconciliation accepts only authoritative absence or the same verified fixture, never unrelated records/read errors. Deleted logical fixture can be recreated by the test setup; no user avatar, credentials or broad directory removed. Existing node/package/ledger/SDK/fixed environment reused; exact owned PID 132213 stopped after terminal run, no remaining Sui process. No reset/install/download/new environment/merge. Full operation/native/API/image/provider gates remain open.
+
 ### Sui scenario cleanup ordering corrected (2026-10-12)
 
 Expanded healthy test previously deactivated Sui/LocalFile before deleting the parent and duplicated deactivation in avatar cleanup. Fixture deletion now occurs while providers remain active; a nested finally deactivates both once even if a cleanup assertion fails. Bounded integration-project build and diff check pass (zero errors/five warnings). This is test-resource lifecycle correction, not a new live pass; current revised lifecycle awaits rerun. It does not guarantee every cleanup action proceeds after an earlier delete failure. No runtime/install/download/new environment/ledger mutation/merge.
