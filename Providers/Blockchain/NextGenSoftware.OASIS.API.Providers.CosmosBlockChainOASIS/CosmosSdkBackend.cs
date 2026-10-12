@@ -143,10 +143,17 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
                     try
                     {
                         transactionHash = mutation.GetProperty("transactionHash").GetString();
+                        if (transactionHash != null && !System.Text.RegularExpressions.Regex.IsMatch(transactionHash, @"\A[0-9a-fA-F]{64}\z"))
+                        {
+                            transactionHash = null;
+                            throw new InvalidDataException("Native mutation hash is not a 32-byte hexadecimal identity.");
+                        }
                         var status = mutation.GetProperty("executionSucceeded");
                         executionSucceeded = status.ValueKind == JsonValueKind.Null ? null : status.GetBoolean();
+                        if (transactionHash == null && executionSucceeded.HasValue)
+                            throw new InvalidDataException("Native execution outcome requires a valid original transaction identity.");
                     }
-                    catch (Exception ex) when (ex is InvalidOperationException || ex is KeyNotFoundException)
+                    catch (Exception ex) when (ex is InvalidOperationException || ex is KeyNotFoundException || ex is InvalidDataException)
                     {
                         throw new CosmosNativeMutationReconciliationException(errorMessage.GetString(), transactionHash, null, ex);
                     }

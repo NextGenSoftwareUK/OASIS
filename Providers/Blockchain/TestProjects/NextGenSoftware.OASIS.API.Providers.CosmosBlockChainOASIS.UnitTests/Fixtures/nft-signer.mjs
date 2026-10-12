@@ -28,8 +28,8 @@ else if(request.operation==='execute'){
  const burn=request.message?.asset?.message?.nft_burn??request.message?.asset?.message?.token_burn;
  if(burn?.token_id?.startsWith('native-evidence-')) {
   const mode=burn.token_id.slice('native-evidence-'.length);
-  const nativeMutation=mode==='bad-shape' ? [] : { transactionHash:mode==='unknown' ? null : 'a'.repeat(64),
-   ...(mode==='missing-status' ? {} : {executionSucceeded:mode==='failed' ? false : mode==='executed' ? true : mode==='bad-status' ? 'false' : null}) };
+  const nativeMutation=mode==='bad-shape' ? [] : { transactionHash:mode==='unknown' || mode==='unknown-executed' ? null : mode==='invalid-hash' ? 'fabricated' : 'a'.repeat(64),
+   ...(mode==='missing-status' ? {} : {executionSucceeded:mode==='failed' ? false : mode==='executed' || mode==='unknown-executed' ? true : mode==='bad-status' ? 'false' : null}) };
   failureEnvelope={ok:false,...(mode==='missing-error' ? {} : {error:mode==='bad-error' ? [] : 'original controlled native error'}),
    ...(mode==='ordinary' ? {} : {nativeMutation})};
  }
