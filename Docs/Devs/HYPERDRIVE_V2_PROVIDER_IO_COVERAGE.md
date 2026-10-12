@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Complete Cosmos rerun with retained SDK and packaging inspection — 2026-10-12
+
+Complete Cosmos C# suite **99/99 passed**, zero skips, including the real two-minute process deadline (`cosmos-current.trx`). The run explicitly configured `OASIS_COSMOS_SDK_BRIDGE` to the existing installed source bridge; no restore, install or download occurred. This supersedes the prior failed local dependency-resolution run, not the deployed packaging gate.
+
+`node Docker/verify-provider-sdk-bridge.mjs Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/SdkBridge` passed against the retained installation: syntax, ESM imports, direct installed version pins and reviewed CosmJS timer correction verified. Source inspection confirms WEB4 calls `package-provider-sdk-bridges.sh /app/publish`, which performs pinned `npm ci` and verification in the Docker-owned publish directory. Dependency manifest/seven Dockerfiles/gitlink validator passed. No actual Docker/Railway build or hosted route was exercised; published Linux packaging and live Cosmos gates remain open. C: free space 100,357,554,176 bytes; no duplicate environment allocated. No merge or deployment.
+
 ### Post-SDK-owner full regressions and Cosmos dependency-resolution gate — 2026-10-12
 
 Sui complete C# suite **75/75 passed**, zero skips, including the actual two-minute process deadline (`sui-current.trx`). Cosmos complete C# suite **97 passed / 2 failed / 99 total**, zero skips (`cosmos-current.trx`): both failures launched SDK code from the build-output bridge without its installed dependencies. Reusing the existing source bridge through explicit `OASIS_COSMOS_SDK_BRIDGE` made the complete preparation class **17/17 pass** (`cosmos-preparation-current.trx`), including real offline signing, cryptographic verification and Mongo persistence. No assertion or production exception was weakened; no dependencies were installed.
