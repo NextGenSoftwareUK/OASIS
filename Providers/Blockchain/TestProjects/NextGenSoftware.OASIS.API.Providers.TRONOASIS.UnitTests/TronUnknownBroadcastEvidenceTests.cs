@@ -7,6 +7,8 @@ using Google.Protobuf;
 using TronNet;
 using TronNet.Protocol;
 using Xunit;
+using Grpc.Core;
+using System.Linq;
 
 namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
@@ -162,9 +164,10 @@ public class TronUnknownBroadcastEvidenceTests
     {
         public IWalletClient Original=null!;
         public Exception Failure=null!;
+        public Func<bool> HasBroadcast = null!;
         protected override object? Invoke(MethodInfo? method,object?[]? args)
         {
-            if(method!.Name==nameof(IWalletClient.GetSolidityProtocol))throw Failure;
+            if(method!.Name==nameof(IWalletClient.GetSolidityProtocol)&&HasBroadcast())throw Failure;
             return method.Invoke(Original,args);
         }
     }
@@ -174,7 +177,14 @@ public class TronUnknownBroadcastEvidenceTests
     public async Task ActualClientSignsOnceAndPreservesOriginalEvidenceWhenBroadcastOrConfirmationIsInterrupted(bool broadcastAccepted,bool persistenceRejected,bool prepared,bool wrongSignature)
     {
         const string genesis = "0000000000000000c93baa76a4a508f798a96f59156d9eb17ecede8ec845df2f";
-        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"), new Uri("http://127.0.0.1:50052"), genesis);
+        var service=ServerServiceDefinition.CreateBuilder()
+            .AddMethod(TronPermissionRpcTests.Rpc(Wallet.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=ByteString.CopyFrom(Convert.FromHexString(genesis))}))
+            .AddMethod(TronPermissionRpcTests.Rpc(WalletSolidity.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=ByteString.CopyFrom(Convert.FromHexString(genesis))}))
+            .AddMethod(TronPermissionRpcTests.Rpc(WalletSolidity.Descriptor.FullName,"GetAccount",Account.Parser,Account.Parser),(Account request,ServerCallContext context)=>Task.FromResult(new Account{Address=request.Address})).Build();
+        var server=new Server{Services={service},Ports={new ServerPort("127.0.0.1",0,ServerCredentials.Insecure)}};server.Start();
+        try {
+        var port=server.Ports.Single().BoundPort;
+        await using var runtime = new TronSdkRuntime(new Uri($"http://127.0.0.1:{port}"), new Uri($"http://127.0.0.1:{port}"), genesis);
         var flags = BindingFlags.Instance | BindingFlags.NonPublic;
         var signer = (ITransactionClient)typeof(TronNativeTransferClient).GetField("_transactions", flags)!.GetValue(runtime.NativeTransfers)!;
         var wallet = (IWalletClient)typeof(TronNativeTransferClient).GetField("_wallet", flags)!.GetValue(runtime.NativeTransfers)!;
@@ -187,6 +197,7 @@ public class TronUnknownBroadcastEvidenceTests
             var confirmationWallet=DispatchProxy.Create<IWalletClient,InterruptedConfirmationWalletProxy>();
             var confirmationControl=(InterruptedConfirmationWalletProxy)(object)confirmationWallet;
             confirmationControl.Original=wallet;confirmationControl.Failure=controlled.Interruption;
+            confirmationControl.HasBroadcast=()=>controlled.BroadcastCount>0;
             wallet=confirmationWallet;
         }
         var preparationCalls=0;var persistenceFailure=new InvalidOperationException("controlled persistence failure");
@@ -217,7 +228,7 @@ public class TronUnknownBroadcastEvidenceTests
         transaction.RawData.Contract.Add(new Transaction.Types.Contract{Type=Transaction.Types.Contract.Types.ContractType.TransferContract,
             Parameter=Google.Protobuf.WellKnownTypes.Any.Pack(new TransferContract{OwnerAddress=owner,ToAddress=owner,Amount=1})});
         var submit = (Task<string>)typeof(TronNativeTransferClient).GetMethod("SignBroadcastConfirmAsync", flags)!.Invoke(client,
-            new object?[] { transaction, new string('0', 63) + "1", "controlled public memo", CancellationToken.None, false, false, false, null, null })!;
+            new object?[] { transaction, new string('0', 63) + "1", "controlled public memo", CancellationToken.None, false, false, false, null })!;
         if(wrongSignature){
             await Assert.ThrowsAsync<System.IO.InvalidDataException>(()=>submit);
             Assert.Equal(1,controlled.SignCount);Assert.Equal(0,preparationCalls);Assert.Equal(0,controlled.BroadcastCount);return;
@@ -238,6 +249,7 @@ public class TronUnknownBroadcastEvidenceTests
         Assert.Equal(now + 60000, evidence.TransactionExpirationMilliseconds);
         Assert.Equal(genesis, evidence.ChainGenesisId);
         Assert.Same(controlled.Interruption, evidence.InnerException);
+        } finally { await server.ShutdownAsync(); }
     }
 
     [Fact]
