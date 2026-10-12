@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### NFT outer batch stops after error instead of admitting later work (2026-10-12)
+
+ONODE Core `b8a98e977ebf49c26ec9be6b17b03c1feed4bd57` stops the outer mint loop on IsError, preserving original validation/partial outcome rather than processing later entries. Provider resolution failure is now an error instead of a warning-only empty success (and null resolution no longer causes a secondary dereference). New public-manager regression proves an invalid first entry's actual standard-validation error and verifies later zero-count entry is never normalized/processed. Full ONODE Core **218/218, zero skips**, `TestResults/OnodeCurrent/onode-unit-current.trx`; build zero errors/154 warnings. Existing inner partial-mint/delivery tests pass in that run. Real outer multi-provider uncertain-outcome receipts and subscription/fee settlement still need dedicated end-to-end coverage; no live mint was submitted.
+
 ### Cosmos custody verifier aligned to actual OASIS contract envelope (2026-10-12)
 
 Backend/source trace confirmed `ExecuteAssetAsync` submits `{asset:{message:{nft_transfer:...}}}`. Corrected the new receipt verifier to require that actual deployed OASIS ABI rather than a top-level NFT transfer; regression rejects the unsupported unwrapped shape. SDK **29/29** passes. Updated live asset fixture to reject the NFT mint receipt as withdrawal proof, verify custody remains unchanged, and release using the actual withdrawal receipt. Integration project build passes zero errors/two warnings; **this changed live fixture has not executed** while retained-node execution remains policy-blocked. The prior controlled tests alone did not establish deployed ABI compatibility, and no live pass is inferred from this build.
