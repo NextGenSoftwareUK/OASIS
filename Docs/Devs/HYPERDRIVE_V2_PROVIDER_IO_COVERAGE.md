@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera post-preparation generic failure remains reconciliation-required — 2026-10-12
+
+Canonical C# boundary now marks generic invalid-operation child failure after persisted preparation as original-ID reconciliation required. Existing typed native evidence and original parent persistence rejection stay authoritative. Controlled child acknowledges then emits metadata-free failure; lifecycle **8/8**, zero skips, `TestResults/PriorityProviderCurrent/hedera-prepared-process.trx`. Provider build 0 errors/2 existing warnings; test nullable warning remains. This prevents missing child stage metadata from making prepared unknown outcomes retryable.
+
+Actual signed child submission/crash recovery, stage-aware escrow and funded/live/deployed verification remain open. No installs, consensus submissions or release merge.
+
 ### Public execution-owned Hedera prepared entry — 2026-10-12
 
 Added single-stage `ExecutePreparedNativeAsync` joining supplied execution and trusted expected network/account/public key to factory and canonical gated SDK invocation. Missing execution/pre-cancellation reject before launch/activation. Preparation class selection **11/11**, zero skips, `TestResults/PriorityProviderCurrent/hedera-preparation.trx`, including prior controlled lifecycle and real signed pipe/Mongo cases. Provider build 0 errors/2 existing warnings; test nullable warning remains.
