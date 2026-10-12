@@ -10,6 +10,7 @@ if(['put','get'].includes(request.operation)) {
  else {
   const envelope=mode==='no-ok'?{}:mode==='bad-ok'?{ok:'true'}:mode==='no-result'?{ok:true}
    :mode==='null-result'?{ok:true,result:null}:mode==='no-hash'?{ok:true,result:{}}
+   :mode==='invalid-hash'?{ok:true,result:{transactionHash:'fabricated'}}
    :mode==='preflight'?{ok:false,error:'controlled preflight error'}:{ok:true,result:{transactionHash:'a'.repeat(64)}};
   process.stdout.write(JSON.stringify(envelope));if(mode==='preflight')process.exitCode=1;
  }
@@ -37,7 +38,7 @@ else if(request.operation==='execute'){
   if(metadata.Price!==12.5||metadata.Discount!==2||metadata.RoyaltyPercentage!==7||metadata.SellerFeeBasisPoints!==700||metadata.MemoText!=='mint memo')
    throw new Error('Mint economic metadata was not serialized.');}
  if(request.privateKey!=='test-only-explicit')error='Explicit signer was not forwarded';
- else result={transactionHash:'fixture-committed-cosmos-nft'};
+ else result={transactionHash:'a'.repeat(64)};
 }else if(request.operation==='query')error='forced separate NFT readback failure';
 else error='Unexpected fixture operation';
 if(!handled)process.stdout.write(JSON.stringify(failureEnvelope??(error?{ok:false,error}:{ok:true,result})));if(error||failureEnvelope)process.exitCode=1;

@@ -24,7 +24,7 @@ public class CosmosProcessBoundaryTests
     }
 
     [DataTestMethod]
-    [DataRow("empty")] [DataRow("bad-json")] [DataRow("bad-utf8")] [DataRow("no-ok")] [DataRow("bad-ok")]
+    [DataRow("empty")] [DataRow("bad-json")] [DataRow("bad-utf8")] [DataRow("no-ok")] [DataRow("bad-ok")] [DataRow("invalid-hash")]
     [DataRow("no-result")] [DataRow("null-result")] [DataRow("no-hash")]
     public async Task MalformedMutationRepliesCannotEnableReplayOrSavedSuccess(string mode)
     {

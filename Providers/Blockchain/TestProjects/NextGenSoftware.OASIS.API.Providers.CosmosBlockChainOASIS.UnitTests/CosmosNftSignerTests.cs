@@ -49,7 +49,7 @@ public class CosmosNftSignerTests
             var result = await provider.DepositNFTAsync("fixture-contract#fixture-token", "fixture-token", "fixture-recipient", new string(digestCharacter[0], 64));
             Assert.AreEqual(rejected, result.IsError, result.Message);
             if (rejected) Assert.IsNull(result.Result);
-            else Assert.AreEqual("fixture-committed-cosmos-nft", result.Result.TransactionId);
+            else Assert.AreEqual(new string('a',64), result.Result.TransactionId);
         }
         finally { Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE", previous); }
     }
@@ -70,7 +70,7 @@ public class CosmosNftSignerTests
                     TokenAddress = "fixture-token", Amount = 1, OwnerPrivateKey = "test-only-explicit", OwnerSeedPhrase = null, OwnerPublicKey = publicKey });
                 Assert.AreEqual(publicKey == "wrong-public", result.IsError, result.Message);
                 if (publicKey == "wrong-public") { Assert.IsNull(result.Result); StringAssert.Contains(result.Message, "public key does not match"); }
-                else Assert.AreEqual("fixture-committed-cosmos-nft", result.Result.TransactionResult);
+                else Assert.AreEqual(new string('a',64), result.Result.TransactionResult);
             }
             else
             {
@@ -78,7 +78,7 @@ public class CosmosNftSignerTests
                     NFTTokenAddress = "fixture-contract#fixture-token", OwnerPrivateKey = "test-only-explicit", OwnerSeedPhrase = null, OwnerPublicKey = publicKey });
                 Assert.AreEqual(publicKey == "wrong-public", result.IsError, result.Message);
                 if (publicKey == "wrong-public") { Assert.IsNull(result.Result); StringAssert.Contains(result.Message, "public key does not match"); }
-                else Assert.AreEqual("fixture-committed-cosmos-nft", result.Result.TransactionResult);
+                else Assert.AreEqual(new string('a',64), result.Result.TransactionResult);
             }
         }
         finally { Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE", previous); }
@@ -101,7 +101,7 @@ public class CosmosNftSignerTests
                 FromWalletAddress = "fixture-owner", ToWalletAddress = "fixture-recipient", OwnerPrivateKey = "test-only-explicit", Amount = 1 });
             Assert.IsTrue(result.IsError);
             if (rejected) { Assert.IsNull(result.Result); StringAssert.Contains(result.Message, "consistent Cosmos NFT address"); }
-            else { Assert.AreEqual("fixture-committed-cosmos-nft", result.Result.TransactionResult); StringAssert.Contains(result.Message, "readback failed"); }
+            else { Assert.AreEqual(new string('a',64), result.Result.TransactionResult); StringAssert.Contains(result.Message, "readback failed"); }
         }
         finally { Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE", previous); }
     }
@@ -187,9 +187,9 @@ public class CosmosNftSignerTests
             }
             else
             {
-                Assert.IsNotNull(result.Result);Assert.AreEqual("fixture-committed-cosmos-nft",result.Result.TransactionResult);
-                Assert.AreEqual("fixture-committed-cosmos-nft",result.Result.SendNFTTransactionResult);
-                StringAssert.Contains(result.Message,"fixture-committed-cosmos-nft");
+                Assert.IsNotNull(result.Result);Assert.AreEqual(new string('a',64),result.Result.TransactionResult);
+                Assert.AreEqual(new string('a',64),result.Result.SendNFTTransactionResult);
+                StringAssert.Contains(result.Message,new string('a',64));
             }
             Assert.IsFalse(result.Message.Contains("test-only-explicit"));
         }

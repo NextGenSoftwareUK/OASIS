@@ -159,7 +159,8 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
             if (!envelope.RootElement.TryGetProperty("result", out var payload))
                 throw InvalidEnvelope(isMutation, "Cosmos SDK success envelope has no result; native outcome is not established.");
             if (isMutation && (payload.ValueKind != JsonValueKind.Object || !payload.TryGetProperty("transactionHash", out var hash)
-                || hash.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(hash.GetString())))
+                || hash.ValueKind != JsonValueKind.String
+                || !System.Text.RegularExpressions.Regex.IsMatch(hash.GetString() ?? "", @"\A[0-9a-fA-F]{64}\z")))
                 throw InvalidEnvelope(true, "Cosmos SDK mutation result lacks transaction identity; native outcome is not established.");
             return payload.Clone();
         }

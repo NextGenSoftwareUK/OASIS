@@ -22,6 +22,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos C# successful hash shape — 2026-10-12
+
+The C# process boundary now requires successful mutation hashes to be exactly 64 hexadecimal characters, not merely nonempty strings. Malformed success replies require reconciliation rather than becoming successful native results. Controlled NFT fixtures now use a valid-shaped synthetic digest instead of a human-readable invented transaction identity; their assertions were updated without implying ledger evidence. Added invalid-success-hash regression. Provider build passed with 0 errors/warnings; selected C# suite **79/79**, zero skips, report `TestResults/PriorityProviderCurrent/cosmos-hash-validation.trx` (actual deadline excluded). This format check cannot bind the hash to prepared bytes across the process; IPC/outbox integration remains required. No live mutation or deployment.
+
 ### Cosmos original signed submission evidence handoff — 2026-10-12
 
 Prepared-persistence callbacks now receive an immutable descriptor with the original digest and exact signed transaction bytes encoded as base64. The official signing test decodes that handoff through `TxRaw`, checks its actual signature and rehashes bytes to the supplied digest. This allows the forthcoming durable integration to retain original signed evidence rather than re-signing a new identity. SDK suite **49/49**, zero skips/todos. No private signing key is included in the descriptor, but signed transactions still require controlled storage/access and must not be logged. This component is not yet connected to C# IPC/outbox, chain/payer admission or live recovery; no journal-durability claim or new submission.
