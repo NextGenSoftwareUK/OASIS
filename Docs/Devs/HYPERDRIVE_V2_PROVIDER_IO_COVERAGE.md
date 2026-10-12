@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos invalid signing document cannot alter durable preparation — 2026-10-12
+
+Integrated actual signed SDK/pipe/Mongo case now replaces SignDoc with canonical-base64 but invalid protobuf evidence through the execution-owned factory. Actual verifier rejects, no acknowledgement or retained ID, original one-attempt record and evidence-byte budget remain unchanged. Focused **1/1**, zero skips, `TestResults/PriorityProviderCurrent/cosmos-signed-mongo.trx`; existing nullable test warning remains. This is document rejection, not a new altered-signature cryptographic case. Owned test database removed, retained environment reused.
+
+Actual submitted transaction/crash recovery, hosted native admission, complete interfaces/live orchestration/deployed gates remain open. No installations, ledger changes or release merge.
+
 ### Signed Cosmos duplicate preparation denied durably — 2026-10-12
 
 Real signed Cosmos/pipe/Mongo integration now repeats the same signed attempt through a fresh owned factory server. Mongo denies with `PROVIDER_ATTEMPT_ALREADY_STARTED`; no second acknowledgement/retained ID, one original attempt and unchanged evidence-byte budget. Selected Cosmos regression **93/93**, zero skips, actual two-minute deadline excluded, `TestResults/PriorityProviderCurrent/cosmos-preparation-current.trx`. Existing nullable test-field warning remains. Owned database teardown and process cleanup completed; retained service/SDK reused.
