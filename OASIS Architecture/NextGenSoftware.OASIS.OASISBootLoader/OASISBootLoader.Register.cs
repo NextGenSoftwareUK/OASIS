@@ -436,6 +436,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 OASISDNA.OASIS.StorageProviders.HashgraphOASIS.ChainId ?? "295",
                                 consensusNodes: settings.ConsensusNodes, storageConfiguration: storage,
                                 bridgePoolAccountId: settings.BridgePoolAccountId,
+                                rawTransferAccountId: settings.RawTransferAccountId,
+                                rawTransferSigningKey: () => string.IsNullOrWhiteSpace(settings.RawTransferSigningKeyEnvironmentVariable)
+                                    ? null : Environment.GetEnvironmentVariable(settings.RawTransferSigningKeyEnvironmentVariable),
                                 bridgePoolSigningKey: () => string.IsNullOrWhiteSpace(settings.BridgePoolSigningKeyEnvironmentVariable)
                                     ? null : Environment.GetEnvironmentVariable(settings.BridgePoolSigningKeyEnvironmentVariable),
                                 nftEscrowContractId: settings.NftEscrowContractId,

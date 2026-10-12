@@ -6,6 +6,20 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 public class HederaRawTransferTests
 {
     [TestMethod]
+    public void RawSignerDnaRoundTripsOnlyAccountAndEnvironmentVariableName()
+    {
+        var settings = new NextGenSoftware.OASIS.API.DNA.HashgraphOASISProviderSettings {
+            RawTransferAccountId = "0.0.1001", RawTransferSigningKeyEnvironmentVariable = "OWNED_TEST_HEDERA_RAW_KEY" };
+        var json = System.Text.Json.JsonSerializer.Serialize(settings);
+        var restored = System.Text.Json.JsonSerializer.Deserialize<NextGenSoftware.OASIS.API.DNA.HashgraphOASISProviderSettings>(json)!;
+        Assert.AreEqual(settings.RawTransferAccountId, restored.RawTransferAccountId);
+        Assert.AreEqual(settings.RawTransferSigningKeyEnvironmentVariable, restored.RawTransferSigningKeyEnvironmentVariable);
+        var defaults = new NextGenSoftware.OASIS.API.DNA.HashgraphOASISProviderSettings();
+        Assert.IsNull(defaults.RawTransferAccountId);
+        Assert.AreEqual("OASIS_HEDERA_RAW_TRANSFER_PRIVATE_KEY", defaults.RawTransferSigningKeyEnvironmentVariable);
+    }
+
+    [TestMethod]
     public async Task BoundSenderUsesConfiguredNetworkAndExactSdkTransferRequest()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

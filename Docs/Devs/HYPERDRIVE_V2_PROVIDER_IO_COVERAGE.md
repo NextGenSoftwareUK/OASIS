@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Hedera raw-transfer OASISDNA registration wiring (2026-10-12)
+
+Existing HashgraphOASISProviderSettings now exposes RawTransferAccountId (unset by default) and RawTransferSigningKeyEnvironmentVariable (default OASIS_HEDERA_RAW_TRANSFER_PRIVATE_KEY). Existing BootLoader registration forwards account and a lazy environment resolver into the provider; no private key is embedded in DNA or silently borrowed from bridge/storage wallets. Configure these fields under OASIS.StorageProviders.HashgraphOASIS, with a DER private key only in the named runtime environment variable. Old DNA remains raw-transfer-disabled until explicitly configured. DNA build succeeds (zero errors/1523 warnings); BootLoader build succeeds (zero errors/two warnings). Focused raw-send suite passes **4/4**, zero skips (`hedera-raw-transfer-current.trx`), adding settings round-trip/default validation to controlled signer/request checks. This is source registration/build and configuration-contract evidence, not actual booted-runtime or funded raw transfer. No production/dev DNA modified/deployed, secrets persisted, install/download/new environment/merge; remaining gates stay open.
+
 ### Hedera raw-send positive request projection (2026-10-12)
 
 Focused raw-send suite passes **3/3**, zero skips (`hedera-raw-transfer-current.trx`), including async/sync successful controlled transport with configured testnet account/key, exact 100000000 tinybars for one HBAR, original distinct payer transaction IDs and one resolver invocation per call. Missing-signer/wrong-sender rejection remains passing. Reuses existing controlled Node fixture and dependencies; fixture explicitly performs no SDK/ledger submission. Test class serializes process-environment override and restores it. Existing OASISBootLoader.Register.cs Hedera configuration block located for pending OASISDNA raw-signer wiring; constructor-only configuration is not production integration proof. Funded raw-send/native helper and full remaining gates stay open. No installs/downloads/new environment/ledger mutation/merge.
