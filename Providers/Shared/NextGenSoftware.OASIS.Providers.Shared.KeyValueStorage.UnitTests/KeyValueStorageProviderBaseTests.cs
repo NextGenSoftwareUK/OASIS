@@ -42,6 +42,19 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
     [TestClass]
     public class KeyValueStorageProviderBaseTests
     {
+        [DataTestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task Recursive_save_rejects_object_and_identity_cycles_before_writes(bool duplicateIdentity)
+        {
+            var parent = new Holon { Id = Guid.NewGuid(), Name = "cycle-save" };
+            var child = duplicateIdentity ? new Holon { Id = parent.Id } : parent;
+            parent.Children = new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> { child };
+            var saved = await _provider.SaveHolonAsync(parent);
+            Assert.IsTrue(saved.IsError); StringAssert.Contains(saved.Message, "Cyclic holon child graph");
+            Assert.AreEqual(0, _backend.Items.Count);
+        }
+
         [TestMethod]
         public async Task Historical_child_membership_uses_requested_version_after_reparenting()
         {
