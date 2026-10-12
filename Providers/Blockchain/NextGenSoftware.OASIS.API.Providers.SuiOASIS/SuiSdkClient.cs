@@ -5,6 +5,7 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS;
 
@@ -29,13 +30,20 @@ internal sealed class SuiSdkClient : IDisposable
         _currencyObjectId = currencyObjectId;
     }
 
-    internal async Task<JsonElement> InvokeAsync(string operation, object args = null, CancellationToken cancellationToken = default)
+    internal Task<JsonElement> InvokeAsync(string operation, object args = null, CancellationToken cancellationToken = default)
+        => InvokeCoreAsync(operation, args, cancellationToken, null);
+
+    internal Task<JsonElement> InvokePreparedAsync(string operation, object args, PreparedSubmissionServer server, CancellationToken cancellationToken)
+        => InvokeCoreAsync(operation, args, cancellationToken, server ?? throw new ArgumentNullException(nameof(server)));
+
+    private async Task<JsonElement> InvokeCoreAsync(string operation, object args, CancellationToken cancellationToken, PreparedSubmissionServer preparationServer)
     {
         cancellationToken.ThrowIfCancellationRequested();
         ObjectDisposedException.ThrowIf(_disposed, this);
         var isMutation = operation is "put" or "delete" or "putMany" or "deleteMany" or "publish" or "publicationResume"
             or "transfer" or "nftMint" or "nftSend" or "nftBurn" or "nftLock" or "nftUnlock"
             or "tokenMint" or "tokenSend" or "tokenBurn" or "tokenLock" or "tokenUnlock";
+        if (preparationServer != null && !isMutation) throw new ArgumentException("Preparation gate is only valid for a native mutation.");
         var path = Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE")
             ?? Path.Combine(AppContext.BaseDirectory, "SuiSdkBridge", "bridge.mjs");
         if (!File.Exists(path)) throw new FileNotFoundException("Install the locked official Mysten SDK bridge.", path);
@@ -61,9 +69,14 @@ internal sealed class SuiSdkClient : IDisposable
             StandardErrorEncoding = new System.Text.UTF8Encoding(false, true)
         };
         start.ArgumentList.Add(path);
+        start.Environment.Remove("OASIS_NATIVE_PREPARATION_PIPE");
+        start.Environment.Remove("OASIS_NATIVE_PREPARATION_MODULE");
+        preparationServer?.ConfigureChild(start, Path.Combine(AppContext.BaseDirectory, "SuiSdkBridge", "prepared-submission.mjs"));
         using var process = Process.Start(start) ?? throw new InvalidOperationException("Cannot start Sui SDK bridge.");
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(TimeSpan.FromMinutes(2));
+        var preparationTask = preparationServer?.ServeAsync(timeout.Token);
+        var preparationObserved = false;
         var output = process.StandardOutput.ReadToEndAsync(timeout.Token);
         var error = process.StandardError.ReadToEndAsync(timeout.Token);
         try
@@ -71,6 +84,11 @@ internal sealed class SuiSdkClient : IDisposable
             await process.StandardInput.WriteAsync(JsonSerializer.Serialize(request).AsMemory(), timeout.Token);
             process.StandardInput.Close();
             await process.WaitForExitAsync(timeout.Token);
+            if (preparationTask?.IsFaulted == true)
+            {
+                preparationObserved = true;
+                await preparationTask;
+            }
             var response = await output;
             await error; // Drain stderr without exposing possibly sensitive SDK diagnostic text.
             if (string.IsNullOrWhiteSpace(response))
@@ -119,6 +137,8 @@ internal sealed class SuiSdkClient : IDisposable
             }
             if (!envelope.RootElement.TryGetProperty("result", out var payload))
                 throw InvalidEnvelope(isMutation, "Sui SDK success envelope has no result; native outcome is not established.");
+            if (preparationTask != null && !preparationTask.IsCompletedSuccessfully)
+                throw InvalidEnvelope(true, "Sui mutation success lacks completed durable preparation acknowledgement.");
             if (isMutation && (payload.ValueKind != JsonValueKind.Object
                 || !payload.TryGetProperty("transactionHash", out var hash) || hash.ValueKind != JsonValueKind.String
                 || !IsValidDigest(hash.GetString())))
@@ -141,6 +161,8 @@ internal sealed class SuiSdkClient : IDisposable
         }
         finally
         {
+            timeout.Cancel();
+            preparationServer?.Dispose();
             if (!process.HasExited)
             {
                 process.Kill(entireProcessTree: true);
@@ -149,6 +171,12 @@ internal sealed class SuiSdkClient : IDisposable
             // Observe completed readers; the primary cancellation/I/O failure above stays authoritative.
             try { await Task.WhenAll(output, error); }
             catch (Exception ex) when (ex is OperationCanceledException || ex is IOException || ex is System.Text.DecoderFallbackException) { }
+            if (preparationTask != null)
+            {
+                try { await preparationTask; }
+                catch (OperationCanceledException) { }
+                catch (Exception) when (preparationObserved) { }
+            }
         }
     }
 
