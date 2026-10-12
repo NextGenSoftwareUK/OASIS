@@ -84,6 +84,8 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
         {
                 {
                     var hash = tx.GetProperty("hash").GetString();
+                    var executionCode = tx.GetProperty("code").GetInt32();
+                    if (executionCode < 0) throw new InvalidOperationException("Invalid Cosmos indexed execution code.");
                     return new Core.Interfaces.Wallet.Response.WalletTransaction
                     {
                         TransactionId = CreateDeterministicGuid($"{ProviderType.Value}:tx:{hash}:{tx.GetProperty("messageIndex").GetInt32()}"),
@@ -91,14 +93,15 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                         RawAmount = tx.GetProperty("amountUnits").GetString(),
                         AmountUnit = tx.GetProperty("denom").GetString(),
                         NativeOperation = "/cosmos.bank.v1beta1.MsgSend",
-                        NativeExecutionResult = "Success",
+                        NativeExecutionResult = executionCode == 0 ? "Success" : "Failed",
+                        NativeError = executionCode == 0 ? null : "Cosmos execution code " + executionCode.ToString(CultureInfo.InvariantCulture),
                         TransactionType = tx.GetProperty("from").GetString() == walletAddress
                             ? Core.Enums.TransactionType.Debit : Core.Enums.TransactionType.Credit,
                         FromWalletAddress = tx.GetProperty("from").GetString(),
                         ToWalletAddress = tx.GetProperty("to").GetString(),
                         Amount = (double)NativeDisplayAmount(tx.GetProperty("amountUnits").GetString()),
                         CreatedDate = DateTime.Parse(tx.GetProperty("time").GetString(), CultureInfo.InvariantCulture, DateTimeStyles.AdjustToUniversal),
-                        Description = $"Cosmos transaction {hash}: {tx.GetProperty("memo").GetString()}"
+                        Description = $"Cosmos transaction {hash} (requested amount; execution code {executionCode}): {tx.GetProperty("memo").GetString()}"
                     };
                 }
         }
