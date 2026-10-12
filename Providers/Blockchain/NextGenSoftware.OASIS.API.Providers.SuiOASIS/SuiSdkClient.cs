@@ -31,7 +31,11 @@ internal sealed class SuiSdkClient : IDisposable
 
     internal async Task<JsonElement> InvokeAsync(string operation, object args = null, CancellationToken cancellationToken = default)
     {
+        cancellationToken.ThrowIfCancellationRequested();
         ObjectDisposedException.ThrowIf(_disposed, this);
+        var isMutation = operation is "put" or "delete" or "putMany" or "deleteMany" or "publish" or "publicationResume"
+            or "transfer" or "nftMint" or "nftSend" or "nftBurn" or "nftLock" or "nftUnlock"
+            or "tokenMint" or "tokenSend" or "tokenBurn" or "tokenLock" or "tokenUnlock";
         var path = Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE")
             ?? Path.Combine(AppContext.BaseDirectory, "SuiSdkBridge", "bridge.mjs");
         if (!File.Exists(path)) throw new FileNotFoundException("Install the locked official Mysten SDK bridge.", path);
@@ -43,7 +47,11 @@ internal sealed class SuiSdkClient : IDisposable
             ["currencyObjectId"] = _currencyObjectId
         };
         if (args != null)
-            foreach (var property in args.GetType().GetProperties()) request[property.Name] = property.GetValue(args);
+            foreach (var property in args.GetType().GetProperties())
+            {
+                if (property.Name == "operation") throw new ArgumentException("SDK arguments cannot override the authoritative operation.");
+                request[property.Name] = property.GetValue(args);
+            }
         var start = new ProcessStartInfo(Environment.GetEnvironmentVariable("OASIS_SUI_NODE") ?? "node")
         {
             UseShellExecute = false, CreateNoWindow = true,
@@ -56,17 +64,25 @@ internal sealed class SuiSdkClient : IDisposable
         using var process = Process.Start(start) ?? throw new InvalidOperationException("Cannot start Sui SDK bridge.");
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(TimeSpan.FromMinutes(2));
+        var output = process.StandardOutput.ReadToEndAsync(timeout.Token);
+        var error = process.StandardError.ReadToEndAsync(timeout.Token);
         try
         {
-            var output = process.StandardOutput.ReadToEndAsync(timeout.Token);
-            var error = process.StandardError.ReadToEndAsync(timeout.Token);
             await process.StandardInput.WriteAsync(JsonSerializer.Serialize(request).AsMemory(), timeout.Token);
             process.StandardInput.Close();
             await process.WaitForExitAsync(timeout.Token);
             var response = await output;
+            await error; // Drain stderr without exposing possibly sensitive SDK diagnostic text.
             if (string.IsNullOrWhiteSpace(response))
-                throw new InvalidOperationException($"Sui SDK exited {process.ExitCode} without a response: {await error}");
-            using var envelope = JsonDocument.Parse(response);
+                throw InvalidEnvelope(isMutation, $"Sui SDK exited {process.ExitCode} without a response; native outcome is not established.");
+            JsonDocument parsed;
+            try { parsed = JsonDocument.Parse(response); }
+            catch (JsonException ex) { throw InvalidEnvelope(isMutation, "Sui SDK returned invalid JSON; native outcome is not established.", ex); }
+            using var envelope = parsed;
+            if (envelope.RootElement.ValueKind != JsonValueKind.Object
+                || !envelope.RootElement.TryGetProperty("ok", out var ok)
+                || ok.ValueKind is not (JsonValueKind.True or JsonValueKind.False))
+                throw InvalidEnvelope(isMutation, "Sui SDK response lacks its required boolean outcome; native outcome is not established.");
             if (process.ExitCode != 0 || !envelope.RootElement.GetProperty("ok").GetBoolean())
             {
                 if (envelope.RootElement.TryGetProperty("nativeMutation", out var mutation))
@@ -90,16 +106,48 @@ internal sealed class SuiSdkClient : IDisposable
                     }
                     throw new SuiNativeMutationReconciliationException(message, transactionHash, executionSucceeded);
                 }
-                throw new InvalidOperationException(envelope.RootElement.GetProperty("error").GetString());
+                if (!envelope.RootElement.TryGetProperty("error", out var failure) || failure.ValueKind != JsonValueKind.String || ok.GetBoolean())
+                    throw InvalidEnvelope(isMutation, "Sui SDK returned an inconsistent error envelope; native outcome is not established.");
+                throw new InvalidOperationException(failure.GetString());
             }
-            return envelope.RootElement.GetProperty("result").Clone();
+            if (!envelope.RootElement.TryGetProperty("result", out var payload))
+                throw InvalidEnvelope(isMutation, "Sui SDK success envelope has no result; native outcome is not established.");
+            if (isMutation && (payload.ValueKind != JsonValueKind.Object
+                || !payload.TryGetProperty("transactionHash", out var hash) || hash.ValueKind != JsonValueKind.String
+                || string.IsNullOrWhiteSpace(hash.GetString())))
+                throw InvalidEnvelope(true, "Sui SDK mutation result lacks transaction identity; native outcome is not established.");
+            return payload.Clone();
         }
-        catch (OperationCanceledException)
+        catch (OperationCanceledException ex)
         {
-            if (!process.HasExited) process.Kill(entireProcessTree: true);
+            if (isMutation)
+            {
+                const string message = "Sui native mutation process was interrupted with outcome unverified and original signed identity unavailable. Reconcile before retrying; process termination does not cancel a ledger submission.";
+                if (cancellationToken.IsCancellationRequested) throw new SuiNativeMutationCanceledException(message, ex, cancellationToken);
+                throw new SuiNativeMutationTimeoutException(message, ex);
+            }
             throw;
         }
+        catch (Exception ex) when (isMutation && (ex is IOException || ex is System.Text.DecoderFallbackException))
+        {
+            throw InvalidEnvelope(true, "Sui SDK process I/O failed; native outcome is not established.", ex);
+        }
+        finally
+        {
+            if (!process.HasExited)
+            {
+                process.Kill(entireProcessTree: true);
+                await process.WaitForExitAsync();
+            }
+            // Observe completed readers; the primary cancellation/I/O failure above stays authoritative.
+            try { await Task.WhenAll(output, error); }
+            catch (Exception ex) when (ex is OperationCanceledException || ex is IOException || ex is System.Text.DecoderFallbackException) { }
+        }
     }
+
+    private static Exception InvalidEnvelope(bool isMutation, string message, Exception innerException = null)
+        => isMutation ? new SuiNativeMutationReconciliationException(message, null, null, innerException)
+            : new InvalidDataException(message, innerException);
 
     public void Dispose() => _disposed = true;
 }

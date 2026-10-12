@@ -6,6 +6,75 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class SuiUnlockReadbackFailureTests
 {
+    private static Task<System.Text.Json.JsonElement> InvokeProcess(SuiOASIS provider,string operation,object args,CancellationToken token)
+        => (Task<System.Text.Json.JsonElement>)typeof(SuiOASIS).GetMethod("InvokeSdkAsync",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!
+            .Invoke(provider,new object[]{operation,args,token})!;
+
+    private static async Task WithProcessFixture(Func<SuiOASIS,Task> test)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","unlock-readback-failure.mjs"));
+        try {using var provider=new SuiOASIS("http://127.0.0.1:1","localnet",privateKey:"test-only-secret");await test(provider);}
+        finally {Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",previous);}
+    }
+
+    [DataTestMethod]
+    [DataRow("empty")] [DataRow("bad-json")] [DataRow("bad-utf8")] [DataRow("no-ok")] [DataRow("bad-ok")]
+    [DataRow("no-result")] [DataRow("null-result")] [DataRow("no-hash")]
+    public async Task MalformedMutationProcessOutputCannotBecomeRetryableOrSavedSuccess(string mode)
+    {
+        await WithProcessFixture(async provider=>{
+            var error=await Assert.ThrowsExceptionAsync<SuiNativeMutationReconciliationException>(()=>InvokeProcess(provider,"put",new{mode},CancellationToken.None));
+            Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(error));
+            Assert.IsNull(error.OriginalTransactionId);Assert.IsNull(error.ExecutionSucceeded);
+            Assert.IsFalse(error.Message.Contains("test-only-secret"));
+        });
+    }
+
+    [DataTestMethod]
+    [DataRow("put",true)] [DataRow("get",false)]
+    public async Task RunningProcessCancellationRetainsTokenAndOnlyMutationUncertaintyRequiresReconciliation(string operation,bool reconcile)
+    {
+        await WithProcessFixture(async provider=>{
+            using var cancellation=new CancellationTokenSource(TimeSpan.FromSeconds(1));
+            Exception error;
+            try {await InvokeProcess(provider,operation,new{mode="hold"},cancellation.Token);Assert.Fail("Expected cancellation.");return;}
+            catch(OperationCanceledException canceled){error=canceled;}
+            Assert.AreEqual(reconcile,Core.Helpers.NativeMutationReconciliation.IsRequired(error));
+            if(reconcile) {var canceled=(SuiNativeMutationCanceledException)error;Assert.AreEqual(cancellation.Token,canceled.CancellationToken);Assert.IsNull(canceled.OriginalTransactionId);}
+        });
+    }
+
+    [TestMethod]
+    public async Task PreCanceledMutationNeverLaunchesProcessAndCannotClaimSubmission()
+    {
+        await WithProcessFixture(async provider=>{
+            using var cancellation=new CancellationTokenSource();cancellation.Cancel();
+            var error=await Assert.ThrowsExceptionAsync<OperationCanceledException>(()=>InvokeProcess(provider,"put",new{mode="hold"},cancellation.Token));
+            Assert.IsFalse(Core.Helpers.NativeMutationReconciliation.IsRequired(error));
+        });
+    }
+
+    [TestMethod]
+    public async Task ExplicitPreflightErrorRemainsOrdinaryAndOperationCannotBeOverriddenByArguments()
+    {
+        await WithProcessFixture(async provider=>{
+            var error=await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>InvokeProcess(provider,"put",new{mode="preflight"},CancellationToken.None));
+            Assert.IsFalse(Core.Helpers.NativeMutationReconciliation.IsRequired(error));
+            await Assert.ThrowsExceptionAsync<ArgumentException>(()=>InvokeProcess(provider,"get",new{operation="put",mode="hold"},CancellationToken.None));
+        });
+    }
+
+    [TestMethod]
+    public async Task ActualMutationProcessDeadlineProducesTypedUnknownOutcomeWithoutInventedIdentity()
+    {
+        await WithProcessFixture(async provider=>{
+            var error=await Assert.ThrowsExceptionAsync<SuiNativeMutationTimeoutException>(()=>InvokeProcess(provider,"put",new{mode="hold"},CancellationToken.None));
+            Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(error));Assert.IsNull(error.OriginalTransactionId);
+            Assert.IsFalse(error.Message.Contains("test-only-secret"));
+        });
+    }
+
     [DataTestMethod]
     [DataRow("failed")] [DataRow("executed")] [DataRow("unknown")]
     [DataRow("bad-status")] [DataRow("bad-shape")] [DataRow("missing-status")]

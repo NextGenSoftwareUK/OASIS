@@ -1,4 +1,5 @@
 using System;
+using System.Threading;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS;
@@ -15,4 +16,17 @@ public sealed class SuiNativeMutationReconciliationException : InvalidOperationE
         OriginalTransactionId = originalTransactionId;
         ExecutionSucceeded = executionSucceeded;
     }
+}
+
+public sealed class SuiNativeMutationCanceledException : OperationCanceledException, INativeMutationReconciliationRequired
+{
+    public string OriginalTransactionId => null;
+    internal SuiNativeMutationCanceledException(string message, Exception innerException, CancellationToken token)
+        : base(message, innerException, token) { }
+}
+
+public sealed class SuiNativeMutationTimeoutException : TimeoutException, INativeMutationReconciliationRequired
+{
+    public string OriginalTransactionId => null;
+    internal SuiNativeMutationTimeoutException(string message, Exception innerException) : base(message, innerException) { }
 }
