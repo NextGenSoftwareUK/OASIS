@@ -20,6 +20,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos wallet history uses one committed-height snapshot (2026-10-12)
+
+Source-confirmed gap: recipient and sender `searchTx` calls had no shared height bound and a Map silently replaced overlapping receipts, allowing a moving ledger view or inconsistent index results. Added `indexedHistorySnapshot`: validate Bech32 before query construction, capture one positive safe-integer committed height, constrain both official CosmJS searches with `tx.height<=height`, require canonical hash/committed height/nonnegative transaction index/uint32 execution code/raw transaction bytes, and reconcile overlapping identities only if original height/index/code/bytes agree. Out-of-snapshot or conflicting indexed data fails, not partial success. CosmJS's existing `txSearchAll` still owns actual pagination; this does not prove index completeness or historical pruning retention. Bank transfer/multi-send decoding remains the existing official-protobuf path.
+
+SDK **34/34, zero skips**, including two new controlled snapshot/identity cases (`node --test bridge.test.mjs transaction-results.test.mjs`). This is source and controlled query-boundary evidence, not live Cosmos history proof: retained wasmd remains unavailable under the recorded runtime-start policy denial; no alternate startup/bypass, download/reset or new environment. Corrected live asset/custody/multi-send/fee tests and full provider/API/V2 certification remain open.
+
 ### Sui fixed history snapshot cannot silently stop at a lagging index (2026-10-12)
 
 Source-confirmed gap: history treated `LEDGER_TIP` and any `CURSOR_BOUND` as completion without proving coverage of its captured committed `checkpointHeight`. Added `historyScanComplete`: only checkpoint-bound/indexed-tip endings with an explicit watermark covering the fixed checkpoint are complete; item/scan limits continue with the existing advancing-cursor guard; missing/unexpected/cursor-bound endings fail. No cursor upper bound is supplied by this query. Each independently fetched receipt must also lie within the captured checkpoint. Official installed SDK 2.35.0 `query_options.ts` defines indexed-tip and fully covered checkpoint watermark semantics; this is not a speculative retry/fallback. Index lag surfaces as an explicit error rather than incomplete successful wallet history.

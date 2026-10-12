@@ -1,6 +1,6 @@
 import { CosmWasmClient, SigningCosmWasmClient, wasmTypes } from "@cosmjs/cosmwasm";
 import { DirectSecp256k1Wallet, DirectSecp256k1HdWallet, decodeTxRaw, Registry } from "@cosmjs/proto-signing";
-import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, verifiedNftCustodyReceipt, cosmosNativeFeeReceipt, bankTransferLegs, cosmosFailureMessage } from './transaction-results.mjs';
+import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, verifiedNftCustodyReceipt, cosmosNativeFeeReceipt, bankTransferLegs, cosmosFailureMessage, indexedHistorySnapshot } from './transaction-results.mjs';
 import { GasPrice, defaultRegistryTypes } from "@cosmjs/stargate";
 import { fromHex, toHex, fromBech32 } from "@cosmjs/encoding";
 
@@ -83,13 +83,10 @@ async function execute(input) {
         return await client.getBalance(input.walletAddress, input.denom ?? "uatom");
       case "transactions": {
         const address = input.walletAddress;
-        fromBech32(address, 90); // Validate before embedding an account into the Comet query.
-        const received = await client.searchTx([{ key: "transfer.recipient", value: address }]);
-        const sent = await client.searchTx([{ key: "message.sender", value: address }]);
-        const indexed = new Map([...received, ...sent].map(tx => [tx.hash, tx]));
+        const indexed = await indexedHistorySnapshot(client, address);
         const registry = new Registry(defaultRegistryTypes);
         const transfers = [];
-        for (const tx of [...indexed.values()].sort((a, b) => a.height - b.height || a.txIndex - b.txIndex)) {
+        for (const tx of indexed) {
           if (!Number.isSafeInteger(tx.code) || tx.code < 0)
             throw new Error('Cosmos indexed transaction lacks an exact execution code');
           const raw = decodeTxRaw(tx.tx);

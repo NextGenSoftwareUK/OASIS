@@ -2,6 +2,28 @@ import { TimeoutError } from '@cosmjs/stargate';
 import { fromBech32 } from '@cosmjs/encoding';
 import { decodeTxRaw } from '@cosmjs/proto-signing';
 
+export async function indexedHistorySnapshot(client, address) {
+  fromBech32(address, 90);
+  const height = await client.getHeight();
+  if (!Number.isSafeInteger(height) || height <= 0) throw new Error('Cosmos history requires a committed snapshot height');
+  const bound = ` AND tx.height<=${height}`;
+  const received = await client.searchTx(`transfer.recipient='${address}'${bound}`);
+  const sent = await client.searchTx(`message.sender='${address}'${bound}`);
+  const indexed = new Map();
+  for (const tx of [...received, ...sent]) {
+    if (!/^[0-9A-F]{64}$/.test(tx.hash ?? '') || !Number.isSafeInteger(tx.height) || tx.height <= 0 || tx.height > height
+        || !Number.isSafeInteger(tx.txIndex) || tx.txIndex < 0 || !Number.isInteger(tx.code) || tx.code < 0 || tx.code > 4294967295
+        || !(tx.tx instanceof Uint8Array))
+      throw new Error('Cosmos indexed history does not establish exact transaction identity within its snapshot');
+    const prior = indexed.get(tx.hash);
+    if (prior && (prior.height !== tx.height || prior.txIndex !== tx.txIndex || prior.code !== tx.code
+        || !Buffer.from(prior.tx).equals(Buffer.from(tx.tx))))
+      throw new Error('Cosmos sender and recipient indexes disagree on the original transaction');
+    indexed.set(tx.hash, tx);
+  }
+  return [...indexed.values()].sort((a, b) => a.height - b.height || a.txIndex - b.txIndex);
+}
+
 export function cosmosNativeFeeReceipt(tx, requestedHash) {
   if (!tx || !/^[0-9a-fA-F]{64}$/.test(requestedHash ?? '') || tx.hash !== requestedHash.toUpperCase()
       || !Number.isSafeInteger(tx.height) || tx.height <= 0 || !Number.isInteger(tx.code) || tx.code < 0 || tx.code > 4294967295
