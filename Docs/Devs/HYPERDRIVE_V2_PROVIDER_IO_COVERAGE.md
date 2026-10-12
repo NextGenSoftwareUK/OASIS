@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Preparation frame requires actual signed-byte encoding — 2026-10-12
+
+Parent preparation frames now require nonempty canonical base64 signed bytes before invoking persistence. Invalid encoding, empty bytes and noncanonical whitespace are rejected without reaching the callback; existing C# frame fixtures now include their controlled bytes. Build passed 0 errors/warnings; shared suite **87/87**, zero skips, report `TestResults/SharedStorageCurrent/shared-current.trx`. Actual Node/Mongo fixture still passes and cleans up its owned child/database.
+
+This is encoding/transport validation, not provider-specific digest/signature verification or actual signed-byte durability in the outbox. Those checks and production lifecycle/authenticated binding remain required; no native submission, install or release merge.
+
 ### Preparation evidence verified chain context — 2026-10-12
 
 Cosmos installs its signing guard after actual chain-ID comparison and wallet account recovery, and enriches preparation descriptors with that verified chain ID and actual signer address. Sui stores its verified genesis identifier in the existing isolated operation scope after node/request comparison, then includes it in preparation evidence. Direct offline helper execution does not fabricate missing chain context; its persistence owner must reject missing required context. Signer identity is not necessarily actual fee payer/granter, so fee attribution remains a separate required check.
