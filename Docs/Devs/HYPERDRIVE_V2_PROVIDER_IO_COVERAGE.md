@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Combined real JWT and native Sui HTTP transfer (2026-10-11)
+
+Positive send HTTP test now uses actual HS256 bearer authentication with a persisted LocalFile avatar loaded through V2, **no test-auth header**. It then resolves that avatar's encrypted default Sui wallet through real WalletManager, binds the concrete JSON body, signs/submits through real SDK and independently verifies exact **0.001 SUI** recipient increase plus nonblank response digest. **1/1** passes, zero skips (`web4-sui-token-send-http.trx`), superseding the test-auth limitation of the preceding transfer checkpoint. Signing credentials remain encrypted at rest; owned avatar/wallet map cleaned, prior global DNA/Program manager restored and test injection reset. Retained Sui PID 42383 stopped after completion; no download/install/reset/public-chain spending. This proves the scoped native-SUI send route, not every asset/operation/provider or deployed service. Remaining gates stay open; no merge.
+
 ### Positive Sui native token-send HTTP proof (2026-10-11)
 
 `WalletHttpSendCommitsRealSuiTransferUsingEncryptedAvatarWallet` passes **1/1**, zero skips (`web4-sui-token-send-http.trx`): actual POST JSON binding/controller/real WalletManager/default encrypted wallet resolution/real SDK submission; HTTP returns non-error envelope with nonblank native send digest, and independent recipient balance increases exactly **0.001 SUI**. Original stored key remains encrypted. Existing test authentication handler is used, so this does **not** establish combined real-JWT avatar lookup plus transfer; that remains a separate required gate. Initial compilation used incorrect encryption namespaces, corrected to the installed `Rijndael256` library before submission. The test was then strengthened with typed response/digest assertion and passed on a separate newly generated local recipient. Fixed LocalFile wallet map cleared in `finally`, controller hook reset/provider deactivated; retained Sui node PID 40723 stopped after completion. No downloads/install/ledger reset/public-chain spending or merge. Remaining providers, business routes and full release gates stay open.
