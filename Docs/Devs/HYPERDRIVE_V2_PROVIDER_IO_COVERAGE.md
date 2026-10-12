@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera success cannot invent a skipped approval — 2026-10-12
+
+Added the opposite optional-stage contradiction: controlled NFT/token lock children persist only mutation but return the requested approval ID as if approval ran. Existing parent validation rejects success as reconciliation-required; only mutation is persisted and its original ID is retained. Complete Hedera C# suite **43/43** passed, zero skips (`hedera-current.trx`). These are owned child/pipe consistency tests, not funded consensus or a claim that the requested approval ID was actually submitted. No production code change, installation, spending, deployment or merge; external/live release gates remain open.
+
 ### Hedera success cannot conceal persisted approval — 2026-10-12
 
 Added controlled NFT/token escrow children that persist both stages but return `SUCCESS` with a null approval ID. Existing parent success validation rejects the contradictory reply as reconciliation-required while retaining approval and mutation identities and both persisted stages. Complete Hedera C# suite **41/41** passed, zero skips (`hedera-current.trx`); no production code change was needed. Real process/pipe transport is exercised, not funded consensus. This supplements—not replaces—the remaining hosted admission, fee authorization and funded multi-stage verification gates. No installs, network spending or merge.
