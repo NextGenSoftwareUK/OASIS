@@ -63,6 +63,7 @@ jobs:
     steps:
       - uses: actions/checkout@v7
       - name: Verify the source validation and NuGet publication runs
+        id: verified-source
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
@@ -78,7 +79,10 @@ jobs:
           }
           $published = gh run view $env:NUGET_RUN --json headSha,jobs,conclusion | ConvertFrom-Json
           if ($published.conclusion -ne 'success' -or @($published.jobs | Where-Object { $_.name -eq 'nuget-publish' -and $_.conclusion -eq 'success' }).Count -ne 1) { throw 'NuGet publication did not succeed.' }
-          if (gh release view "OASIS-Edge-Runtime-v$env:VERSION" 2>$null) { throw 'The release already exists; do not duplicate it.' }
+          $releases = gh api 'repos/NextGenSoftwareUK/OASIS/releases?per_page=100' | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) { throw 'Could not check existing GitHub releases.' }
+          if (@($releases | Where-Object tag_name -eq "OASIS-Edge-Runtime-v$env:VERSION").Count) { throw 'The release already exists; do not duplicate it.' }
+          "source_sha=$($source.headSha)" >> $env:GITHUB_OUTPUT
           "Validated binary source: $($source.headSha); NuGet source: $($published.headSha)" >> $env:GITHUB_STEP_SUMMARY
       - uses: actions/download-artifact@v7
         with:
@@ -99,6 +103,7 @@ jobs:
           VERSION: ${{ inputs.manual_version }}
           VALIDATED_RUN: ${{ inputs.validated_run_id }}
           NUGET_RUN: ${{ inputs.nuget_run_id }}
+          SOURCE_SHA: ${{ steps.verified-source.outputs.source_sha }}
         run: |
           $root = 'artifacts/reused-edge/edge-runtime-release'
           if (-not (Test-Path -LiteralPath $root)) { throw 'Validated release evidence directory missing.' }
@@ -110,5 +115,5 @@ jobs:
           $archive = "artifacts/OASIS.Edge.Runtime.v$env:VERSION.zip"
           Compress-Archive -Path "$root/*" -DestinationPath $archive
           $assets = @((Get-ChildItem -LiteralPath $root -File).FullName) + @((Resolve-Path $archive).Path)
-          gh release create "OASIS-Edge-Runtime-v$env:VERSION" @assets --title "OASIS Edge Runtime v$env:VERSION" --notes-file "$root/RELEASE_NOTES.md"
+          gh release create "OASIS-Edge-Runtime-v$env:VERSION" @assets --target $env:SOURCE_SHA --title "OASIS Edge Runtime v$env:VERSION" --notes-file "$root/RELEASE_NOTES.md"
           if ($LASTEXITCODE -ne 0) { throw 'GitHub release creation failed.' }
