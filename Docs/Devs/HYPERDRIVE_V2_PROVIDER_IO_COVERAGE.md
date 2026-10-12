@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera deployment pre-submission signed persistence hook — 2026-10-12
+
+`executeDeployment` accepts an explicitly supplied trusted awaited persistence callback after actual SDK freeze/sign and before execute. Immutable descriptor contains original transaction ID, sender, configured network label and real SDK signed transaction bytes. Persistence rejection preserves its original exception without claiming submission; client closes. Actual SDK serialization test against a non-running local endpoint proves retained original identity, single callback and cleanup on rejection. SDK suite **97/97**, zero skips/todos; no funded transaction or runtime install.
+
+Hook is not wired to bridge CLI/C# outbox yet and does not cover storage/direct transfer/escrow/file operations. Network label is not independent ledger identity verification. Full signed identity validation, every mutation preparation, actual native admission, retained funded deployment/NFT/V2 and live/deployed gates remain required. No release merge.
+
 ### Cosmos requested signing context cannot be changed by wallet — 2026-10-12
 
 Signer capture snapshots the requested SignDoc before awaiting the wallet, and requires the wallet-returned signing document to match exactly before admitting prepared evidence. This prevents silently accepting changed chain/account/body/auth context merely because returned TxRaw hashes match. Controlled wallet tests alter chain/account and prove no prepared context survives; actual official signing regression still passes. Explicit offline SDK suite **51/51**, zero skips/todos. Snapshot is in-memory; no new install or ledger submission.

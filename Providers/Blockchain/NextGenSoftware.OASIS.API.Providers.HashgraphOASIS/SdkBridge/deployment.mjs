@@ -52,7 +52,8 @@ export function deploymentTransaction(action,request,publicKey) {
     .setMaxAttempts(1).setRegenerateTransactionId(false);
 }
 
-export async function executeDeployment(action,request,{createClient,restoreKey}) {
+export async function executeDeployment(action,request,{createClient,restoreKey,persistPreparedSubmission}) {
+  if(persistPreparedSubmission!==undefined&&typeof persistPreparedSubmission!=='function')throw new TypeError('Prepared deployment persistence must be an awaited callback.');
   const key=restoreKey(request);
   if(request.publicKey&&request.publicKey.toLowerCase()!==key.publicKey.toStringDer().toLowerCase()) throw new Error('Deployment signer mismatch.');
   const transaction=deploymentTransaction(action,request,key.publicKey);
@@ -61,12 +62,18 @@ export async function executeDeployment(action,request,{createClient,restoreKey}
   try {
     client.setOperator(request.sender,key);transaction.freezeWith(client);
     stage='signing';const signed=await transaction.sign(key);
+    if(persistPreparedSubmission){
+      stage='preparation';
+      await persistPreparedSubmission(Object.freeze({transactionHash:request.transactionId,chainId:request.network,sender:request.sender,
+        signedTransactionBase64:Buffer.from(signed.toBytes()).toString('base64')}));
+    }
     stage='submission';const submitted=await signed.execute(client);
     stage='receipt';const receipt=await submitted.getReceipt(client);
     if(receipt.status.toString()!=='SUCCESS') throw new Error('Deployment consensus failure.');
     return {transactionId:submitted.transactionId.toString(),status:'SUCCESS',fileId:receipt.fileId?.toString(),contractId:receipt.contractId?.toString(),tokenId:receipt.tokenId?.toString()};
   } catch(cause) {
-    const error=new Error('Deployment success was not established; reconcile the original transaction before retrying.');
+    if(stage==='preparation')throw cause;
+    const error=new Error('Deployment success was not established; reconcile the original transaction before retrying.',{cause});
     error.transactionId=request.transactionId;error.stage=stage;error.status=cause.status?.toString();throw error;
   } finally {client.close();}
 }
