@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Live Sui prepared write positive gate — 2026-10-12
+
+Added `PreparedLocalWriteRetainsOriginalSignedEvidenceAndConfirmsLedger` and ran it against the retained local Sui 1.81.1 ledger with the existing SDK dependencies/Mongo service. **1/1 passed**, zero skips (`TestResults/SuiCurrent/sui-prepared-live-current.trx`); integration build zero warnings/errors. Actual storage put uses the canonical prepared provider entry, real SDK signing, independent signature verification and durable Mongo acknowledgement before SDK execution. Returned confirmed digest equals the stored original provider request ID, signed bytes/signature are nonempty, and actual provider transaction status is Completed. Preparation still does not manufacture ledger settlement acknowledgement.
+
+Exact owned storage key is deleted only after successful submission; owned Mongo database dropped after cleanup. Unknown submission would retain its outbox instead of repeating the mutation. Stopped exact node PID 214799 with the validated helper; handle terminal. No downloads, runtime installation, ledger reset or public funds. Admission is a controlled `api.request` test authority: native fee authorization, production routes, settlement and crash-recovery verification remain open, so this positive local-ledger test does not enable sponsored minting or a development merge.
+
 ### Cosmos configured-network argument boundary — 2026-10-12
 
 The Cosmos SDK request-construction boundary had the same override gap as Sui. It now rejects per-operation `rpcEndpoint`, `chainId` and `addressPrefix` overrides before launching the child, preserving configured network/address identity while retaining existing operation-specific signer/contract arguments. Three negative tests exercise the actual backend invocation. Provider build passed with zero warnings/errors; selected preparation suite **15/15** passed, no skips (`TestResults/PriorityProviderCurrent/cosmos-preparation-current.trx`). This is selected verification, not a complete updated suite count or live ledger proof. No installation, runtime startup, submission, deployment or merge; live Cosmos runtime policy gate remains unresolved.
