@@ -12,6 +12,37 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class PreparedSubmissionServerTests
 {
+    [TestMethod]
+    public async Task CancelledServerCannotAcknowledgeOrBeReused()
+    {
+        using var cancelled=new CancellationTokenSource();cancelled.Cancel();
+        var calls=0;
+        using var server=new PreparedSubmissionServer((_,_)=>{calls++;return Task.CompletedTask;});
+        var cancellation=await Assert.ThrowsExceptionAsync<TaskCanceledException>(()=>server.ServeAsync(cancelled.Token));
+        Assert.AreEqual(cancelled.Token,cancellation.CancellationToken);
+        await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>server.ServeAsync(CancellationToken.None));
+        Assert.AreEqual(0,calls);
+    }
+
+    [DataTestMethod]
+    [DataRow("wrong-protocol")] [DataRow("missing-identity")] [DataRow("extra-frame")]
+    public async Task InvalidFramesNeverReachPersistence(string mode)
+    {
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(10));var calls=0;
+        using var server=new PreparedSubmissionServer((_,_)=>{calls++;return Task.CompletedTask;});
+        var name=OperatingSystem.IsWindows()?server.Endpoint.Substring(server.Endpoint.LastIndexOf('\\')+1):Path.GetFileName(server.Endpoint).Substring("CoreFxPipe_".Length);
+        var serving=server.ServeAsync(deadline.Token);
+        using var client=new NamedPipeClientStream(".",name,PipeDirection.InOut,PipeOptions.Asynchronous);
+        await client.ConnectAsync(deadline.Token);
+        var protocol=mode=="wrong-protocol"?"wrong":"oasis.native-preparation.v1";
+        var identity=mode=="missing-identity"?"":"original";
+        var frame=JsonSerializer.Serialize(new{protocol,evidence=new{transactionHash=identity}})+"\n";
+        if(mode=="extra-frame")frame+="{}\n";
+        await client.WriteAsync(Encoding.UTF8.GetBytes(frame),deadline.Token);await client.FlushAsync(deadline.Token);
+        await Assert.ThrowsExceptionAsync<InvalidDataException>(()=>serving);
+        Assert.AreEqual(0,calls);
+    }
+
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     public async Task RealNodeClientOnlyAcceptsSuccessfulParentPersistence(bool reject)
