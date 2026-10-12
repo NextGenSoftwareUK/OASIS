@@ -100,9 +100,14 @@ public class SuiAvatarTokenSendTests
         var encrypted = Rijndael.Encrypt(issuer.Result.PrivateKey,new string('k',32),KeySize.Aes256);
         var wallet = new ProviderWallet { Id=Guid.NewGuid(),AvatarId=avatarId,IsDefaultWallet=true,ProviderType=ProviderType.SuiOASIS,
             WalletAddress=issuer.Result.WalletAddressLegacy,PublicKey=issuer.Result.PublicKey,PrivateKey=encrypted };
+        var walletSaved = false;
         try
         {
+            var prior = await local.LoadProviderWalletsForAvatarByIdAsync(avatarId);
+            prior.IsError.Should().BeFalse(prior.Message);
+            (prior.Result == null || prior.Result.Count == 0).Should().BeTrue("the fixed test identity must not overwrite an existing wallet map");
             (await local.SaveProviderWalletsForAvatarByIdAsync(avatarId,new() { [ProviderType.SuiOASIS]=new List<IProviderWallet> { wallet } })).IsError.Should().BeFalse();
+            walletSaved = true;
             var dna = new OASISDNA(); dna.OASIS.HyperDriveMode=HyperDriveModes.V2;
             dna.OASIS.StorageProviders=new StorageProviderSettings { LogSwitchingProviders=false };
             dna.OASIS.Security=new SecuritySettings { OASISProviderPrivateKeys=new EncryptionSettings { Rijndael256EncryptionEnabled=true,Rijndael256Key=new string('k',32) } };
@@ -115,6 +120,9 @@ public class SuiAvatarTokenSendTests
                 FromTokenAddress="0x2::sui::SUI",ToWalletAddress=recipient.Result.WalletAddressLegacy,Amount=0.001m };
             var sent=await manager.SendTokenAsync(avatarId,request); sent.IsError.Should().BeFalse(sent.Message);
             sent.Result.SendTransactionResult.Should().NotBeNullOrWhiteSpace();
+            var status = await sui.GetTransactionStatusAsync(sent.Result.SendTransactionResult);
+            status.IsError.Should().BeFalse(status.Message);
+            status.Result.Should().Be(Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed);
             var after=await sui.GetAccountBalanceAsync(recipient.Result.WalletAddressLegacy); after.IsError.Should().BeFalse(after.Message);
             (after.Result-before.Result).Should().Be(0.001m);
             request.OwnerPrivateKey.Should().BeNull(); request.FromWalletAddress.Should().BeNull();
@@ -122,8 +130,11 @@ public class SuiAvatarTokenSendTests
         }
         finally
         {
-            (await local.SaveProviderWalletsForAvatarByIdAsync(avatarId,new())).IsError.Should().BeFalse();
-            await local.DeActivateProviderAsync();
+            try
+            {
+                if (walletSaved) (await local.SaveProviderWalletsForAvatarByIdAsync(avatarId,new())).IsError.Should().BeFalse();
+            }
+            finally { await local.DeActivateProviderAsync(); }
         }
     }
 }
