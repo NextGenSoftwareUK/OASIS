@@ -104,6 +104,8 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
             foreach (var property in args.GetType().GetProperties())
             {
                 if (property.Name == "operation") throw new ArgumentException("SDK arguments cannot override the authoritative operation.");
+                if(property.Name is "rpcEndpoint" or "chainId" or "addressPrefix")
+                    throw new ArgumentException("SDK arguments cannot override the configured Cosmos network identity.");
                 request[property.Name] = property.GetValue(args);
             }
         var start = new ProcessStartInfo
