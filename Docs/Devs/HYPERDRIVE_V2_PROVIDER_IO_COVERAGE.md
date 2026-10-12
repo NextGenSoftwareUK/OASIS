@@ -22,6 +22,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos fee-receipt signed-byte binding — 2026-10-12
+
+Native fee mapping now requires the indexed hash to equal SHA256 of the exact returned signed bytes before decoding fee declarations or attributing charged coins. Tests use actual protobuf-encoded byte-derived hashes, a valid positive baseline, and reject valid-format hash substitution and different signed bytes. Existing malformed-coin tests use each malformed transaction's own hash so identity failure cannot mask coin validation. Retained SDK suite **42/42**, zero skips/todos; controlled receipt evidence, not new live fee execution or billing certification. No install, runtime startup or mutation. Cosmos timer, durable journal, live provider and deployment gates remain open.
+
 ### Cosmos indexed-history byte identity — 2026-10-12
 
 Indexed history now verifies each claimed native hash equals uppercase SHA256 of the returned exact signed transaction bytes, in addition to snapshot height/index/code and overlapping-index consistency. A valid-format foreign hash or substituted bytes cannot be returned as the requested native history. Controlled tests now use byte-derived baseline hashes and reject both substitutions; differing execution codes for the same identity still reject conflicting indexes. Retained official SDK suite **41/41**, zero skips/todos; no install, node start or mutation.

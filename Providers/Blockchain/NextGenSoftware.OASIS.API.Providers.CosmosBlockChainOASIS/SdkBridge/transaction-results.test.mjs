@@ -151,12 +151,14 @@ test('Cosmos history rejects out-of-snapshot and conflicting indexed receipts', 
 function feeTx({ code = 0, granter = '', payer = '', amount = '9007199254740993', observedAmount = amount } = {}) {
   const address = toBech32('wasm', new Uint8Array(20).fill(1));
   const authInfoBytes = AuthInfo.encode(AuthInfo.fromPartial({ fee: { amount: [{ denom: 'stake', amount }], gasLimit: 50n, payer, granter } })).finish();
-  return { hash: hash.toUpperCase(), height: 42, code, gasUsed: 30n, gasWanted: 50n,
-    tx: TxRaw.encode(TxRaw.fromPartial({ bodyBytes: new Registry().encodeTxBody({ messages: [], memo: '' }), authInfoBytes })).finish(),
+  const tx = TxRaw.encode(TxRaw.fromPartial({ bodyBytes: new Registry().encodeTxBody({ messages: [], memo: '' }), authInfoBytes })).finish();
+  return { hash: createHash('sha256').update(tx).digest('hex').toUpperCase(), height: 42, code, gasUsed: 30n, gasWanted: 50n,
+    tx,
     events: [{ type: 'tx', attributes: [{ key: 'fee', value: observedAmount + 'stake' }, { key: 'fee_payer', value: granter || payer || address }] }] };
 }
 test('observed Cosmos fee deduction retains exact coins and charged failure without guessing payer', () => {
   const tx = feeTx({ code: 5 });
+  const hash = tx.hash;
   const receipt = cosmosNativeFeeReceipt(tx, hash);
   assert.equal(receipt.success, false); assert.equal(receipt.executionCode, 5);
   assert.equal(receipt.fees[0].amount, '9007199254740993');
@@ -165,17 +167,28 @@ test('observed Cosmos fee deduction retains exact coins and charged failure with
 test('Cosmos observed fee granter remains the charged account', () => {
   const granter = toBech32('wasm', new Uint8Array(20).fill(2));
   const tx = feeTx({ granter });
+  const hash = tx.hash;
   assert.equal(cosmosNativeFeeReceipt(tx, hash).payer, granter);
   const altered = structuredClone(tx); altered.events[0].attributes[1].value = toBech32('wasm', new Uint8Array(20).fill(3));
   assert.throws(() => cosmosNativeFeeReceipt(altered, hash));
 });
 test('missing ambiguous or mismatched observed fee evidence is never converted to zero', () => {
   const tx = feeTx();
+  const hash = tx.hash;
   assert.throws(() => cosmosNativeFeeReceipt({ ...tx, events: [] }, hash));
   assert.throws(() => cosmosNativeFeeReceipt({ ...tx, events: [...tx.events, ...tx.events] }, hash));
   assert.throws(() => cosmosNativeFeeReceipt(feeTx({ observedAmount: '1' }), hash));
   assert.throws(() => cosmosNativeFeeReceipt({ ...tx, hash: 'fabricated' }, hash));
-  for (const amount of ['01', '-1', '1.5']) assert.throws(() => cosmosNativeFeeReceipt(feeTx({ amount }), hash));
+  for (const amount of ['01', '-1', '1.5']) {
+    const malformed = feeTx({ amount });
+    assert.throws(() => cosmosNativeFeeReceipt(malformed, malformed.hash));
+  }
+});
+test('Cosmos fee attribution rejects valid-format substituted hashes and signed bytes', () => {
+  const tx = feeTx();
+  assert.doesNotThrow(() => cosmosNativeFeeReceipt(tx, tx.hash));
+  assert.throws(() => cosmosNativeFeeReceipt({...tx,hash:'AB'.repeat(32)}, 'AB'.repeat(32)), /signed transaction bytes/);
+  assert.throws(() => cosmosNativeFeeReceipt({...tx,tx:feeTx({amount:'1'}).tx}, tx.hash), /signed transaction bytes/);
 });
 test('custody proof binds exact successful receipt, collection, token and pool', () => {
   const registry = new Registry([...defaultRegistryTypes, ...wasmTypes]);

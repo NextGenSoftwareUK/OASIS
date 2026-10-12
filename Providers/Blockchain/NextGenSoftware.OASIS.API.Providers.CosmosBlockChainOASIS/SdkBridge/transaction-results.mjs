@@ -78,6 +78,9 @@ export async function indexedHistorySnapshot(client, address) {
 }
 
 export function cosmosNativeFeeReceipt(tx, requestedHash) {
+  if (!(tx?.tx instanceof Uint8Array)
+      || createHash('sha256').update(tx.tx).digest('hex').toUpperCase() !== tx.hash)
+    throw new Error('Cosmos fee receipt identity does not match exact signed transaction bytes');
   if (!tx || !/^[0-9a-fA-F]{64}$/.test(requestedHash ?? '') || tx.hash !== requestedHash.toUpperCase()
       || !Number.isSafeInteger(tx.height) || tx.height <= 0 || !Number.isInteger(tx.code) || tx.code < 0 || tx.code > 4294967295
       || typeof tx.gasUsed !== 'bigint' || tx.gasUsed < 0n || typeof tx.gasWanted !== 'bigint' || tx.gasWanted < 0n)
