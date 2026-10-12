@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Full ONODE regression exposed and fixed capability enumeration failure (2026-10-12)
+
+Full current ONODE Core unit run initially failed two ERC standard checks (214 passed/2 failed/0 skipped). TRX stack traces identified `ProviderManager.GetAllEVMBlockchainProviders` calling `Any` on an unrelated provider's null optional secondary capabilities. Core `b5ae87672911f8fa70f69cb6705507c0c301da33` treats an absent secondary list as no secondary capabilities in blockchain/EVM enumeration; primary categories remain authoritative. A new isolated registry regression covers both enumerators. Rebuilt Core zero errors/254 warnings; full ONODE Core unit rerun **217/217, zero skips**, `TestResults/OnodeCurrent/onode-unit-current.trx`. No external provider calls or live minting; full Core-suite/deployed verification remains a separate gate.
+
 ### Nonpositive empty default NFT batches fail explicitly (2026-10-12)
 
 ONODE Core `8d6fd2f487e4907615fd22ff9926b3f0e5af870d` rejects `NumberToMint <= 0` when no explicit Web3 requests exist, before expansion or provider access. Five new manager-entry tests verify zero/negative/minimum integer counts and null/empty lists remain unmodified. Explicit Web3 batches retain their existing per-entry semantics; their count/validation contract remains a separate audit requirement. Current quantity plus batch orchestration selection: **25/25, zero skips**, replacing the reusable `TestResults/OnodeCurrent/nft-quantity-current.trx`; library build zero errors/154 warnings. No live mint or subscription-gate removal.
