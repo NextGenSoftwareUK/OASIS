@@ -7,6 +7,30 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 [TestClass, DoNotParallelize]
 public class HederaProcessBoundaryTests
 {
+    [DataTestMethod]
+    [DataRow("bad-json")] [DataRow("missing")] [DataRow("scalar")] [DataRow("wrong-id")]
+    [DataRow("failed")] [DataRow("bad-status")]
+    public async Task SuccessfulExitWithoutMatchingMutationReceiptCannotEnableReplay(string mode)
+    {
+        await WithFixture(async()=>{
+            var error=await Assert.ThrowsExceptionAsync<HederaNativeMutationReconciliationException>(()=>Invoke("storageDelete",CancellationToken.None,mode));
+            Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(error));
+            Assert.AreEqual(Mutation,error.OriginalTransactionId);
+            Assert.IsNull(error.Evidence.NativeStatus);
+            Assert.IsFalse(error.Message.Contains(Secret));
+        });
+    }
+
+    [TestMethod]
+    public async Task MatchingSuccessfulMutationReplyStillReturnsItsOriginalId()
+    {
+        await WithFixture(async()=>{
+            var result=await Invoke("storageDelete",CancellationToken.None,"valid");
+            Assert.AreEqual(Mutation,result.GetProperty("transactionId").GetString());
+            Assert.AreEqual("SUCCESS",result.GetProperty("status").GetString());
+        });
+    }
+
     private const string Mutation = "0.0.1001@1700000000.000000001";
     private const string Approval = "0.0.1001@1700000000.000000002";
     private const string Secret = "never-log-this-test-key";

@@ -107,7 +107,21 @@ internal static class HederaSdkClient
                         new HederaNativeMutationEvidence(transactionId, approvalId, mutationId, stage, status), evidenceParseError);
                 throw new InvalidOperationException(message, evidenceParseError);
             }
-            using var document = JsonDocument.Parse(response);
+            JsonDocument parsedResponse;
+            try { parsedResponse = JsonDocument.Parse(response); }
+            catch (JsonException ex) when (isMutation)
+            {
+                throw new HederaNativeMutationReconciliationException("Hedera mutation process returned invalid JSON; reconcile the original transaction before retrying.",
+                    new HederaNativeMutationEvidence(originalId, null, originalId, "process-output-unverified", null), ex);
+            }
+            using var document = parsedResponse;
+            if (isMutation && (document.RootElement.ValueKind != JsonValueKind.Object
+                || !document.RootElement.TryGetProperty("transactionId", out var returnedId) || returnedId.ValueKind != JsonValueKind.String
+                || returnedId.GetString() != originalId
+                || !document.RootElement.TryGetProperty("status", out var returnedStatus) || returnedStatus.ValueKind != JsonValueKind.String
+                || returnedStatus.GetString() != "SUCCESS"))
+                throw new HederaNativeMutationReconciliationException("Hedera mutation reply does not establish SUCCESS for the original transaction; reconcile before retrying.",
+                    new HederaNativeMutationEvidence(originalId, null, originalId, "process-output-unverified", null));
             return document.RootElement.Clone();
         }
         catch (OperationCanceledException errorException)
