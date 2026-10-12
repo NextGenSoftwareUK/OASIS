@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Durable original SignDoc evidence schema — 2026-10-12
+
+Core native preparation now includes optional bounded canonical `SignDocBase64`, copied by the execution-owned adapter and included in serialized evidence-byte accounting. Existing non-Cosmos preparations need not supply it; provider verifier remains responsible for requiring and cryptographically validating it where applicable. Actual local Mongo original-preparation storage test proves exact document readback and accounting, focused **1/1**, zero skips, `TestResults/SubscriptionUsageCurrent/signdoc-storage.trx`. Core net10.0 build 0 errors/129 existing warnings. Core commit `112ce35dc090cbc5d917eb21e1f18fa12a5322e7` pushed and parent deployment pin synchronized.
+
+Malformed document/adapter propagation regression and full protocol rerun remain next checks. Cosmos C# prepared lifecycle, admitted native spending, crash recovery and complete live/deployed provider gates remain open. Existing Mongo/SDK/build directories reused; owned test database cleaned by test teardown. No ledger submissions, installs or release merge.
+
 ### Cosmos verifier dispatcher, canonical encoding and direct pins — 2026-10-12
 
 Read-only dispatcher now tested with actual signed evidence and an intentionally unreachable RPC endpoint: verification succeeds without RPC activation, mismatched chain rejects. Verifier rejects noncanonical TxRaw/SignDoc protobuf encodings and requires compressed 33-byte secp256k1 keys; added unknown-field SignDoc rejection. Explicit offline suite **50/50**, zero skips/todos. Crypto/amino promoted to direct exact 0.39.0 dependencies in manifest/root lock entry; `npm ls --depth=0` confirms the already-installed versions, no install/download required.
