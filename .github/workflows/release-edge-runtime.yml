@@ -115,7 +115,8 @@ jobs:
           @("Reused validated binary/evidence run: $env:VALIDATED_RUN", "Included successful NuGet publication run: $env:NUGET_RUN", 'NuGet candidates and release notes were refreshed; binary validation evidence remains from the original run.') | Set-Content "$root/PUBLICATION_PROVENANCE.md"
           $archive = "artifacts/OASIS.Edge.Runtime.v$env:VERSION.zip"
           Compress-Archive -Path "$root/*" -DestinationPath $archive
-          $assets = @((Get-ChildItem -LiteralPath $root -File | Where-Object Length -gt 0).FullName) + @((Resolve-Path $archive).Path)
+          # Publish one user-facing bundle; reports and package evidence remain inside it.
+          $assets = @((Resolve-Path $archive).Path)
           $tag = "OASIS-Edge-Runtime-v$env:VERSION"
           $releases = gh api 'repos/NextGenSoftwareUK/OASIS/releases?per_page=100' | ConvertFrom-Json
           if ($LASTEXITCODE -ne 0) { throw 'Could not inspect existing releases.' }
