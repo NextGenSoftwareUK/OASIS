@@ -5,6 +5,22 @@
 
 ## Routing contract
 
+### Live Sui NFT signing through the encrypted avatar wallet (2026-10-11)
+
+`NftMintAndBurnUseStoredAvatarWalletWithoutConfiguredSigner` passes **1/1**, zero skips (`TestResults/HyperDriveSui/sui-avatar-nft.trx`). The retained local Sui node/package executes a real NFT mint with no provider-wide private key configured: the existing WalletManager resolves and decrypts the fixed owned avatar's stored default wallet. Independent on-chain readback verifies minting avatar and owner; the stored key remains encrypted. Burn also resolves that avatar wallet without supplied key/public key/seed, returns a transaction digest, and subsequent NFT lookup reports absence. The fixture wallet map is cleared afterward. Required nullable burn DTO members were explicitly initialized after a compile-time failure; no failed chain submission occurred in that build attempt.
+
+Existing runtime, ledger, package, SDK and fixed test directory were reused, with no download/install/reset. Exact owned node PID 94875 was stopped using the validating helper; subsequent process lookup found no Sui process. This proves the selected direct-provider avatar-wallet NFT mint/burn path, not every NFT option, authenticated HTTP, published image or full provider matrix. Other release gates remain open; no merge.
+
+### Deferred Hedera verification — resume after faucet cooldown
+
+User requested that the remaining funded tests be documented for later. The faucet currently prevents another claim for approximately 20 hours; this is not a passing test or a completion waiver.
+
+- After the cooldown, fund the **existing testnet account 0.0.10993779**. Recheck balance and the SDK fee estimate before submitting anything; the last recorded 3.91606260 test HBAR was insufficient for the roughly 10.6 test HBAR contract-creation estimate.
+- Reuse the existing encrypted identity, SDK installation and `TestResults/HederaRuntime/deployment-store.json`. Resume using already-uploaded bytecode file **0.0.10994223**; do not repeat uploads or create another environment.
+- Verify contract creation receipt, contract identity and deployed runtime code, then run real encrypted-storage CRUD/restart checks and V2 failover, load-balancing and replication checks.
+- Run funded native NFT/token lifecycle, authority, royalty and custody checks and relevant authenticated API tests. Retain compact receipts/results and clean up only owned disposable fixtures.
+- Keep these gates **pending/unverified** until executed successfully; do not mark the overall goal complete on the strength of controlled tests alone.
+
 ### Packaging verifier enforces actual direct SDK versions (2026-10-11)
 
 Bridge verifier previously proved imports but accepted any installed importable SDK version. It now requires exact direct dependency pins, agreement between package manifest and lockfile root/resolved package entries, and matching installed package name/version after ESM import verification. Controlled wrong-installed-version and wrong-lockfile cases join existing syntax/import/module checks: **7/7** pass. Existing Cosmos/Hedera/Sui/Near source installations pass the enhanced verifier without reinstall/download, and Railway manifest/seven Dockerfiles/gitlinks validation passes. This verifies **direct Node SDK pins**, not complete transitive integrity, NuGet runtime versions or actual published image execution. Cached Podman images comprise retained Azure Cosmos emulator/TRON/wasmd runtimes, not an API build image; actual-image release gate remains open. Approximately 109.18 GB decimal free. No installs/downloads/new runtime/environment/ledger mutation/merge.
