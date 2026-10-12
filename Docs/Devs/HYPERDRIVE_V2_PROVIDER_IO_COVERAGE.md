@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON permission malformed-authority regression — 2026-10-12
+
+Expanded protobuf permission tests to reject duplicate recovered signers, zero key weight, wrong/missing exact permission ID, witness type, zero threshold and malformed operation mask. Entire TRON unit project **225/225**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`, including all 13 controlled authority cases. This is verified fixture validation, not live account snapshot authority or multisigned submission.
+
+Prepared signature/permission integration and real account authority, live recovery and deployed gates remain open. No RPC, installs, submissions or release merge.
+
 ### TRON protobuf permission-authority validator — 2026-10-12
 
 Added explicit validator for caller-supplied verified account snapshot: trusted account address, exact owner/active permission ID/type, positive threshold, active operation mask, unique valid weighted keys, unique recovered authorised signers and checked weight meeting threshold. Witness permission rejected for transaction authority. Controlled real-protobuf cases accept active transfer permission and reject insufficient weight, mask denial, duplicate keys, foreign signer and foreign account: **6/6**, zero skips, `TestResults/PriorityProviderCurrent/tron-permissions.trx`. Build 0 errors/21 existing warnings.
