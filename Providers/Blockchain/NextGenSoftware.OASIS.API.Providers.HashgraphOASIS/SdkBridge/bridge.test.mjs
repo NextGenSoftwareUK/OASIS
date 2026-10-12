@@ -8,6 +8,16 @@ function roundTrip(transaction) {
   return Transaction.fromBytes(transaction.toBytes());
 }
 
+test('direct transfer bridge cannot generate a replacement identity when original ID is absent', async () => {
+  const key = PrivateKey.generateED25519();
+  for (const transactionId of [undefined, null, '', ' ']) {
+    await assert.rejects(execute('transfer', {
+      sender: '0.0.1001', recipient: '0.0.1002', tinybars: '1', keyType: 'der',
+      privateKey: key.toStringDer(), transactionId, network: 'invalid-network-must-not-be-opened'
+    }), /explicit original transaction ID/);
+  }
+});
+
 test('direct NFT mint rejects malformed Unicode and oversized serial batches before network use',()=>{
  for(const metadata of [['\ud800'],['\udfff'],Array(11).fill('oak')])
   assert.throws(()=>nftTransaction('nftMint',{tokenId:'0.0.2001',metadata}));
