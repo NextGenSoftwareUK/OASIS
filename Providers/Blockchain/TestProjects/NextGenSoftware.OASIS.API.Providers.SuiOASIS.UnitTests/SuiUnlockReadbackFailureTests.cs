@@ -7,8 +7,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 public class SuiUnlockReadbackFailureTests
 {
     [DataTestMethod]
-    [DataRow(false,false,false)] [DataRow(true,false,false)] [DataRow(false,true,false)] [DataRow(false,false,true)]
-    public async Task PreparedProcessWaitsForParentAndRetainsPersistenceRejection(bool reject,bool wrongId,bool cancel)
+    [DataRow(false,false,false,false)] [DataRow(true,false,false,false)] [DataRow(false,true,false,false)] [DataRow(false,false,true,false)] [DataRow(false,false,false,true)]
+    public async Task PreparedProcessWaitsForParentAndRetainsPersistenceRejection(bool reject,bool wrongId,bool cancel,bool foreignError)
     {
         await WithProcessFixture(async provider=>{
             var backend=typeof(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase)
@@ -22,10 +22,10 @@ public class SuiUnlockReadbackFailureTests
                 return reject?Task.FromException(failure):Task.CompletedTask;
             });
             var operation=(Task<System.Text.Json.JsonElement>)client.GetType().GetMethod("InvokePreparedAsync",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!
-                .Invoke(client,new object[]{"put",new{mode=cancel?"prepared-hold":wrongId?"prepared-wrong-id":"prepared"},server,cancellation.Token})!;
+                .Invoke(client,new object[]{"put",new{mode=cancel?"prepared-hold":foreignError?"prepared-error":wrongId?"prepared-wrong-id":"prepared"},server,cancellation.Token})!;
             if(cancel){var cancelled=await Assert.ThrowsExceptionAsync<SuiNativeMutationCanceledException>(()=>operation);Assert.AreEqual(new string('1',32),cancelled.OriginalTransactionId);Assert.AreEqual(cancellation.Token,cancelled.CancellationToken);}
             else if(reject)Assert.AreSame(failure,await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>operation));
-            else if(wrongId) {
+            else if(wrongId || foreignError) {
                 var mismatch=await Assert.ThrowsExceptionAsync<SuiNativeMutationReconciliationException>(()=>operation);
                 Assert.AreEqual(new string('1',32),mismatch.OriginalTransactionId);Assert.IsNull(mismatch.ExecutionSucceeded);
             }

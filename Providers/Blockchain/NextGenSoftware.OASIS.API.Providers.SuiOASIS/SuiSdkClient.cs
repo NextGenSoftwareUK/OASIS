@@ -149,6 +149,14 @@ internal sealed class SuiSdkClient : IDisposable
                     preparationServer.PreparedTransactionId, null);
             return payload.Clone();
         }
+        catch (InvalidOperationException ex) when (!preparationObserved && preparationServer?.PreparedTransactionId != null)
+        {
+            var originalId = preparationServer.PreparedTransactionId;
+            if (ex is SuiNativeMutationReconciliationException native && native.OriginalTransactionId == originalId)
+                throw;
+            throw new SuiNativeMutationReconciliationException("Sui process failure after durable preparation; reconcile the persisted original transaction before retrying.",
+                originalId, null, ex);
+        }
         catch (OperationCanceledException ex)
         {
             if (isMutation)
