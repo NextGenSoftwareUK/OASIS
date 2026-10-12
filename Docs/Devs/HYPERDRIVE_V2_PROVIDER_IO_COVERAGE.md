@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### WEB4 NFT mint defined-option validation (2026-10-12)
+
+Mint endpoint now rejects undefined numeric values for on-chain/off-chain provider, off-chain metadata type and NFT standard, using Enum.IsDefined after Enum.TryParse. Four direct-controller regression cases use a test-owned Wizard HttpContext and valid surrounding options, verifying explicit null-error result before mint-manager/provider access. Full WEB4 units **130/130**, zero skips; rebuilt host zero errors/255 warnings. This is controller preflight, not real-JWT positive mint/provider persistence or hosted behavior. Source audit also confirms the existing endpoint gates on Wizard avatar type despite a subscription-worded error; no billing/role policy was changed or bypassed. Positive NFT HTTP mint remains due, including real manager/off-chain persistence and exact on-chain receipt/reconciliation. No installs/downloads/runtime mutations/deployment.
+
 ### Current WEB4 real-JWT native send HTTP checks (2026-10-12)
 
 Selected TRON and Sui native wallet-send HTTP integration scenarios pass **2/2**, zero skips, five seconds (`web4-native-send-current.trx`). Existing real JWT middleware, owned avatar lookup, encrypted default-wallet resolution, native SDK submission, exact +0.001 recipient balance and independent Completed receipt assertions are exercised through HTTP request/response binding. Sui case retains conflicting-recipient validation; stored encrypted private keys remain unchanged. Test-owned manager injection and disabled hosted background services remain factory boundaries, not Railway deployment proof. Existing rebuilt host/test outputs used; no download/install/new environment. Owned Sui PID 168989 stopped and TRON runtime paused afterward. Other mutation/NFT/native interfaces, corrected Cosmos lifecycle and funded Hedera/hosted certification remain open.
