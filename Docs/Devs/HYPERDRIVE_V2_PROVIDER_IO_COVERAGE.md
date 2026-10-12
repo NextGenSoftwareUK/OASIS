@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Live V2 indexed-read handler parity and deleted-index absence (2026-10-11)
+
+The TRON routing scenario now additionally routes `LoadAvatarByUsername`, `LoadAvatarByEmail`, `LoadAvatarDetailByUsername` and `LoadAvatarDetailByEmail` through **both `RouteRequest` and `RouteRequestAsync`**, explicitly selecting each real LocalFile/TRON replica. Sixteen routed reads verify persisted identity before deletion; sixteen verify non-error null after replicated permanent deletion. Thus these four operation handlers have real synchronous/asynchronous provider evidence, including V2 coded-absence normalization. Full scenario passes **1/1**, zero skips, 50 seconds (`tron-v2-routing.trx`); this adds to, not replaces, earlier direct projection/failover/balancing/replication assertions. Full 42-operation matrix is not complete. Packaging verifier unit regressions also pass **5/5**. Existing runtime paused after terminal completion; about 114.44 GB decimal free, no install/download/ledger reset/environment duplication or merge.
+
 ### Expanded real TRON avatar-index projections (2026-10-11)
 
 The retained-node V2 routing scenario now verifies direct replica lookup of both avatar and avatar detail by username and email, through **sync and async** provider projections, on both LocalFile and TRON before deletion (16 additional real indexed reads). Full scenario passes **1/1**, zero skips, 50 seconds (`tron-v2-routing.trx`), alongside actual pause failover, measured balancing and replication/recovery assertions. These added reads exercise provider projections directly, not additional routed operation handlers; complete 42-operation routing evidence remains required. Existing node/ledger/contract reused and runtime paused after terminal completion. No install/download/environment duplication/public-chain spending or merge.
