@@ -64,7 +64,8 @@ public sealed class TronRealProviderRoutingTests
         var batch = new IHolon[] {
             new Holon { Id = Guid.Parse("9e5be296-e435-44a5-838b-cbfcd8918c22"), Name = "V2 TRON batch first", CreatedByAvatarId = avatar.Id,
                 ProviderUniqueStorageKey = new() { [ProviderType.LocalFileOASIS] = "9e5be296-e435-44a5-838b-cbfcd8918c22" } },
-            new Holon { Id = Guid.Parse("ac96a3b6-6d9f-475a-8422-b756dc7af654"), Name = "V2 TRON batch second", CreatedByAvatarId = avatar.Id } };
+            new Holon { Id = Guid.Parse("ac96a3b6-6d9f-475a-8422-b756dc7af654"), Name = "V2 TRON batch second", CreatedByAvatarId = avatar.Id,
+                ProviderUniqueStorageKey = new() { [ProviderType.LocalFileOASIS] = "ac96a3b6-6d9f-475a-8422-b756dc7af654" } } };
         var avatarSaved = false;
         try
         {
@@ -210,6 +211,30 @@ public sealed class TronRealProviderRoutingTests
             await AssertAllIndexedRoutes(absent: true);
             await AssertAvatarLists(absent: true);
             avatarSaved = false;
+            foreach (var operation in new[] { "DeleteAvatarByUsername", "DeleteAvatarByEmail", "DeleteAvatarByProviderKey" })
+            foreach (var synchronous in new[] { false, true })
+            {
+                var restored = await router.RouteRequestAsync<IAvatar>(new StorageOperationRequest { Operation = "SaveAvatar",
+                    Payload = avatar, PreferredProvider = ProviderType.LocalFileOASIS });
+                avatarSaved = !restored.IsError;
+                restored.IsError.Should().BeFalse(restored.Message); restored.IsWarning.Should().BeFalse(restored.Message);
+                var detailRestored = await router.RouteRequestAsync<IAvatarDetail>(new StorageOperationRequest { Operation = "SaveAvatarDetail",
+                    Payload = detail, PreferredProvider = ProviderType.LocalFileOASIS });
+                detailRestored.IsError.Should().BeFalse(detailRestored.Message); detailRestored.IsWarning.Should().BeFalse(detailRestored.Message);
+                var request = new StorageOperationRequest { Operation = operation, Username = avatar.Username, Email = avatar.Email,
+                    ProviderKey = avatar.Id.ToString(), SoftDelete = false, PreferredProvider = ProviderType.TRONOASIS };
+                var removed = synchronous ? router.RouteRequest<bool>(request) : await router.RouteRequestAsync<bool>(request);
+                removed.IsError.Should().BeFalse(removed.Message); removed.IsWarning.Should().BeFalse(removed.Message); removed.Result.Should().BeTrue();
+                manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+                foreach (var provider in new IOASISStorageProvider[] { local, tron })
+                {
+                    (await provider.LoadAvatarAsync(avatar.Id)).Result.Should().BeNull();
+                    (await provider.LoadAvatarByUsernameAsync(avatar.Username)).Result.Should().BeNull();
+                    (await provider.LoadAvatarByEmailAsync(avatar.Email)).Result.Should().BeNull();
+                    (await provider.LoadAvatarDetailAsync(avatar.Id)).Result.Should().BeNull();
+                }
+                avatarSaved = false;
+            }
             var saved = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
                 { Operation = "SaveHolon", Payload = holon, PreferredProvider = ProviderType.LocalFileOASIS });
             saved.IsError.Should().BeFalse(saved.Message);
@@ -249,6 +274,19 @@ public sealed class TronRealProviderRoutingTests
                         result.Result.Count(value => value.Id == holon.Id).Should().Be(1);
                     }
                 }
+            }
+            foreach (var synchronous in new[] { false, true })
+            {
+                var restored = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest { Operation = "SaveHolon",
+                    Payload = batch[1], PreferredProvider = ProviderType.LocalFileOASIS });
+                restored.IsError.Should().BeFalse(restored.Message); restored.IsWarning.Should().BeFalse(restored.Message);
+                var request = new StorageOperationRequest { Operation = "DeleteHolonByProviderKey", ProviderKey = batch[1].Id.ToString(),
+                    SoftDelete = false, PreferredProvider = ProviderType.TRONOASIS };
+                var removed = synchronous ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
+                removed.IsError.Should().BeFalse(removed.Message); removed.IsWarning.Should().BeFalse(removed.Message);
+                manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+                (await tron.LoadHolonAsync(batch[1].Id)).Result.Should().BeNull();
+                (await local.LoadHolonAsync(batch[1].Id)).Result.Should().BeNull();
             }
             manager.IsAutoReplicationEnabled = false; manager.IsAutoLoadBalanceEnabled = true;
             manager.SetAndReplaceAutoLoadBalanceListForProviders(Providers()).IsError.Should().BeFalse();
