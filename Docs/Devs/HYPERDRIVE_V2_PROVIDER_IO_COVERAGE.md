@@ -20,6 +20,12 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Cosmos supplied NFT custody receipt is no longer ignored (2026-10-12)
+
+`DepositNFTAsync` previously ignored `sourceTransactionHash`. A supplied source now requires exact 64-hex identity and production SDK read-only verification before release: committed matching hash/height, execution code zero, official protobuf decode, one exact `MsgExecuteContract` transfer for the selected collection/token into the configured custody wallet, from a different sender. C# also verifies the returned proof identity instead of trusting a boolean alone. Missing, failed, mismatched, ambiguous or malformed proof fails before the release execute. Null proof preserves the existing coordinator-owned direct custody release contract; this is **not** public release authorization, foreign-chain verification or a consumed-source replay registry.
+
+Official SDK unit suite **29/29** (new real protobuf fixture proof tests); complete C# Cosmos unit suite **56/56, zero skips**, including controlled transport selector forwarding/mismatched proof rejection. Provider rebuild zero errors/two warnings. These are unit/controlled proof gates, not a new live bridge pass. Retained node policy restriction still blocks corrected live assets/bridge receipt verification; no new transaction/node/download was attempted. Cross-chain coordinator authorization and end-to-end settlement remain open.
+
 ### Sui original failed history also verified through the C# provider (2026-10-12)
 
 New read-only `SuiHistoryTests.OriginalFailedSubmissionPreservesSignedGasDebitInProviderHistory` passed **1/1, zero skips**, `TestResults/SuiCurrent/sui-failed-history-current.trx` (10 seconds). It reuses the original journal/digest, independently checks provider Failed status, then the real provider's history: Failed execution, original native identity, WalletNetBalanceChange, negative exact SUI raw amount, Debit direction, actual sender, positive display amount and no fabricated gas recipient. Source SDK override explicitly used; no local signing key, faucet, mint or transfer. Existing pinned ledger resumed and exact owned PID 172685 stopped; no duplicate environment or downloads. This extends the prior SDK history result to actual C# projection, not deployed WEB4 or full-interface certification.
