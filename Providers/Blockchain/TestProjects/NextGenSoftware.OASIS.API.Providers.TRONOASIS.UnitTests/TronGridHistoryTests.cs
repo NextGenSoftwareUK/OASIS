@@ -7,6 +7,32 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 public sealed class TronGridHistoryTests
 {
     [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task ReversedTimestampWithinOrAcrossPagesFailsWithoutPartialHistory(bool native, bool acrossPages)
+    {
+        var first = acrossPages
+            ? "{\"success\":true,\"data\":[{\"block_timestamp\":2}],\"meta\":{\"fingerprint\":\"next\"}}"
+            : "{\"success\":true,\"data\":[{\"block_timestamp\":2},{\"block_timestamp\":1}],\"meta\":{}}";
+        var handler = new Handler("{\"blockID\":\"" + new string('a', 64) + "\"}", first,
+            "{\"success\":true,\"data\":[{\"block_timestamp\":1}],\"meta\":{}}");
+        using var http = new HttpClient(handler) { BaseAddress = new Uri("https://example.test/") };
+        var reader = new TronGridTokenHistoryClient(http, new string('a', 64));
+        var error = await Assert.ThrowsAsync<InvalidOperationException>(() => native ? reader.ReadNativeAsync("account",123) : reader.ReadAsync("account",123));
+        Assert.Contains("ascending order", error.Message);
+    }
+
+    [Fact]
+    public async Task EqualBlockTimestampsRemainValid()
+    {
+        var handler = new Handler("{\"blockID\":\"" + new string('a',64) + "\"}",
+            "{\"success\":true,\"data\":[{\"block_timestamp\":2},{\"block_timestamp\":2}],\"meta\":{}}");
+        using var http = new HttpClient(handler) { BaseAddress = new Uri("https://example.test/") };
+        Assert.Equal(2, (await new TronGridTokenHistoryClient(http,new string('a',64)).ReadAsync("account",123)).Count);
+    }
+    [Theory]
     [InlineData("{\"success\":false,\"data\":[],\"meta\":{}}")]
     [InlineData("{\"success\":true,\"data\":[{\"block_timestamp\":124}],\"meta\":{}}")]
     [InlineData("{\"success\":true,\"data\":[],\"meta\":{\"fingerprint\":\"stuck\"}}")]
