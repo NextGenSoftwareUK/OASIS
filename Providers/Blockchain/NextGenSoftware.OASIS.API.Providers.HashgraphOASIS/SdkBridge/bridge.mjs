@@ -285,7 +285,9 @@ export async function execute(action, request) {
   const key = restoreKey(request);
   if (request.publicKey && request.publicKey.toLowerCase() !== key.publicKey.toStringDer().toLowerCase())
     throw new Error('Signing key does not match the supplied public key.');
-  const transactionId = request.transactionId ? TransactionId.fromString(request.transactionId) : TransactionId.generate(sender);
+  if (typeof request.transactionId !== 'string' || !request.transactionId.trim())
+    throw new Error('An explicit original transaction ID is required before submission.');
+  const transactionId = TransactionId.fromString(request.transactionId);
   if (transactionId.accountId.toString() !== sender.toString())
     throw new Error('Transaction ID payer does not match the sender.');
   const client = await createClient(request);

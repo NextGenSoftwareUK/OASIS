@@ -22,6 +22,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera direct bridge original-ID invariant — 2026-10-12
+
+The direct SDK transfer/HTS execution path no longer calls `TransactionId.generate` when the caller omits its original transaction ID. It requires an explicit nonempty ID after existing payload/key validation and before client creation, matching the C# boundary's invariant. This removes an independent identity-generation path that would prevent callers retaining a prepared identity before submission. Existing one-attempt/disabled-regeneration settings remain on native mutations. All five retained SDK test files passed **86/86**, zero skips/todos, including absent/null/empty/whitespace original IDs rejected before network access. Tests use the pinned official SDK's actual key and transaction construction, not funded consensus. Durable pre-submit journal integration and live routing gates remain open. No installation, download or ledger mutation occurred.
+
 ### Current Hedera actual deadline verification — 2026-10-12
 
 Re-ran `ActualProcessTimeoutRetainsUnverifiedOriginalIdsAndStopsReplay` against the current built provider after strict decoding and identity validation changes. **1/1 passed**, zero skips, with the actual two-minute deadline (not a mocked clock); report `TestResults/HederaCurrent/hedera-process-timeout.trx`. The controlled stalled child performs no SDK/network submission. This verifies current timeout exception classification, preservation of both unverified original IDs, and replay-blocking marker, not consensus or charged-fee outcome. Existing selected regression remains 244/244. The same environment/report directory was reused; no new installation or database was allocated.
