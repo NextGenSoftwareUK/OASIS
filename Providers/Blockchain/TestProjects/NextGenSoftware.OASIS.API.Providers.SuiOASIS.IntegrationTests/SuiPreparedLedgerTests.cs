@@ -35,16 +35,24 @@ public class SuiPreparedLedgerTests
         var database="usage_sui_live_prepared_"+Guid.NewGuid().ToString("N");var mongo=new MongoDB.Driver.MongoClient(connection);
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(90));
         var key="oasis/prepared-test/"+Guid.NewGuid().ToString("N");
-        var committed=false;
+        var directory=new DirectoryInfo(AppContext.BaseDirectory);
+        while(directory!=null&&!File.Exists(Path.Combine(directory.FullName,"Scripts/TestHosts/start-sui-test-network.sh")))directory=directory.Parent;
+        Assert.IsNotNull(directory,"Existing task repository required.");
+        var journal=Path.Combine(directory!.FullName,"TestResults/SuiCurrent/prepared-live-pending.json");
+        Directory.CreateDirectory(Path.GetDirectoryName(journal)!);
+        // CreateNew is an atomic fence: never repeat a previous unknown submission.
+        using var journalFile=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.Read);
         try{
             var store=new MongoUsageOutboxStore(connection,database);await store.InitializeAsync(deadline.Token);
             var user=Guid.NewGuid().ToString("D");using var http=new HttpClient(new TestAuthority(user));
             var authority=new Web4SubscriptionAuthorizationClient(http,"https://test-authority.invalid","WEB6","test-key");
             var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6",PersistenceTimeout=TimeSpan.FromSeconds(5)})
                 .BeginAsync("test-only",user,key,new string('a',64),"POST /local-test",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1},deadline.Token);
+            await JsonSerializer.SerializeAsync(journalFile,new{database,key,operationId=execution.OperationId,chainId=settings.GetProperty("chainId").GetString(),
+                recovery="Inspect original write and cleanup attempts in this retained Mongo outbox; never resubmit on unknown outcome."},cancellationToken:deadline.Token);
+            journalFile.Flush(true);
             var response=await provider.ExecutePreparedNativeAsync("put",new{key,value="owned prepared live fixture"},execution,"write",
                 settings.GetProperty("chainId").GetString()!,settings.GetProperty("address").GetString()!,deadline.Token);
-            committed=true;
             var hash=response.GetProperty("transactionHash").GetString()!;
             var stored=await store.GetAsync(execution.OperationId,deadline.Token);Assert.AreEqual(1,stored.ProviderAttempts.Count);
             var attempt=stored.ProviderAttempts[0];Assert.AreEqual(hash,attempt.ProviderRequestId);
@@ -53,14 +61,19 @@ public class SuiPreparedLedgerTests
             Assert.IsNull(attempt.AcknowledgedAtUtc,"Preparation alone must not claim ledger settlement.");
             var status=await provider.GetTransactionStatusAsync(hash,deadline.Token);Assert.IsFalse(status.IsError,status.Message);
             Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,status.Result);
-        }finally{
-            // Only delete the exact owned key after verified successful submission, never retry an unknown mutation.
-            if(committed){
-                var backend=typeof(SuiOASIS).GetMethod("InvokeSdkAsync",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
-                await (Task<JsonElement>)backend.Invoke(provider,new object[]{"delete",new{key},CancellationToken.None})!;
-                await mongo.DropDatabaseAsync(database);
-            }
-            // On an unknown outcome preserve the durable outbox for original-transaction reconciliation.
+            var cleanup=await provider.ExecutePreparedNativeAsync("delete",new{key},execution,"cleanup",
+                settings.GetProperty("chainId").GetString()!,settings.GetProperty("address").GetString()!,deadline.Token);
+            var cleanupHash=cleanup.GetProperty("transactionHash").GetString()!;
+            var cleaned=await store.GetAsync(execution.OperationId,deadline.Token);Assert.AreEqual(2,cleaned.ProviderAttempts.Count);
+            Assert.AreEqual(cleanupHash,cleaned.ProviderAttempts[1].ProviderRequestId);
+            var cleanupStatus=await provider.GetTransactionStatusAsync(cleanupHash,deadline.Token);Assert.IsFalse(cleanupStatus.IsError,cleanupStatus.Message);
+            Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,cleanupStatus.Result);
+            Console.WriteLine($"Confirmed original prepared write={hash}; cleanup={cleanupHash}; owned key={key}.");
+            await mongo.DropDatabaseAsync(database);
+            journalFile.Dispose();File.Delete(journal);
+        }catch{
+            Console.WriteLine($"Retained original prepared evidence for reconciliation: {journal}; database={database}; key={key}.");
+            throw;
         }
     }
 }
