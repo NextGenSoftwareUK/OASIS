@@ -3,6 +3,7 @@ import { DirectSecp256k1Wallet, DirectSecp256k1HdWallet, decodeTxRaw, Registry }
 import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, verifiedNftCustodyReceipt, cosmosNativeFeeReceipt, bankTransferLegs, cosmosErrorEnvelope, guardCosmosSigningClient, withCosmosNativeEvidence, indexedHistorySnapshot } from './transaction-results.mjs';
 import { GasPrice, defaultRegistryTypes } from "@cosmjs/stargate";
 import { fromHex, toHex, fromBech32 } from "@cosmjs/encoding";
+import { pathToFileURL } from 'node:url';
 
 async function readInput() {
   const chunks = [];
@@ -18,7 +19,7 @@ async function walletFor(input) {
     : DirectSecp256k1Wallet.fromKey(fromHex(input.privateKey.replace(/^0x/, "")), prefix);
 }
 
-async function execute(input) {
+async function execute(input, persistPreparedSubmission) {
   if (input.operation === "generateKey" || input.operation === "restoreKey") {
     const wallet = input.operation === "generateKey"
       ? await DirectSecp256k1HdWallet.generate(24, { prefix: input.addressPrefix ?? "cosmos" })
@@ -36,7 +37,7 @@ async function execute(input) {
       broadcastPollIntervalMs: 500,
     })
     : await CosmWasmClient.connect(input.rpcEndpoint);
-  if (isSigned) guardCosmosSigningClient(client);
+  if (isSigned) guardCosmosSigningClient(client, persistPreparedSubmission);
   try {
     const chainId = await client.getChainId();
     if (input.chainId && input.chainId !== chainId)
@@ -133,10 +134,18 @@ async function execute(input) {
   } finally { client.disconnect(); }
 }
 
+export async function invoke(input, persistPreparedSubmission) {
+  if (persistPreparedSubmission !== undefined && typeof persistPreparedSubmission !== 'function')
+    throw new TypeError('Prepared Cosmos persistence must be an awaited callback');
+  return withCosmosNativeEvidence(() => execute(input, persistPreparedSubmission));
+}
+
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
 try {
   const input = await readInput();
-  process.stdout.write(JSON.stringify({ ok: true, result: await withCosmosNativeEvidence(() => execute(input)) }));
+  process.stdout.write(JSON.stringify({ ok: true, result: await invoke(input) }));
 } catch (error) {
   process.stdout.write(JSON.stringify(cosmosErrorEnvelope(error)));
   process.exitCode = 1;
+}
 }

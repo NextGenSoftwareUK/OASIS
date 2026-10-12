@@ -4,6 +4,14 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { fromBech32 } from "@cosmjs/encoding";
 import { DirectSecp256k1Wallet } from "@cosmjs/proto-signing";
+import { invoke as invokeTrusted } from './bridge.mjs';
+
+test('trusted entry point validates callback and does not prepare key recovery as a submission', async () => {
+  await assert.rejects(invokeTrusted({operation:'generateKey'},true),/awaited callback/);
+  let prepared=0;
+  const wallet=await invokeTrusted({operation:'restoreKey',privateKey:'07'.repeat(32),addressPrefix:'wasm'},async()=>{prepared++;});
+  assert.equal(fromBech32(wallet.address,90).prefix,'wasm');assert.equal(prepared,0);
+});
 
 test("raw signing keys recover exact official SDK identity with the requested prefix", async () => {
   const wallet = await DirectSecp256k1Wallet.fromKey(new Uint8Array(32).fill(7), "wasm");
