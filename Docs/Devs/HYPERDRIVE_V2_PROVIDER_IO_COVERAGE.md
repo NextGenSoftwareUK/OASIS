@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Current route inventory and executable boundary refresh — 2026-10-12
+
+Read-only repository verification scripts pass on current source: **42** paired sync/async V2 operation labels with declared boundary tests, **693** WEB4 controller actions (**599** provider/external-manager classifications), and **815** public manager methods (**655** provider-backed/delegating classifications). Ran `HyperDriveProviderExecutionTests` separately: **255/255** passed, zero skips (`TestResults/HyperDriveCurrent/provider-boundary-current.trx`), using retained outputs/no restore/bounded workers. Existing test-project warnings remain.
+
+The inventories prove checked-in source classification consistency, not execution of 693 deployed APIs. The selected 255 tests prove their controlled provider-boundary assertions, not full real-provider interfaces/options or hosted authenticated routes. No installation, runtime startup, external mutation or deployment occurred; remaining live/production release gates still prevent merge.
+
 ### Live Sui lost-child-reply recovery — 2026-10-12
 
 Added a test-only child fixture that delegates to the retained real SDK and actual local ledger, awaits durable preparation and real successful execution, then exits code 17 without returning the put response. The parent returns reconciliation-required with the persisted original digest; the test reads matching signed evidence from Mongo, queries that digest as Completed and reads the exact value, without replaying the original write. Normal and deliberately lost-response variants both pass **2/2**, zero skips (`sui-prepared-live-current.trx`). Both still test duplicate-correlation rejection and separately prepared/confirmed cleanup. Fixed pending journal is absent after successful cleanup; exact owned node PID 219452 stopped, handle terminal.
