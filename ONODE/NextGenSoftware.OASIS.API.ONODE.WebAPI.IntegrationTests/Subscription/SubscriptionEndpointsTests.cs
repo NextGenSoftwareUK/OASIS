@@ -46,6 +46,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
         // ── GET /api/subscription/plans — public endpoint ────────────────────
 
         [Fact]
+        public async Task WalletSendRejectsConflictingSenderAvatarBeforeManagerAccess()
+        {
+            var response=await _authenticatedClient.PostAsJsonAsync("/api/wallet/send-token",
+                new {FromAvatarId=Guid.Parse("22222222-2222-2222-2222-222222222222"),Amount=0.001m});
+            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            (await response.Content.ReadAsStringAsync()).Should().Contain("AVATAR_OPERATION_FORBIDDEN");
+        }
+
+        [Fact]
         public async Task WalletHttpSendCommitsRealSuiTransferUsingEncryptedAvatarWallet()
         {
             var rpc=Environment.GetEnvironmentVariable("OASIS_SUI_TEST_RPC")??throw new InvalidOperationException("Real retained Sui RPC required.");
