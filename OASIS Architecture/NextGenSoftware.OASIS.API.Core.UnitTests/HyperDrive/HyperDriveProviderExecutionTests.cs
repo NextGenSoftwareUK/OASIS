@@ -5424,6 +5424,37 @@ public sealed class HyperDriveProviderExecutionTests
     }
 
     [Theory]
+    [InlineData(LoadBalancingStrategy.RoundRobin)]
+    [InlineData(LoadBalancingStrategy.WeightedRoundRobin)]
+    [InlineData(LoadBalancingStrategy.LeastConnections)]
+    [InlineData(LoadBalancingStrategy.Geographic)]
+    [InlineData(LoadBalancingStrategy.Performance)]
+    [InlineData(LoadBalancingStrategy.CostBased)]
+    [InlineData(LoadBalancingStrategy.Auto)]
+    public async Task V2NoPermittedCandidatesRejectWithoutExecutingConfiguredProvider(LoadBalancingStrategy strategy)
+    {
+        var provider = CreateActiveProvider(ProviderType.SuiOASIS, "forbidden-only");
+        var dna = CreateDna(HyperDriveModes.V2);
+        dna.OASIS.SubscriptionConfig.PlanType = "Free";
+        var manager = new ProviderManager(null, dna) { IsAutoLoadBalanceEnabled = true, IsAutoFailOverEnabled = false };
+        manager.RegisterProvider(provider.Object);
+        manager.SetAndReplaceAutoLoadBalanceListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.SuiOASIS) })
+            .IsError.Should().BeFalse();
+        var router = new OASISHyperDrive(manager);
+        var request = new StorageOperationRequest { Operation = "LoadAvatar", AvatarId = Guid.NewGuid() };
+        foreach (var result in new[] { router.RouteRequest<IAvatar>(request, strategy),
+            await router.RouteRequestAsync<IAvatar>(request, strategy) })
+        {
+            result.IsError.Should().BeTrue();
+            result.Message.Should().Contain("No configured storage provider is permitted");
+            result.Result.Should().BeNull();
+        }
+        provider.Verify(x => x.LoadAvatar(It.IsAny<Guid>(), It.IsAny<int>()), Times.Never);
+        provider.Verify(x => x.LoadAvatarAsync(It.IsAny<Guid>(), It.IsAny<int>()), Times.Never);
+        manager.GetProviderAutoLoadBalanceList().Select(x => x.Value).Should().Equal(ProviderType.SuiOASIS);
+    }
+
+    [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public async Task V2WalletIdentitySavesRemainAsynchronousThroughTheLocalProvider(bool useEmail)
