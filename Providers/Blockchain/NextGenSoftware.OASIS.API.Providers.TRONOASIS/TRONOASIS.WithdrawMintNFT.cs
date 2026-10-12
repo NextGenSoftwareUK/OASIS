@@ -57,6 +57,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     throw new InvalidOperationException("BridgePoolWalletAddress must be configured separately from token contracts.");
                 if (string.Equals(senderAccountAddress,_bridgePoolWalletAddress,StringComparison.Ordinal))
                     throw new ArgumentException("Bridge withdrawal sender must differ from the pool wallet.");
+                if (!System.Text.RegularExpressions.Regex.IsMatch(senderPrivateKey,"\\A[0-9a-fA-F]{64}\\z")
+                    || !string.Equals(new TronNet.TronECKey(senderPrivateKey,TronNet.TronNetwork.MainNet).GetPublicAddress(),senderAccountAddress,StringComparison.Ordinal))
+                    throw new ArgumentException("Signing key does not own the canonical TRON sender address.");
                 if (!IsProviderActivated)
                 {
                     var activation = await ActivateProviderAsync();
