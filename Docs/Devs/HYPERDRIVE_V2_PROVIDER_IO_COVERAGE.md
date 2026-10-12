@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Retained SDK refresh — 2026-10-12
+
+Executed the existing `npm test -- --test-reporter=tap` scripts in each retained SDK bridge without installing, restoring, downloading, or starting a ledger: Hedera **98/98**, Sui **25/25**, Cosmos **51/51**, all exit zero with no skipped, cancelled or TODO tests. These scripts exercise real installed SDK construction, signing and verification plus controlled transport/results; they do not establish funded ledger success or the full live V2 routing matrix. Hedera's prepared C# bridge still requires a single-stage mutation: multi-stage escrow preparation is an explicit remaining implementation gate, not covered by these passing counts. Free space before these runs was 100,626,681,856 bytes on C:, still below the user's 150 GB target.
+
 ### TRON denied authority checkpoint — 2026-10-12
 
 The full TRON unit project completed with **234/234 passed**, zero failed or skipped, in `TestResults/PriorityProviderCurrent/tron-current.trx`. The added controlled gRPC-to-Mongo case refreshes owner authority immediately before the prepared callback and rejects a signed transaction whose signer weight is below the returned threshold. Rejection leaves provider attempts empty and native-preparation evidence bytes at zero. It reuses the installed SDK and existing Mongo service; the owned test database is dropped in `finally`.
