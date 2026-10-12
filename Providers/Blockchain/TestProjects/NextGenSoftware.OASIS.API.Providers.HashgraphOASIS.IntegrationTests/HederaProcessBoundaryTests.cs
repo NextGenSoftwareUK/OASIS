@@ -7,6 +7,29 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 [TestClass, DoNotParallelize]
 public class HederaProcessBoundaryTests
 {
+    [TestMethod]
+    public async Task NullReportedIdCannotEraseOriginalMutationIdentity()
+    {
+        await WithFixture(async () =>
+        {
+            var error = await Assert.ThrowsExceptionAsync<HederaNativeMutationReconciliationException>(() => Invoke("nftEscrowLock", CancellationToken.None, "null-primary"));
+            Assert.AreEqual(Mutation, error.OriginalTransactionId);
+            Assert.AreEqual(Approval, error.Evidence.ApprovalTransactionId);
+        });
+    }
+
+    [DataTestMethod]
+    [DataRow("wrong-primary")] [DataRow("wrong-approval")] [DataRow("wrong-mutation")]
+    public async Task ErrorMetadataCannotReplaceOriginalIdsOrClaimUnverifiedApproval(string stage)
+    {
+        await WithFixture(async()=>{
+            var error=await Assert.ThrowsExceptionAsync<HederaNativeMutationReconciliationException>(()=>Invoke("nftEscrowLock",CancellationToken.None,stage));
+            Assert.AreEqual(Mutation,error.OriginalTransactionId);Assert.IsNull(error.Evidence.ApprovalTransactionId);
+            Assert.IsNotNull(error.InnerException);Assert.IsFalse(error.Message.Contains("untrusted-other-id"));
+            Assert.IsFalse(error.Message.Contains("Confirmed approval"));
+        });
+    }
+
     [DataTestMethod]
     [DataRow("bad-json")] [DataRow("missing")] [DataRow("scalar")] [DataRow("wrong-id")]
     [DataRow("failed")] [DataRow("bad-status")]
