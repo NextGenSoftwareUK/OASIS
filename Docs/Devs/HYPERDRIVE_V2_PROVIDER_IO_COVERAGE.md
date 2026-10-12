@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Live Sui minted/burned digest status identity recheck (2026-10-12)
+
+Expanded encrypted-avatar-wallet NFT scenario passes **1/1**, zero skips, nine seconds (`sui-avatar-nft.trx`). Real mint and burn use the stored wallet with no provider-wide signer; independent GetTransactionStatusAsync calls verify each original digest's returned identity and classify Completed through the new guard. NFT absence after burn and encrypted-at-rest checks remain passing. Original retained node/package/ledger/SDK reused; exact owned PID 115989 stopped after terminal test completion, no Sui process remains. Fixture NFT/wallet map cleaned by test finally. This proves selected real successful status lookup, not live failed/unknown status or full API/provider/image gates. No installs/downloads/new environment/reset/public assets/merge.
+
 ### Sui status receipt identity validation (2026-10-12)
 
 Sui status lookup now rejects blank request digests and requires returned transactionHash to match the requested digest ordinally before mapping the existing boolean execution status. Three pure boundary cases cover matching success, mismatch and missing identity; explicit provider rebuild succeeds (zero errors/two warnings), and full Sui units pass **30/30**, zero skips (`sui-unit-current.trx`), reusing output SDK dependencies. Fixture digest strings in these cases test equality, not canonical native encoding or consensus. Current live status regression remains required, as do full provider/API/image gates. No network mutation/install/download/new environment/merge.

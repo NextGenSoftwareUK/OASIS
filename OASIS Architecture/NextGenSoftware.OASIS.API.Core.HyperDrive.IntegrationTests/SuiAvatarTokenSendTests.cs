@@ -55,6 +55,9 @@ public class SuiAvatarTokenSendTests
             if (minted.Result?.Web3NFT != null) { ownedAddress = minted.Result.Web3NFT.NFTTokenAddress; ownedId = minted.Result.Web3NFT.Id; }
             minted.IsError.Should().BeFalse(minted.Message); ownedAddress.Should().NotBeNullOrWhiteSpace();
             minted.Result.TransactionResult.Should().NotBeNullOrWhiteSpace();
+            var mintStatus = await sui.GetTransactionStatusAsync(minted.Result.TransactionResult);
+            mintStatus.IsError.Should().BeFalse(mintStatus.Message);
+            mintStatus.Result.Should().Be(Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed);
             var loaded = await sui.LoadOnChainNFTDataAsync(ownedAddress!);
             loaded.IsError.Should().BeFalse(loaded.Message); loaded.Result.MintedByAvatarId.Should().Be(avatarId);
             loaded.Result.SendToAddressAfterMinting.Should().Be(issuer.Result.WalletAddressLegacy);
@@ -67,6 +70,9 @@ public class SuiAvatarTokenSendTests
                 var burned = await sui.BurnNFTAsync(new Core.Objects.NFT.Requests.BurnWeb3NFTRequest { NFTTokenAddress = ownedAddress,
                     Web3NFTId = ownedId, BurntByAvatarId = avatarId, OwnerSeedPhrase = null, OwnerPublicKey = null, OwnerPrivateKey = null });
                 burned.IsError.Should().BeFalse(burned.Message); burned.Result.TransactionResult.Should().NotBeNullOrWhiteSpace();
+                var burnStatus = await sui.GetTransactionStatusAsync(burned.Result.TransactionResult);
+                burnStatus.IsError.Should().BeFalse(burnStatus.Message);
+                burnStatus.Result.Should().Be(Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed);
                 (await sui.LoadOnChainNFTDataAsync(ownedAddress)).IsError.Should().BeTrue();
             }
             if (walletSaved) (await local.SaveProviderWalletsForAvatarByIdAsync(avatarId, new())).IsError.Should().BeFalse();
