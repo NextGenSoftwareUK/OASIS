@@ -766,7 +766,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public async Task<OASISResult<IWeb4NFT>> ImportWeb4NFTAsync(Guid importedByAvatarId, [FromBody] Web4NFT oasisNFT, ProviderType providerType = ProviderType.Default)
         {
             if (importedByAvatarId != AvatarId && Avatar?.AvatarType?.Value != AvatarType.Wizard)
-                return new OASISResult<IWeb4NFT>() { IsError = true, Message = "Unauthorized. You can only import NFTs for your own avatar." };
+            {
+                Response.StatusCode = StatusCodes.Status403Forbidden;
+                return new OASISResult<IWeb4NFT> { IsError = true, ErrorCode = "AVATAR_OPERATION_FORBIDDEN",
+                    Message = "Forbidden. You can only import NFTs for your own avatar." };
+            }
             return await NFTManager.ImportWeb4NFTAsync(importedByAvatarId, oasisNFT, providerType, Core.Enums.ResponseFormatType.SimpleText);
         }
 
