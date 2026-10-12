@@ -60,13 +60,15 @@ jobs:
           $edge = if ($env:PROFILE -eq 'Edge') { 'true' } else { 'false' }
           $project = 'OASIS Omniverse/OGEngineClient/OGEngineClient.csproj'
           $root = "artifacts/ogengine/$env:PROFILE/$env:RID"
-          dotnet publish $project -c Release -r $env:RID --self-contained false -p:PublishAot=false -p:OGEngineIncludeEdge=$edge -p:Version=$env:VERSION -o "$root/Managed"
+          # Shared dependency projects can be reached with different global-property sets.
+          # Serialize graph execution so those instances cannot write the same deps.json concurrently.
+          dotnet publish $project -m:1 -c Release -r $env:RID --self-contained false -p:PublishAot=false -p:OGEngineIncludeEdge=$edge -p:Version=$env:VERSION -o "$root/Managed"
           if ($LASTEXITCODE -ne 0) { throw 'Managed profile compilation failed.' }
           $edgeDll = Test-Path "$root/Managed/NextGenSoftware.OGEngine.Client.Edge.dll"
           if ($edgeDll -ne ($edge -eq 'true')) { throw 'Managed profile dependency boundary violated.' }
           # The owning project enables AOT itself. Do not make PublishAot a global
           # command-line property: that incorrectly forces netstandard dependencies through AOT.
-          dotnet publish $project -c Release -r $env:RID --self-contained true -p:OGEngineIncludeEdge=$edge -p:Version=$env:VERSION -o "$root/Native"
+          dotnet publish $project -m:1 -c Release -r $env:RID --self-contained true -p:OGEngineIncludeEdge=$edge -p:Version=$env:VERSION -o "$root/Native"
           if ($LASTEXITCODE -ne 0) { throw 'Native profile compilation failed.' }
           $extension = if ($env:RID.StartsWith('win')) { 'dll' } elseif ($env:RID.StartsWith('osx')) { 'dylib' } else { 'so' }
           $native = @(Get-ChildItem "$root/Native" -File | Where-Object { $_.Name -match "ogengine.*\.$extension$" })
