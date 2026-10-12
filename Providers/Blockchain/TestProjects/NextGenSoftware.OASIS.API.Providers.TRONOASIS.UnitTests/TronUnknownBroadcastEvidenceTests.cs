@@ -12,6 +12,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public class TronUnknownBroadcastEvidenceTests
 {
+    [Fact]
+    public async Task PermissionLoaderPreCancellationCannotQueryNetwork()
+    {
+        await using var runtime=new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),new Uri("http://127.0.0.1:50052"),new string('a',64));
+        using var cancellation=new CancellationTokenSource();cancellation.Cancel();
+        var error=await Assert.ThrowsAsync<OperationCanceledException>(()=>runtime.NativeTransfers.LoadPermissionAuthorityAsync("invalid",cancellation.Token));
+        Assert.Equal(cancellation.Token,error.CancellationToken);
+    }
     [Theory]
     [InlineData("empty")] [InlineData("unsupported")] [InlineData("wrong-owner")]
     [InlineData("zero-timestamp")] [InlineData("invalid-expiry")] [InlineData("negative-fee")]
