@@ -11,6 +11,50 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 public class TronPermissionRpcTests
 {
     [Theory]
+    [InlineData("rejected")] [InlineData("changed")] [InlineData("unavailable")]
+    public async Task EscrowConstructionFailureAfterSdkApprovalRequiresOriginalReconciliation(string mode)
+    {
+        var genesis=new string('a',64);var genesisBytes=ByteString.CopyFrom(Convert.FromHexString(genesis));
+        var approvalId=ByteString.Empty;var broadcasts=0;var constructions=0;
+        var service=ServerServiceDefinition.CreateBuilder()
+            .AddMethod(Rpc(Wallet.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=genesisBytes}))
+            .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=genesisBytes}))
+            .AddMethod(Rpc(Wallet.Descriptor.FullName,"TriggerConstantContract",TriggerSmartContract.Parser,TransactionExtention.Parser),(TriggerSmartContract request,ServerCallContext context)=>{
+                var value=new byte[32];if(Convert.ToHexString(request.Data.ToByteArray()).StartsWith("70A08231"))value[31]=5;
+                var result=new TransactionExtention{Result=new Return{Result=true}};result.ConstantResult.Add(ByteString.CopyFrom(value));return Task.FromResult(result);
+            })
+            .AddMethod(Rpc(Wallet.Descriptor.FullName,"TriggerContract",TriggerSmartContract.Parser,TransactionExtention.Parser),(TriggerSmartContract request,ServerCallContext context)=>{
+                constructions++;var approval=Convert.ToHexString(request.Data.ToByteArray()).StartsWith("095EA7B3");
+                if(!approval&&mode=="unavailable")throw new RpcException(new Status(StatusCode.Unavailable,"controlled escrow construction failure"));
+                if(!approval&&mode=="rejected")return Task.FromResult(new TransactionExtention{Result=new Return{Result=false}});
+                var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();var tx=new Transaction{RawData=new Transaction.Types.raw{Timestamp=now,Expiration=now+60000}};
+                var supplied=request.Clone();if(!approval&&mode=="changed")supplied.Data=ByteString.CopyFromUtf8("changed");
+                tx.RawData.Contract.Add(new Transaction.Types.Contract{Type=Transaction.Types.Contract.Types.ContractType.TriggerSmartContract,Parameter=Google.Protobuf.WellKnownTypes.Any.Pack(supplied)});
+                return Task.FromResult(new TransactionExtention{Transaction=tx,Result=new Return{Result=true}});
+            })
+            .AddMethod(Rpc(Wallet.Descriptor.FullName,"BroadcastTransaction",Transaction.Parser,Return.Parser),(Transaction request,ServerCallContext context)=>{
+                broadcasts++;Assert.Single(request.Signature);approvalId=ByteString.CopyFrom(SHA256.HashData(request.RawData.ToByteArray()));return Task.FromResult(new Return{Result=true});
+            })
+            .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetTransactionInfoById",BytesMessage.Parser,TransactionInfo.Parser),(BytesMessage request,ServerCallContext context)=>{
+                Assert.Equal(approvalId,request.Value);var word=new byte[32];word[31]=1;
+                var receipt=new TransactionInfo{Id=approvalId,BlockNumber=1,Receipt=new ResourceReceipt{Result=Transaction.Types.Result.Types.contractResult.Success}};
+                receipt.ContractResult.Add(ByteString.CopyFrom(word));return Task.FromResult(receipt);
+            }).Build();
+        var server=new Server{Services={service},Ports={new ServerPort("127.0.0.1",0,ServerCredentials.Insecure)}};server.Start();
+        try{
+            var port=server.Ports.Single().BoundPort;await using var runtime=new TronSdkRuntime(new Uri($"http://127.0.0.1:{port}"),new Uri($"http://127.0.0.1:{port}"),genesis);
+            var key=new string('0',63)+"1";var owner=new TronNet.TronECKey(key,TronNet.TronNetwork.MainNet).GetPublicAddress();
+            var contract=new TronNet.TronECKey(new string('0',63)+"2",TronNet.TronNetwork.MainNet).GetPublicAddress();
+            using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            var failure=await Assert.ThrowsAsync<TronEscrowReconciliationException>(()=>runtime.NativeTransfers.LockEscrowAsync(owner,contract,contract,key,deadline.Token));
+            Assert.Equal(Convert.ToHexString(approvalId.ToByteArray()).ToLowerInvariant(),failure.ApprovalTransactionId);
+            Assert.Null(failure.MutationTransactionId);Assert.Equal(failure.ApprovalTransactionId,failure.OriginalTransactionId);
+            Assert.True(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(failure));
+            if(mode=="unavailable")Assert.IsType<RpcException>(failure.InnerException);else Assert.IsType<InvalidOperationException>(failure.InnerException);
+            Assert.Equal(1,broadcasts);Assert.Equal(2,constructions);
+        }finally{await server.ShutdownAsync();}
+    }
+    [Theory]
     [InlineData("valid")] [InlineData("empty")] [InlineData("foreign")] [InlineData("unavailable")]
     public async Task AccountCreationReadbackFailurePreservesOneActualSdkSubmission(string mode)
     {
