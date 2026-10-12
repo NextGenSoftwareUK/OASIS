@@ -19,10 +19,11 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
         public readonly ConcurrentDictionary<string, string> Items = new();
         public bool Reachable = true;
         public bool ThrowReads;
+        public string FailPutKey;
 
         public Task<string> GetAsync(string key, CancellationToken ct = default) => ThrowReads
             ? throw new InvalidOperationException("store read unavailable") : Task.FromResult(Items.TryGetValue(key, out var v) ? v : null);
-        public Task PutAsync(string key, string value, CancellationToken ct = default) { Items[key] = value; return Task.CompletedTask; }
+        public Task PutAsync(string key, string value, CancellationToken ct = default) { if (key == FailPutKey) throw new InvalidOperationException("controlled write failure"); Items[key] = value; return Task.CompletedTask; }
         public Task DeleteAsync(string key, CancellationToken ct = default) { Items.TryRemove(key, out _); return Task.CompletedTask; }
         public Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken ct = default)
             => Task.FromResult<IReadOnlyList<string>>(Items.Keys.Where(k => k.StartsWith(prefix, StringComparison.Ordinal)).OrderBy(k => k).ToList());
@@ -42,6 +43,22 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
     [TestClass]
     public class KeyValueStorageProviderBaseTests
     {
+        [TestMethod]
+        public async Task Failed_reparent_record_write_preserves_previous_parent_index()
+        {
+            var originalParent = Guid.NewGuid();
+            var holon = new Holon { Id = Guid.NewGuid(), ParentHolonId = originalParent, Name = "before" };
+            Assert.IsFalse((await _provider.SaveHolonAsync(holon)).IsError);
+            var snapshot = _backend.Items.OrderBy(value => value.Key).ToArray();
+            _backend.FailPutKey = $"oasis/holon/{holon.Id:N}";
+            var replacement = new Holon { Id = holon.Id, ParentHolonId = Guid.NewGuid(), Name = "after" };
+            var failed = await _provider.SaveHolonAsync(replacement);
+            Assert.IsTrue(failed.IsError); StringAssert.Contains(failed.Message, "controlled write failure");
+            CollectionAssert.AreEqual(snapshot, _backend.Items.OrderBy(value => value.Key).ToArray());
+            var retained = await _provider.LoadHolonsForParentAsync(originalParent);
+            Assert.IsFalse(retained.IsError); Assert.AreEqual("before", retained.Result.Single().Name);
+        }
+
         [TestMethod]
         public async Task Metadata_queries_expand_only_matching_trees_not_unrelated_cycles()
         {
