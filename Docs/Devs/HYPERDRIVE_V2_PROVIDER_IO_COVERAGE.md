@@ -20,6 +20,12 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Cosmos live multi-send regression prepared, not executed (2026-10-12)
+
+Added `SdkBridge/test-local-multisend.mjs`, using installed official CosmJS against the fixed retained loopback `oasis-cosmos-local` chain only. It signs one MsgMultiSend with two outputs to the reusable recipient, checks exact bank delta/independent receipt, and asks the production bridge for sender/recipient history with both output indices and exact amounts. An exclusive journal intent is written before mutation; unknown or failed original attempts are never automatically resubmitted. Subsequent receipt-bearing runs are read-only history checks. No new SDK, wallet installation, node, download or ledger is created.
+
+Set `OASIS_COSMOS_MULTISEND_JOURNAL` to the fixed `TestResults/CosmosCurrent/multisend-journal.json` absolute path and run `node Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/SdkBridge/test-local-multisend.mjs` once the retained node can be resumed through the permitted execution path. Syntax check passed. **No live pass is claimed**: the last node-start/test command was policy-denied even after user approval, and this checkpoint did not bypass or retry that blocked execution using another shell. This test covers SDK history; C# output projection is separately covered by the 53 unit cases.
+
 ### Cosmos multi-send history projection/index integrity (2026-10-12)
 
 Added C# projection regression for two outputs sharing one native transaction and message: deterministic row IDs differ by output index but remain identical for debit/credit views; original native hash, exact units beyond JavaScript safe integer, and failed execution status are retained. Rejected negative message/output indices and nonzero output index for single-output MsgSend, which previously could produce invalid or colliding identities. Current complete Cosmos C# unit suite **53/53, zero skips**, `TestResults/CosmosCurrent/cosmos-unit-current.trx`; provider build zero errors/two warnings. These are synthetic indexed-row tests, not a live multi-send/node proof. Corrected live asset rerun and actual SDK/node multi-send history remain open; no runtime was restarted or ledger reset.
