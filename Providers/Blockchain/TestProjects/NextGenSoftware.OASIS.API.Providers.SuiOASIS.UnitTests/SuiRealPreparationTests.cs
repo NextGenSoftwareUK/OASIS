@@ -8,6 +8,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class SuiRealPreparationTests
 {
+    [DataTestMethod]
+    [DataRow("rpcEndpoint")] [DataRow("network")] [DataRow("chainId")]
+    public async Task OperationArgumentsCannotReplaceConfiguredNetwork(string field)
+    {
+        var type=typeof(SuiOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.SuiOASIS.SuiSdkClient")!;
+        var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+        using var client=(IDisposable)Activator.CreateInstance(type,flags,null,new object[]{"http://127.0.0.1:1","localnet","chain","key","package","storage","currency"},null)!;
+        object args=field=="rpcEndpoint"?new{rpcEndpoint="https://untrusted.invalid"}:field=="network"?new{network="mainnet"}:(object)new{chainId="replacement"};
+        var operation=(Task<JsonElement>)type.GetMethod("InvokeAsync",flags)!.Invoke(client,new[]{(object)"put",args,CancellationToken.None})!;
+        await Assert.ThrowsExceptionAsync<ArgumentException>(()=>operation);
+    }
     private sealed class OfflineAuthority(string user):HttpMessageHandler
     {
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
