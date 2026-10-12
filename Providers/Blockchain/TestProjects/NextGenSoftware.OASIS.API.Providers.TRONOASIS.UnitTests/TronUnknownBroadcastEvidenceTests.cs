@@ -12,6 +12,29 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public class TronUnknownBroadcastEvidenceTests
 {
+    [Theory]
+    [InlineData("empty")] [InlineData("unsupported")] [InlineData("wrong-owner")]
+    public async Task ActualSignedContractMustEstablishTrustedOperationOwner(string mode)
+    {
+        await using var runtime=new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),new Uri("http://127.0.0.1:50052"),new string('a',64));
+        var flags=BindingFlags.Instance|BindingFlags.NonPublic;
+        var signer=(ITransactionClient)typeof(TronNativeTransferClient).GetField("_transactions",flags)!.GetValue(runtime.NativeTransfers)!;
+        var sender=new byte[21];sender[0]=0x41;
+        new Nethereum.Signer.EthECKey(new string('0',63)+"1").GetPublicAddressAsBytes().CopyTo(sender,1);
+        var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var transaction=new Transaction{RawData=new Transaction.Types.raw{Timestamp=now,Expiration=now+60000}};
+        if(mode!="empty"){
+            var owner=(byte[])sender.Clone();if(mode=="wrong-owner")owner[1]^=1;
+            transaction.RawData.Contract.Add(new Transaction.Types.Contract{
+                Type=mode=="unsupported"?(Transaction.Types.Contract.Types.ContractType)999:Transaction.Types.Contract.Types.ContractType.TransferContract,
+                Parameter=Google.Protobuf.WellKnownTypes.Any.Pack(new TransferContract{OwnerAddress=ByteString.CopyFrom(owner),ToAddress=ByteString.CopyFrom(sender),Amount=1})
+            });
+        }
+        var signed=signer.GetTransactionSign(transaction,new string('0',63)+"1");
+        var id=Convert.ToHexString(SHA256.HashData(signed.RawData.ToByteArray())).ToLowerInvariant();
+        var error=Assert.Throws<System.IO.InvalidDataException>(()=>TronPreparationVerifier.VerifyOriginal(Convert.ToBase64String(signed.ToByteArray()),id,sender));
+        Assert.Contains(mode=="empty"?"One original":mode=="unsupported"?"not supported":"owner differs",error.Message);
+    }
     [Fact]
     public async Task PreparedRuntimeViewReusesExistingSdkServicesWithoutChangingOrdinaryClient()
     {
