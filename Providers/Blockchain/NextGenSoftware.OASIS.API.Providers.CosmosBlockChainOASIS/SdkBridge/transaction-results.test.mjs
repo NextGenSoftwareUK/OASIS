@@ -1,11 +1,35 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, bankTransferLegs, cosmosFailureMessage } from './transaction-results.mjs';
+import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, verifiedNftCustodyReceipt, bankTransferLegs, cosmosFailureMessage } from './transaction-results.mjs';
+import { wasmTypes } from '@cosmjs/cosmwasm';
 import { Registry } from '@cosmjs/proto-signing';
 import { defaultRegistryTypes } from '@cosmjs/stargate';
 import { toBech32 } from '@cosmjs/encoding';
 import { TimeoutError } from '@cosmjs/stargate';
 const hash = 'ab'.repeat(32);
+test('custody proof binds exact successful receipt, collection, token and pool', () => {
+  const registry = new Registry([...defaultRegistryTypes, ...wasmTypes]);
+  const expected = { transactionHash: hash, contractAddress: 'collection', tokenId: 'token', custody: 'pool' };
+  const message = { typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract', value: {
+    sender: 'owner', contract: 'collection', msg: new TextEncoder().encode(JSON.stringify({ nft_transfer: { token_id: 'token', recipient: 'pool' } })), funds: [],
+  } };
+  function receipt(messages) {
+    const body = registry.encodeTxBody({ messages, memo: '' });
+    let length = body.length;
+    const size = [];
+    do { const byte = length & 127; length >>>= 7; size.push(byte | (length ? 128 : 0)); } while (length);
+    // TxRaw fixture: official encoded TxBody plus empty AuthInfo; no signing or broadcast.
+    return { hash, code: 0, height: 42, tx: Uint8Array.from([10, ...size, ...body, 18, 0]) };
+  }
+  const tx = receipt([message]);
+  assert.equal(verifiedNftCustodyReceipt(tx, expected, registry), tx);
+  for (const field of ['contractAddress', 'tokenId', 'custody', 'transactionHash'])
+    assert.throws(() => verifiedNftCustodyReceipt(tx, { ...expected, [field]: 'other' }, registry));
+  assert.throws(() => verifiedNftCustodyReceipt({ ...tx, code: 5 }, expected, registry));
+  assert.throws(() => verifiedNftCustodyReceipt(null, expected, registry));
+  assert.throws(() => verifiedNftCustodyReceipt(receipt([message, message]), expected, registry));
+  assert.throws(() => verifiedNftCustodyReceipt(receipt([{ ...message, value: { ...message.value, sender: 'pool' } }]), expected, registry));
+});
 test('official protobuf multi-send decoding preserves each actual output and exact units', () => {
   const registry = new Registry(defaultRegistryTypes);
   const typeUrl = '/cosmos.bank.v1beta1.MsgMultiSend';

@@ -2,6 +2,13 @@
 let input='';for await(const chunk of process.stdin)input+=chunk;const request=JSON.parse(input);
 let result,error;
 if(request.operation==='restoreKey')result={publicKey:'fixture-public',address:'fixture-owner'};
+else if(request.operation==='verifyNftCustodyReceipt'){
+ if(request.contractAddress!=='fixture-contract'||request.tokenId!=='fixture-token'||request.custody!=='fixture-owner')
+  error='Custody selectors were not forwarded';
+ else if(request.transactionHash==='a'.repeat(64))result={verified:true,transactionHash:request.transactionHash};
+ else if(request.transactionHash==='b'.repeat(64))result={verified:true,transactionHash:'a'.repeat(64)};
+ else error='Source custody transfer not found';
+}
 else if(request.operation==='execute'){
  const mint=request.message?.asset?.message?.nft_mint;
  const burn=request.message?.asset?.message?.nft_burn??request.message?.asset?.message?.token_burn;
