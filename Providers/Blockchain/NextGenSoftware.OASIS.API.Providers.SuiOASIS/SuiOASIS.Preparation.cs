@@ -10,6 +10,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS;
 
 public partial class SuiOASIS
 {
+    /// <summary>Explicit admitted native invocation; caller must supply trusted operation/chain/signer context.</summary>
+    public async Task<JsonElement> ExecutePreparedNativeAsync(string operation, object args, UsageExecutionHandle execution,
+        string clientRequestId, string expectedChainId, string expectedSender, CancellationToken token = default)
+    {
+        token.ThrowIfCancellationRequested();
+        using var server = CreateNativePreparationServer(execution, clientRequestId, expectedChainId, expectedSender);
+        return await ((SuiStorageBackend)Backend).Client.InvokePreparedAsync(operation, args, server, token);
+    }
+
     public PreparedSubmissionServer CreateNativePreparationServer(UsageExecutionHandle execution,
         string clientRequestId, string expectedChainId, string expectedSender)
     {

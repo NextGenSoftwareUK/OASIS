@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Explicit Sui execution-owned prepared provider operation — 2026-10-12
+
+`SuiOASIS.ExecutePreparedNativeAsync` now connects an explicitly supplied execution and trusted chain/signer/correlation to the server factory and canonical gated SDK process. This is a library entry point, not a new HTTP route or automatic switch for existing operations. Pre-cancelled/missing-execution tests reject before provider activation/child launch. Build passed 0 errors/warnings; focused entry test **1/1**, zero skips, report `TestResults/SuiCurrent/sui-prepared-entry.trx`.
+
+Caller must obtain proper native-operation admission; an arbitrary existing usage handle is not proof of sponsored-fee permission. Positive actual signed/provider/pipe/outbox integration, crash recovery, billing and deployed routes remain required before replacing current submissions or removing restrictions. No installation, native submission or release merge.
+
 ### Sui prepared process acceptance/rejection lifecycle — 2026-10-12
 
 Added controlled child modes using the actual packaged preparation transport. Explicit prepared invocation accepts native success only after one parent callback/ack; callback rejection propagates the original parent exception, without replacing it with the child's generic error. Combined lifecycle cases **3/3**, zero skips, report `TestResults/SuiCurrent/sui-prepared-process.trx`, also retaining no-ack success rejection. Actual local IPC is used, but signed descriptor/native success and persistence callback are controlled; this is not real SDK execution or database durability through this lifecycle.
