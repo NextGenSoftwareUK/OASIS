@@ -43,6 +43,62 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
 
         // ── GET /api/subscription/plans — public endpoint ────────────────────
 
+        [Fact]
+        public async Task HyperDriveReadRoutesAcceptRealJwtAfterV2PersistedAvatarLookup()
+        {
+            var directory = new System.IO.DirectoryInfo(AppContext.BaseDirectory);
+            while (directory != null && !System.IO.File.Exists(System.IO.Path.Combine(directory.FullName,"Scripts","verify_hyperdrive_v2_operation_contracts.ps1"))) directory=directory.Parent;
+            directory.Should().NotBeNull();
+            var root=System.IO.Path.Combine(directory!.FullName,"TestResults","Web4Current","JwtAvatar");
+            System.IO.Directory.CreateDirectory(root);
+            using var lease=new System.IO.FileStream(System.IO.Path.Combine(root,"store.lock"),System.IO.FileMode.OpenOrCreate,System.IO.FileAccess.ReadWrite,System.IO.FileShare.None);
+            var local=new NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.LocalFileOASIS(storageDirectory:System.IO.Path.Combine(root,"files"));
+            const string secret="public-test-only-signing-key-0123456789012345678901234567890123456789";
+            var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA();
+            dna.OASIS.HyperDriveMode=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2;
+            dna.OASIS.StorageProviders=new NextGenSoftware.OASIS.API.DNA.StorageProviderSettings();
+            dna.OASIS.Security=new NextGenSoftware.OASIS.API.DNA.SecuritySettings {SecretKey=secret};
+            var providers=new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null,dna)
+                {IsAutoFailOverEnabled=false,IsAutoReplicationEnabled=false,IsAutoLoadBalanceEnabled=false};
+            providers.RegisterProvider(local);
+            providers.SetAndActivateCurrentStorageProvider(local).IsError.Should().BeFalse();
+            var avatar=new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=Guid.Parse("d9b133dc-4a57-4fa1-9bba-8d123ea580a3"),Username="jwt-http-local-avatar",Email="jwt-http@example.invalid"};
+            var managerField=typeof(Program).GetField("_avatarManager",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!;
+            var priorManager=managerField.GetValue(null);
+            var priorDna=NextGenSoftware.OASIS.OASISBootLoader.OASISBootLoader.OASISDNA;
+            try
+            {
+                (await local.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+                var constructor=typeof(NextGenSoftware.OASIS.API.Core.Managers.AvatarManager).GetConstructors(System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)
+                    .Single(item=>item.GetParameters().Length==3);
+                managerField.SetValue(null,constructor.Invoke(new object[] {local,dna,providers}));
+                NextGenSoftware.OASIS.OASISBootLoader.OASISBootLoader.OASISDNA=dna;
+                var claims=new[] {new Claim("sub",avatar.Id.ToString()),new Claim("id",avatar.Id.ToString())};
+                var token=new System.IdentityModel.Tokens.Jwt.JwtSecurityToken("OASIS","OASIS",claims,DateTime.UtcNow.AddMinutes(-1),DateTime.UtcNow.AddMinutes(5),
+                    new Microsoft.IdentityModel.Tokens.SigningCredentials(new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(Encoding.ASCII.GetBytes(secret)),Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha256));
+                var encoded=new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().WriteToken(token);
+                foreach(var route in new[] {"mode","config","status"})
+                {
+                    var before=providers.PerformanceMonitor.GetMetrics(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.LocalFileOASIS)?.TotalRequests??0;
+                    using var request=new HttpRequestMessage(HttpMethod.Get,"/api/hyperdrive/"+route);
+                    request.Headers.Authorization=new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer",encoded);
+                    var response=await _client.SendAsync(request);
+                    response.StatusCode.Should().Be(HttpStatusCode.OK);
+                    providers.PerformanceMonitor.GetMetrics(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.LocalFileOASIS).TotalRequests.Should().Be(before+1);
+                    var body=JsonSerializer.Deserialize<NextGenSoftware.OASIS.Common.OASISResult<JsonElement>>(
+                        await response.Content.ReadAsStringAsync(),new JsonSerializerOptions {PropertyNameCaseInsensitive=true});
+                    body.Should().NotBeNull();body!.IsError.Should().BeFalse(body.Message);
+                }
+            }
+            finally
+            {
+                managerField.SetValue(null,priorManager);
+                NextGenSoftware.OASIS.OASISBootLoader.OASISBootLoader.OASISDNA=priorDna;
+                (await local.DeleteAvatarAsync(avatar.Id,softDelete:false)).IsError.Should().BeFalse();
+                await local.DeActivateProviderAsync();
+            }
+        }
+
         [Theory]
         [InlineData("Bearer not-a-jwt")]
         [InlineData("Basic invalid")]
