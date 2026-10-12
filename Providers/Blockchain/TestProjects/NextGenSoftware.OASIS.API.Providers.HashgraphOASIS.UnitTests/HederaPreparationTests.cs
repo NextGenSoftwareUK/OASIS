@@ -10,6 +10,7 @@ public class HederaPreparationTests
 {
     [DataTestMethod]
     [DataRow("accept")] [DataRow("reject")] [DataRow("wrong")] [DataRow("hold")]
+    [DataRow("no-ack")] [DataRow("bad-utf8")] [DataRow("bad-json")]
     public async Task PreparedChildLifecycle(string mode)
     {
         var previous=Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE");
@@ -23,11 +24,14 @@ public class HederaPreparationTests
             const string original="0.0.1001@1700000000.000000001";
             var operation=(Task<JsonElement>)method.Invoke(null,new object[]{"transfer",new{transactionId=original,mode},server,cancellation.Token})!;
             if(mode=="reject")Assert.AreSame(failure,await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>operation));
-            else if(mode=="wrong")await Assert.ThrowsExceptionAsync<HederaNativeMutationReconciliationException>(()=>operation);
+            else if(mode=="wrong"||mode=="no-ack"||mode=="bad-utf8"||mode=="bad-json"){
+                var error=await Assert.ThrowsExceptionAsync<HederaNativeMutationReconciliationException>(()=>operation);
+                Assert.AreEqual(original,error.OriginalTransactionId);
+            }
             else if(mode=="hold"){
                 var error=await Assert.ThrowsExceptionAsync<HederaNativeMutationCanceledException>(()=>operation);Assert.AreEqual(cancellation.Token,error.CancellationToken);
             }else Assert.AreEqual(original,(await operation).GetProperty("transactionId").GetString());
-            Assert.AreEqual(1,calls);
+            Assert.AreEqual(mode=="no-ack"?0:1,calls);
         }finally{Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",previous);}
     }
     [TestMethod]
