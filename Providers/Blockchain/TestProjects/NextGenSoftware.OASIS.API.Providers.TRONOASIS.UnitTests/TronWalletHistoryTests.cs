@@ -9,6 +9,26 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 public sealed class TronWalletHistoryTests
 {
     [Fact]
+    public void PermissionUpdateMapsOwnerWithoutInventingTransferredFunds()
+    {
+        var bytes = new byte[21]; bytes[0] = 0x41; bytes[20] = 7;
+        var owner = ByteString.CopyFrom(bytes);
+        var transaction = new Transaction { RawData = new Transaction.Types.raw { Timestamp = 1700000000000 } };
+        transaction.RawData.Contract.Add(new Transaction.Types.Contract {
+            Type = Transaction.Types.Contract.Types.ContractType.AccountPermissionUpdateContract,
+            Parameter = Any.Pack(new AccountPermissionUpdateContract { OwnerAddress = owner }) });
+        var receipt = new TransactionInfo { Id = ByteString.CopyFrom(new byte[32]) };
+        var method = typeof(TronNativeTransferClient).GetMethod("MapWalletTransaction", BindingFlags.NonPublic | BindingFlags.Static)!;
+        var mapped = (NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses.IWalletTransaction)method.Invoke(null, new object[] { transaction, receipt, owner })!;
+        Assert.Equal("AccountPermissionUpdateContract", mapped.NativeOperation);
+        Assert.Equal(mapped.FromWalletAddress, mapped.ToWalletAddress);
+        Assert.Equal("0", mapped.RawAmount); Assert.Equal(0d, mapped.Amount);
+        Assert.Equal("Success", mapped.NativeExecutionResult);
+        bytes[20] = 8;
+        Assert.Throws<TargetInvocationException>(() => method.Invoke(null, new object[] { transaction, receipt, ByteString.CopyFrom(bytes) }));
+    }
+
+    [Fact]
     public void AccountUpdateMapsOwnerWithoutInventingTransferredFunds()
     {
         var bytes = new byte[21]; bytes[0] = 0x41; bytes[20] = 7;
