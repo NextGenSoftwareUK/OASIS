@@ -30,5 +30,8 @@ $assemblies = @(Get-ChildItem -LiteralPath (Join-Path $public 'Runtime') -Recurs
 if (-not @($assemblies | Where-Object Name -eq 'NextGenSoftware.OASIS.Edge.Runtime.dll').Count) {
     throw 'Edge Runtime assembly is missing from the installable payload.'
 }
+if (-not @($assemblies | Where-Object Name -eq 'NextGenSoftware.OGEngine.Client.Edge.dll').Count) {
+    throw 'The Unity distribution requires the bundled OGEngineClient Edge assembly.'
+}
 Compress-Archive -Path "$public/*" -DestinationPath $OutputPath -Force
 Write-Host "Runtime-only archive: $OutputPath; assemblies: $($assemblies.Count)"
