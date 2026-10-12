@@ -5381,6 +5381,40 @@ public sealed class HyperDriveProviderExecutionTests
     }
 
     [Theory]
+    [InlineData(false, false)] [InlineData(false, true)]
+    [InlineData(true, false)] [InlineData(true, true)]
+    public async Task ConfiguredFailoverSkipsForbiddenAlternatesBeforeActivation(bool healthyAlternate, bool asynchronous)
+    {
+        var id = Guid.NewGuid();
+        var primary = CreateActiveProvider(ProviderType.LocalFileOASIS, "failed-local");
+        var forbidden = CreateActiveProvider(ProviderType.SuiOASIS, "forbidden-chain");
+        forbidden.Object.IsProviderActivated = false;
+        var healthy = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "permitted-sqlite");
+        primary.Setup(x => x.LoadAvatar(id, 0)).Returns(new OASISResult<IAvatar> { IsError = true, Message = "controlled outage" });
+        primary.Setup(x => x.LoadAvatarAsync(id, 0)).ReturnsAsync(new OASISResult<IAvatar> { IsError = true, Message = "controlled outage" });
+        healthy.Setup(x => x.LoadAvatar(id, 0)).Returns(new OASISResult<IAvatar>(new Avatar { Id = id }));
+        healthy.Setup(x => x.LoadAvatarAsync(id, 0)).ReturnsAsync(new OASISResult<IAvatar>(new Avatar { Id = id }));
+        var dna = CreateDna(HyperDriveModes.V2); dna.OASIS.SubscriptionConfig.PlanType = "Free";
+        var manager = new ProviderManager(null, dna) { IsAutoFailOverEnabled = true, IsAutoLoadBalanceEnabled = false };
+        foreach (var provider in new[] { primary, forbidden, healthy }) manager.RegisterProvider(provider.Object);
+        var alternates = new List<EnumValue<ProviderType>> { new(ProviderType.SuiOASIS) };
+        if (healthyAlternate) alternates.Add(new(ProviderType.SQLLiteDBOASIS));
+        manager.SetAndReplaceAutoFailOverListForProviders(alternates).IsError.Should().BeFalse();
+        var router = new OASISHyperDrive(manager);
+        var request = new StorageOperationRequest { Operation = "LoadAvatar", AvatarId = id, PreferredProvider = ProviderType.LocalFileOASIS };
+        var result = asynchronous ? await router.RouteRequestAsync<IAvatar>(request) : router.RouteRequest<IAvatar>(request);
+        result.IsError.Should().Be(!healthyAlternate, result.Message);
+        if (healthyAlternate) result.Result.Id.Should().Be(id);
+        else result.Message.Should().Contain("excluded by subscription policy");
+        forbidden.Verify(x => x.ActivateProvider(), Times.Never);
+        forbidden.Verify(x => x.ActivateProviderAsync(), Times.Never);
+        forbidden.Verify(x => x.LoadAvatar(It.IsAny<Guid>(), It.IsAny<int>()), Times.Never);
+        forbidden.Verify(x => x.LoadAvatarAsync(It.IsAny<Guid>(), It.IsAny<int>()), Times.Never);
+        router.LastFailoverDiagnostic.Attempts.Select(x => x.Provider).Should().NotContain(ProviderType.SuiOASIS);
+        manager.GetProviderAutoFailOverList().Select(x => x.Value).Should().Equal(alternates.Select(x => x.Value));
+    }
+
+    [Theory]
     [InlineData(false, false)]
     [InlineData(false, true)]
     [InlineData(true, false)]

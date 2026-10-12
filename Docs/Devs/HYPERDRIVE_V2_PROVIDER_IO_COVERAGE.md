@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Automatic failover excludes forbidden alternates before provider I/O (2026-10-12)
+
+Core `d23403c7ab74c5ceb1f9d27903d5dd6e8aee3f72` checks configured alternate admission in both sync/async automatic failover before lookup/activation/routing. Forbidden providers are skipped without being fabricated as executed diagnostic attempts; exhausted failure text preserves policy exclusions. Allowed alternates retain existing outage/absence semantics and normal diagnostics. Configured global lists are not changed; no retry-until-allowed, entitlement widening or silent success. Explicit failover-request and replication admission still require their own repair/audit, as does authoritative authenticated billing.
+
+Four controlled cases cover sync/async permitted-alternate success and forbidden-only exhaustion under explicit Free test DNA: inactive forbidden Sui never activates/reads, healthy SQLite is eligible, denied providers do not appear as executed attempts and configured list remains unchanged. Full Core **398/398, zero skips**, `TestResults/CoreCurrent/core-current.trx`, build zero errors/254 warnings. Existing task Core branch pushed; parent gitlink/dependency manifest advanced together. No runtimes/downloads/new environment or funded transactions. Actual provider outage tests must be refreshed under explicit intended policy; old Free-default chain-access fixtures cannot be treated as admission proof. Full goal/release gates remain open.
+
 ### Predictive redirects validate admission before activation or I/O (2026-10-12)
 
 Fixed predictive target admission in Core `12f7a4de09ab5b5c894623885959e2c450dfc569`: sync/async routing checks the redirected provider under existing DNA plan admission before applying override, provider lookup/activation or operation execution. Forbidden prediction produces terminal `HYPERDRIVE_SUBSCRIPTION_PROVIDER_DENIED`; `ShouldFailOver` does not treat policy denial as transient provider failure. No silent retry, global list mutation or original-provider fallback on denial. This does not change explicit original-provider semantics or complete automatic/explicit replication and configured-alternate admission; those remain open.
