@@ -12,6 +12,44 @@ public sealed class TronLocalSdkTests
     private static readonly string RecipientKey = new string('0', 63) + "2";
 
     [Fact]
+    public async Task NativeBridgePoolRoundTripCommitsActualTransfersAndReceipts()
+    {
+        using var bounded = new CancellationTokenSource(TimeSpan.FromSeconds(110));
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null && !File.Exists(Path.Combine(directory.FullName,"Scripts/TestHosts/Use-ReusableTronRuntime.ps1"))) directory=directory.Parent;
+        Assert.NotNull(directory);
+        var root = Path.Combine(directory!.FullName,"TestResults/TronRuntime");
+        using var lease = new FileStream(Path.Combine(root,"bridge.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+        var contract = (await File.ReadAllTextAsync(Path.Combine(root,"local-store-address.txt"))).Trim();
+        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),new Uri("http://127.0.0.1:50052"),Genesis,contractFeeLimitSun:1000000000);
+        var sender = new TronECKey(SenderKey,TronNetwork.MainNet).GetPublicAddress();
+        var pool = new TronECKey(RecipientKey,TronNetwork.MainNet).GetPublicAddress();
+        using var backend = new TronPrivateStorageBackend(runtime.NativeTransfers,sender,contract,()=>SenderKey,
+            ()=>System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes("public reusable local TRON encryption fixture")));
+        var keyReads = 0;
+        var provider = new TRONOASIS(rpcEndpoint:"http://127.0.0.1:9090",nativeTransfers:runtime.NativeTransfers,storageBackend:backend,
+            bridgePoolWalletAddress:pool,nativeSigningKeyResolver:address => { Assert.Equal(pool,address); keyReads++; return Task.FromResult(RecipientKey); });
+        try
+        {
+            var poolBefore = await runtime.NativeTransfers.GetNativeBalanceAsync(pool,bounded.Token);
+            var withdrawn = await provider.WithdrawAsync(0.001m,sender,SenderKey);
+            Assert.False(withdrawn.IsError,withdrawn.Message); Assert.True(withdrawn.Result.IsSuccessful);
+            Assert.Equal(0.001m,(await runtime.NativeTransfers.GetNativeBalanceAsync(pool,bounded.Token))-poolBefore);
+            Assert.Equal(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,
+                await runtime.NativeTransfers.GetTransactionStatusAsync(withdrawn.Result.TransactionId,bounded.Token));
+            Assert.Equal(0,keyReads);
+            var senderBefore = await runtime.NativeTransfers.GetNativeBalanceAsync(sender,bounded.Token);
+            var deposited = await provider.DepositAsync(0.001m,sender);
+            Assert.False(deposited.IsError,deposited.Message); Assert.True(deposited.Result.IsSuccessful);
+            Assert.Equal(0.001m,(await runtime.NativeTransfers.GetNativeBalanceAsync(sender,bounded.Token))-senderBefore);
+            Assert.Equal(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,
+                await runtime.NativeTransfers.GetTransactionStatusAsync(deposited.Result.TransactionId,bounded.Token));
+            Assert.Equal(1,keyReads);
+        }
+        finally { Assert.False((await provider.DeActivateProviderAsync()).IsError); }
+    }
+
+    [Fact]
     public async Task RealStorageListsPreserveHistoryAndRejectedRenameIndexes()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
