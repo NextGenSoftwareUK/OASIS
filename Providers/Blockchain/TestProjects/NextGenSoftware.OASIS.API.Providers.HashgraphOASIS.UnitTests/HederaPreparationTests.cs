@@ -8,6 +8,28 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class HederaPreparationTests
 {
+    [DataTestMethod]
+    [DataRow("accept")] [DataRow("reject")] [DataRow("wrong")] [DataRow("hold")]
+    public async Task PreparedChildLifecycle(string mode)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","prepared.mjs"));
+        try{
+            var client=typeof(HashgraphOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.HederaSdkClient")!;
+            var method=client.GetMethod("InvokePreparedAsync",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!;
+            var calls=0;var failure=new InvalidOperationException("controlled parent persistence rejection");
+            using var server=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer((_,_)=>{calls++;return mode=="reject"?Task.FromException(failure):Task.CompletedTask;});
+            using var cancellation=new CancellationTokenSource();if(mode=="hold")cancellation.CancelAfter(1000);
+            const string original="0.0.1001@1700000000.000000001";
+            var operation=(Task<JsonElement>)method.Invoke(null,new object[]{"transfer",new{transactionId=original,mode},server,cancellation.Token})!;
+            if(mode=="reject")Assert.AreSame(failure,await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>operation));
+            else if(mode=="wrong")await Assert.ThrowsExceptionAsync<HederaNativeMutationReconciliationException>(()=>operation);
+            else if(mode=="hold"){
+                var error=await Assert.ThrowsExceptionAsync<HederaNativeMutationCanceledException>(()=>operation);Assert.AreEqual(cancellation.Token,error.CancellationToken);
+            }else Assert.AreEqual(original,(await operation).GetProperty("transactionId").GetString());
+            Assert.AreEqual(1,calls);
+        }finally{Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",previous);}
+    }
     [TestMethod]
     public async Task PreparedSdkRejectsReadonlyAndEscrowBeforeParentPersistence()
     {
