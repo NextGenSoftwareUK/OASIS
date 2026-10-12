@@ -143,6 +143,10 @@ internal sealed class SuiSdkClient : IDisposable
                 || !payload.TryGetProperty("transactionHash", out var hash) || hash.ValueKind != JsonValueKind.String
                 || !IsValidDigest(hash.GetString())))
                 throw InvalidEnvelope(true, "Sui SDK mutation result lacks transaction identity; native outcome is not established.");
+            if (preparationServer?.PreparedTransactionId != null
+                && payload.GetProperty("transactionHash").GetString() != preparationServer.PreparedTransactionId)
+                throw new SuiNativeMutationReconciliationException("Sui reply does not match the durably prepared original identity; reconcile before retrying.",
+                    preparationServer.PreparedTransactionId, null);
             return payload.Clone();
         }
         catch (OperationCanceledException ex)

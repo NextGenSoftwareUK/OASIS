@@ -7,8 +7,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 public class SuiUnlockReadbackFailureTests
 {
     [DataTestMethod]
-    [DataRow(false)] [DataRow(true)]
-    public async Task PreparedProcessWaitsForParentAndRetainsPersistenceRejection(bool reject)
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)]
+    public async Task PreparedProcessWaitsForParentAndRetainsPersistenceRejection(bool reject,bool wrongId)
     {
         await WithProcessFixture(async provider=>{
             var backend=typeof(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase)
@@ -20,8 +20,12 @@ public class SuiUnlockReadbackFailureTests
                 return reject?Task.FromException(failure):Task.CompletedTask;
             });
             var operation=(Task<System.Text.Json.JsonElement>)client.GetType().GetMethod("InvokePreparedAsync",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!
-                .Invoke(client,new object[]{"put",new{mode="prepared"},server,CancellationToken.None})!;
+                .Invoke(client,new object[]{"put",new{mode=wrongId?"prepared-wrong-id":"prepared"},server,CancellationToken.None})!;
             if(reject)Assert.AreSame(failure,await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>operation));
+            else if(wrongId) {
+                var mismatch=await Assert.ThrowsExceptionAsync<SuiNativeMutationReconciliationException>(()=>operation);
+                Assert.AreEqual(new string('1',32),mismatch.OriginalTransactionId);Assert.IsNull(mismatch.ExecutionSucceeded);
+            }
             else Assert.AreEqual(new string('1',32),(await operation).GetProperty("transactionHash").GetString());
             Assert.AreEqual(1,calls);
         });
