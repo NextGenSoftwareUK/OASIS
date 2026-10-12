@@ -54,6 +54,8 @@ This packs/uploads the nine Edge libraries, not the GitHub Edge bundle. It exclu
 
 ## Edge component entry workflow
 
+Both the global and artifact-only Edge publication paths upload only `OASIS.Edge.Runtime.vX.Y.Z.zip` as the user-facing asset. Package candidates, reports, logs and provenance remain inside the bundle and hosted workflow artifacts, rather than appearing as dozens of separate release downloads. GitHub's automatic source-code downloads are separate and cannot be removed through the release asset list.
+
 **Release — OASIS Edge Runtime** normally takes:
 
 - `operation`: `Preview` or `Publish`.

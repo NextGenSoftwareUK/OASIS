@@ -329,8 +329,8 @@ jobs:
         run: |
           $tag = 'OASIS-Edge-Runtime-v${{ needs.plan.outputs.edge_version }}'
           $notes = Resolve-Path -LiteralPath 'artifacts/global-release-edge-runtime/edge-runtime-release/RELEASE_NOTES.md'
-          $assets = @((Get-ChildItem -LiteralPath 'artifacts/global-release-edge-runtime/edge-runtime-release' -File).FullName)
-          $assets += (Resolve-Path -LiteralPath 'artifacts/global-release-edge-runtime/OASIS.Edge.Runtime.v${{ needs.plan.outputs.edge_version }}.zip').Path
+          # Publish one user-facing bundle; reports and package evidence remain inside it.
+          $assets = @((Resolve-Path -LiteralPath 'artifacts/global-release-edge-runtime/OASIS.Edge.Runtime.v${{ needs.plan.outputs.edge_version }}.zip').Path)
           gh release create $tag @assets --title 'OASIS Edge Runtime v${{ needs.plan.outputs.edge_version }}' --notes-file $notes --verify-tag=false
 
   runtime-assets:
