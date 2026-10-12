@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### NFT recipient-ID resolution no longer selects mint actor or arbitrary wallet (2026-10-12)
+
+ONODE `0d292358d54e35c431ceeb6f2e0b7bef55d2732d` fixes the manager branch that previously loaded `MintedByAvatarId` while resolving `SendToAvatarAfterMintingId`. It now reuses Core WalletManager's explicit default-wallet lookup for the **recipient** and chosen provider, without requesting secrets. A missing default, absent/blank address or failed lookup fails rather than selecting the first wallet. Four helper regressions verify the actual passed recipient/provider, distinct unchanged actor/recipient IDs and rejection conditions. Full ONODE Core **233/233, zero skips**, `onode-unit-current.trx`; library build zero errors/154 warnings. First test-project build had a test-only namespace error, corrected before the passing full run. These are controlled lookup tests, not live avatar-wallet persistence or positive JWT mint proof. Multiple simultaneous recipient selectors still need an agreement audit; no on-chain transaction submitted.
+
 ### Native Cosmos/Hedera NFT models can pass manager standard selection (2026-10-12)
 
 Audit found an actual shared API gap: the manager always supplied an NFT standard, while Cosmos/Hedera providers rejected every supplied enum value. Core `61c98c5f0c6357c63d6350dfcc98fdcfea43e31b` appends `HederaHTS=4` and `OASISCosmWasm=5`, preserving values 0–3. The latter explicitly means the deployed OASIS custom asset ABI, **not** CW721 interoperability. ONODE `e146f782289a46eaef4beee46322303a703fd791` requires exact model/provider agreement, rejects foreign selections, and reuses existing single-NFT presentation metadata JSON for native models (also fixes empty generated Sui JSON). Providers accept only their native selection when supplied and label returned minted NFT objects accurately. Omitted direct-provider selections remain supported; WEB4 request strings are `HederaHTS`/`OASISCosmWasm`.
