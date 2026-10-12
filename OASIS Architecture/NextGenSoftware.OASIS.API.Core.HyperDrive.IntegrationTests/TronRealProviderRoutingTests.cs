@@ -30,6 +30,8 @@ public sealed class TronRealProviderRoutingTests
         var root = Path.Combine(directory!.FullName, "TestResults/HyperDriveTron");
         Directory.CreateDirectory(root);
         using var lease = new FileStream(Path.Combine(root, "store.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        if (File.Exists(Path.Combine(root, "pending-native-outcome.json")))
+            throw new InvalidOperationException("Retained TRON transaction outcome requires reconciliation before another mutation test. See pending-native-outcome.json.");
         var contract = (await File.ReadAllTextAsync(Path.Combine(directory.FullName, "TestResults/TronRuntime/local-store-address.txt"))).Trim();
         var key = new string('0', 63) + "1"; // Public local fixture, never a public-chain key.
         await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"), new Uri("http://127.0.0.1:50052"),
@@ -42,7 +44,8 @@ public sealed class TronRealProviderRoutingTests
         activation.IsError.Should().BeFalse(activation.Message);
         (await local.ActivateProviderAsync()).IsError.Should().BeFalse();
         var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
-            { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
+            { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings(),
+                SubscriptionConfig = new SubscriptionConfig { PlanType = "Gold" } } };
         var manager = new ProviderManager(null, dna)
             { IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = true, IsAutoLoadBalanceEnabled = false };
         manager.RegisterProvider(local); manager.RegisterProvider(tron);
