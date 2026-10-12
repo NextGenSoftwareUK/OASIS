@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos awaited preparation persistence boundary — 2026-10-12
+
+The SDK signing guard accepts an explicit awaited preparation-persistence callback before native broadcast. Persistence rejection prevents broadcast and remains a pre-submission error, not a fabricated native outcome. Signed bytes are snapshotted before the await, so caller mutation cannot change the bytes bound to the persisted digest. Controlled ordering/failure/mutation cases pass in the retained SDK suite **48/48**, zero skips/todos.
+
+This is the SDK boundary component only: existing callers do not yet provide a durable callback, and there is no C# process handshake, authenticated operation/chain/payer binding or outbox connection yet. Do not claim crash-safe journaling or remove minting restrictions. Those integrations remain required, along with live/deployed gates. No new persistence store, download or ledger mutation was added.
+
 ### Summary reconciliation — 2026-10-12
 
 The top matrix now distinguishes current scoped reports from historical live Cosmos evidence and no longer advertises obsolete Hedera/TRON/SDK counts. Older chronological checkpoints below remain historical evidence only. The unresolved critical path is durable SDK-to-outbox preparation acknowledgement before native submission, authenticated WEB4 native-fee reservation/measurement/settlement, Cosmos permitted runtime verification, TRON original-outcome reconciliation/stability, funded Hedera storage/NFT/orchestration, and complete deployed interface/options proof. Narrow successes do not authorize merge or goal completion.
