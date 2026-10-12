@@ -14,19 +14,22 @@ public class PreparedSubmissionServerTests
 {
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
-    public async Task OrderedStagesPersistIndividuallyAndRejectReplacement(bool replaceSecond)
+    [DataRow(false,true)] [DataRow(false,true,true)] [DataRow(true,true)]
+    public async Task OrderedStagesPersistIndividuallyAndRejectReplacement(bool replaceSecond,bool optionalApproval=false,bool skipApproval=false)
     {
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(10));
         var persisted=new System.Collections.Generic.List<string>();
         var ids=new[]{"approval","mutation"};
-        using var server=PreparedSubmissionServer.ForStages((evidence,token)=>{
+        Func<JsonElement,CancellationToken,Task> persist=(evidence,token)=>{
             persisted.Add(evidence.GetProperty("transactionHash").GetString());return Task.CompletedTask;
-        },ids);
+        };
+        using var server=optionalApproval?PreparedSubmissionServer.ForOptionalApproval(persist,ids[0],ids[1])
+            :PreparedSubmissionServer.ForStages(persist,ids);
         ids[1]="caller-mutated";
         var name=OperatingSystem.IsWindows()?server.Endpoint.Substring(server.Endpoint.LastIndexOf('\\')+1)
             :Path.GetFileName(server.Endpoint).Substring("CoreFxPipe_".Length);
         var serving=server.ServeAsync(deadline.Token);
-        foreach(var id in new[]{"approval",replaceSecond?"replacement":"mutation"}){
+        foreach(var id in skipApproval?new[]{"mutation"}:new[]{"approval",replaceSecond?"replacement":"mutation"}){
             using var client=new NamedPipeClientStream(".",name,PipeDirection.InOut,PipeOptions.Asynchronous);
             await client.ConnectAsync(deadline.Token);
             using var writer=new StreamWriter(client,new UTF8Encoding(false),leaveOpen:true){AutoFlush=true};
@@ -37,7 +40,7 @@ public class PreparedSubmissionServerTests
             else{using var parsed=JsonDocument.Parse(reply);Assert.AreEqual(id,parsed.RootElement.GetProperty("transactionHash").GetString());}
         }
         if(replaceSecond)await Assert.ThrowsExceptionAsync<InvalidDataException>(()=>serving);else await serving;
-        CollectionAssert.AreEqual(replaceSecond?new[]{"approval"}:new[]{"approval","mutation"},persisted.ToArray());
+        CollectionAssert.AreEqual(skipApproval?new[]{"mutation"}:replaceSecond?new[]{"approval"}:new[]{"approval","mutation"},persisted.ToArray());
         CollectionAssert.AreEqual(persisted.ToArray(),System.Linq.Enumerable.ToArray(server.PreparedTransactionIds));
     }
     [TestMethod]
