@@ -54,6 +54,9 @@ public sealed class TronRealProviderRoutingTests
         var avatar = new Avatar { Id = Guid.Parse("b531a581-5627-451c-9de5-95c198646c20"),
             Username = "tron-real-v2-avatar", Email = "tron-real-v2-avatar@example.invalid" };
         var detail = new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Email = avatar.Email };
+        var batch = new IHolon[] {
+            new Holon { Id = Guid.Parse("9e5be296-e435-44a5-838b-cbfcd8918c22"), Name = "V2 TRON batch first", CreatedByAvatarId = avatar.Id },
+            new Holon { Id = Guid.Parse("ac96a3b6-6d9f-475a-8422-b756dc7af654"), Name = "V2 TRON batch second", CreatedByAvatarId = avatar.Id } };
         var avatarSaved = false;
         try
         {
@@ -133,6 +136,26 @@ public sealed class TronRealProviderRoutingTests
             }
             await AssertAllIndexedRoutes(absent: false);
             await AssertAvatarLists(absent: false);
+            var imported = router.RouteRequest<bool>(new StorageOperationRequest { Operation = "Import", Payload = batch,
+                PreferredProvider = ProviderType.LocalFileOASIS });
+            imported.IsError.Should().BeFalse(imported.Message); imported.IsWarning.Should().BeFalse(imported.Message);
+            imported.Result.Should().BeTrue();
+            batch[0].Name = "V2 TRON batch updated";
+            var batchSaved = await router.RouteRequestAsync<IEnumerable<IHolon>>(new StorageOperationRequest {
+                Operation = "SaveHolons", Payload = batch, PreferredProvider = ProviderType.LocalFileOASIS });
+            batchSaved.IsError.Should().BeFalse(batchSaved.Message); batchSaved.IsWarning.Should().BeFalse(batchSaved.Message);
+            foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.TRONOASIS })
+            foreach (var operation in new[] { "ExportAll", "ExportAllDataForAvatarById", "ExportAllDataForAvatarByUsername", "ExportAllDataForAvatarByEmail" })
+            {
+                var request = new StorageOperationRequest { Operation = operation, AvatarId = avatar.Id, Username = avatar.Username,
+                    Email = avatar.Email, PreferredProvider = providerType };
+                foreach (var exported in new[] { router.RouteRequest<IEnumerable<IHolon>>(request),
+                    await router.RouteRequestAsync<IEnumerable<IHolon>>(request) })
+                {
+                    exported.IsError.Should().BeFalse(exported.Message);
+                    foreach (var item in batch) exported.Result.Single(value => value.Id == item.Id).Name.Should().Be(item.Name);
+                }
+            }
             var deletedAvatar = await router.RouteRequestAsync<bool>(new StorageOperationRequest
                 { Operation = "DeleteAvatar", AvatarId = avatar.Id, SoftDelete = false, PreferredProvider = ProviderType.LocalFileOASIS });
             deletedAvatar.IsError.Should().BeFalse(deletedAvatar.Message);
@@ -244,7 +267,7 @@ public sealed class TronRealProviderRoutingTests
                     (await tron.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsError.Should().BeFalse();
                 (await local.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsError.Should().BeFalse();
             }
-            foreach (var id in new[] { holon.Id, failedOver.Id, partial.Id })
+            foreach (var id in new[] { holon.Id, failedOver.Id, partial.Id }.Concat(batch.Select(item => item.Id)))
             {
                 if (!(await tron.LoadHolonAsync(id)).IsError) (await tron.DeleteHolonAsync(id)).IsError.Should().BeFalse();
                 if (!(await local.LoadHolonAsync(id)).IsError) (await local.DeleteHolonAsync(id)).IsError.Should().BeFalse();

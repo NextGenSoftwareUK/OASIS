@@ -176,21 +176,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     }
                 }
 
-                // Load avatar
-                var avatarResult = await LoadAvatarAsync(avatarId, version);
-                var allData = new List<IHolon>();
-
-                if (!avatarResult.IsError && avatarResult.Result != null)
-                {
-                    allData.Add(avatarResult.Result as IHolon);
-                }
-
-                // Load all holons for this avatar (as parent)
-                var holonsResult = await LoadHolonsForParentAsync(avatarId, HolonType.All, true, true, 10, 0, true, false, version);
-                if (!holonsResult.IsError && holonsResult.Result != null)
-                {
-                    allData.AddRange(holonsResult.Result);
-                }
+                // This contract exports IHolon records owned by the avatar, not IAvatar identities.
+                var holonsResult = await LoadAllHolonsAsync(HolonType.All, false, false, 0, 0, true, false, version);
+                if (holonsResult.IsError) return holonsResult;
+                if (holonsResult.Result == null)
+                    throw new InvalidOperationException("Holon export returned no collection.");
+                var allData = holonsResult.Result.Where(holon => holon.CreatedByAvatarId == avatarId).ToList();
 
                 result.Result = allData;
                 result.IsError = false;
@@ -263,19 +254,12 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                     }
                 }
 
-                // Load all avatars and holons
-                var avatarsResult = await LoadAllAvatarsAsync(version);
+                // Avatars implement IAvatar, not IHolon; identity export is a separate contract.
                 var holonsResult = await LoadAllHolonsAsync(HolonType.All, false, false, 0, 0, true, false, version);
-
-                var allData = new List<IHolon>();
-                if (!avatarsResult.IsError && avatarsResult.Result != null)
-                {
-                    allData.AddRange(avatarsResult.Result.Cast<IHolon>());
-                }
-                if (!holonsResult.IsError && holonsResult.Result != null)
-                {
-                    allData.AddRange(holonsResult.Result);
-                }
+                if (holonsResult.IsError) return holonsResult;
+                if (holonsResult.Result == null)
+                    throw new InvalidOperationException("Holon export returned no collection.");
+                var allData = holonsResult.Result.ToList();
 
                 result.Result = allData;
                 result.IsError = false;
