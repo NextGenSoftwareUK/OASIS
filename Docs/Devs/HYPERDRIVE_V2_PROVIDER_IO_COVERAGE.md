@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Retained Sui live replication and load-balancing rerun — 2026-10-12
+
+Resumed the existing Sui 1.81.1 runtime only after verifying the retained `network.yaml`; no genesis reset, installation or download. Rebuilt the integration test project with existing referenced outputs (`--no-restore`, bounded workers, `BuildProjectReferences=false`) and ran `V2ReplicatesToSuiAndSelectsFromMeasuredRealProviderReads`: **1/1 passed**, zero skips, approximately one minute. Fixed report: `TestResults/SuiCurrent/sui-v2-healthy-current.trx`. This fixture exercises actual local Sui and LocalFile storage, replicated avatar/detail/holon writes/deletes and indexed reads, performance selection from measured reads, Free-policy exclusion for five selectors in sync/async paths, and six Gold round-robin reads evenly distributed between the two real providers. Policy here is the configured DNA plan, not authenticated per-avatar hosted subscription admission.
+
+The fixture's successful terminal path verifies replicated deletion/absence of its owned records. Explicitly owned node PID 206374 was stopped with the existing validated helper; its process handle terminated. Retained ledger/runtime preserved. Startup showed existing metrics/chunk-count/JWK warnings; not a warning-free runtime certification. Free C: space afterward approximately 101.14 GB decimal. This rerun does not prove all provider interfaces, current hosted deployment, failover outage cases, durable SDK journaling or native fee billing; those gates remain open.
+
 ### Hedera deployment and escrow original-ID coverage — 2026-10-12
 
 Added ten direct constructor cases covering all six deployment mutations and all four NFT/token escrow mutations. Each first proves its otherwise-valid request constructs successfully, then rejects absent/null/empty/whitespace original IDs; therefore unrelated validation cannot satisfy the rejection assertion. The full retained SDK suite passes **96/96**, zero skips/todos. These are official SDK constructor/preflight tests, not funded ledger or routing-policy proof. No production implementation change was necessary in these constructors; they already parsed explicit original IDs. Runtime/environment reused, no downloads or ledger writes.
