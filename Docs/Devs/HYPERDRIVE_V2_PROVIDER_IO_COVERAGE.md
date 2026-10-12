@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Actual signed Cosmos preparation through execution-owned pipe/Mongo — 2026-10-12
+
+Expanded real offline Cosmos signing case to obtain an execution via canonical protocol with controlled HTTP authority, then submit actual TxRaw/SignDoc through public preparation factory and Windows pipe. Official signature verification and execution-owned Mongo write precede acknowledgement. Readback proves exact original ID, signed bytes and SignDoc, one attempt, no ledger acknowledgement. Focused **1/1**, zero skips, `TestResults/PriorityProviderCurrent/cosmos-signed-mongo.trx`; existing nullable test-field warning remains. Existing SDK/local standalone Mongo reused; exact generated `usage_cosmos_signed_test_<guid>` database removed in finally, regenerable by rerunning test.
+
+Fixture chain/account metadata and controlled `api.request` authority are not live native-fee permission. No ledger submission or crash recovery is exercised. Production admitted execution, real submission/reconciliation, Mongo failover and complete provider interface/live/deployed gates remain required. No installs, downloads or release merge.
+
 ### Cosmos prepared foreign-error and output-failure evidence — 2026-10-12
 
 Extended actual parent-pipe controlled child lifecycle: foreign error receipt claiming execution success, invalid UTF8 and malformed JSON after preparation all retain the persisted original ID with unknown execution outcome. Prepared process selection **8/8**, zero skips, `TestResults/PriorityProviderCurrent/cosmos-prepared-process.trx`; existing nullable test-field compiler warning remains. No implementation fallback/retry added. Actual two-minute prepared deadline still not exercised in this checkpoint.
