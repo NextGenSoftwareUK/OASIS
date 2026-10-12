@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos requested signing context cannot be changed by wallet — 2026-10-12
+
+Signer capture snapshots the requested SignDoc before awaiting the wallet, and requires the wallet-returned signing document to match exactly before admitting prepared evidence. This prevents silently accepting changed chain/account/body/auth context merely because returned TxRaw hashes match. Controlled wallet tests alter chain/account and prove no prepared context survives; actual official signing regression still passes. Explicit offline SDK suite **51/51**, zero skips/todos. Snapshot is in-memory; no new install or ledger submission.
+
+Production native admission, submitted-transaction recovery, complete interfaces/live orchestration/deployed gates remain open; no release merge.
+
 ### Cosmos invalid signing document cannot alter durable preparation — 2026-10-12
 
 Integrated actual signed SDK/pipe/Mongo case now replaces SignDoc with canonical-base64 but invalid protobuf evidence through the execution-owned factory. Actual verifier rejects, no acknowledgement or retained ID, original one-attempt record and evidence-byte budget remain unchanged. Focused **1/1**, zero skips, `TestResults/PriorityProviderCurrent/cosmos-signed-mongo.trx`; existing nullable test warning remains. This is document rejection, not a new altered-signature cryptographic case. Owned test database removed, retained environment reused.

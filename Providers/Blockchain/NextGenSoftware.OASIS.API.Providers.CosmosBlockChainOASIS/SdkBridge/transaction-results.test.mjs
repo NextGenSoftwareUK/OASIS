@@ -30,6 +30,15 @@ test('official broadcast clears its polling timer when synchronous broadcast rej
   }
 });
 const hash = 'ab'.repeat(32);
+test('direct capture rejects wallet-modified original chain or account context',async()=>{
+  const doc=SignDoc.fromPartial({bodyBytes:new Uint8Array([1]),authInfoBytes:new Uint8Array([2]),chainId:'original-chain',accountNumber:7n});
+  for(const changed of [{chainId:'foreign-chain'},{accountNumber:8n}]){
+    const wallet={async signDirect(_,request){return {signed:{...request,...changed},signature:{signature:Buffer.alloc(64).toString('base64')}};}};
+    const capture=captureCosmosDirectSigning(wallet);
+    await assert.rejects(wallet.signDirect('sender',doc),/changed the requested original signing document/);
+    assert.throws(()=>capture({transactionHash:'00'.repeat(32)}),/matching original direct SignDoc/);
+  }
+});
 test('official signing waits for durable preparation and persistence failure never broadcasts', async () => {
   const wallet=await DirectSecp256k1Wallet.fromKey(new Uint8Array(32).fill(7),'wasm');
   const originalSigning=captureCosmosDirectSigning(wallet);
