@@ -69,9 +69,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             var result = new OASISResult<BridgeTransactionStatus>();
             try
             {
+                if (string.IsNullOrWhiteSpace(transactionHash)) throw new ArgumentException("Sui transaction digest is required.");
                 var receipt = await InvokeSdkAsync("transaction", new { transactionHash }, token);
                 var status = receipt.GetProperty("status");
-                result.Result = MapExecutionStatus(status);
+                result.Result = MapTransactionReceiptStatus(receipt, transactionHash);
                 result.Message = "Sui consensus execution status: " + status.GetRawText();
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
@@ -80,5 +81,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
 
         internal static BridgeTransactionStatus MapExecutionStatus(System.Text.Json.JsonElement status)
             => status.GetProperty("success").GetBoolean() ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Failed;
+
+        internal static BridgeTransactionStatus MapTransactionReceiptStatus(System.Text.Json.JsonElement receipt, string requestedDigest)
+        {
+            if (string.IsNullOrWhiteSpace(requestedDigest) || !receipt.TryGetProperty("transactionHash", out var digest)
+                || digest.ValueKind != System.Text.Json.JsonValueKind.String || !string.Equals(digest.GetString(), requestedDigest, StringComparison.Ordinal))
+                throw new InvalidOperationException("Sui transaction receipt does not match the requested digest.");
+            return MapExecutionStatus(receipt.GetProperty("status"));
+        }
     }
 }

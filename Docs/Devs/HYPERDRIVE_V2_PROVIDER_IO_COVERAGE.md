@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Sui status receipt identity validation (2026-10-12)
+
+Sui status lookup now rejects blank request digests and requires returned transactionHash to match the requested digest ordinally before mapping the existing boolean execution status. Three pure boundary cases cover matching success, mismatch and missing identity; explicit provider rebuild succeeds (zero errors/two warnings), and full Sui units pass **30/30**, zero skips (`sui-unit-current.trx`), reusing output SDK dependencies. Fixture digest strings in these cases test equality, not canonical native encoding or consensus. Current live status regression remains required, as do full provider/API/image gates. No network mutation/install/download/new environment/merge.
+
 ### Cosmos transaction status validates native identity before classification (2026-10-12)
 
 C# status lookup previously classified only the returned code, ignoring returned hash/height. Requests now require exact 64-hex hashes; non-null SDK responses must match that hash (hex case-insensitive) and expose a positive committed int64 height before existing code-to-Completed/Failed mapping. Null indexed results remain NotFound. Five new pure JSON boundary cases cover matching successful/failed identity, empty/mismatched/null identity rejection; full Cosmos units pass **39/39**, zero skips (`cosmos-unit-current.trx`). Explicit provider rebuild succeeds (zero errors/two warnings). This prevents classifying unrelated responses but is not current live status readback/timeout/HTTP proof; those gates remain pending. No installs/downloads/new environment/network mutation/merge.
