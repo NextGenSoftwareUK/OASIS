@@ -5,6 +5,12 @@
 
 ## Routing contract
 
+### Current-pin routing and Hedera broader regression recheck (2026-10-11)
+
+At Core `d7b3f89d0c1b8d87046ce95dfda7796581f6699b`, retained-node TRON V2 routing passes **1/1**, zero skips, 50 seconds (`TestResults/HyperDriveTron/tron-v2-routing.trx`): real avatar/detail/holon replication, measured read selection, actual node-pause failover, partial replication/deletion warnings and explicit recovery repair. Existing runtime was paused afterward. This does not cover all 42 operations.
+
+Current Hedera non-funded integration regression passes **193/193**, zero skips (`TestResults/HederaRuntime/hedera-nonfunded-current.trx`), excluding only funded transfer/storage classes. First default-output run was **191 passed/2 failed**: the output bridge has no installed `@hiero-ledger/sdk`; the packaging verifier independently confirms `ERR_MODULE_NOT_FOUND`. Re-execution explicitly reused the existing source bridge and pinned dependency installation via `OASIS_HEDERA_SDK_BRIDGE`, without installing or duplicating dependencies. Therefore this proves current source regression, **not deployable output/image readiness**; the default-output packaging gate remains open. The unused separate MSTest unit project lacks assets; no restore was undertaken. No Hedera ledger mutation, download, installation or merge.
+
 ### Combined real-JWT TRON HTTP native transfer (2026-10-11)
 
 `WalletHttpSendCommitsRealTrxWithJwtAndEncryptedAvatarWallet` passes **1/1**, zero skips (`TestResults/Web4Current/web4-trx-token-send-http.trx`). The actual WEB4 HTTP/JWT middleware authenticates a persisted LocalFile avatar; WalletManager resolves its encrypted default TRON wallet and sends explicit `TRX` through the retained real TRON SDK/node. The response is HTTP 200/non-error with a 64-hex digest; independent native queries prove Completed status and exactly **0.001 TRX** recipient increase. Persisted private key remains encrypted. Owned avatar/wallet fixtures are removed and the existing runtime is paused afterward. Initial test compilation exposed namespace collisions with WEB4's `Avatar`/`File` and cryptographic `Rijndael`; explicit type qualification fixes the test rather than changing production behavior. No fresh environment, install, download, public-chain spending or merge. This closes the selected native TRON HTTP send gate, not every HTTP/native operation or remaining provider/release gates.
