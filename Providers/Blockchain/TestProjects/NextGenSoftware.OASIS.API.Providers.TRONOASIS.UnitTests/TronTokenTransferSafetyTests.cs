@@ -27,11 +27,11 @@ public sealed class TronTokenTransferSafetyTests
     [Fact]
     public async Task ApprovalCannotUseAnotherHoldersSigningKey()
     {
-        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),
-            new Uri("http://127.0.0.1:50052"), new string('0', 64));
+        await TronPermissionRpcTests.WithDefaultOwnerAuthority(async runtime => {
         var other = new TronECKey(new string('2', 64), TronNetwork.MainNet).GetPublicAddress();
-        await Assert.ThrowsAsync<ArgumentException>(() => runtime.NativeTransfers.ApproveTokenAsync(
+        await Assert.ThrowsAsync<System.IO.InvalidDataException>(() => runtime.NativeTransfers.ApproveTokenAsync(
             other, other, other, BigInteger.One, new string('1', 64)));
+        });
     }
 
     [Theory]
@@ -115,15 +115,14 @@ public sealed class TronTokenTransferSafetyTests
     }
 
     [Fact]
-    public async Task WrongSenderIsRejectedBeforeContactingNode()
+    public async Task UnauthorisedSenderIsRejectedBeforeConstruction()
     {
-        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),
-            new Uri("http://127.0.0.1:50052"), new string('0', 64));
+        await TronPermissionRpcTests.WithDefaultOwnerAuthority(async runtime => {
         var key = new string('1', 64);
         var other = new TronECKey(new string('2', 64), TronNetwork.MainNet).GetPublicAddress();
-        var error = await Assert.ThrowsAsync<ArgumentException>(() => runtime.NativeTransfers.SendTokenAsync(
+        await Assert.ThrowsAsync<System.IO.InvalidDataException>(() => runtime.NativeTransfers.SendTokenAsync(
             other, other, other, 1m, key));
-        Assert.Contains("sender", error.Message);
+        });
     }
 
     [Fact]

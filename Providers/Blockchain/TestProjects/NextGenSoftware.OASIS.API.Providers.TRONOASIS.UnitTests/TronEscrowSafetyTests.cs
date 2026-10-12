@@ -25,11 +25,11 @@ public sealed class TronEscrowSafetyTests
     [Fact]
     public async Task LockCannotSignAsAnotherDepositor()
     {
-        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),
-            new Uri("http://127.0.0.1:50052"), new string('0', 64));
+        await TronPermissionRpcTests.WithDefaultOwnerAuthority(async runtime => {
         var other = new TronNet.TronECKey(new string('2', 64), TronNet.TronNetwork.MainNet).GetPublicAddress();
-        await Assert.ThrowsAsync<ArgumentException>(() => runtime.NativeTransfers.LockEscrowAsync(
+        await Assert.ThrowsAsync<System.IO.InvalidDataException>(() => runtime.NativeTransfers.LockEscrowAsync(
             other, other, other, new string('1', 64)));
+        });
     }
 
     [Theory]
@@ -67,10 +67,10 @@ public sealed class TronEscrowSafetyTests
     [Fact]
     public async Task UnlockCannotSignAsAnotherDepositor()
     {
-        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),
-            new Uri("http://127.0.0.1:50052"), new string('0', 64));
+        await TronPermissionRpcTests.WithDefaultOwnerAuthority(async runtime => {
         var other = new TronNet.TronECKey(new string('2', 64), TronNet.TronNetwork.MainNet).GetPublicAddress();
-        await Assert.ThrowsAsync<ArgumentException>(() => runtime.NativeTransfers.UnlockEscrowAsync(
+        await Assert.ThrowsAsync<System.IO.InvalidDataException>(() => runtime.NativeTransfers.UnlockEscrowAsync(
             other, other, other, new string('1', 64)));
+        });
     }
 }

@@ -35,12 +35,12 @@ public sealed class TronNftTransferSafetyTests
     }
 
     [Fact]
-    public async Task WrongSenderSigningKeyFailsBeforeNodeAccess()
+    public async Task UnauthorisedSenderSigningKeyFailsBeforeConstruction()
     {
-        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),
-            new Uri("http://127.0.0.1:50052"), new string('0', 64));
+        await TronPermissionRpcTests.WithDefaultOwnerAuthority(async runtime => {
         var other = new TronNet.TronECKey(new string('2', 64), TronNet.TronNetwork.MainNet).GetPublicAddress();
-        await Assert.ThrowsAsync<ArgumentException>(() => runtime.NativeTransfers.SendNftAsync(
+        await Assert.ThrowsAsync<System.IO.InvalidDataException>(() => runtime.NativeTransfers.SendNftAsync(
             other, other, other, BigInteger.Zero, new string('1', 64)));
+        });
     }
 }

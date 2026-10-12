@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON explicit-owner mutation preflights use permission authority — 2026-10-12
+
+Replaced remaining signing-key/account-address equality gates in account creation, native transfer, TRC20 transfer, contract call/deployment, NFT mint/send/burn, approval and escrow lock/unlock with one owner-permission preflight helper. Explicit TRC20 transfer now constructs its operation with the requested account owner, not the signing-key-derived address. Preflight validates current owner address, configured genesis and solidified permission weights; the final shared boundary independently refreshes/verifies actual signed evidence. Methods without an explicit owner parameter still derive their owner from their existing API contract and do not gain invented owner selection.
+
+Complete suite **260/260 passed**, zero skips (`tron-current.trx`); build zero errors/21 existing warnings. Existing unauthorised token/NFT/approval/escrow tests now query controlled actual gRPC default-owner snapshots and fail before construction, replacing obsolete no-node address-equality assumptions. Positive rotated account creation signs/broadcasts/confirms once and reads back the created account. Native rotated send remains covered. The escrow changed-authority fixture was adjusted to change after preflight/approval, retaining its post-approval reconciliation assertion. Other positive rotated operations, active permissions/multisignature, real ledger and deployed routes still need dedicated proof. No installation, reset, real ledger mutation, merge or deployment occurred.
+
 ### Fresh TRON authority at every shared submission boundary — 2026-10-12
 
 Removed the owner-only verification branch and optional preloaded account parameter. Every call through `SignBroadcastConfirmAsync` now reloads the configured-network solidified operation-owner account and verifies actual recovered SDK signatures against its owner permission before preparation/persistence/broadcast. Native send retains early authority preflight; the shared boundary is the single final authority owner. Address-equality preflights in other methods still restrict rotated-key use and remain an implementation gap, but no longer substitute for ledger permission verification at submission.
