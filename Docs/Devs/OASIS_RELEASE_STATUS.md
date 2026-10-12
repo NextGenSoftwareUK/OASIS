@@ -6,6 +6,8 @@ Unity 1.1.0 live GitHub title/notes now explicitly identify **OGEngineClient + E
 
 Six GitHub releases are verified published in this run: MCP Server 3.1.0, ODOOM 1.1.0, OQUAKE 1.1.0, OASIS Runtime 5.1.0, STAR Runtime 4.1.0 and Integrated Native Endpoint 2.1.0. MCP Server 3.1.0 is also published on NuGet and npm. Remaining publication is outstanding.
 
+Latest OG profile run 38284824702 passed nine of ten platform/profile builds. RemoteOnly macOS ARM64 failed because concurrent dependency graph instances wrote the same Utilities deps.json; neither profile published. The shared workflow now serializes MSBuild graph execution for both managed and native publication to prevent that output-file race. Hosted verification remains required.
+
 | Product or release | Current publication status | Published download |
 |---|---|---|
 | MCP Server | Done: 3.1.0; five platform binaries and NuGet | [GitHub 3.1.0](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/mcp-v3.1.0) · [NuGet 3.1.0](https://www.nuget.org/packages/NextGenSoftware.OASIS.MCP.Server/3.1.0) |
