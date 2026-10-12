@@ -76,8 +76,14 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         private async Task<T> ReadVersionAsync<T>(string recordKey, T current, int version) where T : class, IHolonBase
         {
             if (version < 0) throw new ArgumentOutOfRangeException(nameof(version), "Version must be zero (latest) or a positive historical version.");
+            var expectedId = IdFromKey(recordKey);
+            if (current != null && current.Id != expectedId)
+                throw new System.IO.InvalidDataException("Stored record ID does not match its storage key.");
             if (current == null || version == 0 || current.Version == version) return current;
-            return await ReadAsync<T>(VersionKey(recordKey, version));
+            var historical = await ReadAsync<T>(VersionKey(recordKey, version));
+            if (historical != null && (historical.Id != expectedId || historical.Version != version))
+                throw new System.IO.InvalidDataException("Stored historical record ID or version does not match its storage key.");
+            return historical;
         }
 
         private async Task DeleteVersionsAsync(string recordKey)
