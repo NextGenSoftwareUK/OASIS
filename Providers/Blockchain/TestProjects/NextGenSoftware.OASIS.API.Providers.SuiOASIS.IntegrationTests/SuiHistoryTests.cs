@@ -35,6 +35,10 @@ public class SuiHistoryTests
         {
             var row = received.Result.Single(item => item.Description.Contains(receipt));
             Assert.AreEqual(0.001d, row.Amount);
+            Assert.AreEqual(receipt, row.NativeTransactionId);
+            Assert.AreEqual("1000000", row.RawAmount);
+            Assert.AreEqual("WalletNetBalanceChange", row.NativeOperation);
+            Assert.AreEqual("Success", row.NativeExecutionResult);
             Assert.AreEqual(TransactionType.Credit, row.TransactionType);
             Assert.AreEqual(sender.Result.WalletAddressLegacy, row.FromWalletAddress);
             Assert.AreEqual(receiver.Result.WalletAddressLegacy, row.ToWalletAddress);
