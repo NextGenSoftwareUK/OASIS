@@ -57,6 +57,12 @@ public sealed class PreparedSubmissionServer : IDisposable
             var evidence = root.GetProperty("evidence");
             var hash = evidence.GetProperty("transactionHash").GetString();
             if (string.IsNullOrWhiteSpace(hash) || hash.Length > 256) throw new InvalidDataException("Original preparation identity is required.");
+            var encoded = evidence.GetProperty("signedTransactionBase64").GetString();
+            byte[] signedBytes;
+            try { signedBytes = Convert.FromBase64String(encoded ?? ""); }
+            catch (FormatException ex) { throw new InvalidDataException("Prepared signed bytes must be canonical base64.", ex); }
+            if (signedBytes.Length == 0 || Convert.ToBase64String(signedBytes) != encoded)
+                throw new InvalidDataException("Prepared signed bytes must be nonempty canonical base64.");
             await _persist(evidence.Clone(), cancellationToken);
             cancellationToken.ThrowIfCancellationRequested();
             var ack = JsonSerializer.SerializeToUtf8Bytes(new { protocol = "oasis.native-preparation.v1", persisted = true, transactionHash = hash });

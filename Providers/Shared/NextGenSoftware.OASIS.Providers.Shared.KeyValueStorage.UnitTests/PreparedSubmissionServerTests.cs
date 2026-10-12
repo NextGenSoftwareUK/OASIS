@@ -86,6 +86,7 @@ public class PreparedSubmissionServerTests
 
     [DataTestMethod]
     [DataRow("wrong-protocol")] [DataRow("missing-identity")] [DataRow("extra-frame")]
+    [DataRow("invalid-bytes")] [DataRow("empty-bytes")] [DataRow("noncanonical-bytes")]
     public async Task InvalidFramesNeverReachPersistence(string mode)
     {
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(10));var calls=0;
@@ -96,7 +97,8 @@ public class PreparedSubmissionServerTests
         await client.ConnectAsync(deadline.Token);
         var protocol=mode=="wrong-protocol"?"wrong":"oasis.native-preparation.v1";
         var identity=mode=="missing-identity"?"":"original";
-        var frame=JsonSerializer.Serialize(new{protocol,evidence=new{transactionHash=identity}})+"\n";
+        var encoded=mode=="invalid-bytes"?"!":mode=="empty-bytes"?"":mode=="noncanonical-bytes"?"AQID ":"AQID";
+        var frame=JsonSerializer.Serialize(new{protocol,evidence=new{transactionHash=identity,signedTransactionBase64=encoded}})+"\n";
         if(mode=="extra-frame")frame+="{}\n";
         await client.WriteAsync(Encoding.UTF8.GetBytes(frame),deadline.Token);await client.FlushAsync(deadline.Token);
         await Assert.ThrowsExceptionAsync<InvalidDataException>(()=>serving);
@@ -147,7 +149,7 @@ public class PreparedSubmissionServerTests
         await client.ConnectAsync(deadline.Token);
         using var writer = new StreamWriter(client, new UTF8Encoding(false), leaveOpen:true) { AutoFlush = true };
         using var reader = new StreamReader(client, new UTF8Encoding(false,true), leaveOpen:true);
-        await writer.WriteLineAsync("{\"protocol\":\"oasis.native-preparation.v1\",\"evidence\":{\"transactionHash\":\"original\"}}");
+        await writer.WriteLineAsync("{\"protocol\":\"oasis.native-preparation.v1\",\"evidence\":{\"transactionHash\":\"original\",\"signedTransactionBase64\":\"AQID\"}}");
         var acknowledgement = reader.ReadLineAsync(deadline.Token).AsTask();
         await entered.Task.WaitAsync(deadline.Token);
         Assert.IsFalse(acknowledgement.IsCompleted, "Unpersisted preparation cannot be acknowledged");
