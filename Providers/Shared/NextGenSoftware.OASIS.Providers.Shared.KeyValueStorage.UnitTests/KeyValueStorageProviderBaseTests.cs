@@ -42,6 +42,27 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
     [TestClass]
     public class KeyValueStorageProviderBaseTests
     {
+        [DataTestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task Recursive_parent_cycles_fail_explicitly_but_bounded_reads_terminate(bool selfParent)
+        {
+            var first = new Holon { Id = Guid.NewGuid(), Name = "cycle-first" };
+            var second = new Holon { Id = Guid.NewGuid(), Name = "cycle-second", ParentHolonId = first.Id };
+            first.ParentHolonId = selfParent ? first.Id : second.Id;
+            Assert.IsFalse((await _provider.SaveHolonAsync(first)).IsError);
+            if (!selfParent) Assert.IsFalse((await _provider.SaveHolonAsync(second)).IsError);
+            var cyclic = await _provider.LoadHolonAsync(first.Id, continueOnError: false);
+            Assert.IsTrue(cyclic.IsError); Assert.IsNotNull(cyclic.Exception);
+            StringAssert.Contains(cyclic.Message, "Cyclic holon parent relationship");
+            var parent = _provider.LoadHolonsForParent(first.Id);
+            Assert.IsTrue(parent.IsError);
+            StringAssert.Contains(parent.Message, "Cyclic holon parent relationship");
+            var bounded = await _provider.LoadHolonAsync(first.Id, maxChildDepth: 1);
+            Assert.IsFalse(bounded.IsError, bounded.Message);
+            Assert.AreEqual(1, bounded.Result.Children.Count());
+        }
+
         [TestMethod]
         public async Task Object_metadata_still_rejects_nested_non_OASIS_runtime_types()
         {

@@ -537,8 +537,10 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
 
-        private async Task<OASISResult<IEnumerable<IHolon>>> LoadChildrenAsync(Guid parentId, HolonType type, bool recursive, int maxChildDepth, int depth, int version)
+        private async Task<OASISResult<IEnumerable<IHolon>>> LoadChildrenAsync(Guid parentId, HolonType type, bool recursive, int maxChildDepth, int depth, int version, HashSet<Guid> ancestors = null)
         {
+            var path = ancestors == null ? new HashSet<Guid>() : new HashSet<Guid>(ancestors);
+            if (!path.Add(parentId)) throw new System.IO.InvalidDataException("Cyclic holon parent relationship encountered during recursive child loading.");
             var keys = await Backend.ListKeysAsync(ParentPrefix(parentId));
             var children = await ReadAllAsync<IHolon>(keys.Select(k => HolonKey(IdFromKey(k))), version);
             var reachedDepth = maxChildDepth > 0 && depth + 1 >= maxChildDepth;
@@ -546,7 +548,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             {
                 foreach (var child in children)
                 {
-                    var grandChildren = await LoadChildrenAsync(child.Id, HolonType.All, true, maxChildDepth, depth + 1, version);
+                    var grandChildren = await LoadChildrenAsync(child.Id, HolonType.All, true, maxChildDepth, depth + 1, version, path);
                     child.Children = grandChildren.Result?.ToList() ?? new List<IHolon>();
                 }
             }

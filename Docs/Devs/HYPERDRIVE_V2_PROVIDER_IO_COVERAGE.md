@@ -5,6 +5,12 @@
 
 ## Routing contract
 
+### Shared recursive-parent cycle protection (2026-10-11)
+
+Shared recursive child loading previously had no ancestor-path guard, allowing self-parent/two-node cycles to recurse indefinitely with default unlimited depth. It now tracks the current ancestor path and throws a specific InvalidDataException at a repeated parent; existing read boundaries return an explicit error rather than fabricated/truncated success. Two cases cover self/two-node cycles through async single-holon and sync parent collection reads, and successful explicit depth-one termination. Full shared suite passes **51/51**, zero skips (`shared-current.trx`); changed provider build succeeds with zero errors/two warnings.
+
+First build required fully qualifying System.IO.InvalidDataException. A subsequent no-reference-build test accidentally used the prior provider DLL and reproduced a test-host stack overflow; the run aborted after nine passes and was not accepted as success. Explicit provider rebuild followed by test-project rebuild resolves the stale output and verifies the guard. No network/runtime/install/download/new environment/data mutation outside in-memory fixtures/merge. Live provider cycle checks, complete option handling and other release gates remain open.
+
 ### Current combined live TRON V2 storage and karma recheck (2026-10-11)
 
 At parent `6ae8a8699`, retained-node `TronRealProviderRoutingTests` and `TronKarmaRoutingTests` pass together **2/2**, zero skips, 91 seconds (`TestResults/HyperDriveTron/tron-v2-current-combined.trx`). Existing serial host reuses one runtime/ledger, fixed fixture directory and leases. Storage scenario verifies its indexed/list/metadata/search/export/delete projections, real pause-induced failover, measured-provider selection and replication/partial-failure diagnostics; karma scenario independently verifies four commands/four durable records and replicated ledger/detail/leaderboard totals. Test-output shared storage DLL hash matches current provider build. Owned logical records are removed by scenario finally blocks; retained runtime was paused after terminal test completion. No reset/download/install/new environment/public-chain spending/merge. These selected scenarios remain narrower than every operation option/provider/API/image combination; full release gates remain open.
