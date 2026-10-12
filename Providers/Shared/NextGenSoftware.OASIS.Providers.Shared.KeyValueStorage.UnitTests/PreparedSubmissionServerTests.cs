@@ -13,6 +13,45 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 public class PreparedSubmissionServerTests
 {
     [TestMethod]
+    public async Task ParentAcknowledgementFollowsRealMongoPreparedIdentityWrite()
+    {
+        const string connection="mongodb://127.0.0.1:27017/?serverSelectionTimeoutMS=3000";
+        var database="usage_pipe_test_"+Guid.NewGuid().ToString("N");
+        var mongo=new MongoDB.Driver.MongoClient(connection);
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        var store=new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.MongoUsageOutboxStore(connection,database);
+        var id=Guid.NewGuid().ToString("N"); var owner=Guid.NewGuid().ToString("N");
+        var operation=new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.UsageOutboxOperation {
+            Id=id,UserId="owned-test",Service="test",ExecutionOwner=owner,LeaseUntilUtc=DateTime.UtcNow.AddMinutes(1)
+        };
+        try {
+            await store.InitializeAsync(deadline.Token);
+            Assert.IsTrue(await store.TryBeginAsync(operation,deadline.Token));
+            using var server=new PreparedSubmissionServer(async(evidence,token)=>{
+                await store.BeginProviderAttemptAsync(id,owner,new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.UsageProviderAttempt {
+                    ClientRequestId="prepared",Provider="CosmosBlockChainOASIS",ProviderRequestId=evidence.GetProperty("transactionHash").GetString(),StartedAtUtc=DateTime.UtcNow
+                },token);
+            });
+            var serving=server.ServeAsync(deadline.Token);
+            var name=OperatingSystem.IsWindows()?server.Endpoint.Substring(server.Endpoint.LastIndexOf('\\')+1):Path.GetFileName(server.Endpoint).Substring("CoreFxPipe_".Length);
+            using var client=new NamedPipeClientStream(".",name,PipeDirection.InOut,PipeOptions.Asynchronous);
+            await client.ConnectAsync(deadline.Token);
+            using var writer=new StreamWriter(client,new UTF8Encoding(false),leaveOpen:true){AutoFlush=true};
+            using var reader=new StreamReader(client,new UTF8Encoding(false,true),leaveOpen:true);
+            await writer.WriteLineAsync("{\"protocol\":\"oasis.native-preparation.v1\",\"evidence\":{\"transactionHash\":\"original\"}}");
+            using var ack=JsonDocument.Parse(await reader.ReadLineAsync(deadline.Token));
+            Assert.IsTrue(ack.RootElement.GetProperty("persisted").GetBoolean());await serving;
+            var persisted=await store.GetAsync(id,deadline.Token);
+            Assert.AreEqual(1,persisted.ProviderAttempts.Count);
+            Assert.AreEqual("original",persisted.ProviderAttempts[0].ProviderRequestId);
+            Assert.IsNull(persisted.ProviderAttempts[0].AcknowledgedAtUtc,"Preparation is not ledger acknowledgement");
+        } finally {
+            // Only this freshly generated owned test database; no shared/user ledger.
+            await mongo.DropDatabaseAsync(database);
+        }
+    }
+
+    [TestMethod]
     public async Task CancelledServerCannotAcknowledgeOrBeReused()
     {
         using var cancelled=new CancellationTokenSource();cancelled.Cancel();
