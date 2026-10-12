@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Fresh live Sui V2 routing after SDK-owner changes — 2026-10-12
+
+Restarted the existing pinned Sui 1.81.1 runtime and retained network ledger, with the existing SDK/deployment fixture; no genesis regeneration or download. Current rebuilt integration host passed healthy real Sui/LocalFile V2 replication and measured provider selection **1/1**, 62 seconds (`TestResults/HyperDriveSui/sui-live-current.trx`), followed by transport-failure/owned-node-stop failover **2/2**, three seconds (`sui-live-outage-current.trx`). Tests exercise their declared avatar/detail/holon/index and plan-selection scopes; not all provider interfaces or hosted APIs.
+
+The outage test stopped exactly owned PID 225566; original process handle became terminal and `/proc/225566/exe` was absent afterward. Existing runtime/ledger remain reusable; owned test records are handled by test cleanup. Startup repeated existing metrics/socket/JWK and epoch-store warnings, not fixed or claimed harmless by this result. Three existing nullable test-host warnings; no new environment allocation. C: free afterward 100,365,553,664 bytes. Private-storage migration, prepared host-crash recovery, remaining native/interface/deployed packaging and broader-provider gates still open. No merge or deployment.
+
 ### TRON explicit-owner mutation preflights use permission authority — 2026-10-12
 
 Replaced remaining signing-key/account-address equality gates in account creation, native transfer, TRC20 transfer, contract call/deployment, NFT mint/send/burn, approval and escrow lock/unlock with one owner-permission preflight helper. Explicit TRC20 transfer now constructs its operation with the requested account owner, not the signing-key-derived address. Preflight validates current owner address, configured genesis and solidified permission weights; the final shared boundary independently refreshes/verifies actual signed evidence. Methods without an explicit owner parameter still derive their owner from their existing API contract and do not gain invented owner selection.
