@@ -15,6 +15,8 @@ Six GitHub releases are verified published in this run: MCP Server 3.1.0, ODOOM 
 | Edge standalone compiled distribution | 1.2.0 Windows/Linux/macOS five-RID build/publication dispatched; not yet verified live | [Build run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/38281946908) |
 | Edge Unity integration distribution | Separate GitHub 1.1.0 and NuGet wrapper NextGenSoftware.OASIS.Edge.Unity 1.0.0 publication dispatched; not yet verified live | [Publication run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/38281949903) |
 | OGEngineClient Edge and remote-only profiles | Updated release outstanding | [Existing 2.0.2](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/OGEngineClient-v2.0.2) |
+| OGEngineClient — RemoteOnly | Separate 2.1.0 managed/native five-platform build dispatched; not yet verified published | [Profile release run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/38283210267) |
+| OGEngineClient + Edge | Separate 2.1.0 managed/native five-platform build dispatched; not yet verified published | [Profile release run](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/38283210267) |
 | Integrated Native Endpoint | Done: 2.1.0; Windows x64, Linux x64/ARM64, macOS x64/ARM64 | [Release 2.1.0](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/Native-Endpoint-v2.1.0) |
 | OIDE | Requested update or unchanged-source verification outstanding | [Existing 1.0.0](https://github.com/NextGenSoftwareUK/OIDE/releases/tag/v1.0.0) |
 | ONODE Manager | Requested update or unchanged-source verification outstanding | [Existing 1.0.0](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/onode-manager-v1.0.0) |
@@ -24,6 +26,8 @@ Six GitHub releases are verified published in this run: MCP Server 3.1.0, ODOOM 
 | MCP npm package | Done: 3.1.0; registry version, CLI entry point and published checksum verified | [npm 3.1.0](https://www.npmjs.com/package/@oasisomniverse/mcp-server/v/3.1.0) |
 
 ## Publication requirements
+
+See [the four cross-referenced Edge/game-client distributions](EDGE_DISTRIBUTIONS.md). Unity integration includes OGEngineClient + Edge; it is separate from standalone DLL archives and both explicit OGEngineClient profiles. Historical OGEngineClient 2.0.2 was Edge-enabled, not RemoteOnly.
 
 - Promoted master `7f622f9c2c28d5b4fb18b01ceef6fa57794f2cab`: all 14 staging/production WEB4–WEB10 deployments verified successful/sleeping; all 14 Swagger endpoints plus WEB6 health/discovery in both environments returned HTTP 200 before dispatch.
 - Every binary product release must have verified Windows, Linux and macOS assets for its supported architectures. OASIS Runtime, STAR Runtime and Native Endpoint each have five successful hosted platform builds and five nonempty public release archives. Other products' platform audits remain outstanding.
