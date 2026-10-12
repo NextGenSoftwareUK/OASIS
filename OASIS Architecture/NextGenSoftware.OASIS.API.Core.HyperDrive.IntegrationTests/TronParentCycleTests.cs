@@ -31,6 +31,12 @@ public class TronParentCycleTests
             (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
             var prior = await provider.LoadHolonAsync(id, loadChildren: false);
             prior.ErrorCode.Should().Be("OASIS_RECORD_NOT_FOUND"); prior.Result.Should().BeNull();
+            var invalid = new Holon { Id = id, Name = "Rejected recursive save fixture" };
+            invalid.Children = new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> { invalid };
+            var rejectedSave = await provider.SaveHolonAsync(invalid);
+            rejectedSave.IsError.Should().BeTrue(); rejectedSave.Message.Should().Contain("Cyclic holon child graph");
+            var afterRejected = await provider.LoadHolonAsync(id, loadChildren: false);
+            afterRejected.ErrorCode.Should().Be("OASIS_RECORD_NOT_FOUND"); afterRejected.Result.Should().BeNull();
             (await provider.SaveHolonAsync(new Holon { Id = id, ParentHolonId = id, Name = "Owned real parent-cycle fixture",
                 MetaData = new() { ["owned-cycle-fixture"] = id.ToString() } })).IsError.Should().BeFalse(); saved = true;
             var cyclic = await provider.LoadHolonAsync(id, continueOnError: false);

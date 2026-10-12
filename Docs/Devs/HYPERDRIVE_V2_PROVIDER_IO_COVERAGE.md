@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Real TRON rejected recursive-save absence check (2026-10-11)
+
+Expanded retained encrypted TRON scenario passes **1/1**, zero skips (`tron-parent-cycle.trx`): cyclic submitted child graph fails with the explicit preflight error, and independent no-child readback still reports authoritative RecordNotFound for the owned ID. Subsequent valid fixture operations, cycle/depth/list/history assertions and cleanup remain passing; runtime paused after terminal completion. This verifies no current owned record was persisted by the rejected call, not a transaction-counter proof or all batch/provider/API permutations. No installs/downloads/new environment/reset/public-chain spending/merge; remaining release gates stay open.
+
 ### Recursive save child-graph preflight (2026-10-11)
 
 Shared recursive save now validates the tree it will traverse before its first record/version/index write, rejecting repeated ancestor object references or nonempty ancestor IDs with a specific InvalidDataException. Validation follows existing saveChildren/recursive/depth traversal rules and does not introduce another persistence pipeline. Two controlled regressions verify reference and duplicate-identity cycles produce errors with the backend entirely unchanged. Full shared suite passes **55/55**, zero skips (`shared-current.trx`); explicit provider rebuild succeeds (zero errors/two warnings). Validation is per submitted tree, not batch-wide transactional atomicity, persisted parent-graph validation or a guarantee about excluded/untraversed child serialization. Live provider/API graph rejection remains required. No network mutation/install/download/new environment/merge; other release gates remain open.
