@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Rotated TRON contract calls/deployment and confirmed readback fence — 2026-10-12
+
+Controlled actual SDK/gRPC tests now exercise positive rotated owner signing for ABI contract calls and bytecode deployment. Broadcast verifies actual signed bytes against the served permission snapshot; each path constructs/broadcasts once. During coverage, found deployment's post-confirmation receipt/address readback could throw ordinary errors, permitting unsafe retry classification. It now preserves the confirmed original digest/genesis/cause in `TronCommittedReadbackException`. Missing contract address and unavailable second receipt queries both preserve reconciliation-required evidence and never broadcast again.
+
+Complete suite **264/264 passed**, zero skips (`tron-current.trx`), with explicit original-cause checks. Provider build zero errors/21 existing warnings. This is controlled shipping-path coverage, not deployed bytecode/rotated real-ledger or live V2 marker propagation proof. Remaining positive token/NFT/escrow rotation, active permission/multisignature and all other release gates remain open. No runtime installation, retained ledger mutation, merge or deployment.
+
 ### Current live Sui preparation and activation after SDK-owner refactor — 2026-10-12
 
 Reused the same pinned runtime/network/SDK and existing Mongo service. Current integration host passed **3/3**, zero skips, 14 seconds (`TestResults/SuiCurrent/sui-prepared-live-current.trx`): activation checks actual owner and unchanged balance; normal and lost-confirmed-reply paths persist real signed evidence before live local execution, fence duplicate correlation and reconcile original digests. Normal original write `3JbbZBaVdMS1rvhoYqEPew3byP2xs9NgXT1fCZtVjKMz`, cleanup `qiv8n5jN7hctLNh1rLYzen6shcGg1SXnXSBGPJ6xEWy`; lost-reply original write `B8W9XsnbdmXr4RM9box74bKSaABCeFXtsByUj98FdCRK`, cleanup `Fovjwhfo6RxiHAV9ZwqtUF2ZErj5xf3gBcSbnX6AN52x`.
