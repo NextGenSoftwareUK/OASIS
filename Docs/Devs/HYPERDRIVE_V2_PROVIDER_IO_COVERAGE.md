@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Real JWT HTTP authentication against Sui storage (2026-10-11)
+
+The persisted-avatar HTTP theory now runs LocalFile and real Sui. Full HyperDrive HTTP subset passes **11/11**, zero skips, 17 seconds (`web4-hyperdrive-http-auth.trx`): actual HS256 bearer, middleware/avatar lookup through V2, and exact one Sui provider read recorded for each mode/config/status request. Test-auth headers are absent in these cases. The retained Sui 1.81.1 ledger/package/credential fixture is reused; owned avatar deleted, global manager/DNA restored and provider deactivated. Owned node PID 34535 stopped with validated helper after completion. Sui configuration is required explicitly; no mock/skip substitutes for missing live settings. This establishes Sui-backed authentication reads, not NFT/token mutation routes, all storage operations, other-provider authentication or deployed API proof. No installation/download/reset/new provider environment/merge.
+
 ### Successful real-JWT HTTP/V2 avatar lookup (2026-10-11)
 
 HTTP suite now passes **10/10**, zero skips (`web4-hyperdrive-http-auth.trx`). Added actual HS256 Bearer token with test-only key/claims, no test-auth header, and an avatar persisted in real LocalFile storage. Middleware validates the token, then the injected real AvatarManager loads via V2; measured LocalFile request count increases exactly once for each mode/config/status request, which returns a non-error envelope. Fixed leased `TestResults/Web4Current/JwtAvatar` store is reused; its owned avatar is hard-deleted, provider deactivated, and previous global DNA/Program manager restored in `finally`. Test setup initially used the wrong enum namespace and assumed pre-request metrics existed; corrected without production changes. This proves local real JWT/persisted-avatar/V2 lookup, **not** Cosmos/Hedera/Sui/TRON avatar authentication or full provider/API coverage. No new SDK/runtime installation, public ledger mutation or merge.
