@@ -55,6 +55,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     throw new ArgumentException("Sender address and explicit private signing key are required.");
                 if (string.IsNullOrWhiteSpace(_bridgePoolWalletAddress))
                     throw new InvalidOperationException("BridgePoolWalletAddress must be configured separately from token contracts.");
+                if (string.Equals(senderAccountAddress,_bridgePoolWalletAddress,StringComparison.Ordinal))
+                    throw new ArgumentException("Bridge withdrawal sender must differ from the pool wallet.");
                 if (!IsProviderActivated)
                 {
                     var activation = await ActivateProviderAsync();
@@ -84,6 +86,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     throw new ArgumentException("Receiver address is required.");
                 if (string.IsNullOrWhiteSpace(_bridgePoolWalletAddress))
                     throw new InvalidOperationException("BridgePoolWalletAddress must be configured separately from token contracts.");
+                if (string.Equals(receiverAccountAddress,_bridgePoolWalletAddress,StringComparison.Ordinal))
+                    throw new ArgumentException("Bridge deposit recipient must differ from the pool wallet.");
                 if (!IsProviderActivated)
                 {
                     var activation = await ActivateProviderAsync();

@@ -4,6 +4,20 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public sealed class TronBridgeSafetyTests
 {
+    [Fact]
+    public async Task PoolSelfTransferCannotActivateResolveKeyOrReportMovement()
+    {
+        var key = new string('0',63)+"1";
+        var pool = new TronNet.TronECKey(key,TronNet.TronNetwork.MainNet).GetPublicAddress();
+        var keyReads = 0;
+        var provider = new TRONOASIS(bridgePoolWalletAddress:pool,nativeSigningKeyResolver:address => { keyReads++; return Task.FromResult(key); });
+        var withdrawal = await provider.WithdrawAsync(1,pool,key);
+        var deposit = await provider.DepositAsync(1,pool);
+        Assert.True(withdrawal.IsError); Assert.Null(withdrawal.Result);
+        Assert.True(deposit.IsError); Assert.Null(deposit.Result);
+        Assert.Contains("differ",withdrawal.Message); Assert.Contains("differ",deposit.Message);
+        Assert.False(provider.IsProviderActivated); Assert.Equal(0,keyReads);
+    }
     [Theory]
     [InlineData("0")]
     [InlineData("-1")]
