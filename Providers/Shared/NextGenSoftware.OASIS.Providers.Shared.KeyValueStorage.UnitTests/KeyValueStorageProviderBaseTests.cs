@@ -42,6 +42,26 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
     [TestClass]
     public class KeyValueStorageProviderBaseTests
     {
+        [TestMethod]
+        public async Task Collection_and_metadata_reads_honor_child_loading_and_depth()
+        {
+            var parent = new Holon { Id = Guid.NewGuid(), Name = "parent", MetaData = new Dictionary<string, object> { ["owned"] = "tree" } };
+            var child = new Holon { Id = Guid.NewGuid(), ParentHolonId = parent.Id, Name = "child" };
+            var grandchild = new Holon { Id = Guid.NewGuid(), ParentHolonId = child.Id, Name = "grandchild" };
+            foreach (var item in new[] { parent, child, grandchild }) Assert.IsFalse((await _provider.SaveHolonAsync(item)).IsError);
+            var flat = await _provider.LoadAllHolonsAsync(loadChildren: false);
+            Assert.IsFalse(flat.IsError); Assert.AreEqual(0, flat.Result.Single(value => value.Id == parent.Id).Children.Count());
+            var recursive = await _provider.LoadAllHolonsAsync();
+            Assert.IsFalse(recursive.IsError, recursive.Message);
+            Assert.AreEqual(grandchild.Id, recursive.Result.Single(value => value.Id == parent.Id).Children.Single().Children.Single().Id);
+            var shallow = _provider.LoadAllHolons(recursive: false);
+            Assert.IsFalse(shallow.IsError); Assert.AreEqual(0, shallow.Result.Single(value => value.Id == parent.Id).Children.Single().Children.Count());
+            var bounded = await _provider.LoadHolonsByMetaDataAsync("owned", "tree", maxChildDepth: 1);
+            Assert.IsFalse(bounded.IsError); Assert.AreEqual(0, bounded.Result.Single().Children.Single().Children.Count());
+            var metadata = _provider.LoadHolonsByMetaData("owned", "tree");
+            Assert.IsFalse(metadata.IsError); Assert.AreEqual(grandchild.Id, metadata.Result.Single().Children.Single().Children.Single().Id);
+        }
+
         [DataTestMethod]
         [DataRow(false)]
         [DataRow(true)]

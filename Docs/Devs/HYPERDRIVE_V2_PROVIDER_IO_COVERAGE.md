@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Shared collection child-loading options implemented (2026-10-11)
+
+`LoadAllHolonsAsync` previously ignored child-loading arguments and returned only serialized snapshots; metadata collection queries inherited that behavior. Selected collection records now use the existing child loader when requested, forwarding recursion, maximum/current depth and version. One regression proves separately persisted parent/child/grandchild relationships appear in recursive collection and metadata reads, while no-child/nonrecursive/depth-one options remain bounded. Full shared suite passes **52/52**, zero skips (`shared-current.trx`); explicit provider rebuild succeeds (zero errors/two warnings). Existing historical-list and cycle regressions remain passing. This fixes selected relationship projection, not historical parent-index reconstruction, every continuation-on-error policy or live-provider/API option coverage. No install/download/runtime/new environment/ledger mutation/merge; remaining release gates stay open.
+
 ### Live encrypted TRON recursive-cycle read proof (2026-10-11)
 
 New `TronParentCycleTests` passes **1/1**, zero skips (`TestResults/HyperDriveTron/tron-parent-cycle.trx`). Existing official/native TRON client and encrypted contract storage persist one fixed self-parented owned holon after checking authoritative absence. Async recursive single-holon read returns the specific InvalidDataException; sync parent collection read errors; explicit depth-one read returns the single expected child. The fixture is deleted in finally, and retained runtime paused after terminal completion. This independently proves the shared guard on real encrypted-provider storage, not every provider/graph/route option or all release gates. No runtime recreation/reset/install/download/new environment/public-chain spending/merge.
