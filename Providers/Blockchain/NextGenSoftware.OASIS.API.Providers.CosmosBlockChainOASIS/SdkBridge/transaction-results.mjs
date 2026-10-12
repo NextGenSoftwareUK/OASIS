@@ -1,5 +1,22 @@
 import { TimeoutError } from '@cosmjs/stargate';
 import { fromBech32 } from '@cosmjs/encoding';
+import { decodeTxRaw } from '@cosmjs/proto-signing';
+
+export function verifiedNftCustodyReceipt(tx, expected, registry) {
+  if (!tx || tx.hash !== expected.transactionHash || tx.code !== 0
+      || !Number.isSafeInteger(tx.height) || tx.height <= 0)
+    throw new Error('Cosmos source receipt does not establish the exact successful custody transaction');
+  const raw = decodeTxRaw(tx.tx);
+  const matching = raw.body.messages.filter(message => {
+    if (message.typeUrl !== '/cosmwasm.wasm.v1.MsgExecuteContract') return false;
+    const value = registry.decode(message);
+    if (value.contract !== expected.contractAddress || !value.sender || value.sender === expected.custody) return false;
+    const payload = JSON.parse(new TextDecoder('utf-8', { fatal: true }).decode(value.msg));
+    return payload.nft_transfer?.token_id === expected.tokenId && payload.nft_transfer?.recipient === expected.custody;
+  });
+  if (matching.length !== 1) throw new Error('Cosmos source receipt does not uniquely transfer the exact NFT into custody');
+  return tx;
+}
 
 export function bankTransferLegs(encoded, registry) {
   if (encoded.typeUrl === '/cosmos.bank.v1beta1.MsgSend') {

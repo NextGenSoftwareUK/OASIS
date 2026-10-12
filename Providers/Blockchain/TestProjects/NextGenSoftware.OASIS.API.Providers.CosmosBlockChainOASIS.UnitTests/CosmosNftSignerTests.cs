@@ -7,6 +7,25 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 public class CosmosNftSignerTests
 {
     [DataTestMethod]
+    [DataRow("a", false)]
+    [DataRow("b", true)]
+    [DataRow("c", true)]
+    public async Task SuppliedNftCustodyProofMustAgreeBeforeRelease(string digestCharacter, bool rejected)
+    {
+        var previous = Environment.GetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE", Path.Combine(AppContext.BaseDirectory, "Fixtures", "nft-signer.mjs"));
+        try
+        {
+            using var provider = new CosmosBlockChainOASIS("http://127.0.0.1:1", "fixture-chain", "test-only-explicit", "fixture-contract");
+            var result = await provider.DepositNFTAsync("fixture-contract#fixture-token", "fixture-token", "fixture-recipient", new string(digestCharacter[0], 64));
+            Assert.AreEqual(rejected, result.IsError, result.Message);
+            if (rejected) Assert.IsNull(result.Result);
+            else Assert.AreEqual("fixture-committed-cosmos-nft", result.Result.TransactionId);
+        }
+        finally { Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE", previous); }
+    }
+
+    [DataTestMethod]
     [DataRow(false, null)] [DataRow(false, "fixture-public")] [DataRow(false, "wrong-public")]
     [DataRow(true, null)] [DataRow(true, "fixture-public")] [DataRow(true, "wrong-public")]
     public async Task BurnValidatesPublicKeyWithoutTreatingItAsWalletAddress(bool token, string? publicKey)

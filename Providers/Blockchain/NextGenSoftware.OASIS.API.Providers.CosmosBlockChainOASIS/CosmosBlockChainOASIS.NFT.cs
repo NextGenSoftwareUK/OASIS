@@ -251,6 +251,15 @@ public partial class CosmosBlockChainOASIS
             if (tokenId != locator.TokenId) throw new ArgumentException("NFT bridge token ID conflicts with its address.");
             var key = await SigningKeyAsync(Guid.Empty);
             var pool = await SignerAddressAsync(key);
+            if (!string.IsNullOrEmpty(sourceTransactionHash))
+            {
+                if (!System.Text.RegularExpressions.Regex.IsMatch(sourceTransactionHash, @"\A[0-9a-fA-F]{64}\z"))
+                    throw new ArgumentException("Exact Cosmos source transaction hash required.");
+                var proof = await ((CosmosSdkBackend)Backend).InvokeAsync("verifyNftCustodyReceipt", new {
+                    transactionHash = sourceTransactionHash, contractAddress = locator.Contract, tokenId = locator.TokenId, custody = pool });
+                if (!proof.GetProperty("verified").GetBoolean() || proof.GetProperty("transactionHash").GetString() != sourceTransactionHash)
+                    throw new InvalidOperationException("Cosmos source custody receipt identity was not verified.");
+            }
             // Release the existing escrowed NFT. Cross-chain provenance is the bridge coordinator's responsibility.
             var hash = await TransferNftAsync(nftTokenAddress, pool, receiverAccountAddress, key);
             result.Result = new BridgeTransactionResponse { TransactionId = hash, IsSuccessful = true, Status = BridgeTransactionStatus.Completed };

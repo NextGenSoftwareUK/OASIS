@@ -1,6 +1,6 @@
-import { CosmWasmClient, SigningCosmWasmClient } from "@cosmjs/cosmwasm";
+import { CosmWasmClient, SigningCosmWasmClient, wasmTypes } from "@cosmjs/cosmwasm";
 import { DirectSecp256k1Wallet, DirectSecp256k1HdWallet, decodeTxRaw, Registry } from "@cosmjs/proto-signing";
-import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, bankTransferLegs, cosmosFailureMessage } from './transaction-results.mjs';
+import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, verifiedNftCustodyReceipt, bankTransferLegs, cosmosFailureMessage } from './transaction-results.mjs';
 import { GasPrice, defaultRegistryTypes } from "@cosmjs/stargate";
 import { fromHex, toHex, fromBech32 } from "@cosmjs/encoding";
 
@@ -42,6 +42,12 @@ async function execute(input) {
       throw new Error(`Cosmos chain mismatch: expected ${input.chainId}, received ${chainId}`);
     const sender = wallet ? (await wallet.getAccounts())[0].address : null;
     switch (input.operation) {
+      case "verifyNftCustodyReceipt": {
+        if (!/^[0-9a-fA-F]{64}$/.test(input.transactionHash ?? '')) throw new Error('Exact Cosmos source transaction hash required');
+        const tx = await client.getTx(input.transactionHash);
+        verifiedNftCustodyReceipt(tx, input, new Registry([...defaultRegistryTypes, ...wasmTypes]));
+        return { transactionHash: tx.hash, verified: true };
+      }
       case "probe": {
         if (!input.contractAddress) throw new Error("CosmWasm contractAddress is required for OASIS storage");
         const contract = await client.getContract(input.contractAddress);
