@@ -67,6 +67,8 @@ public class SuiStorageTests
             Assert.IsFalse((await _provider.SaveAvatarAsync(avatar)).IsError);
             Assert.AreEqual("After", (await _provider.LoadAvatarAsync(id)).Result.FirstName);
             Assert.AreEqual("Before", (await _provider.LoadAvatarAsync(id, firstVersion)).Result.FirstName);
+            foreach (var history in new[] { _provider.LoadAllAvatars(firstVersion), await _provider.LoadAllAvatarsAsync(firstVersion) })
+            { Assert.IsFalse(history.IsError, history.Message); Assert.AreEqual("Before", history.Result.Single(value => value.Id == id).FirstName); }
             var detail = new AvatarDetail { Id = id, Username = avatar.Username, Email = avatar.Email };
             Assert.IsFalse((await _provider.SaveAvatarDetailAsync(detail)).IsError);
             Assert.AreEqual(id, (await _provider.LoadAvatarDetailAsync(id)).Result.Id);
@@ -75,6 +77,15 @@ public class SuiStorageTests
             Assert.AreEqual(id, _provider.LoadAvatarDetail(id).Result.Id);
             Assert.AreEqual(id, _provider.LoadAvatarDetailByUsername(avatar.Username).Result.Id);
             Assert.AreEqual(id, _provider.LoadAvatarDetailByEmail(avatar.Email).Result.Id);
+            var detailVersion = detail.Version;
+            detail.Karma = 42;
+            detail.KarmaAkashicRecords.Add(new Core.Objects.KarmaAkashicRecord { AvatarId = id, Karma = 42, TotalKarma = 42, Date = DateTime.UtcNow });
+            Assert.IsFalse((await _provider.SaveAvatarDetailAsync(detail)).IsError);
+            foreach (var history in new[] { _provider.LoadAllAvatarDetails(detailVersion), await _provider.LoadAllAvatarDetailsAsync(detailVersion) })
+            { Assert.IsFalse(history.IsError, history.Message); Assert.AreEqual(0L, history.Result.Single(value => value.Id == id).Karma); }
+            var updatedDetail = await _provider.LoadAvatarDetailAsync(id);
+            Assert.IsFalse(updatedDetail.IsError, updatedDetail.Message);
+            Assert.AreEqual(42L, updatedDetail.Result.Karma); Assert.AreEqual(42, updatedDetail.Result.KarmaAkashicRecords.Single().Karma);
         }
         finally
         {
@@ -91,6 +102,7 @@ public class SuiStorageTests
         var id = Guid.NewGuid();
         var holon = new Holon { Id = id, ParentHolonId = parentId, Name = "Sui roundtrip", Description = "real contract storage" };
         holon.MetaData["evidence"] = id.ToString("N");
+        holon.MetaData["history"] = new List<Dictionary<string, object>> { new() { ["amount"] = 42L, ["avatarId"] = id } };
         try
         {
             var saved = await _provider.SaveHolonAsync(holon, saveChildren: false);
@@ -99,6 +111,8 @@ public class SuiStorageTests
             Assert.IsFalse(loaded.IsError, loaded.Message);
             Assert.AreEqual(holon.Description, loaded.Result.Description);
             Assert.AreEqual(id.ToString("N"), loaded.Result.MetaData["evidence"].ToString());
+            var history = (List<Dictionary<string, object>>)loaded.Result.MetaData["history"];
+            Assert.AreEqual(42L, history.Single()["amount"]); Assert.AreEqual(id.ToString(), history.Single()["avatarId"]);
             var children = await _provider.LoadHolonsForParentAsync(parentId, loadChildren: false);
             Assert.IsFalse(children.IsError, children.Message);
             Assert.IsTrue(children.Result.Any(x => x.Id == id));
