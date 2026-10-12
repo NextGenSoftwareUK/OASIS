@@ -18,6 +18,20 @@ SQLite and Keychain session storage only. The HoloEnabled profile is Android-onl
 - Not yet proven: starting a conductor and running an OASIS zome call on the simulator (plan step 1's exit
   criterion), then steps 3 to 7 below (Swift bridge, Unity C# bridge, lifecycle, build guard, tests).
 
+**Update (2026-10-12): the conductor runs on the iOS simulator, and the Unity bridge is in place.**
+- CI runs two simulator tests on every build: start the conductor, install the OASIS hApp, sign `oasis.get_all_avatars` with the
+  conductor-held key and get `zome_called` over the app websocket; and the same through the Unity C ABI (start, duplicate start
+  rejected, resume, sign, stop). Both pass.
+- iOS fixes found on the way: link `Network.framework`; keep lair's domain socket under the 104-byte limit (iOS container paths are
+  longer), see `crates/runtime/src/ios_lair.rs` in the fork.
+- Unity: `UnityHolochainIosBridge.cs` (HoloEnabled~), platform selection in `HoloEdgeUnityLocalProvider`, an iOS build guard (iOS 15+,
+  xcframework present) and packaging in `build_edge_unity_package.ps1`.
+- Release: [oasis-holochain-0.7-v1.0.0](https://github.com/NextGenSoftwareUK/android-service-runtime/releases/tag/oasis-holochain-0.7-v1.0.0)
+  (Android APKs + iOS xcframework and Swift bindings), pinned in `Scripts/holochain_ios_runtime.version.json`; fetch and verify with
+  `Scripts/fetch_holochain_ios_runtime.ps1`.
+- Still to do: a physical iPhone run, a full Unity iOS player build (add the system frameworks to UnityFramework), and the lifecycle
+  hooks (plan step 5).
+
 ---
 
 ## 1. What exists on Android (use it as the reference)

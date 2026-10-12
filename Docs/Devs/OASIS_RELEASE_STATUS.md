@@ -2,29 +2,29 @@
 
 Status snapshot: 11 October 2026, America/Cancun. This inventory distinguishes releases completed in the current publication run from older downloadable releases. Older assets do not establish that the requested updates are complete.
 
-Three GitHub releases are completed in this run: MCP Server 3.1.0, ODOOM 1.1.0 and OQUAKE 1.1.0. MCP Server 3.1.0 is also published on NuGet. Remaining publication is outstanding.
+Six GitHub releases are verified published in this run: MCP Server 3.1.0, ODOOM 1.1.0, OQUAKE 1.1.0, OASIS Runtime 5.1.0, STAR Runtime 4.1.0 and Integrated Native Endpoint 2.1.0. MCP Server 3.1.0 is also published on NuGet and npm. Remaining publication is outstanding.
 
 | Product or release | Current publication status | Published download |
 |---|---|---|
 | MCP Server | Done: 3.1.0; five platform binaries and NuGet | [GitHub 3.1.0](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/mcp-v3.1.0) · [NuGet 3.1.0](https://www.nuget.org/packages/NextGenSoftware.OASIS.MCP.Server/3.1.0) |
 | ODOOM | Done: 1.1.0; Windows x64, Linux x64 and macOS ARM64 assets | [Release 1.1.0](https://github.com/NextGenSoftwareUK/ODOOM/releases/tag/v1.1.0) |
 | OQUAKE | Done: 1.1.0; Windows x64, Linux x64 and macOS ARM64 assets | [Release 1.1.0](https://github.com/NextGenSoftwareUK/OQUAKE/releases/tag/v1.1.0) |
-| OASIS Runtime | Updated release outstanding | [Existing 5.0.1](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/OASIS-Runtime-v5.0.1) |
-| STAR Runtime including CLI | Updated release outstanding | [Existing runtime 4.0.1](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/STAR-ODK-Runtime-v4.0.1) |
-| Edge Runtime | Outstanding; no published release verified | — |
+| OASIS Runtime | Done: 5.1.0; Windows x64, Linux x64/ARM64, macOS x64/ARM64 | [Release 5.1.0](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/OASIS-Runtime-v5.1.0) |
+| STAR Runtime including CLI | Done: 4.1.0; Windows x64, Linux x64/ARM64, macOS x64/ARM64 | [Release 4.1.0](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/STAR-ODK-Runtime-v4.1.0) |
+| Edge Runtime | 1.1.0 planned; validation passed, archive selection failed before publication; fix awaiting CI/promotion | — |
 | OGEngineClient Edge and remote-only profiles | Updated release outstanding | [Existing 2.0.2](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/OGEngineClient-v2.0.2) |
-| Integrated Native Endpoint | Updated release outstanding | [Existing 2.0.2](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/Native-Endpoint-v2.0.2) |
+| Integrated Native Endpoint | Done: 2.1.0; Windows x64, Linux x64/ARM64, macOS x64/ARM64 | [Release 2.1.0](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/Native-Endpoint-v2.1.0) |
 | OIDE | Requested update or unchanged-source verification outstanding | [Existing 1.0.0](https://github.com/NextGenSoftwareUK/OIDE/releases/tag/v1.0.0) |
 | ONODE Manager | Requested update or unchanged-source verification outstanding | [Existing 1.0.0](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/onode-manager-v1.0.0) |
 | HyperDrive Client | Requested update or unchanged-source verification outstanding | [Existing 1.0.0](https://github.com/NextGenSoftwareUK/OASIS-HyperDrive-Client/releases/tag/v1.0.0) |
 | OurWorld | Outstanding; Unity Cloud configuration required; no published release found | — |
-| All first-party NuGet packages | Bulk updated publication outstanding | MCP 3.1.0 confirmed above |
+| All first-party NuGet packages | 229 packages packed; publication stopped before upload on plan mismatch; fix awaiting CI/promotion | MCP 3.1.0 confirmed above |
 | MCP npm package | Done: 3.1.0; registry version, CLI entry point and published checksum verified | [npm 3.1.0](https://www.npmjs.com/package/@oasisomniverse/mcp-server/v/3.1.0) |
 
 ## Publication requirements
 
-- Complete checked Development-to-master promotion, then verify all 14 staging and production WEB4–WEB10 deployments and affected endpoints before remaining publication.
-- Every binary product release must have verified Windows, Linux and macOS assets for its supported architectures. OASIS Runtime and Native Endpoint five-RID workflow changes are on Development, but hosted builds and published archives are not yet verified.
+- Promoted master `7f622f9c2c28d5b4fb18b01ceef6fa57794f2cab`: all 14 staging/production WEB4–WEB10 deployments verified successful/sleeping; all 14 Swagger endpoints plus WEB6 health/discovery in both environments returned HTTP 200 before dispatch.
+- Every binary product release must have verified Windows, Linux and macOS assets for its supported architectures. OASIS Runtime, STAR Runtime and Native Endpoint each have five successful hosted platform builds and five nonempty public release archives. Other products' platform audits remain outstanding.
 - Runtime archives must contain the updated public `Default/OASIS_DNA.json` template, never configured DNA or credentials.
 - ODOOM and OQUAKE live notes now use consistent reviewed feature, fix, packaging, download and changelog sections.
 - MCP npm first publication is complete. npm-side trusted-publisher configuration remains required for future automated releases. Do not duplicate existing GitHub, NuGet or npm versions.
@@ -33,4 +33,6 @@ Three GitHub releases are completed in this run: MCP Server 3.1.0, ODOOM 1.1.0 a
 
 ## Verification basis
 
-Links and asset presence were checked using GitHub release APIs; MCP 3.1.0 was checked against NuGet's package registry. This is a dated snapshot, not a claim that remaining releases have since completed.
+Links and asset presence were checked using GitHub release APIs; MCP 3.1.0 was checked against NuGet and npm registries. npm's CLI entry point and package checksum match the successful publication.
+
+[Global release run 38189900873](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/38189900873) built and published the three runtime releases from the verified master revision. Last check: 11 October 2026, 20:39 America/Cancun (12 October 01:39 UTC): NuGet packaging passed; Edge hApp/Android builds were still running without reported failures. Public release assets establish publication, not physical-device execution. Update this inventory after each verified publication milestone; do not mark pending builds or registry uploads as done.
