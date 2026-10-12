@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Current Cosmos non-funded SDK/provider regression checkpoint (2026-10-11)
+
+At parent `ed3e45384`, full Cosmos provider unit suite passes **34/34**, zero skips (`TestResults/CosmosCurrent/cosmos-unit-current.trx`); existing source bridge SDK tests pass **3/3**, zero skips (`npm test`). Official CosmJS checks execute real wallet generation/recovery and invalid-key/unreachable-RPC error behavior, while provider unit cases retain controlled transport scope. Existing exact-pinned installation/output/build resources were reused without restore/install/download/new runtime. These are not a replacement for current live wasmd consensus/storage/V2 routing/native/HTTP gates, which remain unverified under the previously recorded runtime policy restriction. No attempted bypass, ledger mutation or merge. Shared historical/reparent changes still require provider-wide live regression before completion.
+
 ### Latest parent reads verify indexed record membership (2026-10-11)
 
 Controlled old-parent-index retirement failure after successful record/new-index writes leaves a stale link and correctly returns a save error. Latest parent reads now verify each indexed record's persisted ParentHolonId before returning it, so the old parent no longer claims a moved child; the new parent resolves its actual persisted record. Regression asserts the stale backend key still exists (no hidden cleanup/retry), save failure remains surfaced and sync/async relationship readback is correct. Full shared suite passes **58/58**, zero skips (`shared-current.trx`); explicit provider rebuild succeeds (zero errors/two warnings). This prevents wrong membership, not atomicity or automatic repair of missing/new indexes; partial writes and concurrent cases remain explicit release audit work. No network mutation/install/download/new environment/merge.
