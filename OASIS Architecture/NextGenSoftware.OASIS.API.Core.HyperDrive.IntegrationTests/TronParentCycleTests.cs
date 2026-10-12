@@ -53,6 +53,11 @@ public class TronParentCycleTests
             metadata.Result.Single().Children.Should().ContainSingle(value => value.Id == id);
             var recursiveCollection = await provider.LoadAllHolonsAsync();
             recursiveCollection.IsError.Should().BeTrue(); recursiveCollection.Message.Should().Contain("Cyclic holon parent relationship");
+            var unmatched = await provider.LoadHolonsByMetaDataAsync("owned-cycle-fixture", "unmatched-owned-fixture");
+            unmatched.IsError.Should().BeFalse(unmatched.Message); unmatched.Result.Should().BeEmpty();
+            var unmatchedPairs = provider.LoadHolonsByMetaData(new Dictionary<string, string> { ["owned-cycle-fixture"] = "unmatched-owned-fixture" },
+                NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All);
+            unmatchedPairs.IsError.Should().BeFalse(unmatchedPairs.Message); unmatchedPairs.Result.Should().BeEmpty();
             var newParent = Guid.Parse("5e0be8a0-cb6e-4a50-9faf-54bc29a798af");
             (await provider.SaveHolonAsync(new Holon { Id = id, ParentHolonId = newParent, Name = "Owned moved fixture" })).IsError.Should().BeFalse();
             var latestOld = await provider.LoadHolonsForParentAsync(id);

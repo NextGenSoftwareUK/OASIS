@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Real encrypted TRON unmatched metadata query scope (2026-10-11)
+
+Expanded real encrypted-storage scenario passes **1/1**, zero skips (`tron-parent-cycle.trx`): with a persisted owned cyclic tree, async single-key and sync pair metadata queries for an unmatched owned marker return successful empty collections. Unrestricted recursive collection read still reports the cycle, so filtering does not suppress errors in a selected tree. Existing save rejection/read/depth/history checks and fixture cleanup remain passing. Runtime reused and paused after terminal completion; no reset/install/download/new environment/public assets/merge. Positive selected-acyclic real query and full cross-provider/API/image options remain distinct gates.
+
 ### Metadata child expansion restricted to matching records (2026-10-11)
 
 Collection child-loading implementation exposed a query-scope issue: metadata queries expanded all trees before filtering, so unrelated cyclic relationships could fail an otherwise valid query. Existing collection implementation is now shared through a private predicate-aware helper; type/metadata selection occurs before child expansion, preserving real record-read errors and child errors within selected trees. Regression proves single-key async and metadata-pair sync queries succeed for the matching record while unrestricted recursive collection read still reports the unrelated cycle. Full shared suite passes **56/56**, zero skips (`shared-current.trx`); explicit provider rebuild succeeds (zero errors/two warnings). Real-provider query-scope recheck and other complete option/API/image/provider gates remain open. No network mutation/install/download/new environment/merge.
