@@ -3,7 +3,16 @@ let input='';for await(const chunk of process.stdin)input+=chunk;const request=J
 let result,error,failureEnvelope,handled=false;
 if(['put','get'].includes(request.operation)) {
  handled=true;const mode=request.mode;
- if(mode==='hold')setInterval(()=>{},1000);
+ if(mode?.startsWith('prepared')){
+  const {pathToFileURL}=await import('node:url');
+  const {preparationClient}=await import(pathToFileURL(process.env.OASIS_NATIVE_PREPARATION_MODULE).href);
+  try{
+   await preparationClient(process.env.OASIS_NATIVE_PREPARATION_PIPE,5000)({transactionHash:'a'.repeat(64),signedTransactionBase64:'AQID'});
+   if(mode==='prepared-hold')setInterval(()=>{},1000);
+   else process.stdout.write(JSON.stringify({ok:true,result:{transactionHash:(mode==='prepared-wrong'?'b':'a').repeat(64)}}));
+  }catch{process.stdout.write(JSON.stringify({ok:false,error:'controlled persistence rejection'}));process.exitCode=1;}
+ }
+ else if(mode==='hold')setInterval(()=>{},1000);
  else if(mode==='empty'){process.stderr.write('untrusted test-only-secret');process.exitCode=1;}
  else if(mode==='bad-json'){process.stdout.write('invalid JSON');process.exitCode=1;}
  else if(mode==='bad-utf8'){process.stdout.write(Buffer.from([255]));process.exitCode=1;}

@@ -82,11 +82,16 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
         await DeleteAsync(key, cancellationToken);
     }
 
-    internal async Task<JsonElement> InvokeAsync(string operation, object args = null, CancellationToken cancellationToken = default)
+    internal Task<JsonElement> InvokeAsync(string operation, object args = null, CancellationToken cancellationToken = default)
+        => InvokeCoreAsync(operation, args, cancellationToken, null);
+    internal Task<JsonElement> InvokePreparedAsync(string operation, object args, PreparedSubmissionServer server, CancellationToken token)
+        => InvokeCoreAsync(operation, args, token, server ?? throw new ArgumentNullException(nameof(server)));
+    private async Task<JsonElement> InvokeCoreAsync(string operation, object args, CancellationToken cancellationToken, PreparedSubmissionServer preparationServer)
     {
         cancellationToken.ThrowIfCancellationRequested();
         ObjectDisposedException.ThrowIf(_disposed, this);
         var isMutation = operation is "put" or "delete" or "execute" or "transfer" or "upload" or "instantiate";
+        if (preparationServer != null && !isMutation) throw new ArgumentException("Preparation gate is only valid for a native mutation.");
         if (!File.Exists(_bridgePath))
             throw new FileNotFoundException("Install the locked official CosmJS SDK bridge before activating Cosmos.", _bridgePath);
         var request = new Dictionary<string, object>
@@ -110,9 +115,14 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
             StandardErrorEncoding = new System.Text.UTF8Encoding(false, true)
         };
         start.ArgumentList.Add(_bridgePath);
+        start.Environment.Remove("OASIS_NATIVE_PREPARATION_PIPE");
+        start.Environment.Remove("OASIS_NATIVE_PREPARATION_MODULE");
+        preparationServer?.ConfigureChild(start, Path.Combine(AppContext.BaseDirectory, "CosmosSdkBridge", "prepared-submission.mjs"));
         using var process = Process.Start(start) ?? throw new InvalidOperationException("Cannot start Cosmos SDK bridge.");
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(TimeSpan.FromMinutes(2));
+        var preparationTask = preparationServer?.ServeAsync(timeout.Token);
+        var preparationObserved = false;
         var outputTask = process.StandardOutput.ReadToEndAsync(timeout.Token);
         var errorTask = process.StandardError.ReadToEndAsync(timeout.Token);
         try
@@ -120,6 +130,11 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
             await process.StandardInput.WriteAsync(JsonSerializer.Serialize(request).AsMemory(), timeout.Token);
             process.StandardInput.Close();
             await process.WaitForExitAsync(timeout.Token);
+            if (preparationTask?.IsFaulted == true)
+            {
+                preparationObserved = true;
+                await preparationTask;
+            }
             var output = await outputTask;
             await errorTask;
             if (string.IsNullOrWhiteSpace(output))
@@ -165,29 +180,48 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
             }
             if (!envelope.RootElement.TryGetProperty("result", out var payload))
                 throw InvalidEnvelope(isMutation, "Cosmos SDK success envelope has no result; native outcome is not established.");
+            if (preparationTask != null && !preparationTask.IsCompletedSuccessfully)
+                throw InvalidEnvelope(true, "Cosmos mutation success lacks completed durable preparation acknowledgement.");
             if (isMutation && (payload.ValueKind != JsonValueKind.Object || !payload.TryGetProperty("transactionHash", out var hash)
                 || hash.ValueKind != JsonValueKind.String
                 || !System.Text.RegularExpressions.Regex.IsMatch(hash.GetString() ?? "", @"\A[0-9a-fA-F]{64}\z")))
                 throw InvalidEnvelope(true, "Cosmos SDK mutation result lacks transaction identity; native outcome is not established.");
+            if (preparationServer?.PreparedTransactionId != null
+                && !string.Equals(payload.GetProperty("transactionHash").GetString(), preparationServer.PreparedTransactionId, StringComparison.OrdinalIgnoreCase))
+                throw new CosmosNativeMutationReconciliationException("Cosmos reply does not match the persisted original identity.", preparationServer.PreparedTransactionId, null);
             return payload.Clone();
+        }
+        catch (InvalidOperationException ex) when (!preparationObserved && preparationServer?.PreparedTransactionId != null)
+        {
+            var original = preparationServer.PreparedTransactionId;
+            if (ex is CosmosNativeMutationReconciliationException native && string.Equals(native.OriginalTransactionId, original, StringComparison.OrdinalIgnoreCase)) throw;
+            throw new CosmosNativeMutationReconciliationException("Cosmos process failure after durable preparation; reconcile the original before retrying.", original, null, ex);
         }
         catch (OperationCanceledException ex)
         {
             if (isMutation)
             {
-                const string message = "Cosmos native mutation process was interrupted with outcome unverified and original signed identity unavailable. Reconcile before retrying; process termination does not cancel a ledger submission.";
-                if (cancellationToken.IsCancellationRequested) throw new CosmosNativeMutationCanceledException(message, ex, cancellationToken);
-                throw new CosmosNativeMutationTimeoutException(message, ex);
+                const string message = "Cosmos native mutation process was interrupted with outcome unverified. Reconcile before retrying; process termination does not cancel a ledger submission.";
+                if (cancellationToken.IsCancellationRequested) throw new CosmosNativeMutationCanceledException(message, ex, cancellationToken, preparationServer?.PreparedTransactionId);
+                throw new CosmosNativeMutationTimeoutException(message, ex, preparationServer?.PreparedTransactionId);
             }
             throw;
         }
         catch (Exception ex) when (isMutation && (ex is IOException || ex is System.Text.DecoderFallbackException))
-        { throw InvalidEnvelope(true, "Cosmos SDK process I/O failed; native outcome is not established.", ex); }
+        { throw new CosmosNativeMutationReconciliationException("Cosmos SDK process I/O failed; native outcome is not established.", preparationServer?.PreparedTransactionId, null, ex); }
         finally
         {
+            timeout.Cancel();
+            preparationServer?.Dispose();
             if (!process.HasExited) { process.Kill(entireProcessTree: true); await process.WaitForExitAsync(); }
             try { await Task.WhenAll(outputTask, errorTask); }
             catch (Exception ex) when (ex is OperationCanceledException || ex is IOException || ex is System.Text.DecoderFallbackException) { }
+            if (preparationTask != null)
+            {
+                try { await preparationTask; }
+                catch (OperationCanceledException) { }
+                catch (Exception) when (preparationObserved) { }
+            }
         }
     }
 
