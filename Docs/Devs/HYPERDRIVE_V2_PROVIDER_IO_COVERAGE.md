@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Live prepared duplicate rejection and exact readback — 2026-10-12
+
+Extended the retained Sui prepared-live test to query the exact value after confirmed write, attempt a second preparation with the same correlation but different value, and assert `PROVIDER_ATTEMPT_ALREADY_STARTED` before another submission. Outbox count and evidence byte budget remain unchanged; a real ledger query confirms the original value remains. Separately prepared cleanup is confirmed Completed and the exact key reads null afterward. Live **1/1** passed, zero skips (`sui-prepared-live-current.trx`). Journal absence verified after successful cleanup; exact owned node PID 218067 stopped and handle terminal. The duplicated correlation is tested only after a known successful original, never an unknown transaction replay. This is local-ledger preparation idempotency evidence, not forced crash recovery or production native-spending authorization. No installs/public funds/merge.
+
 ### Prepared live cleanup and durable rerun fence — 2026-10-12
 
 Strengthened the live Sui harness: atomically creates fixed `TestResults/SuiCurrent/prepared-live-pending.json` before submission, durably flushes owned key/database/execution identity, and refuses a rerun while it exists. Both write and cleanup now use separately correlated prepared attempts in the same Mongo outbox. Original write and cleanup digests are confirmed Completed and retained in compact TRX output before the owned database/journal are removed. Any failure preserves journal/outbox for original-transaction reconciliation; there is no automatic cleanup retry or unknown-outcome replay.
