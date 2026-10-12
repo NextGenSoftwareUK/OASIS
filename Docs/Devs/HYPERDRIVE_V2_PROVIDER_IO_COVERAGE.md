@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Current Sui/TRON units and reusable Sui output dependencies (2026-10-11)
+
+Full TRON units pass **177/177**, zero skips (`TestResults/TronCurrent/tron-unit-current.trx`). Initial Sui run passed 25 cases but failed two real SDK wallet cases because the default output bridge lacked `@mysten/sui`; this was dependency resolution, not an executed signing failure. Existing `Use-ReusableHederaOutputDependencies.ps1` now optionally accepts `-Provider Sui` and an explicit Sui output path, preserving its Hedera default. It verifies matching manifest/lockfile hashes, requires the existing source installation, refuses foreign output dependency directories, creates only the expected reusable junction and runs the exact-pin/import verifier. Full Sui units then pass **27/27**, zero skips, using the default output bridge without source-bridge environment override. No installation/download/runtime/ledger allocation occurred. This is local output setup and unit/SDK key evidence, not published image execution or a complete native-history implementation: TRON still explicitly rejects unmapped native contract operations instead of fabricating transfers. Remaining release gates stay open.
+
 ### Live Sui NFT signing through the encrypted avatar wallet (2026-10-11)
 
 `NftMintAndBurnUseStoredAvatarWalletWithoutConfiguredSigner` passes **1/1**, zero skips (`TestResults/HyperDriveSui/sui-avatar-nft.trx`). The retained local Sui node/package executes a real NFT mint with no provider-wide private key configured: the existing WalletManager resolves and decrypts the fixed owned avatar's stored default wallet. Independent on-chain readback verifies minting avatar and owner; the stored key remains encrypted. Burn also resolves that avatar wallet without supplied key/public key/seed, returns a transaction digest, and subsequent NFT lookup reports absence. The fixture wallet map is cleared afterward. Required nullable burn DTO members were explicitly initialized after a compile-time failure; no failed chain submission occurred in that build attempt.

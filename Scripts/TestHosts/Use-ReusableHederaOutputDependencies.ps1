@@ -1,13 +1,17 @@
 param(
-    [string]$OutputBridge = 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests/bin/Debug/net10.0/HederaSdkBridge'
+    [string]$OutputBridge = 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests/bin/Debug/net10.0/HederaSdkBridge',
+    [ValidateSet('Hedera', 'Sui')][string]$Provider = 'Hedera'
 )
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
-$sourceBridge = Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/SdkBridge'
+$providerDirectory = if ($Provider -eq 'Sui') { 'SuiOASIS' } else { 'HashgraphOASIS' }
+$sdkPackage = if ($Provider -eq 'Sui') { '@mysten/sui/package.json' } else { '@hiero-ledger/sdk/package.json' }
+$bridgeName = $Provider + 'SdkBridge'
+$sourceBridge = Join-Path $taskRoot "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.$providerDirectory/SdkBridge"
 $outputPath = [IO.Path]::GetFullPath((Join-Path $taskRoot $OutputBridge))
 if (!$outputPath.StartsWith($taskRoot + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase) -or
-    (Split-Path $outputPath -Leaf) -ne 'HederaSdkBridge') {
-    throw 'Only an existing HederaSdkBridge output inside this checkout is supported.'
+    (Split-Path $outputPath -Leaf) -ne $bridgeName) {
+    throw "Only an existing $bridgeName output inside this checkout is supported."
 }
 foreach ($manifest in @('package.json', 'package-lock.json')) {
     if ((Get-FileHash -LiteralPath (Join-Path $sourceBridge $manifest)).Hash -ne
@@ -16,7 +20,7 @@ foreach ($manifest in @('package.json', 'package-lock.json')) {
     }
 }
 $installed = Join-Path $sourceBridge 'node_modules'
-if (!(Test-Path -LiteralPath (Join-Path $installed '@hiero-ledger/sdk/package.json'))) {
+if (!(Test-Path -LiteralPath (Join-Path $installed $sdkPackage))) {
     throw 'The existing pinned SDK installation is missing. No install or download was attempted.'
 }
 $destination = Join-Path $outputPath 'node_modules'
