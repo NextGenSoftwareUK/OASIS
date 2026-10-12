@@ -81,7 +81,8 @@ jobs:
           if ($published.conclusion -ne 'success' -or @($published.jobs | Where-Object { $_.name -eq 'nuget-publish' -and $_.conclusion -eq 'success' }).Count -ne 1) { throw 'NuGet publication did not succeed.' }
           $releases = gh api 'repos/NextGenSoftwareUK/OASIS/releases?per_page=100' | ConvertFrom-Json
           if ($LASTEXITCODE -ne 0) { throw 'Could not check existing GitHub releases.' }
-          if (@($releases | Where-Object tag_name -eq "OASIS-Edge-Runtime-v$env:VERSION").Count) { throw 'The release already exists; do not duplicate it.' }
+          $existing = @($releases | Where-Object tag_name -eq "OASIS-Edge-Runtime-v$env:VERSION")
+          if ($existing.Count -and (-not $existing[0].draft -or $existing[0].target_commitish -ne $source.headSha)) { throw 'A public release or draft with different source already exists.' }
           "source_sha=$($source.headSha)" >> $env:GITHUB_OUTPUT
           "Validated binary source: $($source.headSha); NuGet source: $($published.headSha)" >> $env:GITHUB_STEP_SUMMARY
       - uses: actions/download-artifact@v7
@@ -114,6 +115,16 @@ jobs:
           @("Reused validated binary/evidence run: $env:VALIDATED_RUN", "Included successful NuGet publication run: $env:NUGET_RUN", 'NuGet candidates and release notes were refreshed; binary validation evidence remains from the original run.') | Set-Content "$root/PUBLICATION_PROVENANCE.md"
           $archive = "artifacts/OASIS.Edge.Runtime.v$env:VERSION.zip"
           Compress-Archive -Path "$root/*" -DestinationPath $archive
-          $assets = @((Get-ChildItem -LiteralPath $root -File).FullName) + @((Resolve-Path $archive).Path)
-          gh release create "OASIS-Edge-Runtime-v$env:VERSION" @assets --target $env:SOURCE_SHA --title "OASIS Edge Runtime v$env:VERSION" --notes-file "$root/RELEASE_NOTES.md"
-          if ($LASTEXITCODE -ne 0) { throw 'GitHub release creation failed.' }
+          $assets = @((Get-ChildItem -LiteralPath $root -File | Where-Object Length -gt 0).FullName) + @((Resolve-Path $archive).Path)
+          $tag = "OASIS-Edge-Runtime-v$env:VERSION"
+          $releases = gh api 'repos/NextGenSoftwareUK/OASIS/releases?per_page=100' | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) { throw 'Could not inspect existing releases.' }
+          $existing = @($releases | Where-Object tag_name -eq $tag)
+          if (-not $existing.Count) {
+            gh release create $tag --draft --target $env:SOURCE_SHA --title "OASIS Edge Runtime v$env:VERSION" --notes-file "$root/RELEASE_NOTES.md"
+            if ($LASTEXITCODE -ne 0) { throw 'GitHub draft creation failed.' }
+          } elseif (-not $existing[0].draft -or $existing[0].target_commitish -ne $env:SOURCE_SHA) { throw 'Existing release is not the matching recovery draft.' }
+          gh release upload $tag @assets --clobber
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub asset upload failed; draft preserved for recovery.' }
+          gh release edit $tag --draft=false --notes-file "$root/RELEASE_NOTES.md"
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub publication failed; inspect the draft.' }
