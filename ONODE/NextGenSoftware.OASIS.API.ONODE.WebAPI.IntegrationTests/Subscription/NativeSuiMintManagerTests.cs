@@ -15,8 +15,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription;
 
 public sealed class NativeSuiMintManagerTests
 {
-    [Fact]
-    public async Task DefaultThreeEntryBatchMintsExactlyThreeAndPersistsRealMetadata()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task DefaultThreeEntryBatchMintsExactlyThreeAndPersistsRealMetadata(bool encryptedAvatar)
     {
         var rpc = Environment.GetEnvironmentVariable("OASIS_SUI_TEST_RPC") ?? throw new InvalidOperationException("Retained local Sui RPC required.");
         Assert.True(new Uri(rpc).IsLoopback);
@@ -27,6 +29,13 @@ public sealed class NativeSuiMintManagerTests
             settings.GetProperty("packageAddress").GetString()!, settings.GetProperty("privateKey").GetString()!, settings.GetProperty("storageObjectId").GetString()!);
         var owner = await sui.RestoreKeyPairAsync(settings.GetProperty("privateKey").GetString()!);
         Assert.False(owner.IsError, owner.Message);
+        using var retainedWallet = JsonDocument.Parse(await IOFile.ReadAllTextAsync(Environment.GetEnvironmentVariable("OASIS_SUI_TEST_DEPLOYMENT") + ".token-wallet.json"));
+        Assert.Equal(settings.GetProperty("chainId").GetString(), retainedWallet.RootElement.GetProperty("chainId").GetString());
+        var mintKey = encryptedAvatar ? retainedWallet.RootElement.GetProperty("wallet").GetProperty("privateKey").GetString()!
+            : settings.GetProperty("privateKey").GetString()!;
+        var signer = await sui.RestoreKeyPairAsync(mintKey);
+        Assert.False(signer.IsError, signer.Message);
+        if (encryptedAvatar) Assert.NotEqual(owner.Result.WalletAddressLegacy, signer.Result.WalletAddressLegacy);
         var root = Environment.GetEnvironmentVariable("OASIS_NATIVE_MINT_TEST_ROOT") ?? throw new InvalidOperationException("Fixed reusable owned mint-test directory required.");
         Directory.CreateDirectory(root);
         using var lease = new FileStream(Path.Combine(root, "store.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
@@ -40,15 +49,41 @@ public sealed class NativeSuiMintManagerTests
         var dna = new OASISDNA();
         dna.OASIS.HyperDriveMode = HyperDriveModes.V2;
         dna.OASIS.StorageProviders = new StorageProviderSettings { LogSwitchingProviders = false };
+        dna.OASIS.Security = new SecuritySettings { OASISProviderPrivateKeys = new EncryptionSettings {
+            Rijndael256EncryptionEnabled = true, Rijndael256Key = new string('k', 32) } };
         var registry = new ProviderManager(null!, dna);
         registry.RegisterProvider(local); registry.RegisterProvider(sui);
         var field = typeof(ProviderManager).GetField("_instance", BindingFlags.Static | BindingFlags.NonPublic)!;
         var original = field.GetValue(null);
         IWeb4NFT? minted = null;
+        var actorId = encryptedAvatar ? Guid.NewGuid() : Guid.Empty;
+        var actorSaved = false;
+        var encryptedKey = Rijndael256.Rijndael.Encrypt(mintKey, new string('k', 32), Rijndael256.KeySize.Aes256);
         var finished = false;
         try
         {
             field.SetValue(null, registry);
+            if (encryptedAvatar)
+            {
+                Assert.False(registry.SetAndActivateCurrentStorageProvider(local).IsError);
+                Assert.False((await local.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar {
+                    Id = actorId, Username = "owned-native-mint-" + actorId.ToString("N"), Email = actorId.ToString("N") + "@example.invalid" })).IsError);
+                actorSaved = true;
+                Assert.False((await local.SaveProviderWalletsForAvatarByIdAsync(actorId, new() {
+                    [ProviderType.SuiOASIS] = new List<IProviderWallet> { new NextGenSoftware.OASIS.API.Core.Objects.ProviderWallet {
+                        Id = Guid.NewGuid(), AvatarId = actorId, IsDefaultWallet = true, ProviderType = ProviderType.SuiOASIS,
+                        WalletAddress = signer.Result.WalletAddressLegacy, PublicKey = signer.Result.PublicKey, PrivateKey = encryptedKey,
+                    } } })).IsError);
+                var walletConstructor = typeof(WalletManager).GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic).Single(item => item.GetParameters().Length == 4);
+                sui.WalletManager = (WalletManager)walletConstructor.Invoke(new object?[] { local, dna, registry, null });
+                var balance = await sui.GetAccountBalanceAsync(signer.Result.WalletAddressLegacy);
+                Assert.False(balance.IsError, balance.Message);
+                if (balance.Result < 0.1m)
+                {
+                    var funded = await sui.SendTransactionAsync(owner.Result.WalletAddressLegacy, signer.Result.WalletAddressLegacy, 0.1m - balance.Result);
+                    Assert.False(funded.IsError, funded.Message);
+                }
+            }
             var manager = new NFTManager(local, Guid.Empty, dna);
             var constructor = typeof(HolonManager).GetConstructor(BindingFlags.Instance | BindingFlags.NonPublic, null,
                 new[] { typeof(IOASISStorageProvider), typeof(OASISDNA), typeof(ProviderManager) }, null)!;
@@ -59,7 +94,7 @@ public sealed class NativeSuiMintManagerTests
                 OffChainProvider = new EnumValue<ProviderType>(ProviderType.LocalFileOASIS),
                 NFTStandardType = new EnumValue<NFTStandardType>(NFTStandardType.SuiObject),
                 NFTOffChainMetaType = new EnumValue<NFTOffChainMetaType>(NFTOffChainMetaType.OASIS),
-                SendToAddressAfterMinting = owner.Result.WalletAddressLegacy,
+                SendToAddressAfterMinting = signer.Result.WalletAddressLegacy, MintedByAvatarId = actorId,
             };
             await IOFile.WriteAllTextAsync(journal, JsonSerializer.Serialize(new { state = "intent", chain = settings.GetProperty("chainId").GetString(), count = 3 }));
             var result = await manager.MintNftAsync(request);
@@ -78,10 +113,13 @@ public sealed class NativeSuiMintManagerTests
                 var loaded = await sui.LoadOnChainNFTDataAsync(nft.NFTTokenAddress);
                 Assert.False(loaded.IsError, loaded.Message);
                 Assert.Equal(request.Title, loaded.Result.Title);
+                Assert.Equal(signer.Result.WalletAddressLegacy, loaded.Result.NFTMintedUsingWalletAddress);
             }
             var persisted = await manager.LoadWeb4NftAsync(minted.Id, ProviderType.LocalFileOASIS);
             Assert.False(persisted.IsError, persisted.Message);
             Assert.Equal(3, persisted.Result.Web3NFTs.Count);
+            if (encryptedAvatar)
+                Assert.Equal(encryptedKey, (await local.LoadProviderWalletsForAvatarByIdAsync(actorId)).Result[ProviderType.SuiOASIS].Single().PrivateKey);
             finished = true;
         }
         finally
@@ -92,9 +130,14 @@ public sealed class NativeSuiMintManagerTests
                 foreach (var nft in minted.NewlyMintedWeb3NFTs.DistinctBy(item => item.NFTTokenAddress))
                     await Cleanup(async () => {
                         var burn = await sui.BurnNFTAsync(new BurnWeb3NFTRequest { NFTTokenAddress = nft.NFTTokenAddress,
-                            OwnerPrivateKey = settings.GetProperty("privateKey").GetString()!, OwnerSeedPhrase = "", OwnerPublicKey = "" });
+                            OwnerPrivateKey = mintKey, OwnerSeedPhrase = "", OwnerPublicKey = "" });
                         Assert.False(burn.IsError, burn.Message);
                     });
+            if (actorSaved)
+            {
+                await Cleanup(async () => { Assert.False((await local.SaveProviderWalletsForAvatarByIdAsync(actorId, new())).IsError); });
+                await Cleanup(async () => { Assert.False((await local.DeleteAvatarAsync(actorId, softDelete: false)).IsError); });
+            }
             await Cleanup(async () => {
                 var after = await local.LoadAllHolonsAsync(HolonType.All); Assert.False(after.IsError, after.Message);
                 foreach (var id in after.Result.Select(item => item.Id).Except(originalIds))
