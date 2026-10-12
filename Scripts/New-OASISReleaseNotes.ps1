@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory)]
-    [ValidateSet('OASISRuntime', 'STARRuntime', 'EdgeRuntime', 'OGEngineClient', 'NativeEndpoint', 'MCPServer', 'OurWorld', 'ODOOM', 'OQUAKE')]
+    [ValidateSet('OASISRuntime', 'STARRuntime', 'EdgeRuntime', 'EdgeUnity', 'OGEngineClient', 'NativeEndpoint', 'MCPServer', 'OurWorld', 'ODOOM', 'OQUAKE')]
     [string]$Component,
     [Parameter(Mandatory)]
     [ValidatePattern('^\d+\.\d+\.\d+$')]
@@ -42,7 +42,12 @@ $definitions = @{
     EdgeRuntime = @{
         Title = 'OASIS Edge Runtime'; Prefixes = @('OASIS-Edge-Runtime-v')
         Paths = @('OASIS Architecture/NextGenSoftware.OASIS.Edge.Runtime', 'OASIS Architecture/NextGenSoftware.OASIS.Edge.ONET.Runtime', 'OASIS Architecture/NextGenSoftware.OASIS.HyperDrive.Synchronization', 'OASIS Architecture/NextGenSoftware.OASIS.ONET', 'Native EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge', 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.EdgeSQLiteOASIS', 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge', 'Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity', 'OASIS Omniverse/OGEngineClient/Edge')
-        Intro = 'The OASIS Edge Runtime is the reusable durable offline-first runtime for games, mobile applications and lightweight Edge ONODEs. The release contains synchronization contracts, SQLite journalling, ONET transport, the Edge Native Endpoint, HoloOASIS adapters and the Unity package.'
+        Intro = 'Standalone OASIS Edge Runtime contains compiled runtime, ONET and Edge Native Endpoint libraries with platform-native SQLite dependencies. It requires a compatible .NET host and does not include the Unity integration distribution.'
+    }
+    EdgeUnity = @{
+        Title = 'OGEngineClient + Edge + Unity'; Prefixes = @('OASIS-Edge-Unity-v')
+        Paths = @('UnityPackages', 'Scripts/build_edge_unity_package.ps1', 'Scripts/New-OASISEdgeRuntimeArchive.ps1', 'OASIS Omniverse/OGEngineClient/Edge')
+        Intro = 'This complete Unity distribution bundles NextGenSoftware.OGEngine.Client.Edge.dll, shared client dependencies, Edge Runtime/ONET libraries, platform plugins and Unity Runtime/Editor integration. No separate OGEngineClient ZIP is needed. Preserve .meta importer settings. The NextGenSoftware.OASIS.Edge.Unity NuGet wrapper distributes a UPM tarball under tools/unity; use Add package from tarball in Unity Package Manager. Standalone Edge and non-Unity OGEngineClient profiles are separate products. See https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/Devs/EDGE_DISTRIBUTIONS.md for the four-distribution comparison.'
     }
     OGEngineClient = @{
         Title = 'OGEngineClient'; Prefixes = @('OGEngineClient-v', 'STAR-API-CLIENT-v')
@@ -78,6 +83,7 @@ $targetTag = switch ($Component) {
     OASISRuntime { "OASIS-Runtime-v$Version" }
     STARRuntime { "STAR-ODK-Runtime-v$Version" }
     EdgeRuntime { "OASIS-Edge-Runtime-v$Version" }
+    EdgeUnity { "OASIS-Edge-Unity-v$Version" }
     OGEngineClient { "OGEngineClient-v$Version" }
     NativeEndpoint { "Native-Endpoint-v$Version" }
     MCPServer { "mcp-v$Version" }

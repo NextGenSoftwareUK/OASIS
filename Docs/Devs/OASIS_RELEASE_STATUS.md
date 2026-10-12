@@ -1,6 +1,8 @@
 # OASIS release inventory
 
-Status snapshot: 11 October 2026, America/Cancun. This inventory distinguishes releases completed in the current publication run from older downloadable releases. Older assets do not establish that the requested updates are complete.
+Status snapshot: 12 October 2026, America/Cancun. This inventory distinguishes releases completed in the current publication run from older downloadable releases. Older assets do not establish that the requested updates are complete.
+
+Unity 1.1.0 live GitHub title/notes now explicitly identify **OGEngineClient + Edge + Unity**. Source README updates are pushed; the existing ZIP's embedded README remains pending refresh. Shared generator and global/component workflow integration changes are being promoted and are not yet end-to-end verified. Corrected OGEngineClient profile publication is running at [38284824702](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/38284824702); neither new profile is yet verified published.
 
 Six GitHub releases are verified published in this run: MCP Server 3.1.0, ODOOM 1.1.0, OQUAKE 1.1.0, OASIS Runtime 5.1.0, STAR Runtime 4.1.0 and Integrated Native Endpoint 2.1.0. MCP Server 3.1.0 is also published on NuGet and npm. Remaining publication is outstanding.
 
