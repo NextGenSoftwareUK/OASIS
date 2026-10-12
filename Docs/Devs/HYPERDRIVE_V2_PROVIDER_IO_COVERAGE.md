@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Cosmos indexed row identity validation (2026-10-12)
+
+Projection now rejects malformed native hashes, noncanonical/negative/fractional raw units, wrong native denomination, absent participants and unrelated requested wallets before creating a successful history row. Canonical zero remains representable, particularly for failed requested operations; validation does not infer movement from amount. Six malformed-row regressions plus existing success/failure precision cases pass in full C# suite **47/47**, zero skips. Provider build zero errors/two warnings. Tests are projection fixtures, not live indexer completeness or chain-address validation; remaining multi-send/native-history and live Cosmos gates stay open. No runtime/download/install/ledger changes.
+
 ### Cosmos indexed failed-send history retention (2026-10-12)
 
 History no longer silently skips indexed transactions with nonzero execution code. The bridge requires exact nonnegative integer code and includes it with each relevant native MsgSend row; C# projects Success/Failed plus explicit numeric failure, while amount/description clearly represent requested value, not confirmed movement. Existing precision/direction test now covers codes zero and five. Full C# suite **41/41**, zero skips; SDK regression **21/21**, zero skips; provider build zero errors/two warnings. This only covers transactions returned by the indexer and recognized MsgSend messages; it does not prove that failed recipient-side transactions are indexed, MsgMultiSend coverage, complete chain history or live failure lookup. Those remain gates. No runtime/install/download/ledger mutation.
