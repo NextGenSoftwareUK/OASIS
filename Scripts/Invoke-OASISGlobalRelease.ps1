@@ -82,7 +82,9 @@ function Get-PackageProjects {
         ForEach-Object {
             [xml]$xml = Get-Content -LiteralPath $_.FullName -Raw
             $id = Get-ProjectProperty $xml 'PackageId'
-            if ($id) {
+            $packable = Get-ProjectProperty $xml 'IsPackable'
+            $webHost = [string]$xml.Project.Sdk -match '^Microsoft\.NET\.Sdk\.Web(?:/|$)'
+            if ($id -and $packable -ne 'false' -and (-not $webHost -or $packable -eq 'true')) {
                 [pscustomobject]@{ File = $_; Xml = $xml; PackageId = $id }
             }
         } | Sort-Object PackageId
@@ -431,10 +433,7 @@ if ($AdvanceWeb4ToWeb6ApiVersions -or $AdvanceWeb4ApiVersion -or $AdvanceWeb5Api
 
 $packageProjects = @()
 $packagePlan = @()
-if ($NuGetPackages) {
-    $packageProjects = @(Get-PackageProjects)
-    if ($NuGetPackageScope -eq 'Edge') {
-        $edgePackageIds = @(
+$edgePackageIds = @(
             'NextGenSoftware.OASIS.Contracts',
             'NextGenSoftware.OASIS.HyperDrive.Synchronization',
             'NextGenSoftware.OASIS.ONET',
@@ -445,6 +444,9 @@ if ($NuGetPackages) {
             'NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity',
             'NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge'
         )
+if ($NuGetPackages) {
+    $packageProjects = @(Get-PackageProjects)
+    if ($NuGetPackageScope -eq 'Edge') {
         $packageProjects = @($packageProjects | Where-Object { $_.PackageId -in $edgePackageIds })
         $missingEdgePackageIds = @($edgePackageIds | Where-Object { $_ -notin @($packageProjects.PackageId) })
         if ($missingEdgePackageIds.Count -gt 0) {
@@ -509,6 +511,7 @@ $plan = [ordered]@{
     releaseVersions = $releaseVersions
     apiVersions = if ($webVersions) { $webVersions } else { 'unchanged' }
     packages = $packagePlan
+    edgePackageIds = $edgePackageIds
     blockers = @($planBlockers)
     versionDecisions = @($versionDecisions)
 }

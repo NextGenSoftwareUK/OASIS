@@ -279,15 +279,25 @@ jobs:
           path: artifacts/edge-runtime-release
       - uses: actions/download-artifact@v7
         with:
+          name: global-release-plan
+          path: artifacts/global-release-plan
+      - uses: actions/download-artifact@v7
+        with:
           name: global-release-nuget-packages
           path: artifacts/edge-nuget-publish-candidates
       - name: Generate Edge Runtime release notes and aggregate archive
         shell: pwsh
         run: |
-          $publishCandidates = @(Get-ChildItem -LiteralPath 'artifacts/edge-nuget-publish-candidates' -Filter '*.nupkg' -File |
-            Where-Object { $_.Name -notlike '*.symbols.nupkg' })
+          $plan = Get-Content -Raw 'artifacts/global-release-plan/release-plan.json' | ConvertFrom-Json
+          $edgePackages = @($plan.packages | Where-Object { $_.packageId -in $plan.edgePackageIds })
+          if ($edgePackages.Count -ne 9) { throw "Expected nine Edge packages in the reviewed plan, found $($edgePackages.Count)." }
+          $publishCandidates = @(foreach ($package in $edgePackages) {
+            $path = Join-Path 'artifacts/edge-nuget-publish-candidates' "$($package.packageId).$($package.version).nupkg"
+            if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Missing reviewed Edge package: $path" }
+            Get-Item -LiteralPath $path
+          })
           if ($publishCandidates.Count -ne 9) { throw "Expected exactly nine reviewed Edge NuGet candidates, found $($publishCandidates.Count)." }
-          Compress-Archive -Path 'artifacts/edge-nuget-publish-candidates/*' -DestinationPath 'artifacts/edge-runtime-release/nuget-publish-candidates.zip'
+          Compress-Archive -LiteralPath $publishCandidates.FullName -DestinationPath 'artifacts/edge-runtime-release/nuget-publish-candidates.zip'
           ./Scripts/New-OASISReleaseNotes.ps1 -Component EdgeRuntime -Version '${{ needs.plan.outputs.edge_version }}' -OutputPath 'artifacts/edge-runtime-release/RELEASE_NOTES.md'
           Compress-Archive -Path 'artifacts/edge-runtime-release/*' -DestinationPath 'artifacts/OASIS.Edge.Runtime.v${{ needs.plan.outputs.edge_version }}.zip'
       - uses: actions/upload-artifact@v7
