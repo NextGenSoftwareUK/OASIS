@@ -114,6 +114,7 @@ public sealed class TronNativeTransferClient
         Transaction.Types.Contract.Types.ContractType.TransferContract => contract.Parameter.Unpack<TransferContract>().OwnerAddress,
         Transaction.Types.Contract.Types.ContractType.AccountCreateContract => contract.Parameter.Unpack<AccountCreateContract>().OwnerAddress,
         Transaction.Types.Contract.Types.ContractType.AccountUpdateContract => contract.Parameter.Unpack<AccountUpdateContract>().OwnerAddress,
+        Transaction.Types.Contract.Types.ContractType.AccountPermissionUpdateContract => contract.Parameter.Unpack<AccountPermissionUpdateContract>().OwnerAddress,
         Transaction.Types.Contract.Types.ContractType.TriggerSmartContract => contract.Parameter.Unpack<TriggerSmartContract>().OwnerAddress,
         Transaction.Types.Contract.Types.ContractType.CreateSmartContract => contract.Parameter.Unpack<CreateSmartContract>().OwnerAddress,
         _ => throw new InvalidOperationException("Fee payer mapping is not established for this TRON contract type.")
