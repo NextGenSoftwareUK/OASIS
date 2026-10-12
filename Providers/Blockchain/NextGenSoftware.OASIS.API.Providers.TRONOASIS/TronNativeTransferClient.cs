@@ -1027,13 +1027,16 @@ public sealed class TronNativeTransferClient
                 await Task.Delay(TimeSpan.FromSeconds(2), deadline.Token);
             }
         }
-        catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+        catch (OperationCanceledException error) when (!cancellationToken.IsCancellationRequested)
         {
-            throw new TimeoutException($"TRON broadcast {transactionId} remains unconfirmed. Track this original transaction; do not submit a replacement blindly.");
+            throw new TronBroadcastOutcomeUnknownException(transactionId, _genesisBlockId,
+                signed.RawData.Timestamp, signed.RawData.Expiration,
+                new TimeoutException("TRON original submission remains unconfirmed; do not submit a replacement.",error));
         }
         catch (Exception error)
         {
-            throw new InvalidOperationException($"TRON confirmation failed for broadcast {transactionId}: {error.Message} Track this original transaction before any retry.", error);
+            throw new TronBroadcastOutcomeUnknownException(transactionId, _genesisBlockId,
+                signed.RawData.Timestamp, signed.RawData.Expiration, error);
         }
     }
 
