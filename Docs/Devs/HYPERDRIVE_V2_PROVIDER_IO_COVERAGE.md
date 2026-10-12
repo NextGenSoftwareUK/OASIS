@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui awaited prepared signed-evidence boundary — 2026-10-12
+
+Sui's native operation evidence scope can accept an awaited preparation callback. Its central SDK execution boundary hands off an immutable digest, exact signed transaction base64, serialized signature and signer address before setting submission evidence or calling the native client. Official SDK signing/digest/signature verification tests prove ordering and that callback rejection prevents submission without inventing native outcome. SDK suite **22/22**, zero skips/todos. No new node or ledger mutation.
+
+This scope component remains unconnected to production CLI/C# process IPC and the durable outbox; it does not establish authenticated chain/payer binding, crash durability or fee authorization. Signed evidence must not be logged. Full provider/live/deployed gates remain open, with no release merge.
+
 ### Sui malformed error identity/outcome — 2026-10-12
 
 Sui C# native error replies now validate non-null digests using the same exact base58 decoded-width rule as successful replies. Invalid digests and claimed execution outcomes without a valid original identity retain the reconciliation marker but discard invalid identity/outcome evidence. Added controlled invalid-digest and unknown-identity/executed cases. Build passed with 0 errors/warnings; selected C# suite **59/59**, zero skips, report `TestResults/SuiCurrent/sui-digest-error-current.trx` (actual deadline excluded). No live submission, install or deployment. Durable prepared-byte binding across IPC/outbox and complete live/interface/hosted verification remain outstanding.
