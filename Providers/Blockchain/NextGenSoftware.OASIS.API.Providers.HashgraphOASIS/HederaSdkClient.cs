@@ -40,8 +40,8 @@ internal static class HederaSdkClient
         {
             UseShellExecute = false, CreateNoWindow = true,
             RedirectStandardInput = true, RedirectStandardOutput = true, RedirectStandardError = true,
-            StandardInputEncoding = new UTF8Encoding(false), StandardOutputEncoding = Encoding.UTF8,
-            StandardErrorEncoding = Encoding.UTF8, WorkingDirectory = Path.GetDirectoryName(script)
+            StandardInputEncoding = new UTF8Encoding(false), StandardOutputEncoding = new UTF8Encoding(false, true),
+            StandardErrorEncoding = new UTF8Encoding(false, true), WorkingDirectory = Path.GetDirectoryName(script)
         };
         start.ArgumentList.Add(script);
         var requestJson = JsonSerializer.Serialize(new { action, request });
@@ -153,6 +153,12 @@ internal static class HederaSdkClient
                     new HederaNativeMutationEvidence(originalId, originalApprovalId, originalId, "process-timed-out", null), errorException);
             throw new TimeoutException(message, errorException);
         }
+        catch (Exception transportError) when (isMutation && (transportError is IOException || transportError is DecoderFallbackException))
+        {
+            throw new HederaNativeMutationReconciliationException(
+                "Hedera SDK process communication failed after launch; reconcile original transactions before retrying.",
+                new HederaNativeMutationEvidence(originalId, originalApprovalId, originalId, "process-communication-unverified", null), transportError);
+        }
         finally
         {
             if (!process.HasExited)
@@ -162,7 +168,9 @@ internal static class HederaSdkClient
             }
             // Observe reader completion even when cancellation terminates the child.
             try { await Task.WhenAll(output, error); }
-            catch (OperationCanceledException) { }
+            // These reader faults were already handled above (or accompany cancellation).
+            // Observing them here must not replace the primary reconciliation exception.
+            catch (Exception readerError) when (readerError is OperationCanceledException || readerError is IOException || readerError is DecoderFallbackException) { }
         }
     }
 }
