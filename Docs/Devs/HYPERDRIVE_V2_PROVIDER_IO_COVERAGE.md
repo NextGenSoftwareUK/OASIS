@@ -5,6 +5,12 @@
 
 ## Routing contract
 
+### Live delete-by-identity/provider-key handler extension (2026-10-11)
+
+Expanded retained TRON V2 scenario passes **1/1**, zero skips, 79 seconds (`tron-v2-routing.trx`). Username/email/provider-key avatar permanent deletion now runs sync/async with TRON primary and successful LocalFile replication (six mutations), verifying avatar ID/username/email and detail absence independently at both replicas. Fixed avatar/detail is restored by explicit replicated saves before each case, with cleanup tracking preserved. Holon provider-key deletion also runs sync/async with replication (two mutations), restoring only the owned fixed batch fixture before each deletion and verifying both stores afterward. Existing other storage paths and actual outage/failover/balancing remain passing. Public LocalFile fixture keys are explicit stable IDs; no fake chain identity is generated.
+
+Static remaining-operation-name inventory for this scenario is now four: `LoadAvatarByPublicKey`, `LoadAvatarByPrivateKey`, `AddKarmaToAvatar`, `RemoveKarmaFromAvatar`. Names present still do not prove every projection/option/replica/failover combination or other providers. Runtime paused after terminal completion; owned records cleaned, approximately 111.39 GB decimal free. No install/download/environment duplication/merge; full remaining gates and deferred Hedera funded tests remain open.
+
 ### LocalFile search preserves failed store-read envelopes (2026-10-11)
 
 Search previously skipped failed parent/all-holon/avatar collection reads and returned successful empty results. Those branches now project the original provider error/code/exception with the existing OASISResult helper; a non-error null collection is explicit failure, not empty success. Three controlled read-override cases exercise both sync/async real search wrappers for avatar, holon and parent branches, preserving `CONTROLLED_READ_FAILURE` and original IOException with null result. Focused LocalFile suite passes **8/8**, zero skips (`localfile-version-export.trx`), including five actual fixed-store regressions and these three controlled failure cases. Bounded provider build succeeds. This is search-boundary proof, not live node outage or every search option/record-parser failure. No runtime/install/download/environment duplication/merge; full remaining provider/API/image/funded release gates stay open.
