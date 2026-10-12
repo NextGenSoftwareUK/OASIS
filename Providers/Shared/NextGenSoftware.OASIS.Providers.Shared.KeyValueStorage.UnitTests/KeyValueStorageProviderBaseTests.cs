@@ -42,6 +42,28 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
     [TestClass]
     public class KeyValueStorageProviderBaseTests
     {
+        [DataTestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task Rejected_avatar_rename_preserves_all_existing_records_and_indexes(bool conflictingEmail)
+        {
+            var original = NewAvatar("original", "original@example.invalid");
+            var other = NewAvatar("occupied", "occupied@example.invalid");
+            Assert.IsFalse((await _provider.SaveAvatarAsync(original)).IsError);
+            Assert.IsFalse((await _provider.SaveAvatarAsync(other)).IsError);
+            var snapshot = _backend.Items.ToDictionary(item => item.Key, item => item.Value);
+            var update = NewAvatar(conflictingEmail ? "new-name" : other.Username,
+                conflictingEmail ? other.Email : "new-email@example.invalid");
+            update.Id = original.Id;
+            Assert.IsTrue((await _provider.SaveAvatarAsync(update)).IsError);
+            CollectionAssert.AreEquivalent(snapshot.Keys.ToList(), _backend.Items.Keys.ToList());
+            foreach (var entry in snapshot) Assert.AreEqual(entry.Value, _backend.Items[entry.Key]);
+            Assert.AreEqual(original.Id, (await _provider.LoadAvatarByUsernameAsync(original.Username)).Result.Id);
+            Assert.AreEqual(original.Id, (await _provider.LoadAvatarByEmailAsync(original.Email)).Result.Id);
+            Assert.AreEqual(other.Id, (await _provider.LoadAvatarByUsernameAsync(other.Username)).Result.Id);
+            Assert.AreEqual(other.Id, (await _provider.LoadAvatarByEmailAsync(other.Email)).Result.Id);
+        }
+
         [TestMethod]
         public async Task Transport_failure_cannot_be_classified_as_authoritative_absence()
         {
