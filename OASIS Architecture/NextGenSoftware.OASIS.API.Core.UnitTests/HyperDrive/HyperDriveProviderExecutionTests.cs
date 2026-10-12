@@ -23,6 +23,30 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive;
 
 public sealed class HyperDriveProviderExecutionTests
 {
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task ExplicitFailoverPreservesNativeUncertaintyAsFailureButContinuesOrdinaryAvailabilityFailures(bool uncertain)
+    {
+        var holon = new Holon { Id = Guid.NewGuid() };
+        Exception evidence = uncertain ? new UnreconciledMutationException() : new IOException("ordinary availability failure");
+        var failure = new OASISResult<IHolon> { IsError = true, Exception = evidence, Message = "original provider failure" };
+        var first = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "explicit-native-first");
+        var remaining = CreateActiveProvider(ProviderType.MongoDBOASIS, "explicit-native-remaining");
+        first.Setup(x => x.SaveHolonAsync(holon, true, true, 0, true, false)).ReturnsAsync(failure);
+        remaining.Setup(x => x.SaveHolonAsync(holon, true, true, 0, true, false)).ReturnsAsync(new OASISResult<IHolon>(holon));
+        var dna = CreateDna(HyperDriveModes.V2); dna.OASIS.SubscriptionConfig.PlanType = "Gold";
+        var manager = new ProviderManager(null, dna) { IsAutoLoadBalanceEnabled = false, IsAutoReplicationEnabled = false };
+        manager.RegisterProvider(first.Object); manager.RegisterProvider(remaining.Object);
+        manager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS), new EnumValue<ProviderType>(ProviderType.MongoDBOASIS) }).IsError.Should().BeFalse();
+        var router = new OASISHyperDrive(manager);
+        var result = await router.FailoverRequestAsync<IHolon>(new StorageOperationRequest { Operation = "SaveHolon", Payload = holon });
+        result.IsError.Should().Be(uncertain);
+        router.LastFailoverDiagnostic.Succeeded.Should().Be(!uncertain);
+        if (uncertain) result.Exception.Should().BeSameAs(evidence);
+        first.Verify(x => x.SaveHolonAsync(holon, true, true, 0, true, false), Times.Once);
+        remaining.Verify(x => x.SaveHolonAsync(holon, true, true, 0, true, false), uncertain ? Times.Never() : Times.Once());
+    }
+
     private sealed class UnreconciledMutationException : InvalidOperationException, INativeMutationReconciliationRequired
     {
         public string OriginalTransactionId => "original-controlled-transaction";
