@@ -19,6 +19,8 @@ test('real SDK signed deployment waits for persistence and rejection prevents su
    const original=Transaction.fromBytes(Buffer.from(evidence.signedTransactionBase64,'base64'));
    assert.equal(original.transactionId.toString(),request.transactionId);assert.equal(Object.isFrozen(evidence),true);
    assert.equal(verifyPreparedIdentity(evidence,key.publicKey.toStringDer()).verified,true);
+   assert.equal((await execute('verifyNativePreparation',{preparation:evidence,expectedPublicKey:key.publicKey.toStringDer()})).verified,true);
+   await assert.rejects(execute('verifyNativePreparation',{preparation:evidence,expectedPublicKey:PrivateKey.generateECDSA().publicKey.toStringDer()}),/signature mismatch/);
    assert.throws(()=>verifyPreparedIdentity(evidence,PrivateKey.generateECDSA().publicKey.toStringDer()),/signature mismatch/);
    assert.throws(()=>verifyPreparedIdentity({...evidence,sender:'0.0.1002'},key.publicKey.toStringDer()),/payer mismatch/);
    assert.throws(()=>verifyPreparedIdentity({...evidence,transactionHash:'0.0.1001@1700000001.000000001'},key.publicKey.toStringDer()),/identity or payer mismatch/);
