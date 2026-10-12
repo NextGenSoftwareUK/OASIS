@@ -5,6 +5,12 @@
 
 ## Routing contract
 
+### Cosmos avatar mint signer resolution with real encrypted wallet store (2026-10-11)
+
+`CosmosAvatarMintSignerTests` passes **1/1**, zero skips: real V2 WalletManager/LocalFile persisted wallet lookup and decryption selects the marked default Cosmos wallet even with a non-default decoy first, instead of the provider-configured key. Controlled Node transport rejects the wrong signing key and returns a fixture digest for the selected key; stored private key remains encrypted. Missing actor wallet fails explicitly before mint with no result rather than configured-key fallback. This is **real encrypted wallet-resolution plus controlled transport evidence**, not a real Cosmos signing key, native mint receipt or authenticated HTTP. It reuses fixed `HyperDriveCosmos/files`, rejects pre-existing nonempty/error wallet maps, restores the bridge environment and clears only its owned map.
+
+Combined focused wallet/LocalFile run passes **9/9**, zero skips (`cosmos-wallet-localfile-current.trx`). Core live integration test host now explicitly disables parallel test execution because classes share retained nodes, fixture leases, SDK environment settings and singleton manager state; no duplicate environments are allocated to accommodate concurrency. This does not establish that every live test can run in arbitrary order (owned-node outage cases still require ordered runner setup). No chain/runtime/install/download/environment duplication/merge; Cosmos live-policy and other release gates remain open.
+
 ### Cosmos unified signer/public-key validation and mint avatar binding (2026-10-11)
 
 Existing `SigningKeyAsync` now resolves one supplied/default/avatar wallet key and validates a supplied public key through the existing SDK restore operation. NFT send reuses that validation rather than a duplicate block; token send now validates its supplied public key too. NFT/token burn no longer passes `OwnerPublicKey` as `fromWalletAddress`: the SDK derives the actual signer address from the validated key. Six controlled burn cases prove omitted/matching keys succeed, mismatched keys fail without a transaction result, and the execute fixture receives no public-key-as-address parameter. Full Cosmos unit suite passes **34/34**, zero skips (`cosmos-unit-current.trx`); bounded provider build succeeds. Required seed fields in test DTO initializers were corrected before execution.
