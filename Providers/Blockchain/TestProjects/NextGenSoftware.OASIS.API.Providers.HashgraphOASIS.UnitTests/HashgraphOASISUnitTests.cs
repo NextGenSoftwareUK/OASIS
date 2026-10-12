@@ -60,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests
         }
 
         [TestMethod]
-        public void ActivateProvider_ShouldSetIsProviderActivatedToTrue()
+        public void UnconfiguredProviderCannotClaimRealActivation()
         {
             // Arrange
             Assert.IsFalse(_provider.IsProviderActivated);
@@ -69,16 +69,15 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests
             var result = _provider.ActivateProvider();
 
             // Assert
-            Assert.IsTrue(result.IsError == false);
-            Assert.IsTrue(_provider.IsProviderActivated);
+            Assert.IsTrue(result.IsError);
+            Assert.IsFalse(_provider.IsProviderActivated);
         }
 
         [TestMethod]
-        public void DeActivateProvider_ShouldSetIsProviderActivatedToFalse()
+        public void DeActivateUnconfiguredProviderRemainsInactive()
         {
             // Arrange
-            _provider.ActivateProvider();
-            Assert.IsTrue(_provider.IsProviderActivated);
+            Assert.IsFalse(_provider.IsProviderActivated);
 
             // Act
             var result = _provider.DeActivateProvider();
