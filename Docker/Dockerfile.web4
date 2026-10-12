@@ -1,8 +1,8 @@
 # WEB4 OASIS API (ONODE)
-# Build context must be the repo root (C:/Source/OASIS2/).
-# Railway Dockerfile path: Docker/Dockerfile.onode
-# For local builds run from C:/Source/OASIS2/:
-#   docker build -f Docker/Dockerfile.onode -t oasis-onode-webapi .
+# Build context must be the repository root.
+# Railway Dockerfile path: Docker/Dockerfile.web4
+# For local builds run from the existing repository checkout:
+#   docker build -f Docker/Dockerfile.web4 -t oasis-onode-webapi .
 
 # Official Node runtime pinned to its multi-platform manifest.
 FROM node:24.19.0-bookworm-slim@sha256:a9f5f7c91a432850b2a8a7797adf5eadb6c733ceed61167806cee7ea7fbc29df AS provider_node
