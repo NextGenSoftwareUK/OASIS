@@ -22,6 +22,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Native outbox evidence limit admission — 2026-10-12
+
+Real Mongo cases now reject malformed/empty/noncanonical signed evidence without inserting attempts, and exercise the exact aggregate byte-counter boundary: one fitting atomic write, then denied additional admission with count/counter unchanged. Capacity failures report `NATIVE_PREPARATION_BUDGET_EXCEEDED` rather than claiming a duplicate. The boundary counter is seeded as a controlled fixture, not an actual 8 MiB ledger population. Suite **74/74**, zero skips; net10 build 0 errors/129 existing warnings. Core `cb65129d5cb2789a4c13287232ca08c12026a686` published and parent manifest/gitlink synchronized. No provider submission, install or release merge; production cryptographic/lifecycle/billing/live/deployed gates remain open.
+
 ### Execution-owned signed native preparation persistence — 2026-10-12
 
 `UsageExecutionHandle.BeginPreparedNativeAttemptAsync` now persists original signed preparation through the existing atomic outbox under its execution owner and independent persistence deadline. It requires a bounded original ID and valid preparation; HTTP cancellation does not silently abandon durable evidence. The existing real-Mongo signed-evidence case now uses this handle and additionally verifies duplicate/replacement issuance is denied. Suite **72/72**, zero skips; net10 build passed 0 errors/129 existing warnings. Core `ad5e632e9fd437b30e297d9b0dc6a4fa74697992` published, gitlink/manifest updated together.
