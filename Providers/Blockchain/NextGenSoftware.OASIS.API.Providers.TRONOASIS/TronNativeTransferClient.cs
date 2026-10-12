@@ -332,10 +332,17 @@ public sealed class TronNativeTransferClient
     }
 
     public async Task<string> SendAsync(string from, string to, decimal amount, string privateKey,
-        string memo, CancellationToken cancellationToken = default)
+        string memo, CancellationToken cancellationToken = default, string publicKey = null)
     {
         var units = NativeUnits(amount);
         if (string.IsNullOrWhiteSpace(privateKey)) throw new ArgumentException("A real sender signing key is required.");
+        if (!string.IsNullOrWhiteSpace(publicKey))
+        {
+            var actual = Convert.ToHexString(new Nethereum.Signer.EthECKey(privateKey).GetPubKey());
+            if (!string.Equals(actual, publicKey.StartsWith("0x", StringComparison.OrdinalIgnoreCase) ? publicKey[2..] : publicKey,
+                StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("The supplied public key does not match the native signing key.");
+        }
         // Shasta and Nile also use 0x41; the SDK's old TestNet value uses legacy 0xa0.
         var signer = new TronECKey(privateKey, TronNetwork.MainNet);
         var source = _wallet.ParseAddress(from);
