@@ -22,6 +22,34 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 public sealed class TronRealProviderRoutingTests
 {
     [Fact]
+    public async Task InspectOriginalInterruptedFixtureWithoutMutation()
+    {
+        var directory=new DirectoryInfo(AppContext.BaseDirectory);
+        while(directory!=null&&!File.Exists(Path.Combine(directory.FullName,"Scripts/TestHosts/Use-ReusableTronRuntime.ps1")))directory=directory.Parent;
+        directory.Should().NotBeNull();var root=Path.Combine(directory!.FullName,"TestResults/HyperDriveTron");
+        using var lease=new FileStream(Path.Combine(root,"store.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+        File.Exists(Path.Combine(root,"pending-native-outcome.json")).Should().BeTrue("this is read-only reconciliation of the retained original fence");
+        var contract=(await File.ReadAllTextAsync(Path.Combine(directory.FullName,"TestResults/TronRuntime/local-store-address.txt"))).Trim();
+        var key=new string('0',63)+"1";
+        await using var runtime=new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),new Uri("http://127.0.0.1:50052"),
+            "0000000000000000c93baa76a4a508f798a96f59156d9eb17ecede8ec845df2f",contractFeeLimitSun:1000000000);
+        using var storage=new TronPrivateStorageBackend(runtime.NativeTransfers,new TronECKey(key,TronNetwork.MainNet).GetPublicAddress(),contract,()=>key,
+            ()=>SHA256.HashData(Encoding.UTF8.GetBytes("public reusable local TRON encryption fixture")));
+        var tron=new TRONOASIS(rpcEndpoint:"http://127.0.0.1:9090",nativeTransfers:runtime.NativeTransfers,storageBackend:storage);
+        var activated=await tron.ActivateProviderAsync();activated.IsError.Should().BeFalse(activated.Message);
+        try{
+            var id=Guid.Parse("b531a581-5627-451c-9de5-95c198646c20");
+            var avatar=await tron.LoadAvatarAsync(id);var detail=await tron.LoadAvatarDetailAsync(id);
+            avatar.Exception.Should().BeNull();detail.Exception.Should().BeNull();
+            (!avatar.IsError||avatar.ErrorCode=="OASIS_RECORD_NOT_FOUND").Should().BeTrue(avatar.Message);
+            (!detail.IsError||detail.ErrorCode=="OASIS_RECORD_NOT_FOUND").Should().BeTrue(detail.Message);
+            if(avatar.Result!=null){avatar.IsError.Should().BeFalse(avatar.Message);avatar.Result.Id.Should().Be(id);avatar.Result.Username.Should().Be("tron-real-v2-avatar");}
+            if(detail.Result!=null){detail.IsError.Should().BeFalse(detail.Message);detail.Result.Id.Should().Be(id);detail.Result.Username.Should().Be("tron-real-v2-avatar");}
+            Console.WriteLine($"Original owned TRON fixture readback: avatarPresent={avatar.Result!=null}; detailPresent={detail.Result!=null}; original transaction fence retained.");
+            File.Exists(Path.Combine(root,"pending-native-outcome.json")).Should().BeTrue();
+        }finally{await tron.DeActivateProviderAsync();}
+    }
+    [Fact]
     public async Task V2ReplicatesBalancesAndFailsOverDuringOwnedNodePause()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Original TRON fixture read-only provider inspection — 2026-10-12
+
+Added a separately selectable read-only integration test that leases the existing fixture store, requires the original pending-outcome journal, verifies the retained network through the real SDK runtime, and loads only owned avatar `b531a581-5627-451c-9de5-95c198646c20` and its detail through the real encrypted contract backend. It validates fixture identity when present and rejects transport/parser errors rather than treating them as absence; it never invokes save/delete or clears the fence.
+
+Live test **1/1 passed**, zero skips (`TestResults/TronRuntime/tron-original-fixture-readback.trx`): **avatarPresent=True, detailPresent=False**. This identifies partial fixture state but does not prove the original deletion transaction succeeded/failed or permit replay. Corrected a test constructor argument compile error before successful execution; three existing integration warnings remain. Same retained container briefly unpaused then returned to paused, no reset/install/mutation. Native-outcome fence remains unchanged and broader live TRON V2 mutation verification is still pending reconciliation.
+
 ### Retained TRON paused-state diagnosis and original readback — 2026-10-12
 
 Direct read-only inspection as the retained container owner confirms `oasis-tron-tre` was **paused**, PID 193579, current OOMKilled false/exit code 0. This explains current HTTP timeouts without asserting the historical OOM never occurred. Briefly unpaused the same container; its genesis matches `0000000000000000c93baa76a4a508f798a96f59156d9eb17ecede8ec845df2f`. For original unknown `db05ea6d3067038a56dfc75b64d2c46c32824282e8242335ce007d1e34a415bb`, full-node transaction, full receipt and solidity receipt queries each return empty objects. Returned container to paused and verified state. No reset, restart, download or mutation replay performed.
