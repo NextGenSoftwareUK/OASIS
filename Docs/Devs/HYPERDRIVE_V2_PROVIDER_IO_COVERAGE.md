@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Full current WEB4 unit regression checkpoint (2026-10-11)
+
+Complete current WEB4 unit assembly passes **111/111**, zero skips (`TestResults/Web4Current/web4-all-unit-current.trx`) after concrete-body binding and mutation/import authorization changes. Current host/dependency build/cache reused with bounded no-restore workers. This is controller/service/cryptographic/binding regression evidence, not all 691 HTTP routes or positive blockchain mutations. Positive send HTTP testing still needs a test-only controller-manager injection seam to route the existing real WalletManager to retained providers rather than activating the globally configured default store; the existing direct real Sui avatar-send test proves only manager/provider execution. Full release scope remains unchanged and incomplete. No installation/download, native mutation or merge.
+
 ### Web3 NFT importer authorization boundary (2026-10-11)
 
 Web3 NFT import now checks requested `ImportedByAvatarId` against the authenticated avatar before NFTManager access, matching the neighbouring import routes' existing Wizard exception. Denial is HTTP **403/AVATAR_OPERATION_FORBIDDEN**, not an attempted provider operation. Actual HTTP test with test-authenticated non-Wizard and another importer ID passes **1/1**, zero skips (`web4-nft-import-ownership.trx`); current host build succeeds. This proves importer authorization rejection, not native NFT ownership, positive chain import or persistence; those and remaining provider/release gates stay open. No installs/downloads, ledger mutations or merge.
