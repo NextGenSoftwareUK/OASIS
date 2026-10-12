@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Combined-branch live Sui V2 policy recheck (2026-10-12)
+
+Under combined Development/task source and Core `03a761b`, existing live replication/measured-selection scenario passes **1/1**, zero skips, 66 seconds (`sui-v2-combined-current.trx`). It retains expanded avatar/detail/index/token-lookup/list/metadata/search/holon-parent/provider-key assertions and owned cleanup; this is selected-operation matrix evidence, not every interface option. Existing real failover theory then passes **2/2**, zero skips, 13 seconds (`sui-v2-failover-combined-current.trx`), exercising disposed transport and validated owned-node SIGTERM followed by successful real LocalFile storage selection. Node PID 142060 was stopped by the explicit outage case; final process inventory has no matching Sui node. Reused ledger/runtime, no installs/downloads. Thus all three V2 policies have refreshed scoped real-provider evidence after Development reconciliation, not complete provider/hosted certification. Other providers and broader matrix remain due.
+
 ### Live Sui named custom-coin transfers (2026-10-12)
 
 Receipt audit adds independent Completed status for both custom mint and recipient burn, with nonblank original digests, and explicitly checks final balance-read IsError before accepting zero. This prevents a failed decimal balance lookup's default zero from becoming false cleanup proof. Expanded scenario rerun passes 1/1, zero skips, 38 seconds in the same fixed TRX; build zero errors/five warnings. Owned node PID 140643 stopped after the run. Cleanup still has sequential assertions: a cleanup error can prevent later owned-item cleanup, although provider deactivation is guaranteed by nested finally. Robust failure cleanup remains a test-harness improvement, not claimed closed by this receipt change.
