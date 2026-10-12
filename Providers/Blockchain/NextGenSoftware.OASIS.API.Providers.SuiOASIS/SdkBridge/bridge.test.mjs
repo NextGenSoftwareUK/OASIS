@@ -1,6 +1,61 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { invoke, publicationArtifacts, verifiedHistoryTransaction, nativeFeeReceipt, historyScanComplete } from './bridge.mjs';
+import { invoke, execute, publicationArtifacts, verifiedHistoryTransaction, nativeFeeReceipt, historyScanComplete } from './bridge.mjs';
+import { Transaction } from '@mysten/sui/transactions';
+
+test('execution readback failure retains original digest and never resubmits', async () => {
+  const signer = Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
+  const readbackError = new Error('controlled index transport failure');
+  let submissions = 0, reads = 0;
+  const client = {
+    async signAndExecuteTransaction(request) {
+      submissions++;
+      assert.equal(request.signer, signer);
+      assert.equal(request.include.effects, true);
+      return { Transaction: { digest: 'original-executed-digest', status: { success: true } } };
+    },
+    async waitForTransaction(request) {
+      reads++;
+      assert.equal(request.digest, 'original-executed-digest');
+      throw readbackError;
+    }
+  };
+  await assert.rejects(execute(client, new Transaction(), signer), error => {
+    assert.match(error.message, /original-executed-digest/);
+    assert.match(error.message, /Reconcile this transaction before any retry/);
+    assert.equal(error.cause, readbackError);
+    return true;
+  });
+  assert.equal(submissions, 1);
+  assert.equal(reads, 1);
+});
+
+test('failed execution retains original failure and does not wait or resubmit', async () => {
+  const signer = Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
+  let submissions = 0;
+  const client = {
+    async signAndExecuteTransaction() {
+      submissions++;
+      return { FailedTransaction: { digest: 'original-failed-digest', status: { success: false, error: 'controlled Move abort' } } };
+    },
+    async waitForTransaction() { assert.fail('Failed execution must not enter success readback'); }
+  };
+  await assert.rejects(execute(client, new Transaction(), signer), /original-failed-digest.*controlled Move abort/);
+  assert.equal(submissions, 1);
+});
+
+test('successful execution waits on and returns the original transaction once', async () => {
+  const signer = Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
+  const transaction = { digest: 'original-success-digest', status: { success: true } };
+  let submissions = 0, reads = 0;
+  const client = {
+    async signAndExecuteTransaction() { submissions++; return { Transaction: transaction }; },
+    async waitForTransaction(request) { reads++; assert.equal(request.digest, transaction.digest); }
+  };
+  assert.equal(await execute(client, new Transaction(), signer), transaction);
+  assert.equal(submissions, 1);
+  assert.equal(reads, 1);
+});
 
 test('history completion requires index coverage of the fixed committed checkpoint', () => {
   for (const reason of [3, 5]) {
