@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Avatar-scoped partial reads verified with real Sui storage and controlled fault (2026-10-12)
+
+Expanded retained-Sui continuation fixture assigns an explicit owned test actor ID to parent/healthy/interrupted records and journals it before mutation. After existing strict/best-effort parent checks, actual SDK-backed V2 `LoadAllHolons` owner-scoped read returns only the two valid owned records, explicit partial warning/count, redacted-detail marker, no failed ID field or ID in message. Controlled exact-key interruption occurs once per query (three total); original interrupted record remains readable through unmodified native backend. Cleanup additionally validates actor ownership before exact ID deletion. This is real SDK persistence/filtering/conversion with **controlled per-record read fault**, not authenticated user admission, a real partial transport outage or every visibility/provider option.
+
+Fresh scenario **1/1, zero skips**, 31 seconds (`TestResults/SuiCurrent/sui-v2-partial-read-current.trx`) against current Core `96e97ef40fb6e20ffa2b362a5d5d5c4d1a01925a`; integration build zero errors/five warnings. Original runtime/ledger/package/SDK and fixed leased directory reused, no reset/download/new environment/public funds. Owned records cleaned and intent absence verified; exact owned Sui PID **198543** stopped. TRON historical fence and Cosmos/Hedera/billing/interface/API/release gates remain open; no Development merge/deployment.
+
 ### Avatar-scoped partial diagnostics omit unverified failed-record IDs (2026-10-12)
 
 Privacy follow-up in Core `96e97ef40fb6e20ffa2b362a5d5d5c4d1a01925a`: visibility default-interface projection cannot establish ownership of records that failed to read. When recognized `partialHolonReads` diagnostics carry `failedHolonReads`, avatar-scoped responses remove record-level IDs/details, mark `failedHolonReadDetailsRedacted`, and use a partial/failure message without those IDs. Warning state/aggregate count, error code/exception and successful visible records remain; unscoped internal responses keep original detailed diagnostics. Redaction runs before null-payload error handling, so declared partial-error metadata cannot bypass it. Existing non-partial error preservation and private-record filtering remain unchanged. This is scoped declared-partial-diagnostic handling, not blanket redaction/certification of arbitrary provider exception contents or every overriding provider implementation.

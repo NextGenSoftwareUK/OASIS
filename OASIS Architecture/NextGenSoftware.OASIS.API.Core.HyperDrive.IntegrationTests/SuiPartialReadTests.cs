@@ -55,14 +55,15 @@ public class SuiPartialReadTests
             settings.GetProperty("packageAddress").GetString()!, settings.GetProperty("privateKey").GetString()!,
             settings.GetProperty("storageObjectId").GetString()!);
         var activation = await real.ActivateProviderAsync(); Assert.False(activation.IsError, activation.Message);
-        var parent = new Holon { Id = Guid.NewGuid(), Name = "owned-sui-partial-parent" };
-        var healthy = new Holon { Id = Guid.NewGuid(), Name = "owned-sui-partial-healthy", ParentHolonId = parent.Id };
-        var interrupted = new Holon { Id = Guid.NewGuid(), Name = "owned-sui-partial-interrupted", ParentHolonId = parent.Id };
+        var owner = Guid.NewGuid();
+        var parent = new Holon { Id = Guid.NewGuid(), Name = "owned-sui-partial-parent", CreatedByAvatarId = owner };
+        var healthy = new Holon { Id = Guid.NewGuid(), Name = "owned-sui-partial-healthy", ParentHolonId = parent.Id, CreatedByAvatarId = owner };
+        var interrupted = new Holon { Id = Guid.NewGuid(), Name = "owned-sui-partial-interrupted", ParentHolonId = parent.Id, CreatedByAvatarId = owner };
         var records = new[] { parent, healthy, interrupted };
         using (var journal = new FileStream(intentPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
         {
             journal.Write(JsonSerializer.SerializeToUtf8Bytes(new { chainId = settings.GetProperty("chainId").GetString(),
-                records = records.Select(record => new { record.Id, record.Name, record.ParentHolonId }) }));
+                records = records.Select(record => new { record.Id, record.Name, record.ParentHolonId, record.CreatedByAvatarId }) }));
             journal.Flush(true);
         }
         var errors = new List<Exception>();
@@ -96,6 +97,17 @@ public class SuiPartialReadTests
                 }
             }
             Assert.Equal(2, backend.FailedReads);
+            var scoped = await router.RouteRequestAsync<IEnumerable<IHolon>>(new StorageOperationRequest {
+                Operation = "LoadAllHolons", AvatarId = owner, IncludePublic = false, PreferredProvider = API.Core.Enums.ProviderType.SuiOASIS,
+                LoadChildren = false, Recursive = false, ContinueOnError = true });
+            Assert.False(scoped.IsError, scoped.Message); Assert.True(scoped.IsWarning);
+            Assert.Equal(new[] { parent.Id, healthy.Id }.OrderBy(id => id), scoped.Result.Select(value => value.Id).OrderBy(id => id));
+            Assert.All(scoped.Result, value => Assert.Equal(owner, value.CreatedByAvatarId));
+            Assert.Equal("1", scoped.MetaData["failedHolonReadCount"]);
+            Assert.Equal("true", scoped.MetaData["failedHolonReadDetailsRedacted"]);
+            Assert.False(scoped.MetaData.ContainsKey("failedHolonReads"));
+            Assert.DoesNotContain(interrupted.Id.ToString(), scoped.Message);
+            Assert.Equal(3, backend.FailedReads);
             var original = await real.LoadHolonAsync(interrupted.Id, loadChildren: false);
             Assert.False(original.IsError, original.Message); Assert.Equal(interrupted.Name, original.Result.Name);
         }
@@ -111,6 +123,7 @@ public class SuiPartialReadTests
                     Assert.False(read.IsError, read.Message);
                     if (read.Result == null) continue;
                     Assert.Equal(record.Name, read.Result.Name); Assert.Equal(record.ParentHolonId, read.Result.ParentHolonId);
+                    Assert.Equal(owner, read.Result.CreatedByAvatarId);
                     var deleted = await real.DeleteHolonAsync(record.Id); Assert.False(deleted.IsError, deleted.Message);
                 }
                 catch (Exception error) { errors.Add(error); }
