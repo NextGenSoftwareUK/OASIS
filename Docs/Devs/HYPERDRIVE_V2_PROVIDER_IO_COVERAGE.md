@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera prepared child lifecycle acceptance/rejection — 2026-10-12
+
+Added controlled Node child using actual packaged shared preparation transport. Tests accept matching SUCCESS only after one parent callback, preserve original parent rejection, reject conflicting successful reply identity and retain caller cancellation token after acknowledged preparation. Lifecycle **4/4**, zero skips, `TestResults/PriorityProviderCurrent/hedera-prepared-process.trx`; existing nullable test warning remains. Descriptor/callback/success are controlled, not SDK signing/Mongo/consensus in this selection.
+
+Missing-ack and communication/deadline evidence, public admitted entry, actual signed prepared child recovery and multi-stage escrow still need verification. Full funded/live/deployed gates remain open. Existing environment reused; no installs, consensus submissions or release merge.
+
 ### Explicit Hedera prepared process implementation — 2026-10-12
 
 Added opt-in single-stage prepared SDK invocation through the existing canonical C# process implementation: owned-child transport setup, parent task observation, successful reply requires completed matching original preparation, and cleanup cancels/disposes/observes owned preparation work. Read-only/escrow reject before launch/persistence. Preparation suite **3/3**, zero skips, `TestResults/PriorityProviderCurrent/hedera-preparation.trx`; provider build 0 errors/2 existing warnings, test nullable warning remains.
