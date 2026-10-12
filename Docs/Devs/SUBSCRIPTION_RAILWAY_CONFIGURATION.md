@@ -2,6 +2,14 @@
 
 Follow this checklist in Railway's **development** environment first. Do not enable production until the complete development test at the end passes.
 
+## Observed development rollout checkpoint — 2026-10-12
+
+Railway project `712f50f6-3b7b-46d4-b229-44b49922f16b`, environment `dev` (`a31011a2-d047-4057-b5e8-57d52ebcfefe`): the missing WEB5 and WEB7–WEB10 credential pairs and authority URLs were provisioned with `--skip-deploys`. Existing WEB6 credentials were preserved. Subsequent variable readback verified all six authority/consumer credential pairs match and every consumer URL is `https://dev.api.web4.oasisomniverse.one`. Secret values are deliberately not recorded.
+
+WEB6 already had `SUBSCRIPTION_USAGE_ENABLED=true`; WEB5 and WEB7–WEB10 do not. WEB4 has the one-time `empty-new-installation` setting and no usage-enable flag. No deployment, usage enablement, Stripe checkout, webhook delivery, ledger initialization/migration, or production configuration change was performed in this checkpoint. Saved variable settings are not evidence that running deployments have consumed them.
+
+Do not assume the ledger is still empty from this runbook's original installation description. Verify the existing marker and records before initialization/removal of the one-time setting. Current Stripe credentials/price configuration and the live end-to-end release gates below remain to be verified. The NFT endpoint's temporary Wizard-only gate must remain until the intended subscription/fee authorization is implemented and verified; replacing it with unrestricted authenticated minting would not satisfy that gate.
+
 ## What is already configured
 
 Railway already has `OASIS_DNA_JSON`, the existing `STRIPE_*` variables, and `GITHUB_PAT`. Keep them. Do not create another MongoDB connection or another set of Stripe variables. WEB4-WEB10 write `OASIS_DNA_JSON` to `/app/OASIS_DNA.json` and reuse its MongoDB connection.

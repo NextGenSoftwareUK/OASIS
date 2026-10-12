@@ -20,6 +20,12 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Mint caller defaults and unresolved authorization/count gates (2026-10-12)
+
+Current WEB4 `NftController.MintNftAsync` initializes `MintedByAvatarId` from the authenticated controller `AvatarId` when the request field is omitted or empty. Only its Wizard branch applies a supplied nonempty valid GUID override. Invalid explicit GUIDs are rejected. However, the earlier endpoint gate rejects every non-Wizard, with a subscription error message despite checking `AvatarType.Wizard`, not a subscription. Consequently this does **not** prove normal subscribed users can mint. Resolve the intended existing subscription authorization before changing that policy; do not bypass it to obtain a positive test. The recipient fallback when caller ID is empty is also not proof of authenticated caller identity.
+
+Manager inspection additionally found that `NFTManager.MintLoad.cs` expands the Web3 request list using a loop whose upper bound changes as the list grows. For an initially empty list and a requested count of five, it creates three entries; for zero it creates one. This is an unresolved mint-count gate, not a verified provider defect or a safe count contract. Verify batch semantics and test exact counts before modifying or submitting a live mint. Positive authenticated NFT manager/on-chain/off-chain persistence remains unproven.
+
 ### WEB4 explicit NFT mint actor integrity (2026-10-12)
 
 Wizard mint request with an explicitly malformed/empty GUID MintedByAvatarId now returns an error before manager access instead of silently attributing the mint to the caller. Omitted/empty string continues the existing authenticated-caller default; valid delegated Wizard actor remains unchanged. Missing request body has explicit error. Three direct-controller regressions pass within full WEB4 units **133/133**, zero skips; host build zero errors/255 warnings. This establishes input/attribution preflight, not positive real-JWT NFT minting, subscriber-role policy, provider/off-chain persistence or hosted deployment. No installs/downloads/ledger mutation/new environment; broader completion gates remain open.
