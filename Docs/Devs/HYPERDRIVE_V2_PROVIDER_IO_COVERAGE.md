@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Sui structured wallet-history receipt evidence (2026-10-12)
+
+Sui history now exposes native digest, exact signed net-balance units, canonical coin-type base-unit identity, WalletNetBalanceChange operation and Success/Failed status in existing structured fields instead of description only. Retains OASIS row GUID and existing display amount; net balance includes gas and must not be mistaken for requested transfer amount. Expanded real transfer scenario asserts incoming original receipt with 1000000 units and canonical padded SUI coin identity; passes **1/1**, zero skips, 39 seconds (`sui-shared-wallet-current.trx`). Initial assertion incorrectly expected abbreviated 0x2; corrected test to official SDK canonical 64-digit address without rewriting production identity. Owned cleanup passed in both runs. Provider/test builds zero errors/two and five warnings; owned PID 154459 stopped after verification. No installs/downloads/new environment. This scoped positive history check does not prove all history pages, failed receipt rows, every coin or hosted API.
+
 ### Sui owned cleanup action isolation (2026-10-12)
 
 Real named-transfer/native/custom-coin scenario rerun with the new cleanup helper passes **1/1**, zero skips, 42 seconds (`sui-shared-wallet-current.trx`). All eight native named variants, four custom named variants, shared native send and mint/burn receipt/balance assertions remain active; owned cleanup actions complete without aggregate failures. Owned PID 152888 stopped after run; retained ledger/runtime reused. This supersedes the not-yet-live-rerun limitation below, not crash recovery or separate NFT-fixture cleanup.
