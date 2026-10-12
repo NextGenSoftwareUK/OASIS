@@ -2,6 +2,8 @@
 
 Status snapshot: 12 October 2026, America/Cancun. This inventory distinguishes releases completed in the current publication run from older downloadable releases. Older assets do not establish that the requested updates are complete.
 
+Promotion PR465 merged as master `99d82d0c4494a41af97b1b0f56f6367d5f864960`. All fourteen staging/production WEB4–WEB10 deployments were verified SUCCESS/SLEEPING on that exact SHA. HTTPS Swagger returned 200 on all fourteen public domains; WEB6 health and MCP/A2A well-known discovery documents returned 200 in both environments. This verifies deployment availability, not every functional contract or physical-device acceptance.
+
 Unity 1.1.0 live GitHub title/notes now explicitly identify **OGEngineClient + Edge + Unity**. Source README updates are pushed; the existing ZIP's embedded README remains pending refresh. Shared generator and global/component workflow integration changes are being promoted and are not yet end-to-end verified. Corrected OGEngineClient profile publication is running at [38284824702](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/38284824702); neither new profile is yet verified published.
 
 Six GitHub releases are verified published in this run: MCP Server 3.1.0, ODOOM 1.1.0, OQUAKE 1.1.0, OASIS Runtime 5.1.0, STAR Runtime 4.1.0 and Integrated Native Endpoint 2.1.0. MCP Server 3.1.0 is also published on NuGet and npm. Remaining publication is outstanding.
