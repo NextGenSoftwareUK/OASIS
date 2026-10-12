@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Latest refreshed regression checkpoint (2026-10-12, after shared identity/version validation): **Core 378/378; shared storage 61/61; Sui C# 32/32 and SDK 9/9; Cosmos C# 56/56 and SDK 34/34; TRON C# 193/193; Hedera non-funded 218/218**. Zero skips in those selections. These counts supersede older counts below; they do not expand test scope or establish missing live/deployed gates.
+
 No provider is currently certified against the entire requested combination of relevant interfaces, live V2 failover/replication/load balancing, and deployed authenticated API behavior. Historical PASS labels mean the stated tests passed; they must not be read as complete provider certification. Controlled/unit tests, official local runtimes, cloud emulators and hosted production/testnet execution are distinct evidence categories.
 
 | Provider | Real SDK/runtime evidence | Outstanding completion work |
@@ -19,6 +21,12 @@ Broader providers with narrower recorded real-runtime/SDK/API evidence: MongoDB,
 Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 244/244, Cosmos C# 56/56/SDK 29/29, Hedera non-funded 209/209; zero skips in the stated selections. Exact revisions and limitations are recorded below. Task branch contains Development reconciliation, but Development/master have not received this task's release merge. Hosted dev revision last checked was `77c65eaa80aa06fb767715322eb97d8d3844282f`, not this task code. User authorizes a safe Development merge/automatic Railway deployment; resolve regression/deployment gates before claiming release success. Native NFT models and mint actor/recipient/batch safety have changed; positive authenticated minting, durable subscription/fee integration, live Cosmos corrected assets/multi-send/bridge receipt, funded Hedera storage/NFT/V2, full interface/options/hosted API and broader provider gates remain open. Update this summary whenever coverage or remaining gates change; retain exact checkpoint reports below rather than silently promote narrow evidence to broader claims.
 
 ## Routing contract
+
+### Priority provider regressions refreshed after shared integrity changes (2026-10-12)
+
+Rebuilt all four priority providers against the edited shared library, no restore/download/new environment, bounded workers and disabled compiler reuse. Builds zero errors (Sui/Cosmos two warnings each, TRON 23, Hedera four). Refreshed unit suites: Sui **32/32**, Cosmos **56/56**, TRON **193/193**, stored at fixed `TestResults/PriorityProviderCurrent/{ProviderName}-unit-current.trx`. Hedera existing non-funded runner verifies SDK syntax/import pins, test build zero errors/three warnings, **218/218** in `TestResults/HederaCurrent/hedera-nonfunded-current.trx`. Refreshed Core **378/378** in `TestResults/CoreCurrent/core-current.trx`. All zero skips; shared **61/61** checkpoint retained. No funded submissions or local-node restarts in this regression checkpoint. Free C **102945689600 bytes** after provider runs; checkout clean before documentation update.
+
+This proves current selected regression compatibility, not each provider's full live interface/options set, all authenticated HTTP routes, deployed artifact matching or subscription mint billing. Live Cosmos corrected fixtures remain runtime-start-policy blocked; Hedera funded storage/NFT/V2 remains deferred. Required tests and release gates must still pass before Development merge; no merge/deployment/config activation occurred here.
 
 ### Shared current and historical payload identity must match storage keys (2026-10-12)
 
