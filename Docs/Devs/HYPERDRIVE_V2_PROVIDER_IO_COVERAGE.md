@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### TRON deposit signer validation before activation (2026-10-12)
+
+Deposit now resolves the configured pool key once and verifies canonical pool ownership before fee-bearing storage activation, then submits through the existing native SDK path using that verified key. Missing/invalid/mismatched signer produces explicit error, no fabricated success. Added inactive-provider wrong-pool-key test; full units **186/186**, zero skips. Current real bridge round-trip scenario rerun passes **1/1**, zero skips, retaining wrong-withdrawal-key unchanged-balances check and both positive leg receipts/deltas. Wrong-deposit-key unchanged-balances is controlled preflight only, not yet independently live-tested. Provider/integration builds zero errors/23 and two warnings; retained runtime paused, no installs/downloads/new environment. This supersedes deposit-ordering unaudited note for implemented preflight, not hosted release authorization or complete cross-chain settlement.
+
 ### TRON bridge signer validation before fee-bearing activation (2026-10-12)
 
 Expanded real bridge test initially failed unchanged-sender-balance assertion: activation verifies private storage with signed write/delete probes, so invalid withdrawal credentials were rejected only after those probe fees. Root ordering fixed: explicit 32-byte key must derive the canonical requested TRON sender before activation. Real scenario now passes **1/1**, zero skips: wrong key leaves both balances unchanged, null error response and zero pool-key reads, then positive withdrawal/deposit receipts/deltas succeed. Added isolated inactive-provider rejection regression; full units **185/185**, zero skips. Provider/integration builds zero errors/23 and two warnings. Runtime paused afterward. Current bridge boundary accepts canonical Base58 sender identity; alternative encodings are not claimed supported. Deposit credential/activation ordering remains separately unaudited; no complete bridge/settlement/hosted certification follows.
