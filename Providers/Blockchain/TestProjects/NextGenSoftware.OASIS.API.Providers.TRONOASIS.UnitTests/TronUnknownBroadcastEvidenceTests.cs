@@ -12,6 +12,20 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public class TronUnknownBroadcastEvidenceTests
 {
+    [Theory]
+    [InlineData("construction")] [InlineData("unknown")] [InlineData("readback")]
+    public void EscrowFailureAlwaysRetainsConfirmedApprovalAndOnlyKnownMutationIdentity(string mode)
+    {
+        var approval=new string('a',64);var mutation=new string('b',64);var genesis=new string('c',64);
+        var root=new InvalidOperationException("controlled escrow failure");
+        Exception cause=mode=="unknown"?new TronBroadcastOutcomeUnknownException(mutation,genesis,1,2,root)
+            :mode=="readback"?new TronCommittedReadbackException(mutation,genesis,root):root;
+        var failure=new TronEscrowReconciliationException(approval,genesis,cause);
+        Assert.Equal(approval,failure.ApprovalTransactionId);Assert.Same(cause,failure.InnerException);
+        Assert.Equal(mode=="construction"?null:mutation,failure.MutationTransactionId);
+        Assert.Equal(mode=="construction"?approval:mutation,failure.OriginalTransactionId);
+        Assert.True(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(new AggregateException(failure)));
+    }
     [Fact]
     public void ConfirmedReadbackFailureRetainsOriginalAndReconciliationMarker()
     {
