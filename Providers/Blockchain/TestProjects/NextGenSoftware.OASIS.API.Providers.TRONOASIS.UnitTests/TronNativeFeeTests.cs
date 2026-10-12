@@ -10,6 +10,20 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public sealed class TronNativeFeeTests
 {
+    [Fact]
+    public void PermissionUpdateFeeRetainsExactOriginalOwnerAndTotal()
+    {
+        var (tx,receipt,_) = Fixture();
+        var owner=tx.RawData.Contract[0].Parameter.Unpack<TriggerSmartContract>().OwnerAddress;
+        tx.RawData.Contract.Clear();tx.RawData.Contract.Add(new Transaction.Types.Contract{
+            Type=Transaction.Types.Contract.Types.ContractType.AccountPermissionUpdateContract,
+            Parameter=Any.Pack(new AccountPermissionUpdateContract{OwnerAddress=owner})});
+        var id=ByteString.CopyFrom(SHA256.HashData(tx.RawData.ToByteArray()));receipt.Id=id;receipt.Receipt=null;
+        var mapped=Map(tx,receipt,id);
+        Assert.True(mapped.GetProperty("success").GetBoolean());
+        Assert.Equal("9007199254740993",mapped.GetProperty("netUnits").GetString());
+        Assert.Equal(NBitcoin.DataEncoders.Encoders.Base58Check.EncodeData(owner.ToByteArray()),mapped.GetProperty("payer").GetString());
+    }
     private static (Transaction Tx, TransactionInfo Receipt, ByteString Id) Fixture()
     {
         var address = new byte[21]; address[0] = 0x41; address[20] = 1;
