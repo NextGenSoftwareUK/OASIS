@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos original direct SignDoc capture — 2026-10-12
+
+Prepared bridge calls now capture the actual wallet-returned direct SignDoc before submission, encode it using the official protobuf type and bind it to the exact resulting TxRaw SHA256 identity. Prepared descriptor adds `signDocBase64`, retaining actual account number/chain/body/auth context instead of reconstructing guesses. Capture is consumed once and refuses foreign original hashes. Real offline CosmJS signing test verifies account number 7, chain/body/auth byte equality, foreign-hash refusal and repeated-use refusal; rejected persistence still prevents broadcast. Explicit offline `npm test` **50/50**, zero skips/todos.
+
+This supplies required public signing context but does not yet implement independent Cosmos cryptographic verification, Core evidence-schema persistence of SignDoc or C# prepared lifecycle/admission. These remain required before enabling durable native calls. No runtime start, installation or live ledger submission; release gates remain open.
+
 ### Cosmos signed-verification gap and test-discovery audit — 2026-10-12
 
 Explicit `npm test` revalidation passed **50/50**, zero skips/todos; this is the offline selection only, not a correction of the failed live-runtime evidence.
