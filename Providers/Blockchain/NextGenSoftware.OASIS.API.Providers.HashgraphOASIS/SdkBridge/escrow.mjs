@@ -1,5 +1,6 @@
 import { AccountId, ContractId, TokenId, TransactionId, ContractExecuteTransaction, AccountAllowanceApproveTransaction, Hbar } from '@hiero-ledger/sdk';
 import { Interface, getBytes, keccak256 } from 'ethers';
+import {persistSignedSubmission} from './native-preparation.mjs';
 import { AccountInfoQuery, ContractInfoQuery, ContractByteCodeQuery, TokenNftInfoQuery, ContractCallQuery } from '@hiero-ledger/sdk';
 
 export const escrowAbi = new Interface([
@@ -97,7 +98,7 @@ export function tokenEscrowApprovalTransaction(request) {
     .setTransactionId(validateApprovalId(request, sender, id)).setMaxAttempts(1).setRegenerateTransactionId(false);
 }
 
-export async function executeTokenEscrow(action, request, { createClient, restoreKey }) {
+export async function executeTokenEscrow(action, request, { createClient, restoreKey,persistPreparedSubmission }) {
   const mutation = tokenEscrowTransaction(action, request);
   const { sender, contract, token } = validateEscrowContext(request);
   const locking = action === 'tokenEscrowLock';
@@ -149,7 +150,9 @@ export async function executeTokenEscrow(action, request, { createClient, restor
         stage = 'approval';
         const approval = tokenEscrowApprovalTransaction({ ...request, amountUnits: amount.toString() });
         approval.freezeWith(client);
-        const submitted = await (await approval.sign(key)).execute(client);
+        const signedApproval=await approval.sign(key);
+        await persistSignedSubmission(signedApproval,{...request,transactionId:request.approvalTransactionId},persistPreparedSubmission);
+        const submitted = await signedApproval.execute(client);
         const receipt = await submitted.getReceipt(client);
         if (receipt.status.toString() !== 'SUCCESS') throw new Error('Token approval consensus failure.');
         approvalTransactionId = submitted.transactionId.toString();
@@ -161,7 +164,9 @@ export async function executeTokenEscrow(action, request, { createClient, restor
     }
     stage = 'mutation';
     mutation.freezeWith(client);
-    const submitted = await (await mutation.sign(key)).execute(client);
+    const signedMutation=await mutation.sign(key);
+    await persistSignedSubmission(signedMutation,request,persistPreparedSubmission);
+    const submitted = await signedMutation.execute(client);
     const receipt = await submitted.getReceipt(client);
     if (receipt.status.toString() !== 'SUCCESS') throw new Error('Token escrow consensus failure.');
     stage = 'readback';
@@ -180,7 +185,7 @@ export async function executeTokenEscrow(action, request, { createClient, restor
   } finally { client.close(); }
 }
 
-export async function executeEscrow(action, request, { createClient, restoreKey }) {
+export async function executeEscrow(action, request, { createClient, restoreKey,persistPreparedSubmission }) {
   const mutation = escrowTransaction(action, request);
   const approval = action === 'nftEscrowLock' ? escrowApprovalTransaction(request) : null;
   const { sender, contract, token } = validateEscrowRequest(request);
@@ -227,7 +232,9 @@ export async function executeEscrow(action, request, { createClient, restoreKey 
     if (locking && !current.spenderId) {
       stage = 'approval';
       approval.freezeWith(client);
-      const submitted = await (await approval.sign(key)).execute(client);
+      const signedApproval=await approval.sign(key);
+      await persistSignedSubmission(signedApproval,{...request,transactionId:request.approvalTransactionId},persistPreparedSubmission);
+      const submitted = await signedApproval.execute(client);
       const receipt = await submitted.getReceipt(client);
       if (receipt.status.toString() !== 'SUCCESS') throw new Error('Escrow approval did not establish consensus success.');
       approvalTransactionId = submitted.transactionId.toString();
@@ -237,7 +244,9 @@ export async function executeEscrow(action, request, { createClient, restoreKey 
     }
     stage = 'mutation';
     mutation.freezeWith(client);
-    const submitted = await (await mutation.sign(key)).execute(client);
+    const signedMutation=await mutation.sign(key);
+    await persistSignedSubmission(signedMutation,request,persistPreparedSubmission);
+    const submitted = await signedMutation.execute(client);
     const receipt = await submitted.getReceipt(client);
     if (receipt.status.toString() !== 'SUCCESS') throw new Error('Escrow mutation did not establish consensus success.');
     stage = 'readback';

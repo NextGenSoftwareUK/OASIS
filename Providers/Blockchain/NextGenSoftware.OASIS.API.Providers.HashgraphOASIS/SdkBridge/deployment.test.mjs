@@ -5,7 +5,7 @@ import {execute,persistSignedSubmission} from './bridge.mjs';
 test('prepared dispatcher refuses invalid callback and unwired actions before network use',async()=>{
  await assert.rejects(execute('contractCreate',{},true),/awaited callback/);
  let calls=0;
- await assert.rejects(execute('nftEscrowLock',{},async()=>{calls++;}),/not yet supported/);
+ await assert.rejects(execute('storageGet',{},async()=>{calls++;}),/not yet supported/);
  assert.equal(calls,0);
 });
 test('real SDK signed deployment waits for persistence and rejection prevents submission',async()=>{
