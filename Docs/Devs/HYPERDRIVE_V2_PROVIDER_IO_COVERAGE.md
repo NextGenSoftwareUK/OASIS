@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Live Sui lost-child-reply recovery — 2026-10-12
+
+Added a test-only child fixture that delegates to the retained real SDK and actual local ledger, awaits durable preparation and real successful execution, then exits code 17 without returning the put response. The parent returns reconciliation-required with the persisted original digest; the test reads matching signed evidence from Mongo, queries that digest as Completed and reads the exact value, without replaying the original write. Normal and deliberately lost-response variants both pass **2/2**, zero skips (`sui-prepared-live-current.trx`). Both still test duplicate-correlation rejection and separately prepared/confirmed cleanup. Fixed pending journal is absent after successful cleanup; exact owned node PID 219452 stopped, handle terminal.
+
+This is real child-process exit/lost-response recovery after ledger confirmation, not a full parent-host crash, crash during broadcast, production fee admission or settlement certification. Fixture exists only in the integration test output; no production hook/fallback added. Same ledger/SDK/Mongo reused, no installs/reset/public funds. Remaining gates still prevent development merge.
+
 ### Live prepared duplicate rejection and exact readback — 2026-10-12
 
 Extended the retained Sui prepared-live test to query the exact value after confirmed write, attempt a second preparation with the same correlation but different value, and assert `PROVIDER_ATTEMPT_ALREADY_STARTED` before another submission. Outbox count and evidence byte budget remain unchanged; a real ledger query confirms the original value remains. Separately prepared cleanup is confirmed Completed and the exact key reads null afterward. Live **1/1** passed, zero skips (`sui-prepared-live-current.trx`). Journal absence verified after successful cleanup; exact owned node PID 218067 stopped and handle terminal. The duplicated correlation is tested only after a known successful original, never an unknown transaction replay. This is local-ledger preparation idempotency evidence, not forced crash recovery or production native-spending authorization. No installs/public funds/merge.

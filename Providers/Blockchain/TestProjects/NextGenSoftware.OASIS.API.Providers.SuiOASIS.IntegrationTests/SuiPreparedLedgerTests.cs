@@ -22,8 +22,9 @@ public class SuiPreparedLedgerTests
             return new HttpResponseMessage(System.Net.HttpStatusCode.OK){Content=new StringContent(JsonSerializer.Serialize(response),System.Text.Encoding.UTF8,"application/json")};
         }
     }
-    [TestMethod]
-    public async Task PreparedLocalWriteRetainsOriginalSignedEvidenceAndConfirmsLedger()
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task PreparedLocalWriteRetainsOriginalSignedEvidenceAndConfirmsLedger(bool loseConfirmedReply)
     {
         var rpc=Environment.GetEnvironmentVariable("OASIS_SUI_TEST_RPC")??throw new InvalidOperationException("Retained RPC required.");
         Assert.IsTrue(new Uri(rpc).IsLoopback,"Never submit this fixture to a public chain.");
@@ -51,9 +52,26 @@ public class SuiPreparedLedgerTests
             await JsonSerializer.SerializeAsync(journalFile,new{database,key,operationId=execution.OperationId,chainId=settings.GetProperty("chainId").GetString(),
                 recovery="Inspect original write and cleanup attempts in this retained Mongo outbox; never resubmit on unknown outcome."},cancellationToken:deadline.Token);
             journalFile.Flush(true);
-            var response=await provider.ExecutePreparedNativeAsync("put",new{key,value="owned prepared live fixture"},execution,"write",
-                settings.GetProperty("chainId").GetString()!,settings.GetProperty("address").GetString()!,deadline.Token);
-            var hash=response.GetProperty("transactionHash").GetString()!;
+            string hash;
+            if(loseConfirmedReply){
+                var previous=Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE");
+                var previousReal=Environment.GetEnvironmentVariable("OASIS_SUI_TEST_REAL_BRIDGE");
+                Assert.IsFalse(string.IsNullOrWhiteSpace(previous),"Retained source SDK path required.");
+                try{
+                    Environment.SetEnvironmentVariable("OASIS_SUI_TEST_REAL_BRIDGE",previous);
+                    Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures/lose-confirmed-reply.mjs"));
+                    var failure=await Assert.ThrowsExceptionAsync<SuiNativeMutationReconciliationException>(()=>provider.ExecutePreparedNativeAsync("put",new{key,value="owned prepared live fixture"},execution,"write",
+                        settings.GetProperty("chainId").GetString()!,settings.GetProperty("address").GetString()!,deadline.Token));
+                    hash=failure.OriginalTransactionId;Assert.IsFalse(string.IsNullOrWhiteSpace(hash));
+                }finally{
+                    Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",previous);
+                    Environment.SetEnvironmentVariable("OASIS_SUI_TEST_REAL_BRIDGE",previousReal);
+                }
+            }else{
+                var response=await provider.ExecutePreparedNativeAsync("put",new{key,value="owned prepared live fixture"},execution,"write",
+                    settings.GetProperty("chainId").GetString()!,settings.GetProperty("address").GetString()!,deadline.Token);
+                hash=response.GetProperty("transactionHash").GetString()!;
+            }
             var stored=await store.GetAsync(execution.OperationId,deadline.Token);Assert.AreEqual(1,stored.ProviderAttempts.Count);
             var attempt=stored.ProviderAttempts[0];Assert.AreEqual(hash,attempt.ProviderRequestId);
             Assert.IsFalse(string.IsNullOrWhiteSpace(attempt.NativePreparation.SignedTransactionBase64));
