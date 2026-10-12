@@ -6,6 +6,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class SuiUnlockReadbackFailureTests
 {
+    [TestMethod]
+    public void DigestValidationRequiresExactDecodedWidthAndBase58Alphabet()
+    {
+        var type=typeof(SuiOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.SuiOASIS.SuiSdkClient")!;
+        var method=type.GetMethod("IsValidDigest",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Static)!;
+        bool Valid(string? digest)=>(bool)method.Invoke(null,new object?[]{digest})!;
+        Assert.IsTrue(Valid(new string('1',32)));
+        Assert.IsTrue(Valid("D83kgAWQQbdZdCFbFQivXuRF7MB5YqiqGStZAynz3GGk"));
+        foreach(var invalid in new[]{null,"",new string('1',31),new string('1',33),new string('z',44),"0OIl", "fabricated-digest"})
+            Assert.IsFalse(Valid(invalid));
+    }
+
     private static Task<System.Text.Json.JsonElement> InvokeProcess(SuiOASIS provider,string operation,object args,CancellationToken token)
         => (Task<System.Text.Json.JsonElement>)typeof(SuiOASIS).GetMethod("InvokeSdkAsync",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!
             .Invoke(provider,new object[]{operation,args,token})!;
@@ -96,7 +108,7 @@ public class SuiUnlockReadbackFailureTests
             {
                 Assert.IsInstanceOfType<SuiNativeMutationReconciliationException>(result.Exception);
                 var evidence=(SuiNativeMutationReconciliationException)result.Exception;
-                Assert.AreEqual(mode is "unknown" or "bad-shape" or "bad-error" or "missing-error" ? null : "original-controlled-digest",evidence.OriginalTransactionId);
+                Assert.AreEqual(mode is "unknown" or "bad-shape" or "bad-error" or "missing-error" ? null : new string('1',32),evidence.OriginalTransactionId);
                 Assert.AreEqual(mode=="failed" ? (bool?)false : mode=="executed" ? (bool?)true : null,evidence.ExecutionSucceeded);
                 if(mode is "bad-status" or "bad-shape" or "missing-status" or "bad-error" or "missing-error") Assert.IsNotNull(evidence.InnerException);
             }
@@ -128,8 +140,8 @@ public class SuiUnlockReadbackFailureTests
             using var provider=new SuiOASIS("http://127.0.0.1:1","localnet",privateKey:"test-only-secret");
             var result=await provider.MintNFTAsync(new MintWeb3NFTRequest { Title="Receipt test",NumberToMint=1 });
             Assert.IsTrue(result.IsError);Assert.IsNotNull(result.Result);
-            Assert.AreEqual("fixture-committed-mint-digest",result.Result.TransactionResult);
-            Assert.AreEqual("fixture-committed-mint-digest",result.Result.SendNFTTransactionResult);
+            Assert.AreEqual(new string('1',32),result.Result.TransactionResult);
+            Assert.AreEqual(new string('1',32),result.Result.SendNFTTransactionResult);
             StringAssert.Contains(result.Message,"reconcile before retrying");
             Assert.IsFalse(result.Message.Contains("test-only-secret"));
         }
@@ -150,9 +162,9 @@ public class SuiUnlockReadbackFailureTests
                 TokenId=agreeingSelectors ? "fixture-nft" : null,TokenAddress=agreeingSelectors ? "fixture-nft" : null,
                 FromWalletAddress="fixture-owner",ToWalletAddress="fixture-recipient",OwnerPrivateKey="test-only-explicit",Amount=1 });
             Assert.IsTrue(result.IsError);Assert.IsNotNull(result.Result);
-            Assert.AreEqual("fixture-committed-send-digest",result.Result.TransactionResult);
-            Assert.AreEqual("fixture-committed-send-digest",result.Result.SendNFTTransactionResult);
-            StringAssert.Contains(result.Message,"fixture-committed-send-digest");
+            Assert.AreEqual(new string('1',32),result.Result.TransactionResult);
+            Assert.AreEqual(new string('1',32),result.Result.SendNFTTransactionResult);
+            StringAssert.Contains(result.Message,new string('1',32));
             Assert.IsFalse(result.Message.Contains("test-only-explicit"));
         }
         finally {Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",previous);}
@@ -168,8 +180,8 @@ public class SuiUnlockReadbackFailureTests
             using var provider=new SuiOASIS("http://127.0.0.1:1","localnet",privateKey:"test-only-secret");
             var result=await provider.UnlockNFTAsync(new UnlockWeb3NFTRequest { NFTTokenAddress="fixture-nft" });
             Assert.IsTrue(result.IsError);Assert.IsNotNull(result.Result);
-            Assert.AreEqual("fixture-committed-unlock-digest",result.Result.TransactionResult);
-            StringAssert.Contains(result.Message,"fixture-committed-unlock-digest");
+            Assert.AreEqual(new string('1',32),result.Result.TransactionResult);
+            StringAssert.Contains(result.Message,new string('1',32));
             StringAssert.Contains(result.Message,"reconcile before retrying");
             Assert.IsFalse(result.Message.Contains("test-only-secret"));
         }

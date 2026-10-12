@@ -114,7 +114,7 @@ internal sealed class SuiSdkClient : IDisposable
                 throw InvalidEnvelope(isMutation, "Sui SDK success envelope has no result; native outcome is not established.");
             if (isMutation && (payload.ValueKind != JsonValueKind.Object
                 || !payload.TryGetProperty("transactionHash", out var hash) || hash.ValueKind != JsonValueKind.String
-                || string.IsNullOrWhiteSpace(hash.GetString())))
+                || !IsValidDigest(hash.GetString())))
                 throw InvalidEnvelope(true, "Sui SDK mutation result lacks transaction identity; native outcome is not established.");
             return payload.Clone();
         }
@@ -143,6 +143,22 @@ internal sealed class SuiSdkClient : IDisposable
             try { await Task.WhenAll(output, error); }
             catch (Exception ex) when (ex is OperationCanceledException || ex is IOException || ex is System.Text.DecoderFallbackException) { }
         }
+    }
+
+    private static bool IsValidDigest(string digest)
+    {
+        if (string.IsNullOrEmpty(digest) || digest.Length > 44) return false;
+        const string alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz";
+        System.Numerics.BigInteger value = 0;
+        foreach (var character in digest)
+        {
+            var digit = alphabet.IndexOf(character);
+            if (digit < 0) return false;
+            value = value * 58 + digit;
+        }
+        var leadingZeros = 0;
+        while (leadingZeros < digest.Length && digest[leadingZeros] == '1') leadingZeros++;
+        return leadingZeros + (value.IsZero ? 0 : value.ToByteArray(isUnsigned: true, isBigEndian: true).Length) == 32;
     }
 
     private static Exception InvalidEnvelope(bool isMutation, string message, Exception innerException = null)
