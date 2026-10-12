@@ -56,6 +56,7 @@
   <ItemGroup>
     <None Update="SdkBridge\bridge.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="SuiSdkBridge\bridge.mjs" />
     <None Update="SdkBridge\package.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="SuiSdkBridge\package.json" />
+    <None Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\prepared-submission.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="SuiSdkBridge\prepared-submission.mjs" />
     <None Update="SdkBridge\package-lock.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="SuiSdkBridge\package-lock.json" />
   </ItemGroup>
 

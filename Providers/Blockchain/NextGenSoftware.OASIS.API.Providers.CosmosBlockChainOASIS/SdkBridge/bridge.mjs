@@ -143,7 +143,14 @@ export async function invoke(input, persistPreparedSubmission) {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
 try {
   const input = await readInput();
-  process.stdout.write(JSON.stringify({ ok: true, result: await invoke(input) }));
+  let persistPreparedSubmission;
+  if (process.env.OASIS_NATIVE_PREPARATION_PIPE) {
+    const modulePath=process.env.OASIS_NATIVE_PREPARATION_MODULE;
+    if (!modulePath) throw new Error('Parent preparation transport module is required');
+    const { preparationClient }=await import(pathToFileURL(modulePath).href);
+    persistPreparedSubmission=preparationClient(process.env.OASIS_NATIVE_PREPARATION_PIPE);
+  }
+  process.stdout.write(JSON.stringify({ ok: true, result: await invoke(input, persistPreparedSubmission) }));
 } catch (error) {
   process.stdout.write(JSON.stringify(cosmosErrorEnvelope(error)));
   process.exitCode = 1;

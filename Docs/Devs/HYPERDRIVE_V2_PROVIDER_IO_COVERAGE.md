@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Parent-owned CLI preparation transport settings — 2026-10-12
+
+The C# preparation server can configure only an explicitly owned direct child's environment with its private endpoint and an existing absolute transport module path. It does not mutate parent/global environment. Cosmos/Sui CLI entry points read these parent settings and attach the existing preparation client to their trusted invocation callback; request JSON does not select the callback/transport module. Both projects copy the same shared module source into output/publish bridge artifacts. SDK regressions: Cosmos **50/50**, Sui **24/24**; shared suite **84/84**, zero skips, including child-only settings/path/shell rejection checks. Shared build passed 0 errors/warnings.
+
+Provider process methods still do not create/configure/await this server, and complete provider output/publish verification remains required. Thus production operations are not yet durably gated. Actual outbox binding, signed evidence/chain/payer persistence, authenticated admission and crash/recovery/live/deployed gates remain open. No install, runtime startup, ledger mutation or release merge.
+
 ### Combined actual Node/C# pipe/Mongo preparation acknowledgement — 2026-10-12
 
 The real-Mongo ordering fixture now launches the actual Node preparation client, receives its frame through the current-user C# pipe, writes the original prepared identity to the existing outbox, and only then allows the child to complete successfully. Readback confirms one original ID with ledger acknowledgement still null. Shared suite **83/83**, zero skips; report `TestResults/SharedStorageCurrent/shared-current.trx` supersedes the preceding C#-client-only case. Existing Node service/process helper is reused; owned child and generated database cleaned up. No install or ledger mutation.
