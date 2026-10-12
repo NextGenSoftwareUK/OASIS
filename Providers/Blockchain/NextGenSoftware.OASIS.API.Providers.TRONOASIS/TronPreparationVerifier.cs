@@ -10,7 +10,10 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS;
 public static class TronPreparationVerifier
 {
     public static void VerifyOriginal(string signedTransactionBase64,string expectedTransactionId,byte[] expectedSender)
+        => VerifyOriginal(signedTransactionBase64,expectedTransactionId,expectedSender,long.MaxValue);
+    public static void VerifyOriginal(string signedTransactionBase64,string expectedTransactionId,byte[] expectedSender,long maximumFeeLimitSun)
     {
+        if(maximumFeeLimitSun<0)throw new ArgumentOutOfRangeException(nameof(maximumFeeLimitSun));
         if(string.IsNullOrEmpty(signedTransactionBase64)||signedTransactionBase64.Length>1048576)
             throw new InvalidDataException("Bounded original TRON signed bytes required.");
         var bytes=Convert.FromBase64String(signedTransactionBase64);
@@ -20,6 +23,7 @@ public static class TronPreparationVerifier
             throw new InvalidDataException("One original recoverable TRON signature required.");
         if(transaction.RawData.Timestamp<=0||transaction.RawData.Expiration<=transaction.RawData.Timestamp||transaction.RawData.FeeLimit<0)
             throw new InvalidDataException("Original TRON validity window and nonnegative fee limit required.");
+        if(transaction.RawData.FeeLimit>maximumFeeLimitSun)throw new InvalidDataException("TRON signed fee limit exceeds the authorised ceiling.");
         var digest=SHA256.HashData(transaction.RawData.ToByteArray());
         if(Convert.ToHexString(digest).ToLowerInvariant()!=expectedTransactionId)throw new InvalidDataException("TRON original identity mismatch.");
         if(expectedSender==null||expectedSender.Length!=21||expectedSender[0]!=0x41)throw new ArgumentException("Trusted 21-byte TRON sender required.",nameof(expectedSender));
