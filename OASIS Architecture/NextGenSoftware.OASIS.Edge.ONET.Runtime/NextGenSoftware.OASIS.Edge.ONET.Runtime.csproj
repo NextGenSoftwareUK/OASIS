@@ -10,9 +10,11 @@
     <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
     <ProjectReference Include="../NextGenSoftware.OASIS.Edge.Runtime/NextGenSoftware.OASIS.Edge.Runtime.csproj" />
     <ProjectReference Include="../NextGenSoftware.OASIS.ONET/NextGenSoftware.OASIS.ONET.csproj" />
   </ItemGroup>
