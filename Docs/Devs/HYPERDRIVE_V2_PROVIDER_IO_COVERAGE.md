@@ -10,7 +10,7 @@ No provider is currently certified against the entire requested combination of r
 | Provider | Real SDK/runtime evidence | Outstanding completion work |
 |---|---|---|
 | TRONOASIS | Signed real node operations; storage/token/NFT/escrow lifecycle; selected live V2 outage failover, replication and measured selection | Remaining native/history paths; complete interface/options matrix; current combined-branch live rerun and hosted routes |
-| SuiOASIS | Official SDK; live storage/transfers/token/NFT lifecycle; selected real V2 failover/replication/measured selection; all eight named native transfer overloads | Named custom-token matrix and remaining native/interface/options matrix; combined-branch routing rerun and hosted routes |
+| SuiOASIS | Official SDK; live storage/transfers/token/NFT lifecycle; selected real V2 failover/replication/measured selection; eight native and four deployed-custom-coin named transfer variants | Remaining native/interface/options matrix; combined-branch routing rerun and hosted routes |
 | CosmosBlockChainOASIS | Official SDK and local wasmd; real storage/native lifecycle and selected V2 scenarios at earlier pins | Current live recheck subject to execution-policy gate; remaining native/interface/options matrix and hosted routes |
 | HashgraphOASIS | Official Hiero SDK; real funded HBAR transfer; latest 208/208 non-funded tests | Additional test HBAR; retained-file storage deployment; funded NFT/escrow and real V2 storage/orchestration; hosted routes |
 
@@ -19,6 +19,10 @@ Broader providers with narrower recorded real-runtime/SDK/API evidence: MongoDB,
 Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4 126/126, zero skips; rebuilt WEB4 host passes. Evidence recorded at `e9302f828`. Task branch contains Development reconciliation, but parent Development/master have not received this task's merge. Hosted dev revision last checked was `f4f6beba`, not the task code. User authorizes a safe Development merge/automatic Railway deployment; resolve regression/deployment gates before claiming release success. Update this summary whenever coverage or remaining gates change; retain exact checkpoint reports below rather than silently promote narrow evidence to broader claims.
 
 ## Routing contract
+
+### Live Sui named custom-coin transfers (2026-10-12)
+
+Existing scenario now also mints 0.004 OASIS tokens through the configured deployed package/currency and encrypted issuer avatar, then transfers 0.001 each through username/email sync/async explicit-token overloads. Each requires exact token-balance delta and Completed independent receipt. Recipient burns all 0.004 and its final balance is zero; finally reads authoritative issuer/recipient balances and removes any owned remaining tokens, then wallet maps and avatars. Issuer must have zero prior custom-token balance before minting; fixed store lease prevents concurrent test mutation. Initial run failed before mint because fixture constructor omitted required currencyObjectId; corrected using the retained deployment's currency ID, not a new publication. Expanded scenario passes **1/1**, zero skips, 37 seconds (`sui-shared-wallet-current.trx`), covering nine native transfers plus four custom transfers and custom mint/burn. Build zero errors/five warnings. Owned node PID 138998 stopped; no new runtime/download/environment. This proves the configured OASIS coin only, not arbitrary coin types or hosted authorization; full provider/V2 routing release gates remain open.
 
 ### Live Sui named native transfers (2026-10-12)
 

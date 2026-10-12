@@ -91,7 +91,9 @@ public class SuiAvatarTokenSendTests
         using var lease = new FileStream(Path.Combine(root,"store.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
         using var fixture = JsonDocument.Parse(File.ReadAllText(Required("OASIS_SUI_TEST_DEPLOYMENT")));
         var settings = fixture.RootElement;
-        using var sui = new SuiOASIS(rpc,"localnet",settings.GetProperty("chainId").GetString()!);
+        using var sui = new SuiOASIS(rpc,"localnet",settings.GetProperty("chainId").GetString()!,settings.GetProperty("packageAddress").GetString()!,
+            currencyObjectId: settings.GetProperty("currencyObjectId").GetString()!);
+        var coinType = settings.GetProperty("packageAddress").GetString() + "::token::TOKEN";
         var issuer = await sui.RestoreKeyPairAsync(settings.GetProperty("privateKey").GetString()!);
         issuer.IsError.Should().BeFalse(issuer.Message);
         var recipient = await sui.GenerateKeyPairAsync(); recipient.IsError.Should().BeFalse(recipient.Message);
@@ -103,6 +105,7 @@ public class SuiAvatarTokenSendTests
         var recipientAvatar = new Avatar { Id = recipientId, Username = "sui-send-" + recipientId.ToString("N"), Email = recipientId.ToString("N") + "@sui-test.invalid" };
         var ownedAvatars = new List<Guid>();
         var recipientWalletSaved = false;
+        var tokenFixtureOwned = false;
         var encrypted = Rijndael.Encrypt(issuer.Result.PrivateKey,new string('k',32),KeySize.Aes256);
         var wallet = new ProviderWallet { Id=Guid.NewGuid(),AvatarId=avatarId,IsDefaultWallet=true,ProviderType=ProviderType.SuiOASIS,
             WalletAddress=issuer.Result.WalletAddressLegacy,PublicKey=issuer.Result.PublicKey,PrivateKey=encrypted };
@@ -167,12 +170,56 @@ public class SuiAvatarTokenSendTests
                 balanceAfter.IsError.Should().BeFalse(balanceAfter.Message);
                 (balanceAfter.Result - balanceBefore.Result).Should().Be(0.001m);
             }
+            var originalTokens = await sui.GetTokenBalanceAsync(issuer.Result.WalletAddressLegacy, coinType);
+            originalTokens.IsError.Should().BeFalse(originalTokens.Message);
+            originalTokens.Result.Should().Be(0m, "this owned issuer fixture must have no pre-existing tokens before minting");
+            tokenFixtureOwned = true;
+            var minted = await sui.MintTokenAsync(new MintWeb3TokenRequest { MintedByAvatarId = avatarId, Amount = 0.004m,
+                MetaData = new() { ["TokenAddress"] = coinType, ["MintToWalletAddress"] = issuer.Result.WalletAddressLegacy } });
+            minted.IsError.Should().BeFalse(minted.Message);
+            var customTransfers = new Func<Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>>>[]
+            {
+                () => Task.FromResult(sui.SendTransactionByUsername(senderAvatar.Username, recipientAvatar.Username, 0.001m, coinType)),
+                () => sui.SendTransactionByUsernameAsync(senderAvatar.Username, recipientAvatar.Username, 0.001m, coinType),
+                () => Task.FromResult(sui.SendTransactionByEmail(senderAvatar.Email, recipientAvatar.Email, 0.001m, coinType)),
+                () => sui.SendTransactionByEmailAsync(senderAvatar.Email, recipientAvatar.Email, 0.001m, coinType)
+            };
+            foreach (var transfer in customTransfers)
+            {
+                var tokenBefore = await sui.GetTokenBalanceAsync(recipient.Result.WalletAddressLegacy, coinType);
+                tokenBefore.IsError.Should().BeFalse(tokenBefore.Message);
+                var sentToken = await transfer(); sentToken.IsError.Should().BeFalse(sentToken.Message);
+                var tokenStatus = await sui.GetTransactionStatusAsync(sentToken.Result.TransactionResult);
+                tokenStatus.IsError.Should().BeFalse(tokenStatus.Message);
+                tokenStatus.Result.Should().Be(Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed);
+                var tokenAfter = await sui.GetTokenBalanceAsync(recipient.Result.WalletAddressLegacy, coinType);
+                tokenAfter.IsError.Should().BeFalse(tokenAfter.Message);
+                (tokenAfter.Result - tokenBefore.Result).Should().Be(0.001m);
+            }
+            var burnedTokens = await sui.BurnTokenAsync(new BurnWeb3TokenRequest { Amount = 0.004m, TokenAddress = coinType,
+                OwnerPrivateKey = recipient.Result.PrivateKey, OwnerPublicKey = recipient.Result.PublicKey, OwnerSeedPhrase = null });
+            burnedTokens.IsError.Should().BeFalse(burnedTokens.Message);
+            (await sui.GetTokenBalanceAsync(recipient.Result.WalletAddressLegacy, coinType)).Result.Should().Be(0m);
             (await local.LoadProviderWalletsForAvatarByIdAsync(avatarId)).Result[ProviderType.SuiOASIS][0].PrivateKey.Should().Be(encrypted);
         }
         finally
         {
             try
             {
+                if (tokenFixtureOwned)
+                {
+                    foreach (var key in new[] { issuer.Result, recipient.Result })
+                    {
+                        var tokens = await sui.GetTokenBalanceAsync(key.WalletAddressLegacy, coinType);
+                        tokens.IsError.Should().BeFalse(tokens.Message);
+                        if (tokens.Result > 0m)
+                        {
+                            var cleaned = await sui.BurnTokenAsync(new BurnWeb3TokenRequest { Amount = tokens.Result, TokenAddress = coinType,
+                                OwnerPrivateKey = key.PrivateKey, OwnerPublicKey = key.PublicKey, OwnerSeedPhrase = null });
+                            cleaned.IsError.Should().BeFalse(cleaned.Message);
+                        }
+                    }
+                }
                 if (walletSaved) (await local.SaveProviderWalletsForAvatarByIdAsync(avatarId,new())).IsError.Should().BeFalse();
                 if (recipientWalletSaved) (await local.SaveProviderWalletsForAvatarByIdAsync(recipientId,new())).IsError.Should().BeFalse();
                 foreach (var id in ownedAvatars) (await local.DeleteAvatarAsync(id, false)).IsError.Should().BeFalse();
