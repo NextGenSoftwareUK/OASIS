@@ -43,6 +43,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
 
         // ── GET /api/subscription/plans — public endpoint ────────────────────
 
+        [Fact]
+        public async Task NftImportRejectsAnotherAvatarBeforeManagerAccess()
+        {
+            var response=await _authenticatedClient.PostAsJsonAsync("/api/nft/import-web3-nft",
+                new {ImportedByAvatarId=Guid.Parse("22222222-2222-2222-2222-222222222222"),Title="Test import",NFTTokenAddress="fixture-nft"});
+            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            (await response.Content.ReadAsStringAsync()).Should().Contain("AVATAR_OPERATION_FORBIDDEN");
+        }
+
         [Theory]
         [InlineData("burn-token","BurntByAvatarId")]
         [InlineData("lock-token","LockedByAvatarId")]
