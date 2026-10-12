@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### TRON account-update history mapping (2026-10-12)
+
+Native history now recognizes SDK AccountUpdateContract, projecting its actual owner as both participants and zero requested SUN rather than failing the whole history or inventing a transfer. Regression verifies operation, zero amount, matching participants and rejection of an unrelated wallet. Provider build passes zero errors/23 warnings; complete TRON unit suite **178/178**, zero skips (`TestResults/TronCurrent/tron-unit-current.trx`). This is protobuf projection coverage, not a live account-name update or all-operation history proof. Other native contract types remain explicitly unsupported, including TRC10 where the shared wallet DTO lacks token identity/units; those gaps are not closed by this change. Runtime remained paused, no ledger mutation/install/download.
+
 ### Combined-branch live TRON V2 policy and karma recheck (2026-10-12)
 
 Rebuilt TRON provider (zero errors/23 warnings) and existing integration project (zero errors/five warnings), then reused the retained immutable TRE node/ledger. Live routing plus karma scenarios pass **2/2**, zero skips, 114 seconds (`TestResults/HyperDriveTron/tron-v2-combined-current.trx`). Routing checks selected expanded storage operations, real replication, measured selection, owned-node-pause failover and partial-replica diagnostics/explicit repair. Karma checks single committed ledger commands and replicated projection rather than replaying commands on failover/replicas. This refreshes these scoped scenarios after Development reconciliation and latest shared-storage changes, not all native interfaces/options/hosted endpoints. Runtime paused afterward; no reset, clone, install or download. Wider provider matrix and deployment gates remain open.
