@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Sui scenario cleanup ordering corrected (2026-10-12)
+
+Expanded healthy test previously deactivated Sui/LocalFile before deleting the parent and duplicated deactivation in avatar cleanup. Fixture deletion now occurs while providers remain active; a nested finally deactivates both once even if a cleanup assertion fails. Bounded integration-project build and diff check pass (zero errors/five warnings). This is test-resource lifecycle correction, not a new live pass; current revised lifecycle awaits rerun. It does not guarantee every cleanup action proceeds after an earlier delete failure. No runtime/install/download/new environment/ledger mutation/merge.
+
 ### Sui V2 provider-key and parent-query live verification (2026-10-12)
 
 Expanded healthy scenario adds 12 real assertions for holon provider-key and parent-ID/provider-key collection reads, sync/async on Sui/LocalFile. First run fails because LocalFile parent-by-key requires a persisted parent and fixture only saved a child relationship. Corrected fixture explicitly saves/replicates its owned parent with a LocalFile key and cleans it in finally; no provider behavior was weakened to make the assertion pass. Re-execution on the same retained node passes **1/1**, zero skips, 103 seconds (`sui-v2-healthy-current.trx`), retaining all previous lookup/list/token/metadata/search/replication/measured-selection checks. Existing fixtures from failed run cleaned by finally; exact owned PID 127592 stopped after terminal success, no Sui process remains. No reset/install/download/new environment/public assets/merge. These selected paths remain narrower than full operation/options/native/API/image release gates.
