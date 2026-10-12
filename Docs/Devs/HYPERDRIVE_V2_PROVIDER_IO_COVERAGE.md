@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### TRON native bridge pool self-transfer preflight (2026-10-12)
+
+Native bridge withdraw/deposit reject exact canonical pool-wallet equality before activation or signing-key lookup, rather than report a self-transfer as bridge movement. Added actual SDK-derived local address regression verifies both errors/null results, inactive provider and zero key reads. Provider build zero errors/23 warnings; full units **184/184**, zero skips (`tron-unit-current.trx`). This is canonical-address preflight proof, not equivalent alternative address encodings, live pool movement or cross-chain settlement authorization. Runtime remained paused, no ledger/install/download/new environment. Broader interface/release gates remain open.
+
 ### Native interface completion audit scope (2026-10-12)
 
 Inspected current Core IOASISBlockchainStorageProvider and IOASISNFTProvider declarations. Beyond inherited provider/storage contracts, blockchain declares 21 methods: token send/mint/burn/lock/unlock, balance, transactions and key generation (eight sync/async pairs), then account create/restore, native bridge withdraw/deposit and transaction status (five async methods). NFT declares 16 methods: mint/send/burn/lock/unlock/load (six sync/async pairs), NFT bridge withdraw/deposit (two async), and collection resize (two default explicit unsupported methods). IOASISSmartContractProvider is a marker interface with no declared operations; generic contract helpers still require truthful implementation/testing, but cannot be inferred from marker membership. These source counts are inventory, not execution proof.
