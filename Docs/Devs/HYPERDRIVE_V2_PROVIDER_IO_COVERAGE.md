@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Single TRON operation-owner mapping for preparation/fees — 2026-10-12
+
+Preparation and fee receipts now share `OriginalOperationOwner` protobuf contract mapping; preparation retains its fail-closed error category/cause, fee behavior unchanged. Entire unit project **212/212**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`; build 0 errors/21 existing warnings. This removes mapping drift, not a substitute for unsupported permission/interface work or live proof. No RPC, installs, submissions or release merge; full gates remain open.
+
 ### Hedera MSTest project real activation contract audit — 2026-10-12
 
 Corrected historical tests assuming unconfigured provider activates: actual implementation must error/remain inactive without signing/storage configuration. Deactivation test now explicitly covers already-inactive unconfigured provider, not funded active shutdown. Entire MSTest project **20/20**, zero skips, `TestResults/PriorityProviderCurrent/hedera-mstest-current.trx`, including preparation cases; existing nullable test-field warning remains. This is distinct from older 244-case separate regression evidence; do not add counts or claim funded activation.
