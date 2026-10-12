@@ -52,6 +52,20 @@ public class HederaPreparationTests
                 }
                 await serving;
                 Assert.AreEqual(signed.RootElement.GetProperty("preparation").GetProperty("transactionHash").GetString(),server.PreparedTransactionId);
+                var acceptedInvalid=0;
+                using var rejectedServer=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer(async(evidence,token)=>{
+                    await provider.VerifyOriginalSignedPreparationAsync(evidence,signed.RootElement.GetProperty("otherKey").GetString()!,token);
+                    acceptedInvalid++;
+                });
+                var rejectedServing=rejectedServer.ServeAsync(deadline.Token);
+                using(var pipe=new System.IO.Pipes.NamedPipeClientStream(".",rejectedServer.Endpoint.Substring(rejectedServer.Endpoint.LastIndexOf('\\')+1),System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous)){
+                    await pipe.ConnectAsync(deadline.Token);
+                    var frame=System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new{protocol="oasis.native-preparation.v1",evidence=signed.RootElement.GetProperty("preparation")})+"\n");
+                    await pipe.WriteAsync(frame,deadline.Token);await pipe.FlushAsync(deadline.Token);
+                    await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>rejectedServing);
+                    using var reader=new StreamReader(pipe);Assert.IsNull(await reader.ReadLineAsync(deadline.Token));
+                }
+                Assert.AreEqual(0,acceptedInvalid);Assert.IsNull(rejectedServer.PreparedTransactionId);
                 await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>provider.VerifyOriginalSignedPreparationAsync(signed.RootElement.GetProperty("preparation"),signed.RootElement.GetProperty("otherKey").GetString()!,deadline.Token));
                 Assert.AreEqual("controlled-unrelated-pipe",Environment.GetEnvironmentVariable("OASIS_NATIVE_PREPARATION_PIPE"));
             }finally{
