@@ -128,7 +128,8 @@ test('native timeout and malformed delivery evidence never manufacture execution
 });
 test('Cosmos history binds both indexes to one committed height and reconciles overlapping identities', async () => {
   const address = toBech32('wasm', new Uint8Array(20).fill(1));
-  const tx = {hash:hash.toUpperCase(),height:42,txIndex:0,code:0,tx:new Uint8Array([1,2])};
+  const bytes = new Uint8Array([1,2]);
+  const tx = {hash:createHash('sha256').update(bytes).digest('hex').toUpperCase(),height:42,txIndex:0,code:0,tx:bytes};
   const queries = [];
   const client = {getHeight:async()=>42,searchTx:async query=>{queries.push(query);return [tx];}};
   assert.deepEqual(await indexedHistorySnapshot(client,address),[tx]);
@@ -139,12 +140,13 @@ test('Cosmos history binds both indexes to one committed height and reconciles o
 });
 test('Cosmos history rejects out-of-snapshot and conflicting indexed receipts', async () => {
   const address = toBech32('wasm', new Uint8Array(20).fill(1));
-  const tx = {hash:hash.toUpperCase(),height:42,txIndex:0,code:0,tx:new Uint8Array([1])};
-  for (const changes of [{height:43},{height:0},{hash:'wrong'},{txIndex:-1},{code:-1}])
+  const bytes = new Uint8Array([1]);
+  const tx = {hash:createHash('sha256').update(bytes).digest('hex').toUpperCase(),height:42,txIndex:0,code:0,tx:bytes};
+  for (const changes of [{height:43},{height:0},{hash:'wrong'},{hash:'AB'.repeat(32)},{tx:new Uint8Array([2])},{txIndex:-1},{code:-1}])
     await assert.rejects(indexedHistorySnapshot({getHeight:async()=>42,searchTx:async()=>[{...tx,...changes}]},address),/snapshot/);
   let count = 0;
   await assert.rejects(indexedHistorySnapshot({getHeight:async()=>42,
-    searchTx:async()=>[++count===1?tx:{...tx,tx:new Uint8Array([2])}]},address),/disagree/);
+    searchTx:async()=>[++count===1?tx:{...tx,code:5}]},address),/disagree/);
 });
 function feeTx({ code = 0, granter = '', payer = '', amount = '9007199254740993', observedAmount = amount } = {}) {
   const address = toBech32('wasm', new Uint8Array(20).fill(1));
