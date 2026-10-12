@@ -10,7 +10,7 @@ public class TronPermissionRpcTests
     private static Method<TRequest,TResponse> Rpc<TRequest,TResponse>(string service,string name,MessageParser<TRequest> request,MessageParser<TResponse> response)
         where TRequest:class,IMessage<TRequest> where TResponse:class,IMessage<TResponse>
         =>new(MethodType.Unary,service,name,Marshallers.Create<TRequest>(value=>value.ToByteArray(),bytes=>request.ParseFrom(bytes)),Marshallers.Create<TResponse>(value=>value.ToByteArray(),bytes=>response.ParseFrom(bytes)));
-    private sealed class SolidNode(ByteString genesis,bool foreignAccount)
+    private sealed class SolidNode(ByteString genesis,bool foreignAccount,bool emptyAccount=false,bool unavailable=false)
     {
         public int AccountQueries;
         public Task<BlockExtention> GetBlockByNum2(NumberMessage request,ServerCallContext context)
@@ -18,18 +18,21 @@ public class TronPermissionRpcTests
         public Task<Account> GetAccount(Account request,ServerCallContext context)
         {
             AccountQueries++;
+            if(unavailable)throw new RpcException(new Status(StatusCode.Unavailable,"controlled unavailable account query"));
+            if(emptyAccount)return Task.FromResult(new Account());
             var address=request.Address.ToByteArray();if(foreignAccount)address[1]^=1;
             return Task.FromResult(new Account{Address=ByteString.CopyFrom(address),OwnerPermission=new Permission{Id=0,Threshold=1}});
         }
     }
     [Theory]
     [InlineData("valid")] [InlineData("foreign-account")] [InlineData("wrong-genesis")]
+    [InlineData("wrong-solidity")] [InlineData("empty-account")] [InlineData("unavailable")]
     public async Task LoaderUsesActualGrpcAndRejectsMismatchedAuthority(string mode)
     {
-        var expected=new string('a',64);var served=ByteString.CopyFrom(Convert.FromHexString(mode=="wrong-genesis"?new string('b',64):expected));
-        var solid=new SolidNode(served,mode=="foreign-account");
+        var expected=new string('a',64);var served=ByteString.CopyFrom(Convert.FromHexString(mode=="wrong-genesis"||mode=="wrong-solidity"?new string('b',64):expected));
+        var solid=new SolidNode(served,mode=="foreign-account",mode=="empty-account",mode=="unavailable");
         var service=ServerServiceDefinition.CreateBuilder()
-            .AddMethod(Rpc(Wallet.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),solid.GetBlockByNum2)
+            .AddMethod(Rpc(Wallet.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=mode=="wrong-solidity"?ByteString.CopyFrom(Convert.FromHexString(expected)):served}))
             .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),solid.GetBlockByNum2)
             .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetAccount",Account.Parser,Account.Parser),solid.GetAccount).Build();
         var server=new Server{Services={service},Ports={new ServerPort("127.0.0.1",0,ServerCredentials.Insecure)}};
@@ -43,8 +46,9 @@ public class TronPermissionRpcTests
                 var account=await runtime.NativeTransfers.LoadPermissionAuthorityAsync(address,deadline.Token);
                 Assert.Equal(21,account.Address.Length);Assert.NotNull(account.OwnerPermission);Assert.Equal(1,solid.AccountQueries);
             }else{
-                await Assert.ThrowsAsync<InvalidOperationException>(()=>runtime.NativeTransfers.LoadPermissionAuthorityAsync(address,deadline.Token));
-                Assert.Equal(mode=="wrong-genesis"?0:1,solid.AccountQueries);
+                if(mode=="unavailable")await Assert.ThrowsAsync<RpcException>(()=>runtime.NativeTransfers.LoadPermissionAuthorityAsync(address,deadline.Token));
+                else await Assert.ThrowsAsync<InvalidOperationException>(()=>runtime.NativeTransfers.LoadPermissionAuthorityAsync(address,deadline.Token));
+                Assert.Equal(mode=="wrong-genesis"||mode=="wrong-solidity"?0:1,solid.AccountQueries);
             }
         }finally{await server.ShutdownAsync();}
     }
