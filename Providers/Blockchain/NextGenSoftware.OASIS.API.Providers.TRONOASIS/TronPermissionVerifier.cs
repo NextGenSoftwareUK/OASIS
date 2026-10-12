@@ -17,7 +17,14 @@ public static class TronPermissionVerifier
         if(permissionId<0||permissionId==1||contractType<0||contractType>255||!Enum.IsDefined(typeof(Transaction.Types.Contract.Types.ContractType),contractType))
             throw new InvalidDataException("TRON transaction permission or operation selector is invalid.");
         Permission permission;
-        if(permissionId==0)permission=account.OwnerPermission;
+        if(permissionId==0){
+            permission=account.OwnerPermission;
+            // java-tron 4.8.2 AccountCapsule.getPermissionById(0): absent owner message means protocol default, not absent authority.
+            if(permission==null){
+                permission=new Permission{Id=0,Threshold=1,PermissionName="owner"};
+                permission.Keys.Add(new Key{Address=account.Address,Weight=1});
+            }
+        }
         else{
             var candidates=account.ActivePermission.Where(item=>item.Id==permissionId).ToArray();
             if(candidates.Length!=1)throw new InvalidDataException("One exact active TRON permission required.");
