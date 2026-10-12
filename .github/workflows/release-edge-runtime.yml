@@ -20,13 +20,31 @@ on:
         required: false
         type: string
         default: ''
+      validated_run_id:
+        description: Optional prior run with successful Edge validation/assets for artifact-only publication
+        required: false
+        default: ''
+      nuget_run_id:
+        description: Successful Edge-scope NuGet publication run to include (artifact-only mode)
+        required: false
+        default: ''
+      refresh_existing:
+        description: Replace only the runtime ZIP on the matching existing release (explicit maintenance)
+        type: boolean
+        default: false
+      distribution:
+        description: Standalone compiled libraries or Unity integration
+        type: choice
+        options: [Standalone, Unity]
+        default: Standalone
 
 permissions:
   actions: write
-  contents: read
+  contents: write
 
 jobs:
   dispatch-shared-release:
+    if: inputs.validated_run_id == '' && inputs.distribution == 'Unity'
     runs-on: ubuntu-latest
     steps:
       - name: Dispatch the shared validated Edge release
@@ -39,8 +57,109 @@ jobs:
           [[ "$OPERATION" == Publish ]] && publish=true
           gh workflow run global-release.yml --repo ${{ github.repository }} --ref master \
             -f publish="$publish" -f nuget_packages=true -f nuget_package_scope=Edge \
-            -f oasis_runtime=false -f star_runtime=false -f edge_runtime=true \
+            -f oasis_runtime=false -f star_runtime=false -f edge_runtime=false -f edge_unity=true \
             -f ogengine_client=false -f native_endpoint=false \
             -f mcp_server=false -f optional_components='none' \
             -f version_mode='${{ inputs.version_mode }}' -f manual_version='${{ inputs.manual_version }}'
           echo "The shared Global OASIS Release run was dispatched for OASIS Edge Runtime." >> "$GITHUB_STEP_SUMMARY"
+
+  publish-existing-artifacts:
+    if: inputs.validated_run_id != '' && inputs.operation == 'Publish' && inputs.distribution == 'Unity'
+    runs-on: windows-latest
+    permissions:
+      actions: read
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - name: Verify the source validation and NuGet publication runs
+        id: verified-source
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VALIDATED_RUN: ${{ inputs.validated_run_id }}
+          NUGET_RUN: ${{ inputs.nuget_run_id }}
+          VERSION: ${{ inputs.manual_version }}
+          REFRESH: ${{ inputs.refresh_existing }}
+        run: |
+          if ($env:VALIDATED_RUN -notmatch '^\d+$' -or $env:NUGET_RUN -notmatch '^\d+$' -or $env:VERSION -notmatch '^\d+\.\d+\.\d+$') { throw 'Artifact publication requires numeric run IDs and an explicit version.' }
+          $source = gh run view $env:VALIDATED_RUN --json headSha,jobs | ConvertFrom-Json
+          foreach ($name in @('edge-runtime-validation / validate', 'edge-runtime-assets')) {
+            $job = @($source.jobs | Where-Object name -eq $name)
+            if ($job.Count -ne 1 -or $job[0].conclusion -ne 'success') { throw "Source job did not succeed: $name" }
+          }
+          $published = gh run view $env:NUGET_RUN --json headSha,jobs,conclusion | ConvertFrom-Json
+          if ($published.conclusion -ne 'success' -or @($published.jobs | Where-Object { $_.name -eq 'nuget-publish' -and $_.conclusion -eq 'success' }).Count -ne 1) { throw 'NuGet publication did not succeed.' }
+          $releases = gh api 'repos/NextGenSoftwareUK/OASIS/releases?per_page=100' | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) { throw 'Could not check existing GitHub releases.' }
+          $existing = @($releases | Where-Object tag_name -eq "OASIS-Edge-Unity-v$env:VERSION")
+          if ($existing.Count -and (($env:REFRESH -ne 'true' -and -not $existing[0].draft) -or $existing[0].target_commitish -ne $source.headSha)) { throw 'Existing release requires explicit maintenance and the same validated source.' }
+          "source_sha=$($source.headSha)" >> $env:GITHUB_OUTPUT
+          "Validated binary source: $($source.headSha); NuGet source: $($published.headSha)" >> $env:GITHUB_STEP_SUMMARY
+      - uses: actions/download-artifact@v7
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.validated_run_id }}
+          name: global-release-edge-runtime
+          path: artifacts/reused-edge
+      - uses: actions/download-artifact@v7
+        with:
+          github-token: ${{ github.token }}
+          run-id: ${{ inputs.nuget_run_id }}
+          name: global-release-nuget-packages
+          path: artifacts/current-edge-nuget
+      - name: Publish the reviewed reused bundle
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.manual_version }}
+          VALIDATED_RUN: ${{ inputs.validated_run_id }}
+          NUGET_RUN: ${{ inputs.nuget_run_id }}
+          SOURCE_SHA: ${{ steps.verified-source.outputs.source_sha }}
+          REFRESH: ${{ inputs.refresh_existing }}
+        run: |
+          $root = 'artifacts/reused-edge/edge-runtime-release'
+          if (-not (Test-Path -LiteralPath $root)) { throw 'Validated release evidence directory missing.' }
+          $packages = @(Get-ChildItem artifacts/current-edge-nuget -Filter '*.nupkg' -File | Where-Object { $_.Name -notlike '*.symbols.nupkg' })
+          if ($packages.Count -ne 9) { throw 'Expected exactly nine Edge-scope packages.' }
+          Compress-Archive -LiteralPath $packages.FullName -DestinationPath "$root/nuget-publish-candidates.zip" -Force
+          ./Scripts/New-OASISReleaseNotes.ps1 -Component EdgeUnity -Version $env:VERSION -OutputPath "$root/RELEASE_NOTES.md"
+          @("Reused validated binary/evidence run: $env:VALIDATED_RUN", "Included successful NuGet publication run: $env:NUGET_RUN", 'NuGet candidates and release notes were refreshed; binary validation evidence remains from the original run.') | Set-Content "$root/PUBLICATION_PROVENANCE.md"
+          $archive = "artifacts/OASIS.Edge.Unity.v$env:VERSION.zip"
+          ./Scripts/New-OASISEdgeRuntimeArchive.ps1 -EvidenceDirectory $root -OutputPath $archive
+          # Evidence remains in workflow artifacts, not in the user-facing runtime ZIP.
+          $assets = @((Resolve-Path $archive).Path)
+          $tag = "OASIS-Edge-Unity-v$env:VERSION"
+          $releases = gh api 'repos/NextGenSoftwareUK/OASIS/releases?per_page=100' | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0) { throw 'Could not inspect existing releases.' }
+          $existing = @($releases | Where-Object tag_name -eq $tag)
+          if (-not $existing.Count) {
+            gh release create $tag --draft --target $env:SOURCE_SHA --title "OGEngineClient + Edge + Unity v$env:VERSION" --notes-file "$root/RELEASE_NOTES.md"
+            if ($LASTEXITCODE -ne 0) { throw 'GitHub draft creation failed.' }
+          } elseif (($env:REFRESH -ne 'true' -and -not $existing[0].draft) -or $existing[0].target_commitish -ne $env:SOURCE_SHA) { throw 'Existing release is not an authorized matching maintenance target.' }
+          gh release upload $tag @assets --clobber
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub asset upload failed; draft preserved for recovery.' }
+          gh release edit $tag --draft=false --notes-file "$root/RELEASE_NOTES.md"
+          if ($LASTEXITCODE -ne 0) { throw 'GitHub publication failed; inspect the draft.' }
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 8.0.x
+      - name: Publish the distinct Unity NuGet distribution
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) { throw 'NUGET_API_KEY is required.' }
+          $project = 'UnityPackages/NextGenSoftware.OASIS.Edge.Unity.NuGet/NextGenSoftware.OASIS.Edge.Unity.csproj'
+          $archive = (Resolve-Path 'artifacts/reused-edge/edge-runtime-release/com.nextgensoftware.oasis.edge.tgz').Path
+          dotnet pack $project -c Release -p:UnityPackageArchive="$archive" -o artifacts/unity-nuget
+          if ($LASTEXITCODE -ne 0) { throw 'Unity NuGet packing failed.' }
+          dotnet nuget push artifacts/unity-nuget/NextGenSoftware.OASIS.Edge.Unity.1.0.0.nupkg --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY
+          if ($LASTEXITCODE -ne 0) { throw 'Unity NuGet publication failed; do not blindly retry an existing immutable version.' }
+
+  standalone:
+    if: inputs.distribution == 'Standalone'
+    uses: ./.github/workflows/build-edge-standalone.yml
+    with:
+      version: ${{ inputs.manual_version }}
+      publish: ${{ inputs.operation == 'Publish' }}
+    secrets: inherit
