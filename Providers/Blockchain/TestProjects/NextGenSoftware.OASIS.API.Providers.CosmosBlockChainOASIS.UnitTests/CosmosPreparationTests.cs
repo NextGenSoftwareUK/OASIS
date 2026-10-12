@@ -8,6 +8,14 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class CosmosPreparationTests
 {
+    [TestMethod]
+    public async Task StorageActivationInvokesOnlyReadOnlyProbe()
+    {
+        var type=typeof(CosmosBlockChainOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.CosmosSdkBackend")!;
+        using var client=(IDisposable)Activator.CreateInstance(type,new object[]{"http://127.0.0.1:1","chain","controlled-key","contract","cosmos","0.025uatom","node",Path.Combine(AppContext.BaseDirectory,"Fixtures/activation-readonly.mjs")})!;
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        await (Task)type.GetMethod("VerifyAsync")!.Invoke(client,new object[]{deadline.Token})!;
+    }
     [DataTestMethod]
     [DataRow("rpcEndpoint")] [DataRow("chainId")] [DataRow("addressPrefix")]
     public async Task OperationArgumentsCannotReplaceConfiguredNetwork(string field)
