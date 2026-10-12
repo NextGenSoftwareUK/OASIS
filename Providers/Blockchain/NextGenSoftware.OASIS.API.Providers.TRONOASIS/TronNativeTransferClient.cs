@@ -77,6 +77,54 @@ public sealed class TronNativeTransferClient
         return MapConfirmedTransactionStatus(receipt, id.Value, contract);
     }
 
+    public async Task<System.Text.Json.JsonElement> GetNativeFeeReceiptAsync(string hash, CancellationToken cancellationToken = default)
+    {
+        if (!System.Text.RegularExpressions.Regex.IsMatch(hash ?? "", "\\A[0-9a-fA-F]{64}\\z"))
+            throw new ArgumentException("Exact TRON transaction ID required.");
+        var id = ByteString.CopyFrom(Convert.FromHexString(hash));
+        await VerifyNetworkAsync(cancellationToken);
+        var node = _wallet.GetSolidityProtocol();
+        var request = new BytesMessage { Value = id };
+        var receipt = await node.GetTransactionInfoByIdAsync(request, _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
+        var transaction = await node.GetTransactionByIdAsync(request, _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
+        return MapNativeFeeReceipt(transaction, receipt, id, _genesisBlockId);
+    }
+
+    internal static System.Text.Json.JsonElement MapNativeFeeReceipt(Transaction transaction, TransactionInfo receipt, ByteString id, string genesis)
+    {
+        ValidateSolidifiedReceiptIdentity(receipt, id);
+        if (!ValidateTransactionIdentity(transaction, id) || receipt.BlockTimeStamp <= 0 || transaction.RawData.Contract.Count != 1)
+            throw new InvalidOperationException("TRON fee receipt lacks exact solidified transaction or block time.");
+        var contract = transaction.RawData.Contract[0];
+        var owner = contract.Type switch {
+            Transaction.Types.Contract.Types.ContractType.TransferContract => contract.Parameter.Unpack<TransferContract>().OwnerAddress,
+            Transaction.Types.Contract.Types.ContractType.AccountCreateContract => contract.Parameter.Unpack<AccountCreateContract>().OwnerAddress,
+            Transaction.Types.Contract.Types.ContractType.AccountUpdateContract => contract.Parameter.Unpack<AccountUpdateContract>().OwnerAddress,
+            Transaction.Types.Contract.Types.ContractType.TriggerSmartContract => contract.Parameter.Unpack<TriggerSmartContract>().OwnerAddress,
+            Transaction.Types.Contract.Types.ContractType.CreateSmartContract => contract.Parameter.Unpack<CreateSmartContract>().OwnerAddress,
+            _ => throw new InvalidOperationException("Fee payer mapping is not established for this TRON contract type.")
+        };
+        if (owner.Length != 21 || owner[0] != 0x41) throw new InvalidOperationException("TRON fee payer address is invalid.");
+        var energyFee = receipt.Receipt?.EnergyFee ?? 0;
+        var netFee = receipt.Receipt?.NetFee ?? 0;
+        var energyUsage = receipt.Receipt?.EnergyUsageTotal ?? 0;
+        var bandwidthUsage = receipt.Receipt?.NetUsage ?? 0;
+        if (receipt.Fee < 0 || energyFee < 0 || netFee < 0 || energyUsage < 0 || bandwidthUsage < 0
+            || checked(energyFee + netFee) > receipt.Fee)
+            throw new InvalidOperationException("TRON fee components do not establish an exact nonnegative total.");
+        var vm = contract.Type == Transaction.Types.Contract.Types.ContractType.TriggerSmartContract || contract.Type == Transaction.Types.Contract.Types.ContractType.CreateSmartContract;
+        var status = MapConfirmedTransactionStatus(receipt, id, vm);
+        string Units(long value) => value.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        return System.Text.Json.JsonSerializer.SerializeToElement(new {
+            transactionHash = Convert.ToHexString(id.Span).ToLowerInvariant(), chainGenesisId = genesis.ToLowerInvariant(),
+            payer = NBitcoin.DataEncoders.Encoders.Base58Check.EncodeData(owner.ToByteArray()),
+            currency = "TRX", unit = "SUN", netUnits = Units(receipt.Fee), success = status == Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,
+            components = new { energyFee = Units(energyFee), bandwidthFee = Units(netFee), otherFee = Units(receipt.Fee - energyFee - netFee) },
+            resources = new { energyUsage = Units(energyUsage), bandwidthUsage = Units(bandwidthUsage) },
+            blockNumber = receipt.BlockNumber, timestampMs = receipt.BlockTimeStamp, basis = "solidified-receipt-total"
+        });
+    }
+
     internal static Core.Managers.Bridge.Enums.BridgeTransactionStatus MapConfirmedTransactionStatus(
         TransactionInfo receipt, ByteString expectedId, bool contract)
     {
