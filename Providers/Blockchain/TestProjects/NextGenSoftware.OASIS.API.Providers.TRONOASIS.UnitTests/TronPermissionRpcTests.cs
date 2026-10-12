@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 public class TronPermissionRpcTests
 {
     [Theory]
-    [InlineData("rotated")] [InlineData("foreign")] [InlineData("threshold")]
+    [InlineData("rotated")] [InlineData("foreign")] [InlineData("threshold")] [InlineData("revoked")]
     public async Task NativeSendUsesSolidifiedOwnerPermissionBeforeConstruction(string mode)
     {
         var genesis=new string('a',64);var block=ByteString.CopyFrom(Convert.FromHexString(genesis));
@@ -20,13 +20,14 @@ public class TronPermissionRpcTests
         var signer=new TronNet.TronECKey(key,TronNet.TronNetwork.MainNet).GetPublicAddress();
         var address=ByteString.CopyFrom(Convert.FromHexString(new Nethereum.Signer.EthECKey(mode=="foreign"?ownerKey:key).GetPublicAddress()[2..]));
         var signerBytes=ByteString.CopyFrom(new byte[]{0x41}.Concat(address.ToByteArray()).ToArray());
-        var constructions=0;var broadcasts=0;var id=ByteString.Empty;
+        var constructions=0;var broadcasts=0;var queries=0;var id=ByteString.Empty;
         var service=ServerServiceDefinition.CreateBuilder()
             .AddMethod(Rpc(Wallet.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=block}))
             .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=block}))
             .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetAccount",Account.Parser,Account.Parser),(Account request,ServerCallContext context)=>{
+                queries++;
                 var account=new Account{Address=request.Address,OwnerPermission=new Permission{Id=0,Threshold=mode=="threshold"?2:1}};
-                account.OwnerPermission.Keys.Add(new Key{Address=signerBytes,Weight=1});return Task.FromResult(account);
+                account.OwnerPermission.Keys.Add(new Key{Address=mode=="revoked"&&queries>1?request.Address:signerBytes,Weight=1});return Task.FromResult(account);
             })
             .AddMethod(Rpc(Wallet.Descriptor.FullName,"CreateTransaction2",TransferContract.Parser,TransactionExtention.Parser),(TransferContract request,ServerCallContext context)=>{
                 constructions++;var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();var tx=new Transaction{RawData=new Transaction.Types.raw{Timestamp=now,Expiration=now+60000}};
@@ -46,8 +47,9 @@ public class TronPermissionRpcTests
                 Assert.Equal(Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),result);Assert.Equal(1,constructions);Assert.Equal(1,broadcasts);
             }else{
                 await Assert.ThrowsAsync<System.IO.InvalidDataException>(()=>runtime.NativeTransfers.SendAsync(owner,signer,0.000001m,key,"",deadline.Token));
-                Assert.Equal(0,constructions);Assert.Equal(0,broadcasts);
+                Assert.Equal(mode=="revoked"?1:0,constructions);Assert.Equal(0,broadcasts);
             }
+            Assert.Equal(mode=="rotated"||mode=="revoked"?2:1,queries);
         }finally{await server.ShutdownAsync();}
     }
     [Theory]

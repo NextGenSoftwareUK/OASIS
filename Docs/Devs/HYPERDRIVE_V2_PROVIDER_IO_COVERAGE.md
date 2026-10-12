@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON native send refreshes permission before preparation/broadcast — 2026-10-12
+
+The account-authority signing path now reloads the configured-network solidified owner account after SDK signing and before cryptographic authority verification, persistence or broadcast. Controlled real SDK/gRPC test changes the authorised owner key between preflight and construction completion: one construction occurs, the second account query rejects the revoked signer and zero broadcasts occur. Rotated-key success also asserts both account queries. Complete suite **258/258 passed**, zero skips (`tron-current.trx`); build zero errors/21 existing warnings.
+
+This reduces stale preflight authority, not an atomic guarantee against subsequent chain changes: the ledger remains authoritative at execution. Other mutation paths still use owner-only cryptographic verification without this account-authority refresh; their integration, active permissions/multisignature and live rotated-account proof remain open. No real ledger mutation, installation, merge or deployment.
+
 ### TRON shared boundary independently verifies SDK signatures — 2026-10-12
 
 Before persistence/broadcast, the shared submission helper now reuses `TronPreparationVerifier` to recover the actual signature and validate the operation owner, transaction identity, validity window and configured contract fee ceiling. Native send supplies its verified account snapshot, preserving rotated owner signing; other current owner-only paths use exact owner signature verification. Encoded signed bytes are created once and reused for verification/persistence.
