@@ -10,6 +10,7 @@
   
   <PropertyGroup>
     <PackageId>NextGenSoftware.OASIS.Common</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <Version>2.0.1</Version>
     <Title>OASIS Common</Title>
     <Product>OASIS Common</Product>
@@ -54,4 +55,7 @@
     <None Include="**\*Tests.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
 </Project>

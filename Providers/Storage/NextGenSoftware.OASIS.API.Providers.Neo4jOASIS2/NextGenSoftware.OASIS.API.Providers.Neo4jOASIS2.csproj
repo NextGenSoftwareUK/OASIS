@@ -7,6 +7,7 @@
   
   <PropertyGroup>
     <PackageId>NextGenSoftware.OASIS.API.Providers.Neo4jOASIS2</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <Version>2.0.1</Version>
     <Title>OASIS Neo4j V2 OASIS Provider</Title>
     <Product>OASIS Neo4j V2 OASIS Provider</Product>
@@ -43,4 +44,7 @@
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
 </Project>

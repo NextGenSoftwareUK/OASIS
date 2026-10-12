@@ -6,6 +6,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <PackageId>NextGenSoftware.OASIS.Web9.Core</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <Company>NextGen Software Ltd</Company>
     <Product>WEB9 OASIS Singularity Layer Core</Product>
     <Title>WEB9 OASIS Singularity Layer Core</Title>
@@ -43,4 +44,7 @@
     <ProjectReference Include="..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
 </Project>
