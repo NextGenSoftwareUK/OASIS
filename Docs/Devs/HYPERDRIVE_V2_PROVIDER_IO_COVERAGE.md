@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Shared local preparation acknowledgement transport — 2026-10-12
+
+Added a Node built-in local-pipe preparation client under shared key-value storage. It emits bounded versioned signed-evidence frames and awaits an explicit persisted acknowledgement matching the original identity; rejection, disconnect, invalid JSON/UTF-8, oversized reply or deadline fails closed. It snapshots the identity for reply comparison, drains no secrets to logs, destroys its socket and clears the deadline on completion. No new journal store or dependencies.
+
+Actual Windows named-pipe tests **6/6**, zero skips/todos: acknowledged, wrong hash, rejection, disconnect, malformed reply and deadline. One fixed test endpoint is reused sequentially; all owned sockets/server handles close afterward. These are real local IPC plus controlled replies, not real durable database acknowledgements. Module is not yet packaged/wired into providers; C# parent server, authenticated operation/chain/payer binding, existing-outbox persistence and end-to-end crash/recovery proof remain required. No install or ledger mutation, no release merge.
+
 ### Cosmos trusted entry-point preparation callback — 2026-10-12
 
 Cosmos exports a trusted `invoke(input, persistPreparedSubmission)` entry point, validates its function argument before execution, and forwards it to the central signed-client guard. Importing the module does not consume stdin or execute CLI work; command-line invocation retains the same JSON request/result protocol and uses the same entry point. Tests cover import safety, nonfunction rejection and no submission callback for official key recovery, alongside existing spawned CLI cases. SDK suite **50/50**, zero skips/todos; packaging syntax/import/pin/correction verifier passed on the retained installation. No install, download or ledger mutation.
