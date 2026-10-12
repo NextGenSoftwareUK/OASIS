@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Metadata child expansion restricted to matching records (2026-10-11)
+
+Collection child-loading implementation exposed a query-scope issue: metadata queries expanded all trees before filtering, so unrelated cyclic relationships could fail an otherwise valid query. Existing collection implementation is now shared through a private predicate-aware helper; type/metadata selection occurs before child expansion, preserving real record-read errors and child errors within selected trees. Regression proves single-key async and metadata-pair sync queries succeed for the matching record while unrestricted recursive collection read still reports the unrelated cycle. Full shared suite passes **56/56**, zero skips (`shared-current.trx`); explicit provider rebuild succeeds (zero errors/two warnings). Real-provider query-scope recheck and other complete option/API/image/provider gates remain open. No network mutation/install/download/new environment/merge.
+
 ### Real TRON rejected recursive-save absence check (2026-10-11)
 
 Expanded retained encrypted TRON scenario passes **1/1**, zero skips (`tron-parent-cycle.trx`): cyclic submitted child graph fails with the explicit preflight error, and independent no-child readback still reports authoritative RecordNotFound for the owned ID. Subsequent valid fixture operations, cycle/depth/list/history assertions and cleanup remain passing; runtime paused after terminal completion. This verifies no current owned record was persisted by the rejected call, not a transaction-counter proof or all batch/provider/API permutations. No installs/downloads/new environment/reset/public-chain spending/merge; remaining release gates stay open.
