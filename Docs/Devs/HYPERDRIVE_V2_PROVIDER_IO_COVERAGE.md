@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### JWT identity ambiguity regressions (2026-10-11)
+
+Actual signed JWT suite now passes **12/12**, zero skips (`web4-jwt-crypto.trx`), adding missing/duplicate avatar ID, duplicate subject, conflicting subject alias and future not-before cases. Duplicate reserved `sub` serializes as an array and is rejected by the installed parser as `ArgumentException`; the initial test expected only `SecurityTokenException`, then was corrected to the exact parser behavior already handled by middleware. No production JWT policy was relaxed. This is cryptographic/identity boundary evidence, not successful authenticated avatar storage lookup or live provider/API verification. Existing build/cache reused; no install/download or ledger mutation.
+
 ### WEB4 JWT cryptography and malformed-header checks (2026-10-11)
 
 Actual signed JWT validation tests pass **7/7**, zero skips (`web4-jwt-crypto.trx`): valid HS256 avatar claims succeed; expired, foreign issuer/audience, wrong signing key, disallowed HS384 and conflicting avatar IDs fail. Keys/tokens are public test-only fixtures, never real credentials. HTTP HyperDrive read-route suite now passes **9/9**, zero skips, adding malformed bearer, Basic and empty bearer rejection through the actual middleware (`web4-hyperdrive-http-auth.trx`). Retained host DLL/test environment reused without restore/download. These cryptographic and HTTP rejection tests do not prove successful real JWT avatar lookup, live provider/API calls or fresh deployment/source parity; those remain gates.

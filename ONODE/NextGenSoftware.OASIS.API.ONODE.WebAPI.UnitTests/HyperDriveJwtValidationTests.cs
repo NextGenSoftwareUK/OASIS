@@ -13,10 +13,14 @@ public class HyperDriveJwtValidationTests
     private static string Token(string mode)
     {
         var expires=mode=="expired"?DateTime.UtcNow.AddMinutes(-1):DateTime.UtcNow.AddMinutes(5);
-        var claims=new[] {new Claim("sub",Avatar),new Claim("id",mode=="conflicting-id"?Guid.Empty.ToString():Avatar)};
+        var claims=new List<Claim> {new Claim("sub",Avatar),new Claim("id",mode=="conflicting-id"?Guid.Empty.ToString():Avatar)};
+        if(mode=="missing-id")claims.RemoveAll(claim=>claim.Type=="id");
+        if(mode=="duplicate-sub")claims.Add(new Claim("sub",Guid.Empty.ToString()));
+        if(mode=="conflicting-alias")claims.Add(new Claim(ClaimTypes.NameIdentifier,Guid.Empty.ToString()));
+        if(mode=="duplicate-id")claims.Add(new Claim("id",Avatar));
         var key=new SymmetricSecurityKey(Encoding.ASCII.GetBytes(mode=="wrong-signature"?new string('x',80):Secret));
         var token=new JwtSecurityToken(mode=="wrong-issuer"?"foreign":"OASIS",mode=="wrong-audience"?"foreign":"OASIS",claims,
-            DateTime.UtcNow.AddMinutes(-5),expires,new SigningCredentials(key,mode=="wrong-algorithm"?SecurityAlgorithms.HmacSha384:SecurityAlgorithms.HmacSha256));
+            mode=="future-start"?DateTime.UtcNow.AddMinutes(1):DateTime.UtcNow.AddMinutes(-5),expires,new SigningCredentials(key,mode=="wrong-algorithm"?SecurityAlgorithms.HmacSha384:SecurityAlgorithms.HmacSha256));
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
 
@@ -35,6 +39,18 @@ public class HyperDriveJwtValidationTests
     [InlineData("wrong-audience")]
     [InlineData("wrong-algorithm")]
     [InlineData("conflicting-id")]
+    [InlineData("missing-id")]
+    [InlineData("duplicate-id")]
+    [InlineData("duplicate-sub")]
+    [InlineData("conflicting-alias")]
+    [InlineData("future-start")]
     public void InvalidCryptographicOrIdentityClaimsCannotAuthenticate(string mode)
-        =>Assert.ThrowsAny<SecurityTokenException>(()=>OasisJwtValidation.Validate(Token(mode),Secret,"OASIS"));
+    {
+        // The installed JWT parser rejects array-valued reserved sub claims
+        // before semantic validation; middleware explicitly handles this type.
+        if(mode=="duplicate-sub")
+            Assert.Throws<ArgumentException>(()=>OasisJwtValidation.Validate(Token(mode),Secret,"OASIS"));
+        else
+            Assert.ThrowsAny<SecurityTokenException>(()=>OasisJwtValidation.Validate(Token(mode),Secret,"OASIS"));
+    }
 }
