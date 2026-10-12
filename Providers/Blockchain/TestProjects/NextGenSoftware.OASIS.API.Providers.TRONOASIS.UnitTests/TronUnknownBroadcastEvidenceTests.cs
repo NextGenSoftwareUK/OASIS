@@ -12,6 +12,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public class TronUnknownBroadcastEvidenceTests
 {
+    [Fact]
+    public void ConfirmedReadbackFailureRetainsOriginalAndReconciliationMarker()
+    {
+        var cause=new InvalidOperationException("controlled account readback failure");
+        var failure=new TronCommittedReadbackException(new string('a',64),new string('B',64),cause);
+        Assert.IsAssignableFrom<NextGenSoftware.OASIS.API.Core.Interfaces.INativeMutationReconciliationRequired>(failure);
+        Assert.Same(cause,failure.InnerException);Assert.Equal(new string('a',64),failure.OriginalTransactionId);
+        Assert.Equal(new string('b',64),failure.ChainGenesisId);
+        Assert.Throws<ArgumentException>(()=>new TronCommittedReadbackException("replacement",new string('b',64),cause));
+    }
     [Theory]
     [InlineData("valid")] [InlineData("foreign-owner")] [InlineData("foreign-signature")]
     public async Task SignedPermissionUpdateBindsOriginalOwnerAndSignature(string mode)

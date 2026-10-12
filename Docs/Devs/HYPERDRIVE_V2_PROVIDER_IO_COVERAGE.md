@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON confirmed-account readback retry fence — 2026-10-12
+
+Found and fixed a shipping post-submission classification gap: `CreateLedgerAccountAsync` previously wrapped failure after its confirmed submission in ordinary InvalidOperationException, despite a message saying to reconcile. It now throws `TronCommittedReadbackException` implementing the existing reconciliation-required interface, retaining exact original transaction/chain IDs and cause. Unlike unknown broadcast evidence, this distinguishes confirmed submission from unverified application readback. Class invariant test checks marker, identity, normalization, cause and malformed ID rejection. Full TRON suite **243/243** passed, zero skips (`tron-current.trx`); build zero errors/21 existing warnings. Controlled full account-creation/readback failure branch and live V2 propagation still need dedicated evidence; no account was created in this run.
+
+Also identified that mutation preflight methods still require signing-key-derived address equality rather than resolving delegated/rotated owner-permission keys. The independent permission verifier supports weighted authority, but shipping sender preflight integration remains a gap; do not infer delegated signing support from its tests. No installation, network submission, replay, deployment or merge.
+
 ### Cosmos single SDK owner independent of storage composition — 2026-10-12
 
 Cosmos constructor now creates/retains one `CosmosSdkBackend`; native wallet, contract, NFT-proof, prepared and disposal calls use that same owned instance rather than casting the public storage composition. Storage still uses that exact instance today; a reference-identity test proves no duplicate signer/backend allocation. Public constructor signature and existing records/formats remain unchanged. Provider build zero warnings/errors; selected preparation suite **17/17** passed, zero skips (`cosmos-preparation-current.trx`). The mechanical call-site replacement is preparation for approved private-storage composition, not encryption/migration completion. Privacy choice, live Cosmos runtime and full post-change regression remain open gates. No installs, ledger calls, deployment or merge.
