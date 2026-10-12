@@ -12,11 +12,13 @@ public class TronPermissionRpcTests
 {
     [Theory]
     [InlineData("call")] [InlineData("deploy")] [InlineData("missing-address")] [InlineData("readback-unavailable")]
+    [InlineData("nft-mint")] [InlineData("nft-send")] [InlineData("token-send")] [InlineData("approve")]
     public async Task RotatedContractSignerAndConfirmedDeploymentReadbackPreserveOneSubmission(string mode)
     {
         var genesis=new string('a',64);var block=ByteString.CopyFrom(Convert.FromHexString(genesis));
         var key=new string('0',63)+"1";var ownerKey=new string('0',63)+"2";
         var owner=new TronNet.TronECKey(ownerKey,TronNet.TronNetwork.MainNet).GetPublicAddress();
+        var expectedOwner=new byte[21];expectedOwner[0]=0x41;new Nethereum.Signer.EthECKey(ownerKey).GetPublicAddressAsBytes().CopyTo(expectedOwner,1);
         var signerBytes=new byte[21];signerBytes[0]=0x41;new Nethereum.Signer.EthECKey(key).GetPublicAddressAsBytes().CopyTo(signerBytes,1);
         var contractBytes=new byte[21];contractBytes[0]=0x41;new Nethereum.Signer.EthECKey(new string('0',63)+"3").GetPublicAddressAsBytes().CopyTo(contractBytes,1);
         var contract=NBitcoin.DataEncoders.Encoders.Base58Check.EncodeData(contractBytes);
@@ -30,7 +32,16 @@ public class TronPermissionRpcTests
             .AddMethod(Rpc(Wallet.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=block}))
             .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=block}))
             .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetAccount",Account.Parser,Account.Parser),(Account request,ServerCallContext context)=>{
+                Assert.Equal(ByteString.CopyFrom(expectedOwner),request.Address);
                 authority=new Account{Address=request.Address,OwnerPermission=new Permission{Id=0,Threshold=1}};authority.OwnerPermission.Keys.Add(new Key{Address=ByteString.CopyFrom(signerBytes),Weight=1});return Task.FromResult(authority);
+            })
+            .AddMethod(Rpc(Wallet.Descriptor.FullName,"TriggerConstantContract",TriggerSmartContract.Parser,TransactionExtention.Parser),(TriggerSmartContract request,ServerCallContext context)=>{
+                Assert.Equal(authority.Address,request.OwnerAddress);var word=new byte[32];
+                var selector=Convert.ToHexString(request.Data.ToByteArray()[..4]);
+                if(selector=="6352211E")authority.Address.ToByteArray()[1..].CopyTo(word,12);
+                else if(selector=="313CE567")word[31]=6;
+                else throw new InvalidOperationException("Unexpected controlled token/NFT query.");
+                var result=new TransactionExtention{Result=new Return{Result=true}};result.ConstantResult.Add(ByteString.CopyFrom(word));return Task.FromResult(result);
             })
             .AddMethod(Rpc(Wallet.Descriptor.FullName,"TriggerContract",TriggerSmartContract.Parser,TransactionExtention.Parser),(TriggerSmartContract request,ServerCallContext context)=>Task.FromResult(Construct(request,Transaction.Types.Contract.Types.ContractType.TriggerSmartContract)))
             .AddMethod(Rpc(Wallet.Descriptor.FullName,"DeployContract",CreateSmartContract.Parser,TransactionExtention.Parser),(CreateSmartContract request,ServerCallContext context)=>Task.FromResult(Construct(request,Transaction.Types.Contract.Types.ContractType.CreateSmartContract)))
@@ -42,14 +53,21 @@ public class TronPermissionRpcTests
             .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetTransactionInfoById",BytesMessage.Parser,TransactionInfo.Parser),(BytesMessage request,ServerCallContext context)=>{
                 receiptReads++;Assert.Equal(id,request.Value);
                 if(mode=="readback-unavailable"&&receiptReads>1)throw new RpcException(new Status(StatusCode.Unavailable,"controlled confirmed deployment readback failure"));
-                return Task.FromResult(new TransactionInfo{Id=id,BlockNumber=1,Receipt=new ResourceReceipt{Result=Transaction.Types.Result.Types.contractResult.Success},ContractAddress=mode=="missing-address"?ByteString.Empty:ByteString.CopyFrom(contractBytes)});
+                var receipt=new TransactionInfo{Id=id,BlockNumber=1,Receipt=new ResourceReceipt{Result=Transaction.Types.Result.Types.contractResult.Success},ContractAddress=mode=="missing-address"?ByteString.Empty:ByteString.CopyFrom(contractBytes)};
+                var word=new byte[32];word[31]=1;receipt.ContractResult.Add(ByteString.CopyFrom(word));return Task.FromResult(receipt);
             }).Build();
         var server=new Server{Services={service},Ports={new ServerPort("127.0.0.1",0,ServerCredentials.Insecure)}};server.Start();
         try{
             var port=server.Ports.Single().BoundPort;await using var runtime=new TronSdkRuntime(new Uri($"http://127.0.0.1:{port}"),new Uri($"http://127.0.0.1:{port}"),genesis);
             using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            if(mode=="call"){
-                var result=await runtime.NativeTransfers.ExecuteSignedContractAsync(owner,contract,new byte[]{1,2,3,4},key,deadline.Token);
+            if(mode is "call" or "nft-mint" or "nft-send" or "token-send" or "approve"){
+                var result=await (mode switch {
+                    "nft-mint"=>runtime.NativeTransfers.MintNftAsync(owner,owner,contract,System.Numerics.BigInteger.One,"https://example.invalid/metadata",key,"",deadline.Token),
+                    "nft-send"=>runtime.NativeTransfers.SendNftAsync(owner,contract,contract,System.Numerics.BigInteger.One,key,"",deadline.Token),
+                    "token-send"=>runtime.NativeTransfers.SendTokenAsync(owner,contract,contract,0.000001m,key,"",cancellationToken:deadline.Token),
+                    "approve"=>runtime.NativeTransfers.ApproveTokenAsync(owner,contract,contract,System.Numerics.BigInteger.One,key,deadline.Token),
+                    _=>runtime.NativeTransfers.ExecuteSignedContractAsync(owner,contract,new byte[]{1,2,3,4},key,deadline.Token)
+                });
                 Assert.Equal(Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),result);
             }
             else if(mode=="deploy"){
