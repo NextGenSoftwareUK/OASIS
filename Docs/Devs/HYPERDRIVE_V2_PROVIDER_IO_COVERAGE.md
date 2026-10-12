@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos current C# regression after byte-binding changes — 2026-10-12
+
+Current Cosmos unit project passed **79/79**, zero skips, in 2m04s using the retained source SDK bridge and existing dependencies with bounded workers/`--no-restore`/`BuildProjectReferences=false`. Report `TestResults/PriorityProviderCurrent/CosmosBlockChainOASIS-post-sdk-change.trx` supersedes its earlier 78-case selection. The supplied exclusion matched `ActualProcessTimeout`, but this provider names its case `RealProcessDeadlineRequiresReconciliationWithoutInventedTransactionId`, so the actual two-minute process deadline was included and passed. The same live test handle was followed to terminal; no duplicate run was started.
+
+This is C# boundary/preflight/controlled-process plus existing SDK wallet validation evidence, not live Cosmos ledger or hosted route proof. JavaScript byte-binding mapping cases remain separately verified at 42/42. No install, runtime start, ledger mutation or deployment; timer lifecycle and durable journal gaps remain open.
+
 ### Cosmos custody proof signed-byte binding — 2026-10-12
 
 NFT custody proof now binds the returned hash to SHA256 of the exact signed bytes before decoding the collection/token/custody transfer. It rejects matching claimed/expected foreign hashes and substituted bytes, closing the same identity gap as history/fee mapping. Controlled custody fixtures use actual encoded protobuf bodies and byte-derived hashes; duplicate/self-origin/wrong-message rejection cases pass their own correct hashes so hash rejection cannot mask custody validation. Full retained SDK suite **42/42**, zero skips/todos. This proves mapping invariants, not live custody/unlock execution or provider certification; timer/journal/live/deployment gates remain outstanding. No download, installation or ledger mutation.
