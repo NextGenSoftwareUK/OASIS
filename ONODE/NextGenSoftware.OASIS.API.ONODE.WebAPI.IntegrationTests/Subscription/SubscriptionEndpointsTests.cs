@@ -44,6 +44,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
         // ── GET /api/subscription/plans — public endpoint ────────────────────
 
         [Theory]
+        [InlineData("burn-token","BurntByAvatarId")]
+        [InlineData("lock-token","LockedByAvatarId")]
+        [InlineData("unlock-token","UnlockedByAvatarId")]
+        public async Task WalletMutationsRejectOtherAvatarBeforeProviderAccess(string route,string actorField)
+        {
+            var body=new Dictionary<string,string> { [actorField]="22222222-2222-2222-2222-222222222222",
+                ["OwnerPublicKey"]="public-test-only",["OwnerPrivateKey"]="public-test-only",["OwnerSeedPhrase"]="public-test-only",["TokenAddress"]="fixture-token" };
+            var response=await _authenticatedClient.PostAsJsonAsync("/api/wallet/"+route,body);
+            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            (await response.Content.ReadAsStringAsync()).Should().Contain("AVATAR_OPERATION_FORBIDDEN");
+        }
+
+        [Theory]
         [InlineData("LocalFile")]
         [InlineData("Sui")]
         [InlineData("TRON")]
