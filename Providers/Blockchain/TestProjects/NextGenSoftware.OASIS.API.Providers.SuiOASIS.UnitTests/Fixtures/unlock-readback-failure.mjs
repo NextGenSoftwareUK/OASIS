@@ -2,6 +2,7 @@
 let input='';for await(const chunk of process.stdin)input+=chunk;
 const request=JSON.parse(input);let result;
 switch(request.operation){
+ case 'verifyNativePreparation':result={verified:request.preparation.mode==='valid',transactionHash:request.preparation.transactionHash,sender:request.preparation.sender};break;
  case 'put': case 'get': {
   const mode=request.mode;
   if(mode==='hold') {setInterval(()=>{},1000);break;}
