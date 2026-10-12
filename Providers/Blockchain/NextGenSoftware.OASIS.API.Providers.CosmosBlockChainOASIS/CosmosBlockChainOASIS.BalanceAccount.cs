@@ -229,6 +229,28 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             return result;
         }
 
+        /// <summary>Observed ante fee deduction only; not a quote, net refund calculation or fiat bill.</summary>
+        public async Task<OASISResult<JsonElement>> GetNativeFeeReceiptAsync(string transactionHash, CancellationToken token = default)
+        {
+            var result = new OASISResult<JsonElement>();
+            try
+            {
+                if (!System.Text.RegularExpressions.Regex.IsMatch(transactionHash ?? "", @"\A[0-9a-fA-F]{64}\z"))
+                    throw new ArgumentException("Exact Cosmos transaction hash required.");
+                var receipt = await ((CosmosSdkBackend)Backend).InvokeAsync("nativeFeeReceipt", new { transactionHash }, token);
+                if (!string.Equals(receipt.GetProperty("transactionHash").GetString(), transactionHash, StringComparison.OrdinalIgnoreCase)
+                    || receipt.GetProperty("chainId").GetString() != ((CosmosSdkBackend)Backend).ChainId
+                    || receipt.GetProperty("basis").GetString() != "observed-ante-fee-deduction"
+                    || string.IsNullOrWhiteSpace(receipt.GetProperty("payer").GetString())
+                    || receipt.GetProperty("fees").ValueKind != JsonValueKind.Array)
+                    throw new InvalidOperationException("Cosmos observed fee receipt identity, payer or basis is invalid.");
+                _ = receipt.GetProperty("success").GetBoolean();
+                result.Result = receipt;
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+            return result;
+        }
+
         private static Guid CreateDeterministicGuid(string input)
         {
             if (string.IsNullOrWhiteSpace(input)) throw new ArgumentException("Deterministic identity input is required.");
