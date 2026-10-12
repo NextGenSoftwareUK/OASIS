@@ -22,6 +22,14 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos signed-verification gap and test-discovery audit — 2026-10-12
+
+Explicit `npm test` revalidation passed **50/50**, zero skips/todos; this is the offline selection only, not a correction of the failed live-runtime evidence.
+
+Authoritative retained CosmJS 0.39.0 `signingcosmwasmclient.js` obtains account number/sequence in `sign`, constructs `makeSignDoc(bodyBytes, authInfoBytes, chainId, accountNumber)` in `signDirect`, then calls the wallet. Current preparation descriptor only retains TxRaw bytes/hash and bridge chain/sender; it omits account number. Complete verification therefore requires capturing the actual signed SignDoc context at the signer boundary, binding its body/auth bytes to TxRaw, checking single direct-mode signer/public key/address, and verifying the signature over the original SignDoc. Hash equality alone is insufficient; do not enable Cosmos durable preparation on that basis or invent account number zero.
+
+An overly broad `node --test` invocation discovered the three live-runtime scripts as well as the offline tests: **50 passed, 3 failed**, zero skips. `runtime.test.mjs` lacked `OASIS_COSMOS_TEST_WASM`; failed-status and multisend scripts failed RPC transport. This is not a passing live checkpoint or evidence of ledger execution. Use the already-defined `npm test` explicit offline selection (`bridge.test.mjs`, `transaction-results.test.mjs`); do not use broad discovery to claim offline-only execution. No runtime was started or installed. Retained runtime startup policy gate remains in force; full live/deployed gates remain open.
+
 ### Execution-owned Sui verification rejection leaves Mongo unchanged — 2026-10-12
 
 The integrated signed SDK/pipe/Mongo case now sends invalid-signature and wrong-chain evidence through the public execution-owned preparation factory. Both reject without acknowledgement or retained ID; Mongo attempt count and native evidence-byte budget remain unchanged. Chain mismatch returns `NATIVE_PREPARATION_IDENTITY_MISMATCH`. Selected regression **70/70**, zero skips, `TestResults/SuiCurrent/sui-preparation-current.trx`, actual two-minute deadline excluded; existing nullable test-field warning remains. Generated owned database removed; existing service/SDK reused.
