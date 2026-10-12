@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui SDK process prepared invocation lifecycle — 2026-10-12
+
+Added explicit `SuiSdkClient.InvokePreparedAsync` through the same canonical process implementation as existing invocation. It configures the owned child/server, observes persistence failure, requires successful preparation completion before accepting native success, and cancels/disposes/observes preparation work during process cleanup. Ungated invocations clear inherited preparation settings; no cross-request global environment mutation. Nonmutation preparation is rejected before launch. Build passed 0 errors/warnings; selected Sui C# regression **64/64**, zero skips, actual deadline excluded, fixed report `TestResults/SuiCurrent/sui-preparation-current.trx`. New controlled child-success-without-ack case requires reconciliation and never invokes persistence.
+
+Production call sites still use the original invocation and must be connected to admitted executions; this is not default durable gating yet. Positive/rejected signed-preparation lifecycle, cancellation/crash recovery, billing and full live/deployed gates remain required. No new installation, node or ledger submission, no release merge.
+
 ### Rejected verifier leaves durable preparation untouched — 2026-10-12
 
 Real Mongo protocol test now proves adapter verification rejection propagates its original failure, leaves provider attempts empty and consumes no native evidence bytes. Missing verifier cannot construct the adapter. Suite **76/76**, zero skips, fixed report `TestResults/SubscriptionUsageCurrent/subscription-usage-current.trx`; controlled verifier rejection, not native crypto proof. Core test commit `0eb07cdaa5a030cc33c2b6fe7c90ef9f4faf1600` published; parent pin synchronized. Production lifecycle, full signed-provider/pipe/outbox recovery, billing and live/deployed gates remain open. No install, ledger mutation, charging change or release merge.
