@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Actual C# to official Sui preparation verification — 2026-10-12
+
+Added a bounded C# test generating actual offline SDK-signed transaction bytes from a fixed non-funded test seed, then calling `VerifyOriginalSignedPreparationAsync` through the real retained bridge/process. Valid signature/digest/sender succeeds; altered signature rejects; provider stays inactive and loopback-unreachable RPC is never needed. **1/1 passed**, zero skips, report `TestResults/SuiCurrent/sui-real-preparation.trx`. Public signed evidence is parsed in memory, not printed. Owned child exits; no install, node, ledger mutation or test-data file allocated.
+
+This supersedes fixture-only evidence for the C# verifier's positive/negative crypto path, not the full signed-provider/pipe/outbox lifecycle, chain admission, native billing or crash recovery. Detailed NFT prices/allowances remain a proposal, not configured policy. Full live/deployed gates remain open; no release merge.
+
 ### Sui C# original preparation verifier callback — 2026-10-12
 
 Added `SuiOASIS.VerifyOriginalSignedPreparationAsync`, a fail-closed callback that invokes the existing official SDK's offline preparation verifier and requires explicit success matching the original digest/signer. It performs no storage activation or ledger submission. Controlled process tests cover positive acknowledgement and rejected verification; selected C# suite **61/61**, zero skips, report `TestResults/SuiCurrent/sui-preparation-current.trx` (actual deadline excluded). Provider build passed 0 errors/warnings. Native cryptography is separately covered by the preceding official SDK tests; the new C# cases use a fixture, not real signature evidence through the process.
