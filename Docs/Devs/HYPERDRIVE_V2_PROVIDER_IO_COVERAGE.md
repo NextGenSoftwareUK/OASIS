@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Predictive redirects validate admission before activation or I/O (2026-10-12)
+
+Fixed predictive target admission in Core `12f7a4de09ab5b5c894623885959e2c450dfc569`: sync/async routing checks the redirected provider under existing DNA plan admission before applying override, provider lookup/activation or operation execution. Forbidden prediction produces terminal `HYPERDRIVE_SUBSCRIPTION_PROVIDER_DENIED`; `ShouldFailOver` does not treat policy denial as transient provider failure. No silent retry, global list mutation or original-provider fallback on denial. This does not change explicit original-provider semantics or complete automatic/explicit replication and configured-alternate admission; those remain open.
+
+Four controlled cases cover Free/Gold and sync/async with an injected recommendation in the real prediction engine's request-local instance: Free redirected provider is inactive and never activates/reads, original never reads, paid redirect returns exact requested avatar. Automatic failover enabled during tests; policy denial remains terminal. Full Core **394/394, zero skips**, `TestResults/CoreCurrent/core-current.trx`; build zero errors/254 warnings. Core existing task branch pushed, parent gitlink/dependency pin updated together; no runtime/download/new environment or production entitlement change. Live predictive recommendation and full billing/provider/release gates are not claimed proven here.
+
 ### Confirmed admission gap beyond automatic load balancing (2026-10-12)
 
 Follow-up source audit confirms subscription candidate filtering is only invoked by automatic load-balancing selection. `HandleFailover`/`HandleFailoverAsync` route configured alternates without checking their plan admission. `ReplicateSuccessfulMutation`/async and explicit `ReplicateRequestAsync` likewise route configured replicas without that check. `RouteToProviderAsync` can apply a predictive override after selection without revalidating the redirected provider's admission. Corresponding sync route and explicit/preferred-provider semantics need the same boundary audit. No speculative claim is made about actual authenticated paid-tier execution: this is concrete router-source evidence that load-balancing filtering alone does not protect all provider I/O paths.

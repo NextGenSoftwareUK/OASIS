@@ -5381,6 +5381,45 @@ public sealed class HyperDriveProviderExecutionTests
     }
 
     [Theory]
+    [InlineData(false, false)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task PredictiveRedirectChecksAdmissionBeforeProviderIo(bool paid, bool asynchronous)
+    {
+        var id = Guid.NewGuid();
+        var original = CreateActiveProvider(ProviderType.LocalFileOASIS, "original-local");
+        var redirected = CreateActiveProvider(ProviderType.SuiOASIS, "predicted-chain");
+        redirected.Object.IsProviderActivated = paid;
+        redirected.Setup(x => x.LoadAvatar(id, 0)).Returns(new OASISResult<IAvatar>(new Avatar { Id = id }));
+        redirected.Setup(x => x.LoadAvatarAsync(id, 0)).ReturnsAsync(new OASISResult<IAvatar>(new Avatar { Id = id }));
+        var dna = CreateDna(HyperDriveModes.V2);
+        dna.OASIS.SubscriptionConfig.PlanType = paid ? "Gold" : "Free";
+        var manager = new ProviderManager(null, dna) { IsAutoFailOverEnabled = true };
+        manager.RegisterProvider(original.Object); manager.RegisterProvider(redirected.Object);
+        var router = new OASISHyperDrive(manager);
+        var flags = System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic;
+        var engine = typeof(OASISHyperDrive).GetField("_failoverEngine", flags)!.GetValue(router)!;
+        var overrides = (System.Collections.Concurrent.ConcurrentDictionary<ProviderType, ProviderType>)
+            engine.GetType().GetField("_pendingFailoverOverrides", flags)!.GetValue(engine)!;
+        overrides[ProviderType.LocalFileOASIS] = ProviderType.SuiOASIS;
+        var request = new StorageOperationRequest { Operation = "LoadAvatar", AvatarId = id, PreferredProvider = ProviderType.LocalFileOASIS };
+        var result = asynchronous ? await router.RouteRequestAsync<IAvatar>(request) : router.RouteRequest<IAvatar>(request);
+        result.IsError.Should().Be(!paid, result.Message);
+        if (paid) result.Result.Id.Should().Be(id);
+        else result.ErrorCode.Should().Be("HYPERDRIVE_SUBSCRIPTION_PROVIDER_DENIED");
+        original.Verify(x => x.LoadAvatar(It.IsAny<Guid>(), It.IsAny<int>()), Times.Never);
+        original.Verify(x => x.LoadAvatarAsync(It.IsAny<Guid>(), It.IsAny<int>()), Times.Never);
+        redirected.Verify(x => x.LoadAvatar(id, 0), paid && !asynchronous ? Times.Once() : Times.Never());
+        redirected.Verify(x => x.LoadAvatarAsync(id, 0), paid && asynchronous ? Times.Once() : Times.Never());
+        if (!paid)
+        {
+            redirected.Verify(x => x.ActivateProvider(), Times.Never);
+            redirected.Verify(x => x.ActivateProviderAsync(), Times.Never);
+        }
+    }
+
+    [Theory]
     [InlineData(LoadBalancingStrategy.RoundRobin)]
     [InlineData(LoadBalancingStrategy.WeightedRoundRobin)]
     [InlineData(LoadBalancingStrategy.LeastConnections)]
