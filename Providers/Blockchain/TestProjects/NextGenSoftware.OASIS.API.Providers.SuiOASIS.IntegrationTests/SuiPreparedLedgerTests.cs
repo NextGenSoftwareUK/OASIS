@@ -61,6 +61,16 @@ public class SuiPreparedLedgerTests
             Assert.IsNull(attempt.AcknowledgedAtUtc,"Preparation alone must not claim ledger settlement.");
             var status=await provider.GetTransactionStatusAsync(hash,deadline.Token);Assert.IsFalse(status.IsError,status.Message);
             Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,status.Result);
+            var sdk=typeof(SuiOASIS).GetMethod("InvokeSdkAsync",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+            var readback=await (Task<JsonElement>)sdk.Invoke(provider,new object[]{"get",new{key},deadline.Token})!;
+            Assert.AreEqual("owned prepared live fixture",readback.GetString());
+            var conflict=await Assert.ThrowsExceptionAsync<UsageProtocolException>(()=>provider.ExecutePreparedNativeAsync("put",new{key,value="must never be submitted"},execution,"write",
+                settings.GetProperty("chainId").GetString()!,settings.GetProperty("address").GetString()!,deadline.Token));
+            Assert.AreEqual("PROVIDER_ATTEMPT_ALREADY_STARTED",conflict.Code);
+            var afterDuplicate=await store.GetAsync(execution.OperationId,deadline.Token);
+            Assert.AreEqual(1,afterDuplicate.ProviderAttempts.Count);Assert.AreEqual(stored.NativePreparationBytes,afterDuplicate.NativePreparationBytes);
+            var unchanged=await (Task<JsonElement>)sdk.Invoke(provider,new object[]{"get",new{key},deadline.Token})!;
+            Assert.AreEqual("owned prepared live fixture",unchanged.GetString());
             var cleanup=await provider.ExecutePreparedNativeAsync("delete",new{key},execution,"cleanup",
                 settings.GetProperty("chainId").GetString()!,settings.GetProperty("address").GetString()!,deadline.Token);
             var cleanupHash=cleanup.GetProperty("transactionHash").GetString()!;
@@ -68,6 +78,8 @@ public class SuiPreparedLedgerTests
             Assert.AreEqual(cleanupHash,cleaned.ProviderAttempts[1].ProviderRequestId);
             var cleanupStatus=await provider.GetTransactionStatusAsync(cleanupHash,deadline.Token);Assert.IsFalse(cleanupStatus.IsError,cleanupStatus.Message);
             Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,cleanupStatus.Result);
+            var absent=await (Task<JsonElement>)sdk.Invoke(provider,new object[]{"get",new{key},deadline.Token})!;
+            Assert.AreEqual(JsonValueKind.Null,absent.ValueKind);
             Console.WriteLine($"Confirmed original prepared write={hash}; cleanup={cleanupHash}; owned key={key}.");
             await mongo.DropDatabaseAsync(database);
             journalFile.Dispose();File.Delete(journal);
