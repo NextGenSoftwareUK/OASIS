@@ -5381,6 +5381,43 @@ public sealed class HyperDriveProviderExecutionTests
     }
 
     [Theory]
+    [InlineData(false, false)] [InlineData(false, true)]
+    [InlineData(true, false)] [InlineData(true, true)]
+    public async Task ReplicationAdmissionPreservesPrimarySuccessAndRejectsForbiddenReplicaIo(bool paid, bool asynchronous)
+    {
+        var holon = new Holon { Id = Guid.NewGuid() };
+        var primary = CreateActiveProvider(ProviderType.LocalFileOASIS, "primary-local");
+        var replica = CreateActiveProvider(ProviderType.SuiOASIS, "replica-chain");
+        replica.Object.IsProviderActivated = paid;
+        foreach (var provider in new[] { primary, replica })
+        {
+            provider.Setup(x => x.SaveHolon(holon, true, true, 0, true, false)).Returns(new OASISResult<IHolon>(holon));
+            provider.Setup(x => x.SaveHolonAsync(holon, true, true, 0, true, false)).ReturnsAsync(new OASISResult<IHolon>(holon));
+        }
+        var dna = CreateDna(HyperDriveModes.V2); dna.OASIS.SubscriptionConfig.PlanType = paid ? "Gold" : "Free";
+        var manager = new ProviderManager(null, dna) { IsAutoReplicationEnabled = true, IsAutoFailOverEnabled = false };
+        manager.RegisterProvider(primary.Object); manager.RegisterProvider(replica.Object);
+        manager.SetAndReplaceAutoReplicationListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.SuiOASIS) })
+            .IsError.Should().BeFalse();
+        var router = new OASISHyperDrive(manager);
+        var request = new StorageOperationRequest { Operation = "SaveHolon", Payload = holon, PreferredProvider = ProviderType.LocalFileOASIS };
+        var result = asynchronous ? await router.RouteRequestAsync<IHolon>(request) : router.RouteRequest<IHolon>(request);
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.Id.Should().Be(holon.Id);
+        result.IsWarning.Should().Be(!paid);
+        if (!paid) router.LastReplicationDiagnostic.Attempts.Single().ErrorCode.Should().Be("HYPERDRIVE_SUBSCRIPTION_PROVIDER_DENIED");
+        var explicitReplication = await router.ReplicateRequestAsync<IHolon>(request);
+        explicitReplication.IsError.Should().Be(!paid, explicitReplication.Message);
+        replica.Verify(x => x.SaveHolon(holon, true, true, 0, true, false), paid && !asynchronous ? Times.Once() : Times.Never());
+        replica.Verify(x => x.SaveHolonAsync(holon, true, true, 0, true, false), paid ? Times.Exactly(asynchronous ? 2 : 1) : Times.Never());
+        if (!paid)
+        {
+            replica.Verify(x => x.ActivateProvider(), Times.Never);
+            replica.Verify(x => x.ActivateProviderAsync(), Times.Never);
+        }
+    }
+
+    [Theory]
     [InlineData(false, false, false)] [InlineData(false, true, false)]
     [InlineData(true, false, false)] [InlineData(true, true, false)]
     [InlineData(false, true, true)] [InlineData(true, true, true)]
@@ -5718,6 +5755,7 @@ public sealed class HyperDriveProviderExecutionTests
     {
         var manager = new ProviderManager(null, CreateDna(HyperDriveModes.V2))
             { IsAutoReplicationEnabled = true };
+        manager.OASISDNA.OASIS.SubscriptionConfig.PlanType = "Gold";
         var calls = new List<string>();
         var primary = CreateActiveProvider(ProviderType.MongoDBOASIS, "primary");
         var first = CreateActiveProvider(ProviderType.IPFSOASIS, "first");
@@ -5760,6 +5798,7 @@ public sealed class HyperDriveProviderExecutionTests
     {
         var manager = new ProviderManager(null, CreateDna(HyperDriveModes.V2))
             { IsAutoReplicationEnabled = true };
+        manager.OASISDNA.OASIS.SubscriptionConfig.PlanType = "Gold";
         var primary = CreateActiveProvider(ProviderType.MongoDBOASIS, "primary");
         var failed = CreateActiveProvider(ProviderType.IPFSOASIS, "failed");
         var recovered = CreateActiveProvider(ProviderType.Neo4jOASIS, "recovered");
