@@ -1,6 +1,13 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {PrivateKey,Transaction,AccountId,Client} from '@hiero-ledger/sdk';
 import {deploymentTransaction,executeDeployment} from './deployment.mjs';
+import {execute} from './bridge.mjs';
+test('prepared dispatcher refuses invalid callback and unwired actions before network use',async()=>{
+ await assert.rejects(execute('contractCreate',{},true),/awaited callback/);
+ let calls=0;
+ await assert.rejects(execute('transfer',{},async()=>{calls++;}),/not yet supported/);
+ assert.equal(calls,0);
+});
 test('real SDK signed deployment waits for persistence and rejection prevents submission',async()=>{
  const key=PrivateKey.generateECDSA(),client=Client.forNetwork({'127.0.0.1:1':'0.0.3'});
  let calls=0,closed=false;const close=client.close.bind(client);client.close=()=>{closed=true;close();};

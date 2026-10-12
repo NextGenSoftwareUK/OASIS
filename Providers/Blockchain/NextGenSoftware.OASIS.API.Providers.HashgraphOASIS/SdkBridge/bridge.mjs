@@ -236,8 +236,10 @@ async function executeFile(action, request) {
   } finally { client.close(); }
 }
 
-export async function execute(action, request) {
-  if(['bytecodeFileCreate','bytecodeFileAppend','contractCreate','nftCollectionCreate','tokenCollectionDelete','nftMetadataUpdate'].includes(action)) return executeDeployment(action,request,{createClient,restoreKey});
+export async function execute(action, request, persistPreparedSubmission) {
+  if(persistPreparedSubmission!==undefined&&typeof persistPreparedSubmission!=='function')throw new TypeError('Prepared Hedera persistence must be an awaited callback.');
+  if(['bytecodeFileCreate','bytecodeFileAppend','contractCreate','nftCollectionCreate','tokenCollectionDelete','nftMetadataUpdate'].includes(action)) return executeDeployment(action,request,{createClient,restoreKey,persistPreparedSubmission});
+  if(persistPreparedSubmission)throw new Error('Prepared submission is not yet supported for this Hedera action.');
   if (['nftEscrowLock', 'nftEscrowUnlock'].includes(action)) return executeEscrow(action, request, { createClient, restoreKey });
   if (['tokenEscrowLock', 'tokenEscrowUnlock'].includes(action)) return executeTokenEscrow(action, request, { createClient, restoreKey });
   if (['generateMnemonic', 'restoreMnemonic'].includes(action)) {
@@ -343,7 +345,13 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       if (Buffer.byteLength(input, 'utf8') > 1048576) throw new Error('Request exceeds bridge input limit.');
     }
     const envelope = JSON.parse(input);
-    process.stdout.write(JSON.stringify(await execute(envelope.action, envelope.request)));
+    let persistPreparedSubmission;
+    if(process.env.OASIS_NATIVE_PREPARATION_PIPE||process.env.OASIS_NATIVE_PREPARATION_MODULE){
+      if(!process.env.OASIS_NATIVE_PREPARATION_PIPE||!process.env.OASIS_NATIVE_PREPARATION_MODULE)throw new Error('Complete parent preparation configuration required.');
+      const {preparationClient}=await import(pathToFileURL(process.env.OASIS_NATIVE_PREPARATION_MODULE).href);
+      persistPreparedSubmission=preparationClient(process.env.OASIS_NATIVE_PREPARATION_PIPE);
+    }
+    process.stdout.write(JSON.stringify(await execute(envelope.action, envelope.request,persistPreparedSubmission)));
   } catch (error) {
     // Do not expose SDK exception text or stacks which could contain key input.
     process.stderr.write(JSON.stringify({ error: 'Hedera SDK operation failed',
