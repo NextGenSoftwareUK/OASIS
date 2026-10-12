@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Positive Sui native token-send HTTP proof (2026-10-11)
+
+`WalletHttpSendCommitsRealSuiTransferUsingEncryptedAvatarWallet` passes **1/1**, zero skips (`web4-sui-token-send-http.trx`): actual POST JSON binding/controller/real WalletManager/default encrypted wallet resolution/real SDK submission; HTTP returns non-error envelope with nonblank native send digest, and independent recipient balance increases exactly **0.001 SUI**. Original stored key remains encrypted. Existing test authentication handler is used, so this does **not** establish combined real-JWT avatar lookup plus transfer; that remains a separate required gate. Initial compilation used incorrect encryption namespaces, corrected to the installed `Rijndael256` library before submission. The test was then strengthened with typed response/digest assertion and passed on a separate newly generated local recipient. Fixed LocalFile wallet map cleared in `finally`, controller hook reset/provider deactivated; retained Sui node PID 40723 stopped after completion. No downloads/install/ledger reset/public-chain spending or merge. Remaining providers, business routes and full release gates stay open.
+
 ### Native wallet HTTP test injection seam (2026-10-11)
 
 Existing WebApplicationFactory now has a test-only action filter that assigns an explicitly supplied real WalletManager to the existing wallet controller before action execution. Production code is unchanged; tests can use retained native runtimes without globally activating an unrelated default store. A filter-boundary test passes **1/1**, zero skips (`web4-native-wallet-injection.trx`), verifying the exact supplied manager is used and the action continues without provider activation. Existing wallet/NFT ownership HTTP checks remain **4/4**. This seam/test does not perform a native transfer or fake provider success; positive send HTTP/ledger evidence remains the next gate. No installs/downloads or ledger mutation.

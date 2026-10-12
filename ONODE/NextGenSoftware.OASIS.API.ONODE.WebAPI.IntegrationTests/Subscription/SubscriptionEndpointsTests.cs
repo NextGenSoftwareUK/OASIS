@@ -32,9 +32,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
         private readonly HttpClient _client;
         private readonly HttpClient _authenticatedClient;
         private readonly Mock<ISubscriptionService> _svc;
+        private readonly SubscriptionWebAppFactory _factory;
 
         public SubscriptionEndpointsTests(SubscriptionWebAppFactory factory)
         {
+            _factory = factory;
             _svc = factory.SvcMock;
             _client = factory.CreateClient();
             _authenticatedClient = factory.CreateClient();
@@ -42,6 +44,59 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
         }
 
         // ── GET /api/subscription/plans — public endpoint ────────────────────
+
+        [Fact]
+        public async Task WalletHttpSendCommitsRealSuiTransferUsingEncryptedAvatarWallet()
+        {
+            var rpc=Environment.GetEnvironmentVariable("OASIS_SUI_TEST_RPC")??throw new InvalidOperationException("Real retained Sui RPC required.");
+            new Uri(rpc).IsLoopback.Should().BeTrue();
+            using var deployment=JsonDocument.Parse(System.IO.File.ReadAllText(Environment.GetEnvironmentVariable("OASIS_SUI_TEST_DEPLOYMENT")??throw new InvalidOperationException("Retained Sui deployment required.")));
+            var settings=deployment.RootElement;
+            using var sui=new NextGenSoftware.OASIS.API.Providers.SuiOASIS.SuiOASIS(rpc,"localnet",settings.GetProperty("chainId").GetString()!,settings.GetProperty("packageAddress").GetString()!,settings.GetProperty("privateKey").GetString()!,settings.GetProperty("storageObjectId").GetString()!);
+            var issuer=await sui.RestoreKeyPairAsync(settings.GetProperty("privateKey").GetString()!);issuer.IsError.Should().BeFalse();
+            var recipient=await sui.GenerateKeyPairAsync();recipient.IsError.Should().BeFalse();
+            var directory=new System.IO.DirectoryInfo(AppContext.BaseDirectory);
+            while(directory!=null&&!System.IO.File.Exists(System.IO.Path.Combine(directory.FullName,"Scripts","verify_hyperdrive_v2_operation_contracts.ps1")))directory=directory.Parent;
+            directory.Should().NotBeNull();
+            var root=System.IO.Path.Combine(directory!.FullName,"TestResults","Web4Current","JwtAvatar");
+            System.IO.Directory.CreateDirectory(root);
+            using var lease=new System.IO.FileStream(System.IO.Path.Combine(root,"store.lock"),System.IO.FileMode.OpenOrCreate,System.IO.FileAccess.ReadWrite,System.IO.FileShare.None);
+            var local=new NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.LocalFileOASIS(storageDirectory:System.IO.Path.Combine(root,"files"));
+            (await local.ActivateProviderAsync()).IsError.Should().BeFalse();
+            var avatarId=Guid.Parse("11111111-1111-1111-1111-111111111111");
+            var encrypted=Rijndael256.Rijndael.Encrypt(issuer.Result.PrivateKey,new string('k',32),Rijndael256.KeySize.Aes256);
+            var wallet=new NextGenSoftware.OASIS.API.Core.Objects.ProviderWallet {Id=Guid.NewGuid(),AvatarId=avatarId,IsDefaultWallet=true,
+                ProviderType=NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SuiOASIS,WalletAddress=issuer.Result.WalletAddressLegacy,PublicKey=issuer.Result.PublicKey,PrivateKey=encrypted};
+            try
+            {
+                (await local.SaveProviderWalletsForAvatarByIdAsync(avatarId,new() {[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SuiOASIS]=new List<NextGenSoftware.OASIS.API.Core.Interfaces.IProviderWallet> {wallet}})).IsError.Should().BeFalse();
+                var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA();dna.OASIS.HyperDriveMode=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2;
+                dna.OASIS.StorageProviders=new NextGenSoftware.OASIS.API.DNA.StorageProviderSettings {LogSwitchingProviders=false};
+                dna.OASIS.Security=new NextGenSoftware.OASIS.API.DNA.SecuritySettings {OASISProviderPrivateKeys=new NextGenSoftware.OASIS.API.DNA.EncryptionSettings {Rijndael256EncryptionEnabled=true,Rijndael256Key=new string('k',32)}};
+                var providers=new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null,dna);providers.RegisterProvider(local);providers.RegisterProvider(sui);
+                providers.SetAndActivateCurrentStorageProvider(local).IsError.Should().BeFalse();
+                var constructor=typeof(NextGenSoftware.OASIS.API.Core.Managers.WalletManager).GetConstructors(System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).Single(item=>item.GetParameters().Length==4);
+                _factory.NativeWalletManagerForTest=(NextGenSoftware.OASIS.API.Core.Managers.WalletManager)constructor.Invoke(new object[] {local,dna,providers,null});
+                var before=await sui.GetAccountBalanceAsync(recipient.Result.WalletAddressLegacy);before.IsError.Should().BeFalse();
+                var request=new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.SendWeb4TokenRequest {
+                    FromProvider=new(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SuiOASIS),ToProvider=new(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SuiOASIS),
+                    FromTokenAddress="0x2::sui::SUI",ToWalletAddress=recipient.Result.WalletAddressLegacy,Amount=0.001m};
+                var response=await _authenticatedClient.PostAsJsonAsync("/api/wallet/send-token",request);
+                response.StatusCode.Should().Be(HttpStatusCode.OK);
+                var body=JsonSerializer.Deserialize<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.SendWeb4TokenResponse>>(await response.Content.ReadAsStringAsync(),new JsonSerializerOptions {PropertyNameCaseInsensitive=true});
+                body.Should().NotBeNull();body!.IsError.Should().BeFalse(body.Message);
+                body.Result.Should().NotBeNull();body.Result.SendTransactionResult.Should().NotBeNullOrWhiteSpace();
+                var after=await sui.GetAccountBalanceAsync(recipient.Result.WalletAddressLegacy);after.IsError.Should().BeFalse();
+                (after.Result-before.Result).Should().Be(0.001m);
+                (await local.LoadProviderWalletsForAvatarByIdAsync(avatarId)).Result[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SuiOASIS][0].PrivateKey.Should().Be(encrypted);
+            }
+            finally
+            {
+                _factory.NativeWalletManagerForTest=null;
+                (await local.SaveProviderWalletsForAvatarByIdAsync(avatarId,new())).IsError.Should().BeFalse();
+                await local.DeActivateProviderAsync();
+            }
+        }
 
         [Fact]
         public async Task NativeWalletInjectionUsesSuppliedManagerWithoutProviderActivation()
