@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui single SDK owner independent of storage composition — 2026-10-12
+
+Removed native/prepared/disposal dependence on casting the provider's storage backend to its raw concrete type. Constructor creates exactly one `SuiSdkClient`, shares that same instance with storage, and retains it for native/prepared operations/disposal. This preserves existing behavior while allowing a future approved private-storage wrapper without a second signer/transport. A reference-identity test proves native and storage paths share the exact client. Provider build zero warnings/errors; selected real-preparation suite **7/7** passed, no skips (`sui-preparation-current.trx`). No storage format, key, ledger data or public constructor signature changed; private-storage policy/migration remains pending. No installs, network spending or merge.
+
 ### Sui/Cosmos private-record composition gap — 2026-10-12
 
 Source audit confirms Sui and Cosmos constructors directly compose `SuiStorageBackend` / `CosmosSdkBackend`, while Hedera and TRON explicitly compose `PrivateKeyValueBackend`. The shared storage base serializes avatar/detail records and writes username/email/token indexes through its configured backend. Therefore Sui/Cosmos generic storage currently lacks the private-record wrapper at this composition boundary. This is an exposure risk in implementation, not evidence that a particular user's credentials were written; no user ledger records or secrets were inspected during the audit.

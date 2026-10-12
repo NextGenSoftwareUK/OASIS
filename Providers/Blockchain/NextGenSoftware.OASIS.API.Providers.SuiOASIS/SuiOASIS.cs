@@ -54,8 +54,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
         /// <param name="network">Sui network (mainnet, testnet, devnet)</param>
         /// <param name="privateKey">Private key for signing transactions</param>
         public SuiOASIS(string rpcEndpoint = "https://fullnode.mainnet.sui.io:443", string network = "mainnet", string chainId = "", string contractAddress = "", string privateKey = "", string storageObjectId = "", string currencyObjectId = "")
-            : base(new SuiStorageBackend(new SuiSdkClient(rpcEndpoint, network, chainId, privateKey, contractAddress, storageObjectId, currencyObjectId)))
+            : this(new SuiSdkClient(rpcEndpoint, network, chainId, privateKey, contractAddress, storageObjectId, currencyObjectId),privateKey,contractAddress)
+        { }
+
+        private readonly SuiSdkClient _sdkClient;
+        private SuiOASIS(SuiSdkClient client,string privateKey,string contractAddress)
+            : base(new SuiStorageBackend(client))
         {
+            _sdkClient=client;
             this.ProviderName = "SuiOASIS";
             this.ProviderDescription = "Sui Provider - High-performance blockchain platform";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SuiOASIS);
@@ -72,7 +78,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
 
         public void Dispose()
         {
-            ((SuiStorageBackend)Backend).Client.Dispose();
+            _sdkClient.Dispose();
             IsProviderActivated = false;
         }
     }
