@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Static operation inventory passes; child continuation option remains unproven (2026-10-12)
+
+Current `Scripts/verify_hyperdrive_v2_operation_contracts.ps1` passes for **42** operation labels with paired switch counts and declared provider-boundary cases. Read its entire script: regex inventories labels/declarations; it does not execute branches or prove each provider/option. This is not a 42-operation live certification.
+
+Shared read-path source audit identifies a concrete option gate: `LoadHolonAsync` checks `children.IsError` against `continueOnError`, but `LoadChildrenAsync` returns successful data or throws from backend/list/recursive reads rather than returning child error results; `LoadHolonsForParentAsync` accepts `continueOnError` without passing it into the recursive helper. Thus best-effort continuation/partial-warning behavior is not implemented by those paths. Current fail-fast corruption/cycle behavior must not be weakened or silently replaced while closing this gap. Required next work is an explicit tested continuation contract: distinguish data corruption/cycles and provider outage from per-record failures, preserve diagnostics, prove strict vs best-effort behavior, then verify relevant option paths against real storage. No speculative production change or option-completion claim made by this audit. Existing source-label/controlled and selected live evidence remains scoped; full provider/options/API/billing/release gates remain open.
+
 ### WEB4 and NFT orchestration compatibility refreshed against current binaries (2026-10-12)
 
 Rebuilt existing WEB4 host after current Core admission changes and TRON structured unknown-broadcast evidence: zero errors/255 warnings; full WEB4 unit **138/138, zero skips**, `TestResults/Web4Current/web4-unit-current.trx`. Rebuilt ONODE Core zero errors/154 warnings; full unit **244/244, zero skips**, 13 seconds, `TestResults/OnodeCoreCurrent/onode-core-current.trx`. SHA256 comparison proves WEB4 output's Core and TRON DLLs exactly match their latest source-project build outputs, not stale referenced copies. Current Core source pin remains `dbcfca480037e8f652fd3bc5087f0681cf1cd9ea`; controlled Core404/TRON198 checkpoints above retain precise scope.
