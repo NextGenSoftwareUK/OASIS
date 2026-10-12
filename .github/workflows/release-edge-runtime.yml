@@ -28,6 +28,10 @@ on:
         description: Successful Edge-scope NuGet publication run to include (artifact-only mode)
         required: false
         default: ''
+      refresh_existing:
+        description: Replace only the runtime ZIP on the matching existing release (explicit maintenance)
+        type: boolean
+        default: false
 
 permissions:
   actions: write
@@ -70,6 +74,7 @@ jobs:
           VALIDATED_RUN: ${{ inputs.validated_run_id }}
           NUGET_RUN: ${{ inputs.nuget_run_id }}
           VERSION: ${{ inputs.manual_version }}
+          REFRESH: ${{ inputs.refresh_existing }}
         run: |
           if ($env:VALIDATED_RUN -notmatch '^\d+$' -or $env:NUGET_RUN -notmatch '^\d+$' -or $env:VERSION -notmatch '^\d+\.\d+\.\d+$') { throw 'Artifact publication requires numeric run IDs and an explicit version.' }
           $source = gh run view $env:VALIDATED_RUN --json headSha,jobs | ConvertFrom-Json
@@ -82,7 +87,7 @@ jobs:
           $releases = gh api 'repos/NextGenSoftwareUK/OASIS/releases?per_page=100' | ConvertFrom-Json
           if ($LASTEXITCODE -ne 0) { throw 'Could not check existing GitHub releases.' }
           $existing = @($releases | Where-Object tag_name -eq "OASIS-Edge-Runtime-v$env:VERSION")
-          if ($existing.Count -and (-not $existing[0].draft -or $existing[0].target_commitish -ne $source.headSha)) { throw 'A public release or draft with different source already exists.' }
+          if ($existing.Count -and (($env:REFRESH -ne 'true' -and -not $existing[0].draft) -or $existing[0].target_commitish -ne $source.headSha)) { throw 'Existing release requires explicit maintenance and the same validated source.' }
           "source_sha=$($source.headSha)" >> $env:GITHUB_OUTPUT
           "Validated binary source: $($source.headSha); NuGet source: $($published.headSha)" >> $env:GITHUB_STEP_SUMMARY
       - uses: actions/download-artifact@v7
@@ -105,6 +110,7 @@ jobs:
           VALIDATED_RUN: ${{ inputs.validated_run_id }}
           NUGET_RUN: ${{ inputs.nuget_run_id }}
           SOURCE_SHA: ${{ steps.verified-source.outputs.source_sha }}
+          REFRESH: ${{ inputs.refresh_existing }}
         run: |
           $root = 'artifacts/reused-edge/edge-runtime-release'
           if (-not (Test-Path -LiteralPath $root)) { throw 'Validated release evidence directory missing.' }
@@ -114,8 +120,8 @@ jobs:
           ./Scripts/New-OASISReleaseNotes.ps1 -Component EdgeRuntime -Version $env:VERSION -OutputPath "$root/RELEASE_NOTES.md"
           @("Reused validated binary/evidence run: $env:VALIDATED_RUN", "Included successful NuGet publication run: $env:NUGET_RUN", 'NuGet candidates and release notes were refreshed; binary validation evidence remains from the original run.') | Set-Content "$root/PUBLICATION_PROVENANCE.md"
           $archive = "artifacts/OASIS.Edge.Runtime.v$env:VERSION.zip"
-          Compress-Archive -Path "$root/*" -DestinationPath $archive
-          # Publish one user-facing bundle; reports and package evidence remain inside it.
+          ./Scripts/New-OASISEdgeRuntimeArchive.ps1 -EvidenceDirectory $root -OutputPath $archive
+          # Evidence remains in workflow artifacts, not in the user-facing runtime ZIP.
           $assets = @((Resolve-Path $archive).Path)
           $tag = "OASIS-Edge-Runtime-v$env:VERSION"
           $releases = gh api 'repos/NextGenSoftwareUK/OASIS/releases?per_page=100' | ConvertFrom-Json
@@ -124,7 +130,7 @@ jobs:
           if (-not $existing.Count) {
             gh release create $tag --draft --target $env:SOURCE_SHA --title "OASIS Edge Runtime v$env:VERSION" --notes-file "$root/RELEASE_NOTES.md"
             if ($LASTEXITCODE -ne 0) { throw 'GitHub draft creation failed.' }
-          } elseif (-not $existing[0].draft -or $existing[0].target_commitish -ne $env:SOURCE_SHA) { throw 'Existing release is not the matching recovery draft.' }
+          } elseif (($env:REFRESH -ne 'true' -and -not $existing[0].draft) -or $existing[0].target_commitish -ne $env:SOURCE_SHA) { throw 'Existing release is not an authorized matching maintenance target.' }
           gh release upload $tag @assets --clobber
           if ($LASTEXITCODE -ne 0) { throw 'GitHub asset upload failed; draft preserved for recovery.' }
           gh release edit $tag --draft=false --notes-file "$root/RELEASE_NOTES.md"
