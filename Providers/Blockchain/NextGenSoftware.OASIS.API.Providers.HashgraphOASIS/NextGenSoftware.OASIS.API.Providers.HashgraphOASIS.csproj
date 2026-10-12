@@ -58,7 +58,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Chaos.NaCl.Standard" Version="1.0.0" />
+    <!-- Match HoloNET's pinned implementation to avoid duplicate assemblies in WEB4. -->
+    <ProjectReference Include="..\..\..\..\holochain-client-csharp\Chaos.NaCl\Chaos.NaCl.Portable.Standard.csproj" />
   </ItemGroup>
   <ItemGroup>
     <None Update="SdkBridge\bridge.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="HederaSdkBridge\bridge.mjs" />
