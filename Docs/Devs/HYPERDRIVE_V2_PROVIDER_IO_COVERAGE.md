@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos indexed-history byte identity — 2026-10-12
+
+Indexed history now verifies each claimed native hash equals uppercase SHA256 of the returned exact signed transaction bytes, in addition to snapshot height/index/code and overlapping-index consistency. A valid-format foreign hash or substituted bytes cannot be returned as the requested native history. Controlled tests now use byte-derived baseline hashes and reject both substitutions; differing execution codes for the same identity still reject conflicting indexes. Retained official SDK suite **41/41**, zero skips/todos; no install, node start or mutation.
+
+Reinspection confirms CosmJS 0.39.0 `StargateClient.broadcastTx` creates its poll timer before awaiting `broadcastTxSync`, but attaches timer cleanup only after that await succeeds. The pre-broadcast rejection timer gap remains unfixed; the hash guard is not a timer fix. Cosmos live runtime policy gate, durable journal integration and deployed verification remain outstanding.
+
 ### TRON permission-update history mapping — 2026-10-12
 
 Native wallet history now maps official TronNet `AccountPermissionUpdateContract` records to their actual owner with zero requested transferred SUN, retaining native operation/execution evidence. This prevents a legitimate wallet administration event aborting an otherwise readable history; it does not invent token transfers or imply permissions actually applied on failed execution. Owner-involvement validation remains mandatory. Unit coverage constructs the actual protobuf contract, checks zero amount and owner mapping, and rejects an unrelated wallet. Provider build passed (0 errors, 21 existing warnings); full TRON unit suite **199/199**, zero skips, fixed report `TestResults/PriorityProviderCurrent/TRONOASIS-unit-current.trx`.
