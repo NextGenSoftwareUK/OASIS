@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Recovered TRON signatures connected to account permission authority — 2026-10-12
+
+Single canonical prepared verifier now accepts explicit caller-verified account authority and validates all recovered signers against exact contract permission/mask/threshold. Without account snapshot, owner-only path still rejects nonzero permission IDs. Existing full regression **225/225** passed before final expanded signing case; focused actual-signing selection **7/7** afterward proves active ID2 permission acceptance and threshold rejection with controlled protobuf authority. Report `TestResults/PriorityProviderCurrent/tron-signed-authority.trx`; build 0 errors/21 existing warnings.
+
+Account snapshot is controlled, not fetched or authenticated live; runtime adapter still uses owner-only verification. Live snapshot binding, multisign submission, account history/cost policy and full deployed/recovery gates remain open. No RPC, installs, submissions or release merge.
+
 ### TRON permission malformed-authority regression — 2026-10-12
 
 Expanded protobuf permission tests to reject duplicate recovered signers, zero key weight, wrong/missing exact permission ID, witness type, zero threshold and malformed operation mask. Entire TRON unit project **225/225**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`, including all 13 controlled authority cases. This is verified fixture validation, not live account snapshot authority or multisigned submission.
