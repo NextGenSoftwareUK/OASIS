@@ -406,25 +406,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             object NFTStandardTypeObject = null;
             Guid sendToAvatarAfterMintingId = Guid.Empty;
 
-            if (Enum.TryParse(typeof(ProviderType), request.OnChainProvider, out onChainProviderObject))
+            if (Enum.TryParse(typeof(ProviderType), request.OnChainProvider, out onChainProviderObject) && Enum.IsDefined(typeof(ProviderType),onChainProviderObject))
                 onChainProvider = (ProviderType)onChainProviderObject;
             else
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The OnChainProvider is not a valid OASIS NFT Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
 
-            if (Enum.TryParse(typeof(ProviderType), request.OffChainProvider, out offChainProviderObject))
+            if (Enum.TryParse(typeof(ProviderType), request.OffChainProvider, out offChainProviderObject) && Enum.IsDefined(typeof(ProviderType),offChainProviderObject))
                 offChainProvider = (ProviderType)offChainProviderObject;
             else
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The OffChainProvider is not a valid OASIS Storage Provider. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(ProviderType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
 
-            if (Enum.TryParse(typeof(NFTOffChainMetaType), request.NFTOffChainMetaType, out NFTOffChainMetaTypeObject))
+            if (Enum.TryParse(typeof(NFTOffChainMetaType), request.NFTOffChainMetaType, out NFTOffChainMetaTypeObject) && Enum.IsDefined(typeof(NFTOffChainMetaType),NFTOffChainMetaTypeObject))
                 NFTOffChainMetaType = (NFTOffChainMetaType)NFTOffChainMetaTypeObject;
             else
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The NFTOffChainMetaType is not valid. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(NFTOffChainMetaType), EnumHelperListType.ItemsSeperatedByComma)}" };
 
 
-            if (Enum.TryParse(typeof(NFTStandardType), request.NFTStandardType, out NFTStandardTypeObject))
+            if (Enum.TryParse(typeof(NFTStandardType), request.NFTStandardType, out NFTStandardTypeObject) && Enum.IsDefined(typeof(NFTStandardType),NFTStandardTypeObject))
                 NFTStandardType = (NFTStandardType)NFTStandardTypeObject;
             else
                 return new OASISResult<IWeb4NFT>() { IsError = true, Message = $"The NFTStandardType is not valid. It must be one of the following:  {EnumHelper.GetEnumValues(typeof(NFTStandardType), EnumHelperListType.ItemsSeperatedByComma)}" };
