@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Cosmos returned bank failure preserves reconciliation identity (2026-10-11)
+
+Bank-transfer bridge previously threw only SDK rawLog on returned nonzero execution code, discarding its known transaction hash. A small result validator now requires an exact nonnegative integer code/64-hex transaction hash, accepts code-zero evidence unchanged and reports nonzero code plus original hash with explicit reconciliation-before-retry guidance. Untrusted rawLog is not echoed. Pure success/failure/malformed cases join existing real SDK key/unreachable checks: **9/9** pass, zero skips (`npm test`); bridge syntax/import/direct-pin verifier passes. No submission replay, synthetic hash or live-runtime bypass. This covers returned SDK results, not every SDK-thrown error, unknown submission outcome or current live failed-consensus readback; those remain open. Existing bridge asset-copy pattern must include the new module in published output; image/live gates remain required. No installs/downloads/new environment/ledger mutation/merge.
+
 ### Current Cosmos non-funded SDK/provider regression checkpoint (2026-10-11)
 
 At parent `ed3e45384`, full Cosmos provider unit suite passes **34/34**, zero skips (`TestResults/CosmosCurrent/cosmos-unit-current.trx`); existing source bridge SDK tests pass **3/3**, zero skips (`npm test`). Official CosmJS checks execute real wallet generation/recovery and invalid-key/unreachable-RPC error behavior, while provider unit cases retain controlled transport scope. Existing exact-pinned installation/output/build resources were reused without restore/install/download/new runtime. These are not a replacement for current live wasmd consensus/storage/V2 routing/native/HTTP gates, which remain unverified under the previously recorded runtime policy restriction. No attempted bypass, ledger mutation or merge. Shared historical/reparent changes still require provider-wide live regression before completion.
