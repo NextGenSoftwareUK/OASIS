@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Sui V2 provider-key and parent-query live verification (2026-10-12)
+
+Expanded healthy scenario adds 12 real assertions for holon provider-key and parent-ID/provider-key collection reads, sync/async on Sui/LocalFile. First run fails because LocalFile parent-by-key requires a persisted parent and fixture only saved a child relationship. Corrected fixture explicitly saves/replicates its owned parent with a LocalFile key and cleans it in finally; no provider behavior was weakened to make the assertion pass. Re-execution on the same retained node passes **1/1**, zero skips, 103 seconds (`sui-v2-healthy-current.trx`), retaining all previous lookup/list/token/metadata/search/replication/measured-selection checks. Existing fixtures from failed run cleaned by finally; exact owned PID 127592 stopped after terminal success, no Sui process remains. No reset/install/download/new environment/public assets/merge. These selected paths remain narrower than full operation/options/native/API/image release gates.
+
 ### Live Sui V2 verification/reset/refresh-token presence and absence (2026-10-12)
 
 Existing healthy real-replica scenario adds 24 token-storage assertions: verification/reset/refresh lookups, sync/async on Sui/LocalFile, matching owned avatar before and authoritative null after replicated deletion. All pass in **1/1** scenario, zero skips, 77 seconds (`sui-v2-healthy-current.trx`), with prior indexed/list/metadata/search/replication/measured-selection assertions still green. These are storage lookups, not expiry/revocation/authentication proof. Existing node/package/ledger/SDK/fixed fixture directory reused and cleaned; exact owned PID 125720 stopped after terminal completion, no remaining Sui process. No install/download/new environment/reset/public assets/merge; complete option/native/API/image gates remain open.

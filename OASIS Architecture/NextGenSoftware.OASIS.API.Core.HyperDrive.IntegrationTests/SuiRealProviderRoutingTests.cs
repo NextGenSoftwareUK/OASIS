@@ -105,6 +105,11 @@ public sealed class SuiRealProviderRoutingTests
             settings.GetProperty("storageObjectId").GetString()!);
         var local = new LocalFileOASIS(storageDirectory: Path.Combine(root, "files"));
         var holon = new Holon { Id = Guid.NewGuid(), Name = "real-v2-sui-replication" };
+        holon.ParentHolonId = Guid.NewGuid();
+        holon.ProviderUniqueStorageKey = new() { [ProviderType.LocalFileOASIS] = holon.Id.ToString() };
+        var parent = new Holon { Id = holon.ParentHolonId, Name = "Owned Sui routing parent",
+            ProviderUniqueStorageKey = new() { [ProviderType.LocalFileOASIS] = holon.ParentHolonId.ToString() } };
+        var parentSaved = false;
         holon.MetaData = new Dictionary<string, object> { ["owned-routing-fixture"] = holon.Id.ToString() };
         var deletedThroughRouter = false;
         var avatar = new Avatar { Id = Guid.NewGuid(), Username = "sui-v2-" + Guid.NewGuid().ToString("N"),
@@ -193,6 +198,10 @@ public sealed class SuiRealProviderRoutingTests
             }
             var saved = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
                 { Operation = "SaveHolon", Payload = holon, PreferredProvider = ProviderType.LocalFileOASIS });
+            var savedParent = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
+                { Operation = "SaveHolon", Payload = parent, PreferredProvider = ProviderType.LocalFileOASIS });
+            parentSaved = !savedParent.IsError;
+            savedParent.IsError.Should().BeFalse(savedParent.Message);
             saved.IsError.Should().BeFalse(saved.Message);
             var replicated = await sui.LoadHolonAsync(holon.Id, loadChildren: false);
             replicated.IsError.Should().BeFalse(replicated.Message);
@@ -213,6 +222,17 @@ public sealed class SuiRealProviderRoutingTests
                         new SearchTextGroup { SearchQuery = holon.Name, SearchHolons = true, SearchAvatars = false } } } };
                 foreach (var read in new[] { router.RouteRequest<ISearchResults>(search), await router.RouteRequestAsync<ISearchResults>(search) })
                 { read.IsError.Should().BeFalse(read.Message); read.Result.SearchResultHolons.Single(value => value.Id == holon.Id).Name.Should().Be(holon.Name); }
+                var byKey = new StorageOperationRequest { Operation = "LoadHolonByProviderKey", ProviderKey = holon.Id.ToString(),
+                    PreferredProvider = providerType, LoadChildren = false };
+                foreach (var read in new[] { router.RouteRequest<IHolon>(byKey), await router.RouteRequestAsync<IHolon>(byKey) })
+                { read.IsError.Should().BeFalse(read.Message); read.Result.Id.Should().Be(holon.Id); }
+                foreach (var operation in new[] { "LoadHolonsForParent", "LoadHolonsForParentByProviderKey" })
+                {
+                    var request = new StorageOperationRequest { Operation = operation, HolonId = holon.ParentHolonId,
+                        ProviderKey = holon.ParentHolonId.ToString(), PreferredProvider = providerType, LoadChildren = false };
+                    foreach (var read in new[] { router.RouteRequest<IEnumerable<IHolon>>(request), await router.RouteRequestAsync<IEnumerable<IHolon>>(request) })
+                    { read.IsError.Should().BeFalse(read.Message); read.Result.Single(value => value.Id == holon.Id).ParentHolonId.Should().Be(holon.ParentHolonId); }
+                }
             }
             manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
             manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
@@ -309,6 +329,11 @@ public sealed class SuiRealProviderRoutingTests
             }
             await sui.DeActivateProviderAsync();
             await local.DeActivateProviderAsync();
+            if (parentSaved)
+            {
+                (await sui.DeleteHolonAsync(parent.Id)).IsError.Should().BeFalse();
+                (await local.DeleteHolonAsync(parent.Id)).IsError.Should().BeFalse();
+            }
             if (avatarSaved)
             {
                 (await sui.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsError.Should().BeFalse();
