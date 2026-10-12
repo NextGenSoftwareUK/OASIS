@@ -73,6 +73,22 @@ public sealed class TronSdkRuntime : IAsyncDisposable
         });
     }
 
+    /// <summary>Refreshes actual solidified account permission authority before each prepared evidence write.</summary>
+    public TronNativeTransferClient CreatePreparedNativeTransfersWithAccountAuthority(UsageExecutionHandle execution,string clientRequestId,string expectedOwner)
+    {
+        ArgumentNullException.ThrowIfNull(execution);
+        ArgumentException.ThrowIfNullOrWhiteSpace(clientRequestId);
+        ArgumentException.ThrowIfNullOrWhiteSpace(expectedOwner);
+        return CreatePreparedNativeTransfers(async(id,genesis,bytes,token)=>{
+            if(genesis!=NativeTransfers.ExpectedGenesisBlockId)throw new InvalidOperationException("Prepared TRON genesis identity mismatch.");
+            var account=await NativeTransfers.LoadPermissionAuthorityAsync(expectedOwner,token);
+            TronPreparationVerifier.VerifyWithAccountAuthority(bytes,id,account.Address.ToByteArray(),NativeTransfers.MaximumContractFeeLimitSun,account);
+            await execution.BeginPreparedNativeAttemptAsync("TRONOASIS",null,clientRequestId,id,new UsageNativePreparation{
+                ChainId=genesis,Sender=Convert.ToHexString(account.Address.ToByteArray()).ToLowerInvariant(),SignedTransactionBase64=bytes
+            },token);
+        });
+    }
+
     private static void ValidateEndpoint(Uri endpoint)
     {
         if (endpoint == null || !endpoint.IsAbsoluteUri || endpoint.UserInfo.Length != 0

@@ -87,6 +87,7 @@ public class TronUnknownBroadcastEvidenceTests
         Assert.Same(callback,hook.GetValue(prepared));Assert.Null(hook.GetValue(runtime.NativeTransfers));
         Assert.Throws<ArgumentNullException>(()=>runtime.CreatePreparedNativeTransfers(null!));
         Assert.Throws<ArgumentNullException>(()=>runtime.CreatePreparedNativeTransfers(null!,"attempt",new byte[21]));
+        Assert.Throws<ArgumentNullException>(()=>runtime.CreatePreparedNativeTransfersWithAccountAuthority(null!,"attempt","owner"));
     }
     public class InterruptedTransactionProxy : DispatchProxy
     {

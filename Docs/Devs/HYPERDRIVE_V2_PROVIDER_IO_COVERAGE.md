@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON prepared view refreshes real account authority — 2026-10-12
+
+Added explicit `CreatePreparedNativeTransfersWithAccountAuthority`: callback checks expected genesis, loads actual solidified owner account through verified full/solidity network, validates recovered signatures/permission mask/weighted threshold, then writes execution-owned evidence. Reuses existing runtime services/channels. Missing execution guard exercised; full unit project **226/226**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`; build 0 errors/21 existing warnings.
+
+Positive actual network loader/callback lifecycle is unverified; tests do not call this new network path. Ordinary submissions remain unchanged. Permission snapshot provenance/history and admitted request/cost binding, active/multisign request signing/broadcast, original live recovery and full deployed gates remain open. No RPC, installs, submissions or release merge.
+
 ### Real read-only TRON permission-account loader — 2026-10-12
 
 Added native-client loader using existing real full/solidity genesis verification and solidified `GetAccountAsync`, exact requested address match and cloned account snapshot; no invented authority or fallback. Pre-cancelled call proves no address/network work. Entire unit project **226/226**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`; build 0 errors/21 existing warnings. Positive actual RPC/account snapshot and mismatch scenarios are not tested here.
