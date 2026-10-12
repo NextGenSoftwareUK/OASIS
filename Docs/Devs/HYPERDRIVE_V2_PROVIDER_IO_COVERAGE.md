@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Sui original failed transaction is retained in live SDK history (2026-10-12)
+
+Resumed the existing pinned Sui runtime/ledger only (owned PID 171028), then ran new read-only `SdkBridge/test-failed-history.mjs` against `TestResults/SuiCurrent/failed-status-journal.json`. It queried production bridge history for the original sender and exact digest `D83kgAWQQbdZdCFbFQivXuRF7MB5YqiqGStZAynz3GGk`: **PASS**, one failed row, explicit `success=false`, original sender/wallet/digest, integral raw amount/timestamp, negative balance change proving charged gas was not discarded. No signing, publication, faucet or transaction submission occurred. Stopped the exact owned node through its validated stop helper; no installations/downloads/genesis regeneration. Free C after run 103,398,735,872 bytes. Existing runtime startup metric/JWK/execution-chunk warnings remain; not a warning-free run. This proves real SDK history, not the separate C# projection/hosted all-route gate.
+
 ### Cosmos live multi-send regression prepared, not executed (2026-10-12)
 
 Added `SdkBridge/test-local-multisend.mjs`, using installed official CosmJS against the fixed retained loopback `oasis-cosmos-local` chain only. It signs one MsgMultiSend with two outputs to the reusable recipient, checks exact bank delta/independent receipt, and asks the production bridge for sender/recipient history with both output indices and exact amounts. An exclusive journal intent is written before mutation; unknown or failed original attempts are never automatically resubmitted. Subsequent receipt-bearing runs are read-only history checks. No new SDK, wallet installation, node, download or ledger is created.
