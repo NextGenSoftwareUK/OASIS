@@ -13,6 +13,7 @@ public sealed class PreparedSubmissionServer : IDisposable
 {
     private readonly NamedPipeServerStream _pipe;
     private readonly Func<JsonElement, CancellationToken, Task> _persist;
+    private readonly string _expectedTransactionId;
     private int _started;
     public string Endpoint { get; }
     public string PreparedTransactionId { get; private set; }
@@ -25,9 +26,13 @@ public sealed class PreparedSubmissionServer : IDisposable
         child.Environment["OASIS_NATIVE_PREPARATION_PIPE"] = Endpoint;
         child.Environment["OASIS_NATIVE_PREPARATION_MODULE"] = preparationModulePath;
     }
-    public PreparedSubmissionServer(Func<JsonElement, CancellationToken, Task> persist)
+    public PreparedSubmissionServer(Func<JsonElement, CancellationToken, Task> persist) : this(persist,null) { }
+    public PreparedSubmissionServer(Func<JsonElement, CancellationToken, Task> persist, string expectedTransactionId)
     {
         _persist = persist ?? throw new ArgumentNullException(nameof(persist));
+        if(expectedTransactionId != null && (string.IsNullOrWhiteSpace(expectedTransactionId) || expectedTransactionId.Length > 256))
+            throw new ArgumentException("Expected original transaction identity must be bounded and nonempty.",nameof(expectedTransactionId));
+        _expectedTransactionId = expectedTransactionId;
         var name = "oasis-native-" + Guid.NewGuid().ToString("N");
         _pipe = new NamedPipeServerStream(name, PipeDirection.InOut, 1, PipeTransmissionMode.Byte,
             PipeOptions.Asynchronous | PipeOptions.CurrentUserOnly);
@@ -58,6 +63,8 @@ public sealed class PreparedSubmissionServer : IDisposable
             var evidence = root.GetProperty("evidence");
             var hash = evidence.GetProperty("transactionHash").GetString();
             if (string.IsNullOrWhiteSpace(hash) || hash.Length > 256) throw new InvalidDataException("Original preparation identity is required.");
+            if(_expectedTransactionId != null && hash != _expectedTransactionId)
+                throw new InvalidDataException("Prepared identity does not match the expected original transaction.");
             var encoded = evidence.GetProperty("signedTransactionBase64").GetString();
             byte[] signedBytes;
             try { signedBytes = Convert.FromBase64String(encoded ?? ""); }
