@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -57,6 +57,13 @@ public partial class RadixOASIS
                 // No blueprint configured - delegate to ProviderManager as fallback
                 return await HolonManager.Instance.LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, HolonType.All, version);
             }
+
+            // On-ledger storage through the OasisStorage component (RadixOASIS.OnLedgerStorage.cs).
+            return await LoadHolonOnLedgerAsync(id);
+
+            // Previous blueprint path, kept for reference but no longer reached: it posted a hand-built JSON "manifest"
+            // (writes) or called a Gateway endpoint that doesn't exist (reads), so it could never succeed.
+#pragma warning disable CS0162 // unreachable
 
             // Query holon by ID from Radix OASIS blueprint component using Gateway API
             var url = $"{_config.HostUri}/state/entity/component/{Uri.EscapeDataString(_config.OasisBlueprintAddress)}";
@@ -135,6 +142,13 @@ public partial class RadixOASIS
                 // No blueprint configured - delegate to ProviderManager as fallback
                 return await HolonManager.Instance.LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, HolonType.All, version, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default);
             }
+
+            // On-ledger storage through the OasisStorage component (RadixOASIS.OnLedgerStorage.cs).
+            return await LoadHolonOnLedgerAsync(providerKey);
+
+            // Previous blueprint path, kept for reference but no longer reached: it posted a hand-built JSON "manifest"
+            // (writes) or called a Gateway endpoint that doesn't exist (reads), so it could never succeed.
+#pragma warning disable CS0162 // unreachable
 
             // Query holon by provider key from Radix OASIS blueprint component using Gateway API
             var url = $"{_config.HostUri}/state/entity/component/{Uri.EscapeDataString(_config.OasisBlueprintAddress)}";

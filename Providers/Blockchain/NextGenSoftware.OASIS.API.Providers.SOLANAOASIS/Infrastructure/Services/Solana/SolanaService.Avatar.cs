@@ -126,7 +126,12 @@ public sealed partial class SolanaService
         return response;
     }
 
-    public async Task<OASISResult<SendTransactionResult>> SendTransaction(SendTransactionRequest sendTransactionRequest)
+    /// <summary>
+    /// Sends SOL (with a memo) from <c>FromAccount</c>. The transaction is signed by <paramref name="signerAccount"/>
+    /// when given (e.g. an agent's own wallet), otherwise by the OASIS account. The signer must be
+    /// <c>FromAccount</c>: Solana rejects a transfer whose fee payer/sender didn't sign it.
+    /// </summary>
+    public async Task<OASISResult<SendTransactionResult>> SendTransaction(SendTransactionRequest sendTransactionRequest, Account signerAccount = null)
     {
         var response = new OASISResult<SendTransactionResult>();
 
@@ -146,6 +151,18 @@ public sealed partial class SolanaService
 
             PublicKey fromAccount = new(sendTransactionRequest.FromAccount.PublicKey);
             PublicKey toAccount = new(sendTransactionRequest.ToAccount.PublicKey);
+
+            // The fee payer and sender must sign. Previously this always signed with the OASIS account, so any
+            // FromAccount other than the OASIS account failed signature verification on-chain.
+            Account signer = signerAccount ?? oasisAccount;
+            if (signer.PublicKey.Key != fromAccount.Key)
+            {
+                string mismatch = $"FromAccount {fromAccount.Key} must match the signing account {signer.PublicKey.Key}. " +
+                    "Pass that account's signer to send from it.";
+                OASISErrorHandling.HandleError(ref response, mismatch);
+                return response;
+            }
+
             RequestResult<ResponseValue<LatestBlockHash>> blockHash =
                 await rpcClient.GetLatestBlockHashAsync();
 
@@ -153,7 +170,8 @@ public sealed partial class SolanaService
                 .SetFeePayer(fromAccount)
                 .AddInstruction(MemoProgram.NewMemo(fromAccount, sendTransactionRequest.MemoText))
                 .AddInstruction(SystemProgram.Transfer(fromAccount, toAccount, sendTransactionRequest.Lampposts))
-                .Build(oasisAccount);
+                //.Build(oasisAccount);
+                .Build(signer);
 
             // Redirect Console.Out to a NullTextWriter to stop the SolNET Logger from outputting to the console (messes up STAR CLI!)
             Console.SetOut(new NullTextWriter());
