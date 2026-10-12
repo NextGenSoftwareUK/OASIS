@@ -1,0 +1,93 @@
+name: Build and publish standalone Edge Runtime
+on:
+  workflow_call:
+    inputs:
+      version:
+        required: true
+        type: string
+      publish:
+        required: true
+        type: boolean
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
+permissions:
+  contents: write
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, rid: win-x64 }
+          - { os: ubuntu-latest, rid: linux-x64 }
+          - { os: ubuntu-latest, rid: linux-arm64 }
+          - { os: macos-15-intel, rid: osx-x64 }
+          - { os: macos-latest, rid: osx-arm64 }
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Checkout pinned sibling libraries
+        shell: bash
+        run: |
+          set -euo pipefail
+          . Docker/oasis-dependency-versions.env
+          git clone --no-checkout "$LIBRARIES_REPO" ../NextGenSoftware-Libraries
+          git -C ../NextGenSoftware-Libraries checkout --detach "$LIBRARIES_COMMIT"
+          git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
+          git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+      - name: Publish compiled standalone libraries and RID-native dependencies
+        shell: pwsh
+        env:
+          RID: ${{ matrix.rid }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          if ($env:VERSION -notmatch '^\d+\.\d+\.\d+$') { throw 'Expected stable version.' }
+          $output = "artifacts/edge-standalone/$env:RID"
+          dotnet publish 'Native EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge.csproj' -c Release -f net8.0 -r $env:RID --self-contained false -p:CopyLocalLockFileAssemblies=true -o $output
+          if ($LASTEXITCODE -ne 0) { throw 'Standalone compilation failed.' }
+          foreach ($required in @('NextGenSoftware.OASIS.Edge.Runtime.dll','NextGenSoftware.OASIS.Edge.ONET.Runtime.dll','NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.Edge.dll')) {
+            if (-not (Test-Path -LiteralPath "$output/$required")) { throw "Missing compiled runtime: $required" }
+          }
+          if (@(Get-ChildItem $output -Recurse -File | Where-Object { $_.Extension -in @('.cs','.meta','.trx','.log','.nupkg') }).Count) { throw 'Unity source or evidence leaked into standalone runtime.' }
+          $sqlite = @(Get-ChildItem $output -Recurse -File | Where-Object { $_.Name -match 'e_sqlite3\.(dll|so|dylib)$' })
+          if (-not $sqlite.Count) { throw 'RID-native SQLite dependency missing.' }
+          Copy-Item Docs/Releases/EDGE_STANDALONE_INSTALL.md "$output/README.md"
+          New-Item artifacts/edge-standalone-assets -ItemType Directory -Force | Out-Null
+          Compress-Archive "$output/*" "artifacts/edge-standalone-assets/OASIS.Edge.Runtime.v$env:VERSION.$env:RID.zip"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: edge-standalone-${{ matrix.rid }}
+          path: artifacts/edge-standalone-assets/*.zip
+  publish:
+    if: inputs.publish
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: edge-standalone-*
+          merge-multiple: true
+          path: artifacts/standalone
+      - name: Publish only the five standalone platform archives
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          $assets = @(foreach ($rid in @('win-x64','linux-x64','linux-arm64','osx-x64','osx-arm64')) {
+            $path = "artifacts/standalone/OASIS.Edge.Runtime.v$env:VERSION.$rid.zip"
+            if (-not (Test-Path $path) -or (Get-Item $path).Length -le 0) { throw "Missing platform archive: $rid" }
+            (Resolve-Path $path).Path
+          })
+          gh release create "OASIS-Edge-Runtime-v$env:VERSION" @assets --target $env:GITHUB_SHA --title "OASIS Edge Runtime (Standalone) v$env:VERSION" --notes-file Docs/Releases/EDGE_STANDALONE_INSTALL.md
+          if ($LASTEXITCODE -ne 0) { throw 'Standalone publication failed.' }
