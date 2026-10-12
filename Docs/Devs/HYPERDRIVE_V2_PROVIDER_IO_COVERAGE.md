@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Invalid mutation cannot overwrite approval — 2026-10-12
+
+Official SDK signed NFT and fungible escrow tests now include a valid approval followed by a mutation signed with a different unauthorized key. The actual independent SDK verifier rejects the second preparation before persistence or acknowledgement. Mongo still contains only the exact approval attempt/bytes; native-preparation byte budget is unchanged, and the transport retains only the approval original ID. Full Hedera C# suite **34/34** passed, no skips (`TestResults/PriorityProviderCurrent/hedera-current.trx`). Existing SDK/Mongo resources reused, owned databases dropped; no ledger submission or installs. This proves the preparation rejection boundary, not network account authority, contract execution or complete live V2 policy coverage. Release gates remain open.
+
 ### Fungible escrow signed factory coverage — 2026-10-12
 
 The real SDK-to-pipe-to-Mongo escrow factory test now covers fungible token approval and contract lock in addition to NFT escrow, each with approval present and skipped. Token approval uses exact units `9007199254740993` (above JavaScript safe integer range) via the existing SDK bigint constructor; durable evidence readback remains byte-for-byte identical to the signed descriptor, with distinct stage correlations and no manufactured ledger acknowledgement. Full Hedera C# suite **32/32** passed, no skipped tests (`TestResults/PriorityProviderCurrent/hedera-current.trx`), using the same retained source SDK and Mongo service; owned databases are dropped. This verifies signed preparation persistence, not execution, allowance queries, funded receipts, account authority, native fee admission or live V2 failover/load-balancing/replication. No new installation, ledger submission, deployment or merge.
