@@ -46,7 +46,8 @@ public sealed class TronRealProviderRoutingTests
         manager.RegisterProvider(local); manager.RegisterProvider(tron);
         EnumValue<ProviderType>[] Providers() => new[] { new EnumValue<ProviderType>(ProviderType.LocalFileOASIS), new EnumValue<ProviderType>(ProviderType.TRONOASIS) };
         manager.SetAndReplaceAutoReplicationListForProviders(Providers()).IsError.Should().BeFalse();
-        var holon = new Holon { Id = Guid.Parse("deba869c-8078-4a98-a7e4-cb7c11d59249"), Name = "Real V2 TRON replication" };
+        var holon = new Holon { Id = Guid.Parse("deba869c-8078-4a98-a7e4-cb7c11d59249"), Name = "Real V2 TRON replication",
+            MetaData = new Dictionary<string, object> { ["routing-fixture"] = "tron-real-v2" } };
         var failedOver = new Holon { Id = Guid.Parse("c8752504-dff2-44c6-99d9-32a601ae9670"), Name = "Real V2 TRON outage" };
         var partial = new Holon { Id = Guid.Parse("f8882565-96ba-40f5-b2ac-a47e78ab8ea9"), Name = "Real V2 partial replication" };
         var paused = false;
@@ -155,6 +156,23 @@ public sealed class TronRealProviderRoutingTests
             (await local.LoadHolonAsync(holon.Id)).Result.Name.Should().Be(holon.Name);
             manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
             manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
+            foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.TRONOASIS })
+            {
+                foreach (var operation in new[] { "LoadAllHolons", "LoadHolonsByMetaData", "LoadHolonsByMetaDataPairs" })
+                {
+                    var request = new StorageOperationRequest { Operation = operation, PreferredProvider = providerType,
+                        LoadChildren = false, MetaKey = "routing-fixture", MetaValue = "tron-real-v2",
+                        MetaKeyValuePairs = new Dictionary<string, string> { ["routing-fixture"] = "tron-real-v2" } };
+                    var sync = router.RouteRequest<IEnumerable<IHolon>>(request);
+                    var asyncResult = await router.RouteRequestAsync<IEnumerable<IHolon>>(request);
+                    foreach (var result in new[] { sync, asyncResult })
+                    {
+                        result.IsError.Should().BeFalse(result.Message);
+                        result.Result.Should().NotBeNull();
+                        result.Result.Count(value => value.Id == holon.Id).Should().Be(1);
+                    }
+                }
+            }
             manager.IsAutoReplicationEnabled = false; manager.IsAutoLoadBalanceEnabled = true;
             manager.SetAndReplaceAutoLoadBalanceListForProviders(Providers()).IsError.Should().BeFalse();
             async Task<double> Measure(IOASISStorageProvider provider)

@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Live holon list/metadata routing extension (2026-10-11)
+
+The replicated holon fixture carries an explicit metadata marker. `LoadAllHolons`, `LoadHolonsByMetaData` and `LoadHolonsByMetaDataPairs` now execute via sync/async V2 routes on both LocalFile/TRON, asserting exactly one matching owned holon while tolerating unrelated retained records (**12 additional routed checks**). Full scenario passes **1/1**, zero skips, 50 seconds (`tron-v2-routing.trx`), preserving actual outage failover/measured balancing/replication evidence. Three more handlers have real provider-backed parity evidence, not complete 42-operation coverage. Hedera SDK regression passes **79/79**, zero skips; it remains controlled SDK serialization/preflight evidence, not funded consensus. Existing TRON runtime paused after terminal completion. Import/export, other remaining operation/native/API/image and funded Hedera gates remain open; no installation/download/environment duplication/merge.
+
 ### Live V2 avatar ID/list parity extension (2026-10-11)
 
 Current retained-node TRON scenario also routes `LoadAvatar`, `LoadAvatarDetail`, `LoadAllAvatars` and `LoadAllAvatarDetails` synchronously/asynchronously on both real replicas. ID reads match persisted identity then return non-error null after replicated deletion; lists contain exactly one owned fixture before deletion and none afterward without assuming the shared store is otherwise empty. These four added operations contribute **32 additional routed read assertions**, and the full scenario passes **1/1**, zero skips, 50 seconds (`tron-v2-routing.trx`). Actual failover/load balancing/replication checks remain in the same scenario. Manifest/seven Dockerfiles/parent gitlinks validator passes. Retained runtime paused afterward; no install/download/environment duplication/merge. Official Hedera mirror balance remains **391606260 tinybars**; funded storage/NFT and complete operation/deployment/release gates remain open.
