@@ -1,5 +1,6 @@
 import { CosmWasmClient, SigningCosmWasmClient } from "@cosmjs/cosmwasm";
 import { DirectSecp256k1Wallet, DirectSecp256k1HdWallet, decodeTxRaw, Registry } from "@cosmjs/proto-signing";
+import { verifiedBankTransfer } from './transaction-results.mjs';
 import { GasPrice, defaultRegistryTypes } from "@cosmjs/stargate";
 import { fromHex, toHex, fromBech32 } from "@cosmjs/encoding";
 
@@ -99,7 +100,7 @@ async function execute(input) {
           throw new Error("The signing key does not own the requested Cosmos sender address");
         const result = await client.sendTokens(sender, input.toWalletAddress,
           [{ denom: input.denom ?? "uatom", amount: input.amountUnits }], "auto", input.memo ?? "");
-        if (result.code !== 0) throw new Error(`Cosmos transfer failed: ${result.rawLog}`);
+        verifiedBankTransfer(result);
         return { transactionHash: result.transactionHash, height: result.height, sender };
       }
       case "transactionStatus": {
