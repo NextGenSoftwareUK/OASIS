@@ -47,6 +47,8 @@ public sealed class TronRealProviderRoutingTests
         EnumValue<ProviderType>[] Providers() => new[] { new EnumValue<ProviderType>(ProviderType.LocalFileOASIS), new EnumValue<ProviderType>(ProviderType.TRONOASIS) };
         manager.SetAndReplaceAutoReplicationListForProviders(Providers()).IsError.Should().BeFalse();
         var holon = new Holon { Id = Guid.Parse("deba869c-8078-4a98-a7e4-cb7c11d59249"), Name = "Real V2 TRON replication",
+            ParentHolonId = Guid.Parse("9e5be296-e435-44a5-838b-cbfcd8918c22"),
+            ProviderUniqueStorageKey = new() { [ProviderType.LocalFileOASIS] = "deba869c-8078-4a98-a7e4-cb7c11d59249" },
             MetaData = new Dictionary<string, object> { ["routing-fixture"] = "tron-real-v2" } };
         var failedOver = new Holon { Id = Guid.Parse("c8752504-dff2-44c6-99d9-32a601ae9670"), Name = "Real V2 TRON outage" };
         var partial = new Holon { Id = Guid.Parse("f8882565-96ba-40f5-b2ac-a47e78ab8ea9"), Name = "Real V2 partial replication" };
@@ -57,7 +59,8 @@ public sealed class TronRealProviderRoutingTests
             RefreshTokens = new() { new RefreshToken { Token = "PublicLocalV2Refresh" } } };
         var detail = new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Email = avatar.Email };
         var batch = new IHolon[] {
-            new Holon { Id = Guid.Parse("9e5be296-e435-44a5-838b-cbfcd8918c22"), Name = "V2 TRON batch first", CreatedByAvatarId = avatar.Id },
+            new Holon { Id = Guid.Parse("9e5be296-e435-44a5-838b-cbfcd8918c22"), Name = "V2 TRON batch first", CreatedByAvatarId = avatar.Id,
+                ProviderUniqueStorageKey = new() { [ProviderType.LocalFileOASIS] = "9e5be296-e435-44a5-838b-cbfcd8918c22" } },
             new Holon { Id = Guid.Parse("ac96a3b6-6d9f-475a-8422-b756dc7af654"), Name = "V2 TRON batch second", CreatedByAvatarId = avatar.Id } };
         var avatarSaved = false;
         try
@@ -212,6 +215,17 @@ public sealed class TronRealProviderRoutingTests
             manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
             foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.TRONOASIS })
             {
+                var byKey = new StorageOperationRequest { Operation = "LoadHolonByProviderKey", ProviderKey = holon.Id.ToString(),
+                    PreferredProvider = providerType, LoadChildren = false };
+                foreach (var result in new[] { router.RouteRequest<IHolon>(byKey), await router.RouteRequestAsync<IHolon>(byKey) })
+                { result.IsError.Should().BeFalse(result.Message); result.Result.Id.Should().Be(holon.Id); }
+                foreach (var operation in new[] { "LoadHolonsForParent", "LoadHolonsForParentByProviderKey" })
+                {
+                    var request = new StorageOperationRequest { Operation = operation, HolonId = holon.ParentHolonId,
+                        ProviderKey = holon.ParentHolonId.ToString(), PreferredProvider = providerType, LoadChildren = false };
+                    foreach (var result in new[] { router.RouteRequest<IEnumerable<IHolon>>(request), await router.RouteRequestAsync<IEnumerable<IHolon>>(request) })
+                    { result.IsError.Should().BeFalse(result.Message); result.Result.Single(value => value.Id == holon.Id).Name.Should().Be(holon.Name); }
+                }
                 foreach (var operation in new[] { "LoadAllHolons", "LoadHolonsByMetaData", "LoadHolonsByMetaDataPairs" })
                 {
                     var request = new StorageOperationRequest { Operation = operation, PreferredProvider = providerType,
