@@ -74,11 +74,7 @@ public class HederaPreparationTests
                 Assert.AreEqual(server.PreparedTransactionId,stored.ProviderAttempts[0].ProviderRequestId);
                 Assert.AreEqual(signed.RootElement.GetProperty("preparation").GetProperty("signedTransactionBase64").GetString(),stored.ProviderAttempts[0].NativePreparation.SignedTransactionBase64);
                 Assert.IsNull(stored.ProviderAttempts[0].AcknowledgedAtUtc,"Preparation is not consensus acceptance.");
-                var acceptedInvalid=0;
-                using var rejectedServer=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer(async(evidence,token)=>{
-                    await provider.VerifyOriginalSignedPreparationAsync(evidence,signed.RootElement.GetProperty("otherKey").GetString()!,token);
-                    acceptedInvalid++;
-                });
+                using var rejectedServer=provider.CreateNativePreparationServer(execution,"wrong-key-attempt","offline-test","0.0.1001",signed.RootElement.GetProperty("otherKey").GetString()!);
                 var rejectedServing=rejectedServer.ServeAsync(deadline.Token);
                 using(var pipe=new System.IO.Pipes.NamedPipeClientStream(".",rejectedServer.Endpoint.Substring(rejectedServer.Endpoint.LastIndexOf('\\')+1),System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous)){
                     await pipe.ConnectAsync(deadline.Token);
@@ -87,7 +83,10 @@ public class HederaPreparationTests
                     await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>rejectedServing);
                     using var reader=new StreamReader(pipe);Assert.IsNull(await reader.ReadLineAsync(deadline.Token));
                 }
-                Assert.AreEqual(0,acceptedInvalid);Assert.IsNull(rejectedServer.PreparedTransactionId);
+                Assert.IsNull(rejectedServer.PreparedTransactionId);
+                var afterRejection=await store.GetAsync(execution.OperationId,deadline.Token);
+                Assert.AreEqual(1,afterRejection.ProviderAttempts.Count);
+                Assert.AreEqual(stored.NativePreparationBytes,afterRejection.NativePreparationBytes);
                 await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>provider.VerifyOriginalSignedPreparationAsync(signed.RootElement.GetProperty("preparation"),signed.RootElement.GetProperty("otherKey").GetString()!,deadline.Token));
                 Assert.AreEqual("controlled-unrelated-pipe",Environment.GetEnvironmentVariable("OASIS_NATIVE_PREPARATION_PIPE"));
             }finally{
