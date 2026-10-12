@@ -108,6 +108,20 @@ public class CosmosPreparationTests
             Assert.AreEqual(signed.RootElement.GetProperty("signDocBase64").GetString(),stored.ProviderAttempts[0].NativePreparation.SignDocBase64);
             Assert.AreEqual(signed.RootElement.GetProperty("signedTransactionBase64").GetString(),stored.ProviderAttempts[0].NativePreparation.SignedTransactionBase64);
             Assert.IsNull(stored.ProviderAttempts[0].AcknowledgedAtUtc,"Preparation is not ledger acceptance.");
+            using var duplicateServer=provider.CreateNativePreparationServer(execution,"signed-attempt","offline-test-chain",signed.RootElement.GetProperty("sender").GetString()!);
+            var duplicateServing=duplicateServer.ServeAsync(deadline.Token);
+            using(var pipe=new System.IO.Pipes.NamedPipeClientStream(".",duplicateServer.Endpoint.Substring(duplicateServer.Endpoint.LastIndexOf('\\')+1),System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous)){
+                await pipe.ConnectAsync(deadline.Token);
+                var frame=System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new{protocol="oasis.native-preparation.v1",evidence=signed.RootElement})+"\n");
+                await pipe.WriteAsync(frame,deadline.Token);await pipe.FlushAsync(deadline.Token);
+                var conflict=await Assert.ThrowsExceptionAsync<UsageProtocolException>(()=>duplicateServing);
+                Assert.AreEqual("PROVIDER_ATTEMPT_ALREADY_STARTED",conflict.Code);
+                using var reader=new StreamReader(pipe);Assert.IsNull(await reader.ReadLineAsync(deadline.Token));
+            }
+            Assert.IsNull(duplicateServer.PreparedTransactionId);
+            var afterDuplicate=await store.GetAsync(execution.OperationId,deadline.Token);
+            Assert.AreEqual(1,afterDuplicate.ProviderAttempts.Count);
+            Assert.AreEqual(stored.NativePreparationBytes,afterDuplicate.NativePreparationBytes);
             var altered=JsonSerializer.Deserialize<Dictionary<string,object>>(signed.RootElement.GetRawText())!;altered["chainId"]="foreign-chain";
             using var invalid=JsonDocument.Parse(JsonSerializer.Serialize(altered));
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>provider.VerifyOriginalSignedPreparationAsync(invalid.RootElement,deadline.Token));

@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Signed Cosmos duplicate preparation denied durably — 2026-10-12
+
+Real signed Cosmos/pipe/Mongo integration now repeats the same signed attempt through a fresh owned factory server. Mongo denies with `PROVIDER_ATTEMPT_ALREADY_STARTED`; no second acknowledgement/retained ID, one original attempt and unchanged evidence-byte budget. Selected Cosmos regression **93/93**, zero skips, actual two-minute deadline excluded, `TestResults/PriorityProviderCurrent/cosmos-preparation-current.trx`. Existing nullable test-field warning remains. Owned database teardown and process cleanup completed; retained service/SDK reused.
+
+This proves duplicate preparation denial within a controlled offline execution, not ledger resubmission recovery or hosted native admission. Live orchestration/interface/deployed gates remain open; no installs, ledger mutations or release merge.
+
 ### Actual signed Cosmos preparation through execution-owned pipe/Mongo — 2026-10-12
 
 Expanded real offline Cosmos signing case to obtain an execution via canonical protocol with controlled HTTP authority, then submit actual TxRaw/SignDoc through public preparation factory and Windows pipe. Official signature verification and execution-owned Mongo write precede acknowledgement. Readback proves exact original ID, signed bytes and SignDoc, one attempt, no ledger acknowledgement. Focused **1/1**, zero skips, `TestResults/PriorityProviderCurrent/cosmos-signed-mongo.trx`; existing nullable test-field warning remains. Existing SDK/local standalone Mongo reused; exact generated `usage_cosmos_signed_test_<guid>` database removed in finally, regenerable by rerunning test.
