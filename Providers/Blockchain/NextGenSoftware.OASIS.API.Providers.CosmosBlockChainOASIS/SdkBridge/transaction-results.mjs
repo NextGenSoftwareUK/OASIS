@@ -19,6 +19,9 @@ export function verifyCosmosPreparedIdentity(evidence) {
   };
   const bytes=decode(evidence.signedTransactionBase64), docBytes=decode(evidence.signDocBase64);
   const raw=TxRaw.decode(bytes), doc=SignDoc.decode(docBytes);
+  if (!Buffer.from(TxRaw.encode(raw).finish()).equals(bytes)
+      || !Buffer.from(SignDoc.encode(doc).finish()).equals(docBytes))
+    throw new Error('Canonical Cosmos transaction and SignDoc protobuf required');
   if (createHash('sha256').update(bytes).digest('hex').toUpperCase() !== evidence.transactionHash
       || doc.chainId !== evidence.chainId || !doc.chainId
       || !Buffer.from(raw.bodyBytes).equals(doc.bodyBytes) || !Buffer.from(raw.authInfoBytes).equals(doc.authInfoBytes))
@@ -29,6 +32,8 @@ export function verifyCosmosPreparedIdentity(evidence) {
       || auth.signerInfos[0].publicKey?.typeUrl !== '/cosmos.crypto.secp256k1.PubKey')
     throw new Error('Cosmos preparation requires one direct secp256k1 signer');
   const key=PubKey.decode(auth.signerInfos[0].publicKey.value).key;
+  if (key.length !== 33 || (key[0] !== 2 && key[0] !== 3))
+    throw new Error('Compressed Cosmos secp256k1 public key required');
   const sender=fromBech32(evidence.sender,90);
   if (!Buffer.from(sender.data).equals(rawSecp256k1PubkeyToRawAddress(key))
       || !Secp256k1.verifySignature(Secp256k1Signature.fromFixedLength(raw.signatures[0]),sha256(docBytes),key))
