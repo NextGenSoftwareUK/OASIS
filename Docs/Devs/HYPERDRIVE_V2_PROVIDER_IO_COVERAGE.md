@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Current shared-provider changes pass retained Sui storage regression (2026-10-12)
+
+At parent `e93733433`, retained Sui real-storage suite passes **3/3**, zero skips, 111 seconds (`TestResults/SuiCurrent/sui-storage-current.trx`). Existing avatar/detail indexed/history reads, holon metadata/parent/deletion and import/search/export/proximity scenarios remain passing after shared collection/history/cycle/metadata/preflight fixes. Test-host shared DLL hash matches current provider build. Original node/config/package/ledger/SDK installation reused; exact owned PID 114156 stopped through validating helper after terminal test completion, with no remaining Sui process. Existing epoch/JWK warnings remain documented, not hidden. No reset/install/download/new environment/public-chain spending/merge. This is direct provider regression, not complete V2/native/HTTP/image options or all live new edge cases; remaining release gates stay open.
+
 ### Core regression and truthful static operation audit wording (2026-10-11)
 
 Current complete Core unit suite passes **378/378**, zero skips (`TestResults/CoreCurrent/core-current.trx`). Operation audit script identifies all **42** paired sync/async switch labels and declared operation names in provider-boundary tests. Its synopsis/result wording now explicitly labels this a static inventory: it neither executes tests nor proves every branch/option/provider combination. Script passes with clarified wording; Railway manifest/seven Dockerfiles/gitlinks validator passes. Unit suite and source inventory remain distinct evidence, not full live endpoint/provider proof or completion. No install/download/new environment/ledger mutation/merge; image approval, deferred funded Hedera and other release gates remain open.
