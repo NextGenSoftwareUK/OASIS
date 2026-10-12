@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Ordered preparation transport — 2026-10-12
+
+The shared `PreparedSubmissionServer.ForStages` now accepts an explicit copied sequence of 2–16 distinct bounded original transaction IDs. Each stage connects separately, validates its expected original ID before persistence, awaits its own persistence callback, and receives only its own acknowledgement. Before accepting the next connection the server observes the previous client's close so it cannot discard an unread acknowledgement. Immutable snapshots expose all persisted original IDs, including the first stage when a later stage is rejected. Existing single-stage constructors retain their contract.
+
+Shared project tests: **89/89 passed**, no skipped tests (`TestResults/SharedCurrent/shared-current.trx`). New controlled pipe tests prove ordered positive acknowledgement, rejection of a replacement second ID with no second persistence, and isolation from caller mutation of the expected-ID array. This is transport implementation, not ledger proof. Hedera's invocation/factory still needs stage-specific outbox correlation and escrow wiring before its explicit single-stage guard can be removed. No sponsored spending or deployment was enabled. The no-restore bounded build also rebuilt existing referenced projects; existing warnings remain, with no test/build errors.
+
 ### Retained SDK refresh — 2026-10-12
 
 Executed the existing `npm test -- --test-reporter=tap` scripts in each retained SDK bridge without installing, restoring, downloading, or starting a ledger: Hedera **98/98**, Sui **25/25**, Cosmos **51/51**, all exit zero with no skipped, cancelled or TODO tests. These scripts exercise real installed SDK construction, signing and verification plus controlled transport/results; they do not establish funded ledger success or the full live V2 routing matrix. Hedera's prepared C# bridge still requires a single-stage mutation: multi-stage escrow preparation is an explicit remaining implementation gate, not covered by these passing counts. Free space before these runs was 100,626,681,856 bytes on C:, still below the user's 150 GB target.
