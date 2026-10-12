@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui prepared success identity binding — 2026-10-12
+
+Parent server retains its original transaction ID only after persistence succeeds. Sui's explicit prepared process now compares successful reply identity to that retained original and requires reconciliation on mismatch, preserving the original ID without claiming execution success. Controlled child test prepares one ID then returns another valid-shaped digest; rejected as expected. Lifecycle suite **4/4**, zero skips, report `TestResults/SuiCurrent/sui-prepared-process.trx`; shared/Sui builds 0 errors/warnings.
+
+The retained prepared ID is evidence of persistence, not ledger acceptance; ordinary error/cancellation identity binding and full signed-provider/outbox recovery still need verification. Production admitted call sites, billing and complete live/deployed gates remain open. No install, native submission or release merge.
+
 ### Explicit Sui execution-owned prepared provider operation — 2026-10-12
 
 `SuiOASIS.ExecutePreparedNativeAsync` now connects an explicitly supplied execution and trusted chain/signer/correlation to the server factory and canonical gated SDK process. This is a library entry point, not a new HTTP route or automatic switch for existing operations. Pre-cancelled/missing-execution tests reject before provider activation/child launch. Build passed 0 errors/warnings; focused entry test **1/1**, zero skips, report `TestResults/SuiCurrent/sui-prepared-entry.trx`.

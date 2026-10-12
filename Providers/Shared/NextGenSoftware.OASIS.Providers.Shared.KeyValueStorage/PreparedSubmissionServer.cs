@@ -15,6 +15,7 @@ public sealed class PreparedSubmissionServer : IDisposable
     private readonly Func<JsonElement, CancellationToken, Task> _persist;
     private int _started;
     public string Endpoint { get; }
+    public string PreparedTransactionId { get; private set; }
     public void ConfigureChild(System.Diagnostics.ProcessStartInfo child, string preparationModulePath)
     {
         if (child == null) throw new ArgumentNullException(nameof(child));
@@ -64,6 +65,7 @@ public sealed class PreparedSubmissionServer : IDisposable
             if (signedBytes.Length == 0 || Convert.ToBase64String(signedBytes) != encoded)
                 throw new InvalidDataException("Prepared signed bytes must be nonempty canonical base64.");
             await _persist(evidence.Clone(), cancellationToken);
+            PreparedTransactionId = hash;
             cancellationToken.ThrowIfCancellationRequested();
             var ack = JsonSerializer.SerializeToUtf8Bytes(new { protocol = "oasis.native-preparation.v1", persisted = true, transactionHash = hash });
             await _pipe.WriteAsync(ack, cancellationToken);
