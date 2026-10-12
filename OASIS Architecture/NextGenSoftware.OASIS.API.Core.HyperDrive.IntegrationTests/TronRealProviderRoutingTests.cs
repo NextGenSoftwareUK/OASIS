@@ -16,6 +16,7 @@ using NextGenSoftware.OASIS.API.Providers.TRONOASIS;
 using NextGenSoftware.Utilities;
 using TronNet;
 using Xunit;
+using Google.Protobuf;
 
 namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 
@@ -37,6 +38,20 @@ public sealed class TronRealProviderRoutingTests
         using var authorityDeadline=new CancellationTokenSource(TimeSpan.FromSeconds(20));
         var authority=await runtime.NativeTransfers.LoadPermissionAuthorityAsync(owner,authorityDeadline.Token);
         TronPermissionVerifier.Verify(authority,authority.Address,0,(int)TronNet.Protocol.Transaction.Types.Contract.Types.ContractType.TransferContract,new[]{authority.Address});
+        var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+        var signer=(ITransactionClient)typeof(TronNativeTransferClient).GetField("_transactions",flags)!.GetValue(runtime.NativeTransfers)!;
+        var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+        var original=new TronNet.Protocol.Transaction{RawData=new TronNet.Protocol.Transaction.Types.raw{Timestamp=now,Expiration=now+60000}};
+        original.RawData.Contract.Add(new TronNet.Protocol.Transaction.Types.Contract{
+            Type=TronNet.Protocol.Transaction.Types.Contract.Types.ContractType.TransferContract,
+            Parameter=Google.Protobuf.WellKnownTypes.Any.Pack(new TronNet.Protocol.TransferContract{OwnerAddress=authority.Address,ToAddress=authority.Address,Amount=1})});
+        var signed=signer.GetTransactionSign(original,key);
+        var digest=Convert.ToHexString(SHA256.HashData(signed.RawData.ToByteArray())).ToLowerInvariant();
+        TronPreparationVerifier.VerifyWithAccountAuthority(Convert.ToBase64String(signed.ToByteArray()),digest,authority.Address.ToByteArray(),1000000000,authority);
+        var foreignSigned=signer.GetTransactionSign(original,new string('0',63)+"2");
+        Action foreign=()=>TronPreparationVerifier.VerifyWithAccountAuthority(Convert.ToBase64String(foreignSigned.ToByteArray()),digest,authority.Address.ToByteArray(),1000000000,authority);
+        foreign.Should().Throw<InvalidDataException>();
+        Console.WriteLine("Actual SDK signature verified against live solidified owner permission; foreign key rejected; no broadcast.");
         Console.WriteLine("Retained real TRON account owner permission accepts its original local fixture signer.");
         using var storage=new TronPrivateStorageBackend(runtime.NativeTransfers,new TronECKey(key,TronNetwork.MainNet).GetPublicAddress(),contract,()=>key,
             ()=>SHA256.HashData(Encoding.UTF8.GetBytes("public reusable local TRON encryption fixture")));
