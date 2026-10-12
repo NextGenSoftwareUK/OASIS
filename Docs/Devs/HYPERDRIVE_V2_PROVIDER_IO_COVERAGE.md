@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Real TRON signed bytes against live owner authority — 2026-10-12
+
+Extended read-only inspection with actual installed SDK signing of a local transfer protobuf, original SHA256 ID verification, recovered signature and the live verified solidified account permission snapshot. Owner signature passes the independent verifier; a separately SDK-signed foreign key fails. No broadcast API is called and no ledger-valid TAPOS/submission claim is made for this offline signing fixture. Combined live read-only authority/routing integration **1/1** passed, zero skips (`tron-original-fixture-readback.trx`); existing warnings remain. Same container returned to paused, original unknown-outcome fence untouched. This closes the cryptographic-to-live-account owner check at its scope, not active/multisig execution, original transaction reconciliation, native fee admission or full provider certification. No installs, mutations or merge.
+
 ### TRON protocol-default owner permission compatibility — 2026-10-12
 
 Live solidified account inspection initially failed our strict permission validator. Verified the pinned [java-tron 4.8.2 AccountCapsule source](https://raw.githubusercontent.com/tronprotocol/java-tron/GreatVoyage-v4.8.2/chainbase/src/main/java/org/tron/core/capsule/AccountCapsule.java): `getPermissionById(0)` explicitly uses the protocol's owner-address, threshold-one/weight-one permission when the owner protobuf message is absent. Implemented that exact rule after verified account/address validation. This supersedes earlier assertions that absent owner messages always mean unavailable authority; it is specified protocol behavior, not an error fallback. Explicit malformed owner permissions still fail, as do foreign/duplicate signers; active permissions are not synthesized.
