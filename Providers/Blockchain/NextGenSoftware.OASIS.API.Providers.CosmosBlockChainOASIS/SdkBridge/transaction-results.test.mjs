@@ -9,7 +9,23 @@ import { wasmTypes } from '@cosmjs/cosmwasm';
 import { Registry } from '@cosmjs/proto-signing';
 import { defaultRegistryTypes } from '@cosmjs/stargate';
 import { toBech32 } from '@cosmjs/encoding';
-import { TimeoutError } from '@cosmjs/stargate';
+import { TimeoutError, StargateClient } from '@cosmjs/stargate';
+test('official broadcast clears its polling timer when synchronous broadcast rejects', async () => {
+  const client = new StargateClient(undefined, {});
+  const failure = new Error('controlled precheck/transport rejection');
+  client.broadcastTxSync = async () => { throw failure; };
+  const timers = new Set();
+  const set = globalThis.setTimeout, clear = globalThis.clearTimeout;
+  globalThis.setTimeout = (...args) => { const timer=set(...args); timers.add(timer); return timer; };
+  globalThis.clearTimeout = timer => { timers.delete(timer); return clear(timer); };
+  try {
+    await assert.rejects(client.broadcastTx(new Uint8Array([1]), 60000), error => error === failure);
+    assert.equal(timers.size, 0, 'No orphan polling timer after rejected submission');
+  } finally {
+    for (const timer of timers) clear(timer);
+    globalThis.setTimeout = set; globalThis.clearTimeout = clear;
+  }
+});
 const hash = 'ab'.repeat(32);
 
 test('official SDK signing retains exact signed hash before transport and rejects substituted delivery identity', async () => {

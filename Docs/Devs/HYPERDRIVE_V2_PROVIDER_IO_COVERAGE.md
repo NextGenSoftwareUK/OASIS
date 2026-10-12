@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### CosmJS rejected-broadcast timer source correction — 2026-10-12
+
+Added a reproducible narrow source correction for pinned CosmJS 0.39.0: the existing official broadcast/poll method now includes `broadcastTxSync` inside the timer's try/finally cleanup. No substitute broadcast, polling or retry path was added. `patch-cosmjs.mjs` checks the installed version and exact reviewed source, fails on drift, and treats an already-corrected installation as unchanged. The bridge's postinstall hook applies it; the provider copies the script to output/publish beside package.json. Existing installations may apply it with `node patch-cosmjs.mjs` without downloading anything.
+
+The official `StargateClient` regression reproduced one orphan timer before the correction and passed after it, while preserving the original rejection exception. Full retained SDK suite **43/43**, zero skips/todos. Reapplying the correction twice succeeded without a second rewrite. No runtime installation, network submission or ledger reset. This closes the observed rejected-broadcast timer defect for the retained installation, not durable journal/live/deployed packaging gates; deployed hook execution still needs verification.
+
 ### Cosmos current C# regression after byte-binding changes — 2026-10-12
 
 Current Cosmos unit project passed **79/79**, zero skips, in 2m04s using the retained source SDK bridge and existing dependencies with bounded workers/`--no-restore`/`BuildProjectReferences=false`. Report `TestResults/PriorityProviderCurrent/CosmosBlockChainOASIS-post-sdk-change.trx` supersedes its earlier 78-case selection. The supplied exclusion matched `ActualProcessTimeout`, but this provider names its case `RealProcessDeadlineRequiresReconciliationWithoutInventedTransactionId`, so the actual two-minute process deadline was included and passed. The same live test handle was followed to terminal; no duplicate run was started.
