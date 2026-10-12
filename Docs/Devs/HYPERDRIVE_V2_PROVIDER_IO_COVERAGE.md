@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Read-only Hedera preparation verifier dispatch/packaging — 2026-10-12
+
+Dispatcher exposes offline `verifyNativePreparation` with explicitly supplied expected public key; it rejects preparation callbacks for this read-only action. Real signed transaction verifies through dispatch; unrelated trusted-key input rejects. SDK **98/98**, zero skips/todos. Provider build 0 errors/2 existing unused-variable warnings. Source/build-output `native-preparation.mjs` SHA256 matches (`E9276040390AB6C76FCBB256D70A1329EBC8DF49319A2BAFCC0134A0DCC55938`); this is existing Debug packaging evidence, not Railway publish proof.
+
+C# trusted account/key binding, parent/outbox lifecycle, stage-aware escrow transport and all funded/live/deployed gates remain open. No installs or funded submissions; no release merge.
+
 ### Hedera original signature verifier and escrow CLI guard — 2026-10-12
 
 Added bounded canonical signed-byte verifier using actual Hiero `Transaction.fromBytes` and trusted expected `PublicKey.verifyTransaction`. It binds original transaction ID and numeric payer; actual signed deployment accepts, unrelated signing key and altered payer/original ID reject. SDK selection **98/98**, zero skips/todos. Verifier does not establish funded-account key authority or network identity from its own input; caller must supply trusted account/network context. C# binding/dispatch still required.
