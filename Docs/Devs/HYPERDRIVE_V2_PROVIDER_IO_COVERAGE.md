@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Priority provider compatibility refreshed after partial-read changes (2026-10-12)
+
+Rebuilt all four providers against current shared continuation/integrity code (build zero errors: Sui/Cosmos two warnings each, TRON23, Hedera4). Fresh unit selections **Sui32/32, Cosmos56/56, TRON198/198**, fixed `TestResults/PriorityProviderCurrent/{ProviderName}-unit-current.trx`; current Hedera non-funded runner verifies SDK bridge syntax/import/direct pins and passes **218/218**, seven seconds, `TestResults/HederaCurrent/hedera-nonfunded-current.trx`, test build zero errors/three warnings. All zero skips. Shared65/Core406 remain distinct controlled checkpoints; source labels and unit selections do not prove real partial native transport or full interface/options coverage.
+
+No restore/download/new environment, runtime resume, funded operation or fenced TRON mutation rerun. Cached outputs/directories reused; free C102707064832 bytes after runs. Existing TRON paused ledger/fence preserved, Cosmos startup-policy blocker unchanged, Hedera funded verification deferred. These are refreshed compatibility gates only; full authenticated API, durable mint billing, stable live TRON/reconciliation and final deployment/merge still unproven.
+
 ### Best-effort holon collection cannot report total read failure as empty success (2026-10-12)
 
 Follow-up edge-case repair: all-holon/metadata collection keeps actual read exceptions alongside safe partial diagnostics; when no record payload can be returned and record reads failed, it raises an AggregateException through existing error handling rather than returning an empty warning-only success. Genuine absent/empty collections without read failures remain unaffected; collections with valid partial data retain explicit warnings. Aggregate preserves original underlying errors for diagnosis/failover, without constructing replacement data or suppressing corruption. This specifically covers collection root reads; single valid-parent child-partial semantics remain their own documented behavior.
