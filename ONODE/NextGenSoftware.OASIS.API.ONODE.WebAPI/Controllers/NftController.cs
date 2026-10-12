@@ -718,7 +718,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         [Route("import-web3-nft")]
         [ProducesResponseType(typeof(OASISResult<IWeb4NFT>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
-        public async Task<OASISResult<IWeb4NFT>> ImportWeb3NFTAsync([FromBody] API.Core.Interfaces.NFT.Requests.IImportWeb3NFTRequest request)
+        public async Task<OASISResult<IWeb4NFT>> ImportWeb3NFTAsync([FromBody] API.Core.Objects.NFT.Requests.ImportWeb3NFTRequest request)
         {
             if (request == null)
                 return new OASISResult<IWeb4NFT> { IsError = true, Message = "The request body is required. Please provide a valid Import Web3 NFT request." };
