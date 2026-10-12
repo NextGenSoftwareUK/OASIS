@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Hedera stored-wallet mint/burn sync and async projections (2026-10-11)
+
+Expanded existing owned-avatar regression passes **1/1**, zero skips (`hedera-avatar-burn.trx`), now exercising four provider calls: async burn without supplied signer, sync burn with matching supplied private/public keys, and async/sync mint with existing HTS token metadata. Real V2 WalletManager resolves/decrypts the marked default wallet after a decoy; controlled transport asserts the selected treasury account, plaintext fixture key, public key, amount/token/network and returns each original distinct transaction ID. Conflicting-key rejection and encrypted-at-rest checks remain passing; owned wallet map and process environment are cleaned/restored. Existing mint and escrow inspection did not reveal an additional silently ignored signer field requiring a change. This evidence remains controlled transport, not real DER cryptographic keys, HTTP or funded HTS authority/consensus. No install/download/restore/new environment/ledger mutation/merge; all remaining release gates stay open.
+
 ### Hedera avatar-wallet token burn projection and key conflict proof (2026-10-11)
 
 `HederaBurnResolvesEncryptedDefaultAvatarWalletAndRejectsConflictingKey` passes **1/1**, zero skips (`hedera-avatar-burn.trx`), using existing WEB4 integration dependencies and real V2 WalletManager/LocalFile wallet storage. A marked default Hedera wallet after a non-default decoy is selected/decrypted; controlled Node transport checks exact sender/recipient/key/public key/token/amount/network projection and returns the original transaction ID. A conflicting supplied private key fails at provider validation, and stored key remains encrypted. Fixed owned wallet map is refused if pre-existing, cleared after execution, and bridge environment restored. Fixture is explicitly controlled transport, not an SDK signer, funded ledger or HTTP call. Initial compile errors (File namespace collision/init-only request field) were corrected before any execution. No dependency restore/install/download/new environment/network mutation/merge; funded consensus and full release gates remain open.
