@@ -1,11 +1,11 @@
 param(
     [string]$OutputBridge = 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests/bin/Debug/net10.0/HederaSdkBridge',
-    [ValidateSet('Hedera', 'Sui')][string]$Provider = 'Hedera'
+    [ValidateSet('Hedera', 'Sui', 'Cosmos')][string]$Provider = 'Hedera'
 )
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
-$providerDirectory = if ($Provider -eq 'Sui') { 'SuiOASIS' } else { 'HashgraphOASIS' }
-$sdkPackage = if ($Provider -eq 'Sui') { '@mysten/sui/package.json' } else { '@hiero-ledger/sdk/package.json' }
+$providerDirectory = switch ($Provider) { 'Sui' { 'SuiOASIS' } 'Cosmos' { 'CosmosBlockChainOASIS' } default { 'HashgraphOASIS' } }
+$sdkPackage = switch ($Provider) { 'Sui' { '@mysten/sui/package.json' } 'Cosmos' { '@cosmjs/stargate/package.json' } default { '@hiero-ledger/sdk/package.json' } }
 $bridgeName = $Provider + 'SdkBridge'
 $sourceBridge = Join-Path $taskRoot "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.$providerDirectory/SdkBridge"
 $outputPath = [IO.Path]::GetFullPath((Join-Path $taskRoot $OutputBridge))
