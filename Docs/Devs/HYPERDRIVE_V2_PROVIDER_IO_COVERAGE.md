@@ -20,6 +20,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Real Sui manager mint signs through encrypted avatar default wallet (2026-10-12)
+
+Extended the default three-entry manager test to configured-key and encrypted-avatar cases: **2/2 passed, zero skips**, 35 seconds, `sui-native-manager-mint-current.trx`. Avatar case uses the existing private retained `deployment.json.token-wallet.json` fixture (chain checked, key/address different from the provider-configured issuer), stores its key encrypted in the owned LocalFile default wallet, supplies a nonempty mint actor and injects the real Core WalletManager with that persistent provider/DNA/registry. Actual on-chain mint wallet matches the avatar wallet, all three receipts/metadata reads pass, WEB4 metadata reload includes three NFTs, and the stored encrypted key is unchanged. The retained wallet is funded only for measured shortfall below 0.1 local SUI; no new wallet key/runtime/download is created.
+
+Owned NFTs burned with their actual signer; owned avatar/default-wallet records and newly created holons removed independently with cleanup errors aggregated. Reusable intent absent after successful cleanup; compact completed evidence retained. Exact owned node PID 177526 stopped. Free C 103,238,148,096 bytes. This proves nonempty actor/default-wallet **manager** flow, not real JWT HTTP, paid subscription/fee settlement, deployment or all-interface certification. Those gates remain required.
+
 ### Real Sui manager default batch and off-chain persistence proven (2026-10-12)
 
 New `NativeSuiMintManagerTests.DefaultThreeEntryBatchMintsExactlyThreeAndPersistsRealMetadata` passed **1/1, zero skips**, first 18 seconds then bounded reusable-store verification 19 seconds after adding compact completion evidence. Actual retained Sui SDK/node and LocalFile provider: public manager generated exactly three NFTs, independent Completed receipts and on-chain title reads; WEB4 metadata reloaded from LocalFile contains all three. This exercises real provider activation, native model selection, generated one-NFT quantities, presentation JSON, native mint/read and manager metadata saves. **Direct manager only:** empty mint actor uses configured local fixture key; not authenticated avatar, sponsored fees, JWT, subscription admission, Railway packaging or full-interface proof.
