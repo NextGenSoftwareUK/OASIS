@@ -10,6 +10,37 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 public class LocalFileLatestVersionTests
 {
     [Fact]
+    public async Task ParentQueryUsesPersistedChildRelationshipAfterReparenting()
+    {
+        var root = Path.GetFullPath(Path.Combine("TestResults", "HyperDriveLocalVersion"));
+        Directory.CreateDirectory(root);
+        using var lease = new FileStream(Path.Combine(root, "store.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        var provider = new LocalFileOASIS(storageDirectory: Path.Combine(root, "files"));
+        var first = new Holon { Id = Guid.Parse("9429b874-cd50-45ee-87d0-d2dfd4b9b16c"), Name = "first parent" };
+        var second = new Holon { Id = Guid.Parse("64e38e8e-aa9a-4f61-9b7a-6fb7c3a4e6cb"), Name = "second parent" };
+        first.ProviderUniqueStorageKey = new() { [ProviderType.LocalFileOASIS] = first.Id.ToString() };
+        second.ProviderUniqueStorageKey = new() { [ProviderType.LocalFileOASIS] = second.Id.ToString() };
+        var child = new Holon { Id = Guid.Parse("491c93b6-5aee-4fa2-b6fc-bcd4ed1ee89f"), ParentHolonId = first.Id, Name = "independent child" };
+        try
+        {
+            foreach (var item in new[] { first, second, child }) (await provider.SaveHolonAsync(item)).IsError.Should().BeFalse();
+            (await provider.LoadHolonsForParentAsync(first.Id, loadChildren: false)).Result.Single().Id.Should().Be(child.Id);
+            provider.LoadHolonsForParent(first.Id.ToString(), loadChildren: false).Result.Single().Id.Should().Be(child.Id);
+            child.ParentHolonId = second.Id; (await provider.SaveHolonAsync(child)).IsError.Should().BeFalse();
+            (await provider.LoadHolonsForParentAsync(first.Id, loadChildren: false)).Result.Should().BeEmpty();
+            provider.LoadHolonsForParent(first.Id.ToString(), loadChildren: false).Result.Should().BeEmpty();
+            (await provider.LoadHolonsForParentAsync(second.Id.ToString(), loadChildren: false)).Result.Single().Id.Should().Be(child.Id);
+            provider.LoadHolonsForParent(second.Id, loadChildren: false).Result.Single().Id.Should().Be(child.Id);
+        }
+        finally
+        {
+            foreach (var item in new[] { child, first, second })
+                if ((await provider.LoadHolonAsync(item.Id, loadChildren: false)).Result != null) (await provider.DeleteHolonAsync(item.Id)).IsError.Should().BeFalse();
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [Fact]
     public async Task DetailDeletionAllProjectionsPreserveAvatarAndOtherDetail()
     {
         var root = Path.GetFullPath(Path.Combine("TestResults", "HyperDriveLocalVersion"));
