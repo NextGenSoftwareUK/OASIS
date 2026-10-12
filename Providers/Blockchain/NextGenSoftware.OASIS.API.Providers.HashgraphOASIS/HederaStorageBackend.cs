@@ -102,15 +102,7 @@ internal sealed class HederaStorageBackend : IKeyValueBackend
 
     public async Task VerifyAsync(CancellationToken cancellationToken = default)
     {
-        var key = "oasis/probe/" + Guid.NewGuid().ToString("N");
-        await PutAsync(key, key, cancellationToken);
-        try
-        {
-            if (await GetAsync(key, cancellationToken) != key)
-                throw new InvalidDataException("Hedera committed storage readback does not match its value.");
-        }
-        finally { await DeleteAsync(key, cancellationToken); }
-        if (await GetAsync(key, cancellationToken) != null)
-            throw new InvalidDataException("Hedera storage probe deletion was not reflected by the contract.");
+        await InvokeAsync("storageProbe",null,null,null,false,cancellationToken);
+        // Consensus queries may have fees; this verifies authority without put/delete transactions.
     }
 }

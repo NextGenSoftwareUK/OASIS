@@ -98,3 +98,11 @@ test('storage query configuration fails before a funded consensus client is open
   await assert.rejects(execute('storageGet', { contractId: '0.0.123', key: 'key', gas: 0 }), /gas limit/);
   await assert.rejects(execute('storageList', { contractId: '0.0.123', prefix: '', gas: 100000 }), /fee ceiling/);
 });
+test('storage owner probe uses the deployed immutable-owner ABI',()=>{
+ const ownerAbi=new Interface(['function owner() view returns(address)']);
+ assert.equal(ownerAbi.parseTransaction({data:storageReadCall('owner',[])}).name,'owner');
+});
+test('storage probe requires bounded consensus query configuration',async()=>{
+ await assert.rejects(execute('storageProbe',{contractId:'0.0.123',gas:0}),/gas limit/);
+ await assert.rejects(execute('storageProbe',{contractId:'0.0.123',gas:100000}),/fee ceiling/);
+});
