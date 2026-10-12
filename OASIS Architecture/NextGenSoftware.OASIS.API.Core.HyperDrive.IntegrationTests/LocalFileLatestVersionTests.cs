@@ -10,6 +10,47 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 public class LocalFileLatestVersionTests
 {
     [Fact]
+    public async Task DetailDeletionAllProjectionsPreserveAvatarAndOtherDetail()
+    {
+        var root = Path.GetFullPath(Path.Combine("TestResults", "HyperDriveLocalVersion"));
+        Directory.CreateDirectory(root);
+        using var lease = new FileStream(Path.Combine(root, "store.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        var provider = new LocalFileOASIS(storageDirectory: Path.Combine(root, "files"));
+        NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider storage = provider;
+        var avatar = new Avatar { Id = Guid.Parse("c8a911fd-87c7-4dc2-8dce-80616135ce2e"), Username = "detail-delete-owner", Email = "detail-delete-owner@example.invalid" };
+        var other = new AvatarDetail { Id = Guid.Parse("cc7fcd3b-1d29-45d1-90d4-5518d7b62874"), Karma = 99 };
+        try
+        {
+            (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+            (await provider.SaveAvatarDetailAsync(other)).IsError.Should().BeFalse();
+            foreach (var selector in new[] { "id", "username", "email" })
+            foreach (var asynchronous in new[] { false, true })
+            {
+                (await provider.SaveAvatarDetailAsync(new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Email = avatar.Email, IsActive = true, Karma = 42 })).IsError.Should().BeFalse();
+                async Task<NextGenSoftware.OASIS.Common.OASISResult<bool>> Delete(bool soft) => (selector, asynchronous) switch {
+                    ("id", true) => await storage.DeleteAvatarDetailAsync(avatar.Id, soft), ("id", false) => storage.DeleteAvatarDetail(avatar.Id, soft),
+                    ("username", true) => await storage.DeleteAvatarDetailByUsernameAsync(avatar.Username, soft), ("username", false) => storage.DeleteAvatarDetailByUsername(avatar.Username, soft),
+                    ("email", true) => await storage.DeleteAvatarDetailByEmailAsync(avatar.Email, soft), _ => storage.DeleteAvatarDetailByEmail(avatar.Email, soft) };
+                var soft = await Delete(true); soft.IsError.Should().BeFalse(soft.Message); soft.Result.Should().BeTrue();
+                var retained = (await storage.LoadAvatarDetailAsync(avatar.Id)).Result;
+                retained.IsActive.Should().BeFalse(); retained.DeletedDate.Should().NotBe(DateTime.MinValue); retained.Karma.Should().Be(42);
+                var hard = await Delete(false); hard.IsError.Should().BeFalse(hard.Message); hard.Result.Should().BeTrue();
+                (await storage.LoadAvatarDetailAsync(avatar.Id)).Result.Should().BeNull();
+                (await storage.LoadAvatarByUsernameAsync(avatar.Username)).Result.Id.Should().Be(avatar.Id);
+                (await storage.LoadAvatarByEmailAsync(avatar.Email)).Result.Id.Should().Be(avatar.Id);
+                (await storage.LoadAvatarDetailAsync(other.Id)).Result.Karma.Should().Be(99);
+                (await Delete(false)).IsError.Should().BeTrue();
+            }
+        }
+        finally
+        {
+            if ((await provider.LoadAvatarDetailAsync(other.Id)).Result != null) (await provider.DeleteAvatarDetailAsync(other.Id, false)).IsError.Should().BeFalse();
+            if ((await provider.LoadAvatarAsync(avatar.Id)).Result != null) (await provider.DeleteAvatarAsync(avatar.Id, false)).IsError.Should().BeFalse();
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [Fact]
     public async Task HolonExportsExcludeAvatarIdentityAndOtherOwners()
     {
         var root = Path.GetFullPath(Path.Combine("TestResults", "HyperDriveLocalVersion"));
