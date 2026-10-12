@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### High-level karma projection warning boundary (2026-10-11)
+
+Two focused helper-contract cases initially reproduce dropped warnings: ledger `IsWarning` without a count, or successful AvatarDetail payload with replica warning. Core `8f7396de7d8ce3bcd7f3a886d0231b6398f773bf` recognizes both warning flags/counts and surfaces incomplete projection while retaining the already-committed KarmaAkashicRecord and non-error status. It does not replay ledger writes. Full Core suite passes **378/378**, zero skips (`core-current.trx`); bounded dual-framework build succeeds. These pure response-boundary tests close the previously recorded helper gap, not live ledger/leaderboard/API proof or complete structured diagnostic propagation in every response. Core pushed and parent manifest/gitlink advance together. No runtime/ledger mutation/install/download/merge; remaining full release gates stay open.
+
 ### Durable karma mutation preserves settings replica diagnostics (2026-10-11)
 
 Expanded actual-router controlled tests establish that all four sync/async add/deduct ledger paths dropped settings-save replica diagnostics: before fix, settings cases pass but four karma cases fail metadata preservation. Core `7d35713e075c51499ec348005218a8ffaa041e08` copies committed settings result warning/metadata into the karma result before cache/leaderboard projection, then reports committed true without repeating the write. Complete Core suite passes **376/376**, zero skips (`core-current.trx`), including six settings/karma cases with real V2 replica-failure handling and expected diagnostic metadata. Bounded dual-framework build succeeds. These are controlled provider tests, not live funded ledger/leaderboard proof. Further source inspection shows the high-level projection-warning helper does not currently check a successful AvatarDetail response's replica warnings; audit/fix that boundary before claiming end-to-end diagnostic completeness. Core pushed; parent gitlink/manifest advance together. No ledger/runtime/install/download/merge.
