@@ -22,6 +22,8 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ### Sui history fetched-receipt identity validation (2026-10-12)
 
+Live paged-history rerun with this validator passes **1/1**, zero skips, 71 seconds (`sui-history-current.trx`), retaining all 53 incoming receipt/raw-unit assertions, sender presence and error checks. Source bridge override explicitly selects the current validated module, not stale copied output. Owned PID 158083 stopped afterward; same ledger/runtime reused. This supersedes the pending-live-recheck note below for successful native history only; actual failed-history and complete native/interface/hosted gates remain open.
+
 History validates that each fetched receipt matches the indexed digest and has an explicit boolean status, sender, timestamp, effects and balance-change array before projection. Failed status false remains valid history; missing/string status or null/missing timestamp cannot silently become a successful row. Added focused helper regression retaining failed receipt and rejecting mismatched/incomplete payloads; installed SDK suite **7/7**, zero skips. No install/download/runtime/ledger mutation. Prior real paged-history result predates this added validator; live recheck is still required. This does not prove live failed-history/gas projection, all metadata or complete provider interfaces.
 
 ### Current Sui paged native history verification (2026-10-12)
