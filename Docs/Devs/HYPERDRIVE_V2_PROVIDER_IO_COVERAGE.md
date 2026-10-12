@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Live TRON performance and Free selector exclusion — 2026-10-12
+
+Extended the same read-only fixture to assert V2 Performance chooses the provider with the lower actual measured read duration, records exactly one request there and returns its authoritative avatar result. After Gold round-robin checks, Free DNA configuration excludes TRON across RoundRobin, WeightedRoundRobin, LeastConnections, Geographic and Performance in both synchronous and asynchronous reads: candidates contain only LocalFile and TRON's request count does not increase. Live integration **1/1** passed with zero skips (`TestResults/TronRuntime/tron-original-fixture-readback.trx`). Existing container unpaused only for reads then paused again, with no ledger mutations, installs or replay. This is configured-DNA selection evidence, not hosted subscription admission, weighted/concurrent/geographic distribution between permitted providers, replication/failover, or resolution of the original transaction. Those gates remain open.
+
 ### Read-only live TRON V2 round-robin — 2026-10-12
 
 Extended original fixture inspection with real TRON and LocalFile automatic V2 reads, no save/delete calls. After recording actual timed reads to initialise provider metrics, six alternating sync/async RoundRobin `LoadAvatar` routes execute exactly three times on each provider. Each response matches that selected provider's authoritative fixture presence rather than silently replacing it from the other store. Live **1/1** passed, no skips (`TestResults/TronRuntime/tron-original-fixture-readback.trx`). Initial harness run failed because metrics had not yet been recorded; corrected by measuring real reads, not invented timing values. Same node returned to paused. This establishes this read-only selector's live distribution with Gold DNA configuration, not hosted per-avatar authorization, all strategies/routes, replication, failover or original mutation resolution. Pending native fence remains intact.
