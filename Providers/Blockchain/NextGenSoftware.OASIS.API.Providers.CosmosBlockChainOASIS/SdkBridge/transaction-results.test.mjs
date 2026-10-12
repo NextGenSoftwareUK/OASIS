@@ -45,5 +45,8 @@ test('bank transfer accepts exact successful execution evidence unchanged', () =
   const receipt = { code: 0, transactionHash: hash, height: 42 };
   assert.equal(verifiedBankTransfer(receipt), receipt);
 });
+for (const height of [undefined,0,-1,'42',1.5,Number.MAX_SAFE_INTEGER+1])
+  test(`bank transfer successful code still requires committed height ${height}`, () =>
+    assert.throws(() => verifiedBankTransfer({code:0,transactionHash:hash,height}), error => error.message.includes(hash) && error.message.includes('before retrying')));
 for (const result of [null, { code: '0', transactionHash: hash }, { code: -1, transactionHash: hash }, { code: 0, transactionHash: 'fabricated' }])
   test(`bank transfer rejects malformed evidence ${JSON.stringify(result)}`, () => assert.throws(() => verifiedBankTransfer(result), /Reconcile submission/));

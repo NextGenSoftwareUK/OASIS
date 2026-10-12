@@ -39,5 +39,6 @@ export function verifiedBankTransfer(result) {
     throw new Error('Cosmos transfer response does not establish an exact execution code and transaction hash. Reconcile submission before retrying.');
   if (result.code !== 0)
     throw new Error(`Cosmos transfer failed with execution code ${result.code}; transaction ${result.transactionHash}. Reconcile this original transaction before retrying.`);
+  verifiedContractExecution(result);
   return result;
 }
