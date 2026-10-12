@@ -75,7 +75,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         private async Task<T> ReadVersionAsync<T>(string recordKey, T current, int version) where T : class, IHolonBase
         {
-            if (current == null || version <= 0 || current.Version == version) return current;
+            if (version < 0) throw new ArgumentOutOfRangeException(nameof(version), "Version must be zero (latest) or a positive historical version.");
+            if (current == null || version == 0 || current.Version == version) return current;
             return await ReadAsync<T>(VersionKey(recordKey, version));
         }
 
@@ -147,6 +148,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         private async Task<List<T>> ReadAllAsync<T>(IEnumerable<string> keys, int version = 0) where T : class, IHolonBase
         {
+            if (version < 0) throw new ArgumentOutOfRangeException(nameof(version), "Version must be zero (latest) or a positive historical version.");
             using var gate = new SemaphoreSlim(MaxParallelReads);
             var tasks = keys.Select(async key =>
             {
