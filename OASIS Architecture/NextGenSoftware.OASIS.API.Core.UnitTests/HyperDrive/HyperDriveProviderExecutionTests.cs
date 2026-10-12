@@ -24,11 +24,13 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive;
 public sealed class HyperDriveProviderExecutionTests
 {
     [Theory]
-    [InlineData(false)] [InlineData(true)]
-    public async Task SettingsSavePreservesRealRouterReplicaFailureWarning(bool synchronous)
+    [InlineData(false, false, false)] [InlineData(true, false, false)]
+    [InlineData(false, true, false)] [InlineData(true, true, false)]
+    [InlineData(false, true, true)] [InlineData(true, true, true)]
+    public async Task SettingsSavePreservesRealRouterReplicaFailureWarning(bool synchronous, bool karma, bool deduct)
     {
         var primary = CreateActiveProvider(); var replica = CreateActiveProvider(ProviderType.LocalFileOASIS, "unavailable-replica");
-        var settings = new Holon { Id = Guid.NewGuid(), MetaData = new Dictionary<string, object>() };
+        var settings = new Holon { Id = Guid.NewGuid(), MetaData = new Dictionary<string, object> { ["totalKarma"] = 100L } };
         primary.Setup(value => value.LoadHolon(It.IsAny<Guid>(), true, true, 0, true, false, 0)).Returns(new OASISResult<IHolon>(settings));
         primary.Setup(value => value.LoadHolonAsync(It.IsAny<Guid>(), true, true, 0, true, false, 0)).ReturnsAsync(new OASISResult<IHolon>(settings));
         primary.Setup(value => value.SaveHolon(It.IsAny<IHolon>(), true, true, 0, true, false)).Returns((IHolon value, bool a, bool b, int c, bool d, bool e) => new OASISResult<IHolon>(value));
@@ -40,10 +42,19 @@ public sealed class HyperDriveProviderExecutionTests
         providers.SetAndReplaceAutoReplicationListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.LocalFileOASIS) });
         var manager = new HolonManager(primary.Object, dna, providers);
         var payload = new Dictionary<string, object> { ["totalKarma"] = 10L };
-        var result = synchronous ? manager.SaveSettings(Guid.NewGuid(), "karma", payload) : await manager.SaveSettingsAsync(Guid.NewGuid(), "karma", payload);
+        OASISResult<bool> result;
+        if (karma)
+        {
+            var ledger = new KarmaManager(primary.Object, dna, providers); var avatarId = Guid.NewGuid();
+            result = synchronous
+                ? deduct ? ledger.DeductKarma(avatarId, 25, KarmaSourceType.Platform) : ledger.AddKarma(avatarId, 25, KarmaSourceType.Platform)
+                : deduct ? await ledger.DeductKarmaAsync(avatarId, 25, KarmaSourceType.Platform) : await ledger.AddKarmaAsync(avatarId, 25, KarmaSourceType.Platform);
+        }
+        else result = synchronous ? manager.SaveSettings(Guid.NewGuid(), "karma", payload) : await manager.SaveSettingsAsync(Guid.NewGuid(), "karma", payload);
         result.IsError.Should().BeFalse(result.Message); result.Result.Should().BeTrue();
         providers.LastReplicationDiagnostic.FailedCount.Should().Be(1);
         result.IsWarning.Should().BeTrue("settings wrappers must not conceal real replica failure");
+        result.MetaData.Should().NotBeNull(); result.MetaData.Should().ContainKey("hyperDriveReplicationDiagnostic");
     }
 
     [Theory]
