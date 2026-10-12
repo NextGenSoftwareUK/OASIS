@@ -8,6 +8,15 @@ import { PrivateKey } from '@hiero-ledger/sdk';
 const request = {sender:'0.0.1001',contractId:'0.0.2001',tokenId:'0.0.3001',serial:'9007199254740993',
  gas:400000,maxFeeTinybars:'100000000',runtimeCodeHash:'0x'+'11'.repeat(32),transactionId:'0.0.1001@1700000000.000000001',
  approvalTransactionId:'0.0.1001@1700000000.000000002'};
+for (const action of ['nftEscrowLock','nftEscrowUnlock','tokenEscrowLock','tokenEscrowUnlock']) {
+ test(`${action} constructor refuses absent original identity`,()=>{
+  const construct=action.startsWith('nft')?escrowTransaction:tokenEscrowTransaction;
+  const valid={...request,senderEvmAddress:'0x'+'12'.repeat(20)};
+  assert.doesNotThrow(()=>construct(action,valid));
+  for(const transactionId of [undefined,null,'',' '])
+   assert.throws(()=>construct(action,{...valid,transactionId}));
+ });
+}
 for(const action of ['tokenEscrowLock','tokenEscrowUnlock']) test(`${action} dispatcher rejects missing EVM identity before network use`,async()=>{
  await assert.rejects(()=>execute(action,request),/real sender EVM address/);
 });

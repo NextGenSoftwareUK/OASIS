@@ -22,6 +22,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera deployment and escrow original-ID coverage — 2026-10-12
+
+Added ten direct constructor cases covering all six deployment mutations and all four NFT/token escrow mutations. Each first proves its otherwise-valid request constructs successfully, then rejects absent/null/empty/whitespace original IDs; therefore unrelated validation cannot satisfy the rejection assertion. The full retained SDK suite passes **96/96**, zero skips/todos. These are official SDK constructor/preflight tests, not funded ledger or routing-policy proof. No production implementation change was necessary in these constructors; they already parsed explicit original IDs. Runtime/environment reused, no downloads or ledger writes.
+
 ### Hedera direct bridge original-ID invariant — 2026-10-12
 
 The direct SDK transfer/HTS execution path no longer calls `TransactionId.generate` when the caller omits its original transaction ID. It requires an explicit nonempty ID after existing payload/key validation and before client creation, matching the C# boundary's invariant. This removes an independent identity-generation path that would prevent callers retaining a prepared identity before submission. Existing one-attempt/disabled-regeneration settings remain on native mutations. All five retained SDK test files passed **86/86**, zero skips/todos, including absent/null/empty/whitespace original IDs rejected before network access. Tests use the pinned official SDK's actual key and transaction construction, not funded consensus. Durable pre-submit journal integration and live routing gates remain open. No installation, download or ledger mutation occurred.

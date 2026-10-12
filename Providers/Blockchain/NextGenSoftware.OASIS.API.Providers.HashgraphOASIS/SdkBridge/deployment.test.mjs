@@ -1,6 +1,15 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {PrivateKey,Transaction,AccountId} from '@hiero-ledger/sdk';
 import {deploymentTransaction} from './deployment.mjs';
+for (const action of ['bytecodeFileCreate','bytecodeFileAppend','contractCreate','nftCollectionCreate','tokenCollectionDelete','nftMetadataUpdate']) {
+ test(`${action} constructor refuses absent original identity`, () => {
+  const key=PrivateKey.generateECDSA().publicKey;
+  const valid={...request,name:'Oak',symbol:'OAK',maxSupply:'10',tokenId:'0.0.3001',serials:['1'],metadata:'Oak'};
+  assert.doesNotThrow(()=>deploymentTransaction(action,valid,key));
+  for(const transactionId of [undefined,null,'',' '])
+   assert.throws(()=>deploymentTransaction(action,{...valid,transactionId},key));
+ });
+}
 test('collection and NFT metadata reject malformed Unicode rather than replace it',()=>{
  const key=PrivateKey.generateECDSA().publicKey;
  for(const malformed of ['\ud800','\udfff']){
