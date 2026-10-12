@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera process communication failures — 2026-10-12
+
+Hedera SDK stdout/stderr use strict UTF-8 decoding. Mutation pipe I/O and decoding failures after process launch now carry the original mutation/possible approval IDs with `process-communication-unverified` evidence and the HyperDrive reconciliation marker. They do not assert ledger acceptance, failure, or fee outcome. Reader observation in cleanup no longer overwrites that primary exception with the same I/O/decoding fault. Pre-launch errors and non-mutation failures are not reclassified as native submissions.
+
+Verification: provider build succeeded with 0 errors and 2 existing warnings. Selected non-funded C# suite **242/242**, zero skips, including a controlled child emitting invalid UTF-8; retained SDK/environment reused. Fixed report: `TestResults/HederaCurrent/hedera-response-validation.trx`. This selection excludes funded testnet cases and the actual two-minute timeout case. No new live ledger/policy certification or deployment is implied; funded verification and durable pre-submit journaling remain outstanding.
+
 ### Hedera failure identity validation — 2026-10-12
 
 The C# SDK process boundary now rejects failure metadata that substitutes a foreign primary, approval or escrow-mutation transaction ID. Invalid metadata retains the originally requested mutation ID, discards unverified partial approval/status fields, and requires reconciliation rather than enabling HyperDrive replay. A null reported primary ID no longer erases the original ID. Reported identities at unknown stages are treated as uncertain mutations; known construction/signing/validation failures retain their existing pre-submission classification unless a completed approval is reported.

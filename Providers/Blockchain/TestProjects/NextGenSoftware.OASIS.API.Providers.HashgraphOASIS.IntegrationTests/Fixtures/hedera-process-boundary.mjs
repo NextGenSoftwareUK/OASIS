@@ -4,7 +4,8 @@ for await (const chunk of process.stdin) input+=chunk;
 const envelope=JSON.parse(input);
 if(envelope.action==='storageDelete') {
  const mode=envelope.request.fixtureStage;
- if(mode==='bad-json')process.stdout.write('invalid JSON');
+ if(mode==='invalid-utf8')process.stdout.write(Buffer.from([0xff]));
+ else if(mode==='bad-json')process.stdout.write('invalid JSON');
  else process.stdout.write(JSON.stringify(mode==='missing'?{}:mode==='scalar'?[]:mode==='wrong-id'?{transactionId:'another-id',status:'SUCCESS'}
   :mode==='failed'?{transactionId:envelope.request.transactionId,status:'CONTRACT_REVERT_EXECUTED'}
   :mode==='bad-status'?{transactionId:envelope.request.transactionId,status:true}
