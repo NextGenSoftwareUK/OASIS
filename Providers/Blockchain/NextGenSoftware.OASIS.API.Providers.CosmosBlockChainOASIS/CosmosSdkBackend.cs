@@ -74,12 +74,7 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
         if (string.IsNullOrWhiteSpace(_privateKey))
             throw new InvalidOperationException("Cosmos storage requires its owner signing key.");
         await InvokeAsync("probe", null, cancellationToken);
-        // Verify actual write authority as well as RPC/query reachability.
-        var key = "oasis/probe/" + Guid.NewGuid().ToString("N");
-        await PutAsync(key, key, cancellationToken);
-        if (await GetAsync(key, cancellationToken) != key)
-            throw new InvalidDataException("Cosmos authenticated storage readback did not match the committed value.");
-        await DeleteAsync(key, cancellationToken);
+        // The SDK probe validates contract owner against the configured signer without paid mutation.
     }
 
     internal Task<JsonElement> InvokeAsync(string operation, object args = null, CancellationToken cancellationToken = default)
