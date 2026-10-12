@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Combined actual Node/C# pipe/Mongo preparation acknowledgement — 2026-10-12
+
+The real-Mongo ordering fixture now launches the actual Node preparation client, receives its frame through the current-user C# pipe, writes the original prepared identity to the existing outbox, and only then allows the child to complete successfully. Readback confirms one original ID with ledger acknowledgement still null. Shared suite **83/83**, zero skips; report `TestResults/SharedStorageCurrent/shared-current.trx` supersedes the preceding C#-client-only case. Existing Node service/process helper is reused; owned child and generated database cleaned up. No install or ledger mutation.
+
+This combines actual local IPC and database persistence, but its evidence is a controlled descriptor, not provider-signed bytes. Production lifecycle, authenticated binding, complete signed evidence storage and crash/recovery proof remain required; no certification or release merge.
+
 ### Parent acknowledgement after actual existing Mongo outbox write — 2026-10-12
 
 Added a bounded integration case using the already-running local MongoDB service and existing `MongoUsageOutboxStore` (majority/journal write settings). The pipe parent writes a prepared provider attempt before acknowledging; readback confirms exactly one original provider identity and null ledger acknowledgement timestamp. Full shared suite **83/83**, zero skips; fixed report `TestResults/SharedStorageCurrent/shared-current.trx`. The freshly generated owned `usage_pipe_test_...` database was dropped in finally; source, credentials, user data and shared services retained. Initial test compilation error was corrected before successful execution.
