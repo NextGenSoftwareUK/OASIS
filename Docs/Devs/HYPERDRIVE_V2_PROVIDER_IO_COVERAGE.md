@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Signed Sui rejection through parent pipe — 2026-10-12
+
+The real signed-evidence test now also submits an altered signature through a separate owned parent pipe. Official-SDK verification fails; no acknowledgement is returned, acceptance callback never completes, and retained prepared identity remains null. Full selected Sui C# regression rerun after the test expansion: **70/70**, zero skips, actual two-minute deadline excluded, `TestResults/SuiCurrent/sui-preparation-current.trx`. Existing nullable test-field compiler warning remains.
+
+This closes the pipe signature-rejection check, not database durability or submitted transaction recovery. Actual signed SDK/pipe/Mongo combination and production admitted native calls remain next integration gates; complete provider interfaces, live orchestration, billing and deployed API verification are still incomplete. Reused existing SDK/build/test paths; no install, ledger submission or release merge.
+
 ### Real signed Sui evidence through parent pipe verifier — 2026-10-12
 
 Expanded the existing offline official-SDK signing test to send its actual signed transaction descriptor through the real Windows parent pipe. The callback runs the provider's official SDK signature/digest/sender verifier before acknowledgement; ack and retained ID match the signed original, callback runs once. Focused **1/1**, zero skips, `TestResults/SuiCurrent/sui-real-preparation.trx` (this report now contains only the focused case). Callback persistence is controlled/in-memory: this does not prove Mongo durability or ledger submission. Invalid signature rejection remains exercised separately in this case.
