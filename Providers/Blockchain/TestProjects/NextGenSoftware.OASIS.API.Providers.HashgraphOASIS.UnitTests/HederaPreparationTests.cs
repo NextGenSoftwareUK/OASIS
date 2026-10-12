@@ -8,6 +8,17 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class HederaPreparationTests
 {
+    [TestMethod]
+    public async Task PreparedSdkRejectsReadonlyAndEscrowBeforeParentPersistence()
+    {
+        var client=typeof(HashgraphOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.HederaSdkClient")!;
+        var method=client.GetMethod("InvokePreparedAsync",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!;
+        foreach(var action in new[]{"verifyNativePreparation","nftEscrowLock"}){
+            var calls=0;using var server=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer((_,_)=>{calls++;return Task.CompletedTask;});
+            var operation=(Task<JsonElement>)method.Invoke(null,new object[]{action,new{transactionId="0.0.1001@1700000000.000000001"},server,CancellationToken.None})!;
+            await Assert.ThrowsExceptionAsync<ArgumentException>(()=>operation);Assert.AreEqual(0,calls);
+        }
+    }
     private sealed class OfflineAuthority(string user):HttpMessageHandler
     {
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
