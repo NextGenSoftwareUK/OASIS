@@ -11,22 +11,33 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
 
 public partial class CosmosBlockChainOASIS
 {
-    private async Task<string> SigningKeyAsync(Guid avatarId, string suppliedKey = null, string suppliedSeed = null)
+    private async Task<string> SigningKeyAsync(Guid avatarId, string suppliedKey = null, string suppliedSeed = null, string suppliedPublicKey = null)
     {
         if (!string.IsNullOrWhiteSpace(suppliedKey) && !string.IsNullOrWhiteSpace(suppliedSeed) && suppliedKey != suppliedSeed)
             throw new ArgumentException("Specify one sender key or seed phrase, not conflicting credentials.");
-        if (!string.IsNullOrWhiteSpace(suppliedKey)) return suppliedKey;
-        if (!string.IsNullOrWhiteSpace(suppliedSeed)) return suppliedSeed;
-        if (avatarId == Guid.Empty)
+        string key;
+        if (!string.IsNullOrWhiteSpace(suppliedKey)) key = suppliedKey;
+        else if (!string.IsNullOrWhiteSpace(suppliedSeed)) key = suppliedSeed;
+        else if (avatarId == Guid.Empty)
         {
             if (string.IsNullOrWhiteSpace(_privateKey)) throw new InvalidOperationException("Cosmos signer is not configured.");
-            return _privateKey;
+            key = _privateKey;
         }
-        var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(avatarId,
-            Core.Enums.ProviderType.CosmosBlockChainOASIS, showPrivateKeys: true);
-        if (wallet.IsError || wallet.Result == null || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
-            throw new InvalidOperationException($"Cosmos sender wallet could not be loaded: {wallet.Message}");
-        return wallet.Result.PrivateKey;
+        else
+        {
+            var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(avatarId,
+                Core.Enums.ProviderType.CosmosBlockChainOASIS, showPrivateKeys: true);
+            if (wallet.IsError || wallet.Result == null || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
+                throw new InvalidOperationException($"Cosmos sender wallet could not be loaded: {wallet.Message}");
+            key = wallet.Result.PrivateKey;
+        }
+        if (!string.IsNullOrWhiteSpace(suppliedPublicKey))
+        {
+            var restored = await ((CosmosSdkBackend)Backend).InvokeAsync("restoreKey", new { privateKey = key });
+            if (!string.Equals(restored.GetProperty("publicKey").GetString(), suppliedPublicKey, StringComparison.Ordinal))
+                throw new ArgumentException("The supplied public key does not match the signing key.");
+        }
+        return key;
     }
 
     private async Task<string> SignerAddressAsync(string signingKey)

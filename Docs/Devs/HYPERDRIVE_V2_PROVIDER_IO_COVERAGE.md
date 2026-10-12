@@ -5,6 +5,12 @@
 
 ## Routing contract
 
+### Cosmos unified signer/public-key validation and mint avatar binding (2026-10-11)
+
+Existing `SigningKeyAsync` now resolves one supplied/default/avatar wallet key and validates a supplied public key through the existing SDK restore operation. NFT send reuses that validation rather than a duplicate block; token send now validates its supplied public key too. NFT/token burn no longer passes `OwnerPublicKey` as `fromWalletAddress`: the SDK derives the actual signer address from the validated key. Six controlled burn cases prove omitted/matching keys succeed, mismatched keys fail without a transaction result, and the execute fixture receives no public-key-as-address parameter. Full Cosmos unit suite passes **34/34**, zero skips (`cosmos-unit-current.trx`); bounded provider build succeeds. Required seed fields in test DTO initializers were corrected before execution.
+
+Custom-token mint now forwards `MintedByAvatarId` to the existing default-wallet resolver instead of Guid.Empty. Positive real encrypted avatar-wallet mint resolution still requires proof; this source correction and controlled process tests are **not** live chain/authority/burn consensus evidence. Existing configured-key behavior remains only for an explicitly empty actor ID. No alternate signing pipeline, install/download/ledger/runtime/environment mutation/merge. Current Cosmos live policy gate and remaining full release gates stay open.
+
 ### Cosmos NFT selector consistency preflight (2026-10-11)
 
 Cosmos NFT send previously chose `TokenAddress ?? FromNFTTokenAddress`, ignoring contradictory nonblank selectors and treating blank optional TokenAddress as a real locator. It now requires one ordinal-consistent nonblank locator before signer/SDK access; existing token-ID consistency check remains. Five controlled process cases cover null/blank optional selector, identical selectors, conflict and missing identity; accepted cases retain the controlled committed hash after forced readback failure, rejected cases have no result. Full Cosmos unit suite passes **28/28**, zero skips (`cosmos-unit-current.trx`); bounded provider build succeeds. Existing pinned CosmJS SDK checks pass **3/3** (real key generation/recovery, invalid signer, unreachable RPC), with no reinstall/download. These are not current live consensus proofs; Cosmos runtime policy/live gate remains separate.
