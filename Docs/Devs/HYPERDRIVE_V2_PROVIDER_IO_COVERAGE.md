@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Reused exact dependency objects for subscription structural gates (2026-10-12)
+
+Confirmed existing sibling STAR/WEB6 Git repositories contain the exact manifest-pinned commit objects (`3c038691ffb0bc4c5eaad63e97b7b9369750b110`, `a4b8643f4daa88025529744f6fd437e338132cab`). New explicit validator input mode reads those immutable objects and checks the parent committed gitlinks against the manifest; it does not use their different working-tree revisions. Directory existence is checked against a strict Git tree inventory, and source lookup failures propagate rather than falling back. Other services remain explicitly parent-worktree source. No new checkout/clone/fetch/export/download/environment.
+
+`validate_web4_subscription_authority.py` and `validate_subscription_rollout_gate.py` both pass with the pinned-repository options documented in `SUBSCRIPTION_RAILWAY_CONFIGURATION.md`. Five source-reader tests pass; default checkout mode still fails closed on missing dependency files and now reports both missing programs instead of a missing-file traceback. This closes the previously missing-input structural source check only. It does not prove exact-pin build/packaging, deployed middleware/flags, billing/webhooks/native fee admission or provider runtime behavior. All corresponding end-to-end gates remain open; no deployment, configuration activation or merge occurred. Free C approximately 101.3 GB decimal.
+
 ### Cosmos process interruption and response integrity (2026-10-12)
 
 Cosmos now rejects already-canceled invocations before child launch and prevents arguments overriding the authoritative operation. Started mutation cancellation/deadline expiry carries reconciliation-required cancellation/timeout types, preserving the caller cancellation token and leaving unavailable identity null. Missing output, invalid UTF-8/JSON, malformed boolean/outcome envelopes and mutation success without transaction identity cannot become retryable ordinary errors or saved-success results. Valid explicit SDK preflight failures remain ordinary; read cancellation does not become mutation evidence. Process encoding is strict UTF-8. One finalizer terminates owned children and observes readers, preserving primary cancellation/I/O failures; untrusted stderr is drained rather than exposed in API errors.
