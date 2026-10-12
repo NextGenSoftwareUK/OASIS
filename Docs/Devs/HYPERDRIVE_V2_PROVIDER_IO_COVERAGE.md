@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Actual Node-to-C# preparation handshake — 2026-10-12
+
+Shared tests now launch the retained Node executable using the actual preparation client and connect it to `PreparedSubmissionServer`'s private Windows pipe. Parent persistence success is accepted; parent callback rejection terminates the pipe and the child fails without acknowledgement. Each case checks exactly one persistence call, bounded completion, empty output/diagnostics and owned process termination. Full shared suite **78/78**, zero skips; fixed report `TestResults/SharedStorageCurrent/shared-current.trx`. Test output copies the same source module, not a second installed environment. No install/download or ledger mutation.
+
+This closes Windows transport interoperability evidence only. Persistence callbacks are controlled, not actual outbox/database writes. Provider process lifecycle wiring, authenticated operation/chain/payer binding, real durable storage and crash/recovery verification remain open. No full certification or Development merge.
+
 ### C# private preparation parent server — 2026-10-12
 
 Added `PreparedSubmissionServer` in shared storage: a single-use current-user-only asynchronous pipe, bounded strict UTF-8 versioned preparation frame, awaited owner-supplied persistence callback, and matching acknowledgement only after callback success. Failure/cancellation disposes the pipe without acknowledgement; no duplicate journal store was introduced. Caller owns cancellation/deadline and must validate provider cryptography, authenticated operation, chain/payer and actual durable evidence inside the callback.
