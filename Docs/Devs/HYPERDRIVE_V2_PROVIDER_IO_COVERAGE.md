@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Positive rotated TRON NFT/token/approval SDK paths — 2026-10-12
+
+Extended controlled actual SDK/gRPC coverage to NFT mint, NFT transfer with authoritative ownerOf precheck, TRC20 transfer with decimals query and ABI-true receipt, and token approval. The served permission snapshot requires the explicitly requested owner account (different from signing-key-derived address); every account query asserts that owner. Broadcast independently verifies the actual signed protobuf against owner permission authority. Every positive case constructs and broadcasts once and returns the exact original digest. Complete suite **268/268 passed**, zero skips (`tron-current.trx`). Corrected one test call's cancellation-token argument position before passing runs; no production signature or assertion weakened.
+
+These are controlled shipping-path tests, not real token/NFT contracts or public-chain certification. Positive rotated escrow lock/unlock, active permission/multisignature, live original TRON reconciliation, deployed routes and all other release gates remain open. No install, retained ledger mutation, merge or deployment.
+
 ### Rotated TRON contract calls/deployment and confirmed readback fence — 2026-10-12
 
 Controlled actual SDK/gRPC tests now exercise positive rotated owner signing for ABI contract calls and bytecode deployment. Broadcast verifies actual signed bytes against the served permission snapshot; each path constructs/broadcasts once. During coverage, found deployment's post-confirmation receipt/address readback could throw ordinary errors, permitting unsafe retry classification. It now preserves the confirmed original digest/genesis/cause in `TronCommittedReadbackException`. Missing contract address and unavailable second receipt queries both preserve reconciliation-required evidence and never broadcast again.
