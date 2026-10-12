@@ -541,8 +541,18 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         {
             var path = ancestors == null ? new HashSet<Guid>() : new HashSet<Guid>(ancestors);
             if (!path.Add(parentId)) throw new System.IO.InvalidDataException("Cyclic holon parent relationship encountered during recursive child loading.");
-            var keys = await Backend.ListKeysAsync(ParentPrefix(parentId));
-            var children = await ReadAllAsync<IHolon>(keys.Select(k => HolonKey(IdFromKey(k))), version);
+            List<IHolon> children;
+            if (version > 0)
+            {
+                // Current parent indexes cannot represent a retained historical record's former parent.
+                var historicalKeys = await Backend.ListKeysAsync($"{KeyPrefix}holon/");
+                children = (await ReadAllAsync<IHolon>(historicalKeys, version)).Where(child => child.ParentHolonId == parentId).ToList();
+            }
+            else
+            {
+                var keys = await Backend.ListKeysAsync(ParentPrefix(parentId));
+                children = await ReadAllAsync<IHolon>(keys.Select(k => HolonKey(IdFromKey(k))), version);
+            }
             var reachedDepth = maxChildDepth > 0 && depth + 1 >= maxChildDepth;
             if (recursive && !reachedDepth)
             {
