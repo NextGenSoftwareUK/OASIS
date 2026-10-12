@@ -83,6 +83,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
             var result = await _provider.LoadAvatarAsync(Guid.NewGuid());
             Assert.IsTrue(result.IsError);
             Assert.IsNull(result.Result);
+            Assert.AreEqual("OASIS_RECORD_NOT_FOUND", result.ErrorCode);
         }
 
         [TestMethod]

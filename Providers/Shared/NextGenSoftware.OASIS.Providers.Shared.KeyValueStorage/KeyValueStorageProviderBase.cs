@@ -151,10 +151,11 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             return (await Task.WhenAll(tasks)).Where(x => x != null).ToList();
         }
 
-        private OASISResult<T> Fail<T>(string message, Exception ex = null)
+        private OASISResult<T> Fail<T>(string message, Exception ex = null, string errorCode = null)
         {
             var result = new OASISResult<T>();
             OASISErrorHandling.HandleError(ref result, $"{Name}: {message}", ex);
+            result.ErrorCode = errorCode;
             return result;
         }
 
@@ -209,7 +210,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             try
             {
                 var avatar = await ReadVersionAsync(AvatarKey(id), await ReadAsync<IAvatar>(AvatarKey(id)), version);
-                return avatar == null ? Fail<IAvatar>($"Avatar {id}{(version > 0 ? $" version {version}" : "")} not found.") : Ok(avatar);
+                return avatar == null ? Fail<IAvatar>($"Avatar {id}{(version > 0 ? $" version {version}" : "")} not found.", errorCode: OASISResultErrorCodes.RecordNotFound) : Ok(avatar);
             }
             catch (Exception ex) { return Fail<IAvatar>($"Error loading avatar {id}: {ex.Message}", ex); }
         }
@@ -226,7 +227,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             try
             {
                 var id = await ReadIdAsync(indexKey);
-                return id.HasValue ? await LoadAvatarAsync(id.Value, version) : Fail<IAvatar>($"No avatar with {description}.");
+                return id.HasValue ? await LoadAvatarAsync(id.Value, version) : Fail<IAvatar>($"No avatar with {description}.", errorCode: OASISResultErrorCodes.RecordNotFound);
             }
             catch (Exception ex) { return Fail<IAvatar>($"Error loading avatar with {description}: {ex.Message}", ex); }
         }
@@ -329,7 +330,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             try
             {
                 var detail = await ReadVersionAsync(AvatarDetailKey(id), await ReadAsync<IAvatarDetail>(AvatarDetailKey(id)), version);
-                return detail == null ? Fail<IAvatarDetail>($"Avatar detail {id} not found.") : Ok(detail);
+                return detail == null ? Fail<IAvatarDetail>($"Avatar detail {id} not found.", errorCode: OASISResultErrorCodes.RecordNotFound) : Ok(detail);
             }
             catch (Exception ex) { return Fail<IAvatarDetail>($"Error loading avatar detail {id}: {ex.Message}", ex); }
         }
@@ -339,7 +340,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
             var avatar = await LoadAvatarByUsernameAsync(avatarUsername, version);
-            return avatar.IsError ? Fail<IAvatarDetail>(avatar.Message) : await LoadAvatarDetailAsync(avatar.Result.Id, version);
+            return avatar.IsError ? Fail<IAvatarDetail>(avatar.Message, avatar.Exception, avatar.ErrorCode) : await LoadAvatarDetailAsync(avatar.Result.Id, version);
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0) => LoadAvatarDetailByUsernameAsync(avatarUsername, version).GetAwaiter().GetResult();
@@ -347,7 +348,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
             var avatar = await LoadAvatarByEmailAsync(avatarEmail, version);
-            return avatar.IsError ? Fail<IAvatarDetail>(avatar.Message) : await LoadAvatarDetailAsync(avatar.Result.Id, version);
+            return avatar.IsError ? Fail<IAvatarDetail>(avatar.Message, avatar.Exception, avatar.ErrorCode) : await LoadAvatarDetailAsync(avatar.Result.Id, version);
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) => LoadAvatarDetailByEmailAsync(avatarEmail, version).GetAwaiter().GetResult();
@@ -440,7 +441,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             try
             {
                 var holon = await ReadVersionAsync(HolonKey(id), await ReadAsync<IHolon>(HolonKey(id)), version);
-                if (holon == null) return Fail<IHolon>($"Holon {id} not found.");
+                if (holon == null) return Fail<IHolon>($"Holon {id} not found.", errorCode: OASISResultErrorCodes.RecordNotFound);
                 if (loadChildren)
                 {
                     var children = await LoadChildrenAsync(holon.Id, HolonType.All, recursive, maxChildDepth, 0);
