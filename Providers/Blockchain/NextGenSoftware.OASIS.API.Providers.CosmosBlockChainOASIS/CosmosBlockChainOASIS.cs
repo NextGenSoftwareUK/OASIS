@@ -59,8 +59,14 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
         /// <param name="chainId">Cosmos chain ID</param>
         /// <param name="privateKey">Private key for signing transactions</param>
         public CosmosBlockChainOASIS(string rpcEndpoint = "https://cosmos-rpc.polkachu.com", string chainId = "cosmoshub-4", string privateKey = "", string contractAddress = "", string addressPrefix = "cosmos", string gasPrice = "0.025uatom", string nativeDenom = "uatom", int nativeDecimals = 6)
-            : base(new CosmosSdkBackend(rpcEndpoint, chainId, privateKey, contractAddress, addressPrefix, gasPrice))
+            : this(new CosmosSdkBackend(rpcEndpoint, chainId, privateKey, contractAddress, addressPrefix, gasPrice),privateKey,contractAddress,nativeDenom,nativeDecimals)
+        { }
+
+        private readonly CosmosSdkBackend _sdkBackend;
+        private CosmosBlockChainOASIS(CosmosSdkBackend sdk,string privateKey,string contractAddress,string nativeDenom,int nativeDecimals)
+            : base(sdk)
         {
+            _sdkBackend=sdk;
             this.ProviderName = "CosmosBlockChainOASIS";
             this.ProviderDescription = "Cosmos Blockchain Provider - Inter-blockchain communication protocol";
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.CosmosBlockChainOASIS);

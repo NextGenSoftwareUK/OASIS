@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos single SDK owner independent of storage composition — 2026-10-12
+
+Cosmos constructor now creates/retains one `CosmosSdkBackend`; native wallet, contract, NFT-proof, prepared and disposal calls use that same owned instance rather than casting the public storage composition. Storage still uses that exact instance today; a reference-identity test proves no duplicate signer/backend allocation. Public constructor signature and existing records/formats remain unchanged. Provider build zero warnings/errors; selected preparation suite **17/17** passed, zero skips (`cosmos-preparation-current.trx`). The mechanical call-site replacement is preparation for approved private-storage composition, not encryption/migration completion. Privacy choice, live Cosmos runtime and full post-change regression remain open gates. No installs, ledger calls, deployment or merge.
+
 ### Sui single SDK owner independent of storage composition — 2026-10-12
 
 Removed native/prepared/disposal dependence on casting the provider's storage backend to its raw concrete type. Constructor creates exactly one `SuiSdkClient`, shares that same instance with storage, and retains it for native/prepared operations/disposal. This preserves existing behavior while allowing a future approved private-storage wrapper without a second signer/transport. A reference-identity test proves native and storage paths share the exact client. Provider build zero warnings/errors; selected real-preparation suite **7/7** passed, no skips (`sui-preparation-current.trx`). No storage format, key, ledger data or public constructor signature changed; private-storage policy/migration remains pending. No installs, network spending or merge.

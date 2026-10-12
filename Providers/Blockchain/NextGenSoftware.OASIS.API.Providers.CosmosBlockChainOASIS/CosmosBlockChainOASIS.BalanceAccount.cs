@@ -49,7 +49,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             try
             {
                 if (string.IsNullOrWhiteSpace(accountAddress)) throw new ArgumentException("Account address is required.");
-                var coin = await ((CosmosSdkBackend)Backend).InvokeAsync("balance",
+                var coin = await _sdkBackend.InvokeAsync("balance",
                     new { walletAddress = accountAddress, denom = _nativeDenom }, token);
                 if (coin.GetProperty("denom").GetString() != _nativeDenom)
                     throw new InvalidOperationException("SDK returned a different asset denomination.");
@@ -69,7 +69,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
                     throw new ArgumentException("Wallet address is required.");
-                var indexed = await ((CosmosSdkBackend)Backend).InvokeAsync("transactions",
+                var indexed = await _sdkBackend.InvokeAsync("transactions",
                     new { walletAddress = request.WalletAddress, denom = _nativeDenom });
                 var transactions = new List<IWalletTransaction>();
                 foreach (var tx in indexed.EnumerateArray())
@@ -131,7 +131,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             var result = new OASISResult<IKeyPairAndWallet>();
             try
             {
-                var key = await ((CosmosSdkBackend)Backend).InvokeAsync("generateKey");
+                var key = await _sdkBackend.InvokeAsync("generateKey");
                 result.Result = new KeyPairAndWallet
                 {
                     PublicKey = key.GetProperty("publicKey").GetString(),
@@ -148,7 +148,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             var result = new OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>();
             try
             {
-                var key = await ((CosmosSdkBackend)Backend).InvokeAsync("generateKey", cancellationToken: token);
+                var key = await _sdkBackend.InvokeAsync("generateKey", cancellationToken: token);
                 var mnemonic = key.GetProperty("mnemonic").GetString();
                 result.Result = (key.GetProperty("publicKey").GetString(), mnemonic, mnemonic);
                 result.Message = "Recoverable Cosmos BIP39 wallet created; funding creates its on-chain account.";
@@ -163,7 +163,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             try
             {
                 if (string.IsNullOrWhiteSpace(seedPhrase)) throw new ArgumentException("Mnemonic or hex signing key is required.");
-                var key = await ((CosmosSdkBackend)Backend).InvokeAsync("restoreKey", new { privateKey = seedPhrase }, token);
+                var key = await _sdkBackend.InvokeAsync("restoreKey", new { privateKey = seedPhrase }, token);
                 result.Result = (key.GetProperty("publicKey").GetString(), seedPhrase);
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
@@ -177,7 +177,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                var pool = await ((CosmosSdkBackend)Backend).InvokeAsync("restoreKey");
+                var pool = await _sdkBackend.InvokeAsync("restoreKey");
                 var transfer = await SendBankTransferAsync(senderAccountAddress, pool.GetProperty("address").GetString(),
                     amount, "OASIS bridge withdrawal", _nativeDenom, senderPrivateKey);
                 if (transfer.IsError) throw transfer.Exception ?? new InvalidOperationException(transfer.Message);
@@ -196,7 +196,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             var result = new OASISResult<BridgeTransactionResponse>();
             try
             {
-                var pool = await ((CosmosSdkBackend)Backend).InvokeAsync("restoreKey");
+                var pool = await _sdkBackend.InvokeAsync("restoreKey");
                 var transfer = await SendBankTransferAsync(pool.GetProperty("address").GetString(), receiverAccountAddress,
                     amount, "OASIS bridge deposit", _nativeDenom, _privateKey);
                 if (transfer.IsError) throw transfer.Exception ?? new InvalidOperationException(transfer.Message);
@@ -217,7 +217,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!System.Text.RegularExpressions.Regex.IsMatch(transactionHash ?? "", @"\A[0-9a-fA-F]{64}\z"))
                     throw new ArgumentException("An exact 64-hex Cosmos transaction hash is required.");
-                var tx = await ((CosmosSdkBackend)Backend).InvokeAsync("transactionStatus", new { transactionHash }, token);
+                var tx = await _sdkBackend.InvokeAsync("transactionStatus", new { transactionHash }, token);
                 if (tx.ValueKind == JsonValueKind.Null)
                 {
                     result.Result = BridgeTransactionStatus.NotFound;
@@ -237,9 +237,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
             {
                 if (!System.Text.RegularExpressions.Regex.IsMatch(transactionHash ?? "", @"\A[0-9a-fA-F]{64}\z"))
                     throw new ArgumentException("Exact Cosmos transaction hash required.");
-                var receipt = await ((CosmosSdkBackend)Backend).InvokeAsync("nativeFeeReceipt", new { transactionHash }, token);
+                var receipt = await _sdkBackend.InvokeAsync("nativeFeeReceipt", new { transactionHash }, token);
                 if (!string.Equals(receipt.GetProperty("transactionHash").GetString(), transactionHash, StringComparison.OrdinalIgnoreCase)
-                    || receipt.GetProperty("chainId").GetString() != ((CosmosSdkBackend)Backend).ChainId
+                    || receipt.GetProperty("chainId").GetString() != _sdkBackend.ChainId
                     || receipt.GetProperty("basis").GetString() != "observed-ante-fee-deduction"
                     || string.IsNullOrWhiteSpace(receipt.GetProperty("payer").GetString())
                     || receipt.GetProperty("fees").ValueKind != JsonValueKind.Array)
