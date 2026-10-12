@@ -27,6 +27,33 @@ test('official broadcast clears its polling timer when synchronous broadcast rej
   }
 });
 const hash = 'ab'.repeat(32);
+for (const mode of ['success','poll-error','deadline']) {
+ test(`official broadcast clears polling timers on ${mode}`, async () => {
+  const client = new StargateClient(undefined, {});
+  client.broadcastTxSync = async () => hash;
+  const failure = new Error('controlled receipt lookup failure');
+  client.getTx = async () => {
+    if (mode === 'poll-error') throw failure;
+    return mode === 'deadline' ? null : {code:0,height:42,txIndex:0,events:[],gasUsed:1n,gasWanted:1n};
+  };
+  const timers=new Set(), set=globalThis.setTimeout, clear=globalThis.clearTimeout;
+  globalThis.setTimeout=(callback,delay,...args)=>{
+    const timer=set(()=>{timers.delete(timer);callback(...args);},delay);
+    timers.add(timer);return timer;
+  };
+  globalThis.clearTimeout=timer=>{timers.delete(timer);return clear(timer);};
+  try {
+    const operation=client.broadcastTx(new Uint8Array([1]),mode==='deadline'?5:60000,1);
+    if(mode==='success') {
+      const receipt=await operation;assert.equal(receipt.transactionHash,hash);assert.equal(receipt.height,42);
+    } else await assert.rejects(operation,error=>mode==='poll-error'?error===failure:error instanceof TimeoutError && error.txId===hash);
+    assert.equal(timers.size,0);
+  } finally {
+    for(const timer of timers)clear(timer);
+    globalThis.setTimeout=set;globalThis.clearTimeout=clear;
+  }
+ });
+}
 
 test('official SDK signing retains exact signed hash before transport and rejects substituted delivery identity', async () => {
   const wallet = await DirectSecp256k1Wallet.fromKey(new Uint8Array(32).fill(7), 'wasm');
