@@ -6,6 +6,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <PackageId>NextGenSoftware.OASIS.Web10.Core</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <Company>NextGen Software Ltd</Company>
     <Product>WEB10 OASIS Source Layer Core</Product>
     <Title>WEB10 OASIS Source Layer Core</Title>
@@ -44,4 +45,7 @@
     <ProjectReference Include="..\..\WEB9\NextGenSoftware.OASIS.Web9.Core\NextGenSoftware.OASIS.Web9.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
 </Project>

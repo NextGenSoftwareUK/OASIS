@@ -8,6 +8,7 @@
   
   <PropertyGroup>
     <PackageId>NextGenSoftware.OASIS.API.Providers.ONIONProtocolOASIS</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <Version>2.0.1</Version>
     <Title>OASIS ONION Protocol Provider</Title>
     <Product>OASIS ONION Protocol Provider</Product>
@@ -41,4 +42,7 @@
     <None Include="..\..\..\Logos\OASIS.jpg" Pack="true" PackagePath="\"/>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
 </Project>
