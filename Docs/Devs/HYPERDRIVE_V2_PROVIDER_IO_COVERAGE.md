@@ -24,6 +24,20 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Account-operation audit: canonical provider versus legacy helper — 2026-10-12
+
+Reviewed Hedera account/fee operation paths rather than inferring full SDK coverage from absence of TODO strings. `HashgraphOASIS.CreateAccountAsync(CancellationToken)` and `RestoreAccountAsync(string,CancellationToken)` use the official SDK mnemonic/key operations and explicitly do not claim funded ledger account creation. No new `CRYPTOCREATEACCOUNT` fee mapping was added: these methods generate/restore signing identities, not that ledger transaction.
+
+Separate public **HashgraphClient** legacy methods in `HashgraphOASIS.cs` still have documented gaps:
+
+| Legacy helper | Observed gap | Required future treatment |
+|---|---|---|
+| `CreateAccountAsync()` / `RestoreAccountAsync(string)` | NBitcoin BIP-39 seed truncated to 32 bytes with NaCl signing, Base64 key output; creation swallows exceptions and returns null; not canonical Hedera SDK derivation | Explicit versioned migration/compatibility decision; never silently change existing mnemonic-to-key mapping |
+| `ResolveAccountIdFromKeysAsync` | Multiple guessed mirror query formats and silent unsuccessful-path handling | One documented mirror contract with truthful failures; no invented account identity |
+| `GetTransactionStatusAsync` | Separate per-call HTTP client rather than provider's validated no-redirect mirror transport | Review endpoint/redirect policy and delegate through a defined boundary |
+
+Source search found direct constructor references only in the helper itself and existing integration tests. This does not prove external/reflection callers cannot use the public helper. No legacy implementation was changed and no wallet material was transformed. These gaps are not proof that the canonical V2 provider account path is broken, but they also prevent a blanket claim that every public helper uses real SDKs. No tests, network spending, installation, deployment or merge performed during this source audit.
+
 ### Complete current C# regressions after activation changes — 2026-10-12
 
 Current no-filter Sui suite **74/74**, Cosmos **98/98**, Core **430/430**, shared storage **92/92** all passed with zero skips/failures. Sui/Cosmos include their actual owned-process deadline tests (2m9s/2m7s), not just selected fast cases. Fixed reports: `PriorityProviderCurrent/SuiOASIS-current.trx`, `CosmosBlockChainOASIS-current.trx`, `HyperDriveCurrent/core-current.trx`, `SharedCurrent/shared-current.trx` under `TestResults`. Most recent separate complete suites remain Hedera **37/37** and TRON **242/242**; do not add overlapping selected suites to these totals.
