@@ -1,5 +1,13 @@
 import { TimeoutError } from '@cosmjs/stargate';
 
+export function verifiedContractExecution(result) {
+  const hash = result?.transactionHash;
+  const validHash = typeof hash === 'string' && /^[0-9a-fA-F]{64}$/.test(hash);
+  if (!validHash || !Number.isSafeInteger(result.height) || result.height <= 0)
+    throw new Error(`Cosmos contract execution lacks valid committed hash/height evidence.${validHash ? ` Original transaction ${hash}.` : ''} Reconcile submission before retrying.`);
+  return result;
+}
+
 export function cosmosFailureMessage(error) {
   if (error instanceof TimeoutError && /^[0-9a-fA-F]{64}$/.test(error.txId ?? ''))
     return `Cosmos submission outcome is not verified; original transaction ${error.txId}. Reconcile this transaction before retrying.`;
