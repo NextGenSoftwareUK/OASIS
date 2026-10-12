@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Retained TRON read-only recovery recheck and permission metadata — 2026-10-12
+
+Original WSL inspection finally terminated with `sudo: timed out`; it never established container state. Windows TCP 9090 accepted connection, but bounded read-only genesis and exact-original transaction HTTP queries both timed out at 10 seconds. No genesis/receipt/outcome proof obtained; existing original `db05ea6d3067038a56dfc75b64d2c46c32824282e8242335ce007d1e34a415bb` fence remains. No node restart/reset/replay issued. Do not report the old inspection as still live after this checkpoint.
+
+Inspected retained TronNet.Protocol 0.2.0 assembly: `Permission` exposes Type/Id/Threshold/ParentId/Operations/Keys; `Account` exposes Address/OwnerPermission/WitnessPermission/ActivePermission. Required active-permission implementation must bind a verified account/address, exact permission ID/type, operation-mask authority and unique weighted keys meeting threshold, not assume sender-address equality proves configured authority. This metadata audit is not implementation or live permission proof. Existing dependencies reused, no downloads/install; full live/deployed gates remain open.
+
 ### Single TRON operation-owner mapping for preparation/fees — 2026-10-12
 
 Preparation and fee receipts now share `OriginalOperationOwner` protobuf contract mapping; preparation retains its fail-closed error category/cause, fee behavior unchanged. Entire unit project **212/212**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`; build 0 errors/21 existing warnings. This removes mapping drift, not a substitute for unsupported permission/interface work or live proof. No RPC, installs, submissions or release merge; full gates remain open.
