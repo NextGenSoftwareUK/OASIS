@@ -5,6 +5,18 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 public sealed class TronBridgeSafetyTests
 {
     [Fact]
+    public async Task WrongWithdrawalSignerFailsBeforeStorageActivation()
+    {
+        var key = new string('0',63)+"1";
+        var sender = new TronNet.TronECKey(key,TronNet.TronNetwork.MainNet).GetPublicAddress();
+        var otherKey = new string('0',63)+"2";
+        var pool = new TronNet.TronECKey(otherKey,TronNet.TronNetwork.MainNet).GetPublicAddress();
+        var provider = new TRONOASIS(bridgePoolWalletAddress:pool);
+        var result = await provider.WithdrawAsync(1,sender,otherKey);
+        Assert.True(result.IsError); Assert.Null(result.Result);
+        Assert.Contains("does not own",result.Message); Assert.False(provider.IsProviderActivated);
+    }
+    [Fact]
     public async Task PoolSelfTransferCannotActivateResolveKeyOrReportMovement()
     {
         var key = new string('0',63)+"1";

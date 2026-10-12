@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### TRON bridge signer validation before fee-bearing activation (2026-10-12)
+
+Expanded real bridge test initially failed unchanged-sender-balance assertion: activation verifies private storage with signed write/delete probes, so invalid withdrawal credentials were rejected only after those probe fees. Root ordering fixed: explicit 32-byte key must derive the canonical requested TRON sender before activation. Real scenario now passes **1/1**, zero skips: wrong key leaves both balances unchanged, null error response and zero pool-key reads, then positive withdrawal/deposit receipts/deltas succeed. Added isolated inactive-provider rejection regression; full units **185/185**, zero skips. Provider/integration builds zero errors/23 and two warnings. Runtime paused afterward. Current bridge boundary accepts canonical Base58 sender identity; alternative encodings are not claimed supported. Deposit credential/activation ordering remains separately unaudited; no complete bridge/settlement/hosted certification follows.
+
 ### TRON native bridge real pool round trip (2026-10-12)
 
 New bounded live scenario passes **1/1**, zero skips (`tron-native-bridge-current.trx`), on retained TRE ledger/contract/public local actors. Withdraw commits sender key 1 to pool key 2, verifies exact pool +0.001 TRX and independent Completed receipt; deposit resolves only the configured pool signer once, commits back to sender and verifies exact receiver +0.001 TRX and its Completed receipt. Recipient deltas are measured separately from payer gas. Provider deactivates in finally; runtime paused afterward. Integration build zero errors/two warnings, no install/download/new environment. This proves both native bridge legs, not cross-chain settlement, external source-proof authorization, hosted access control or every bridge option.

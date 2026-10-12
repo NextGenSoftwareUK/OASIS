@@ -32,6 +32,13 @@ public sealed class TronLocalSdkTests
         try
         {
             var poolBefore = await runtime.NativeTransfers.GetNativeBalanceAsync(pool,bounded.Token);
+            var senderBeforeRejected = await runtime.NativeTransfers.GetNativeBalanceAsync(sender,bounded.Token);
+            var rejected = await provider.WithdrawAsync(0.001m,sender,RecipientKey);
+            Assert.True(rejected.IsError); Assert.Null(rejected.Result);
+            Assert.Contains("does not own",rejected.Message);
+            Assert.Equal(poolBefore,await runtime.NativeTransfers.GetNativeBalanceAsync(pool,bounded.Token));
+            Assert.Equal(senderBeforeRejected,await runtime.NativeTransfers.GetNativeBalanceAsync(sender,bounded.Token));
+            Assert.Equal(0,keyReads);
             var withdrawn = await provider.WithdrawAsync(0.001m,sender,SenderKey);
             Assert.False(withdrawn.IsError,withdrawn.Message); Assert.True(withdrawn.Result.IsSuccessful);
             Assert.Equal(0.001m,(await runtime.NativeTransfers.GetNativeBalanceAsync(pool,bounded.Token))-poolBefore);
