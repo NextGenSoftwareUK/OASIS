@@ -56,13 +56,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     response.Result = true;
                     return response;
                 }
-                if (_nativeTransfers == null)
-                {
-                    _ownedRuntime = new TronSdkRuntime(new Uri(_fullNodeGrpcEndpoint), new Uri(_solidityNodeGrpcEndpoint),
-                        _genesisBlockId, Environment.GetEnvironmentVariable(_apiKeyEnvironmentVariable), _contractFeeLimitSun);
-                    _nativeTransfers = _ownedRuntime.NativeTransfers;
-                    _nativeSigningKeyResolver = address => Task.FromResult(Environment.GetEnvironmentVariable(_signingKeyEnvironmentVariable));
-                }
+                EnsureNativeRuntime();
                 await _nativeTransfers.VerifyNetworkAsync();
                 await ((TronProviderStorageBackend)Backend).VerifyForActivationAsync();
                 IsProviderActivated = true;
