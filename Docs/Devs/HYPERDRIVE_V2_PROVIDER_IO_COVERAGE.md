@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Combined real-JWT TRON HTTP native transfer (2026-10-11)
+
+`WalletHttpSendCommitsRealTrxWithJwtAndEncryptedAvatarWallet` passes **1/1**, zero skips (`TestResults/Web4Current/web4-trx-token-send-http.trx`). The actual WEB4 HTTP/JWT middleware authenticates a persisted LocalFile avatar; WalletManager resolves its encrypted default TRON wallet and sends explicit `TRX` through the retained real TRON SDK/node. The response is HTTP 200/non-error with a 64-hex digest; independent native queries prove Completed status and exactly **0.001 TRX** recipient increase. Persisted private key remains encrypted. Owned avatar/wallet fixtures are removed and the existing runtime is paused afterward. Initial test compilation exposed namespace collisions with WEB4's `Avatar`/`File` and cryptographic `Rijndael`; explicit type qualification fixes the test rather than changing production behavior. No fresh environment, install, download, public-chain spending or merge. This closes the selected native TRON HTTP send gate, not every HTTP/native operation or remaining provider/release gates.
+
 ### Live shared native TRX transfer proof (2026-10-11)
 
 Shared `TRONOASIS.SendTokenAsync` explicit TRX path passes **1/1**, zero skips (`tron-native-shared-send.trx`): wrong supplied public key produces no digest and unchanged sender balance; valid signer gives a native 64-hex transaction ID, independent Completed status and exact **0.001 TRX** recipient increase. Retained loopback runtime/genesis/storage contract/public local fixture keys reused; no redeployment/reset. Full `TronLocalSdkTests` passes **8/8**, zero skips (`tron-local-sdk-current.trx`), including the new native path alongside existing SDK lifecycle/storage/escrow/account evidence. Runtime paused after completion. This establishes direct shared-provider native send, not combined HTTP/JWT TRON transfer or every native token/interface. Those and other provider/release gates remain open. No installs/download/public-chain spending/merge.
