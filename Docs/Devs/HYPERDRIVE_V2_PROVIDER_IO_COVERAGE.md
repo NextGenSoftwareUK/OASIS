@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Recursive save child-graph preflight (2026-10-11)
+
+Shared recursive save now validates the tree it will traverse before its first record/version/index write, rejecting repeated ancestor object references or nonempty ancestor IDs with a specific InvalidDataException. Validation follows existing saveChildren/recursive/depth traversal rules and does not introduce another persistence pipeline. Two controlled regressions verify reference and duplicate-identity cycles produce errors with the backend entirely unchanged. Full shared suite passes **55/55**, zero skips (`shared-current.trx`); explicit provider rebuild succeeds (zero errors/two warnings). Validation is per submitted tree, not batch-wide transactional atomicity, persisted parent-graph validation or a guarantee about excluded/untraversed child serialization. Live provider/API graph rejection remains required. No network mutation/install/download/new environment/merge; other release gates remain open.
+
 ### Live TRON retained historical reparenting verification (2026-10-11)
 
 Expanded owned real encrypted-storage scenario passes **1/1**, zero skips (`tron-parent-cycle.trx`), retaining cycle/depth assertions and enabling existing version control. After moving the fixture, async version-one old-parent read returns the old name/membership, sync version-one new-parent read is empty, and latest sync/async membership follows the new parent. Historical self-parent reads explicitly disable recursive expansion, since the old version intentionally contains a cycle. Finally deletes the owned record/history using the existing deletion operation; retained runtime paused after terminal completion. No new environment/install/download/reset/public assets/merge. This proves selected real per-record retained history, not global snapshots/deleted history/every provider/HTTP option or full completion.

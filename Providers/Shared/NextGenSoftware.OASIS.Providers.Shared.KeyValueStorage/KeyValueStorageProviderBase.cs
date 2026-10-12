@@ -450,6 +450,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             try
             {
                 if (holon == null) return Fail<IHolon>("Holon is required.");
+                ValidateSaveTree(holon, saveChildren, recursive, maxChildDepth, depth, new List<IHolon>());
                 if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
                 holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                 holon.ProviderUniqueStorageKey[StorageType] = holon.Id.ToString();
@@ -485,6 +486,18 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).GetAwaiter().GetResult();
+
+        private static void ValidateSaveTree(IHolon holon, bool saveChildren, bool recursive, int maxChildDepth, int depth, List<IHolon> ancestors)
+        {
+            if (holon == null) throw new ArgumentException("Child holon is required.");
+            if (ancestors.Any(parent => ReferenceEquals(parent, holon) || (holon.Id != Guid.Empty && parent.Id == holon.Id)))
+                throw new System.IO.InvalidDataException("Cyclic holon child graph cannot be saved recursively.");
+            var reachedDepth = maxChildDepth > 0 && depth + 1 >= maxChildDepth;
+            if (!saveChildren || holon.Children == null || (depth != 0 && !recursive) || reachedDepth) return;
+            ancestors.Add(holon);
+            foreach (var child in holon.Children) ValidateSaveTree(child, saveChildren, recursive, maxChildDepth, depth + 1, ancestors);
+            ancestors.RemoveAt(ancestors.Count - 1);
+        }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
