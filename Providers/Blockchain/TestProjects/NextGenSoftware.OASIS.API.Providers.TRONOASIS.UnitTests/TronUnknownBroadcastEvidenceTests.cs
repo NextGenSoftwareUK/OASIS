@@ -79,6 +79,13 @@ public class TronUnknownBroadcastEvidenceTests
             var expectedSender=new byte[21];expectedSender[0]=0x41;
             new Nethereum.Signer.EthECKey(new string('0',63)+"1").GetPublicAddressAsBytes().CopyTo(expectedSender,1);
             TronPreparationVerifier.VerifyOriginal(bytes,id,expectedSender);
+            Assert.Throws<System.IO.InvalidDataException>(()=>TronPreparationVerifier.VerifyOriginal(bytes,new string('f',64),expectedSender));
+            Assert.Throws<System.IO.InvalidDataException>(()=>TronPreparationVerifier.VerifyOriginal(bytes+" ",id,expectedSender));
+            Assert.Throws<ArgumentException>(()=>TronPreparationVerifier.VerifyOriginal(bytes,id,new byte[20]));
+            var altered=prepared.Clone();altered.Signature.Clear();
+            Assert.Throws<System.IO.InvalidDataException>(()=>TronPreparationVerifier.VerifyOriginal(Convert.ToBase64String(altered.ToByteArray()),id,expectedSender));
+            altered=prepared.Clone();var badParity=altered.Signature[0].ToByteArray();badParity[64]=2;altered.Signature[0]=ByteString.CopyFrom(badParity);
+            Assert.Throws<System.IO.InvalidDataException>(()=>TronPreparationVerifier.VerifyOriginal(Convert.ToBase64String(altered.ToByteArray()),id,expectedSender));
             expectedSender[1]^=1;
             Assert.Throws<System.IO.InvalidDataException>(()=>TronPreparationVerifier.VerifyOriginal(bytes,id,expectedSender));
             if(persistenceRejected)throw persistenceFailure;
