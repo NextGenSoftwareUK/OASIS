@@ -1,6 +1,8 @@
-# OASIS Edge Unity Integration
+# OGEngineClient + Edge + Unity
 
-This package distributes the Unity-specific OASIS Edge integration, separately from the standalone `NextGenSoftware.OASIS.Edge.Runtime` and `NextGenSoftware.OASIS.Edge.ONET.Runtime` libraries.
+This is the **OGEngineClient + Edge + Unity** distribution, not just an Edge Runtime adapter. It bundles the compiled Edge-enabled game client (`NextGenSoftware.OGEngine.Client.Edge.dll`), its shared client dependencies, OASIS Edge Runtime/ONET libraries, and Unity integration scripts and platform plugins. You do not need to install a separate OGEngineClient GitHub ZIP alongside it.
+
+The NuGet ID remains `NextGenSoftware.OASIS.Edge.Unity`; the GitHub release family is `OASIS-Edge-Unity-vX.Y.Z`. These names identify the complete Unity distribution. For non-Unity applications, choose standalone Edge or the RemoteOnly/Edge-enabled OGEngineClient distributions instead.
 
 ## Install into Unity
 

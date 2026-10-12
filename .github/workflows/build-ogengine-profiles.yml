@@ -8,6 +8,12 @@ on:
       publish:
         type: boolean
         required: true
+      remote_only:
+        type: boolean
+        default: true
+      edge:
+        type: boolean
+        default: true
     secrets:
       PRIVATE_SUBMODULE_PAT:
         required: true
@@ -18,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        profile: [RemoteOnly, Edge]
+        profile: ${{ fromJSON(inputs.remote_only && inputs.edge && '["RemoteOnly","Edge"]' || inputs.remote_only && '["RemoteOnly"]' || '["Edge"]') }}
         platform:
           - { os: windows-latest, rid: win-x64 }
           - { os: ubuntu-latest, rid: linux-x64 }
@@ -58,7 +64,9 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Managed profile compilation failed.' }
           $edgeDll = Test-Path "$root/Managed/NextGenSoftware.OGEngine.Client.Edge.dll"
           if ($edgeDll -ne ($edge -eq 'true')) { throw 'Managed profile dependency boundary violated.' }
-          dotnet publish $project -c Release -r $env:RID --self-contained true -p:PublishAot=true -p:OGEngineIncludeEdge=$edge -p:Version=$env:VERSION -o "$root/Native"
+          # The owning project enables AOT itself. Do not make PublishAot a global
+          # command-line property: that incorrectly forces netstandard dependencies through AOT.
+          dotnet publish $project -c Release -r $env:RID --self-contained true -p:OGEngineIncludeEdge=$edge -p:Version=$env:VERSION -o "$root/Native"
           if ($LASTEXITCODE -ne 0) { throw 'Native profile compilation failed.' }
           $extension = if ($env:RID.StartsWith('win')) { 'dll' } elseif ($env:RID.StartsWith('osx')) { 'dylib' } else { 'so' }
           $native = @(Get-ChildItem "$root/Native" -File | Where-Object { $_.Name -match "ogengine.*\.$extension$" })
@@ -89,7 +97,10 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ inputs.version }}
         run: |
-          foreach ($profile in @('RemoteOnly','Edge')) {
+          $profiles = @()
+          if ('${{ inputs.remote_only }}' -eq 'true') { $profiles += 'RemoteOnly' }
+          if ('${{ inputs.edge }}' -eq 'true') { $profiles += 'Edge' }
+          foreach ($profile in $profiles) {
             $assets = @(foreach ($rid in @('win-x64','linux-x64','linux-arm64','osx-x64','osx-arm64')) {
               $path = "artifacts/releases/OGEngineClient.$profile.v$env:VERSION.$rid.zip"
               if (-not (Test-Path $path) -or (Get-Item $path).Length -le 0) { throw "Missing $profile platform: $rid" }
