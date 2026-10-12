@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Native wallet HTTP test injection seam (2026-10-11)
+
+Existing WebApplicationFactory now has a test-only action filter that assigns an explicitly supplied real WalletManager to the existing wallet controller before action execution. Production code is unchanged; tests can use retained native runtimes without globally activating an unrelated default store. A filter-boundary test passes **1/1**, zero skips (`web4-native-wallet-injection.trx`), verifying the exact supplied manager is used and the action continues without provider activation. Existing wallet/NFT ownership HTTP checks remain **4/4**. This seam/test does not perform a native transfer or fake provider success; positive send HTTP/ledger evidence remains the next gate. No installs/downloads or ledger mutation.
+
 ### Full current WEB4 unit regression checkpoint (2026-10-11)
 
 Complete current WEB4 unit assembly passes **111/111**, zero skips (`TestResults/Web4Current/web4-all-unit-current.trx`) after concrete-body binding and mutation/import authorization changes. Current host/dependency build/cache reused with bounded no-restore workers. This is controller/service/cryptographic/binding regression evidence, not all 691 HTTP routes or positive blockchain mutations. Positive send HTTP testing still needs a test-only controller-manager injection seam to route the existing real WalletManager to retained providers rather than activating the globally configured default store; the existing direct real Sui avatar-send test proves only manager/provider execution. Full release scope remains unchanged and incomplete. No installation/download, native mutation or merge.
