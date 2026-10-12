@@ -5381,6 +5381,49 @@ public sealed class HyperDriveProviderExecutionTests
     }
 
     [Theory]
+    [InlineData(LoadBalancingStrategy.RoundRobin)]
+    [InlineData(LoadBalancingStrategy.WeightedRoundRobin)]
+    [InlineData(LoadBalancingStrategy.LeastConnections)]
+    [InlineData(LoadBalancingStrategy.Geographic)]
+    [InlineData(LoadBalancingStrategy.Performance)]
+    public async Task V2StrategiesSelectOnlySubscriptionPermittedCandidatesWithoutChangingConfiguration(LoadBalancingStrategy strategy)
+    {
+        var id = Guid.NewGuid();
+        var allowed = CreateActiveProvider(ProviderType.LocalFileOASIS, "permitted-local");
+        var forbidden = CreateActiveProvider(ProviderType.SuiOASIS, "forbidden-chain");
+        allowed.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        allowed.Setup(x => x.LoadAvatar(id, 0)).Returns(new OASISResult<IAvatar>(new Avatar { Id = id }));
+        allowed.Setup(x => x.LoadAvatarAsync(id, 0)).ReturnsAsync(new OASISResult<IAvatar>(new Avatar { Id = id }));
+        var dna = CreateDna(HyperDriveModes.V2);
+        dna.OASIS.SubscriptionConfig.PlanType = "Free";
+        var manager = new ProviderManager(null, dna) { IsAutoLoadBalanceEnabled = true, IsAutoFailOverEnabled = false };
+        manager.RegisterProvider(allowed.Object); manager.RegisterProvider(forbidden.Object);
+        manager.SetAndActivateCurrentStorageProvider(allowed.Object).IsError.Should().BeFalse();
+        manager.SetAndReplaceAutoLoadBalanceListForProviders(new[] {
+            new EnumValue<ProviderType>(ProviderType.LocalFileOASIS), new EnumValue<ProviderType>(ProviderType.SuiOASIS)
+        }).IsError.Should().BeFalse();
+        manager.PerformanceMonitor.RecordRequest(ProviderType.SuiOASIS, true, 0.001);
+        manager.PerformanceMonitor.RecordRequest(ProviderType.LocalFileOASIS, true, 1000);
+        var router = new OASISHyperDrive(manager);
+        for (var index = 0; index < 6; index++)
+        {
+            var request = new StorageOperationRequest { Operation = "LoadAvatar", AvatarId = id };
+            var result = index % 2 == 0 ? router.RouteRequest<IAvatar>(request, strategy)
+                : await router.RouteRequestAsync<IAvatar>(request, strategy);
+            result.IsError.Should().BeFalse(result.Message);
+            result.Result.Id.Should().Be(id);
+            manager.LastProviderSelectionDiagnostic.Candidates.Select(x => x.Provider)
+                .Should().Equal(ProviderType.LocalFileOASIS);
+        }
+        manager.GetProviderAutoLoadBalanceList().Select(x => x.Value).Should()
+            .BeEquivalentTo(new[] { ProviderType.LocalFileOASIS, ProviderType.SuiOASIS });
+        forbidden.Verify(x => x.LoadAvatar(It.IsAny<Guid>(), It.IsAny<int>()), Times.Never);
+        forbidden.Verify(x => x.LoadAvatarAsync(It.IsAny<Guid>(), It.IsAny<int>()), Times.Never);
+        allowed.Verify(x => x.LoadAvatar(id, 0), Times.Exactly(3));
+        allowed.Verify(x => x.LoadAvatarAsync(id, 0), Times.Exactly(3));
+    }
+
+    [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public async Task V2WalletIdentitySavesRemainAsynchronousThroughTheLocalProvider(bool useEmail)
