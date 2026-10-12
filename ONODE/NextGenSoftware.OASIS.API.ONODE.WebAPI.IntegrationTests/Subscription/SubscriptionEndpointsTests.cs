@@ -86,6 +86,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
             var priorManager=managerField.GetValue(null);
             var priorDna=NextGenSoftware.OASIS.OASISBootLoader.OASISBootLoader.OASISDNA;
             var avatarSaved=false;
+            var recipientAvatarId=Guid.Parse("22222222-2222-2222-2222-222222222222");
+            var recipientSaved=false;
             try
             {
                 (await local.SaveProviderWalletsForAvatarByIdAsync(avatarId,new() {[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SuiOASIS]=new List<NextGenSoftware.OASIS.API.Core.Interfaces.IProviderWallet> {wallet}})).IsError.Should().BeFalse();
@@ -97,6 +99,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
                 providers.SetAndActivateCurrentStorageProvider(local).IsError.Should().BeFalse();
                 (await local.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=avatarId,Username="native-http-jwt-avatar",Email="native-http-jwt@example.invalid"})).IsError.Should().BeFalse();
                 avatarSaved=true;
+                (await local.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=recipientAvatarId,Username="native-http-recipient",Email="native-http-recipient@example.invalid"})).IsError.Should().BeFalse();
+                recipientSaved=true;
+                var recipientWallet=new NextGenSoftware.OASIS.API.Core.Objects.ProviderWallet {Id=Guid.NewGuid(),AvatarId=recipientAvatarId,IsDefaultWallet=true,
+                    ProviderType=NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SuiOASIS,WalletAddress=recipient.Result.WalletAddressLegacy,PublicKey=recipient.Result.PublicKey};
+                var decoyWallet=new NextGenSoftware.OASIS.API.Core.Objects.ProviderWallet {Id=Guid.NewGuid(),AvatarId=recipientAvatarId,IsDefaultWallet=false,
+                    ProviderType=NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SuiOASIS,WalletAddress=issuer.Result.WalletAddressLegacy,PublicKey=issuer.Result.PublicKey};
+                (await local.SaveProviderWalletsForAvatarByIdAsync(recipientAvatarId,new() {[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SuiOASIS]=new List<NextGenSoftware.OASIS.API.Core.Interfaces.IProviderWallet> {decoyWallet,recipientWallet}})).IsError.Should().BeFalse();
                 var avatarConstructor=typeof(NextGenSoftware.OASIS.API.Core.Managers.AvatarManager).GetConstructors(System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic).Single(item=>item.GetParameters().Length==3);
                 managerField.SetValue(null,avatarConstructor.Invoke(new object[] {local,dna,providers}));
                 NextGenSoftware.OASIS.OASISBootLoader.OASISBootLoader.OASISDNA=dna;
@@ -105,13 +114,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
                 var before=await sui.GetAccountBalanceAsync(recipient.Result.WalletAddressLegacy);before.IsError.Should().BeFalse();
                 var request=new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.SendWeb4TokenRequest {
                     FromAvatarId=avatarId,FromAvatarUsername="native-http-jwt-avatar",FromAvatarEmail="native-http-jwt@example.invalid",
+                    ToAvatarId=recipientAvatarId,ToAvatarUsername="native-http-recipient",ToAvatarEmail="native-http-recipient@example.invalid",
                     FromProvider=new(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SuiOASIS),ToProvider=new(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SuiOASIS),
                     FromTokenAddress="0x2::sui::SUI",ToWalletAddress=recipient.Result.WalletAddressLegacy,Amount=0.001m};
                 var claims=new[] {new Claim("sub",avatarId.ToString()),new Claim("id",avatarId.ToString())};
                 var jwt=new System.IdentityModel.Tokens.Jwt.JwtSecurityToken("OASIS","OASIS",claims,DateTime.UtcNow.AddMinutes(-1),DateTime.UtcNow.AddMinutes(5),
                     new Microsoft.IdentityModel.Tokens.SigningCredentials(new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(Encoding.ASCII.GetBytes(secret)),Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha256));
+                var bearer=new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().WriteToken(jwt);
+                var senderBefore=await sui.GetAccountBalanceAsync(issuer.Result.WalletAddressLegacy);senderBefore.IsError.Should().BeFalse();
+                request.ToWalletAddress=issuer.Result.WalletAddressLegacy;
+                using(var conflict=new HttpRequestMessage(HttpMethod.Post,"/api/wallet/send-token") {Content=JsonContent.Create(request)})
+                {
+                    conflict.Headers.Authorization=new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer",bearer);
+                    var rejected=await _client.SendAsync(conflict);
+                    var failure=JsonSerializer.Deserialize<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.SendWeb4TokenResponse>>(await rejected.Content.ReadAsStringAsync(),new JsonSerializerOptions {PropertyNameCaseInsensitive=true});
+                    failure.Should().NotBeNull();failure!.IsError.Should().BeTrue();
+                    failure.Message.Should().Contain("different wallets");failure.Result.SendTransactionResult.Should().BeNullOrEmpty();
+                }
+                var senderAfter=await sui.GetAccountBalanceAsync(issuer.Result.WalletAddressLegacy);senderAfter.IsError.Should().BeFalse();
+                senderAfter.Result.Should().Be(senderBefore.Result,"recipient disagreement must not submit or burn gas");
+                (await sui.GetAccountBalanceAsync(recipient.Result.WalletAddressLegacy)).Result.Should().Be(before.Result);
+                request.ToWalletAddress=recipient.Result.WalletAddressLegacy;
                 using var message=new HttpRequestMessage(HttpMethod.Post,"/api/wallet/send-token") {Content=JsonContent.Create(request)};
-                message.Headers.Authorization=new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer",new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().WriteToken(jwt));
+                message.Headers.Authorization=new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer",bearer);
                 var response=await _client.SendAsync(message);
                 response.StatusCode.Should().Be(HttpStatusCode.OK);
                 var body=JsonSerializer.Deserialize<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.SendWeb4TokenResponse>>(await response.Content.ReadAsStringAsync(),new JsonSerializerOptions {PropertyNameCaseInsensitive=true});
@@ -128,6 +153,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
                 _factory.NativeWalletManagerForTest=null;
                 (await local.SaveProviderWalletsForAvatarByIdAsync(avatarId,new())).IsError.Should().BeFalse();
                 if(avatarSaved)(await local.DeleteAvatarAsync(avatarId,softDelete:false)).IsError.Should().BeFalse();
+                if(recipientSaved)
+                {
+                    (await local.SaveProviderWalletsForAvatarByIdAsync(recipientAvatarId,new())).IsError.Should().BeFalse();
+                    (await local.DeleteAvatarAsync(recipientAvatarId,softDelete:false)).IsError.Should().BeFalse();
+                }
                 await local.DeActivateProviderAsync();
             }
         }

@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Real recipient lookup/default selection and no-submission HTTP proof (2026-10-11)
+
+At Core `d7b3f89d0c1b8d87046ce95dfda7796581f6699b`, combined real-JWT Sui send HTTP test passes **1/1**, zero skips, 4 seconds (`web4-sui-token-send-http.trx`). A real persisted recipient avatar supplies ID/username/email plus literal address; its non-default decoy wallet is listed first, while the declared default wallet receives exactly 0.001 SUI. A preceding request supplies a conflicting literal address and receives explicit different-wallet error/no send digest; independent sender and recipient balances remain unchanged, including no sender gas burn. Thus actual wallet/identity lookup, conflict rejection and default selection are proven, not just pure address-array validation. Owned sender/recipient avatars and wallet maps cleaned; static DNA/manager and test hook restored, retained Sui PID 45413 stopped. Host rebuilt; manifest/gitlinks validate. Other assets/providers, full routes/matrix and deployment gates remain open; no installation/download/reset/public spending/merge.
+
 ### Token recipient selector/default-wallet implementation (2026-10-11)
 
 Async public token send now resolves every supplied recipient ID/username/email through the existing default-wallet APIs and requires all resulting addresses to agree with any explicit destination. It no longer skips avatar selectors when a literal destination is present or picks the first wallet/list selector. Missing, blank or conflicting destinations return explicit errors before native submission. Full Core unit suite **362/362**, zero skips (`core-current.trx`), includes six pure address-agreement cases; dual-framework bounded build succeeds. Core `d7b3f89d0c1b8d87046ce95dfda7796581f6699b` pushed; manifest/gitlink advanced together. Real default-wallet/avatar lookup, conflicting-recipient HTTP no-submission and positive native send at this pin still require execution. Sync legacy gaps remain documentation only; no install/download/ledger mutation/deploy/merge.
