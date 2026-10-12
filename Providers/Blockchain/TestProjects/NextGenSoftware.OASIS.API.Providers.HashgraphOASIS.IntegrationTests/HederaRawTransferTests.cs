@@ -37,6 +37,12 @@ public class HederaRawTransferTests
             var sync = provider.SendTransaction("0.0.1001", "0.0.1002", 1m, "");
             Assert.IsFalse(sync.IsError, sync.Message); Assert.AreEqual(2, calls);
             Assert.AreNotEqual(sent.Result.TransactionResult, sync.Result.TransactionResult);
+            var helper = new HashgraphClient(accountId: "0.0.1001", privateKey: "fixture-transfer-key", transferNetwork: "testnet");
+            var data = new HashgraphTransactionData { FromAddress = "0.0.1001", ToAddress = "0.0.1002", Amount = 1m, Memo = "" };
+            var helperAsync = await helper.SendTransactionAsync(data);
+            StringAssert.StartsWith(helperAsync.TransactionId, "0.0.1001@");
+            var helperSync = helper.SendTransaction(data);
+            Assert.AreNotEqual(helperAsync.TransactionId, helperSync.TransactionId);
         }
         finally { Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE", previous); }
     }
