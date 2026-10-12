@@ -11,7 +11,7 @@ test('custody proof binds exact successful receipt, collection, token and pool',
   const registry = new Registry([...defaultRegistryTypes, ...wasmTypes]);
   const expected = { transactionHash: hash, contractAddress: 'collection', tokenId: 'token', custody: 'pool' };
   const message = { typeUrl: '/cosmwasm.wasm.v1.MsgExecuteContract', value: {
-    sender: 'owner', contract: 'collection', msg: new TextEncoder().encode(JSON.stringify({ nft_transfer: { token_id: 'token', recipient: 'pool' } })), funds: [],
+    sender: 'owner', contract: 'collection', msg: new TextEncoder().encode(JSON.stringify({ asset: { message: { nft_transfer: { token_id: 'token', recipient: 'pool' } } } })), funds: [],
   } };
   function receipt(messages) {
     const body = registry.encodeTxBody({ messages, memo: '' });
@@ -29,6 +29,9 @@ test('custody proof binds exact successful receipt, collection, token and pool',
   assert.throws(() => verifiedNftCustodyReceipt(null, expected, registry));
   assert.throws(() => verifiedNftCustodyReceipt(receipt([message, message]), expected, registry));
   assert.throws(() => verifiedNftCustodyReceipt(receipt([{ ...message, value: { ...message.value, sender: 'pool' } }]), expected, registry));
+  assert.throws(() => verifiedNftCustodyReceipt(receipt([{ ...message, value: { ...message.value,
+    msg: new TextEncoder().encode(JSON.stringify({ nft_transfer: { token_id: 'token', recipient: 'pool' } })),
+  } }]), expected, registry));
 });
 test('official protobuf multi-send decoding preserves each actual output and exact units', () => {
   const registry = new Registry(defaultRegistryTypes);

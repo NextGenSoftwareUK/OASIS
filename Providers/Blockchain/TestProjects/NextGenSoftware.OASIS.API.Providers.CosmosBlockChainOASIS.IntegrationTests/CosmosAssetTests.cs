@@ -177,7 +177,11 @@ public class CosmosAssetTests
         Assert.IsFalse(escrowed.IsError, escrowed.Message);
         Assert.IsTrue(escrowed.Result.IsSuccessful);
         Assert.AreEqual(_owner, (await _provider.LoadOnChainNFTDataAsync(address)).Result.SendToAddressAfterMinting);
-        var released = await _provider.DepositNFTAsync(address, tokenId, _recipient);
+        var wrongProof = await _provider.DepositNFTAsync(address, tokenId, _recipient, minted.Result.TransactionResult);
+        Assert.IsTrue(wrongProof.IsError, "Mint receipt must not authorize release of an escrowed NFT.");
+        Assert.IsNull(wrongProof.Result);
+        Assert.AreEqual(_owner, (await _provider.LoadOnChainNFTDataAsync(address)).Result.SendToAddressAfterMinting);
+        var released = await _provider.DepositNFTAsync(address, tokenId, _recipient, escrowed.Result.TransactionId);
         Assert.IsFalse(released.IsError, released.Message);
         Assert.IsTrue(released.Result.IsSuccessful);
         Assert.AreEqual(BridgeTransactionStatus.Completed, (await _provider.GetTransactionStatusAsync(released.Result.TransactionId)).Result);
