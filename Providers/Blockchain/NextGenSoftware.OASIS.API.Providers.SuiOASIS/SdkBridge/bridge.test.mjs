@@ -5,6 +5,7 @@ import { Transaction } from '@mysten/sui/transactions';
 import { toBase58 } from '@mysten/sui/utils';
 import { verifyTransactionSignature } from '@mysten/sui/verify';
 import { SuiGrpcClient } from '@mysten/sui/grpc';
+import {verifyPreparedIdentity} from './bridge.mjs';
 
 function offlineTransaction(signer) {
   const tx = new Transaction();
@@ -14,6 +15,15 @@ function offlineTransaction(signer) {
   return tx;
 }
 const originalDigest = await offlineTransaction(Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7))).getDigest();
+test('official Sui preparation verifier binds digest bytes signature and sender without network',async()=>{
+ const signer=Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
+ const bytes=await offlineTransaction(signer).build();const {signature}=await signer.signTransaction(bytes);
+ const evidence={transactionHash:originalDigest,sender:signer.toSuiAddress(),signature,signedTransactionBase64:Buffer.from(bytes).toString('base64')};
+ assert.equal((await verifyPreparedIdentity(evidence)).verified,true);
+ assert.equal((await invoke({operation:'verifyNativePreparation',preparation:evidence})).verified,true);
+ for(const altered of [{transactionHash:'wrong'},{sender:Ed25519Keypair.generate().toSuiAddress()},{signature:'invalid'},{signedTransactionBase64:'AQID'},{signedTransactionBase64:evidence.signedTransactionBase64+' '}])
+  await assert.rejects(verifyPreparedIdentity({...evidence,...altered}));
+});
 test('bridge entry point validates trusted preparation callback without treating wallet generation as submission', async () => {
   await assert.rejects(invoke({operation:'generateKey'},true), /awaited callback/);
   let preparations=0;
