@@ -22,7 +22,7 @@ public class CosmosTransferTests
     private const string Rpc = "http://127.0.0.1:26657";
     private const string Chain = "oasis-cosmos-local";
 
-    private static async Task<JsonElement> InvokeSdk(string operation, object args)
+    internal static async Task<JsonElement> InvokeSdk(string operation, object args)
     {
         var bridge = Environment.GetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE")
             ?? throw new InvalidOperationException("Set OASIS_COSMOS_SDK_BRIDGE to the reusable installed bridge.");
