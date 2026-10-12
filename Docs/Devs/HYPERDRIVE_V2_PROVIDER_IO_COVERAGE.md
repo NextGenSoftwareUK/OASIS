@@ -20,6 +20,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Shared current and historical payload identity must match storage keys (2026-10-12)
+
+Source-confirmed data-integrity gap: versioned loads deserialized current/archived payloads without checking their entity ID against the requested record key, or archived Version against its numbered key. `ReadVersionAsync` now verifies current ID and historical ID/version and surfaces `InvalidDataException` through the existing OASISResult error path. It never substitutes another entity or silently returns a different version. Missing records still use existing absence semantics; no repair/delete of stored user data is attempted. New controlled corruption regression places another identity/current-version payload under expected keys and proves sync/async loads reject them.
+
+Current shared suite **61/61, zero skips**, `TestResults/SharedStorageCurrent/shared-current.trx`; shared library build zero errors/two warnings. First test run (60 pass/one fail) used stale referenced library output because BuildProjectReferences=false preceded rebuilding the edited dependency; dependency rebuilt, then same full suite passed. This is shared-storage integrity evidence, not live corruption injection against funded chains, complete provider/options routing proof or final certification. No new installation/environment or runtime needed; release/billing/funded/runtime-blocked gates remain open.
+
 ### Shared storage rejects negative version requests (2026-10-12)
 
 Source-confirmed option gap affecting the priority providers' shared storage path: `ReadVersionAsync` used `version<=0` to select current data, silently aliasing negative requested versions to latest; empty collection reads also skipped version checks. Now negative versions fail explicitly for single and collection reads, while zero retains documented latest behavior and positive versions retain historical lookup. New regression covers absent and present avatar, empty collection and sync wrapper; no error-message fallback or version substitution. Cosmos transfer mapping was inspected in the same audit and already labels execution failure plus requested (not claimed completed) amount; no speculative change made there.
