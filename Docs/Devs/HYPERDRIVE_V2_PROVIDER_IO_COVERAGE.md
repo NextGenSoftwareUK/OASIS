@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Successful real-JWT HTTP/V2 avatar lookup (2026-10-11)
+
+HTTP suite now passes **10/10**, zero skips (`web4-hyperdrive-http-auth.trx`). Added actual HS256 Bearer token with test-only key/claims, no test-auth header, and an avatar persisted in real LocalFile storage. Middleware validates the token, then the injected real AvatarManager loads via V2; measured LocalFile request count increases exactly once for each mode/config/status request, which returns a non-error envelope. Fixed leased `TestResults/Web4Current/JwtAvatar` store is reused; its owned avatar is hard-deleted, provider deactivated, and previous global DNA/Program manager restored in `finally`. Test setup initially used the wrong enum namespace and assumed pre-request metrics existed; corrected without production changes. This proves local real JWT/persisted-avatar/V2 lookup, **not** Cosmos/Hedera/Sui/TRON avatar authentication or full provider/API coverage. No new SDK/runtime installation, public ledger mutation or merge.
+
 ### Current WEB4 host rebuild/recheck (2026-10-11)
 
 Current host source builds successfully with **0 errors/253 warnings**, bounded workers, `--no-restore` and `BuildProjectReferences=false`. Initial compilation found a missing entire `Microsoft.CodeAnalysis.Analyzers/3.3.3` cache directory; inspected its absence, then restored this host only with `--no-dependencies --force` instead of disabling analyzers or duplicating the environment. Rebuilt-host HyperDrive unit suite **16/16** and HTTP read/auth suite **9/9**, zero skips (`web4-hyperdrive-current.trx`, `web4-hyperdrive-http-auth.trx`). This supersedes the retained-host-DLL caveat for host source itself, but referenced dependencies were reused: full publish/image dependency parity, successful real JWT avatar lookup, live provider API and complete routes remain open. Free disk before/after: 114,954,682,368 / 114,794,913,792 bytes. Existing runtime/dependencies retained for reuse; no ledger mutation/deployment/merge.
