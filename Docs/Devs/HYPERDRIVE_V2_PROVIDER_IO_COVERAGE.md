@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Preparation evidence verified chain context — 2026-10-12
+
+Cosmos installs its signing guard after actual chain-ID comparison and wallet account recovery, and enriches preparation descriptors with that verified chain ID and actual signer address. Sui stores its verified genesis identifier in the existing isolated operation scope after node/request comparison, then includes it in preparation evidence. Direct offline helper execution does not fabricate missing chain context; its persistence owner must reject missing required context. Signer identity is not necessarily actual fee payer/granter, so fee attribution remains a separate required check.
+
+Retained SDK suites passed Cosmos **50/50**, Sui **24/24**, zero skips/todos. This regression does not independently verify enriched descriptors on a live chain; complete signed-provider IPC/outbox/billing/live/deployed gates remain open. No install, runtime startup, native submission or release merge.
+
 ### Provider preparation build-output assets — 2026-10-12
 
 Bounded no-restore Cosmos/Sui provider builds both passed with 0 errors/warnings. Actual Debug/net10.0 bridge outputs contain preparation modules with SHA256 `CA211BC6927076FF450008AC0E870675BE51587350F9D6FAA67E4F26C909155B`, identical to the shared source; Cosmos also contains its correction script. Added reusable read-only `Scripts/verify_provider_preparation_assets.ps1`, which fails on missing/stale modules, checks syntax and compares Cosmos correction/package metadata to source. It passed against both existing outputs; no separate publish directory/environment or dependency install allocated.
