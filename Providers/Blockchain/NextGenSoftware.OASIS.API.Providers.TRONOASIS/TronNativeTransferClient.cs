@@ -99,20 +99,21 @@ public sealed class TronNativeTransferClient
         return MapNativeFeeReceipt(transaction, receipt, id, _genesisBlockId);
     }
 
+    internal static ByteString OriginalOperationOwner(Transaction.Types.Contract contract) => contract.Type switch {
+        Transaction.Types.Contract.Types.ContractType.TransferContract => contract.Parameter.Unpack<TransferContract>().OwnerAddress,
+        Transaction.Types.Contract.Types.ContractType.AccountCreateContract => contract.Parameter.Unpack<AccountCreateContract>().OwnerAddress,
+        Transaction.Types.Contract.Types.ContractType.AccountUpdateContract => contract.Parameter.Unpack<AccountUpdateContract>().OwnerAddress,
+        Transaction.Types.Contract.Types.ContractType.TriggerSmartContract => contract.Parameter.Unpack<TriggerSmartContract>().OwnerAddress,
+        Transaction.Types.Contract.Types.ContractType.CreateSmartContract => contract.Parameter.Unpack<CreateSmartContract>().OwnerAddress,
+        _ => throw new InvalidOperationException("Fee payer mapping is not established for this TRON contract type.")
+    };
     internal static System.Text.Json.JsonElement MapNativeFeeReceipt(Transaction transaction, TransactionInfo receipt, ByteString id, string genesis)
     {
         ValidateSolidifiedReceiptIdentity(receipt, id);
         if (!ValidateTransactionIdentity(transaction, id) || receipt.BlockTimeStamp <= 0 || transaction.RawData.Contract.Count != 1)
             throw new InvalidOperationException("TRON fee receipt lacks exact solidified transaction or block time.");
         var contract = transaction.RawData.Contract[0];
-        var owner = contract.Type switch {
-            Transaction.Types.Contract.Types.ContractType.TransferContract => contract.Parameter.Unpack<TransferContract>().OwnerAddress,
-            Transaction.Types.Contract.Types.ContractType.AccountCreateContract => contract.Parameter.Unpack<AccountCreateContract>().OwnerAddress,
-            Transaction.Types.Contract.Types.ContractType.AccountUpdateContract => contract.Parameter.Unpack<AccountUpdateContract>().OwnerAddress,
-            Transaction.Types.Contract.Types.ContractType.TriggerSmartContract => contract.Parameter.Unpack<TriggerSmartContract>().OwnerAddress,
-            Transaction.Types.Contract.Types.ContractType.CreateSmartContract => contract.Parameter.Unpack<CreateSmartContract>().OwnerAddress,
-            _ => throw new InvalidOperationException("Fee payer mapping is not established for this TRON contract type.")
-        };
+        var owner = OriginalOperationOwner(contract);
         if (owner.Length != 21 || owner[0] != 0x41) throw new InvalidOperationException("TRON fee payer address is invalid.");
         var energyFee = receipt.Receipt?.EnergyFee ?? 0;
         var netFee = receipt.Receipt?.NetFee ?? 0;
