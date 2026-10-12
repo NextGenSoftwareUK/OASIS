@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
 	  <TargetFramework>net10.0</TargetFramework>
-	  <PackageId>NextGenSoftware.OASIS.API.Providers.MonadOASIS</PackageId>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.MonadOASIS</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API Monad OASIS Provider</Product>
 	  <Title>WEB4 OASIS API Monad OASIS Provider</Title>
@@ -34,5 +35,8 @@
     <PackageReference Include="Nethereum.RPC" Version="7.0.0" />
     <PackageReference Include="Nethereum.Signer" Version="7.0.0" />
     <PackageReference Include="Nethereum.Web3" Version="7.0.0" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>

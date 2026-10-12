@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -63,6 +63,13 @@ public partial class RadixOASIS
                 // No blueprint configured - delegate to ProviderManager as fallback
                 return await HolonManager.Instance.SaveHolonAsync(holon, Guid.Empty, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
             }
+
+            // On-ledger storage through the OasisStorage component (RadixOASIS.OnLedgerStorage.cs).
+            return await SaveHolonOnLedgerAsync(holon);
+
+            // Previous blueprint path, kept for reference but no longer reached: it posted a hand-built JSON "manifest"
+            // (writes) or called a Gateway endpoint that doesn't exist (reads), so it could never succeed.
+#pragma warning disable CS0162 // unreachable
 
             // Serialize holon to JSON
             string holonInfo = System.Text.Json.JsonSerializer.Serialize(holon);
@@ -256,6 +263,13 @@ public partial class RadixOASIS
                 // No blueprint configured - delegate to ProviderManager as fallback
                 return await HolonManager.Instance.DeleteHolonAsync(id, Guid.Empty, true, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.Default);
             }
+
+            // On-ledger storage through the OasisStorage component (RadixOASIS.OnLedgerStorage.cs).
+            return await DeleteHolonOnLedgerAsync(id);
+
+            // Previous blueprint path, kept for reference but no longer reached: it posted a hand-built JSON "manifest"
+            // (writes) or called a Gateway endpoint that doesn't exist (reads), so it could never succeed.
+#pragma warning disable CS0162 // unreachable
 
             // First load the holon to return it
             var holonResult = await LoadHolonAsync(id, false, false, 0, true, false, 0);

@@ -12,6 +12,22 @@ param(
 
 $ErrorActionPreference = 'Stop'
 $repoRoot = [IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
+if ($Component -in @('ODOOM', 'OQUAKE')) {
+    # Game notes must be reviewed against the exact released source, not a moving branch
+    # or a classifier dumping development commit messages into multiple sections.
+    $reviewedPath = Join-Path $repoRoot "Docs/Releases/$Component/$Version.md"
+    if (-not (Test-Path -LiteralPath $reviewedPath)) {
+        throw "Missing reviewed $Component v$Version notes: $reviewedPath. Follow Docs/Releases/README.md."
+    }
+    $notes = Get-Content -LiteralPath $reviewedPath -Raw
+    foreach ($heading in @("# $Component v$Version", '### Features', '### Fixes and hardening', '### Build and packaging', '## Downloads and requirements', '## Source and full changelog')) {
+        if (-not $notes.Contains($heading)) { throw "Reviewed notes missing required heading: $heading" }
+    }
+    $resolvedOutput = [IO.Path]::GetFullPath($OutputPath)
+    New-Item -ItemType Directory -Path ([IO.Path]::GetDirectoryName($resolvedOutput)) -Force | Out-Null
+    [IO.File]::WriteAllText($resolvedOutput, $notes.TrimEnd() + "`n", [Text.UTF8Encoding]::new($false))
+    return
+}
 $definitions = @{
     OASISRuntime = @{
         Title = 'OASIS Runtime'; Prefixes = @('OASIS-Runtime-v', 'OASIS-Runtime-')
@@ -111,7 +127,7 @@ $maximumSummarizedCommits = 100
 $commits = @($allCommits | Select-Object -First $maximumSummarizedCommits)
 
 $features = @($commits | Where-Object Subject -match '^(feat|add|implement)|\b(add|introduc|implement|support|expand)' )
-$fixes = @($commits | Where-Object Subject -match '^(fix|repair|restore|harden)|\b(fix|repair|correct|prevent|stabili[sz]|harden)' )
+$fixes = @($commits | Where-Object { $_ -notin $features -and $_.Subject -match '^(fix|repair|restore|harden)|\b(fix|repair|correct|prevent|stabili[sz]|harden)' })
 $other = @($commits | Where-Object { $_ -notin $features -and $_ -notin $fixes })
 function Add-CommitSection([Text.StringBuilder]$Builder, [string]$Heading, $Items) {
     if (@($Items).Count -eq 0) { return }
@@ -151,6 +167,25 @@ else {
         [void]$builder.AppendLine()
     }
 }
+[void]$builder.AppendLine('## Downloads and requirements')
+[void]$builder.AppendLine()
+[void]$builder.AppendLine("[Release assets](https://github.com/$releaseRepository/releases/tag/$targetTag): select the archive matching your operating system and architecture. Do not use a Windows binary on Linux/macOS or assume a managed package proves native platform support.")
+[void]$builder.AppendLine('NuGet packages resolve reusable managed dependencies; native executables, Unity packages and mobile conductor artifacts are separate distributions. Consult each archive/package README for native libraries and external-service prerequisites.')
+[void]$builder.AppendLine()
+[void]$builder.AppendLine('## Installation and configuration')
+[void]$builder.AppendLine()
+[void]$builder.AppendLine('Extract the matching binary archive or install the exact NuGet version listed in the release inventory. Preserve the archive dependency layout. For reusable libraries, integrate the documented public API with your host lifecycle rather than treating the package as a standalone application.')
+[void]$builder.AppendLine('Use the public Default OASIS_DNA.json template where included, then configure the providers and endpoints required by your application. Obtain authentication through the supported application flow; never copy production credentials, tokens or private keys into public templates or client packages.')
+if ($Component -eq 'EdgeRuntime') {
+    [void]$builder.AppendLine('[Edge Runtime guide](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/OASIS%20Architecture/NextGenSoftware.OASIS.Edge.Runtime/README.md) and [Edge ONET guide](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/OASIS%20Architecture/NextGenSoftware.OASIS.Edge.ONET.Runtime/README.md) explain persistence, transport/identity composition, offline grants, lifecycle, configuration defaults and troubleshooting.')
+}
+[void]$builder.AppendLine()
+[void]$builder.AppendLine('## Verification and known limitations')
+[void]$builder.AppendLine()
+[void]$builder.AppendLine('Build, packaging and publication checks are not proof of physical Android/iOS execution, two-device convergence or Unity IL2CPP behavior. Check the dated release inventory for actual evidence and outstanding acceptance tasks; do not infer completion from a successful upload.')
+[void]$builder.AppendLine('On failure, retain the actual error code/message, check authentication, configured service availability and native dependency/architecture match, and avoid exposing secrets in logs.')
+[void]$builder.AppendLine('[Verified release inventory](https://github.com/NextGenSoftwareUK/OASIS/blob/Development/Docs/Devs/OASIS_RELEASE_STATUS.md).')
+[void]$builder.AppendLine()
 [void]$builder.AppendLine('## Full changelog')
 [void]$builder.AppendLine()
 if ($previous.Count -gt 0) {

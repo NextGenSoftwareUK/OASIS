@@ -1,0 +1,20 @@
+{
+ "data": {
+  "message_view": [
+   {
+    "msg_id": "\\xff7a71acea197cbe3d3ed729f243b4ddbc70e609c6906b147bfb43e05a6fc38d",
+    "is_delivered": true,
+    "origin_tx_hash": "\\xc5587950324d33e6c39602493fbd23e8e1400387f049f87f40408aeed3adeed6",
+    "destination_tx_hash": "\\xa542958d17b2c7d8b0daa861498725e6059fd80fb4fc80712c9c3b7d5b65fd95",
+    "sender": "\\xb26bbfc6d1f469c821ea25099017862e7368f4e8",
+    "recipient": "\\x2552516453368e42705d791f674b312b8b87cd9e",
+    "origin_tx_sender": "\\x0a67676a29f044dbbc3e635cd1632df6505aac9c",
+    "origin_chain_id": 42161,
+    "destination_chain_id": 8453,
+    "origin_domain_id": 42161,
+    "destination_domain_id": 8453,
+    "send_occurred_at": "2024-09-27T12:59:02"
+   }
+  ]
+ }
+}

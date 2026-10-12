@@ -103,6 +103,63 @@ var orderRequest = new CreateBridgeOrderRequest
 var order = await bridgeManager.CreateBridgeOrderAsync(orderRequest);
 ```
 
+## On-ledger storage (OasisStorage component)
+
+By default RadixOASIS delegates avatar and holon storage to the other OASIS providers. Set `OasisBlueprintAddress` and
+avatars, avatar details and holons are stored **on the Radix ledger** instead, as JSON in the `OasisStorage` Scrypto
+component (`contracts/`).
+
+### What it stores
+
+| Operation | Component method |
+|---|---|
+| `SaveAvatarAsync` / `LoadAvatarAsync` / `LoadAvatarByUsernameAsync` / `LoadAvatarByEmailAsync` / `DeleteAvatarAsync` | `save_avatar`, `get_avatar*`, `delete_avatar` |
+| `SaveAvatarDetailAsync` / `LoadAvatarDetailAsync` | `save_avatar_detail`, `get_avatar_detail` |
+| `SaveHolonAsync` / `LoadHolonAsync` (id or provider key) / `DeleteHolonAsync` | `save_holon`, `get_holon*`, `delete_holon` |
+
+Entities are keyed by their OASIS id (GUID string); the Radix provider key of a stored entity is that id. Saves create
+or replace and keep the username/email/provider-key indexes in step. Soft deletes mark the avatar deleted; hard
+deletes remove it and its indexes. Operations that need enumeration (load-all, search, export, children by parent)
+still use the delegated path.
+
+Reads go through the Gateway (`/state/entity/details` for the component's key-value store addresses, then
+`/state/key-value-store/data`). Writes are V1 transactions that lock the fee from `AccountAddress`, prove the owner
+badge and call the component; the provider waits until they commit.
+
+### Security
+
+Reads are public. Every write requires a proof of the component's **owner badge**, minted once by `instantiate`, so
+only the account holding it (the provider's `AccountAddress`) can change data.
+
+### Deploy
+
+1. Build: `scrypto build` in `contracts/` (Scrypto 1.4, current stable Rust; the wasm32 C deps need `clang`).
+   This produces `oasis_storage.wasm` and `oasis_storage.rpd`.
+2. Publish the package and call `OasisStorage::instantiate` from the account RadixOASIS will use. The badge is deposited
+   into that account.
+3. Configure the provider:
+
+```json
+"RadixOASIS": {
+  "HostUri": "https://stokenet.radixdlt.com",
+  "NetworkId": 2,
+  "AccountAddress": "account_tdx_2_...",
+  "PrivateKey": "<ed25519 hex>",
+  "OasisBlueprintAddress": "component_tdx_2_...",
+  "OasisStorageOwnerBadgeAddress": "resource_tdx_2_..."
+}
+```
+
+`StokenetOnLedgerStorageTests` (integration tests) does all of this programmatically on Stokenet: faucet-funded
+throwaway account, publish, instantiate, then save/load/delete through the provider. Run it with
+`RADIX_STOKENET_LIVE=1` and `RADIX_OASIS_STORAGE_PACKAGE_DIR` pointing at the built `.wasm`/`.rpd`.
+
+### Tests
+
+- `contracts/tests/oasis_storage_tests.rs`: ledger-simulator tests (`cargo test --release` in `contracts/`).
+- `RadixOasisStorageClientTests` (unit tests): Gateway parsing and lookups against a fake Gateway.
+- `StokenetOnLedgerStorageTests` (integration tests): live end-to-end on Stokenet (opt-in, see above).
+
 ## Configuration
 
 ### Network Types

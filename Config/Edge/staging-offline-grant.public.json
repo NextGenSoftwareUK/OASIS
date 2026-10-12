@@ -1,0 +1,13 @@
+{
+  "enableEdgeRuntime": true,
+  "edgeOfflineGrantPublicKey": "MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE9JHZb5Zq1YNkneMzzbE3ph+PZV413KGNKdKQEjgzWMl3xKQ090XPnyNAvzZ25vYd6cVQOlG+FO6gnEYqUuLpHw==",
+  "edgeOfflineGrantLifetimeMinutes": 10080,
+  "edgeOfflineScopes": [
+    "avatar.read",
+    "geonft.collect",
+    "hyperdrive.sync",
+    "inventory.read",
+    "quest.progress",
+    "quest.read"
+  ]
+}
