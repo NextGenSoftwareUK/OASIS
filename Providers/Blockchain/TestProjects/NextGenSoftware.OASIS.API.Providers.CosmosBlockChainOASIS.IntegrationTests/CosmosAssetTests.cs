@@ -13,6 +13,8 @@ public class CosmosAssetTests
     private string _recipient = null!;
     private string _contract = null!;
     private string _recipientKey = null!;
+    private string _recipientPublicKey = null!;
+    private string _ownerPublicKey = null!;
     private static string Required(string name) => Environment.GetEnvironmentVariable(name)
         ?? throw new InvalidOperationException($"Real Cosmos test setting {name} is required; no skipped or mocked evidence.");
 
@@ -28,10 +30,14 @@ public class CosmosAssetTests
         var config = await _provider.QueryContractAsync(_contract, new { config = new { } });
         Assert.IsFalse(config.IsError, config.Message);
         _owner = config.Result.GetProperty("owner").GetString()!;
+        var ownerKey = await _provider.RestoreAccountAsync(Required("OASIS_COSMOS_TEST_KEY"));
+        Assert.IsFalse(ownerKey.IsError, ownerKey.Message);
+        _ownerPublicKey = ownerKey.Result.PublicKey;
         var wallet = await _provider.GenerateKeyPairAsync();
         Assert.IsFalse(wallet.IsError, wallet.Message);
         _recipient = wallet.Result.WalletAddressLegacy;
         _recipientKey = wallet.Result.PrivateKey;
+        _recipientPublicKey = wallet.Result.PublicKey;
         var funded = await _provider.SendTransactionAsync(_owner, _recipient, 100000, "Cosmos asset test actor gas");
         Assert.IsFalse(funded.IsError, funded.Message);
     }
@@ -67,18 +73,18 @@ public class CosmosAssetTests
         });
         Assert.IsTrue(wrongSender.IsError);
         StringAssert.Contains(wrongSender.Message, "does not own");
-        var partialBurn = await _provider.BurnTokenAsync(new BurnWeb3TokenRequest { Amount = 0.25m, TokenAddress = symbol, OwnerPublicKey = _recipient, OwnerPrivateKey = _recipientKey, OwnerSeedPhrase = string.Empty });
+        var partialBurn = await _provider.BurnTokenAsync(new BurnWeb3TokenRequest { Amount = 0.25m, TokenAddress = symbol, OwnerPublicKey = _recipientPublicKey, OwnerPrivateKey = _recipientKey, OwnerSeedPhrase = string.Empty });
         Assert.IsFalse(partialBurn.IsError, partialBurn.Message);
         Assert.AreEqual(1m, (await _provider.GetCustomTokenBalanceAsync(symbol, _recipient)).Result);
         var partialSupply = await _provider.GetCustomTokenAsync(symbol);
         Assert.IsFalse(partialSupply.IsError, partialSupply.Message);
         Assert.AreEqual("1225000000", partialSupply.Result.GetProperty("supply").GetString());
-        var burnedRecipient = await _provider.BurnTokenAsync(new BurnWeb3TokenRequest { Amount = 1m, TokenAddress = symbol, OwnerPublicKey = _recipient, OwnerPrivateKey = _recipientKey, OwnerSeedPhrase = string.Empty });
+        var burnedRecipient = await _provider.BurnTokenAsync(new BurnWeb3TokenRequest { Amount = 1m, TokenAddress = symbol, OwnerPublicKey = _recipientPublicKey, OwnerPrivateKey = _recipientKey, OwnerSeedPhrase = string.Empty });
         Assert.IsFalse(burnedRecipient.IsError, burnedRecipient.Message);
         var supply = await _provider.GetCustomTokenAsync(symbol);
         Assert.IsFalse(supply.IsError, supply.Message);
         Assert.AreEqual("1125000000", supply.Result.GetProperty("supply").GetString());
-        var burnedOwner = await _provider.BurnTokenAsync(new BurnWeb3TokenRequest { Amount = 11.25m, TokenAddress = symbol, OwnerPublicKey = _owner, OwnerPrivateKey = string.Empty, OwnerSeedPhrase = string.Empty });
+        var burnedOwner = await _provider.BurnTokenAsync(new BurnWeb3TokenRequest { Amount = 11.25m, TokenAddress = symbol, OwnerPublicKey = _ownerPublicKey, OwnerPrivateKey = string.Empty, OwnerSeedPhrase = string.Empty });
         Assert.IsFalse(burnedOwner.IsError, burnedOwner.Message);
         var zero = await _provider.GetCustomTokenAsync(symbol);
         Assert.IsFalse(zero.IsError, zero.Message);
@@ -109,7 +115,7 @@ public class CosmosAssetTests
         var sent = await _provider.SendNFTAsync(send);
         Assert.IsFalse(sent.IsError, sent.Message);
         Assert.AreEqual(_recipient, sent.Result.Web3NFT.SendToAddressAfterMinting);
-        var unauthorized = await _provider.BurnNFTAsync(new BurnWeb3NFTRequest { NFTTokenAddress = address, OwnerPublicKey = _owner, OwnerPrivateKey = string.Empty, OwnerSeedPhrase = string.Empty });
+        var unauthorized = await _provider.BurnNFTAsync(new BurnWeb3NFTRequest { NFTTokenAddress = address, OwnerPublicKey = _ownerPublicKey, OwnerPrivateKey = string.Empty, OwnerSeedPhrase = string.Empty });
         Assert.IsTrue(unauthorized.IsError);
         StringAssert.Contains(unauthorized.Message, "NFT owner required");
         var escrowed = await _provider.WithdrawNFTAsync(address, tokenId, _recipient, _recipientKey);
@@ -120,7 +126,7 @@ public class CosmosAssetTests
         Assert.IsFalse(released.IsError, released.Message);
         Assert.IsTrue(released.Result.IsSuccessful);
         Assert.AreEqual(BridgeTransactionStatus.Completed, (await _provider.GetTransactionStatusAsync(released.Result.TransactionId)).Result);
-        var burned = await _provider.BurnNFTAsync(new BurnWeb3NFTRequest { NFTTokenAddress = address, OwnerPublicKey = _recipient, OwnerPrivateKey = _recipientKey, OwnerSeedPhrase = string.Empty });
+        var burned = await _provider.BurnNFTAsync(new BurnWeb3NFTRequest { NFTTokenAddress = address, OwnerPublicKey = _recipientPublicKey, OwnerPrivateKey = _recipientKey, OwnerSeedPhrase = string.Empty });
         Assert.IsFalse(burned.IsError, burned.Message);
         var absent = await _provider.LoadOnChainNFTDataAsync(address);
         Assert.IsTrue(absent.IsError, "Burned NFT must not return a synthetic basic-info record.");
