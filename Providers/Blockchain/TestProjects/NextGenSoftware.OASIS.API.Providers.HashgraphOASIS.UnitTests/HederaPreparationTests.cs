@@ -8,6 +8,26 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class HederaPreparationTests
 {
+    [DataTestMethod]
+    [DataRow("nftEscrowLock",false)] [DataRow("nftEscrowLock",true)]
+    [DataRow("tokenEscrowLock",false)] [DataRow("tokenEscrowLock",true)]
+    public async Task PreparedEscrowChildAcknowledgesExactOptionalSequence(string action,bool skipApproval)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","prepared.mjs"));
+        try{
+            const string original="0.0.1001@1700000000.000000001",approval="0.0.1001@1700000000.000000002";
+            var ids=new System.Collections.Generic.List<string>();
+            using var server=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer.ForOptionalApproval((evidence,token)=>{
+                ids.Add(evidence.GetProperty("transactionHash").GetString()!);return Task.CompletedTask;
+            },approval,original);
+            var client=typeof(HashgraphOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.HederaSdkClient")!;
+            var method=client.GetMethod("InvokePreparedAsync",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!;
+            var operation=(Task<JsonElement>)method.Invoke(null,new object[]{action,new{transactionId=original,approvalTransactionId=approval,mode=skipApproval?"skip-approval":"accept"},server,CancellationToken.None})!;
+            Assert.AreEqual(original,(await operation).GetProperty("transactionId").GetString());
+            CollectionAssert.AreEqual(skipApproval?new[]{original}:new[]{approval,original},ids.ToArray());
+        }finally{Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",previous);}
+    }
     [TestMethod]
     public async Task PreparedEntryRejectsMissingExecutionAndPreCancellation()
     {
