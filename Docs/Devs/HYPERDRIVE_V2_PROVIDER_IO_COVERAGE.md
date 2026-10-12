@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Public execution-owned Hedera prepared entry — 2026-10-12
+
+Added single-stage `ExecutePreparedNativeAsync` joining supplied execution and trusted expected network/account/public key to factory and canonical gated SDK invocation. Missing execution/pre-cancellation reject before launch/activation. Preparation class selection **11/11**, zero skips, `TestResults/PriorityProviderCurrent/hedera-preparation.trx`, including prior controlled lifecycle and real signed pipe/Mongo cases. Provider build 0 errors/2 existing warnings; test nullable warning remains.
+
+This library entry does not switch production submissions or create sponsored native-fee authority. Full signed child submission/crash recovery, stage-aware escrow, actual account-key binding and funded/live/deployed gates remain required. Existing environment reused; owned test database cleaned. No installs, consensus submissions or release merge.
+
 ### Hedera prepared missing-ack and output failure guards — 2026-10-12
 
 Controlled child tests now prove plausible SUCCESS without parent acknowledgement rejects (zero persistence callbacks), and malformed JSON/invalid UTF8 after preparation preserve original reconciliation identity. Prepared lifecycle selection **7/7**, zero skips, `TestResults/PriorityProviderCurrent/hedera-prepared-process.trx`; existing nullable test warning remains. This is controlled transport evidence, not real consensus/signature/Mongo in this lifecycle selection.
