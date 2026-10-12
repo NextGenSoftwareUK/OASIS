@@ -2,11 +2,22 @@ using System.IO;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using System;
+using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS;
 
 public partial class SuiOASIS
 {
+    public PreparedSubmissionServer CreateNativePreparationServer(UsageExecutionHandle execution,
+        string clientRequestId, string expectedChainId, string expectedSender)
+    {
+        if (execution == null) throw new ArgumentNullException(nameof(execution));
+        return new PreparedSubmissionServer(execution.NativePreparationPersistence(
+            "SuiOASIS", null, clientRequestId, expectedChainId, expectedSender, VerifyOriginalSignedPreparationAsync));
+    }
+
     /// <summary>Fail-closed callback for original signed identity verification; performs no ledger submission.</summary>
     public async Task VerifyOriginalSignedPreparationAsync(JsonElement preparation, CancellationToken token = default)
     {
