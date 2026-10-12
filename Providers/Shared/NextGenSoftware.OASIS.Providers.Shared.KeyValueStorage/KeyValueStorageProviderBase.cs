@@ -152,7 +152,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             return id;
         }
 
-        private async Task<List<T>> ReadAllAsync<T>(IEnumerable<string> keys, int version = 0, bool continueOnError = false, List<string> failures = null) where T : class, IHolonBase
+        private async Task<List<T>> ReadAllAsync<T>(IEnumerable<string> keys, int version = 0, bool continueOnError = false, List<string> failures = null, List<Exception> readErrors = null) where T : class, IHolonBase
         {
             if (version < 0) throw new ArgumentOutOfRangeException(nameof(version), "Version must be zero (latest) or a positive historical version.");
             using var gate = new SemaphoreSlim(MaxParallelReads);
@@ -166,7 +166,11 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                     && ex is not OperationCanceledException && ex is not NotSupportedException
                     && ex is not ArgumentException && ex is not FormatException)
                 {
-                    lock (failures) failures.Add($"{IdFromKey(key)} ({ex.GetType().Name})");
+                    lock (failures)
+                    {
+                        failures.Add($"{IdFromKey(key)} ({ex.GetType().Name})");
+                        readErrors?.Add(ex);
+                    }
                     return null;
                 }
                 finally { gate.Release(); }
@@ -635,7 +639,10 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             {
                 var keys = await Backend.ListKeysAsync($"{KeyPrefix}holon/");
                 var failures = new List<string>();
-                var holons = await ReadAllAsync<IHolon>(keys, version, continueOnError, failures);
+                var readErrors = new List<Exception>();
+                var holons = await ReadAllAsync<IHolon>(keys, version, continueOnError, failures, readErrors);
+                if (holons.Count == 0 && readErrors.Count > 0)
+                    throw new AggregateException("No partial holon collection is available: record reads failed.", readErrors);
                 var selected = holons.Where(h => (type == HolonType.All || h.HolonType == type) && (predicate == null || predicate(h))).ToList();
                 if (loadChildren)
                     foreach (var holon in selected)
