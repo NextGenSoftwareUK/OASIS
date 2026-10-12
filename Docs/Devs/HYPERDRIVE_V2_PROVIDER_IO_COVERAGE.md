@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### SignDoc validation and complete subscription protocol regression — 2026-10-12
+
+Added malformed/empty/noncanonical/oversized signing-document adapter tests: verification callback never runs, no attempt is admitted and evidence-byte budget stays zero. Valid adapter case proves exact SignDoc propagation to Mongo. Entire subscription protocol test project passed **77/77**, zero skips, `TestResults/SubscriptionUsageCurrent/subscription-usage-current.trx`, using existing standalone local Mongo and controlled authority (not replica failover or hosted billing). Existing compiler/analyzer warnings remain. Test teardown removed owned databases. Core test commit `c2b6ca0677634eb12b2a4ddc2918725cdfce8839` pushed, parent pin synchronized.
+
+Cosmos prepared C# lifecycle/verified provider integration, real native admission, crash recovery and full live/deployed gates remain open. No SDK/runtime installations, ledger submissions, spending enablement or release merge.
+
 ### Durable original SignDoc evidence schema — 2026-10-12
 
 Core native preparation now includes optional bounded canonical `SignDocBase64`, copied by the execution-owned adapter and included in serialized evidence-byte accounting. Existing non-Cosmos preparations need not supply it; provider verifier remains responsible for requiring and cryptographically validating it where applicable. Actual local Mongo original-preparation storage test proves exact document readback and accounting, focused **1/1**, zero skips, `TestResults/SubscriptionUsageCurrent/signdoc-storage.trx`. Core net10.0 build 0 errors/129 existing warnings. Core commit `112ce35dc090cbc5d917eb21e1f18fa12a5322e7` pushed and parent deployment pin synchronized.
