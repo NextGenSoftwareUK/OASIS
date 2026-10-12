@@ -5381,6 +5381,38 @@ public sealed class HyperDriveProviderExecutionTests
     }
 
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task PartialReadWarningsRemainVisibleThroughV2AndDoNotTriggerFailover(bool asynchronous)
+    {
+        var holon = new Holon { Id = Guid.NewGuid() };
+        var primary = CreateActiveProvider(ProviderType.LocalFileOASIS, "partial-local");
+        var alternate = CreateActiveProvider(ProviderType.SQLLiteDBOASIS, "unused-alternate");
+        var partial = new OASISResult<IHolon>(holon) { IsWarning = true, Message = "Returned partial holon data",
+            MetaData = new Dictionary<string, string> { ["partialHolonReads"] = "true", ["failedHolonReadCount"] = "1",
+                ["failedHolonReads"] = "[\"controlled-child (IOException)\"]" } };
+        primary.Setup(x => x.LoadHolon(holon.Id, true, true, 0, true, false, 0)).Returns(partial);
+        primary.Setup(x => x.LoadHolonAsync(holon.Id, true, true, 0, true, false, 0)).ReturnsAsync(partial);
+        var manager = new ProviderManager(null, CreateDna(HyperDriveModes.V2)) { IsAutoFailOverEnabled = true, IsAutoReplicationEnabled = false };
+        manager.RegisterProvider(primary.Object); manager.RegisterProvider(alternate.Object);
+        manager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) })
+            .IsError.Should().BeFalse();
+        var request = new StorageOperationRequest { Operation = "LoadHolon", HolonId = holon.Id, PreferredProvider = ProviderType.LocalFileOASIS,
+            LoadChildren = true, Recursive = true, ContinueOnError = true };
+        var router = new OASISHyperDrive(manager);
+        var result = asynchronous ? await router.RouteRequestAsync<IHolon>(request) : router.RouteRequest<IHolon>(request);
+        result.IsError.Should().BeFalse(result.Message);
+        result.IsWarning.Should().BeTrue();
+        result.Result.Id.Should().Be(holon.Id);
+        result.Message.Should().Be(partial.Message);
+        result.MetaData.Should().Contain("partialHolonReads", "true").And.Contain("failedHolonReadCount", "1");
+        result.MetaData["failedHolonReads"].Should().Be(partial.MetaData["failedHolonReads"]);
+        alternate.Verify(x => x.LoadHolon(It.IsAny<Guid>(), true, true, 0, true, false, 0), Times.Never);
+        alternate.Verify(x => x.LoadHolonAsync(It.IsAny<Guid>(), true, true, 0, true, false, 0), Times.Never);
+        router.LastFailoverDiagnostic.Should().BeNull();
+    }
+
+    [Theory]
     [InlineData(false, false)] [InlineData(false, true)]
     [InlineData(true, false)] [InlineData(true, true)]
     public async Task ReplicationAdmissionPreservesPrimarySuccessAndRejectsForbiddenReplicaIo(bool paid, bool asynchronous)
