@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Original prepared Sui native fee live verification — 2026-10-12
+
+Added a read-only integration test for an existing confirmed prepared-write digest (`CoYx7V6D6bGEp5935gAm3txioYcCBtazhoPpbrZfMZT2`). Actual provider native receipt binds that digest, success, configured chain and actual payer; exact BigInteger net MIST equals computation cost + storage cost − storage rebate, without double-counting nonrefundable storage fees. **1/1** passed, zero skips (`sui-prepared-fee-current.trx`), with exact net units in compact report output. No new transaction/fixture submitted. Same node PID 223871 stopped and handle terminal; no installs/reset/public funds. This verifies native receipt cost evidence, not conversion, reservation, user charge, settlement or sponsored-spending authorization. Remaining release gates still prevent merge.
+
 ### Live Sui foreign-owner rejection and V2 activation regression — 2026-10-12
 
 Extended live activation verification with an in-memory official SDK-generated different signer. The real storage owner query rejects it, activation stays false, and the original configured account balance remains unchanged. Read-only activation test **1/1** passed (`sui-activation-live-current.trx`), no skips. On the same node, current `V2ReplicatesToSuiAndSelectsFromMeasuredRealProviderReads` also passed **1/1**, 57s (`sui-v2-healthy-current.trx`), verifying replicated records/deletions, indexed sync/async reads, measured-performance selection, Free policy exclusion and real round-robin distribution after the changed activation behavior.
