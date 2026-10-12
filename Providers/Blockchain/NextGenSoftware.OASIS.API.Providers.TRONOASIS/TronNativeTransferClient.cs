@@ -18,6 +18,8 @@ public sealed class TronNativeTransferClient
     private readonly long _contractFeeLimitSun;
     private readonly Func<string,string,string,CancellationToken,Task> _persistPreparedSubmission;
     internal string ExpectedGenesisBlockId => _genesisBlockId;
+    internal TronNativeTransferClient WithPreparation(Func<string,string,string,CancellationToken,Task> persist)
+        => new TronNativeTransferClient(_wallet,_transactions,_genesisBlockId,_contractFeeLimitSun,persist);
 
     public TronNativeTransferClient(IWalletClient wallet, ITransactionClient transactions, string genesisBlockId, long contractFeeLimitSun = 100000000)
         : this(wallet,transactions,genesisBlockId,contractFeeLimitSun,null) { }

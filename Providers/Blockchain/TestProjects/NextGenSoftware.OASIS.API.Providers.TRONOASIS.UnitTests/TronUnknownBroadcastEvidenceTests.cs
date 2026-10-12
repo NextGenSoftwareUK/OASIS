@@ -12,6 +12,21 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public class TronUnknownBroadcastEvidenceTests
 {
+    [Fact]
+    public async Task PreparedRuntimeViewReusesExistingSdkServicesWithoutChangingOrdinaryClient()
+    {
+        await using var runtime=new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),new Uri("http://127.0.0.1:50052"),new string('a',64));
+        Func<string,string,string,CancellationToken,Task> callback=(_,_,_,_)=>Task.CompletedTask;
+        var prepared=runtime.CreatePreparedNativeTransfers(callback);
+        var flags=BindingFlags.Instance|BindingFlags.NonPublic;
+        foreach(var field in new[]{"_wallet","_transactions"}){
+            var member=typeof(TronNativeTransferClient).GetField(field,flags)!;
+            Assert.Same(member.GetValue(runtime.NativeTransfers),member.GetValue(prepared));
+        }
+        var hook=typeof(TronNativeTransferClient).GetField("_persistPreparedSubmission",flags)!;
+        Assert.Same(callback,hook.GetValue(prepared));Assert.Null(hook.GetValue(runtime.NativeTransfers));
+        Assert.Throws<ArgumentNullException>(()=>runtime.CreatePreparedNativeTransfers(null!));
+    }
     public class InterruptedTransactionProxy : DispatchProxy
     {
         public ITransactionClient Signer = null!;
