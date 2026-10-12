@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Web3 NFT importer authorization boundary (2026-10-11)
+
+Web3 NFT import now checks requested `ImportedByAvatarId` against the authenticated avatar before NFTManager access, matching the neighbouring import routes' existing Wizard exception. Denial is HTTP **403/AVATAR_OPERATION_FORBIDDEN**, not an attempted provider operation. Actual HTTP test with test-authenticated non-Wizard and another importer ID passes **1/1**, zero skips (`web4-nft-import-ownership.trx`); current host build succeeds. This proves importer authorization rejection, not native NFT ownership, positive chain import or persistence; those and remaining provider/release gates stay open. No installs/downloads, ledger mutations or merge.
+
 ### NFT import HTTP concrete request boundary (2026-10-11)
 
 NFT import action now binds the existing concrete `ImportWeb3NFTRequest`, replacing its interface body parameter; downstream NFTManager still receives the implemented interface. No new DTO/protocol is added. Rebuilt host succeeds (0 errors/253 warnings); concrete body/signature tests plus token-send field roundtrip pass **3/3**, zero skips (`web4-wallet-token-binding.trx`). Static route manifest remains 691 actions/597 classified external boundaries. This is body-contract evidence, not authenticated on-chain import, owner authorization or persistence/metadata proof; those remain required positive native/API gates. Existing cache/build environment reused without restore/download/mutation/deploy/merge.
