@@ -15,7 +15,10 @@ function wallet(keypair) {
 
 export function verifiedHistoryTransaction(tx, digest) {
   if (!tx || tx.digest !== digest || typeof tx.status?.success !== 'boolean'
-      || !tx.transaction?.sender || tx.timestampMs == null || !tx.effects || !Array.isArray(tx.balanceChanges))
+      || !isValidSuiAddress(tx.transaction?.sender) || !Number.isSafeInteger(tx.timestampMs) || tx.timestampMs <= 0
+      || typeof tx.checkpoint !== 'string' || !/^(?:0|[1-9][0-9]*)$/.test(tx.checkpoint)
+      || BigInt(tx.checkpoint) > 18446744073709551615n
+      || tx.effects?.transactionDigest !== digest || !Array.isArray(tx.balanceChanges))
     throw new Error('Sui returned mismatched or incomplete checkpointed wallet history');
   return tx;
 }
