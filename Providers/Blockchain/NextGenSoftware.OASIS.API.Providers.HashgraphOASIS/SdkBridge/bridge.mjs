@@ -355,6 +355,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
     const envelope = JSON.parse(input);
     let persistPreparedSubmission;
     if(process.env.OASIS_NATIVE_PREPARATION_PIPE||process.env.OASIS_NATIVE_PREPARATION_MODULE){
+      if(['nftEscrowLock','nftEscrowUnlock','tokenEscrowLock','tokenEscrowUnlock'].includes(envelope.action))throw new Error('Escrow requires a stage-aware parent preparation transport.');
       if(!process.env.OASIS_NATIVE_PREPARATION_PIPE||!process.env.OASIS_NATIVE_PREPARATION_MODULE)throw new Error('Complete parent preparation configuration required.');
       const {preparationClient}=await import(pathToFileURL(process.env.OASIS_NATIVE_PREPARATION_MODULE).href);
       persistPreparedSubmission=preparationClient(process.env.OASIS_NATIVE_PREPARATION_PIPE);
