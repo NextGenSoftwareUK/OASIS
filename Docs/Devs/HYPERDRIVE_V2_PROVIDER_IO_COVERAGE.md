@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON authority loader actual gRPC transport tests — 2026-10-12
+
+Added bounded in-process loopback gRPC fixture using retained official SDK descriptors/protobuf serializers, ephemeral port and owned shutdown. Loader accepts matching account, rejects mismatched address, and rejects wrong genesis before account query: **3/3**, zero skips, `TestResults/PriorityProviderCurrent/tron-permission-rpc.trx`. Initial generated-server-base assumption failed compile (SDK contains clients only); fixture now uses actual service descriptors with generic gRPC handlers.
+
+These exercise real SDK/gRPC transport against controlled responses, not a consensus ledger or independent network identity. No persistent runtime/install/ledger mutation; server/channels shut down. Positive real ledger/permission authority, submitted recovery and full deployed gates remain open; no release merge.
+
 ### TRON prepared view refreshes real account authority — 2026-10-12
 
 Added explicit `CreatePreparedNativeTransfersWithAccountAuthority`: callback checks expected genesis, loads actual solidified owner account through verified full/solidity network, validates recovered signatures/permission mask/weighted threshold, then writes execution-owned evidence. Reuses existing runtime services/channels. Missing execution guard exercised; full unit project **226/226**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`; build 0 errors/21 existing warnings.
