@@ -18,6 +18,17 @@ public sealed class ExecutionStatusTests
         else Assert.ThrowsException<TargetInvocationException>(() => method.Invoke(null, new object[] { document.RootElement, "requested" }));
     }
 
+    [DataTestMethod]
+    [DataRow("{\"transactionHash\":\"requested\",\"status\":{\"success\":false}}", true)]
+    [DataRow("{\"transactionHash\":\"requested\",\"status\":{}}", false)]
+    public void MatchingDigestStillRequiresExplicitExecutionStatus(string json, bool failed)
+    {
+        using var document = JsonDocument.Parse(json);
+        var method = typeof(SuiOASIS).GetMethod("MapTransactionReceiptStatus", BindingFlags.NonPublic | BindingFlags.Static)!;
+        if (failed) Assert.AreEqual(BridgeTransactionStatus.Failed, method.Invoke(null, new object[] { document.RootElement, "requested" }));
+        else Assert.ThrowsException<TargetInvocationException>(() => method.Invoke(null, new object[] { document.RootElement, "requested" }));
+    }
+
     [TestMethod]
     [DataRow("{}")]
     [DataRow("{\"success\":null}")]
