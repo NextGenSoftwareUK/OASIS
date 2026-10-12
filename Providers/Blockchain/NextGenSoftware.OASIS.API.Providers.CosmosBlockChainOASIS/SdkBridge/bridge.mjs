@@ -4,6 +4,7 @@ import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifi
 import { GasPrice, defaultRegistryTypes } from "@cosmjs/stargate";
 import { fromHex, toHex, fromBech32 } from "@cosmjs/encoding";
 import { pathToFileURL } from 'node:url';
+import { captureCosmosDirectSigning } from './transaction-results.mjs';
 
 async function readInput() {
   const chunks = [];
@@ -30,6 +31,7 @@ async function execute(input, persistPreparedSubmission) {
   if (!input.rpcEndpoint) throw new Error("Cosmos rpcEndpoint is required");
   const isSigned = ["put", "delete", "execute", "transfer", "upload", "instantiate"].includes(input.operation);
   const wallet = isSigned ? await walletFor(input) : null;
+  const originalSigning = isSigned && persistPreparedSubmission ? captureCosmosDirectSigning(wallet) : null;
   const client = isSigned
     ? await SigningCosmWasmClient.connectWithSigner(input.rpcEndpoint, wallet, {
       gasPrice: GasPrice.fromString(input.gasPrice ?? "0.025uatom"),
@@ -43,7 +45,7 @@ async function execute(input, persistPreparedSubmission) {
       throw new Error(`Cosmos chain mismatch: expected ${input.chainId}, received ${chainId}`);
     const sender = wallet ? (await wallet.getAccounts())[0].address : null;
     if (isSigned) guardCosmosSigningClient(client, persistPreparedSubmission
-      ? evidence => persistPreparedSubmission(Object.freeze({ ...evidence, chainId, sender })) : undefined);
+      ? evidence => persistPreparedSubmission(Object.freeze({ ...originalSigning(evidence), chainId, sender })) : undefined);
     switch (input.operation) {
       case "nativeFeeReceipt": {
         const hash = input.transactionHash;

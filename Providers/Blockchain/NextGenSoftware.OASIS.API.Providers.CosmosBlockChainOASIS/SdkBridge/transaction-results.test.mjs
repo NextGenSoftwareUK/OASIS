@@ -10,6 +10,8 @@ import { Registry } from '@cosmjs/proto-signing';
 import { defaultRegistryTypes } from '@cosmjs/stargate';
 import { toBech32 } from '@cosmjs/encoding';
 import { TimeoutError, StargateClient } from '@cosmjs/stargate';
+import { captureCosmosDirectSigning } from './transaction-results.mjs';
+import { SignDoc } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 test('official broadcast clears its polling timer when synchronous broadcast rejects', async () => {
   const client = new StargateClient(undefined, {});
   const failure = new Error('controlled precheck/transport rejection');
@@ -29,6 +31,7 @@ test('official broadcast clears its polling timer when synchronous broadcast rej
 const hash = 'ab'.repeat(32);
 test('official signing waits for durable preparation and persistence failure never broadcasts', async () => {
   const wallet=await DirectSecp256k1Wallet.fromKey(new Uint8Array(32).fill(7),'wasm');
+  const originalSigning=captureCosmosDirectSigning(wallet);
   const [{address}]=await wallet.getAccounts();
   const recipient=toBech32('wasm',new Uint8Array(20).fill(2));
   const client=await SigningCosmWasmClient.offline(wallet);
@@ -38,10 +41,16 @@ test('official signing waits for durable preparation and persistence failure nev
   client.broadcastTx=async()=>{broadcasts++;assert.fail('Unpersisted signed bytes must not reach broadcast');};
   const persistenceFailure=new Error('controlled journal unavailable');
   guardCosmosSigningClient(client,async evidence=>{
+    assert.throws(()=>originalSigning({...evidence,transactionHash:'00'.repeat(32)}),/matching original direct SignDoc/);
+    evidence=originalSigning(evidence);
     prepared++;assert.match(evidence.transactionHash,/^[0-9A-F]{64}$/);
     const signed=Buffer.from(evidence.signedTransactionBase64,'base64');
     assert.equal(createHash('sha256').update(signed).digest('hex').toUpperCase(),evidence.transactionHash);
     const raw=TxRaw.decode(signed);assert.equal(raw.signatures.length,1);assert.equal(raw.signatures[0].length,64);
+    const doc=SignDoc.decode(Buffer.from(evidence.signDocBase64,'base64'));
+    assert.equal(doc.accountNumber,7n);assert.equal(doc.chainId,'controlled-chain');
+    assert.deepEqual(doc.bodyBytes,raw.bodyBytes);assert.deepEqual(doc.authInfoBytes,raw.authInfoBytes);
+    assert.throws(()=>originalSigning(evidence),/matching original direct SignDoc/);
     assert.equal(Object.isFrozen(evidence),true);
     throw persistenceFailure;
   });
