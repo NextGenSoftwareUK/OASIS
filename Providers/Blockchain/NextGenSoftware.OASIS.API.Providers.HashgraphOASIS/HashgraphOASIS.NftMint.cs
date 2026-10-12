@@ -130,9 +130,13 @@ public partial class HashgraphOASIS
     private static string[] ApplyHederaMintReceipt(IWeb3NFTTransactionResponse response,
         System.Text.Json.JsonElement receipt, string requestedId, int count)
     {
+        var verifiedSuccess=false;
+        try
+        {
         if (receipt.GetProperty("status").GetString() != "SUCCESS"
             || receipt.GetProperty("transactionId").GetString() != requestedId)
             throw new InvalidOperationException("NFT mint receipt identity/status mismatch; reconcile the original transaction " + requestedId);
+        verifiedSuccess=true;
         response.TransactionResult = requestedId;
         var serials = receipt.GetProperty("serials").EnumerateArray().Select(value => value.GetString()).ToArray();
         if (serials.Length != count || serials.Distinct(StringComparer.Ordinal).Count() != count
@@ -140,6 +144,12 @@ public partial class HashgraphOASIS
                 System.Globalization.CultureInfo.InvariantCulture, out var serial) || serial <= 0))
             throw new InvalidOperationException("Mint " + requestedId + " returned invalid NFT serials; reconcile it before retrying.");
         return serials;
+        }
+        catch(Exception error)
+        {
+            throw new HederaNativeMutationReconciliationException("NFT mint receipt validation failed; reconcile original transaction " + requestedId,
+                new HederaNativeMutationEvidence(requestedId,null,requestedId,"mint-receipt-validation",verifiedSuccess?"SUCCESS":null),error);
+        }
     }
 
     private static void RecordHederaNftDelivery(IWeb3NFTTransactionResponse response, string transactionId, string recipient)

@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera mint receipt/serial errors retain original retry fence — 2026-10-12
+
+`ApplyHederaMintReceipt` now wraps receipt identity/status/shape and serial validation failures in existing `HederaNativeMutationReconciliationException`, retaining requested original mint ID, mutation ID, validation stage and cause. NativeStatus is SUCCESS only after exact receipt identity/status validation; missing/foreign/failed receipts do not invent success. Validated receipt identity remains in response even if serial validation fails.
+
+Focused **8/8 passed**, zero skips (`hedera-mint-receipt-current.trx`): four invalid serial cases, three missing/foreign/unverified receipt cases and exact large-int64 serial success. Provider build zero errors/two existing warnings. These invoke the actual shipping validator, not funded SDK consensus; whole-provider regression and post-mint recipient-delivery fencing still remain required. No funded query, runtime installation, live mutation, merge or deployment.
+
 ### Full Sui regression and actual mint-error V2 propagation — 2026-10-12
 
 Complete Sui suite after NFT readback fencing **75/75 passed**, zero skips, including actual two-minute deadline (`sui-current.trx`). Extended controlled router tests to obtain the exception from the actual Sui `MintNFTAsync` process-fixture path, then pass that same object through real storage-result conversion and V2 sync/async routing: original digest/success evidence persists and alternate writes remain zero. Combined router class **26/26 passed**, zero skips (`TestResults/TronRuntime/native-reconciliation-routing.trx`), including the prior 24 TRON cases; do not sum overlapping selections.
