@@ -47,7 +47,10 @@ export function captureCosmosDirectSigning(wallet) {
   let prepared;
   wallet.signDirect = async (...args) => {
     prepared = undefined;
+    const requested = SignDoc.encode(args[1]).finish();
     const result = await sign(...args);
+    if (!Buffer.from(SignDoc.encode(result.signed).finish()).equals(requested))
+      throw new Error('Cosmos wallet changed the requested original signing document');
     const raw = TxRaw.encode(TxRaw.fromPartial({bodyBytes:result.signed.bodyBytes,
       authInfoBytes:result.signed.authInfoBytes,signatures:[fromBase64(result.signature.signature)]})).finish();
     prepared = Object.freeze({transactionHash:createHash('sha256').update(raw).digest('hex').toUpperCase(),
