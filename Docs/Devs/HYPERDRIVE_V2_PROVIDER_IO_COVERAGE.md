@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Token-send HTTP concrete request boundary (2026-10-11)
+
+Wallet send action now binds `[FromBody] SendWeb4TokenRequest` rather than the non-instantiable interface; existing WalletManager still consumes its interface. No interface converter for this request existed in the API. Two unit boundary cases pass **2/2**, zero skips (`web4-wallet-token-binding.trx`): concrete body parameter plus JSON roundtrip preservation of avatar IDs, signer fields, amount, native `FromTokenAddress` and wallet addresses. Initial fixture used the nonexistent `TokenAddress` name and was corrected to the existing DTO contract. Host source builds; static WEB4 route manifest remains 691/597. These tests do not execute a positive token-send HTTP/ledger operation; authenticated native mutation proof and all remaining release gates stay open. No installs/downloads or ledger mutation.
+
 ### Wallet mutation ownership HTTP reporting (2026-10-11)
 
 Burn/lock/unlock token ownership denials now return HTTP **403** with `AVATAR_OPERATION_FORBIDDEN`, not a misleading HTTP 200 error envelope; Wizard policy is unchanged. Three actual HTTP pipeline cases pass **3/3**, zero skips (`web4-wallet-token-ownership.trx`) with test-authenticated non-Wizard avatar and a different requested actor. Requests fail at the ownership guard before WalletManager/provider activation. Initial burn fixture omitted required signer properties and hit model-binding HTTP 400; supplying public test-only fields exercises the intended authorization boundary. Host source build succeeds. These tests do not prove native token operations or signer forwarding; positive blockchain mutation routes remain gates. No testnet mutation, download/install or merge.
