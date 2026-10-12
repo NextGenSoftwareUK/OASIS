@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON prepared verifier malformed-evidence regression — 2026-10-12
+
+Actual signed-evidence tests now reject wrong expected original ID, noncanonical base64 whitespace, malformed trusted sender length, missing signature and invalid recovery parity. Entire unit project **202/202**, zero skips, refreshed `TestResults/PriorityProviderCurrent/tron-current.trx`. These checks augment existing correct/incorrect sender recovery; they do not prove contract owner/account permission/network/window binding.
+
+Execution-owned runtime outbox wiring, live original reconciliation and full live/deployed gates remain open. Retained dependencies reused; no RPC, installs, ledger submissions or release merge.
+
 ### Independent TRON prepared signature recovery — 2026-10-12
 
 Added bounded canonical signed-byte verifier binding SHA256 raw identity and recovering single-signature sender via installed Nethereum 7.0.0 APIs against explicitly trusted 21-byte sender. Actual TronNet signing accepts correct sender and rejects altered expected sender. Focused suite **8/8**, zero skips (console result, no refreshed TRX this invocation); build 0 errors/21 existing warnings. No new packages.
