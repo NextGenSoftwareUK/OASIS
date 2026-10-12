@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### TRON recheck after authoritative-absence/shared integrity changes (2026-10-11)
+
+Core `58b7fc7d9f7896a61869a119a90c5039c7585bdd` and current shared storage pass real TRON V2 routing **1/1**, zero skips, 50 seconds (`tron-v2-routing.trx`): real replication/update/delete/read selection, actual runtime pause failover, partial-replica warnings and explicit repair/recovery. Retained immutable container, contract and ledger reused; container paused after completion. Manifest/gitlinks still validate for all seven deployment Dockerfiles. This scoped current-pin regression does not prove all operations, TRON-backed JWT authentication or remaining native interfaces. No download/install/reset/new environment/deploy/merge.
+
 ### Shared corruption versus authoritative absence (2026-10-11)
 
 Shared reads now reject present JSON `null` payloads and malformed/empty-GUID avatar indexes as explicit `InvalidDataException` errors instead of treating them as missing records. Only an absent backend value is authoritative absence. Added controlled backend tests verify transport error, corrupt record/index and missing detail-index code propagation; full shared suite **33/33**, zero skips (`shared-current.trx`), bounded build succeeds. This fixes the common storage boundary without parsing message strings or adding another load path; direct provider missing-record error semantics remain unchanged. Current live provider/API regressions still need recheck after this shared-layer revision; broader release gates remain open. No installs/downloads or ledger mutation.
