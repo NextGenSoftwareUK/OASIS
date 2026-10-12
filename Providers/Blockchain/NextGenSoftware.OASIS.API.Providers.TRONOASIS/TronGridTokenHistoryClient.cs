@@ -54,6 +54,7 @@ public sealed class TronGridTokenHistoryClient
         var records = new List<JsonElement>();
         var seen = new HashSet<string>(StringComparer.Ordinal);
         string fingerprint = null;
+        long previousTimestamp = -1;
         var path = "v1/accounts/" + Uri.EscapeDataString(accountAddress) + "/transactions" + (tokenHistory ? "/trc20" : "")
             + "?only_confirmed=true&limit=" + _pageSize.ToString(CultureInfo.InvariantCulture)
             + "&order_by=block_timestamp,asc&min_timestamp=0&max_timestamp="
@@ -78,6 +79,9 @@ public sealed class TronGridTokenHistoryClient
                     || time < 0 || time > maximumTimestamp)
                     throw new InvalidOperationException("TronGrid history record falls outside the fixed time bounds.");
                 records.Add(record.Clone());
+                if (time < previousTimestamp)
+                    throw new InvalidOperationException("TronGrid history timestamps are not in the requested ascending order.");
+                previousTimestamp = time;
             }
             fingerprint = meta.TryGetProperty("fingerprint", out var cursor) ? cursor.GetString() : null;
             var hasNext = meta.TryGetProperty("links", out var links) && links.ValueKind == JsonValueKind.Object
