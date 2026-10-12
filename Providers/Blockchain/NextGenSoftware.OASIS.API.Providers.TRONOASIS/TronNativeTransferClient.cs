@@ -633,12 +633,19 @@ public sealed class TronNativeTransferClient
             throw new InvalidOperationException("TRON deployment timestamps are invalid.");
         raw.FeeLimit = _contractFeeLimitSun;
         var hash = await SignBroadcastConfirmAsync(unsigned.Transaction, privateKey, "", cancellationToken, requireContractSuccess: true);
+        try
+        {
         var receipt = await _wallet.GetSolidityProtocol().GetTransactionInfoByIdAsync(
             new BytesMessage { Value = ByteString.CopyFrom(Convert.FromHexString(hash)) }, _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
         ValidateSolidifiedReceipt(receipt, ByteString.CopyFrom(Convert.FromHexString(hash)), true, false, false);
         if (receipt.ContractAddress.Length != 21 || receipt.ContractAddress[0] != 0x41)
             throw new InvalidOperationException("Deployment receipt lacks a native TRON contract address.");
         return (hash, NBitcoin.DataEncoders.Encoders.Base58Check.EncodeData(receipt.ContractAddress.ToByteArray()));
+        }
+        catch(Exception error)
+        {
+            throw new TronCommittedReadbackException(hash,_genesisBlockId,error);
+        }
     }
 
     public async Task<string> UnlockEscrowAsync(string owner, string escrowAddress, string tokenAddress,
