@@ -23,6 +23,36 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive;
 
 public sealed class HyperDriveProviderExecutionTests
 {
+    [Theory]
+    [InlineData(false, false, false)] [InlineData(false, true, false)]
+    [InlineData(true, false, false)] [InlineData(true, true, false)]
+    [InlineData(false, false, true)] [InlineData(false, true, true)]
+    [InlineData(true, false, true)] [InlineData(true, true, true)]
+    public async Task V2DoesNotReplayKarmaBusinessCommandOnReplicaOrFailure(bool remove, bool synchronous, bool fail)
+    {
+        var primary = CreateActiveProvider(); var replica = CreateActiveProvider(ProviderType.LocalFileOASIS, "replica");
+        var calls = new Dictionary<ProviderType, int>();
+        foreach (var provider in new[] { primary, replica })
+        {
+            var type = provider.Object.ProviderType.Value; calls[type] = 0;
+            OASISResult<KarmaAkashicRecord> Submit() { calls[type]++; return new() { IsError = fail, Result = new KarmaAkashicRecord(), Message = "command committed; readback state is controlled" }; }
+            provider.Setup(value => value.AddKarmaToAvatar(It.IsAny<IAvatarDetail>(), default, default, null, null, null)).Returns(Submit);
+            provider.Setup(value => value.AddKarmaToAvatarAsync(It.IsAny<IAvatarDetail>(), default, default, null, null, null)).ReturnsAsync(Submit);
+            provider.Setup(value => value.RemoveKarmaFromAvatar(It.IsAny<IAvatarDetail>(), default, default, null, null, null)).Returns(Submit);
+            provider.Setup(value => value.RemoveKarmaFromAvatarAsync(It.IsAny<IAvatarDetail>(), default, default, null, null, null)).ReturnsAsync(Submit);
+        }
+        var manager = new ProviderManager(null, CreateDna(HyperDriveModes.V2)) { IsAutoReplicationEnabled = true, IsAutoFailOverEnabled = true, IsAutoLoadBalanceEnabled = false };
+        manager.RegisterProvider(primary.Object); manager.RegisterProvider(replica.Object);
+        var providers = new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.LocalFileOASIS) };
+        manager.SetAndReplaceAutoReplicationListForProviders(providers);
+        manager.SetAndReplaceAutoFailOverListForProviders(providers);
+        var request = new StorageOperationRequest { Operation = remove ? "RemoveKarmaFromAvatar" : "AddKarmaToAvatar",
+            Payload = new AvatarDetail { Id = Guid.NewGuid() }, PreferredProvider = ProviderType.MongoDBOASIS };
+        var router = new OASISHyperDrive(manager);
+        var result = synchronous ? router.RouteRequest<KarmaAkashicRecord>(request) : await router.RouteRequestAsync<KarmaAkashicRecord>(request);
+        result.IsError.Should().Be(fail); calls[ProviderType.MongoDBOASIS].Should().Be(1); calls[ProviderType.LocalFileOASIS].Should().Be(0);
+    }
+
     [Fact]
     public void RegistrationPreparationUsesTheEmailAndUsernameKeysIndependently()
     {
