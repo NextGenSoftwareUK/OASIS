@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Full controlled TRON account-create/readback branch — 2026-10-12
+
+Added actual SDK/gRPC construction, signing, broadcast and confirmation through an owned loopback server with controlled protobuf responses. Successful readback returns the exact signed ID; empty, foreign-address and unavailable RPC readbacks throw the committed-readback reconciliation marker with the same ID/genesis and original cause. Every case asserts exactly one broadcast and one account readback; no mutation retry occurs. Complete TRON unit suite **247/247** passed, zero skips (`tron-current.trx`). Initial valid-case assertion evaluated the expected hash before awaiting broadcast; corrected harness ordering before the passing run.
+
+This closes the controlled full failure-branch gate for the new exception, not real ledger account creation or live V2 propagation. The loopback server is shut down in `finally`; no public/local retained ledger, installation, funded operation or merge affected. Original unknown TRON transaction and other release gates remain open.
+
 ### TRON confirmed-account readback retry fence — 2026-10-12
 
 Found and fixed a shipping post-submission classification gap: `CreateLedgerAccountAsync` previously wrapped failure after its confirmed submission in ordinary InvalidOperationException, despite a message saying to reconcile. It now throws `TronCommittedReadbackException` implementing the existing reconciliation-required interface, retaining exact original transaction/chain IDs and cause. Unlike unknown broadcast evidence, this distinguishes confirmed submission from unverified application readback. Class invariant test checks marker, identity, normalization, cause and malformed ID rejection. Full TRON suite **243/243** passed, zero skips (`tron-current.trx`); build zero errors/21 existing warnings. Controlled full account-creation/readback failure branch and live V2 propagation still need dedicated evidence; no account was created in this run.
