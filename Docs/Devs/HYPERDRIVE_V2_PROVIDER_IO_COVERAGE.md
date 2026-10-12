@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Sui named-transfer preflight current checkpoint (2026-10-12)
+
+Existing username/email native/token overloads resolve default encrypted avatar wallets then reuse SendTokenAsync. Current invalid identity/amount/token preflight suite passes **6/6**, zero skips (`sui-named-transfer-validation-current.trx`), including sync wrappers. Investigation did not identify a required ID/default-wallet overload in the inspected interface contracts; optional helpers must not be invented as required operations. Positive successful username/email native transfers through stored sender/recipient identities remain the next native coverage gap: verify actual receipts, exact recipient balance changes and encrypted-at-rest persistence using existing local Sui environment. Current shared WalletManager/HTTP send evidence is not automatically proof of these provider overloads. No runtime/install/download/new environment/ledger mutation/merge; remaining gates stay open.
+
 ### Corrected Sui provider-key scope and owned-fixture reconciliation (2026-10-12)
 
 Attempted detail-by-provider-key assertions used an invented operation: IOASISStorageProvider/router defines avatar provider-key lookup but no detail provider-key method. Removed that test mistake, retaining eight real avatar-provider-key presence/deletion assertions. Initial failure was masked by unconditional cleanup deletion of a not-yet-saved holon; test now tracks actual save success before deletion. Corrected healthy V2 scenario plus repeat-safe exact-fixture reconciliation pass **2/2**, zero skips, 117 seconds (`sui-v2-corrected-current.trx`), verifying current cleanup ordering and all earlier scoped assertions.
