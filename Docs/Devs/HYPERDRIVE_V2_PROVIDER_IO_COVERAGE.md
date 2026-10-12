@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Cosmos upload/instantiation identity integrity (2026-10-12)
+
+Inspected the retained official CosmJS UploadResult/InstantiateResult declarations: both carry committed height/hash; upload includes numeric codeId and instantiation a contractAddress. Both bridge paths now share hash/height validation; upload additionally requires a positive safe-integer code ID, and instantiation validates real bech32 checksum/nonempty bytes plus configured address prefix when supplied. Invalid returned identities preserve the original valid transaction digest in reconciliation errors, not blind resubmission. Existing pinned SDK tests **21/21**, zero skips, including malformed IDs/checksums/wrong prefix and positive result preservation. This is result-boundary evidence, not new live code deployment/contract instantiation. No downloads/install/runtime startup or ledger mutation; current live Cosmos and broader release gates remain open.
+
 ### Cosmos contract execution receipt integrity (2026-10-12)
 
 SDK bridge put/delete/execute now validates returned transaction hash (64 hex) and committed positive safe-integer height before projecting success. Malformed height with valid hash retains that original identity in the explicit reconciliation error; missing/malformed hashes cannot fabricate success. SDK already throws execution failures; this check validates the successful result shape, not an independent consensus lookup. Eight added result-contract tests cover preserved valid result, missing/zero/negative/string/fractional/unsafe height and bad hashes. Existing pinned SDK tests **19/19**, zero skips; provider bounded build zero errors/two warnings; C# units **39/39**, zero skips (`cosmos-unit-current.trx`). No install/download/runtime startup/ledger mutation. Current real Cosmos runtime/deployment and full interface gates remain unresolved; pure result validation is not live policy proof.

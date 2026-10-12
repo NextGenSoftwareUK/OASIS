@@ -1,4 +1,23 @@
 import { TimeoutError } from '@cosmjs/stargate';
+import { fromBech32 } from '@cosmjs/encoding';
+
+export function verifiedUpload(result) {
+  verifiedContractExecution(result);
+  if (!Number.isSafeInteger(result.codeId) || result.codeId <= 0)
+    throw new Error(`Cosmos upload returned an invalid code ID. Original transaction ${result.transactionHash}. Reconcile submission before retrying.`);
+  return result;
+}
+
+export function verifiedInstantiation(result, expectedPrefix) {
+  verifiedContractExecution(result);
+  try {
+    const decoded = fromBech32(result.contractAddress, 90);
+    if (decoded.data.length === 0 || (expectedPrefix && decoded.prefix !== expectedPrefix)) throw new Error('Invalid contract address');
+  } catch {
+    throw new Error(`Cosmos instantiation returned an invalid contract address. Original transaction ${result.transactionHash}. Reconcile submission before retrying.`);
+  }
+  return result;
+}
 
 export function verifiedContractExecution(result) {
   const hash = result?.transactionHash;
