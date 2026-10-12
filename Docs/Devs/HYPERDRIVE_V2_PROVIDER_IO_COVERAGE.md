@@ -22,6 +22,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos original signed submission evidence handoff — 2026-10-12
+
+Prepared-persistence callbacks now receive an immutable descriptor with the original digest and exact signed transaction bytes encoded as base64. The official signing test decodes that handoff through `TxRaw`, checks its actual signature and rehashes bytes to the supplied digest. This allows the forthcoming durable integration to retain original signed evidence rather than re-signing a new identity. SDK suite **49/49**, zero skips/todos. No private signing key is included in the descriptor, but signed transactions still require controlled storage/access and must not be logged. This component is not yet connected to C# IPC/outbox, chain/payer admission or live recovery; no journal-durability claim or new submission.
+
 ### Cosmos official signing preparation rejection — 2026-10-12
 
 Added an official offline `SigningCosmWasmClient`/`DirectSecp256k1Wallet` bank-transfer signing test with controlled sequence/chain metadata. A prepared-digest persistence callback is reached exactly once; its rejection propagates unchanged and the broadcast function is never called. This strengthens the preparation boundary evidence beyond synthetic byte input, without asserting ledger execution or a real durable write. Full retained SDK suite **49/49**, zero skips/todos. Process/outbox/authenticated chain-payer integration remains unwired and required. No downloads, installation or native mutation.

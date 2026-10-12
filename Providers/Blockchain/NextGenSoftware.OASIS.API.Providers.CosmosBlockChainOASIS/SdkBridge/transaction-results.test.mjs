@@ -39,6 +39,10 @@ test('official signing waits for durable preparation and persistence failure nev
   const persistenceFailure=new Error('controlled journal unavailable');
   guardCosmosSigningClient(client,async evidence=>{
     prepared++;assert.match(evidence.transactionHash,/^[0-9A-F]{64}$/);
+    const signed=Buffer.from(evidence.signedTransactionBase64,'base64');
+    assert.equal(createHash('sha256').update(signed).digest('hex').toUpperCase(),evidence.transactionHash);
+    const raw=TxRaw.decode(signed);assert.equal(raw.signatures.length,1);assert.equal(raw.signatures[0].length,64);
+    assert.equal(Object.isFrozen(evidence),true);
     throw persistenceFailure;
   });
   await assert.rejects(withCosmosNativeEvidence(()=>client.signAndBroadcast(address,[{
@@ -60,7 +64,7 @@ test('prepared persistence is awaited before broadcast and rejection prevents na
     const order=[];const failure=new Error('controlled durable persistence failure');
     const client={async broadcastTx(){order.push('broadcast');return {transactionHash:expected,height:42,code:0};},async signAndBroadcast(){}};
     guardCosmosSigningClient(client,async evidence=>{
-      order.push('prepare');assert.deepEqual(evidence,{transactionHash:expected});
+      order.push('prepare');assert.deepEqual(evidence,{transactionHash:expected,signedTransactionBase64:Buffer.from(bytes).toString('base64')});
       await Promise.resolve();
       if(reject)throw failure;
       order.push('persisted');
