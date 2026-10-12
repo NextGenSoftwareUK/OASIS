@@ -74,6 +74,20 @@ public class HederaPreparationTests
                 Assert.AreEqual(server.PreparedTransactionId,stored.ProviderAttempts[0].ProviderRequestId);
                 Assert.AreEqual(signed.RootElement.GetProperty("preparation").GetProperty("signedTransactionBase64").GetString(),stored.ProviderAttempts[0].NativePreparation.SignedTransactionBase64);
                 Assert.IsNull(stored.ProviderAttempts[0].AcknowledgedAtUtc,"Preparation is not consensus acceptance.");
+                using var duplicateServer=provider.CreateNativePreparationServer(execution,"signed-attempt","offline-test","0.0.1001",signed.RootElement.GetProperty("publicKey").GetString()!);
+                var duplicateServing=duplicateServer.ServeAsync(deadline.Token);
+                using(var pipe=new System.IO.Pipes.NamedPipeClientStream(".",duplicateServer.Endpoint.Substring(duplicateServer.Endpoint.LastIndexOf('\\')+1),System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous)){
+                    await pipe.ConnectAsync(deadline.Token);
+                    var frame=System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new{protocol="oasis.native-preparation.v1",evidence=signed.RootElement.GetProperty("preparation")})+"\n");
+                    await pipe.WriteAsync(frame,deadline.Token);await pipe.FlushAsync(deadline.Token);
+                    var conflict=await Assert.ThrowsExceptionAsync<UsageProtocolException>(()=>duplicateServing);
+                    Assert.AreEqual("PROVIDER_ATTEMPT_ALREADY_STARTED",conflict.Code);
+                    using var reader=new StreamReader(pipe);Assert.IsNull(await reader.ReadLineAsync(deadline.Token));
+                }
+                Assert.IsNull(duplicateServer.PreparedTransactionId);
+                var afterDuplicate=await store.GetAsync(execution.OperationId,deadline.Token);
+                Assert.AreEqual(1,afterDuplicate.ProviderAttempts.Count);
+                Assert.AreEqual(stored.NativePreparationBytes,afterDuplicate.NativePreparationBytes);
                 using var rejectedServer=provider.CreateNativePreparationServer(execution,"wrong-key-attempt","offline-test","0.0.1001",signed.RootElement.GetProperty("otherKey").GetString()!);
                 var rejectedServing=rejectedServer.ServeAsync(deadline.Token);
                 using(var pipe=new System.IO.Pipes.NamedPipeClientStream(".",rejectedServer.Endpoint.Substring(rejectedServer.Endpoint.LastIndexOf('\\')+1),System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous)){

@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera duplicate signed preparation denied durably — 2026-10-12
+
+Integrated actual signed Hedera/pipe/Mongo factory test repeats the same original attempt through a fresh owned server. Durable store rejects `PROVIDER_ATTEMPT_ALREADY_STARTED`; no second acknowledgement or retained ID, original one-attempt record/evidence-byte count unchanged. Preparation selection **2/2**, zero skips, `TestResults/PriorityProviderCurrent/hedera-preparation.trx`; existing nullable warning remains. Owned database and processes cleaned, retained environment reused.
+
+This is offline duplicate-preparation protection, not submitted-transaction/crash recovery, native spending admission or full provider/live/deployed proof. Those and stage-aware escrow remain open. No downloads, installs, consensus submissions or release merge.
+
 ### Hedera wrong-key factory rejection preserves Mongo evidence — 2026-10-12
 
 Negative real signed-evidence pipe case now uses public execution-owned factory with unrelated trusted-key fixture. Actual SDK verifier rejects before durable attempt write: no acknowledgement/retained ID, Mongo retains one original attempt and unchanged evidence bytes. Preparation selection **2/2**, zero skips, `TestResults/PriorityProviderCurrent/hedera-preparation.trx`; existing nullable warning remains. Owned generated database removed; retained SDK/Mongo reused.
