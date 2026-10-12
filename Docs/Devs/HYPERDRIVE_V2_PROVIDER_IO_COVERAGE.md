@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Optional approval preparation transport — 2026-10-12
+
+Added `PreparedSubmissionServer.ForOptionalApproval`: accepts exactly approval then mutation, or mutation alone; only the first stage may be omitted. Each received identity remains validated against the caller's trusted sequence before its own persistence/acknowledgement. Receiving mutation first completes the sequence instead of waiting for an approval that the real escrow flow can legitimately skip. Shared build passed with zero warnings/errors; **92/92** shared tests passed with no skips (`TestResults/SharedCurrent/shared-current.trx`), including optional approval present, omitted, and replacement mutation rejected after approval persistence. No runtime installation or ledger submission was performed. Hedera lock factory/invocation integration and stage-specific outbox correlation remain required before removing the lock guard; this transport test is not that integration or live consensus proof.
+
 ### Hedera escrow unlock preparation — 2026-10-12
 
 Enabled the existing single-stage prepared invocation for `nftEscrowUnlock` and `tokenEscrowUnlock` in both C# admission and CLI transport configuration. Both SDK operations already await signed mutation persistence before execution. Lock operations remain explicitly guarded: an existing allowance can skip approval, so their protocol must support the exact optional approval followed by mandatory mutation, with separate outbox correlations. Do not wire them to a mandatory two-message sequence or remove that remaining guard prematurely.

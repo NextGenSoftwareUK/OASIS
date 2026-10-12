@@ -17,6 +17,7 @@ public sealed class PreparedSubmissionServer : IDisposable
     private readonly Func<JsonElement, CancellationToken, Task> _persist;
     private readonly string _expectedTransactionId;
     private readonly string[] _expectedStages;
+    private bool _optionalFirstStage;
     private string[] _preparedIds = Array.Empty<string>();
     private int _started;
     public string Endpoint { get; }
@@ -30,6 +31,13 @@ public sealed class PreparedSubmissionServer : IDisposable
             || expectedTransactionIds.Distinct(StringComparer.Ordinal).Count() != expectedTransactionIds.Length)
             throw new ArgumentException("Two to sixteen distinct bounded original stage identities required.",nameof(expectedTransactionIds));
         return new PreparedSubmissionServer(persist,expectedTransactionIds);
+    }
+    /// <summary>Only the first stage may be omitted; receiving the final identity closes the sequence.</summary>
+    public static PreparedSubmissionServer ForOptionalApproval(Func<JsonElement,CancellationToken,Task> persist,string approvalId,string mutationId)
+    {
+        var server=ForStages(persist,approvalId,mutationId);
+        server._optionalFirstStage=true;
+        return server;
     }
     private PreparedSubmissionServer(Func<JsonElement,CancellationToken,Task> persist,string[] stages)
         : this(persist,stages[0]) { _expectedStages = (string[])stages.Clone(); }
@@ -61,7 +69,9 @@ public sealed class PreparedSubmissionServer : IDisposable
         {
             for(var stage=0;stage<(_expectedStages?.Length ?? 1);stage++)
             {
-                await ServeStageAsync(_expectedStages?[stage] ?? _expectedTransactionId,cancellationToken);
+                await ServeStageAsync(_expectedStages?[stage] ?? _expectedTransactionId,
+                    _optionalFirstStage && stage==0 ? _expectedStages[1] : null,cancellationToken);
+                if(_optionalFirstStage && stage==0 && PreparedTransactionId==_expectedStages[1])break;
                 if(stage+1<(_expectedStages?.Length ?? 1))
                 {
                     // The client closes only after reading its acknowledgement; do not discard buffered acknowledgement bytes.
@@ -73,7 +83,7 @@ public sealed class PreparedSubmissionServer : IDisposable
         }
         finally { _pipe.Dispose(); }
     }
-    private async Task ServeStageAsync(string expectedId,CancellationToken cancellationToken)
+    private async Task ServeStageAsync(string expectedId,string optionalFinalId,CancellationToken cancellationToken)
     {
             await _pipe.WaitForConnectionAsync(cancellationToken);
             using var frame = new MemoryStream();
@@ -95,7 +105,7 @@ public sealed class PreparedSubmissionServer : IDisposable
             var evidence = root.GetProperty("evidence");
             var hash = evidence.GetProperty("transactionHash").GetString();
             if (string.IsNullOrWhiteSpace(hash) || hash.Length > 256) throw new InvalidDataException("Original preparation identity is required.");
-            if(expectedId != null && hash != expectedId)
+            if(expectedId != null && hash != expectedId && hash != optionalFinalId)
                 throw new InvalidDataException("Prepared identity does not match the expected original transaction.");
             var encoded = evidence.GetProperty("signedTransactionBase64").GetString();
             byte[] signedBytes;
