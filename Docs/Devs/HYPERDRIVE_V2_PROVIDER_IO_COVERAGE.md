@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera prepared deployment dispatcher/CLI transport — 2026-10-12
+
+Dispatcher now accepts trusted awaited preparation callback and passes it to deployment actions. CLI can load the existing shared parent transport from complete child environment configuration; project copies one authoritative module into output/publish. Invalid callback and currently unwired actions reject before network use rather than silently ignoring a configured preparation gate. SDK suite **98/98**, zero skips/todos; provider build 0 errors/2 existing unused-variable warnings.
+
+Only deployment actions are wired so far; storage/file/direct HTS/transfer and escrow approval/execution still need preparation hooks before enabling this mode for them. CLI transport is implemented but positive Hedera parent-pipe lifecycle, C# outbox/signature verification and actual funded/live gates remain unproven. No funded submission, installs or release merge.
+
 ### Hedera deployment pre-submission signed persistence hook — 2026-10-12
 
 `executeDeployment` accepts an explicitly supplied trusted awaited persistence callback after actual SDK freeze/sign and before execute. Immutable descriptor contains original transaction ID, sender, configured network label and real SDK signed transaction bytes. Persistence rejection preserves its original exception without claiming submission; client closes. Actual SDK serialization test against a non-running local endpoint proves retained original identity, single callback and cleanup on rejection. SDK suite **97/97**, zero skips/todos; no funded transaction or runtime install.
