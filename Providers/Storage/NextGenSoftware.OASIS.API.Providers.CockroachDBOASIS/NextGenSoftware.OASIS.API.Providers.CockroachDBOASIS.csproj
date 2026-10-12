@@ -4,6 +4,7 @@
     <RootNamespace>NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS</RootNamespace>
     <AssemblyName>NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS</AssemblyName>
     <PackageId>NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <Company>NextGen World Ltd</Company>
     <Product>WEB4 OASIS API CockroachDB OASIS Provider</Product>
     <Title>WEB4 OASIS API CockroachDB OASIS Provider</Title>
@@ -30,5 +31,8 @@
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
     <PackageReference Include="Npgsql" Version="8.0.5" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>

@@ -4,6 +4,7 @@
     <RootNamespace>NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS</RootNamespace>
     <AssemblyName>NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS</AssemblyName>
     <PackageId>NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <Company>NextGen World Ltd</Company>
     <Product>WEB4 OASIS API PlanetScale OASIS Provider</Product>
     <Title>WEB4 OASIS API PlanetScale OASIS Provider</Title>
@@ -38,5 +39,8 @@
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.Common\NextGenSoftware.OASIS.Common.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>

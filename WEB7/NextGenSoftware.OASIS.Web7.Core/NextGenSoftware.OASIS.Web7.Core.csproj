@@ -6,6 +6,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <PackageId>NextGenSoftware.OASIS.Web7.Core</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <Company>NextGen Software Ltd</Company>
     <Product>WEB7 OASIS Symbiotic Layer Core</Product>
     <Title>WEB7 OASIS Symbiotic Layer Core</Title>
@@ -45,4 +46,7 @@
     <PackageReference Include="NextGenSoftware.OASIS.API.ONODE.Core" Version="2.0.1" Condition="!Exists('..\..\ONODE\NextGenSoftware.OASIS.API.ONODE.Core\NextGenSoftware.OASIS.API.ONODE.Core.csproj')" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
 </Project>
