@@ -1,5 +1,6 @@
 using System;
 using System.Threading.Tasks;
+using System.Threading;
 using Grpc.Core;
 using Microsoft.Extensions.DependencyInjection;
 using TronNet;
@@ -45,6 +46,13 @@ public sealed class TronSdkRuntime : IAsyncDisposable
             _solidityNode?.ShutdownAsync().GetAwaiter().GetResult();
             throw;
         }
+    }
+
+    /// <summary>Execution-owned client view; reuses the installed services/channels without ambient callback mutation.</summary>
+    public TronNativeTransferClient CreatePreparedNativeTransfers(Func<string,string,string,CancellationToken,Task> persistPreparedSubmission)
+    {
+        ArgumentNullException.ThrowIfNull(persistPreparedSubmission);
+        return NativeTransfers.WithPreparation(persistPreparedSubmission);
     }
 
     private static void ValidateEndpoint(Uri endpoint)
