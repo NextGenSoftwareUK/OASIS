@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Live read-only Sui activation regression — 2026-10-12
+
+Added a real retained-ledger activation test measuring the configured signing account through the public balance API before/after successful activation. Balance is exactly unchanged, verifying the changed activation path performs no network-fee mutation. Combined current live activation, normal prepared write and lost-child-response recovery suite **3/3** passed, zero skips (`sui-prepared-live-current.trx`), with exact owned keys/outboxes/journals cleaned after confirmed outcomes. First run was 2/3 because the new test incorrectly treated the SDK balance object as a JSON string; fixed the test to use the existing public balance API rather than introducing another parser.
+
+Same retained SDK/Mongo/ledger reused; exact node PID 221031 stopped and handle terminal. This closes the positive live regression for read-only Sui activation, not complete live V2 routing after the activation change, Cosmos activation, parent-host crash recovery, production native billing or all provider interfaces. No installs/reset/public funds/merge.
+
 ### Sui activation no longer submits paid probe writes — 2026-10-12
 
 Removed implicit put/get/delete probe transactions from Sui storage activation. The existing SDK storageProbe now verifies the storage object's configured package ABI and compares its BCS owner to the actual configured Ed25519 signer address, rejecting missing/foreign/invalid identities. Activation is now read-only authority/reachability verification, not a guarantee that every future mutation will succeed. SDK suite **26/26** passed, zero skips, including authority rejection cases; current provider build zero warnings/errors. Initial multi-file patch failed validation atomically and was corrected before final build. Live activation regression after this change is still required; prior paid-probe integration runs do not certify the changed behavior. No ledger startup, mutation, installs, deployment or merge.
