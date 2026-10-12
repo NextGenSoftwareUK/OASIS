@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### C# private preparation parent server — 2026-10-12
+
+Added `PreparedSubmissionServer` in shared storage: a single-use current-user-only asynchronous pipe, bounded strict UTF-8 versioned preparation frame, awaited owner-supplied persistence callback, and matching acknowledgement only after callback success. Failure/cancellation disposes the pipe without acknowledgement; no duplicate journal store was introduced. Caller owns cancellation/deadline and must validate provider cryptography, authenticated operation, chain/payer and actual durable evidence inside the callback.
+
+Actual C# named-pipe ordering and persistence-rejection cases passed in full shared-storage suite **76/76**, zero skips; build passed 0 errors/warnings, fixed report `TestResults/SharedStorageCurrent/shared-current.trx`. Node helper accepts the .NET Unix pipe path convention in addition to its Windows endpoint, but cross-platform execution is not yet proven. Node-to-C# interoperability, real outbox callback, provider lifecycle wiring and crash/recovery tests remain required. No install, ledger mutation or deployment; no completion/merge claim.
+
 ### Shared local preparation acknowledgement transport — 2026-10-12
 
 Added a Node built-in local-pipe preparation client under shared key-value storage. It emits bounded versioned signed-evidence frames and awaits an explicit persisted acknowledgement matching the original identity; rejection, disconnect, invalid JSON/UTF-8, oversized reply or deadline fails closed. It snapshots the identity for reply comparison, drains no secrets to logs, destroys its socket and clears the deadline on completion. No new journal store or dependencies.

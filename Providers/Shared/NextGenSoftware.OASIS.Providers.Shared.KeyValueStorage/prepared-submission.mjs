@@ -2,7 +2,7 @@ import net from 'node:net';
 
 // Local transport only. The parent owns the endpoint and durable persistence.
 export function preparationClient(endpoint, timeoutMs = 30000) {
-  if (typeof endpoint !== 'string' || !(endpoint.startsWith('\\\\.\\pipe\\oasis-native-') || endpoint.startsWith('/tmp/oasis-native-')))
+  if (typeof endpoint !== 'string' || !(endpoint.startsWith('\\\\.\\pipe\\oasis-native-') || endpoint.startsWith('/tmp/oasis-native-') || endpoint.startsWith('/tmp/CoreFxPipe_oasis-native-')))
     throw new Error('An explicitly owned local preparation pipe is required');
   if (!Number.isSafeInteger(timeoutMs) || timeoutMs <= 0 || timeoutMs > 30000)
     throw new Error('A bounded preparation acknowledgement deadline is required');
