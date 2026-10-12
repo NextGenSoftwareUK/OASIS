@@ -161,8 +161,10 @@ public partial class CosmosBlockChainOASIS
             if (request == null || string.IsNullOrWhiteSpace(request.FromWalletAddress) || string.IsNullOrWhiteSpace(request.ToWalletAddress))
                 throw new ArgumentException("Sender and recipient NFT wallet addresses are required.");
             if (request.Amount != 0m && request.Amount != 1m) throw new ArgumentException("A unique NFT transfer amount must be one.");
-            var address = request.TokenAddress ?? request.FromNFTTokenAddress;
-            var locator = NftLocator(address);
+            var addresses = new[] { request.TokenAddress, request.FromNFTTokenAddress }
+                .Where(value => !string.IsNullOrWhiteSpace(value)).Distinct(StringComparer.Ordinal).ToList();
+            if (addresses.Count != 1) throw new ArgumentException("Exactly one consistent Cosmos NFT address is required.");
+            var locator = NftLocator(addresses[0]);
             if (!string.IsNullOrWhiteSpace(request.TokenId) && request.TokenId != locator.TokenId)
                 throw new ArgumentException("NFT token ID conflicts with its address.");
             var key = await SigningKeyAsync(Guid.Empty,request.OwnerPrivateKey,request.OwnerSeedPhrase);
