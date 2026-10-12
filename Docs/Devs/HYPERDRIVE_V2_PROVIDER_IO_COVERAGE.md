@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### NFT import HTTP concrete request boundary (2026-10-11)
+
+NFT import action now binds the existing concrete `ImportWeb3NFTRequest`, replacing its interface body parameter; downstream NFTManager still receives the implemented interface. No new DTO/protocol is added. Rebuilt host succeeds (0 errors/253 warnings); concrete body/signature tests plus token-send field roundtrip pass **3/3**, zero skips (`web4-wallet-token-binding.trx`). Static route manifest remains 691 actions/597 classified external boundaries. This is body-contract evidence, not authenticated on-chain import, owner authorization or persistence/metadata proof; those remain required positive native/API gates. Existing cache/build environment reused without restore/download/mutation/deploy/merge.
+
 ### Token-send HTTP concrete request boundary (2026-10-11)
 
 Wallet send action now binds `[FromBody] SendWeb4TokenRequest` rather than the non-instantiable interface; existing WalletManager still consumes its interface. No interface converter for this request existed in the API. Two unit boundary cases pass **2/2**, zero skips (`web4-wallet-token-binding.trx`): concrete body parameter plus JSON roundtrip preservation of avatar IDs, signer fields, amount, native `FromTokenAddress` and wallet addresses. Initial fixture used the nonexistent `TokenAddress` name and was corrected to the existing DTO contract. Host source builds; static WEB4 route manifest remains 691/597. These tests do not execute a positive token-send HTTP/ledger operation; authenticated native mutation proof and all remaining release gates stay open. No installs/downloads or ledger mutation.

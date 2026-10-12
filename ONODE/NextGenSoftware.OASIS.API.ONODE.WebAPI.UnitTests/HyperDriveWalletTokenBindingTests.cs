@@ -8,6 +8,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests;
 public class HyperDriveWalletTokenBindingTests
 {
     [Fact]
+    public void NftImportRouteUsesExistingConcreteBodyDto()
+    {
+        var parameter=typeof(NftController).GetMethod("ImportWeb3NFTAsync")!.GetParameters().Single();
+        Assert.Equal(typeof(NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests.ImportWeb3NFTRequest),parameter.ParameterType);
+        Assert.NotNull(Attribute.GetCustomAttribute(parameter,typeof(FromBodyAttribute)));
+    }
+
+    [Fact]
     public void SendRouteUsesInstantiableBodyDto()
     {
         var parameter=typeof(WalletController).GetMethod("SendTokenAsync")!.GetParameters().Single();
