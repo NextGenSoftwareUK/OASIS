@@ -8,6 +8,19 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 public class HederaProcessBoundaryTests
 {
     [TestMethod]
+    public async Task InvalidUtf8MutationReplyPreservesIdentityAndCannotEnableReplay()
+    {
+        await WithFixture(async () =>
+        {
+            var error = await Assert.ThrowsExceptionAsync<HederaNativeMutationReconciliationException>(() => Invoke("storageDelete", CancellationToken.None, "invalid-utf8"));
+            Assert.AreEqual(Mutation, error.OriginalTransactionId);
+            Assert.AreEqual("process-communication-unverified", error.Evidence.Stage);
+            Assert.IsInstanceOfType<System.Text.DecoderFallbackException>(error.InnerException);
+            Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(error));
+        });
+    }
+
+    [TestMethod]
     public async Task NullReportedIdCannotEraseOriginalMutationIdentity()
     {
         await WithFixture(async () =>
