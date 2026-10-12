@@ -30,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge
         {
             _bridge = bridge ?? throw new ArgumentNullException(nameof(bridge));
             _options = options ?? throw new ArgumentNullException(nameof(options));
-            _sessionFactory = sessionFactory ?? new HoloNetEdgeSessionFactory();
+            _sessionFactory = sessionFactory ?? new HoloNetEdgeSessionFactory(bridge as IHolochainZomeCallSigningBridge);
         }
 
         public async Task<OASISResult<HoloEdgeMutationRepository>> StartAsync(

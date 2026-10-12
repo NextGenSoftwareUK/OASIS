@@ -129,13 +129,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (configResult.IsError && configResult.Response != null)
                 return configResult.Response;
 
-            // Ownership check: verify the file holon belongs to the caller or is public, unless Wizard
+            // Read check: the caller created the file holon, it is public, or it was shared with them (Wizards bypass)
             if (Avatar?.AvatarType?.Value != AvatarType.Wizard)
             {
                 var holon = await HolonManager.LoadHolonAsync(request.Id);
                 if (holon == null || holon.IsError || holon.Result == null)
                     return TestDataHelper.CreateErrorResponse<byte[]>("File not found.", null, System.Net.HttpStatusCode.NotFound);
-                if (holon.Result.CreatedByAvatarId != AvatarId && !holon.Result.IsPublic)
+                if (!HolonAccess.CanRead(holon.Result, AvatarId))
                     return TestDataHelper.CreateErrorResponse<byte[]>("Forbidden. You do not have permission to access this file.", null, System.Net.HttpStatusCode.Forbidden);
             }
 

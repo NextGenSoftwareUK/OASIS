@@ -279,15 +279,25 @@ jobs:
           path: artifacts/edge-runtime-release
       - uses: actions/download-artifact@v7
         with:
+          name: global-release-plan
+          path: artifacts/global-release-plan
+      - uses: actions/download-artifact@v7
+        with:
           name: global-release-nuget-packages
           path: artifacts/edge-nuget-publish-candidates
       - name: Generate Edge Runtime release notes and aggregate archive
         shell: pwsh
         run: |
-          $publishCandidates = @(Get-ChildItem -LiteralPath 'artifacts/edge-nuget-publish-candidates' -Filter '*.nupkg' -File |
-            Where-Object { $_.Name -notlike '*.symbols.nupkg' })
+          $plan = Get-Content -Raw 'artifacts/global-release-plan/release-plan.json' | ConvertFrom-Json
+          $edgePackages = @($plan.packages | Where-Object { $_.packageId -in $plan.edgePackageIds })
+          if ($edgePackages.Count -ne 9) { throw "Expected nine Edge packages in the reviewed plan, found $($edgePackages.Count)." }
+          $publishCandidates = @(foreach ($package in $edgePackages) {
+            $path = Join-Path 'artifacts/edge-nuget-publish-candidates' "$($package.packageId).$($package.version).nupkg"
+            if (-not (Test-Path -LiteralPath $path -PathType Leaf)) { throw "Missing reviewed Edge package: $path" }
+            Get-Item -LiteralPath $path
+          })
           if ($publishCandidates.Count -ne 9) { throw "Expected exactly nine reviewed Edge NuGet candidates, found $($publishCandidates.Count)." }
-          Compress-Archive -Path 'artifacts/edge-nuget-publish-candidates/*' -DestinationPath 'artifacts/edge-runtime-release/nuget-publish-candidates.zip'
+          Compress-Archive -LiteralPath $publishCandidates.FullName -DestinationPath 'artifacts/edge-runtime-release/nuget-publish-candidates.zip'
           ./Scripts/New-OASISReleaseNotes.ps1 -Component EdgeRuntime -Version '${{ needs.plan.outputs.edge_version }}' -OutputPath 'artifacts/edge-runtime-release/RELEASE_NOTES.md'
           Compress-Archive -Path 'artifacts/edge-runtime-release/*' -DestinationPath 'artifacts/OASIS.Edge.Runtime.v${{ needs.plan.outputs.edge_version }}.zip'
       - uses: actions/upload-artifact@v7
@@ -322,7 +332,16 @@ jobs:
   runtime-assets:
     if: inputs.oasis_runtime || inputs.ogengine_client || inputs.native_endpoint
     needs: plan
-    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, rid: win-x64 }
+          - { os: ubuntu-latest, rid: linux-x64 }
+          - { os: ubuntu-latest, rid: linux-arm64 }
+          - { os: macos-15-intel, rid: osx-x64 }
+          - { os: macos-latest, rid: osx-arm64 }
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 180
     steps:
       - uses: actions/checkout@v7
@@ -347,16 +366,28 @@ jobs:
         run: |
           New-Item artifacts/global-release/assets -ItemType Directory -Force | Out-Null
           if ('${{ inputs.oasis_runtime }}' -eq 'true' -or '${{ inputs.native_endpoint }}' -eq 'true') {
-            dotnet publish 'Native EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.csproj' -c Release -o artifacts/global-release/native -p:Version=${{ needs.plan.outputs.native_version }}
+            dotnet publish 'Native EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint.csproj' -c Release -r '${{ matrix.rid }}' --self-contained true -o artifacts/global-release/native -p:Version=${{ needs.plan.outputs.native_version }}
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           }
           if ('${{ inputs.oasis_runtime }}' -eq 'true') {
-            Compress-Archive artifacts/global-release/native/* "artifacts/global-release/assets/OASIS.Runtime.v${{ needs.plan.outputs.oasis_version }}.zip"
+            ./Scripts/New-OASISRuntimeArchive.ps1 -PublishDirectory artifacts/global-release/native -OutputPath "artifacts/global-release/assets/OASIS.Runtime.v${{ needs.plan.outputs.oasis_version }}.${{ matrix.rid }}.zip"
+            ./Scripts/Test-OASISRuntimeArchive.ps1 -ArchivePath "artifacts/global-release/assets/OASIS.Runtime.v${{ needs.plan.outputs.oasis_version }}.${{ matrix.rid }}.zip"
           }
           if ('${{ inputs.native_endpoint }}' -eq 'true') {
-            Compress-Archive artifacts/global-release/native/* "artifacts/global-release/assets/OASIS.API.Integrated.Native.EndPoint.v${{ needs.plan.outputs.native_version }}.zip"
+            # Stage only the public Default DNA template, never configured provider credentials.
+            $source = (Resolve-Path 'artifacts/global-release/native').Path
+            $stage = Join-Path (Get-Location) 'artifacts/global-release/native-public'
+            New-Item $stage -ItemType Directory -Force | Out-Null
+            Get-ChildItem $source -Recurse -File | Where-Object Name -NotMatch '(?i)OASIS[_-]?DNA.*\.json$' | ForEach-Object {
+              $relative = [IO.Path]::GetRelativePath($source, $_.FullName)
+              $target = Join-Path $stage $relative
+              New-Item ([IO.Path]::GetDirectoryName($target)) -ItemType Directory -Force | Out-Null
+              Copy-Item -LiteralPath $_.FullName -Destination $target
+            }
+            Copy-Item -LiteralPath 'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/Default/OASIS_DNA.json' -Destination (Join-Path $stage 'OASIS_DNA.json')
+            Compress-Archive "$stage/*" "artifacts/global-release/assets/OASIS.API.Integrated.Native.EndPoint.v${{ needs.plan.outputs.native_version }}.${{ matrix.rid }}.zip"
           }
-          if ('${{ inputs.ogengine_client }}' -eq 'true') {
+          if ('${{ inputs.ogengine_client }}' -eq 'true' -and '${{ matrix.rid }}' -eq 'win-x64') {
             ./Scripts/validate_ogengine_profiles.ps1 -Configuration Release
             if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
             Compress-Archive artifacts/ogengine-profiles/edge/* "artifacts/global-release/assets/OGEngineClient.Edge.v${{ needs.plan.outputs.ogengine_version }}.zip"
@@ -371,18 +402,50 @@ jobs:
           if ('${{ inputs.native_endpoint }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component NativeEndpoint -Version '${{ needs.plan.outputs.native_version }}' -OutputPath 'artifacts/global-release/release-notes/native-endpoint.md' }
       - uses: actions/upload-artifact@v7
         with:
-          name: global-release-runtime-assets
+          name: global-release-runtime-assets-${{ matrix.rid }}
           path: artifacts/global-release/assets/*
           if-no-files-found: error
+  runtime-release:
+    if: inputs.oasis_runtime || inputs.ogengine_client || inputs.native_endpoint
+    needs: [plan, runtime-assets]
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - uses: actions/download-artifact@v8
+        with:
+          pattern: global-release-runtime-assets-*
+          path: artifacts/global-release/assets
+          merge-multiple: true
+      - name: Verify complete platform sets and generate notes
+        shell: pwsh
+        run: |
+          $rids = @('win-x64', 'linux-x64', 'linux-arm64', 'osx-x64', 'osx-arm64')
+          foreach ($rid in $rids) {
+            if ('${{ inputs.oasis_runtime }}' -eq 'true' -and -not (Test-Path "artifacts/global-release/assets/OASIS.Runtime.v${{ needs.plan.outputs.oasis_version }}.$rid.zip")) { throw "Missing OASIS Runtime platform $rid" }
+            if ('${{ inputs.native_endpoint }}' -eq 'true' -and -not (Test-Path "artifacts/global-release/assets/OASIS.API.Integrated.Native.EndPoint.v${{ needs.plan.outputs.native_version }}.$rid.zip")) { throw "Missing Native Endpoint platform $rid" }
+          }
+          if ('${{ inputs.oasis_runtime }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component OASISRuntime -Version '${{ needs.plan.outputs.oasis_version }}' -OutputPath 'artifacts/global-release/release-notes/oasis-runtime.md' }
+          if ('${{ inputs.ogengine_client }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component OGEngineClient -Version '${{ needs.plan.outputs.ogengine_version }}' -OutputPath 'artifacts/global-release/release-notes/ogengine-client.md' }
+          if ('${{ inputs.native_endpoint }}' -eq 'true') { ./Scripts/New-OASISReleaseNotes.ps1 -Component NativeEndpoint -Version '${{ needs.plan.outputs.native_version }}' -OutputPath 'artifacts/global-release/release-notes/native-endpoint.md' }
       - name: Create selected GitHub releases
         if: inputs.publish
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          if ('${{ inputs.oasis_runtime }}' -eq 'true') { gh release create 'OASIS-Runtime-v${{ needs.plan.outputs.oasis_version }}' 'artifacts/global-release/assets/OASIS.Runtime.v${{ needs.plan.outputs.oasis_version }}.zip' --title 'OASIS Runtime v${{ needs.plan.outputs.oasis_version }}' --notes-file 'artifacts/global-release/release-notes/oasis-runtime.md' --verify-tag=false }
+          if ('${{ inputs.oasis_runtime }}' -eq 'true') {
+            $assets = @(Get-ChildItem 'artifacts/global-release/assets/OASIS.Runtime.v${{ needs.plan.outputs.oasis_version }}.*.zip' | ForEach-Object FullName)
+            gh release create 'OASIS-Runtime-v${{ needs.plan.outputs.oasis_version }}' @assets --title 'OASIS Runtime v${{ needs.plan.outputs.oasis_version }}' --notes-file 'artifacts/global-release/release-notes/oasis-runtime.md' --verify-tag=false
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
           if ('${{ inputs.ogengine_client }}' -eq 'true') { gh release create 'OGEngineClient-v${{ needs.plan.outputs.ogengine_version }}' 'artifacts/global-release/assets/OGEngineClient.Edge.v${{ needs.plan.outputs.ogengine_version }}.zip' 'artifacts/global-release/assets/OGEngineClient.RemoteOnly.v${{ needs.plan.outputs.ogengine_version }}.zip' --title 'OGEngineClient v${{ needs.plan.outputs.ogengine_version }}' --notes-file 'artifacts/global-release/release-notes/ogengine-client.md' --verify-tag=false }
-          if ('${{ inputs.native_endpoint }}' -eq 'true') { gh release create 'Native-Endpoint-v${{ needs.plan.outputs.native_version }}' 'artifacts/global-release/assets/OASIS.API.Integrated.Native.EndPoint.v${{ needs.plan.outputs.native_version }}.zip' --title 'OASIS API Integrated Native Endpoint v${{ needs.plan.outputs.native_version }}' --notes-file 'artifacts/global-release/release-notes/native-endpoint.md' --verify-tag=false }
+          if ('${{ inputs.native_endpoint }}' -eq 'true') {
+            $assets = @(Get-ChildItem 'artifacts/global-release/assets/OASIS.API.Integrated.Native.EndPoint.v${{ needs.plan.outputs.native_version }}.*.zip' | ForEach-Object FullName)
+            gh release create 'Native-Endpoint-v${{ needs.plan.outputs.native_version }}' @assets --title 'OASIS API Integrated Native Endpoint v${{ needs.plan.outputs.native_version }}' --notes-file 'artifacts/global-release/release-notes/native-endpoint.md' --verify-tag=false
+            if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          }
 
   star-runtime-assets:
     if: inputs.star_runtime

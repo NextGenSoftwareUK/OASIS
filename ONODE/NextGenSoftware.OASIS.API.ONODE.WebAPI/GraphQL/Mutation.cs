@@ -532,45 +532,33 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
 
         // ── ONET ──────────────────────────────────────────────────────────────────
 
-        private static ONETManager CreateONETManager()
-        {
-            var result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
-            return new ONETManager(result.Result, OASISBootLoader.OASISBootLoader.OASISDNA);
-        }
-
-        private static ONODEManager CreateONODEManager()
-        {
-            var result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
-            return new ONODEManager(result.Result, OASISBootLoader.OASISBootLoader.OASISDNA);
-        }
-
         public async Task<bool> ConnectToNode(string nodeId, string nodeAddress)
         {
-            var result = await CreateONETManager().ConnectToNodeAsync(nodeId, nodeAddress);
+            var result = await (await Controllers.ONETController.GetOnetManagerStaticAsync()).ConnectToNodeAsync(nodeId, nodeAddress);
             return !result.IsError;
         }
 
         public async Task<bool> DisconnectFromNode(string nodeId)
         {
-            var result = await CreateONETManager().DisconnectFromNodeAsync(nodeId);
+            var result = await (await Controllers.ONETController.GetOnetManagerStaticAsync()).DisconnectFromNodeAsync(nodeId);
             return !result.IsError;
         }
 
         public async Task<bool> StartNetwork()
         {
-            var result = await CreateONETManager().StartNetworkAsync();
+            var result = await (await Controllers.ONETController.GetOnetManagerStaticAsync()).StartNetworkAsync();
             return !result.IsError;
         }
 
         public async Task<bool> StopNetwork()
         {
-            var result = await CreateONETManager().StopNetworkAsync();
+            var result = await (await Controllers.ONETController.GetOnetManagerStaticAsync()).StopNetworkAsync();
             return !result.IsError;
         }
 
         public async Task<bool> BroadcastNetworkMessage(string message, string messageType = "general")
         {
-            var result = await CreateONETManager().BroadcastMessageAsync(message, messageType);
+            var result = await (await Controllers.ONETController.GetOnetManagerStaticAsync()).BroadcastMessageAsync(message, messageType);
             return !result.IsError;
         }
 
@@ -578,25 +566,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
 
         public async Task<bool> StartNode()
         {
-            var result = await CreateONODEManager().StartNodeAsync();
+            var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).StartNodeAsync();
             return !result.IsError;
         }
 
         public async Task<bool> StopNode()
         {
-            var result = await CreateONODEManager().StopNodeAsync();
+            var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).StopNodeAsync();
             return !result.IsError;
         }
 
         public async Task<bool> RestartNode()
         {
-            var result = await CreateONODEManager().RestartNodeAsync();
+            var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).RestartNodeAsync();
             return !result.IsError;
         }
 
         public async Task<bool> UpdateNodeConfig(Dictionary<string, object> config)
         {
-            var result = await CreateONODEManager().UpdateNodeConfigAsync(config);
+            var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).UpdateNodeConfigAsync(config);
             return !result.IsError;
         }
 
@@ -656,18 +644,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
         }
 
         // Share
-        public async Task<bool> ShareHolonToMany(Guid holonId, string avatarIdsCsv)
+        public async Task<bool> ShareHolonToMany(Guid holonId, string avatarIdsCsv,
+            [Service] Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor)
         {
             var ids = avatarIdsCsv.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
                 .Select(s => Guid.TryParse(s, out var g) ? g : Guid.Empty).Where(g => g != Guid.Empty).ToList();
             var r = System.Threading.Tasks.Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
             var mgr = new NextGenSoftware.OASIS.API.Core.Managers.HolonManager(r.Result);
-            var holon = await mgr.LoadHolonAsync(holonId);
-            if (holon == null || holon.IsError || holon.Result == null) return false;
-            if (holon.Result.MetaData == null) holon.Result.MetaData = new Dictionary<string, object>();
-            holon.Result.MetaData["SHARED_AVATAR_IDS"] = System.Text.Json.JsonSerializer.Serialize(ids);
-            var save = await mgr.SaveHolonAsync(holon.Result, Guid.Empty);
-            return save != null && !save.IsError;
+            // Sharing grants read access, so it must run as the signed-in avatar with the creator-only check.
+            var caller = httpContextAccessor.HttpContext?.Items["Avatar"] as IAvatar;
+            var result = await NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers.HolonAccess.ShareAsync(mgr, holonId, ids, caller);
+            return !result.IsError && result.Result;
         }
 
         // Solana

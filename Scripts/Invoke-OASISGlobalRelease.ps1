@@ -82,7 +82,9 @@ function Get-PackageProjects {
         ForEach-Object {
             [xml]$xml = Get-Content -LiteralPath $_.FullName -Raw
             $id = Get-ProjectProperty $xml 'PackageId'
-            if ($id) {
+            $packable = Get-ProjectProperty $xml 'IsPackable'
+            $webHost = [string]$xml.Project.Sdk -match '^Microsoft\.NET\.Sdk\.Web(?:/|$)'
+            if ($id -and $packable -ne 'false' -and (-not $webHost -or $packable -eq 'true')) {
                 [pscustomobject]@{ File = $_; Xml = $xml; PackageId = $id }
             }
         } | Sort-Object PackageId
@@ -117,7 +119,8 @@ function Get-LatestNuGetRelease([string]$PackageId) {
             }
         }
         $latest = @($entries |
-            Where-Object { $_.listed -ne $false -and $_.version -match '^\d+\.\d+\.\d+$' } |
+            # Unlisted versions still occupy immutable NuGet identities and cannot be republished.
+            Where-Object { $_.version -match '^\d+\.\d+\.\d+$' } |
             Sort-Object { [version]$_.version } -Descending |
             Select-Object -First 1)
         if ($latest.Count -eq 0) { return $null }
@@ -195,8 +198,10 @@ function Get-LatestGitHubReleaseVersion([string[]]$TagPrefixes, [string]$Reposit
     if ($Offline) { return $null }
     $headers = @{ 'User-Agent' = 'OASIS-global-release' }
     if ($env:GH_TOKEN) { $headers.Authorization = "Bearer $($env:GH_TOKEN)" }
-    $releases = @(Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/releases?per_page=100" -Headers $headers) |
-        Where-Object { -not $_.draft -and -not $_.prerelease }
+    # Invoke-RestMethod returns a JSON array as one pipeline object. Enumerate
+    # the response before filtering, otherwise version matching sees an array.
+    $response = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/releases?per_page=100" -Headers $headers
+    $releases = @($response | Where-Object { -not $_.draft -and -not $_.prerelease })
     $versions = foreach ($release in $releases) {
         foreach ($prefix in $TagPrefixes) {
             if ($release.tag_name -match ('^' + [regex]::Escape($prefix) + '(?<version>\d+\.\d+\.\d+)$')) {
@@ -214,8 +219,8 @@ function Get-NextOptionalReleaseVersion([string]$Repository, [string[]]$TagPrefi
     if (-not $publishedVersion -and -not $Offline -and $AllowAnySemanticTag) {
         $headers = @{ 'User-Agent' = 'OASIS-global-release' }
         if ($env:GH_TOKEN) { $headers.Authorization = "Bearer $($env:GH_TOKEN)" }
-        $releases = @(Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/releases?per_page=100" -Headers $headers) |
-            Where-Object { -not $_.draft -and -not $_.prerelease }
+        $response = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/releases?per_page=100" -Headers $headers
+        $releases = @($response | Where-Object { -not $_.draft -and -not $_.prerelease })
         $versions = @($releases | ForEach-Object {
             $match = [regex]::Match($_.tag_name, '\d+\.\d+\.\d+')
             if ($match.Success) { [version]$match.Value }
@@ -226,10 +231,12 @@ function Get-NextOptionalReleaseVersion([string]$Repository, [string[]]$TagPrefi
     if ($VersionMode -eq 'Automatic') {
         $headers = @{ 'User-Agent' = 'OASIS-global-release' }
         if ($env:GH_TOKEN) { $headers.Authorization = "Bearer $($env:GH_TOKEN)" }
-        $releases = @(Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/releases?per_page=100" -Headers $headers) | Where-Object { -not $_.draft -and -not $_.prerelease }
+        $response = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/releases?per_page=100" -Headers $headers
+        $releases = @($response | Where-Object { -not $_.draft -and -not $_.prerelease })
         $published = @($releases | Where-Object { $_.tag_name -match [regex]::Escape($publishedVersion) } | Sort-Object published_at -Descending | Select-Object -First 1)
         $since = if ($published.Count) { [uri]::EscapeDataString(([datetime]$published[0].published_at).ToUniversalTime().ToString('o')) } else { $null }
-        $commits = if ($since) { @(Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/commits?since=$since&per_page=100" -Headers $headers) } else { @() }
+        $response = if ($since) { Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/commits?since=$since&per_page=100" -Headers $headers } else { @() }
+        $commits = @($response | ForEach-Object { $_ })
         $subjects = @($commits | ForEach-Object { $_.commit.message -split "`n" | Select-Object -First 1 })
         if ($subjects.Count -eq 0) {
             $message = "Automatic versioning found no changes in $Repository since its latest public release."
@@ -427,10 +434,7 @@ if ($AdvanceWeb4ToWeb6ApiVersions -or $AdvanceWeb4ApiVersion -or $AdvanceWeb5Api
 
 $packageProjects = @()
 $packagePlan = @()
-if ($NuGetPackages) {
-    $packageProjects = @(Get-PackageProjects)
-    if ($NuGetPackageScope -eq 'Edge') {
-        $edgePackageIds = @(
+$edgePackageIds = @(
             'NextGenSoftware.OASIS.Contracts',
             'NextGenSoftware.OASIS.HyperDrive.Synchronization',
             'NextGenSoftware.OASIS.ONET',
@@ -441,6 +445,9 @@ if ($NuGetPackages) {
             'NextGenSoftware.OASIS.API.Providers.HoloOASIS.Unity',
             'NextGenSoftware.OASIS.API.Providers.HoloOASIS.Edge'
         )
+if ($NuGetPackages) {
+    $packageProjects = @(Get-PackageProjects)
+    if ($NuGetPackageScope -eq 'Edge') {
         $packageProjects = @($packageProjects | Where-Object { $_.PackageId -in $edgePackageIds })
         $missingEdgePackageIds = @($edgePackageIds | Where-Object { $_ -notin @($packageProjects.PackageId) })
         if ($missingEdgePackageIds.Count -gt 0) {
@@ -505,6 +512,7 @@ $plan = [ordered]@{
     releaseVersions = $releaseVersions
     apiVersions = if ($webVersions) { $webVersions } else { 'unchanged' }
     packages = $packagePlan
+    edgePackageIds = $edgePackageIds
     blockers = @($planBlockers)
     versionDecisions = @($versionDecisions)
 }

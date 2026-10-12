@@ -2,7 +2,8 @@
 
   <PropertyGroup>
 	  <TargetFramework>net10.0</TargetFramework>
-	  <PackageId>NextGenSoftware.OASIS.API.Providers.OptimismOASIS</PackageId>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.OptimismOASIS</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API Optimism OASIS Provider</Product>
 	  <Title>WEB4 OASIS API Optimism OASIS Provider</Title>
@@ -59,6 +60,9 @@
   <ItemGroup>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
 </Project>
 
 

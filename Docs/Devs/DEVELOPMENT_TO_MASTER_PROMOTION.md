@@ -59,7 +59,49 @@ python3 Scripts/validate_railway_dependency_manifest.py --require-gitlinks
 
 Run the required WEB4-WEB10 publishes described in [Railway dependency pins](./RAILWAY_DEPENDENCY_PINS.md) before opening the parent pull request.
 
-## What is automated
+## Staging release-candidate process (planned enhancement)
+
+Staging is a Railway **environment**, not an additional long-lived Git branch. Do not create `staging` branches
+in the parent or every component repository. Keep the existing `Development → master` parent and
+`Development → main` component mapping. A branch is needed only if a future, explicitly reviewed branching
+policy introduces a separate maintained release line; environment separation alone does not require one.
+
+The intended deployment sequence is:
+
+1. Complete Development CI and development hosted-contract checks.
+2. Complete checked component promotion PRs and prepare the checked parent promotion PR using the existing workflow.
+3. Freeze its reviewed parent candidate SHA, gitlinks and dependency manifest. Deploy that exact source graph to
+   Railway staging before production deployment; do not deploy moving Development or component branch tips.
+4. Verify staging startup, HTTPS/domain certificates, health, Swagger and affected functional contracts across
+   WEB4-WEB10, including authentication, offline grants and synchronization where changed. Record candidate SHA,
+   deployment IDs and compact test evidence. Build success or Swagger alone is not functional acceptance.
+5. Require staging acceptance and production approval. Promote the same tested source graph to production;
+   if merging changes the candidate's source graph, restage and retest it. Production must not build a different
+   dependency revision. Where supported, promote the same immutable build artifact rather than rebuilding it.
+6. Verify production endpoints, then publish the requested GitHub/NuGet/NPM releases using the existing global
+   release workflow. Record the deployed source graph and publication results.
+7. On failure, stop promotion and diagnose the owning code or environment. Roll back to the previous reviewed
+   deployable artifact/source graph where compatible with data migrations; do not bypass gates or silently fall back.
+
+Staging mirrors production's runtime versions, configuration **schema**, feature flags, deployment topology and
+dependency pins. Use separate staging databases, storage, queues, service credentials and external-service sandbox
+accounts where possible. Copying production settings verbatim can expose live data or send real payments/messages.
+Signing identities and client public-key pins need an explicit policy; never rotate or copy them implicitly.
+The owner explicitly selected matching staging/production offline-grant signing keys on 2026-10-08; dev remains
+separate. These two environments therefore share that trust identity and are not cryptographically isolated by
+signing keys. Keep their public pins, scopes and lifetimes identical, and coordinate future rotation and client
+updates together. Other isolation recommendations above remain recommendations rather than permission to
+change the owner's environment settings. Review configuration parity without printing secret values, and validate migrations against representative
+sanitized data with a documented rollback/forward-recovery plan.
+
+**Not implemented by this documentation:** the current process above merges `master` and then verifies staging and
+production. Its existing Railway triggers do not yet provide this pre-production staging gate. Follow-up work must
+add candidate-SHA staging deployment, environment-isolation/parity checks, required acceptance evidence, an explicit
+production approval/dispatch boundary, and release/rollback audit linkage. Review the existing Railway auto-deploy
+triggers before enabling this sequence so merging `master` cannot bypass staging acceptance. Until then, do not claim
+that an existing staging environment automatically gates production. No new branches or workflow changes are made here.
+
+## Existing automation
 
 - Scheduled and manually dispatched discovery of new submodule branch tips.
 - Updating parent gitlinks according to `.gitmodules`.

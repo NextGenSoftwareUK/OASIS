@@ -1,5 +1,14 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><TargetFramework>net8.0</TargetFramework><IsPackable>false</IsPackable><ImplicitUsings>enable</ImplicitUsings></PropertyGroup>
+  <PropertyGroup>
+    <UnityDesktopSymbol Condition="'$(UnityDesktopSymbol)' == '' and $([MSBuild]::IsOSPlatform('Windows'))">UNITY_EDITOR_WIN</UnityDesktopSymbol>
+    <UnityDesktopSymbol Condition="'$(UnityDesktopSymbol)' == '' and $([MSBuild]::IsOSPlatform('OSX'))">UNITY_EDITOR_OSX</UnityDesktopSymbol>
+    <UnityDesktopSymbol Condition="'$(UnityDesktopSymbol)' == ''">UNITY_EDITOR_LINUX</UnityDesktopSymbol>
+    <DefineConstants>$(DefineConstants);UNITY_EDITOR;$(UnityDesktopSymbol)</DefineConstants>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="../../UnityPackages/com.nextgensoftware.oasis.edge/Runtime/UnityPlatformSecureSessionStore.cs" Link="UnityPlatformSecureSessionStore.cs" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="xunit" Version="2.9.2" />

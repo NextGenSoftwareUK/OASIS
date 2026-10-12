@@ -2,7 +2,11 @@
 param(
     [string]$UnityEditor = 'C:\Program Files\Unity\Hub\Editor\2022.3.62f3\Editor\Unity.exe',
     [string]$PackageDirectory = 'artifacts\unity\com.nextgensoftware.oasis.edge',
-    [string]$LogDirectory = 'artifacts'
+    [string]$LogDirectory = 'artifacts',
+    [ValidateRange(1, 120)]
+    [int]$EditorValidationTimeoutMinutes = 20,
+    [ValidateRange(1, 240)]
+    [int]$AndroidBuildTimeoutMinutes = 90
 )
 
 $ErrorActionPreference = 'Stop'
@@ -19,9 +23,92 @@ if (-not $logRoot.StartsWith($artifactsRoot, [StringComparison]::OrdinalIgnoreCa
 }
 New-Item -ItemType Directory -Path $logRoot -Force | Out-Null
 if (-not (Test-Path -LiteralPath $UnityEditor -PathType Leaf)) { throw "Unity editor not found: $UnityEditor" }
+
+function Invoke-UnityBatchProcess {
+    param(
+        [Parameter(Mandatory)] [string]$Phase,
+        [Parameter(Mandatory)] [string[]]$Arguments,
+        [Parameter(Mandatory)] [string]$LogPath,
+        [Parameter(Mandatory)] [int]$TimeoutMinutes
+    )
+
+    $stdoutPath = "$LogPath.stdout.log"
+    $stderrPath = "$LogPath.stderr.log"
+    $launchTime = Get-Date
+    Write-Host "Starting Unity $Phase validation (timeout: $TimeoutMinutes minutes)."
+    $process = Start-Process -FilePath $UnityEditor -ArgumentList $Arguments `
+        -WindowStyle Hidden -RedirectStandardOutput $stdoutPath -RedirectStandardError $stderrPath -PassThru
+    $deadline = [DateTime]::UtcNow.AddMinutes($TimeoutMinutes)
+    $nextProgress = [DateTime]::UtcNow.AddMinutes(1)
+    while (-not $process.WaitForExit(5000)) {
+        if ([DateTime]::UtcNow -ge $deadline) {
+            try { $process.Kill($true) } catch { Write-Warning "Unable to terminate timed-out Unity process tree: $($_.Exception.Message)" }
+            $process.WaitForExit()
+            foreach ($diagnosticPath in @($LogPath, $stdoutPath, $stderrPath)) {
+                if (Test-Path -LiteralPath $diagnosticPath -PathType Leaf) {
+                    Write-Host "--- Timed-out Unity $Phase diagnostic: $diagnosticPath ---"
+                    Get-Content -LiteralPath $diagnosticPath -Tail 120 | Write-Host
+                } else {
+                    Write-Warning "Unity did not create diagnostic '$diagnosticPath'."
+                }
+            }
+            throw "Unity $Phase validation exceeded its $TimeoutMinutes-minute phase timeout. See '$LogPath'."
+        }
+        if ([DateTime]::UtcNow -ge $nextProgress) {
+            Write-Host "Unity $Phase validation is still running (PID $($process.Id), elapsed $([Math]::Round(([DateTime]::UtcNow - $process.StartTime.ToUniversalTime()).TotalMinutes, 1)) minutes)."
+            $nextProgress = [DateTime]::UtcNow.AddMinutes(1)
+        }
+    }
+    if ($process.ExitCode -ne 0) {
+        # Loader failures can occur before Unity creates any of its own diagnostic streams.
+        # Preserve matching Windows events without replacing the original process failure.
+        if ($IsWindows -and $process.ExitCode -eq -1073741515) {
+            foreach ($eventLog in @('Application', 'System')) {
+                try {
+                    $events = @(Get-WinEvent -FilterHashtable @{
+                        LogName = $eventLog; StartTime = $launchTime
+                    } -ErrorAction Stop | Where-Object {
+                        $_.Message -match 'Unity\.exe' -and $_.Id -in @(26, 1000, 1001)
+                    })
+                    if ($events.Count -gt 0) {
+                        $events | Select-Object TimeCreated, Id, ProviderName, Message |
+                            Format-List | Out-String |
+                            Tee-Object -FilePath "$LogPath.$eventLog.loader.log" | Write-Host
+                    } else {
+                        Write-Warning "No matching Unity loader event was available in $eventLog."
+                    }
+                } catch {
+                    Write-Warning "Could not collect Unity loader events from ${eventLog}: $($_.Exception.Message)"
+                }
+            }
+        }
+        foreach ($diagnosticPath in @($stdoutPath, $stderrPath)) {
+            if (Test-Path -LiteralPath $diagnosticPath -PathType Leaf) {
+                Write-Host "--- Failed Unity $Phase diagnostic: $diagnosticPath ---"
+                Get-Content -LiteralPath $diagnosticPath -Tail 120 | Write-Host
+            }
+        }
+    }
+    return $process.ExitCode
+}
 $packageManifestPath = Join-Path $packageRoot 'build-manifest.json'
 $packageManifest = Get-Content -LiteralPath $packageManifestPath -Raw | ConvertFrom-Json
 $isHoloEnabled = $packageManifest.profile -eq 'HoloEnabled'
+# Previously Holo-only: SQLite builds also have to prove their actual ARM64 IL2CPP payload.
+function Assert-EdgeAndroidApkEntries {
+    param([string[]]$EntryNames, [bool]$HoloEnabled)
+    $requiredEntries = @('lib/arm64-v8a/libil2cpp.so', 'lib/arm64-v8a/libe_sqlite3.so')
+    if ($HoloEnabled) {
+        $requiredEntries += @('lib/arm64-v8a/libholochain_conductor_runtime_ffi.so',
+            'lib/arm64-v8a/libholochain_conductor_runtime_types_ffi.so')
+    }
+    foreach ($requiredEntry in $requiredEntries) {
+        if ($requiredEntry -notin $EntryNames) { throw "Validated APK is missing '$requiredEntry'." }
+    }
+    if (@($EntryNames | Where-Object { $_ -match '^lib/(armeabi-v7a|x86|x86_64)/' }).Count -ne 0) {
+        throw 'The Edge validation APK is not ARM64-only.'
+    }
+}
 if ($isHoloEnabled) {
     $holoPluginRoot = Join-Path $packageRoot 'Runtime\Plugins\Android\Holochain'
     foreach ($required in @('holochain-service.aar', 'holochain-client.aar', 'holooasis-unity-bridge.aar',
@@ -116,7 +203,13 @@ foreach ($assemblyName in $requiredRuntimeAssemblies) {
 }
 
 $projectRoot = Join-Path $artifactsRoot 'unity-edge-validation-project'
-if (Test-Path -LiteralPath $projectRoot) { Remove-Item -LiteralPath $projectRoot -Recurse -Force }
+# Retired: recursive deletion of $projectRoot on every run discarded the reusable Unity import/build cache.
+# Refresh owned inputs in place; refuse to change the project while another Unity process owns it.
+if ($IsWindows) {
+    $owners = @(Get-CimInstance Win32_Process -Filter "Name = 'Unity.exe'" -ErrorAction Stop |
+        Where-Object { $_.CommandLine -and $_.CommandLine.IndexOf($projectRoot, [StringComparison]::OrdinalIgnoreCase) -ge 0 })
+    if ($owners.Count -gt 0) { throw 'The reusable Edge validation project is already open in Unity. Wait for its owner to exit.' }
+}
 New-Item -ItemType Directory -Path (Join-Path $projectRoot 'Assets') -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $projectRoot 'Packages') -Force | Out-Null
 New-Item -ItemType Directory -Path (Join-Path $projectRoot 'ProjectSettings') -Force | Out-Null
@@ -124,8 +217,12 @@ $sampleSource = Join-Path $packageRoot 'Samples~\QuickStart'
 if (-not (Test-Path -LiteralPath $sampleSource -PathType Container)) {
     throw 'The public Quick Start sample is missing from the generated package.'
 }
-Copy-Item -LiteralPath $sampleSource -Destination (Join-Path $projectRoot 'Assets\OASISEdgeQuickStart') `
-    -Recurse -Force
+# Retired directory copy: on a reused destination it nested QuickStart and duplicated assembly definitions.
+$sampleDestination = Join-Path $projectRoot 'Assets\OASISEdgeQuickStart'
+New-Item -ItemType Directory -Path $sampleDestination -Force | Out-Null
+Get-ChildItem -LiteralPath $sampleSource -Force | ForEach-Object {
+    Copy-Item -LiteralPath $_.FullName -Destination $sampleDestination -Recurse -Force
+}
 New-Item -ItemType Directory -Path (Join-Path $projectRoot 'Assets\Editor') -Force | Out-Null
 Copy-Item -LiteralPath (Join-Path $repoRoot 'Scripts\UnityValidation\OASISEdgePackageValidator.cs') `
     -Destination (Join-Path $projectRoot 'Assets\Editor\OASISEdgePackageValidator.cs') -Force
@@ -138,17 +235,18 @@ Set-Content -LiteralPath (Join-Path $projectRoot 'ProjectSettings\ProjectVersion
     -Value "m_EditorVersion: 2022.3.62f3`nm_EditorVersionWithRevision: 2022.3.62f3 (e9b2a6e6c3a0)" -Encoding utf8
 
 $logPath = Join-Path $logRoot 'unity-edge-validation.log'
-$unityProcess = Start-Process -FilePath $UnityEditor -ArgumentList @(
+$unityExitCode = Invoke-UnityBatchProcess -Phase 'editor package' -LogPath $logPath `
+    -TimeoutMinutes $EditorValidationTimeoutMinutes -Arguments @(
     '-batchmode', '-nographics', '-quit', '-projectPath', $projectRoot,
     '-executeMethod', 'NextGenSoftware.OASIS.Edge.Unity.Editor.OASISEdgePackageValidator.Validate',
     '-logFile', $logPath
-) -WindowStyle Hidden -Wait -PassThru
-if ($unityProcess.ExitCode -ne 0) {
+)
+if ($unityExitCode -ne 0) {
     if (Test-Path -LiteralPath $logPath -PathType Leaf) {
         Write-Host "--- Unity Edge validation log ---"
         Get-Content -LiteralPath $logPath | Write-Host
     }
-    throw "Unity Edge package validation failed with exit code $($unityProcess.ExitCode). See '$logPath'."
+    throw "Unity Edge package validation failed with exit code $unityExitCode. See '$logPath'."
 }
 $errors = Select-String -LiteralPath $logPath -Pattern 'error CS\d+|Assembly .* will not be loaded|Failed to resolve packages' -CaseSensitive:$false
 if ($errors) { throw "Unity reported package compilation errors. See '$logPath'." }
@@ -156,12 +254,13 @@ if (-not (Select-String -LiteralPath $logPath -Pattern 'OASIS_EDGE_UNITY_PACKAGE
     throw "Unity did not complete the Edge package secure-storage smoke test. See '$logPath'."
 }
 $androidLogPath = Join-Path $logRoot 'unity-edge-android-validation.log'
-$androidProcess = Start-Process -FilePath $UnityEditor -ArgumentList @(
+$androidExitCode = Invoke-UnityBatchProcess -Phase 'Android IL2CPP build' -LogPath $androidLogPath `
+    -TimeoutMinutes $AndroidBuildTimeoutMinutes -Arguments @(
     '-batchmode', '-nographics', '-quit', '-projectPath', $projectRoot, '-buildTarget', 'Android',
     '-executeMethod', 'NextGenSoftware.OASIS.Edge.Unity.Editor.OASISEdgePackageValidator.ValidateAndroidBuild',
     '-logFile', $androidLogPath
-) -WindowStyle Hidden -Wait -PassThru
-if ($androidProcess.ExitCode -ne 0 -or
+)
+if ($androidExitCode -ne 0 -or
     -not (Select-String -LiteralPath $androidLogPath -Pattern 'OASIS_EDGE_ANDROID_BUILD_VALIDATION_PASSED' -Quiet)) {
     if (Test-Path -LiteralPath $androidLogPath -PathType Leaf) {
         Write-Host "--- Unity Android validation log ---"
@@ -169,18 +268,15 @@ if ($androidProcess.ExitCode -ne 0 -or
     }
     throw "Unity Android Edge package validation failed. See '$androidLogPath'."
 }
-if ($isHoloEnabled) {
+# Retired: if ($isHoloEnabled) guarded APK inspection; every profile now requires native payload verification.
+& {
     $apkPath = Join-Path $projectRoot 'Build\OASISEdgeValidation.apk'
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     $apk = [IO.Compression.ZipFile]::OpenRead($apkPath)
     try {
         $entryNames = @($apk.Entries | ForEach-Object FullName)
-        foreach ($requiredEntry in @('lib/arm64-v8a/libholochain_conductor_runtime_ffi.so',
-                'lib/arm64-v8a/libholochain_conductor_runtime_types_ffi.so', 'lib/arm64-v8a/libil2cpp.so')) {
-            if ($requiredEntry -notin $entryNames) { throw "Validated APK is missing '$requiredEntry'." }
-        }
-        $foreignAbi = @($entryNames | Where-Object { $_ -match '^lib/(armeabi-v7a|x86|x86_64)/' })
-        if ($foreignAbi.Count -ne 0) { throw 'The HoloEnabled validation APK is not ARM64-only.' }
+        # Retired Holo-only entry loop: the shared assertion proves IL2CPP/SQLite for all profiles and Holo libraries when enabled.
+        Assert-EdgeAndroidApkEntries -EntryNames $entryNames -HoloEnabled $isHoloEnabled
     }
     finally { $apk.Dispose() }
 }

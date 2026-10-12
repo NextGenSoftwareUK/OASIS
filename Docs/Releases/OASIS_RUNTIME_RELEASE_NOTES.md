@@ -21,3 +21,14 @@ Live WEB4 API: <https://api.oasisweb4.one>
 NuGet entry point: [NextGenSoftware.OASIS.API.Native.Integrated.EndPoint](https://www.nuget.org/packages/NextGenSoftware.OASIS.API.Native.Integrated.EndPoint)
 
 Full changelog: <https://github.com/NextGenSoftwareUK/OASIS/compare/OASIS-Runtime-v4.5.1...OASIS-Runtime-v5.0.1>
+# Runtime archive contract
+
+The global release builds the Native Integrated Endpoint dependency graph, then
+`Scripts/New-OASISRuntimeArchive.ps1` packages the OASIS runtime dependencies
+without STAR assemblies/launchers or the Native Endpoint entry assembly. The
+archive includes exactly the checked-in `Default/OASIS_DNA.json` template as
+`OASIS_DNA.json`, never the publisher's configured DNA. Its bytes are verified
+against the template. Build DNA and run `Scripts/Sync-OASISDNATemplate.ps1` to
+check configuration schema coverage and blank credential fields. Core and BootLoader assemblies are required;
+missing dependencies fail packaging. Native Endpoint and STAR archives remain
+separate products with their own complete outputs.

@@ -2,7 +2,8 @@
 
   <PropertyGroup>
 	  <TargetFramework>net10.0</TargetFramework>
-	  <PackageId>NextGenSoftware.OASIS.API.Providers.CardanoOASIS</PackageId>
+    <PackageId>NextGenSoftware.OASIS.API.Providers.CardanoOASIS</PackageId>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
 	  <Company>NextGen Software Ltd</Company>
 	  <Product>WEB4 OASIS API Cardano OASIS Provider</Product>
 	  <Title>WEB4 OASIS API Cardano OASIS Provider</Title>
@@ -52,9 +53,14 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Chaos.NaCl.Standard" Version="*" />
+    <!-- HoloNET uses this pinned sibling implementation. A second NuGet
+         implementation with the same assembly name breaks full runtime builds. -->
+    <ProjectReference Include="..\..\..\..\holochain-client-csharp\Chaos.NaCl\Chaos.NaCl.Portable.Standard.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
 </Project>
 
 
