@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Live TRON collection depth projection and current routing regression (2026-10-11)
+
+Expanded `TronParentCycleTests` passes **1/1**, zero skips (`tron-parent-cycle.trx`): real encrypted list and metadata collection reads at depth one include the separately persisted child relationship, while unlimited recursive collection loading fails explicitly on the owned self-parent cycle. Owned fixture deleted by finally. After current shared DLL propagation, broader TRON V2 storage-routing/karma scenarios pass **2/2**, zero skips, 141 seconds (`tron-v2-current-combined.trx`), retaining real failover/replication/measured selection and ledger/projection checks. Railway manifest/seven Dockerfiles/gitlinks validator passes. Retained runtime paused after terminal completion; no download/install/new environment/reset/merge. This remains selected live option evidence, not full provider/API/deployed-image coverage; remaining gates stay open.
+
 ### Shared collection child-loading options implemented (2026-10-11)
 
 `LoadAllHolonsAsync` previously ignored child-loading arguments and returned only serialized snapshots; metadata collection queries inherited that behavior. Selected collection records now use the existing child loader when requested, forwarding recursion, maximum/current depth and version. One regression proves separately persisted parent/child/grandchild relationships appear in recursive collection and metadata reads, while no-child/nonrecursive/depth-one options remain bounded. Full shared suite passes **52/52**, zero skips (`shared-current.trx`); explicit provider rebuild succeeds (zero errors/two warnings). Existing historical-list and cycle regressions remain passing. This fixes selected relationship projection, not historical parent-index reconstruction, every continuation-on-error policy or live-provider/API option coverage. No install/download/runtime/new environment/ledger mutation/merge; remaining release gates stay open.
