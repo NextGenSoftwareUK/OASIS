@@ -16,6 +16,7 @@ public class TronUnknownBroadcastEvidenceTests
     [InlineData("empty")] [InlineData("unsupported")] [InlineData("wrong-owner")]
     [InlineData("zero-timestamp")] [InlineData("invalid-expiry")] [InlineData("negative-fee")]
     [InlineData("excess-fee")]
+    [InlineData("active-permission")]
     public async Task ActualSignedContractMustEstablishTrustedOperationOwner(string mode)
     {
         await using var runtime=new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),new Uri("http://127.0.0.1:50052"),new string('a',64));
@@ -32,6 +33,7 @@ public class TronUnknownBroadcastEvidenceTests
         if(mode!="empty"){
             var owner=(byte[])sender.Clone();if(mode=="wrong-owner")owner[1]^=1;
             transaction.RawData.Contract.Add(new Transaction.Types.Contract{
+                PermissionId=mode=="active-permission"?1:0,
                 Type=mode=="unsupported"?(Transaction.Types.Contract.Types.ContractType)999:Transaction.Types.Contract.Types.ContractType.TransferContract,
                 Parameter=Google.Protobuf.WellKnownTypes.Any.Pack(new TransferContract{OwnerAddress=ByteString.CopyFrom(owner),ToAddress=ByteString.CopyFrom(sender),Amount=1})
             });
@@ -39,7 +41,7 @@ public class TronUnknownBroadcastEvidenceTests
         var signed=signer.GetTransactionSign(transaction,new string('0',63)+"1");
         var id=Convert.ToHexString(SHA256.HashData(signed.RawData.ToByteArray())).ToLowerInvariant();
         var error=Assert.Throws<System.IO.InvalidDataException>(()=>TronPreparationVerifier.VerifyOriginal(Convert.ToBase64String(signed.ToByteArray()),id,sender,100));
-        Assert.Contains(mode=="empty"?"One original":mode=="unsupported"?"not supported":mode=="wrong-owner"?"owner differs":mode=="excess-fee"?"ceiling":"validity window",error.Message);
+        Assert.Contains(mode=="empty"?"One original":mode=="unsupported"?"not supported":mode=="wrong-owner"?"owner differs":mode=="excess-fee"?"ceiling":mode=="active-permission"?"permission authority":"validity window",error.Message);
     }
     [Fact]
     public async Task PreparedRuntimeViewReusesExistingSdkServicesWithoutChangingOrdinaryClient()
