@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### LocalFile search preserves failed store-read envelopes (2026-10-11)
+
+Search previously skipped failed parent/all-holon/avatar collection reads and returned successful empty results. Those branches now project the original provider error/code/exception with the existing OASISResult helper; a non-error null collection is explicit failure, not empty success. Three controlled read-override cases exercise both sync/async real search wrappers for avatar, holon and parent branches, preserving `CONTROLLED_READ_FAILURE` and original IOException with null result. Focused LocalFile suite passes **8/8**, zero skips (`localfile-version-export.trx`), including five actual fixed-store regressions and these three controlled failure cases. Bounded provider build succeeds. This is search-boundary proof, not live node outage or every search option/record-parser failure. No runtime/install/download/environment duplication/merge; full remaining provider/API/image/funded release gates stay open.
+
 ### Live search/provider-key extension fixes ignored LocalFile text groups (2026-10-11)
 
 Initial live search failed because LocalFile required unrelated `HolonSearchParams`/`AvatarSearchParams` even for `ISearchTextGroup`, and did not filter records by query. Existing search branches now accept text groups directly and apply ordinal case-insensitive name/description or avatar identity/name matching, with optional ID matching; blank text queries fail explicitly. Focused fixed-store regression confirms sync/async case-insensitive match and exclusion of unrelated/no-match records without those parameter objects. LocalFile focused suite passes **5/5**, zero skips (`localfile-version-export.trx`); test type-qualification compilation errors were corrected before execution.
