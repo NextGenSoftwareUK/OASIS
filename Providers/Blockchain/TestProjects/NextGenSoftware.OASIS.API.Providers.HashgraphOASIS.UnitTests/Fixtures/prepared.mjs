@@ -5,7 +5,7 @@ const {pathToFileURL}=await import('node:url');
 if(request.mode==='no-ack')process.stdout.write(JSON.stringify({transactionId:request.transactionId,status:'SUCCESS'}));
 else try{
  const {preparationClient}=await import(pathToFileURL(process.env.OASIS_NATIVE_PREPARATION_MODULE).href);
- if(request.approvalTransactionId && request.mode!=='skip-approval')
+ if(request.approvalTransactionId && request.mode!=='skip-approval' && request.mode!=='invent-approval')
   await preparationClient(process.env.OASIS_NATIVE_PREPARATION_PIPE,5000)({transactionHash:request.approvalTransactionId,signedTransactionBase64:'AQID'});
  if(request.mode==='approval-only-error'){
   process.stderr.write(JSON.stringify({error:'controlled child exit after approval acknowledgement'}));process.exit(1);
