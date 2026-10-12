@@ -87,7 +87,8 @@ public sealed class SuiRealProviderRoutingTests
         activated.IsError.Should().BeFalse(activated.Message);
         (await local.ActivateProviderAsync()).IsError.Should().BeFalse();
         var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
-            { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
+            { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings(),
+                SubscriptionConfig = new SubscriptionConfig { PlanType = "Gold" } } };
         var manager = new ProviderManager(null, dna)
             { IsAutoFailOverEnabled = true, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false };
         manager.RegisterProvider(sui);
@@ -169,7 +170,8 @@ public sealed class SuiRealProviderRoutingTests
         var activated = await sui.ActivateProviderAsync();
         activated.IsError.Should().BeFalse(activated.Message);
         var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS
-            { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
+            { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings(),
+                SubscriptionConfig = new SubscriptionConfig { PlanType = "Gold" } } };
         var manager = new ProviderManager(null, dna)
             { IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = true, IsAutoLoadBalanceEnabled = false };
         manager.RegisterProvider(local);
