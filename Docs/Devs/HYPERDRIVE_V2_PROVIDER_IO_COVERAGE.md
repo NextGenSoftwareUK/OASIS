@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON shared boundary independently verifies SDK signatures — 2026-10-12
+
+Before persistence/broadcast, the shared submission helper now reuses `TronPreparationVerifier` to recover the actual signature and validate the operation owner, transaction identity, validity window and configured contract fee ceiling. Native send supplies its verified account snapshot, preserving rotated owner signing; other current owner-only paths use exact owner signature verification. Encoded signed bytes are created once and reused for verification/persistence.
+
+Actual installed SDK test substitutes a different signing key while retaining requested raw bytes: verification rejects it with one signing call, zero preparation callbacks and zero broadcasts. Complete suite **257/257 passed**, zero skips (`tron-current.trx`); build zero errors/21 existing warnings. This closes cryptographic signer integrity, NOT refreshed ledger permission authority for all mutations: revoked-key detection outside native send and authority refresh timing remain gaps. No real submission, installation, merge or deployment occurred.
+
 ### TRON native send resolves actual owner authority — 2026-10-12
 
 `SendAsync` now loads the configured-network solidified account and verifies the actual signing-key address against owner permission weights before construction, rather than assuming account-address equality establishes authority. Controlled real SDK/gRPC cases prove a rotated owner signer reaches one construction/broadcast/confirmation, while foreign keys and insufficient threshold stop with zero constructions/broadcasts. Removed the obsolete address-equality test; these three authority cases replace its incorrect assumption. Complete suite **256/256 passed**, zero skips (`tron-current.trx`); provider build zero errors/21 existing warnings.
