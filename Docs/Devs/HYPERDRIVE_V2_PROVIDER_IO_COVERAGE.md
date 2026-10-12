@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Current Sui paged native history verification (2026-10-12)
+
+Expanded existing real history test asserts NativeTransactionId/exact 1000000 units/WalletNetBalanceChange/Success for 53 incoming native receipts crossing the 50-record page boundary, plus sender receipt presence, unrelated empty history, wrong-chain and unavailable-RPC explicit errors. Passes **1/1**, zero skips, 68 seconds (`TestResults/SuiCurrent/sui-history-current.trx`); integration build zero errors/two warnings. Used existing pinned node/ledger and local faucet only; no downloads/reset/public funds. Owned node PID 156356 stopped afterward; free C: 103.71 GB decimal. This is bounded native history/paging proof, not failed/custom-token/nonmonetary-row coverage or complete hosted provider certification. Test creates synthetic local accounts; ledger evidence remains in the retained blockchain and is not claimed erased by node shutdown.
+
 ### Sui structured wallet-history receipt evidence (2026-10-12)
 
 Sui history now exposes native digest, exact signed net-balance units, canonical coin-type base-unit identity, WalletNetBalanceChange operation and Success/Failed status in existing structured fields instead of description only. Retains OASIS row GUID and existing display amount; net balance includes gas and must not be mistaken for requested transfer amount. Expanded real transfer scenario asserts incoming original receipt with 1000000 units and canonical padded SUI coin identity; passes **1/1**, zero skips, 39 seconds (`sui-shared-wallet-current.trx`). Initial assertion incorrectly expected abbreviated 0x2; corrected test to official SDK canonical 64-digit address without rewriting production identity. Owned cleanup passed in both runs. Provider/test builds zero errors/two and five warnings; owned PID 154459 stopped after verification. No installs/downloads/new environment. This scoped positive history check does not prove all history pages, failed receipt rows, every coin or hosted API.
