@@ -15,8 +15,11 @@ Normal sequence: checked Development-to-master promotion, review/merge the exact
 | `nuget_package_scope` | `All`: all packable first-party projects; `Edge`: nine reviewed Edge packages |
 | `oasis_runtime` | OASIS Runtime GitHub archives |
 | `star_runtime` | STAR Runtime/CLI GitHub archives |
-| `edge_runtime` | Edge validation, aggregate bundle and GitHub publication; requires NuGet packages |
-| `ogengine_client` | OGEngineClient managed Edge/remote-only profiles; platform audit remains outstanding |
+| `edge_runtime` | Standalone compiled Edge libraries: five Windows/Linux/macOS RID archives, no Unity payload |
+| `edge_unity` | OGEngineClient + Edge + Unity: Unity validation, runtime-only ZIP and distinct Unity NuGet wrapper; requires coordinated NuGet selection |
+| `ogengine_client` | Select both OGEngineClient RemoteOnly and Edge profiles; each has five managed/native platform archives |
+| `ogengine_remote_only` | Select only RemoteOnly when `ogengine_client=false` |
+| `ogengine_edge` | Select only OGEngineClient + Edge when `ogengine_client=false` |
 | `native_endpoint` | Integrated Native Endpoint GitHub archives |
 | `mcp_server` | MCP distribution workflow; do not reselect already-published versions |
 | `optional_components` | Comma-separated `our_world,odoom,oquake,oide,onode_manager,hyperdrive_client`; `none` selects none |
@@ -25,6 +28,8 @@ Normal sequence: checked Development-to-master promotion, review/merge the exact
 | `star_existing_version` | Existing STAR version for STAR-only maintenance; other components/NuGet/optional selections must be disabled |
 
 Automatic versioning can stop on unchanged optional components. Inspect the plan rather than forcing unnecessary versions. Keep already-completed products disabled when finishing a partial coordinated release. OurWorld requires Unity Cloud configuration; do not substitute a ULF/license workflow.
+
+To select all four families, enable `edge_runtime`, `edge_unity`, `ogengine_client` and `nuget_packages`. The legacy `ogengine_client` selector expands to both explicitly named client profiles; the old Windows-only combined OGEngine release path is removed. Both normal and artifact-reuse Unity publication use the shared `EdgeUnity` release-note definition, which identifies the bundled OGEngineClient and links the four-distribution guide. Unity public ZIP packaging requires the client DLL and excludes test reports/logs/NuGet archives. These integration changes require hosted end-to-end verification and checked promotion before relying on master.
 
 ### Normal coordinated publication
 
