@@ -465,6 +465,17 @@ public sealed class TronLocalSdkTests
         Assert.True(before > 1m);
         var hash = await runtime.NativeTransfers.SendAsync(sender, recipient, 1m, SenderKey, "OASIS reusable local SDK test", bounded.Token);
         Assert.Matches("\\A[0-9a-fA-F]{64}\\z", hash);
+        var fee = await runtime.NativeTransfers.GetNativeFeeReceiptAsync(hash, bounded.Token);
+        Assert.Equal(hash, fee.GetProperty("transactionHash").GetString());
+        Assert.Equal(sender, fee.GetProperty("payer").GetString());
+        Assert.Equal("SUN", fee.GetProperty("unit").GetString());
+        Assert.True(fee.GetProperty("success").GetBoolean());
+        Assert.True(System.Numerics.BigInteger.Parse(fee.GetProperty("netUnits").GetString()!) >= 0);
+        var feeProvider = new TRONOASIS(nativeTransfers: runtime.NativeTransfers);
+        var providerFee = await feeProvider.GetNativeFeeReceiptAsync(hash, bounded.Token);
+        Assert.False(providerFee.IsError, providerFee.Message);
+        Assert.False(feeProvider.IsProviderActivated, "Read-only fee evidence must not activate charge-bearing storage probes.");
+        Assert.Equal(fee.GetProperty("netUnits").GetString(), providerFee.Result.GetProperty("netUnits").GetString());
         var history = Assert.Single(await runtime.NativeTransfers.ReadWalletTransactionsAsync(sender, new[] { hash }, bounded.Token));
         Assert.Equal(hash, history.NativeTransactionId);
         Assert.Equal("1000000", history.RawAmount);

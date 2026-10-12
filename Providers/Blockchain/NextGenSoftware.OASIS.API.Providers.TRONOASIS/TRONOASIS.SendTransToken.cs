@@ -299,6 +299,34 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             return result;
         }
 
+        private void EnsureNativeRuntime()
+        {
+            if (_nativeTransfers != null) return;
+            _ownedRuntime = new TronSdkRuntime(new Uri(_fullNodeGrpcEndpoint), new Uri(_solidityNodeGrpcEndpoint),
+                _genesisBlockId, Environment.GetEnvironmentVariable(_apiKeyEnvironmentVariable), _contractFeeLimitSun);
+            _nativeTransfers = _ownedRuntime.NativeTransfers;
+            _nativeSigningKeyResolver = address => Task.FromResult(Environment.GetEnvironmentVariable(_signingKeyEnvironmentVariable));
+        }
+
+        public async Task<OASISResult<System.Text.Json.JsonElement>> GetNativeFeeReceiptAsync(string transactionHash, CancellationToken token = default)
+        {
+            var result = new OASISResult<System.Text.Json.JsonElement>();
+            if (!System.Text.RegularExpressions.Regex.IsMatch(transactionHash ?? "", "\\A[0-9a-fA-F]{64}\\z"))
+            {
+                result.IsError = true; result.Message = "Exact TRON transaction ID required."; return result;
+            }
+            await _runtimeLifecycle.WaitAsync(token);
+            try
+            {
+                // SDK read only: do not activate the provider's charge-bearing storage probe.
+                EnsureNativeRuntime();
+                result.Result = await _nativeTransfers.GetNativeFeeReceiptAsync(transactionHash, token);
+            }
+            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+            finally { _runtimeLifecycle.Release(); }
+            return result;
+        }
+
         private async Task<T> ExecuteRuntimeAsync<T>(Func<TronNativeTransferClient, Task<T>> operation)
         {
             await _runtimeLifecycle.WaitAsync();
