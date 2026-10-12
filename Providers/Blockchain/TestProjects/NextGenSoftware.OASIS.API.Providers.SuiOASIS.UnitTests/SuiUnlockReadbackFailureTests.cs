@@ -7,6 +7,36 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 public class SuiUnlockReadbackFailureTests
 {
     [DataTestMethod]
+    [DataRow("failed")] [DataRow("executed")] [DataRow("unknown")]
+    [DataRow("bad-status")] [DataRow("bad-shape")] [DataRow("missing-status")]
+    [DataRow("bad-error")] [DataRow("missing-error")]
+    [DataRow("ordinary")]
+    public async Task NativeEvidenceSurvivesSdkProcessBoundaryWithoutGuessingMissingOutcomes(string mode)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","unlock-readback-failure.mjs"));
+        try
+        {
+            using var provider=new SuiOASIS("http://127.0.0.1:1","localnet",privateKey:"test-only-secret");
+            var result=await provider.MintNFTAsync(new MintWeb3NFTRequest { Title="native-evidence/"+mode,NumberToMint=1 });
+            Assert.IsTrue(result.IsError);
+            Assert.IsNull(result.Result);
+            StringAssert.Contains(result.Message,mode is "bad-error" or "missing-error" ? "Malformed Sui native mutation error envelope" : "original controlled native error");
+            Assert.AreEqual(mode!="ordinary",Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception));
+            if(mode!="ordinary")
+            {
+                Assert.IsInstanceOfType<SuiNativeMutationReconciliationException>(result.Exception);
+                var evidence=(SuiNativeMutationReconciliationException)result.Exception;
+                Assert.AreEqual(mode is "unknown" or "bad-shape" or "bad-error" or "missing-error" ? null : "original-controlled-digest",evidence.OriginalTransactionId);
+                Assert.AreEqual(mode=="failed" ? (bool?)false : mode=="executed" ? (bool?)true : null,evidence.ExecutionSucceeded);
+                if(mode is "bad-status" or "bad-shape" or "missing-status" or "bad-error" or "missing-error") Assert.IsNotNull(evidence.InnerException);
+            }
+            Assert.IsFalse(result.Message.Contains("test-only-secret"));
+        }
+        finally {Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",previous);}
+    }
+
+    [DataTestMethod]
     [DataRow(null,null,null,"object ID is required")]
     [DataRow(" ","",null,"object ID is required")]
     [DataRow("first","second",null,"different objects")]
