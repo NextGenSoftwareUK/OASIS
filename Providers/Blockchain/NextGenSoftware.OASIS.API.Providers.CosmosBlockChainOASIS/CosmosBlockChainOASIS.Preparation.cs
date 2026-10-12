@@ -10,6 +10,15 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
 
 public partial class CosmosBlockChainOASIS
 {
+    /// <summary>Explicit prepared native invocation; caller supplies admitted execution and trusted chain/signer context.</summary>
+    public async Task<JsonElement> ExecutePreparedNativeAsync(string operation, object args, UsageExecutionHandle execution,
+        string clientRequestId, string expectedChainId, string expectedSender, CancellationToken token = default)
+    {
+        token.ThrowIfCancellationRequested();
+        using var server = CreateNativePreparationServer(execution, clientRequestId, expectedChainId, expectedSender);
+        return await ((CosmosSdkBackend)Backend).InvokePreparedAsync(operation, args, server, token);
+    }
+
     public PreparedSubmissionServer CreateNativePreparationServer(UsageExecutionHandle execution,
         string clientRequestId, string expectedChainId, string expectedSender)
     {
