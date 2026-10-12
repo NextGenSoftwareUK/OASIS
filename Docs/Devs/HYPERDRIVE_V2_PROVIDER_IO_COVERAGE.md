@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Current Sui native/NFT custody bridge verification (2026-10-12)
+
+Existing real custody bridge scenario now independently checks native withdrawal Completed receipt and explicitly verifies deposit status lookup IsError=false before accepting Completed. Current scenario passes **1/1**, zero skips, 21 seconds (`sui-native-nft-bridge-current.trx`), retaining 0.5 SUI recipient deltas and original NFT custody/release with bound source receipt and owned NFT burn cleanup. Integration build zero errors/two warnings. Pinned existing package/ledger/runtime reused; owned PID 163989 stopped afterward, no installs/downloads/new environment. This proves native custody legs and existing NFT release behavior, not independently authorized cross-chain proof/settlement, hosted pool-release access control or complete native interface options.
+
 ### TRON live deposit rejection and ten-case regression (2026-10-12)
 
 Bridge scenario now independently checks wrong pool signing key against real retained node: explicit null error, inactive provider, one resolver read and unchanged sender/pool balances before any positive bridge operations. Complete current `TronLocalSdkTests` passes **10/10**, zero skips, 19 seconds (`tron-local-sdk-current.trx`), including this rejection, both native bridge legs and existing storage/NFT/escrow/history checks. Integration build zero errors/two warnings; runtime paused afterward. This supersedes controlled-only wrong-deposit balance limitation below. No download/install/new environment. Real native bridge legs and authority rejection are proven at this scope, not hosted pool-release authorization or complete cross-chain settlement/native interface certification.

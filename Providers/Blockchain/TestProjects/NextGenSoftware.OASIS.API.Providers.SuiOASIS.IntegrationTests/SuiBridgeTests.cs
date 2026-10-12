@@ -33,6 +33,9 @@ public class SuiBridgeTests
         Assert.IsFalse(withdrawn.IsError, withdrawn.Message);
         Assert.IsTrue(withdrawn.Result.IsSuccessful);
         Assert.AreEqual(BridgeTransactionStatus.Completed, withdrawn.Result.Status);
+        var withdrawalStatus = await provider.GetTransactionStatusAsync(withdrawn.Result.TransactionId);
+        Assert.IsFalse(withdrawalStatus.IsError,withdrawalStatus.Message);
+        Assert.AreEqual(BridgeTransactionStatus.Completed,withdrawalStatus.Result);
         var poolAfter = await provider.GetAccountBalanceAsync(custody.Result.WalletAddressLegacy);
         Assert.IsFalse(poolAfter.IsError, poolAfter.Message);
         Assert.AreEqual(0.5m, poolAfter.Result - poolBefore.Result);
@@ -40,7 +43,9 @@ public class SuiBridgeTests
         Assert.IsFalse(receiverBefore.IsError, receiverBefore.Message);
         var deposited = await provider.DepositAsync(0.5m, user.Result.WalletAddressLegacy);
         Assert.IsFalse(deposited.IsError, deposited.Message);
-        Assert.AreEqual(BridgeTransactionStatus.Completed, (await provider.GetTransactionStatusAsync(deposited.Result.TransactionId)).Result);
+        var depositStatus = await provider.GetTransactionStatusAsync(deposited.Result.TransactionId);
+        Assert.IsFalse(depositStatus.IsError,depositStatus.Message);
+        Assert.AreEqual(BridgeTransactionStatus.Completed,depositStatus.Result);
         var receiverAfter = await provider.GetAccountBalanceAsync(user.Result.WalletAddressLegacy);
         Assert.IsFalse(receiverAfter.IsError, receiverAfter.Message);
         Assert.AreEqual(0.5m, receiverAfter.Result - receiverBefore.Result);
