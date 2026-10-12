@@ -22,6 +22,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### All V2 selection strategies fail closed with no permitted candidates (2026-10-12)
+
+Added seven controlled cases covering RoundRobin, WeightedRoundRobin, LeastConnections, Geographic, Performance, CostBased and Auto when the only configured provider is Free-policy-forbidden Sui. Each proves sync/async error with no payload, zero provider read executions and unchanged configured candidates. These complement the mixed-candidate cases and actual-provider live proof; no production code/entitlement change needed. Full Core **390/390, zero skips**, `TestResults/CoreCurrent/core-current.trx`, against current pinned Core `998d4cc22a8f2633ef0f4e9367025ac36acc3268`. Reused outputs/dependencies, no downloads/runtime start or funded transaction. This covers automatic selection denial, not explicit provider overrides, every mutation/failover/replication admission path or durable subscription billing; those remain completion gates.
+
 ### Subscription-filtered V2 selection repair passes actual provider routing (2026-10-12)
 
 Expanded retained-node live scenario against Core `998d4cc22a8f2633ef0f4e9367025ac36acc3268`: under explicit Free test DNA policy, RoundRobin/WeightedRoundRobin/LeastConnections/Geographic/Performance each execute sync and async owned holon reads through LocalFile only. Real configured Sui execution metrics remain unchanged; diagnostics list only permitted LocalFile; configured list still contains both. Then explicit Gold test policy restores both candidates and six real round-robin reads divide three each. Existing selected replication/list/index/search/deletion and measured-read assertions remain. This verifies repaired automatic selection with actual registered providers, not authenticated paid subscription/webhook/mint charging or every native/interface/policy option.
