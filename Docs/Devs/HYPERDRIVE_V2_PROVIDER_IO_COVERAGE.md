@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Full Sui regression and actual mint-error V2 propagation — 2026-10-12
+
+Complete Sui suite after NFT readback fencing **75/75 passed**, zero skips, including actual two-minute deadline (`sui-current.trx`). Extended controlled router tests to obtain the exception from the actual Sui `MintNFTAsync` process-fixture path, then pass that same object through real storage-result conversion and V2 sync/async routing: original digest/success evidence persists and alternate writes remain zero. Combined router class **26/26 passed**, zero skips (`TestResults/TronRuntime/native-reconciliation-routing.trx`), including the prior 24 TRON cases; do not sum overlapping selections.
+
+This is controlled process/storage/router composition, not real chain readback outage or deployed route proof. Audit also identified ordinary exception paths in Hedera mint receipt/serial validation and post-mint recipient delivery; those require original mutation evidence and tests, and are the next implementation gate. No funded Hedera queries, new installations, ledger mutations, merge or deployment.
+
 ### Sui committed NFT readback now carries retry fence — 2026-10-12
 
 Audit found NFT mint/send/unlock kept successful original digests in response objects but threw ordinary InvalidOperationException on later NFT readback failure. Replaced those with the existing `SuiNativeMutationReconciliationException`, exact original digest, executionSucceeded true and original readback cause. Existing controlled process tests now require typed evidence, digest, cause and Core reconciliation classification, while preserving response identities and secret-redaction assertions. Focused **4/4 passed**, zero skips (`sui-committed-readback-current.trx`); provider build zero warnings/errors. Complete 75-case suite predates this change and must be rerun; no fresh full-suite claim.

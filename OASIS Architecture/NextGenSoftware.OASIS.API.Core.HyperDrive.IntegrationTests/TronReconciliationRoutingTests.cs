@@ -46,8 +46,32 @@ public class TronReconciliationRoutingTests
             _=>cause
         };
         evidence=wrapping switch{1=>new InvalidOperationException("controlled provider wrapper",evidence),2=>new AggregateException(new IOException("other failure"),evidence),_=>evidence};
+        await VerifyRouter(evidence,ProviderType.TRONOASIS,asynchronous,kind!=3);
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task ActualSuiCommittedMintReadbackEvidenceStopsV2Failover(bool asynchronous)
+    {
+        var root=new DirectoryInfo(AppContext.BaseDirectory);
+        const string relative="Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests/Fixtures/unlock-readback-failure.mjs";
+        while(root!=null&&!File.Exists(Path.Combine(root.FullName,relative)))root=root.Parent;
+        Assert.NotNull(root);
+        var previous=Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",Path.Combine(root.FullName,relative));
+        try{
+            using var provider=new API.Providers.SuiOASIS.SuiOASIS("http://127.0.0.1:1","localnet",privateKey:"test-only-secret");
+            var mint=await provider.MintNFTAsync(new API.Core.Objects.NFT.Requests.MintWeb3NFTRequest{Title="controlled router readback",NumberToMint=1});
+            Assert.True(mint.IsError);var evidence=Assert.IsType<API.Providers.SuiOASIS.SuiNativeMutationReconciliationException>(mint.Exception);
+            Assert.Equal(new string('1',32),evidence.OriginalTransactionId);Assert.True(evidence.ExecutionSucceeded);
+            await VerifyRouter(evidence,ProviderType.SuiOASIS,asynchronous,true);
+        }finally{Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",previous);}
+    }
+
+    private static async Task VerifyRouter(Exception evidence,ProviderType type,bool asynchronous,bool reconciliationRequired)
+    {
         var firstBackend=new ControlledBackend(evidence);var alternateBackend=new ControlledBackend(null);
-        var first=new ControlledProvider(firstBackend,ProviderType.TRONOASIS);var alternate=new ControlledProvider(alternateBackend,ProviderType.LocalFileOASIS);
+        var first=new ControlledProvider(firstBackend,type);var alternate=new ControlledProvider(alternateBackend,ProviderType.LocalFileOASIS);
         Assert.False((await first.ActivateProviderAsync()).IsError);Assert.False((await alternate.ActivateProviderAsync()).IsError);
         try{
             var dna=new OASISDNA();dna.OASIS.HyperDriveMode=HyperDriveModes.V2;dna.OASIS.SubscriptionConfig.PlanType="Gold";
@@ -55,10 +79,10 @@ public class TronReconciliationRoutingTests
             manager.RegisterProvider(first);manager.RegisterProvider(alternate);
             Assert.False(manager.SetAndReplaceAutoFailOverListForProviders(new[]{new EnumValue<ProviderType>(ProviderType.LocalFileOASIS)}).IsError);
             var router=new OASISHyperDrive(manager);var holon=new Holon{Id=Guid.NewGuid(),Name="controlled reconciliation routing"};
-            var request=new StorageOperationRequest{Operation="SaveHolon",Payload=holon,PreferredProvider=ProviderType.TRONOASIS};
+            var request=new StorageOperationRequest{Operation="SaveHolon",Payload=holon,PreferredProvider=type};
             var result=asynchronous?await router.RouteRequestAsync<IHolon>(request):router.RouteRequest<IHolon>(request);
-            Assert.Equal(kind!=3,result.IsError);Assert.Equal(1,firstBackend.Writes);
-            if(kind!=3){Assert.Same(evidence,result.Exception);Assert.Equal(0,alternateBackend.Writes);}
+            Assert.Equal(reconciliationRequired,result.IsError);Assert.Equal(1,firstBackend.Writes);
+            if(reconciliationRequired){Assert.Same(evidence,result.Exception);Assert.Equal(0,alternateBackend.Writes);}
             else{Assert.True(alternateBackend.Writes>0);Assert.Equal(holon.Id,result.Result.Id);}
         }finally{await first.DeActivateProviderAsync();await alternate.DeActivateProviderAsync();}
     }
