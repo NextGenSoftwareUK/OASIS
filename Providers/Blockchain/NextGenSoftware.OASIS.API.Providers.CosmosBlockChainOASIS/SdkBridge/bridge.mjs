@@ -1,6 +1,6 @@
 import { CosmWasmClient, SigningCosmWasmClient } from "@cosmjs/cosmwasm";
 import { DirectSecp256k1Wallet, DirectSecp256k1HdWallet, decodeTxRaw, Registry } from "@cosmjs/proto-signing";
-import { verifiedBankTransfer, verifiedContractExecution, cosmosFailureMessage } from './transaction-results.mjs';
+import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, cosmosFailureMessage } from './transaction-results.mjs';
 import { GasPrice, defaultRegistryTypes } from "@cosmjs/stargate";
 import { fromHex, toHex, fromBech32 } from "@cosmjs/encoding";
 
@@ -110,10 +110,12 @@ async function execute(input) {
       }
       case "upload": {
         const result = await client.upload(sender, Buffer.from(input.wasmBase64, "base64"), "auto");
+        verifiedUpload(result);
         return { codeId: result.codeId, transactionHash: result.transactionHash };
       }
       case "instantiate": {
         const result = await client.instantiate(sender, input.codeId, input.message, input.label, "auto");
+        verifiedInstantiation(result, input.addressPrefix);
         return { contractAddress: result.contractAddress, transactionHash: result.transactionHash };
       }
       default: throw new Error(`Unsupported Cosmos SDK operation: ${input.operation}`);
