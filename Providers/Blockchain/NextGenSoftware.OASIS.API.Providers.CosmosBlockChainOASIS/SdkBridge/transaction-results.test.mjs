@@ -1,8 +1,19 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { verifiedBankTransfer, cosmosFailureMessage } from './transaction-results.mjs';
+import { verifiedBankTransfer, verifiedContractExecution, cosmosFailureMessage } from './transaction-results.mjs';
 import { TimeoutError } from '@cosmjs/stargate';
 const hash = 'ab'.repeat(32);
+test('contract execution preserves verified SDK hash and committed height', () => {
+  const result = { transactionHash: hash, height: 42 };
+  assert.equal(verifiedContractExecution(result), result);
+});
+for (const height of [undefined, 0, -1, '42', 1.5, Number.MAX_SAFE_INTEGER + 1])
+  test(`contract execution rejects invalid height ${height} while retaining hash`, () =>
+    assert.throws(() => verifiedContractExecution({transactionHash:hash,height}), error => error.message.includes(hash) && error.message.includes('before retrying')));
+test('contract execution rejects missing or malformed hash', () => {
+  for (const result of [null, {height:42}, {transactionHash:'fabricated',height:42}])
+    assert.throws(() => verifiedContractExecution(result), /Reconcile submission/);
+});
 test('official SDK timeout retains identity without claiming failed or successful execution', () => {
   const message = cosmosFailureMessage(new TimeoutError('untrusted timeout message', hash));
   assert.ok(message.includes(hash)); assert.ok(message.includes('outcome is not verified'));

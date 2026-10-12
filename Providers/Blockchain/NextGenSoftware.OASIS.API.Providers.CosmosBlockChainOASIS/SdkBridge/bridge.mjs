@@ -1,6 +1,6 @@
 import { CosmWasmClient, SigningCosmWasmClient } from "@cosmjs/cosmwasm";
 import { DirectSecp256k1Wallet, DirectSecp256k1HdWallet, decodeTxRaw, Registry } from "@cosmjs/proto-signing";
-import { verifiedBankTransfer, cosmosFailureMessage } from './transaction-results.mjs';
+import { verifiedBankTransfer, verifiedContractExecution, cosmosFailureMessage } from './transaction-results.mjs';
 import { GasPrice, defaultRegistryTypes } from "@cosmjs/stargate";
 import { fromHex, toHex, fromBech32 } from "@cosmjs/encoding";
 
@@ -65,6 +65,7 @@ async function execute(input) {
           : input.operation === "delete" ? { delete: { key: input.key } } : input.message;
         const result = await client.execute(sender, input.targetContractAddress ?? input.contractAddress,
           message, "auto", input.memo ?? "", input.funds ?? []);
+        verifiedContractExecution(result);
         return { transactionHash: result.transactionHash, height: result.height };
       }
       case "balance":
