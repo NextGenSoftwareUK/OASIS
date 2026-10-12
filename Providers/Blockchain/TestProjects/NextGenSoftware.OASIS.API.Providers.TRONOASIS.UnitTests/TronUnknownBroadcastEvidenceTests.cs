@@ -18,6 +18,7 @@ public class TronUnknownBroadcastEvidenceTests
         public Transaction Signed = null!;
         public int BroadcastCount;
         public int SignCount;
+        public bool BroadcastAccepted;
         public Exception Interruption = new TimeoutException("controlled transport interruption");
         protected override object? Invoke(MethodInfo? method, object?[]? args)
         {
@@ -30,14 +31,25 @@ public class TronUnknownBroadcastEvidenceTests
             {
                 Signed = ((Transaction)args![0]!).Clone();
                 BroadcastCount++;
-                return Task.FromException<Return>(Interruption);
+                return BroadcastAccepted ? Task.FromResult(new Return{Result=true}) : Task.FromException<Return>(Interruption);
             }
             throw new InvalidOperationException("Unexpected SDK operation in controlled interruption test: " + method.Name);
         }
     }
 
-    [Fact]
-    public async Task ActualClientSignsOnceAndPreservesOriginalEvidenceWhenBroadcastIsInterrupted()
+    public class InterruptedConfirmationWalletProxy:DispatchProxy
+    {
+        public IWalletClient Original=null!;
+        public Exception Failure=null!;
+        protected override object? Invoke(MethodInfo? method,object?[]? args)
+        {
+            if(method!.Name==nameof(IWalletClient.GetSolidityProtocol))throw Failure;
+            return method.Invoke(Original,args);
+        }
+    }
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task ActualClientSignsOnceAndPreservesOriginalEvidenceWhenBroadcastOrConfirmationIsInterrupted(bool broadcastAccepted)
     {
         const string genesis = "0000000000000000c93baa76a4a508f798a96f59156d9eb17ecede8ec845df2f";
         await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"), new Uri("http://127.0.0.1:50052"), genesis);
@@ -47,6 +59,13 @@ public class TronUnknownBroadcastEvidenceTests
         var proxy = DispatchProxy.Create<ITransactionClient, InterruptedTransactionProxy>();
         var controlled = (InterruptedTransactionProxy)(object)proxy;
         controlled.Signer = signer;
+        controlled.BroadcastAccepted=broadcastAccepted;
+        if(broadcastAccepted){
+            var confirmationWallet=DispatchProxy.Create<IWalletClient,InterruptedConfirmationWalletProxy>();
+            var confirmationControl=(InterruptedConfirmationWalletProxy)(object)confirmationWallet;
+            confirmationControl.Original=wallet;confirmationControl.Failure=controlled.Interruption;
+            wallet=confirmationWallet;
+        }
         var client = new TronNativeTransferClient(wallet, proxy, genesis);
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         var transaction = new Transaction { RawData = new Transaction.Types.raw { Timestamp = now, Expiration = now + 60000 } };

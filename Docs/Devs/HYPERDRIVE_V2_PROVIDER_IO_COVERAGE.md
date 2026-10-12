@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON confirmation-entry interruption replay-fence proof — 2026-10-12
+
+Expanded actual SDK signing test with controlled broadcast acceptance followed by wallet confirmation-client failure. Canonical post-broadcast catch preserves original SHA256 ID, genesis/signed window, original cause and one sign/one broadcast. Unknown-evidence suite **6/6**, zero skips, `TestResults/PriorityProviderCurrent/tron-unknown-evidence.trx`. Final provider source rebuilt 0 errors/21 existing warnings. No RPC: proxy fails before obtaining confirmation channel.
+
+This proves confirmation-entry failure, not timed polling expiry, actual receipt rejection or live recovery. Unresolved live TRON original stays fenced; full prepared persistence/live/deployed gates remain open. No installs, ledger submissions or release merge.
+
 ### TRON post-broadcast confirmation failures preserve replay fence — 2026-10-12
 
 Audit found canonical native confirmation timeout/receipt failures used ordinary exceptions after successful broadcast. They now carry original transaction ID/genesis/timestamp/expiry in the existing reconciliation marker, preserving causes rather than allowing V2 failover to infer an unsubmitted operation. Provider build 0 errors/21 existing warnings; existing unknown-evidence selection **5/5**, zero skips, `TestResults/PriorityProviderCurrent/tron-unknown-evidence.trx`. That selection proves broadcast-interruption/marker contracts, not newly executed confirmation-timeout/receipt-failure cases; dedicated confirmation-path tests remain required. Final timeout cause-preservation edit follows that build and must be rebuilt next.
