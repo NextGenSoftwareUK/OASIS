@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### NFT recipient selectors must agree before request updates (2026-10-12)
+
+ONODE `f67ed3a0e306141905883168331d5cfdf9441c64` resolves email/username into a local recipient ID and rejects disagreement with another resolved selector or explicit ID. An explicit address plus an avatar now also loads that avatar's default wallet and requires exact address agreement; it cannot bypass lookup. Request recipient fields update only after successful validation. Existing WalletManager handles actual default-wallet reads; no additional database/provider or first-wallet fallback introduced. Five new helper cases prove matching/conflicting/empty IDs and wallet addresses. Full ONODE Core **238/238, zero skips**, `onode-unit-current.trx`; build zero errors/154 warnings. Address comparison is exact canonical-string equality; equivalent noncanonical aliases are not claimed as supported. Controlled tests do not prove live multi-selector avatar resolution or positive JWT minting; these remain required gates.
+
 ### NFT recipient-ID resolution no longer selects mint actor or arbitrary wallet (2026-10-12)
 
 ONODE `0d292358d54e35c431ceeb6f2e0b7bef55d2732d` fixes the manager branch that previously loaded `MintedByAvatarId` while resolving `SendToAvatarAfterMintingId`. It now reuses Core WalletManager's explicit default-wallet lookup for the **recipient** and chosen provider, without requesting secrets. A missing default, absent/blank address or failed lookup fails rather than selecting the first wallet. Four helper regressions verify the actual passed recipient/provider, distinct unchanged actor/recipient IDs and rejection conditions. Full ONODE Core **233/233, zero skips**, `onode-unit-current.trx`; library build zero errors/154 warnings. First test-project build had a test-only namespace error, corrected before the passing full run. These are controlled lookup tests, not live avatar-wallet persistence or positive JWT mint proof. Multiple simultaneous recipient selectors still need an agreement audit; no on-chain transaction submitted.

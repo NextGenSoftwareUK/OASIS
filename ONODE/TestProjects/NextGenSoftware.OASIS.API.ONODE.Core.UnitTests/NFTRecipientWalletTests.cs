@@ -13,6 +13,30 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.UnitTests;
 public sealed class NFTRecipientWalletTests
 {
     [Fact]
+    public void DifferentAvatarSelectorsCannotOverwriteTheFirstRecipient()
+    {
+        var id = Guid.NewGuid();
+        var method = typeof(NFTManager).GetMethod("MergeMintRecipientAvatarId", BindingFlags.Static | BindingFlags.NonPublic)!;
+        Assert.Equal(id, method.Invoke(null, new object[] { Guid.Empty, id }));
+        Assert.Equal(id, method.Invoke(null, new object[] { id, id }));
+        foreach (var other in new[] { Guid.Empty, Guid.NewGuid() })
+            Assert.IsType<InvalidOperationException>(Assert.Throws<TargetInvocationException>(() => method.Invoke(null, new object[] { id, other })).InnerException);
+    }
+
+    [Theory]
+    [InlineData(null, "wallet", false)]
+    [InlineData("wallet", "wallet", false)]
+    [InlineData("different", "wallet", true)]
+    [InlineData("wallet", "", true)]
+    public void ExplicitAddressMustAgreeWithDefaultRecipientWallet(string? selected, string resolved, bool rejected)
+    {
+        var method = typeof(NFTManager).GetMethod("MergeMintRecipientAddress", BindingFlags.Static | BindingFlags.NonPublic)!;
+        if (rejected)
+            Assert.IsType<InvalidOperationException>(Assert.Throws<TargetInvocationException>(() => method.Invoke(null, new object?[] { selected, resolved })).InnerException);
+        else Assert.Equal(resolved, method.Invoke(null, new object?[] { selected, resolved }));
+    }
+
+    [Fact]
     public async Task LookupUsesRecipientNotMintingAvatarAndDoesNotModifyEitherIdentity()
     {
         var request = new MintWeb4NFTRequest { MintedByAvatarId = Guid.NewGuid(), SendToAvatarAfterMintingId = Guid.NewGuid(),
@@ -47,5 +71,5 @@ public sealed class NFTRecipientWalletTests
 
     private static Task<string> Resolve(IMintWeb4NFTRequest request, Func<Guid, ProviderType, Task<OASISResult<IProviderWallet>>> lookup)
         => (Task<string>)typeof(NFTManager).GetMethod("ResolveDefaultMintRecipientAsync", BindingFlags.Static | BindingFlags.NonPublic)!
-            .Invoke(null, new object[] { request, lookup })!;
+            .Invoke(null, new object[] { request.SendToAvatarAfterMintingId, request.OnChainProvider.Value, lookup })!;
 }
