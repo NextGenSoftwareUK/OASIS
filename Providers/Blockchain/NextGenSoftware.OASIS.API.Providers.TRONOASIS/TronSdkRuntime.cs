@@ -66,7 +66,7 @@ public sealed class TronSdkRuntime : IAsyncDisposable
         var sender=(byte[])expectedSender.Clone();
         return CreatePreparedNativeTransfers(async(id,genesis,bytes,token)=>{
             if(genesis!=NativeTransfers.ExpectedGenesisBlockId)throw new InvalidOperationException("Prepared TRON genesis identity mismatch.");
-            TronPreparationVerifier.VerifyOriginal(bytes,id,sender);
+            TronPreparationVerifier.VerifyOriginal(bytes,id,sender,NativeTransfers.MaximumContractFeeLimitSun);
             await execution.BeginPreparedNativeAttemptAsync("TRONOASIS",null,clientRequestId,id,new UsageNativePreparation{
                 ChainId=genesis,Sender=Convert.ToHexString(sender).ToLowerInvariant(),SignedTransactionBase64=bytes
             },token);

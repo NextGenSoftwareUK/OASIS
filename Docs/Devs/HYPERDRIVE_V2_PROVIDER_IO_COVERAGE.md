@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON prepared signed fee-limit ceiling — 2026-10-12
+
+Verifier overload accepts explicit nonnegative maximum signed fee limit; runtime execution-owned adapter passes existing configured contract fee ceiling. Actual signed excess-fee case rejects. Entire unit project **211/211**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`; build 0 errors/21 existing warnings. Original three-argument verifier retained for signature-only consumers; it does not provide a finite authorised spending cap.
+
+Configured contract fee limit does not cap every bandwidth/account-creation charge or prove subscription/native budget reservation. Actual complete cost quote/admission, permissions, live submission/recovery and deployed gates remain required. No RPC, installs, submissions or release merge.
+
 ### TRON prepared structural window/fee validation — 2026-10-12
 
 Verifier rejects nonpositive timestamp, expiration not after timestamp and negative fee limit. Actual signing rejection cases cover all three. Entire unit project **210/210**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`; build 0 errors/21 existing warnings. Checks are structural, not current-time expiry/clock-skew policy, authorised fee ceiling or live cost quote. Historic signed records are not rejected solely because time has passed.
