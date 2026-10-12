@@ -64,11 +64,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         /// <response code="401">Unauthorized - authentication required</response>
         [Authorize]
         [HttpPost("send-token")]
+        [ProducesResponseType(typeof(OASISResult<ISendWeb4TokenResponse>), StatusCodes.Status403Forbidden)]
         [ProducesResponseType(typeof(OASISResult<ITransactionResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(OASISResult<string>), StatusCodes.Status401Unauthorized)]
         public async Task<OASISResult<ISendWeb4TokenResponse>> SendTokenAsync([FromBody] SendWeb4TokenRequest request)
         {
+            if (request.FromAvatarId != Guid.Empty && request.FromAvatarId != AvatarId)
+            {
+                Response.StatusCode = StatusCodes.Status403Forbidden;
+                return new OASISResult<ISendWeb4TokenResponse> { IsError = true, ErrorCode = "AVATAR_OPERATION_FORBIDDEN",
+                    Message = "Forbidden. The requested sender avatar must match the authenticated avatar." };
+            }
             return await WalletManager.SendTokenAsync(AvatarId, request);
         }
 

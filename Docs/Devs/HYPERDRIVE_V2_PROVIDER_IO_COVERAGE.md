@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Token-send caller/sender identity agreement (2026-10-11)
+
+HTTP send now rejects a supplied nonempty `FromAvatarId` that differs from the authenticated caller with HTTP **403/AVATAR_OPERATION_FORBIDDEN**, before WalletManager access. This action always executes using the caller's ID; it does not implement delegated/avatar impersonation, so no Wizard bypass that would silently choose a different wallet is introduced. Empty ID continues to select the authenticated caller as before; explicit external-wallet signing semantics are unchanged. Actual HTTP rejection test **1/1**, zero skips (`web4-token-send-identity.trx`), and host build succeeds. Positive transfer regression after this guard, sender username/email semantics, other native assets/providers and full API/deployment gates remain due. No native mutation/download/install/merge.
+
 ### Combined real JWT and native Sui HTTP transfer (2026-10-11)
 
 Positive send HTTP test now uses actual HS256 bearer authentication with a persisted LocalFile avatar loaded through V2, **no test-auth header**. It then resolves that avatar's encrypted default Sui wallet through real WalletManager, binds the concrete JSON body, signs/submits through real SDK and independently verifies exact **0.001 SUI** recipient increase plus nonblank response digest. **1/1** passes, zero skips (`web4-sui-token-send-http.trx`), superseding the test-auth limitation of the preceding transfer checkpoint. Signing credentials remain encrypted at rest; owned avatar/wallet map cleaned, prior global DNA/Program manager restored and test injection reset. Retained Sui PID 42383 stopped after completion; no download/install/reset/public-chain spending. This proves the scoped native-SUI send route, not every asset/operation/provider or deployed service. Remaining gates stay open; no merge.
