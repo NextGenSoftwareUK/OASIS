@@ -22,6 +22,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Explicit failover requests enforce configured target admission (2026-10-12)
+
+Core `101abb19ab388ab47cc880068effbe757cfa369b` applies the same pre-I/O provider admission to `FailoverRequestAsync` configured targets. Explicit failover does not implicitly authorize a forbidden target; exclusions preserve exhausted failure text and do not fabricate executed attempts. Expanded configured-failover fixture adds explicit-request permitted success and forbidden-only exhaustion, retaining automatic sync/async cases. Inactive forbidden target never activates/reads and configured lists remain unchanged. Full Core **400/400, zero skips**, `TestResults/CoreCurrent/core-current.trx`; build zero errors/254 warnings. Core pushed, parent pins/gitlink advanced together; no runtimes/downloads/new environment. Replication admission and refreshed actual-provider outage/HTTP/billing/release gates remain open; this is controlled request-path evidence, not full provider certification.
+
 ### Automatic failover excludes forbidden alternates before provider I/O (2026-10-12)
 
 Core `d23403c7ab74c5ceb1f9d27903d5dd6e8aee3f72` checks configured alternate admission in both sync/async automatic failover before lookup/activation/routing. Forbidden providers are skipped without being fabricated as executed diagnostic attempts; exhausted failure text preserves policy exclusions. Allowed alternates retain existing outage/absence semantics and normal diagnostics. Configured global lists are not changed; no retry-until-allowed, entitlement widening or silent success. Explicit failover-request and replication admission still require their own repair/audit, as does authoritative authenticated billing.

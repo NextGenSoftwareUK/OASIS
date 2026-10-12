@@ -5381,9 +5381,10 @@ public sealed class HyperDriveProviderExecutionTests
     }
 
     [Theory]
-    [InlineData(false, false)] [InlineData(false, true)]
-    [InlineData(true, false)] [InlineData(true, true)]
-    public async Task ConfiguredFailoverSkipsForbiddenAlternatesBeforeActivation(bool healthyAlternate, bool asynchronous)
+    [InlineData(false, false, false)] [InlineData(false, true, false)]
+    [InlineData(true, false, false)] [InlineData(true, true, false)]
+    [InlineData(false, true, true)] [InlineData(true, true, true)]
+    public async Task ConfiguredFailoverSkipsForbiddenAlternatesBeforeActivation(bool healthyAlternate, bool asynchronous, bool explicitRequest)
     {
         var id = Guid.NewGuid();
         var primary = CreateActiveProvider(ProviderType.LocalFileOASIS, "failed-local");
@@ -5402,7 +5403,8 @@ public sealed class HyperDriveProviderExecutionTests
         manager.SetAndReplaceAutoFailOverListForProviders(alternates).IsError.Should().BeFalse();
         var router = new OASISHyperDrive(manager);
         var request = new StorageOperationRequest { Operation = "LoadAvatar", AvatarId = id, PreferredProvider = ProviderType.LocalFileOASIS };
-        var result = asynchronous ? await router.RouteRequestAsync<IAvatar>(request) : router.RouteRequest<IAvatar>(request);
+        var result = explicitRequest ? await router.FailoverRequestAsync<IAvatar>(request)
+            : asynchronous ? await router.RouteRequestAsync<IAvatar>(request) : router.RouteRequest<IAvatar>(request);
         result.IsError.Should().Be(!healthyAlternate, result.Message);
         if (healthyAlternate) result.Result.Id.Should().Be(id);
         else result.Message.Should().Contain("excluded by subscription policy");
