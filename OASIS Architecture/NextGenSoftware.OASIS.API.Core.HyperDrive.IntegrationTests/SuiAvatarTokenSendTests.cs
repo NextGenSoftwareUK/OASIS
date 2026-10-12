@@ -177,6 +177,10 @@ public class SuiAvatarTokenSendTests
             var minted = await sui.MintTokenAsync(new MintWeb3TokenRequest { MintedByAvatarId = avatarId, Amount = 0.004m,
                 MetaData = new() { ["TokenAddress"] = coinType, ["MintToWalletAddress"] = issuer.Result.WalletAddressLegacy } });
             minted.IsError.Should().BeFalse(minted.Message);
+            minted.Result.TransactionResult.Should().NotBeNullOrWhiteSpace();
+            var mintReceipt = await sui.GetTransactionStatusAsync(minted.Result.TransactionResult);
+            mintReceipt.IsError.Should().BeFalse(mintReceipt.Message);
+            mintReceipt.Result.Should().Be(Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed);
             var customTransfers = new Func<Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>>>[]
             {
                 () => Task.FromResult(sui.SendTransactionByUsername(senderAvatar.Username, recipientAvatar.Username, 0.001m, coinType)),
@@ -199,7 +203,13 @@ public class SuiAvatarTokenSendTests
             var burnedTokens = await sui.BurnTokenAsync(new BurnWeb3TokenRequest { Amount = 0.004m, TokenAddress = coinType,
                 OwnerPrivateKey = recipient.Result.PrivateKey, OwnerPublicKey = recipient.Result.PublicKey, OwnerSeedPhrase = null });
             burnedTokens.IsError.Should().BeFalse(burnedTokens.Message);
-            (await sui.GetTokenBalanceAsync(recipient.Result.WalletAddressLegacy, coinType)).Result.Should().Be(0m);
+            burnedTokens.Result.TransactionResult.Should().NotBeNullOrWhiteSpace();
+            var burnReceipt = await sui.GetTransactionStatusAsync(burnedTokens.Result.TransactionResult);
+            burnReceipt.IsError.Should().BeFalse(burnReceipt.Message);
+            burnReceipt.Result.Should().Be(Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed);
+            var finalTokens = await sui.GetTokenBalanceAsync(recipient.Result.WalletAddressLegacy, coinType);
+            finalTokens.IsError.Should().BeFalse(finalTokens.Message);
+            finalTokens.Result.Should().Be(0m);
             (await local.LoadProviderWalletsForAvatarByIdAsync(avatarId)).Result[ProviderType.SuiOASIS][0].PrivateKey.Should().Be(encrypted);
         }
         finally
