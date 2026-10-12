@@ -5366,8 +5366,10 @@ public sealed class HyperDriveProviderExecutionTests
         secondary.Verify(x => x.LoadAvatarAsync(It.IsAny<Guid>(), It.IsAny<int>()), Times.Never);
     }
 
-    [Fact]
-    public async Task V2TreatsANonErrorNullPayloadAsAnAuthoritativeNotFoundResult()
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task V2TreatsANonErrorNullPayloadAsAnAuthoritativeNotFoundResult(bool codedProviderError)
     {
         var manager = new ProviderManager(null, CreateDna(HyperDriveModes.V2))
             { IsAutoFailOverEnabled = true, IsAutoLoadBalanceEnabled = false };
@@ -5376,7 +5378,8 @@ public sealed class HyperDriveProviderExecutionTests
         primary.Setup(x => x.ActivateProvider()).Returns(new OASISResult<bool>(true));
         var holonId = Guid.NewGuid();
         primary.Setup(x => x.LoadHolonAsync(holonId, true, true, 0, true, false, 0))
-            .ReturnsAsync(new OASISResult<IHolon> { Result = null! });
+            .ReturnsAsync(new OASISResult<IHolon> { Result = null!, IsError = codedProviderError,
+                ErrorCode = codedProviderError ? OASISResultErrorCodes.RecordNotFound : null, ErrorCount = codedProviderError ? 1 : 0 });
         manager.RegisterProvider(primary.Object);
         manager.RegisterProvider(secondary.Object);
         manager.SetAndActivateCurrentStorageProvider(primary.Object).IsError.Should().BeFalse();
