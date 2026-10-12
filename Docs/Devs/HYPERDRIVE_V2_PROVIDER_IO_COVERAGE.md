@@ -5,6 +5,24 @@
 
 ## Routing contract
 
+### Deferred Hedera funded verification — faucet cooldown (2026-10-11)
+
+User confirmed the faucet will not permit more funding for **20 hours** and requested this follow-up be documented. Do not treat funded Hedera gates as passed or repeatedly submit the underfunded deployment. Last official mirror balance: **391606260 tinybars (3.91606260 test HBAR)**; prior SDK contract-creation estimate is approximately **10.6 test HBAR**, subject to re-estimation. No real-money HBAR is authorized.
+
+After the faucet permits funding:
+
+1. Fund the same retained test identity `0.0.10993779` / `0x3ab524fab17a975d871cb7f7f0f91f507a7dfa33`, then verify actual credited balance. Keep its existing DPAPI credential file; do not generate another identity or expose its key.
+2. Resume `Scripts/TestHosts/deploy-reusable-hedera-store.mjs` using retained `TestResults/HederaRuntime/deployment-store.json` and bytecode file **0.0.10994223**, already fully uploaded (**11186 hex characters**, 11 successful setup transactions). Do not repeat file uploads or the reconciled failed creation. Re-estimate fees, require sufficient balance and an explicit fee ceiling before one new creation submission. Any unresolved transaction must be reconciled before another mutation.
+3. Verify resulting contract runtime hash and owner independently, then execute funded encrypted CRUD/restart/deletion tests and real Hedera V2 failover, replication and measured load balancing against the retained environment.
+4. Execute native funded collection/NFT create, mint, metadata, transfer, burn/delete, owner/authority rejection and applicable royalty/custody checks, plus authenticated avatar-wallet/HTTP routes. Record transaction identities, independent receipts/readback and exact scope; controlled SDK tests do not replace these gates.
+5. Update this evidence document and run complete regressions/release audit. Merge only when every required gate, including the other providers and deployment artifacts, passes.
+
+This is a documented deferred test, not a scheduled reminder or completed verification. The full goal remains active; other implementation work can continue during the cooldown.
+
+### Live V2 routed token lookup and deleted-token absence (2026-10-11)
+
+Expanded retained-node TRON routing scenario passes **1/1**, zero skips, 51 seconds (`tron-v2-routing.trx`). Verification/reset/refresh lookups now traverse sync/async V2 handlers on both real LocalFile/TRON replicas before deletion and return non-error null afterward (**24 additional routed checks**), while existing actual failover/replication/measured balancing checks still pass. Public local fixture tokens are not production credentials. Owned records cleaned; retained runtime paused after terminal completion. Full remaining gates are not complete.
+
 ### Replace shared token-lookup placeholders with stored-record queries (2026-10-11)
 
 Shared providers inherited base-class verification/reset/refresh-token methods that unconditionally returned non-error null; interface default collection queries were shadowed by those concrete placeholders. The shared provider now overrides sync/async methods using one version-aware bounded avatar collection query, ordinal case-sensitive token equality and existing refresh-token fields. Blank requests, transport failures and duplicate identity matches return explicit errors; successful absence emits `OASIS_RECORD_NOT_FOUND`; messages do not echo supplied secrets. This is record identification only, not expiry/revocation authorization. Three controlled cases cover both projections, case-sensitive absence, blank token, duplicate identities and read failure; full shared suite passes **41/41**, zero skips. Expanded real encrypted TRON history/index scenario also passes **1/1**, zero skips, 4 seconds and verifies all six token projections against stored records (`tron-history-index-integrity.trx`). Fixed public-local fixture tokens are not production credentials. Owned records/history deleted and runtime paused after completion. V2 routed-token, authenticated recovery/refresh flows and other providers/full remaining gates still require live proof. No install/download/environment duplication/merge.
