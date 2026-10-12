@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Hedera SDK public-key agreement across HTS operations (2026-10-11)
+
+Six added official-SDK preflight cases cover token transfer/mint/burn and NFT transfer/mint/burn: generated DER signing keys with a different public key are rejected at signer validation. Each request deliberately supplies an invalid network configuration; the specific signer-mismatch result demonstrates rejection before client creation/network access. Full existing SDK bridge suite passes **85/85**, zero skips (`npm test`), reusing the installed exact-pinned SDK without installation or download. This verifies SDK mismatch handling, including the token-burn public-key field now forwarded by the provider; it does not independently prove provider avatar-wallet resolution/private-key agreement, successful funded authority or consensus. Those remain required checks, along with deferred funding and other release gates. No network mutation/runtime/environment allocation/merge.
+
 ### Hedera token-burn signer inputs no longer ignored (2026-10-11)
 
 Token burn previously ignored supplied seed/private/public key fields while resolving the avatar treasury wallet. It now follows the existing NFT-burn policy: reject an unrecovered seed before wallet lookup, require any supplied private key to agree with the resolved wallet, and forward any supplied public key to the existing SDK validation rather than silently replacing it. The actor wallet remains the signing owner; no alternate credential pipeline or automatic retry was added. Provider build succeeds with zero errors/four warnings. Focused token/NFT burn preflight suite passes **12/12**, zero skips (`hedera-burn-preflight.trx`), including both sync/async seed rejection cases. Positive wallet-key agreement/public-key mismatch and funded HTS burn consensus still require further proof; these validation cases do not establish live token authority or full Hedera completion. No network mutation/install/download/new environment/merge.
