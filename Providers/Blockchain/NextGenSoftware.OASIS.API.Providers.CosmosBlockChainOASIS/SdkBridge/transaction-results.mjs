@@ -65,7 +65,8 @@ export async function indexedHistorySnapshot(client, address) {
   for (const tx of [...received, ...sent]) {
     if (!/^[0-9A-F]{64}$/.test(tx.hash ?? '') || !Number.isSafeInteger(tx.height) || tx.height <= 0 || tx.height > height
         || !Number.isSafeInteger(tx.txIndex) || tx.txIndex < 0 || !Number.isInteger(tx.code) || tx.code < 0 || tx.code > 4294967295
-        || !(tx.tx instanceof Uint8Array))
+        || !(tx.tx instanceof Uint8Array)
+        || createHash('sha256').update(tx.tx).digest('hex').toUpperCase() !== tx.hash)
       throw new Error('Cosmos indexed history does not establish exact transaction identity within its snapshot');
     const prior = indexed.get(tx.hash);
     if (prior && (prior.height !== tx.height || prior.txIndex !== tx.txIndex || prior.code !== tx.code
