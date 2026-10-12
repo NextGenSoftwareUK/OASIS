@@ -22,6 +22,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos custody proof signed-byte binding — 2026-10-12
+
+NFT custody proof now binds the returned hash to SHA256 of the exact signed bytes before decoding the collection/token/custody transfer. It rejects matching claimed/expected foreign hashes and substituted bytes, closing the same identity gap as history/fee mapping. Controlled custody fixtures use actual encoded protobuf bodies and byte-derived hashes; duplicate/self-origin/wrong-message rejection cases pass their own correct hashes so hash rejection cannot mask custody validation. Full retained SDK suite **42/42**, zero skips/todos. This proves mapping invariants, not live custody/unlock execution or provider certification; timer/journal/live/deployment gates remain outstanding. No download, installation or ledger mutation.
+
 ### Cosmos fee-receipt signed-byte binding — 2026-10-12
 
 Native fee mapping now requires the indexed hash to equal SHA256 of the exact returned signed bytes before decoding fee declarations or attributing charged coins. Tests use actual protobuf-encoded byte-derived hashes, a valid positive baseline, and reject valid-format hash substitution and different signed bytes. Existing malformed-coin tests use each malformed transaction's own hash so identity failure cannot mask coin validation. Retained SDK suite **42/42**, zero skips/todos; controlled receipt evidence, not new live fee execution or billing certification. No install, runtime startup or mutation. Cosmos timer, durable journal, live provider and deployment gates remain open.
