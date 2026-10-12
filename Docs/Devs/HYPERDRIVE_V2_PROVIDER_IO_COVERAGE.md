@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### TRON-backed real JWT HTTP authentication (2026-10-11)
+
+Real persisted-avatar HTTP theory now includes TRON's retained encrypted storage contract/official SDK runtime alongside Sui and LocalFile. Full read-route subset passes **12/12**, zero skips, 18 seconds (`web4-hyperdrive-http-auth.trx`): actual signed JWT, successful V2 avatar reads with exact provider request increments, and 401/INVALID_AVATAR after deleting the same avatar from each store. TRON expected local genesis identity and loopback endpoints are explicit; public local test key/encryption fixture reused, no public chain funds. Owned avatars deleted and static manager/DNA restored; TRON paused and owned Sui PID 38596 stopped afterward. This proves authentication/storage reads, not all NFT/token/business routes or Cosmos/Hedera JWT paths. Remaining full provider/API/publish gates stay open; no installation/download/reset/new environment/merge.
+
 ### TRON recheck after authoritative-absence/shared integrity changes (2026-10-11)
 
 Core `58b7fc7d9f7896a61869a119a90c5039c7585bdd` and current shared storage pass real TRON V2 routing **1/1**, zero skips, 50 seconds (`tron-v2-routing.trx`): real replication/update/delete/read selection, actual runtime pause failover, partial-replica warnings and explicit repair/recovery. Retained immutable container, contract and ledger reused; container paused after completion. Manifest/gitlinks still validate for all seven deployment Dockerfiles. This scoped current-pin regression does not prove all operations, TRON-backed JWT authentication or remaining native interfaces. No download/install/reset/new environment/deploy/merge.

@@ -44,9 +44,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
         // ── GET /api/subscription/plans — public endpoint ────────────────────
 
         [Theory]
-        [InlineData(false)]
-        [InlineData(true)]
-        public async Task HyperDriveReadRoutesAcceptRealJwtAfterV2PersistedAvatarLookup(bool useSui)
+        [InlineData("LocalFile")]
+        [InlineData("Sui")]
+        [InlineData("TRON")]
+        public async Task HyperDriveReadRoutesAcceptRealJwtAfterV2PersistedAvatarLookup(string storage)
         {
             var directory = new System.IO.DirectoryInfo(AppContext.BaseDirectory);
             while (directory != null && !System.IO.File.Exists(System.IO.Path.Combine(directory.FullName,"Scripts","verify_hyperdrive_v2_operation_contracts.ps1"))) directory=directory.Parent;
@@ -55,8 +56,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
             System.IO.Directory.CreateDirectory(root);
             using var lease=new System.IO.FileStream(System.IO.Path.Combine(root,"store.lock"),System.IO.FileMode.OpenOrCreate,System.IO.FileAccess.ReadWrite,System.IO.FileShare.None);
             NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider local;
-            var providerType=useSui?NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SuiOASIS:NextGenSoftware.OASIS.API.Core.Enums.ProviderType.LocalFileOASIS;
-            if(useSui)
+            IAsyncDisposable nativeRuntime=null;
+            IDisposable privateStorage=null;
+            var providerType=storage=="Sui"?NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SuiOASIS:
+                storage=="TRON"?NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS:NextGenSoftware.OASIS.API.Core.Enums.ProviderType.LocalFileOASIS;
+            if(storage=="TRON")
+            {
+                var key=new string('0',63)+"1"; // Public local-chain fixture only.
+                var contract=System.IO.File.ReadAllText(System.IO.Path.Combine(directory.FullName,"TestResults","TronRuntime","local-store-address.txt")).Trim();
+                var runtime=new NextGenSoftware.OASIS.API.Providers.TRONOASIS.TronSdkRuntime(new Uri("http://127.0.0.1:50051"),new Uri("http://127.0.0.1:50052"),
+                    "0000000000000000c93baa76a4a508f798a96f59156d9eb17ecede8ec845df2f",contractFeeLimitSun:1000000000);
+                nativeRuntime=runtime;
+                var backend=new NextGenSoftware.OASIS.API.Providers.TRONOASIS.TronPrivateStorageBackend(runtime.NativeTransfers,
+                    new TronNet.TronECKey(key,TronNet.TronNetwork.MainNet).GetPublicAddress(),contract,()=>key,
+                    ()=>System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes("public reusable local TRON encryption fixture")));
+                privateStorage=backend;
+                local=new NextGenSoftware.OASIS.API.Providers.TRONOASIS.TRONOASIS(rpcEndpoint:"http://127.0.0.1:9090",nativeTransfers:runtime.NativeTransfers,storageBackend:backend);
+            }
+            else if(storage=="Sui")
             {
                 var rpc=Environment.GetEnvironmentVariable("OASIS_SUI_TEST_RPC")??throw new InvalidOperationException("Retained real Sui RPC required; no skipped evidence.");
                 new Uri(rpc).IsLoopback.Should().BeTrue();
@@ -117,6 +134,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
                 if(!deleted)(await local.DeleteAvatarAsync(avatar.Id,softDelete:false)).IsError.Should().BeFalse();
                 await local.DeActivateProviderAsync();
                 if(local is IDisposable disposable)disposable.Dispose();
+                privateStorage?.Dispose();
+                if(nativeRuntime!=null)await nativeRuntime.DisposeAsync();
             }
         }
 
