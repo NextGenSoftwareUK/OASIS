@@ -458,6 +458,53 @@ public sealed class HyperDriveProviderExecutionTests
         result.Result.Should().Equal(owned);
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ScopedPartialReadDoesNotDiscloseUnverifiedFailedRecordIdentities(bool scoped)
+    {
+        var owner = Guid.NewGuid(); var failedId = Guid.NewGuid();
+        var owned = new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = owner };
+        var source = new OASISResult<IEnumerable<IHolon>>(new[] { owned }) { IsWarning = true,
+            Message = "Partial record failure: " + failedId,
+            MetaData = new Dictionary<string, string> { ["partialHolonReads"] = "true", ["failedHolonReadCount"] = "1",
+                ["failedHolonReads"] = "[\"" + failedId + " (IOException)\"]" } };
+        var provider = new Mock<IOASISStorageProvider> { CallBase = true };
+        provider.Setup(x => x.LoadAllHolons(HolonType.All, false, false, 0, 0, true, false, 0)).Returns(source);
+        IOASISStorageProvider contract = provider.Object;
+        var result = contract.LoadAllHolons(scoped ? owner : Guid.Empty, false, HolonType.All, false, false, 0, 0, true, false, 0);
+        result.IsWarning.Should().BeTrue(); result.Result.Should().Equal(owned);
+        result.MetaData["failedHolonReadCount"].Should().Be("1");
+        if (scoped)
+        {
+            result.MetaData.Should().NotContainKey("failedHolonReads");
+            result.MetaData["failedHolonReadDetailsRedacted"].Should().Be("true");
+            result.Message.Should().NotContain(failedId.ToString());
+        }
+        else
+        {
+            result.MetaData["failedHolonReads"].Should().Contain(failedId.ToString());
+            result.Message.Should().Contain(failedId.ToString());
+        }
+    }
+
+    [Fact]
+    public void ScopedPartialFailureWithoutPayloadRedactsDeclaredRecordDetailsButPreservesErrorIdentity()
+    {
+        var failedId = Guid.NewGuid(); var original = new IOException("controlled original failure");
+        var source = new OASISResult<IEnumerable<IHolon>> { IsError = true, ErrorCode = "ORIGINAL_READ_FAILURE",
+            Message = "Partial failure: " + failedId, Exception = original,
+            MetaData = new Dictionary<string, string> { ["partialHolonReads"] = "true", ["failedHolonReads"] = failedId.ToString() } };
+        var provider = new Mock<IOASISStorageProvider> { CallBase = true };
+        provider.Setup(x => x.LoadAllHolons(HolonType.All, false, false, 0, 0, true, false, 0)).Returns(source);
+        IOASISStorageProvider contract = provider.Object;
+        var result = contract.LoadAllHolons(Guid.NewGuid(), false, HolonType.All, false, false, 0, 0, true, false, 0);
+        result.IsError.Should().BeTrue(); result.Result.Should().BeNull();
+        result.ErrorCode.Should().Be("ORIGINAL_READ_FAILURE"); result.Exception.Should().BeSameAs(original);
+        result.MetaData.Should().NotContainKey("failedHolonReads");
+        result.Message.Should().NotContain(failedId.ToString());
+    }
+
     [Fact]
     public void DefaultSynchronousAvatarDetailDeleteNeverCrossesTheAsyncProviderBoundary()
     {
