@@ -1,6 +1,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { invoke, publicationArtifacts, verifiedHistoryTransaction, nativeFeeReceipt } from './bridge.mjs';
+import { invoke, publicationArtifacts, verifiedHistoryTransaction, nativeFeeReceipt, historyScanComplete } from './bridge.mjs';
+
+test('history completion requires index coverage of the fixed committed checkpoint', () => {
+  for (const reason of [3, 5]) {
+    assert.equal(historyScanComplete(reason, 42n, 42n), true);
+    assert.throws(() => historyScanComplete(reason, 41n, 42n), /not covered/);
+    assert.throws(() => historyScanComplete(reason, undefined, 42n), /not covered/);
+  }
+  for (const reason of [1, 2]) assert.equal(historyScanComplete(reason, 41n, 42n), false);
+  for (const reason of [0, 4, 6, undefined])
+    assert.throws(() => historyScanComplete(reason, 42n, 42n), /unexpected/);
+});
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 
 test('fee receipts retain exact charged failure, payer and signed rebate without double counting', () => {

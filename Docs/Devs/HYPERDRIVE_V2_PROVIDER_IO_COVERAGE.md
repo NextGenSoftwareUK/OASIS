@@ -20,6 +20,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui fixed history snapshot cannot silently stop at a lagging index (2026-10-12)
+
+Source-confirmed gap: history treated `LEDGER_TIP` and any `CURSOR_BOUND` as completion without proving coverage of its captured committed `checkpointHeight`. Added `historyScanComplete`: only checkpoint-bound/indexed-tip endings with an explicit watermark covering the fixed checkpoint are complete; item/scan limits continue with the existing advancing-cursor guard; missing/unexpected/cursor-bound endings fail. No cursor upper bound is supplied by this query. Each independently fetched receipt must also lie within the captured checkpoint. Official installed SDK 2.35.0 `query_options.ts` defines indexed-tip and fully covered checkpoint watermark semantics; this is not a speculative retry/fallback. Index lag surfaces as an explicit error rather than incomplete successful wallet history.
+
+SDK **9/9, zero skips**, including missing/behind watermark, partial-page and unexpected terminal reasons. Retained live local history read **passed** with the same original failed transaction and charged gas row, no mutation (`test-failed-history.mjs`). Owned Sui PID **184652** stopped after verification; retained ledger/runtime reused, no downloads/new keys/reset. Existing startup warnings unchanged. This is scoped source plus live read evidence, not a complete controlled index-lag node experiment, full wallet/options API proof or provider certification. Required billing, Cosmos/Hedera and release gates remain open.
+
 ### Sui history verifies checkpoint and effects identity (2026-10-12)
 
 Source audit found `verifiedHistoryTransaction` labeled data checkpointed while checking neither checkpoint presence nor effects' original transaction digest. It now requires canonical unsigned-u64 checkpoint string, exact effects digest, valid native sender and positive safe-integer millisecond timestamp, alongside the existing exact receipt digest, explicit boolean outcome and balance-change array. It does not infer success from missing fields or reinterpret a failed transaction as a lookup error. SDK test fixtures now model real checkpointed effects; malformed/missing/overflow checkpoints, invalid timestamp and mismatched effects are rejected. This closes this specific history boundary, not the whole native-interface/API matrix.
