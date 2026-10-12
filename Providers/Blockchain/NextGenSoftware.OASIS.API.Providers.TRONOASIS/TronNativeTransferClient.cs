@@ -999,7 +999,8 @@ public sealed class TronNativeTransferClient
         }
         catch (Exception error)
         {
-            throw new InvalidOperationException($"TRON broadcast outcome for {transactionId} is unknown. Track this original transaction before any retry.", error);
+            throw new TronBroadcastOutcomeUnknownException(transactionId, _genesisBlockId,
+                signed.RawData.Timestamp, signed.RawData.Expiration, error);
         }
         if (broadcast == null || !broadcast.Result)
             throw new InvalidOperationException($"TRON rejected broadcast {transactionId}: {broadcast?.Code} {broadcast?.Message.ToStringUtf8()}");
