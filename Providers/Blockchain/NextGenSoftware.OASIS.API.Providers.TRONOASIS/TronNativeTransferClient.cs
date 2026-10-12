@@ -1026,7 +1026,10 @@ public sealed class TronNativeTransferClient
         if (verifiedAuthority == null)
             TronPreparationVerifier.VerifyOriginal(encoded, transactionId, owner, _contractFeeLimitSun);
         else
+        {
+            verifiedAuthority = await LoadPermissionAuthorityAsync(Convert.ToHexString(owner), cancellationToken);
             TronPreparationVerifier.VerifyWithAccountAuthority(encoded, transactionId, owner, _contractFeeLimitSun, verifiedAuthority);
+        }
         if(_persistPreparedSubmission!=null)
             await _persistPreparedSubmission(transactionId,_genesisBlockId,encoded,cancellationToken);
         // Broadcast exactly once; receipt polling never constructs or submits a replacement.
