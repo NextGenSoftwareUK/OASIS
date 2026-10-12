@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Cosmos multi-send history projection/index integrity (2026-10-12)
+
+Added C# projection regression for two outputs sharing one native transaction and message: deterministic row IDs differ by output index but remain identical for debit/credit views; original native hash, exact units beyond JavaScript safe integer, and failed execution status are retained. Rejected negative message/output indices and nonzero output index for single-output MsgSend, which previously could produce invalid or colliding identities. Current complete Cosmos C# unit suite **53/53, zero skips**, `TestResults/CosmosCurrent/cosmos-unit-current.trx`; provider build zero errors/two warnings. These are synthetic indexed-row tests, not a live multi-send/node proof. Corrected live asset rerun and actual SDK/node multi-send history remain open; no runtime was restarted or ledger reset.
+
 ### Generated NFT entries no longer multiply parent quantity (2026-10-12)
 
 Further source tracing showed nullable `MintWeb3NFTRequest.NumberToMint` inherits the parent count in `MintWeb3NFTsAsync`, and the inner mint loop submits that many single NFT calls. The earlier exact-list-count fix alone therefore did not establish exact total mints. ONODE Core `c67c6f952123e32db31324b70ff4468c927fce98` sets only generated entries to `NumberToMint=1`; explicit user entries retain their documented override/inheritance semantics. Regression now checks generated entry counts and the sum of effective explicit/generated quantities, rather than list size alone. Current full ONODE Core suite **217/217, zero skips**, reusable `onode-unit-current.trx`; full Core **378/378, zero skips**, `core-current.trx`. Both builds zero errors, existing warnings remain. Actual default-entry-to-provider end-to-end submissions and durable mint-fee/subscription admission still require verification; no live mints were submitted.
