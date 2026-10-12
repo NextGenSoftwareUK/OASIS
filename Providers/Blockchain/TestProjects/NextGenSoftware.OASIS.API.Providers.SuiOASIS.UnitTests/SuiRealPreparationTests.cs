@@ -43,7 +43,16 @@ public class SuiRealPreparationTests
             """);
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(15));
         using var child=Process.Start(start) ?? throw new InvalidOperationException("Cannot start retained signing SDK.");
+        const string connection="mongodb://127.0.0.1:27017/?serverSelectionTimeoutMS=3000";
+        var database="usage_sui_signed_test_"+Guid.NewGuid().ToString("N");
+        var mongo=new MongoDB.Driver.MongoClient(connection);
+        var store=new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.MongoUsageOutboxStore(connection,database);
+        var operationId=Guid.NewGuid().ToString("N");var owner=Guid.NewGuid().ToString("N");
         try {
+            await store.InitializeAsync(deadline.Token);
+            Assert.IsTrue(await store.TryBeginAsync(new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.UsageOutboxOperation{
+                Id=operationId,UserId="owned-signed-test",Service="test",ExecutionOwner=owner,LeaseUntilUtc=DateTime.UtcNow.AddMinutes(1)
+            },deadline.Token));
             var output=child.StandardOutput.ReadToEndAsync(deadline.Token);
             var error=child.StandardError.ReadToEndAsync(deadline.Token);
             await child.WaitForExitAsync(deadline.Token);
@@ -54,6 +63,13 @@ public class SuiRealPreparationTests
             var verifiedCalls=0;
             using var server=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer(async(evidence,token)=>{
                 await provider.VerifyOriginalSignedPreparationAsync(evidence,token);
+                await store.BeginProviderAttemptAsync(operationId,owner,new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.UsageProviderAttempt{
+                    ClientRequestId="signed-preparation",Provider="SuiOASIS",ProviderRequestId=evidence.GetProperty("transactionHash").GetString(),StartedAtUtc=DateTime.UtcNow,
+                    NativePreparation=new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.UsageNativePreparation{
+                        ChainId="offline-test-chain",Sender=evidence.GetProperty("sender").GetString(),
+                        SignedTransactionBase64=evidence.GetProperty("signedTransactionBase64").GetString(),Signature=evidence.GetProperty("signature").GetString()
+                    }
+                },token);
                 verifiedCalls++;
             });
             var serve=server.ServeAsync(deadline.Token);
@@ -69,6 +85,12 @@ public class SuiRealPreparationTests
             }
             await serve;
             Assert.AreEqual(signed.RootElement.GetProperty("transactionHash").GetString(),server.PreparedTransactionId);
+            var persisted=await store.GetAsync(operationId,deadline.Token);
+            Assert.AreEqual(1,persisted.ProviderAttempts.Count);
+            Assert.AreEqual(server.PreparedTransactionId,persisted.ProviderAttempts[0].ProviderRequestId);
+            Assert.AreEqual(signed.RootElement.GetProperty("signature").GetString(),persisted.ProviderAttempts[0].NativePreparation.Signature);
+            Assert.AreEqual(signed.RootElement.GetProperty("signedTransactionBase64").GetString(),persisted.ProviderAttempts[0].NativePreparation.SignedTransactionBase64);
+            Assert.IsNull(persisted.ProviderAttempts[0].AcknowledgedAtUtc,"Preparation must not claim ledger acknowledgement.");
             var altered=JsonSerializer.Deserialize<Dictionary<string,object>>(signed.RootElement.GetRawText()) ?? throw new InvalidOperationException("Signed test evidence is absent.");
             altered["signature"]="invalid";
             using var invalid=JsonDocument.Parse(JsonSerializer.Serialize(altered));
@@ -89,7 +111,11 @@ public class SuiRealPreparationTests
             }
             Assert.AreEqual(0,acceptedInvalid);
             Assert.IsNull(rejectedServer.PreparedTransactionId);
+            Assert.AreEqual(1,(await store.GetAsync(operationId,deadline.Token)).ProviderAttempts.Count);
             Assert.IsFalse(provider.IsProviderActivated);
-        } finally {if(!child.HasExited){child.Kill(entireProcessTree:true);await child.WaitForExitAsync();}}
+        } finally {
+            try {if(!child.HasExited){child.Kill(entireProcessTree:true);await child.WaitForExitAsync();}}
+            finally {await mongo.DropDatabaseAsync(database);}
+        }
     }
 }
