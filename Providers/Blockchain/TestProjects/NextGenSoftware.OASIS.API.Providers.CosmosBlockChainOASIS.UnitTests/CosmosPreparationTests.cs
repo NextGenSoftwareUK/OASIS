@@ -7,6 +7,28 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class CosmosPreparationTests
 {
+    [DataTestMethod]
+    [DataRow("prepared")] [DataRow("reject")] [DataRow("prepared-wrong")] [DataRow("prepared-hold")] [DataRow("valid")]
+    public async Task PreparedProcessRequiresPersistenceAndRetainsOriginal(string mode)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","nft-signer.mjs"));
+        try{
+            using var provider=new CosmosBlockChainOASIS("http://127.0.0.1:1");
+            var backend=typeof(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase).GetProperty("Backend",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance)!.GetValue(provider)!;
+            var calls=0;var failure=new InvalidOperationException("controlled parent rejection");
+            using var server=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer((_,_)=>{calls++;return mode=="reject"?Task.FromException(failure):Task.CompletedTask;});
+            using var cancellation=new CancellationTokenSource();if(mode=="prepared-hold")cancellation.CancelAfter(1000);
+            var operation=(Task<JsonElement>)backend.GetType().GetMethod("InvokePreparedAsync",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance)!.Invoke(backend,new object[]{"put",new{mode=mode=="reject"?"prepared":mode},server,cancellation.Token})!;
+            if(mode=="reject")Assert.AreSame(failure,await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>operation));
+            else if(mode=="prepared-hold"){
+                var error=await Assert.ThrowsExceptionAsync<CosmosNativeMutationCanceledException>(()=>operation);Assert.AreEqual(new string('a',64),error.OriginalTransactionId);Assert.AreEqual(cancellation.Token,error.CancellationToken);
+            }else if(mode=="prepared-wrong"||mode=="valid"){
+                var error=await Assert.ThrowsExceptionAsync<CosmosNativeMutationReconciliationException>(()=>operation);Assert.IsNull(error.ExecutionSucceeded);Assert.AreEqual(mode=="valid"?null:new string('a',64),error.OriginalTransactionId);
+            }else Assert.AreEqual(new string('a',64),(await operation).GetProperty("transactionHash").GetString());
+            Assert.AreEqual(mode=="valid"?0:1,calls);
+        }finally{Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",previous);}
+    }
     [TestMethod]
     public async Task RealOfflineSignedDocumentVerifiesThroughCSharp()
     {
