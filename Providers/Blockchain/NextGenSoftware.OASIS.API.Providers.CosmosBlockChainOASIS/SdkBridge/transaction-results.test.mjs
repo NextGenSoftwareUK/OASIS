@@ -27,6 +27,25 @@ test('official broadcast clears its polling timer when synchronous broadcast rej
   }
 });
 const hash = 'ab'.repeat(32);
+test('official signing waits for durable preparation and persistence failure never broadcasts', async () => {
+  const wallet=await DirectSecp256k1Wallet.fromKey(new Uint8Array(32).fill(7),'wasm');
+  const [{address}]=await wallet.getAccounts();
+  const recipient=toBech32('wasm',new Uint8Array(20).fill(2));
+  const client=await SigningCosmWasmClient.offline(wallet);
+  client.getSequence=async()=>({accountNumber:7,sequence:3});
+  client.getChainId=async()=>'controlled-chain';
+  let broadcasts=0, prepared=0;
+  client.broadcastTx=async()=>{broadcasts++;assert.fail('Unpersisted signed bytes must not reach broadcast');};
+  const persistenceFailure=new Error('controlled journal unavailable');
+  guardCosmosSigningClient(client,async evidence=>{
+    prepared++;assert.match(evidence.transactionHash,/^[0-9A-F]{64}$/);
+    throw persistenceFailure;
+  });
+  await assert.rejects(withCosmosNativeEvidence(()=>client.signAndBroadcast(address,[{
+    typeUrl:'/cosmos.bank.v1beta1.MsgSend',value:{fromAddress:address,toAddress:recipient,amount:[{denom:'stake',amount:'1'}]}
+  }],{amount:[],gas:'100000'},'prepared persistence test')),error=>error===persistenceFailure);
+  assert.equal(prepared,1);assert.equal(broadcasts,0);
+});
 test('prepared await cannot change the signed bytes bound to persisted identity', async () => {
   const bytes=new Uint8Array([1,2,3]), original=Uint8Array.from(bytes);
   const expected=createHash('sha256').update(original).digest('hex').toUpperCase();
