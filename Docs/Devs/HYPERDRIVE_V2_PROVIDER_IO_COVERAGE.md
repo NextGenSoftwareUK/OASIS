@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Actual TRON signed runtime adapter/Mongo evidence — 2026-10-12
+
+Real TronNet signed protobuf passed through runtime's execution-owned callback into existing standalone Mongo. Exact original SHA256 ID/signed bytes read back, one attempt, no ledger acknowledgement. Wrong trusted sender callback rejects before write with unchanged attempt/evidence-byte budget. Focused **1/1**, zero skips, `TestResults/PriorityProviderCurrent/tron-signed-mongo.trx`. Controlled offline authority and fixture genesis; signed raw test has no operation contracts, so this is signature/evidence integration not a valid ledger transaction or owner-permission proof.
+
+Callback invoked directly, no broadcast/RPC. Exact generated `usage_tron_signed_test_<guid>` database removed in finally; retained SDK/runtime services reused. Actual admitted operation/contract/fee/window checks, submission/crash recovery and live original reconciliation remain open. No installs or release merge.
+
 ### TRON runtime execution-owned verifier/outbox adapter — 2026-10-12
 
 Added runtime prepared view overload requiring supplied execution, unique attempt correlation and trusted 21-byte sender. Sender copied to avoid caller mutation; callback checks expected genesis label, independently recovers original signature sender, then awaits execution-owned native evidence write. Ordinary runtime client remains unchanged and services/channels reused. Focused regression **9/9**, zero skips, `TestResults/PriorityProviderCurrent/tron-unknown-evidence.trx`; new guard checks missing execution. Build 0 errors/21 existing warnings.
