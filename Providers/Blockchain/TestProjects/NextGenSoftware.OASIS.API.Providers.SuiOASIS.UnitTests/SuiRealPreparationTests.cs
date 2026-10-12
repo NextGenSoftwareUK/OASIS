@@ -8,6 +8,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class SuiRealPreparationTests
 {
+    [TestMethod]
+    public void StorageAndNativeOperationsRetainOneSdkClient()
+    {
+        using var provider=new SuiOASIS("http://127.0.0.1:1","localnet");
+        var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+        var backend=typeof(SuiOASIS).GetProperty("Backend",flags)!.GetValue(provider)!;
+        var storageClient=backend.GetType().GetProperty("Client",flags)!.GetValue(backend);
+        var nativeClient=typeof(SuiOASIS).GetField("_sdkClient",flags)!.GetValue(provider);
+        Assert.AreSame(storageClient,nativeClient,"Storage composition must not allocate a second signing transport.");
+    }
     [DataTestMethod]
     [DataRow("rpcEndpoint")] [DataRow("network")] [DataRow("chainId")]
     public async Task OperationArgumentsCannotReplaceConfiguredNetwork(string field)

@@ -16,7 +16,7 @@ public partial class SuiOASIS
     {
         token.ThrowIfCancellationRequested();
         using var server = CreateNativePreparationServer(execution, clientRequestId, expectedChainId, expectedSender);
-        return await ((SuiStorageBackend)Backend).Client.InvokePreparedAsync(operation, args, server, token);
+        return await _sdkClient.InvokePreparedAsync(operation, args, server, token);
     }
 
     public PreparedSubmissionServer CreateNativePreparationServer(UsageExecutionHandle execution,
