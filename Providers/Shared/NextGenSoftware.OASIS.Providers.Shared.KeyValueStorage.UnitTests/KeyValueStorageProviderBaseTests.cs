@@ -42,6 +42,19 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
     [TestClass]
     public class KeyValueStorageProviderBaseTests
     {
+        [TestMethod]
+        public async Task Metadata_queries_expand_only_matching_trees_not_unrelated_cycles()
+        {
+            var cycle = new Holon { Id = Guid.NewGuid(), Name = "unrelated-cycle" }; cycle.ParentHolonId = cycle.Id;
+            var selected = new Holon { Id = Guid.NewGuid(), Name = "selected", MetaData = new Dictionary<string, object> { ["selected"] = "yes" } };
+            foreach (var holon in new[] { cycle, selected }) Assert.IsFalse((await _provider.SaveHolonAsync(holon)).IsError);
+            var single = await _provider.LoadHolonsByMetaDataAsync("selected", "yes");
+            Assert.IsFalse(single.IsError, single.Message); Assert.AreEqual(selected.Id, single.Result.Single().Id);
+            var pairs = _provider.LoadHolonsByMetaData(new Dictionary<string, string> { ["selected"] = "yes" }, MetaKeyValuePairMatchMode.All);
+            Assert.IsFalse(pairs.IsError, pairs.Message); Assert.AreEqual(selected.Id, pairs.Result.Single().Id);
+            var all = await _provider.LoadAllHolonsAsync(); Assert.IsTrue(all.IsError);
+        }
+
         [DataTestMethod]
         [DataRow(false)]
         [DataRow(true)]
