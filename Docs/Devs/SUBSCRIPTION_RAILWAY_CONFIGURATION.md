@@ -12,6 +12,14 @@ Do not assume the ledger is still empty from this runbook's original installatio
 
 ## What is already configured
 
+### Stripe read-only verification and currency blocker — 2026-10-12
+
+Read Railway WEB4 dev variables/DNA in memory without exposing credential values. Effective secret is test-mode and a webhook secret is present. Official Stripe GET price lookups returned all four configured IDs as exact matching, active, non-live monthly prices: Bronze GBP 900 minor units, Silver GBP 2900, Gold GBP 9900, Enterprise GBP 99900. No checkout, invoice, customer, webhook or charge was created. Enterprise checkout remains contact-sales-only in the controller; its configured price does not mean that flow is enabled.
+
+Hosted dev GET `/api/subscription/plans` independently returns USD 9/29/99 for Bronze/Silver/Gold. This contradicts actual Stripe GBP prices; do not enable paid checkout or remove NFT restrictions under that misleading display. User currency choice requested: retain GBP prices and align the advertised catalogue, or configure approved USD prices. USD usage-cost accounting and Stripe plan-fee currency are separate concepts; do not relabel existing GBP fees as USD or rewrite accounting balances to hide the mismatch. Webhook signature/delivery, subscription activation, ledger initialization, billing and reconciliation remain unverified live.
+
+Current checkout's structural authority validator failed because STAR/WEB6 middleware source files are absent; rollout validator stopped at absent STAR Program.cs. Neither is a passing release gate. Existing sibling STAR/WEB6 repositories were identified but their revisions differ from this task's pins; no fresh clone/download or substituted source-graph validation was performed.
+
 ### NFT minting is not yet protected by the usage protocol
 
 Source audit on 2026-10-12: `SubscriptionService.AuthorizeUsageAsync` accepts only WEB5–WEB10 consuming services and `ai.tokens`/`api.request` meter categories. WEB4 `NftController.MintNftAsync` directly invokes `NFTManager.MintNftAsync` after its temporary Wizard check; it does not consult the subscription service or reserve/settle native mint fees. The inspected JWT and OASIS middleware do not supply that missing authorization. Therefore even a successful checkout/webhook/consumer-ledger rollout is insufficient by itself to remove the temporary NFT gate.
