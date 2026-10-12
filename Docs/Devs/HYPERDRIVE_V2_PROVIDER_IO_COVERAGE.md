@@ -5,6 +5,12 @@
 
 ## Routing contract
 
+### Live search/provider-key extension fixes ignored LocalFile text groups (2026-10-11)
+
+Initial live search failed because LocalFile required unrelated `HolonSearchParams`/`AvatarSearchParams` even for `ISearchTextGroup`, and did not filter records by query. Existing search branches now accept text groups directly and apply ordinal case-insensitive name/description or avatar identity/name matching, with optional ID matching; blank text queries fail explicitly. Focused fixed-store regression confirms sync/async case-insensitive match and exclusion of unrelated/no-match records without those parameter objects. LocalFile focused suite passes **5/5**, zero skips (`localfile-version-export.trx`); test type-qualification compilation errors were corrected before execution.
+
+Expanded retained TRON V2 scenario passes **1/1**, zero skips, 70 seconds (`tron-v2-routing.trx`): Search and avatar-provider-key handlers now execute sync/async on both stores, including deleted avatar provider-key absence (**12 additional routed checks**). Existing outage/failover, balancing, replication and deletion checks remain passing. Runtime paused; owned fixtures cleaned. These establish selected text search/provider-key paths, not all search parameter types/error propagation/options or complete matrix coverage. No install/download/environment duplication/merge; full remaining gates open.
+
 ### Current Core live regression and explicit remaining-handler inventory (2026-10-11)
 
 At Core `8f7396de7d8ce3bcd7f3a886d0231b6398f773bf`, expanded retained TRON V2 routing passes **1/1**, zero skips, 64 seconds (`tron-v2-routing.trx`). Actual outage failover/measured balancing and expanded replicated storage/read/delete paths still pass after karma/settings routing fixes. WEB4 host bounded rebuild succeeds (zero errors, 253 warnings); manifest/seven Dockerfiles/gitlinks validator passes. These do not prove deployed image or live high-level karma. Runtime paused afterward; approximately 113.54 GB decimal free; no new install/download/environment/merge.
