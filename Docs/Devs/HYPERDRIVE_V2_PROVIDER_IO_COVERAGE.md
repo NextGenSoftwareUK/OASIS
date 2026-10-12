@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Nonpositive empty default NFT batches fail explicitly (2026-10-12)
+
+ONODE Core `8d6fd2f487e4907615fd22ff9926b3f0e5af870d` rejects `NumberToMint <= 0` when no explicit Web3 requests exist, before expansion or provider access. Five new manager-entry tests verify zero/negative/minimum integer counts and null/empty lists remain unmodified. Explicit Web3 batches retain their existing per-entry semantics; their count/validation contract remains a separate audit requirement. Current quantity plus batch orchestration selection: **25/25, zero skips**, replacing the reusable `TestResults/OnodeCurrent/nft-quantity-current.trx`; library build zero errors/154 warnings. No live mint or subscription-gate removal.
+
 ### Default NFT batch expansion corrected (2026-10-12)
 
 ONODE Core `8e9823ecb9483d4de024bee5197d41930d2ebe6e` replaces the changing subtractive loop bound with direct current-count comparison. Default Web3 request expansion now reaches the requested count, preserves existing explicit entries without truncating them, and adds no entry for zero. Seven regression cases cover 0/1/2/5/10, partial explicit lists, excess explicit lists and repeated normalization. Together with existing single-submission quantity/restoration and manager batch/partial-delivery tests: **20/20 passed, zero skips**, `TestResults/OnodeCurrent/nft-quantity-current.trx`; rebuilt ONODE Core has zero errors/154 warnings. This fixes list expansion, not the unresolved invalid/nonpositive-count response contract or live positive subscription-protected minting gate. No live mint was submitted.
