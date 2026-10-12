@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Retained Sui original failed outcome live recheck — 2026-10-12
+
+Inspected the retained network configuration and confirmed no active Sui process. Initial startup under ordinary WSL user failed terminally because retained RocksDB CURRENT files are root-owned mode 600. Resumed under the existing root owner without permission changes, genesis reset or new installation. RPC reported chain identifier `fd2b5bb4`; exact owned process PID 210376 used the retained Sui 1.81.1 executable/network. Startup still reports metrics/socket/JWK/execution-chunk warnings; not claimed fixed.
+
+Read-only integration `ConfirmedMoveAbortIsFailedNotLookupError` passed **1/1**, zero skips (`TestResults/SuiCurrent/sui-original-failure-current.trx`), querying original `D83kgAWQQbdZdCFbFQivXuRF7MB5YqiqGStZAynz3GGk` against the resumed local node. It proves the real provider returns Failed rather than a lookup error for that committed Move abort. No replacement transaction, mint, faucet call or funded mutation was submitted. Stopped PID 210376 through the validated owned-node helper; process handle is terminal and `/proc/210376/exe` absent. This is live original-outcome verification, not full V2 routing, successful prepared submission, or crash recovery certification.
+
 ### Cross-provider full C# regression after stage transport — 2026-10-12
 
 Refreshed complete retained Sui and Cosmos unit projects **without filtering out actual process-deadline tests**: Sui **71/71** (2m9s), Cosmos **94/94** (2m7s), both zero failures/skips. TRON **234/234** also passed. Reports: `TestResults/PriorityProviderCurrent/SuiOASIS-current.trx`, `CosmosBlockChainOASIS-current.trx`, `tron-current.trx`. SDK bridge environment variables explicitly select existing source dependencies; no restore/install/node startup or ledger submission was used. Bounded builds/test workers reused existing outputs and reports. These results establish current C# regression coverage including actual owned-process termination deadlines, not published packaging, live native transaction outcomes or complete V2 provider routing certification. Hedera remains most recently **36/36**; these project counts are separate, not overlapping selected-test totals.
