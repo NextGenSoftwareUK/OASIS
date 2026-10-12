@@ -344,3 +344,10 @@ test('transfer rejects the wrong signer and invalid u64 MIST before contacting a
   await assert.rejects(invoke({ ...request, amountUnits: '1.1' }), /Positive integral/);
   await assert.rejects(invoke({ ...request, amountUnits: '18446744073709551616' }), /exceeds u64/);
 });
+test('storage activation checks exact owner without paid mutation',async()=>{
+ const {verifyStorageAuthority}=await import('./bridge.mjs');
+ const owner='0x'+'1'.repeat(64),other='0x'+'2'.repeat(64);
+ assert.doesNotThrow(()=>verifyStorageAuthority(owner,owner));
+ for(const [actual,sender] of [[owner,other],[null,owner],[owner,null],['bad',owner],[owner,'bad']])
+  assert.throws(()=>verifyStorageAuthority(actual,sender),/owner does not match/);
+});

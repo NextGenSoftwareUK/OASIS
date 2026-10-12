@@ -116,6 +116,11 @@ export class NativeMutationReconciliationError extends Error {
   }
 }
 
+export function verifyStorageAuthority(owner,sender) {
+  if(!isValidSuiAddress(owner)||!isValidSuiAddress(sender)||normalizeSuiAddress(owner)!==normalizeSuiAddress(sender))
+    throw new Error('Sui storage owner does not match the configured signing account');
+}
+
 export function sdkErrorEnvelope(error) {
   return { ok: false, error: error.message,
     ...(error instanceof NativeMutationReconciliationError ? { nativeMutation: error.nativeMutation } : {}) };
@@ -444,7 +449,10 @@ async function invokeCore(request) {
   }
   if (['storageProbe', 'get', 'put', 'delete', 'putMany', 'deleteMany', 'list'].includes(request.operation)) {
     const storage = await storageInfo(client, request);
-    if (request.operation === 'storageProbe') return { owner: storage.owner, tableId: storage.values.id, chainIdentifier };
+    if (request.operation === 'storageProbe') {
+      verifyStorageAuthority(storage.owner,Ed25519Keypair.fromSecretKey(request.privateKey).toSuiAddress());
+      return { owner: storage.owner, tableId: storage.values.id, chainIdentifier };
+    }
     if (request.operation === 'get') {
       if (typeof request.key !== 'string') throw new Error('Storage key is required');
       try {
