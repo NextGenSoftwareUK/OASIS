@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Cosmos official SDK timeout reconciliation wording (2026-10-12)
+
+Installed exact-pinned CosmJS source confirms TimeoutError carries txId after submission polling expires. Bridge error formatting now recognizes that actual SDK class with a valid 64-hex identity, retains the original hash and explicitly says outcome unverified/reconcile before retrying, without inferring failed/successful execution or echoing its arbitrary message. Ordinary errors merely carrying a txId property remain unchanged. Two actual SDK exception-construction cases expand bridge suite to **11/11**, zero skips; syntax/import/direct-pin verifier passes. This is exception-contract evidence, not a live timeout or every unknown submission path; no resubmission or alternate mutation pipeline added. No network mutation/install/download/new environment/merge; remaining gates stay open.
+
 ### Current shared-provider changes pass retained Sui storage regression (2026-10-12)
 
 At parent `e93733433`, retained Sui real-storage suite passes **3/3**, zero skips, 111 seconds (`TestResults/SuiCurrent/sui-storage-current.trx`). Existing avatar/detail indexed/history reads, holon metadata/parent/deletion and import/search/export/proximity scenarios remain passing after shared collection/history/cycle/metadata/preflight fixes. Test-host shared DLL hash matches current provider build. Original node/config/package/ledger/SDK installation reused; exact owned PID 114156 stopped through validating helper after terminal test completion, with no remaining Sui process. Existing epoch/JWK warnings remain documented, not hidden. No reset/install/download/new environment/public-chain spending/merge. This is direct provider regression, not complete V2/native/HTTP/image options or all live new edge cases; remaining release gates stay open.

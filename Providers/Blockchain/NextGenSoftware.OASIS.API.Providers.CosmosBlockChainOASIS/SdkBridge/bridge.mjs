@@ -1,6 +1,6 @@
 import { CosmWasmClient, SigningCosmWasmClient } from "@cosmjs/cosmwasm";
 import { DirectSecp256k1Wallet, DirectSecp256k1HdWallet, decodeTxRaw, Registry } from "@cosmjs/proto-signing";
-import { verifiedBankTransfer } from './transaction-results.mjs';
+import { verifiedBankTransfer, cosmosFailureMessage } from './transaction-results.mjs';
 import { GasPrice, defaultRegistryTypes } from "@cosmjs/stargate";
 import { fromHex, toHex, fromBech32 } from "@cosmjs/encoding";
 
@@ -123,6 +123,6 @@ async function execute(input) {
 try {
   process.stdout.write(JSON.stringify({ ok: true, result: await execute(await readInput()) }));
 } catch (error) {
-  process.stdout.write(JSON.stringify({ ok: false, error: error instanceof Error ? error.message : String(error) }));
+  process.stdout.write(JSON.stringify({ ok: false, error: cosmosFailureMessage(error) }));
   process.exitCode = 1;
 }
