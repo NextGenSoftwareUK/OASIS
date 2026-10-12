@@ -23,6 +23,14 @@ public class SuiPreparedLedgerTests
             var activated=await provider.ActivateProviderAsync();Assert.IsFalse(activated.IsError,activated.Message);Assert.IsTrue(activated.Result);
             var after=await provider.GetAccountBalanceAsync(address,deadline.Token);Assert.IsFalse(after.IsError,after.Message);
             Assert.AreEqual(before.Result,after.Result,"Read-only activation must not charge a network mutation fee.");
+            var sdk=typeof(SuiOASIS).GetMethod("InvokeSdkAsync",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+            var other=await (Task<JsonElement>)sdk.Invoke(provider,new object[]{"generateKey",null!,deadline.Token})!;
+            using var foreign=new SuiOASIS(rpc,"localnet",settings.GetProperty("chainId").GetString()!,settings.GetProperty("packageAddress").GetString()!,
+                other.GetProperty("privateKey").GetString()!,settings.GetProperty("storageObjectId").GetString()!);
+            var rejected=await foreign.ActivateProviderAsync();Assert.IsTrue(rejected.IsError,"Foreign signer must not activate owned storage.");
+            Assert.IsFalse(foreign.IsProviderActivated);StringAssert.Contains(rejected.Message,"owner does not match");
+            var unchanged=await provider.GetAccountBalanceAsync(address,deadline.Token);Assert.IsFalse(unchanged.IsError,unchanged.Message);
+            Assert.AreEqual(before.Result,unchanged.Result,"Rejected foreign authority must not trigger a paid activation probe.");
         }finally{await provider.DeActivateProviderAsync();}
     }
     private sealed class TestAuthority(string user):HttpMessageHandler

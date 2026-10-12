@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Live Sui foreign-owner rejection and V2 activation regression — 2026-10-12
+
+Extended live activation verification with an in-memory official SDK-generated different signer. The real storage owner query rejects it, activation stays false, and the original configured account balance remains unchanged. Read-only activation test **1/1** passed (`sui-activation-live-current.trx`), no skips. On the same node, current `V2ReplicatesToSuiAndSelectsFromMeasuredRealProviderReads` also passed **1/1**, 57s (`sui-v2-healthy-current.trx`), verifying replicated records/deletions, indexed sync/async reads, measured-performance selection, Free policy exclusion and real round-robin distribution after the changed activation behavior.
+
+Reused existing ledger/SDK/Mongo and exact node PID 222567; validated stop helper completed and original handle terminal. Owned routing records cleaned by fixture. No new installs, public funds or deployment. These gates remain scoped to local provider behavior and configured DNA policy, not hosted subscription admission, parent-host crash or every provider/interface; no development merge.
+
 ### Live read-only Sui activation regression — 2026-10-12
 
 Added a real retained-ledger activation test measuring the configured signing account through the public balance API before/after successful activation. Balance is exactly unchanged, verifying the changed activation path performs no network-fee mutation. Combined current live activation, normal prepared write and lost-child-response recovery suite **3/3** passed, zero skips (`sui-prepared-live-current.trx`), with exact owned keys/outboxes/journals cleaned after confirmed outcomes. First run was 2/3 because the new test incorrectly treated the SDK balance object as a JSON string; fixed the test to use the existing public balance API rather than introducing another parser.
