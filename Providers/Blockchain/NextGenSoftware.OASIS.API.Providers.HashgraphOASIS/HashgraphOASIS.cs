@@ -441,8 +441,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         /// </summary>
         public async Task<NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus> GetTransactionStatusAsync(string transactionId)
         {
-            using var httpClient = new System.Net.Http.HttpClient();
-            var response = await httpClient.GetAsync($"{_networkUrl.TrimEnd('/')}/api/v1/transactions/{Uri.EscapeDataString(transactionId)}");
+            using var httpClient = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(20) };
+            var response = await httpClient.GetAsync($"{_networkUrl.TrimEnd('/')}/api/v1/transactions/{Uri.EscapeDataString(MirrorTransactionId(transactionId))}");
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 return NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.NotFound;
             response.EnsureSuccessStatusCode();
@@ -456,12 +456,18 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             if (transactions.GetArrayLength() != 1)
                 throw new InvalidOperationException("Mirror transaction lookup must return exactly one record.");
             var record = transactions[0];
-            var expected = transactionId.Replace('@', '-');
-            var separator = expected.LastIndexOf('.');
-            if (separator > expected.LastIndexOf('-')) expected = expected[..separator] + "-" + expected[(separator + 1)..];
+            var expected = MirrorTransactionId(transactionId);
             if (record.GetProperty("transaction_id").GetString() != expected)
                 throw new InvalidOperationException("Mirror returned a different transaction identity.");
             return HashgraphOASIS.MapReceiptStatus(record.GetProperty("result").GetString());
+        }
+
+        private static string MirrorTransactionId(string transactionId)
+        {
+            if (string.IsNullOrWhiteSpace(transactionId)) throw new ArgumentException("Hedera transaction ID is required.");
+            var id = transactionId.Replace('@', '-');
+            var separator = id.LastIndexOf('.');
+            return separator > id.LastIndexOf('-') ? id[..separator] + "-" + id[(separator + 1)..] : id;
         }
     }
 
