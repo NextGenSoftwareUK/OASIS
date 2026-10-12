@@ -1006,6 +1006,8 @@ public sealed class TronNativeTransferClient
         bool allowVoidContractReturn = false, System.Numerics.BigInteger? expectedContractAmount = null)
     {
         var raw = transaction.RawData;
+        if (raw.Contract.Count != 1 || raw.Contract[0].PermissionId != 0)
+            throw new InvalidOperationException("TRON node changed the requested owner permission; active permission requires explicit verified authority.");
         var headers = _wallet.GetHeaders();
         raw.Data = ByteString.CopyFromUtf8(memo ?? "");
         var requestedRawData = raw.ToByteArray();

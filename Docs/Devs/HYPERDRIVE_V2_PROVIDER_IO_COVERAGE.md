@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON node cannot select an unrequested active permission — 2026-10-12
+
+Shipping mutation calls currently request owner permission only. Added the invariant at the single signing/broadcast boundary: exactly one contract with permission ID zero is required before SDK signing, persistence or broadcast. A node cannot silently substitute an active permission. The controlled SDK escrow test now includes a changed deposit permission ID; approval stays confirmed and its exact ID is preserved, while the deposit is never broadcast. Complete TRON suite **254/254 passed**, zero skips (`tron-current.trx`); provider build zero errors/21 existing warnings.
+
+This is not delegated/active-permission implementation: explicit permission selection, verified on-chain authority and rotated signer integration remain required. The existing SDK/address-equality preflight gap remains documented rather than bypassed. No retained ledger mutation, installation, reset, merge or deployment occurred.
+
 ### Complete Cosmos rerun with retained SDK and packaging inspection — 2026-10-12
 
 Complete Cosmos C# suite **99/99 passed**, zero skips, including the real two-minute process deadline (`cosmos-current.trx`). The run explicitly configured `OASIS_COSMOS_SDK_BRIDGE` to the existing installed source bridge; no restore, install or download occurred. This supersedes the prior failed local dependency-resolution run, not the deployed packaging gate.

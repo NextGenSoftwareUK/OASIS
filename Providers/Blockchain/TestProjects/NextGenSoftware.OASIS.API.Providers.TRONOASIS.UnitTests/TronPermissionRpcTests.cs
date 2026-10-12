@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 public class TronPermissionRpcTests
 {
     [Theory]
-    [InlineData("rejected")] [InlineData("changed")] [InlineData("unavailable")]
+    [InlineData("rejected")] [InlineData("changed")] [InlineData("unavailable")] [InlineData("permission")]
     public async Task EscrowConstructionFailureAfterSdkApprovalRequiresOriginalReconciliation(string mode)
     {
         var genesis=new string('a',64);var genesisBytes=ByteString.CopyFrom(Convert.FromHexString(genesis));
@@ -30,6 +30,7 @@ public class TronPermissionRpcTests
                 var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();var tx=new Transaction{RawData=new Transaction.Types.raw{Timestamp=now,Expiration=now+60000}};
                 var supplied=request.Clone();if(!approval&&mode=="changed")supplied.Data=ByteString.CopyFromUtf8("changed");
                 tx.RawData.Contract.Add(new Transaction.Types.Contract{Type=Transaction.Types.Contract.Types.ContractType.TriggerSmartContract,Parameter=Google.Protobuf.WellKnownTypes.Any.Pack(supplied)});
+                if(!approval&&mode=="permission")tx.RawData.Contract[0].PermissionId=2;
                 return Task.FromResult(new TransactionExtention{Transaction=tx,Result=new Return{Result=true}});
             })
             .AddMethod(Rpc(Wallet.Descriptor.FullName,"BroadcastTransaction",Transaction.Parser,Return.Parser),(Transaction request,ServerCallContext context)=>{
