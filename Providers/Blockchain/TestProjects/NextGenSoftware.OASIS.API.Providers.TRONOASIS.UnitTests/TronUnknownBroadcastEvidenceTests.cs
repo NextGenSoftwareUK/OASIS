@@ -15,6 +15,7 @@ public class TronUnknownBroadcastEvidenceTests
     [Theory]
     [InlineData("empty")] [InlineData("unsupported")] [InlineData("wrong-owner")]
     [InlineData("zero-timestamp")] [InlineData("invalid-expiry")] [InlineData("negative-fee")]
+    [InlineData("excess-fee")]
     public async Task ActualSignedContractMustEstablishTrustedOperationOwner(string mode)
     {
         await using var runtime=new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),new Uri("http://127.0.0.1:50052"),new string('a',64));
@@ -27,6 +28,7 @@ public class TronUnknownBroadcastEvidenceTests
         if(mode=="zero-timestamp")transaction.RawData.Timestamp=0;
         if(mode=="invalid-expiry")transaction.RawData.Expiration=now;
         if(mode=="negative-fee")transaction.RawData.FeeLimit=-1;
+        if(mode=="excess-fee")transaction.RawData.FeeLimit=101;
         if(mode!="empty"){
             var owner=(byte[])sender.Clone();if(mode=="wrong-owner")owner[1]^=1;
             transaction.RawData.Contract.Add(new Transaction.Types.Contract{
@@ -36,8 +38,8 @@ public class TronUnknownBroadcastEvidenceTests
         }
         var signed=signer.GetTransactionSign(transaction,new string('0',63)+"1");
         var id=Convert.ToHexString(SHA256.HashData(signed.RawData.ToByteArray())).ToLowerInvariant();
-        var error=Assert.Throws<System.IO.InvalidDataException>(()=>TronPreparationVerifier.VerifyOriginal(Convert.ToBase64String(signed.ToByteArray()),id,sender));
-        Assert.Contains(mode=="empty"?"One original":mode=="unsupported"?"not supported":mode=="wrong-owner"?"owner differs":"validity window",error.Message);
+        var error=Assert.Throws<System.IO.InvalidDataException>(()=>TronPreparationVerifier.VerifyOriginal(Convert.ToBase64String(signed.ToByteArray()),id,sender,100));
+        Assert.Contains(mode=="empty"?"One original":mode=="unsupported"?"not supported":mode=="wrong-owner"?"owner differs":mode=="excess-fee"?"ceiling":"validity window",error.Message);
     }
     [Fact]
     public async Task PreparedRuntimeViewReusesExistingSdkServicesWithoutChangingOrdinaryClient()
