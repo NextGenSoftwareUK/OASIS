@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON denied authority checkpoint — 2026-10-12
+
+The full TRON unit project completed with **234/234 passed**, zero failed or skipped, in `TestResults/PriorityProviderCurrent/tron-current.trx`. The added controlled gRPC-to-Mongo case refreshes owner authority immediately before the prepared callback and rejects a signed transaction whose signer weight is below the returned threshold. Rejection leaves provider attempts empty and native-preparation evidence bytes at zero. It reuses the installed SDK and existing Mongo service; the owned test database is dropped in `finally`.
+
+This proves the insufficient-authority rejection boundary with controlled gRPC responses, not live TRON ledger acceptance, provider failover/load balancing/replication, or production native-spending admission. Those release gates remain open; no sponsored NFT spending or development merge is enabled by this result.
+
 ### Actual signed TRON authority-refresh gRPC/Mongo callback integration — 2026-10-12
 
 Added runtime account-authority prepared view integration using actual TronNet signing, controlled official-descriptor loopback gRPC responses and existing real Mongo. Callback refreshes account (second query), verifies owner permission/signature, then persists exact original ID/signed bytes with no ledger acknowledgement. RPC selection **7/7**, zero skips, `TestResults/PriorityProviderCurrent/tron-permission-rpc.trx`. Shared offline authority fixture reused. Owned `usage_tron_rpc_test_<guid>` database/server/channels removed/shut down in finally, regenerable by rerun.
