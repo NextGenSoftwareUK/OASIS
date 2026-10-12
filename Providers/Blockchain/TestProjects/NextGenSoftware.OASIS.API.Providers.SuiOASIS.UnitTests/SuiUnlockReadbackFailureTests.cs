@@ -92,6 +92,7 @@ public class SuiUnlockReadbackFailureTests
     [DataRow("bad-status")] [DataRow("bad-shape")] [DataRow("missing-status")]
     [DataRow("bad-error")] [DataRow("missing-error")]
     [DataRow("ordinary")]
+    [DataRow("invalid-digest")] [DataRow("unknown-executed")]
     public async Task NativeEvidenceSurvivesSdkProcessBoundaryWithoutGuessingMissingOutcomes(string mode)
     {
         var previous=Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE");
@@ -108,7 +109,7 @@ public class SuiUnlockReadbackFailureTests
             {
                 Assert.IsInstanceOfType<SuiNativeMutationReconciliationException>(result.Exception);
                 var evidence=(SuiNativeMutationReconciliationException)result.Exception;
-                Assert.AreEqual(mode is "unknown" or "bad-shape" or "bad-error" or "missing-error" ? null : new string('1',32),evidence.OriginalTransactionId);
+                Assert.AreEqual(mode is "unknown" or "bad-shape" or "bad-error" or "missing-error" or "invalid-digest" or "unknown-executed" ? null : new string('1',32),evidence.OriginalTransactionId);
                 Assert.AreEqual(mode=="failed" ? (bool?)false : mode=="executed" ? (bool?)true : null,evidence.ExecutionSucceeded);
                 if(mode is "bad-status" or "bad-shape" or "missing-status" or "bad-error" or "missing-error") Assert.IsNotNull(evidence.InnerException);
             }

@@ -20,8 +20,8 @@ switch(request.operation){
   if(title.startsWith('native-evidence/')) {
    const mode=title.split('/')[1];
    const mutation=mode==='bad-shape' ? [] : {
-    transactionHash:mode==='unknown' ? null : '1'.repeat(32),
-    ...(mode==='missing-status' ? {} : {executionSucceeded:mode==='failed' ? false : mode==='executed' ? true : mode==='bad-status' ? 'false' : null})
+    transactionHash:mode==='unknown' || mode==='unknown-executed' ? null : mode==='invalid-digest' ? 'fabricated' : '1'.repeat(32),
+    ...(mode==='missing-status' ? {} : {executionSucceeded:mode==='failed' ? false : mode==='executed' || mode==='unknown-executed' ? true : mode==='bad-status' ? 'false' : null})
    };
    process.stdout.write(JSON.stringify({ok:false,...(mode==='missing-error' ? {} : {error:mode==='bad-error' ? [] : 'original controlled native error'}),...(mode==='ordinary' ? {} : {nativeMutation:mutation})}));
    process.exitCode=1;
