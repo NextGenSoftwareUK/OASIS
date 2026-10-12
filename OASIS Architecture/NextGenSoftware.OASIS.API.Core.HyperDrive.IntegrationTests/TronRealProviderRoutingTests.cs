@@ -162,6 +162,26 @@ public sealed class TronRealProviderRoutingTests
                     foreach (var item in batch) exported.Result.Single(value => value.Id == item.Id).Name.Should().Be(item.Name);
                 }
             }
+            foreach (var operation in new[] { "DeleteAvatarDetail", "DeleteAvatarDetailByUsername", "DeleteAvatarDetailByEmail" })
+            foreach (var synchronous in new[] { false, true })
+            {
+                detail.IsActive = true; detail.DeletedDate = DateTime.MinValue;
+                var restored = await router.RouteRequestAsync<IAvatarDetail>(new StorageOperationRequest {
+                    Operation = "SaveAvatarDetail", Payload = detail, PreferredProvider = ProviderType.LocalFileOASIS });
+                restored.IsError.Should().BeFalse(restored.Message); restored.IsWarning.Should().BeFalse(restored.Message);
+                var request = new StorageOperationRequest { Operation = operation, AvatarId = avatar.Id,
+                    Username = avatar.Username, Email = avatar.Email, SoftDelete = true, PreferredProvider = ProviderType.TRONOASIS };
+                var removed = synchronous ? router.RouteRequest<bool>(request) : await router.RouteRequestAsync<bool>(request);
+                removed.IsError.Should().BeFalse(removed.Message); removed.IsWarning.Should().BeFalse(removed.Message);
+                removed.Result.Should().BeTrue(); manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+                foreach (var provider in new IOASISStorageProvider[] { local, tron })
+                {
+                    var retained = await provider.LoadAvatarDetailAsync(avatar.Id);
+                    retained.IsError.Should().BeFalse(retained.Message); retained.Result.IsActive.Should().BeFalse();
+                    retained.Result.DeletedDate.Should().NotBe(DateTime.MinValue);
+                    (await provider.LoadAvatarByUsernameAsync(avatar.Username)).Result.Id.Should().Be(avatar.Id);
+                }
+            }
             var deletedAvatar = await router.RouteRequestAsync<bool>(new StorageOperationRequest
                 { Operation = "DeleteAvatar", AvatarId = avatar.Id, SoftDelete = false, PreferredProvider = ProviderType.LocalFileOASIS });
             deletedAvatar.IsError.Should().BeFalse(deletedAvatar.Message);
