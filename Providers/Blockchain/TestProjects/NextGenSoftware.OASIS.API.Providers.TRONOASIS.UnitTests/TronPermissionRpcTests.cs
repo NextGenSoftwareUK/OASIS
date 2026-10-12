@@ -10,6 +10,59 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public class TronPermissionRpcTests
 {
+    [Theory]
+    [InlineData("call")] [InlineData("deploy")] [InlineData("missing-address")] [InlineData("readback-unavailable")]
+    public async Task RotatedContractSignerAndConfirmedDeploymentReadbackPreserveOneSubmission(string mode)
+    {
+        var genesis=new string('a',64);var block=ByteString.CopyFrom(Convert.FromHexString(genesis));
+        var key=new string('0',63)+"1";var ownerKey=new string('0',63)+"2";
+        var owner=new TronNet.TronECKey(ownerKey,TronNet.TronNetwork.MainNet).GetPublicAddress();
+        var signerBytes=new byte[21];signerBytes[0]=0x41;new Nethereum.Signer.EthECKey(key).GetPublicAddressAsBytes().CopyTo(signerBytes,1);
+        var contractBytes=new byte[21];contractBytes[0]=0x41;new Nethereum.Signer.EthECKey(new string('0',63)+"3").GetPublicAddressAsBytes().CopyTo(contractBytes,1);
+        var contract=NBitcoin.DataEncoders.Encoders.Base58Check.EncodeData(contractBytes);
+        var constructions=0;var broadcasts=0;var receiptReads=0;var id=ByteString.Empty;Account authority=null!;
+        TransactionExtention Construct(IMessage request,Transaction.Types.Contract.Types.ContractType type){
+            constructions++;var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();var tx=new Transaction{RawData=new Transaction.Types.raw{Timestamp=now,Expiration=now+60000}};
+            tx.RawData.Contract.Add(new Transaction.Types.Contract{Type=type,Parameter=Google.Protobuf.WellKnownTypes.Any.Pack(request)});
+            return new TransactionExtention{Transaction=tx,Result=new Return{Result=true}};
+        }
+        var service=ServerServiceDefinition.CreateBuilder()
+            .AddMethod(Rpc(Wallet.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=block}))
+            .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=block}))
+            .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetAccount",Account.Parser,Account.Parser),(Account request,ServerCallContext context)=>{
+                authority=new Account{Address=request.Address,OwnerPermission=new Permission{Id=0,Threshold=1}};authority.OwnerPermission.Keys.Add(new Key{Address=ByteString.CopyFrom(signerBytes),Weight=1});return Task.FromResult(authority);
+            })
+            .AddMethod(Rpc(Wallet.Descriptor.FullName,"TriggerContract",TriggerSmartContract.Parser,TransactionExtention.Parser),(TriggerSmartContract request,ServerCallContext context)=>Task.FromResult(Construct(request,Transaction.Types.Contract.Types.ContractType.TriggerSmartContract)))
+            .AddMethod(Rpc(Wallet.Descriptor.FullName,"DeployContract",CreateSmartContract.Parser,TransactionExtention.Parser),(CreateSmartContract request,ServerCallContext context)=>Task.FromResult(Construct(request,Transaction.Types.Contract.Types.ContractType.CreateSmartContract)))
+            .AddMethod(Rpc(Wallet.Descriptor.FullName,"BroadcastTransaction",Transaction.Parser,Return.Parser),(Transaction request,ServerCallContext context)=>{
+                broadcasts++;id=ByteString.CopyFrom(SHA256.HashData(request.RawData.ToByteArray()));
+                TronPreparationVerifier.VerifyWithAccountAuthority(Convert.ToBase64String(request.ToByteArray()),Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),authority.Address.ToByteArray(),100000000,authority);
+                return Task.FromResult(new Return{Result=true});
+            })
+            .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetTransactionInfoById",BytesMessage.Parser,TransactionInfo.Parser),(BytesMessage request,ServerCallContext context)=>{
+                receiptReads++;Assert.Equal(id,request.Value);
+                if(mode=="readback-unavailable"&&receiptReads>1)throw new RpcException(new Status(StatusCode.Unavailable,"controlled confirmed deployment readback failure"));
+                return Task.FromResult(new TransactionInfo{Id=id,BlockNumber=1,Receipt=new ResourceReceipt{Result=Transaction.Types.Result.Types.contractResult.Success},ContractAddress=mode=="missing-address"?ByteString.Empty:ByteString.CopyFrom(contractBytes)});
+            }).Build();
+        var server=new Server{Services={service},Ports={new ServerPort("127.0.0.1",0,ServerCredentials.Insecure)}};server.Start();
+        try{
+            var port=server.Ports.Single().BoundPort;await using var runtime=new TronSdkRuntime(new Uri($"http://127.0.0.1:{port}"),new Uri($"http://127.0.0.1:{port}"),genesis);
+            using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            if(mode=="call"){
+                var result=await runtime.NativeTransfers.ExecuteSignedContractAsync(owner,contract,new byte[]{1,2,3,4},key,deadline.Token);
+                Assert.Equal(Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),result);
+            }
+            else if(mode=="deploy"){
+                var result=await runtime.NativeTransfers.DeployBytecodeAsync(owner,new byte[]{0x60,0x00},key,deadline.Token);
+                Assert.Equal(contract,result.ContractAddress);Assert.Equal(Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),result.TransactionId);
+            }else{
+                var error=await Assert.ThrowsAsync<TronCommittedReadbackException>(()=>runtime.NativeTransfers.DeployBytecodeAsync(owner,new byte[]{0x60,0x00},key,deadline.Token));
+                Assert.Equal(Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),error.OriginalTransactionId);Assert.True(Core.Helpers.NativeMutationReconciliation.IsRequired(error));
+                if(mode=="readback-unavailable")Assert.IsType<RpcException>(error.InnerException);else Assert.IsType<InvalidOperationException>(error.InnerException);
+            }
+            Assert.Equal(1,constructions);Assert.Equal(1,broadcasts);
+        }finally{await server.ShutdownAsync();}
+    }
     internal static async Task WithDefaultOwnerAuthority(Func<TronSdkRuntime,Task> test)
     {
         var genesis=new string('a',64);var block=ByteString.CopyFrom(Convert.FromHexString(genesis));
