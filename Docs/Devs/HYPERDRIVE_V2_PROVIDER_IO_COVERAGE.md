@@ -22,6 +22,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Preparation cancellation and frame rejection — 2026-10-12
+
+Added actual parent-pipe checks for cancellation before connection, retained caller cancellation token, prohibited second use, wrong protocol, absent identity and coalesced extra frames. No invalid frame reaches persistence. Initial cancellation assertion expected the base exception exactly; corrected it to the actual `TaskCanceledException` and verified its token. Full shared suite **82/82**, zero skips; fixed report `TestResults/SharedStorageCurrent/shared-current.trx`. This is transport evidence, not actual outbox durability or provider lifecycle integration; those gates remain open. No new environment, download or ledger mutation.
+
 ### Actual Node-to-C# preparation handshake — 2026-10-12
 
 Shared tests now launch the retained Node executable using the actual preparation client and connect it to `PreparedSubmissionServer`'s private Windows pipe. Parent persistence success is accepted; parent callback rejection terminates the pipe and the child fails without acknowledgement. Each case checks exactly one persistence call, bounded completion, empty output/diagnostics and owned process termination. Full shared suite **78/78**, zero skips; fixed report `TestResults/SharedStorageCurrent/shared-current.trx`. Test output copies the same source module, not a second installed environment. No install/download or ledger mutation.
