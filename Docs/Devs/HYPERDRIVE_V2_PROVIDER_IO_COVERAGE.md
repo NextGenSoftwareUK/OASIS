@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera success cannot conceal persisted approval — 2026-10-12
+
+Added controlled NFT/token escrow children that persist both stages but return `SUCCESS` with a null approval ID. Existing parent success validation rejects the contradictory reply as reconciliation-required while retaining approval and mutation identities and both persisted stages. Complete Hedera C# suite **41/41** passed, zero skips (`hedera-current.trx`); no production code change was needed. Real process/pipe transport is exercised, not funded consensus. This supplements—not replaces—the remaining hosted admission, fee authorization and funded multi-stage verification gates. No installs, network spending or merge.
+
 ### Hedera child exit between prepared escrow stages — 2026-10-12
 
 Added controlled NFT/token escrow child exits immediately after approval persistence acknowledgement, before any mutation preparation. Actual C# process teardown preserves the reconciliation-required marker, persisted approval ID, requested mutation ID and original child-operation error; only approval appears in the persistence callback. This exercises cancellation of the still-waiting second-stage pipe without replacing the primary failure. Existing production classification passed without speculative changes. Complete Hedera C# suite **39/39** passed, zero skips (`hedera-current.trx`). This is real process/pipe lifecycle with controlled descriptors, not funded ledger approval or multi-stage consensus. No network spending, runtime install, deployment or merge.
