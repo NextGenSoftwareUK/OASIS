@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera activation sequencing guard and Cosmos runtime inspection — 2026-10-12
+
+Added a controlled child accepting only `storageProbe`; actual C# `HederaStorageBackend.VerifyAsync` completes through it and would fail if implicit put/delete activation transactions returned. Complete Hedera C# suite **37/37** passed, zero skips (`hedera-current.trx`). This proves C# sequencing, not funded account authority or free queries; Hedera consensus query fees and funded verification remain separate gates.
+
+Read-only current Cosmos container inspection shows running wrapper PID 159770, current OOMKilled false/exit 0, but no `wasmd start` process. A running wrapper is not a node or RPC proof and does not resolve the prior startup restriction. No attempted policy bypass, new node, installation, ledger mutation or merge.
+
 ### Real TRON signed bytes against live owner authority — 2026-10-12
 
 Extended read-only inspection with actual installed SDK signing of a local transfer protobuf, original SHA256 ID verification, recovered signature and the live verified solidified account permission snapshot. Owner signature passes the independent verifier; a separately SDK-signed foreign key fails. No broadcast API is called and no ledger-valid TAPOS/submission claim is made for this offline signing fixture. Combined live read-only authority/routing integration **1/1** passed, zero skips (`tron-original-fixture-readback.trx`); existing warnings remain. Same container returned to paused, original unknown-outcome fence untouched. This closes the cryptographic-to-live-account owner check at its scope, not active/multisig execution, original transaction reconciliation, native fee admission or full provider certification. No installs, mutations or merge.

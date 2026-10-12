@@ -8,6 +8,19 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class HederaPreparationTests
 {
+    [TestMethod]
+    public async Task StorageActivationCannotGeneratePutOrDeleteTransactions()
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures/activation-readonly.mjs"));
+        try{
+            var type=typeof(HashgraphOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.HederaStorageBackend")!;
+            var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+            var backend=Activator.CreateInstance(type,flags,null,new object[]{"testnet","0.0.2001","0.0.1001","der",(Func<string>)(()=>"controlled-key"),100000L,100000000L,null!},null)!;
+            using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            await (Task)type.GetMethod("VerifyAsync")!.Invoke(backend,new object[]{deadline.Token})!;
+        }finally{Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",previous);}
+    }
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     [DataRow(false,true)] [DataRow(true,true)]
