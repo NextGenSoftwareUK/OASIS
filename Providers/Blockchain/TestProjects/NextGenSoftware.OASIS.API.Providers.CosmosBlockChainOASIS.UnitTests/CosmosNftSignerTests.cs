@@ -7,6 +7,28 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 public class CosmosNftSignerTests
 {
     [DataTestMethod]
+    [DataRow(null, "fixture-contract#fixture-token", false)]
+    [DataRow(" ", "fixture-contract#fixture-token", false)]
+    [DataRow("fixture-contract#fixture-token", "fixture-contract#fixture-token", false)]
+    [DataRow("fixture-contract#different-token", "fixture-contract#fixture-token", true)]
+    [DataRow(" ", null, true)]
+    public async Task NftSendRequiresAgreementBetweenNonblankAddressSelectors(string? first, string? second, bool rejected)
+    {
+        var previous = Environment.GetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE", Path.Combine(AppContext.BaseDirectory, "Fixtures", "nft-signer.mjs"));
+        try
+        {
+            using var provider = new CosmosBlockChainOASIS("http://127.0.0.1:1", "fixture-chain", "different-configured-key", "fixture-contract");
+            var result = await provider.SendNFTAsync(new SendWeb3NFTRequest { TokenAddress = first, FromNFTTokenAddress = second,
+                FromWalletAddress = "fixture-owner", ToWalletAddress = "fixture-recipient", OwnerPrivateKey = "test-only-explicit", Amount = 1 });
+            Assert.IsTrue(result.IsError);
+            if (rejected) { Assert.IsNull(result.Result); StringAssert.Contains(result.Message, "consistent Cosmos NFT address"); }
+            else { Assert.AreEqual("fixture-committed-cosmos-nft", result.Result.TransactionResult); StringAssert.Contains(result.Message, "readback failed"); }
+        }
+        finally { Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE", previous); }
+    }
+
+    [DataTestMethod]
     [DataRow("", "", "fixture-owner", null)]
     [DataRow("fixture-recipient", "fixture-recipient", "fixture-recipient", null)]
     [DataRow("fixture-recipient", "another-recipient", null, "different Cosmos wallets")]
