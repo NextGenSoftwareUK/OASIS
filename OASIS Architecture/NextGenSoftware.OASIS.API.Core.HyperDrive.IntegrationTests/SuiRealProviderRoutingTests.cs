@@ -139,6 +139,19 @@ public sealed class SuiRealProviderRoutingTests
             manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
             (await sui.LoadAvatarDetailAsync(avatar.Id)).Result.Username.Should().Be(avatar.Username);
             (await local.LoadAvatarDetailAsync(avatar.Id)).Result.Username.Should().Be(avatar.Username);
+            async Task AssertAvatarLists(bool present)
+            {
+                foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.SuiOASIS })
+                {
+                    var avatars = new StorageOperationRequest { Operation = "LoadAllAvatars", PreferredProvider = providerType };
+                    foreach (var read in new[] { router.RouteRequest<IEnumerable<IAvatar>>(avatars), await router.RouteRequestAsync<IEnumerable<IAvatar>>(avatars) })
+                    { read.IsError.Should().BeFalse(read.Message); read.Result.Any(value => value.Id == avatar.Id).Should().Be(present); }
+                    var details = new StorageOperationRequest { Operation = "LoadAllAvatarDetails", PreferredProvider = providerType };
+                    foreach (var read in new[] { router.RouteRequest<IEnumerable<IAvatarDetail>>(details), await router.RouteRequestAsync<IEnumerable<IAvatarDetail>>(details) })
+                    { read.IsError.Should().BeFalse(read.Message); read.Result.Any(value => value.Id == avatar.Id).Should().Be(present); }
+                }
+            }
+            await AssertAvatarLists(true);
             foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.SuiOASIS })
             {
                 foreach (var operation in new[] { "LoadAvatar", "LoadAvatarByUsername", "LoadAvatarByEmail" })
@@ -245,6 +258,7 @@ public sealed class SuiRealProviderRoutingTests
                 }
             }
             avatarSaved = false;
+            await AssertAvatarLists(false);
         }
         finally
         {
