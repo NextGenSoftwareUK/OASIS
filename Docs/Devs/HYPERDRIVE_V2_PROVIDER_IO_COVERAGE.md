@@ -22,6 +22,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui trusted entry-point preparation callback — 2026-10-12
+
+Exported `invoke` now accepts the trusted preparation callback as a separate function argument and passes it into the existing operation scope; it is not accepted as serialized request data. Tests reject nonfunction callbacks before invocation, confirm wallet generation triggers no submission preparation, and prove concurrent official signed operations each receive only their own digest/sender callback. SDK suite **24/24**, zero skips/todos. Production CLI/C# IPC and durable outbox still do not supply this callback, so the full gate remains unwired; no crash-durability, native billing or certification claim. Existing environment reused, no node/startup or ledger mutation.
+
 ### Sui awaited prepared signed-evidence boundary — 2026-10-12
 
 Sui's native operation evidence scope can accept an awaited preparation callback. Its central SDK execution boundary hands off an immutable digest, exact signed transaction base64, serialized signature and signer address before setting submission evidence or calling the native client. Official SDK signing/digest/signature verification tests prove ordering and that callback rejection prevents submission without inventing native outcome. SDK suite **22/22**, zero skips/todos. No new node or ledger mutation.
