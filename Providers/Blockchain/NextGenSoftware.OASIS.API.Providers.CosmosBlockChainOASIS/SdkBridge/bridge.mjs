@@ -4,7 +4,7 @@ import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifi
 import { GasPrice, defaultRegistryTypes } from "@cosmjs/stargate";
 import { fromHex, toHex, fromBech32 } from "@cosmjs/encoding";
 import { pathToFileURL } from 'node:url';
-import { captureCosmosDirectSigning } from './transaction-results.mjs';
+import { captureCosmosDirectSigning, verifyCosmosPreparedIdentity } from './transaction-results.mjs';
 
 async function readInput() {
   const chunks = [];
@@ -21,6 +21,7 @@ async function walletFor(input) {
 }
 
 async function execute(input, persistPreparedSubmission) {
+  if (input.operation === 'verifyNativePreparation') return verifyCosmosPreparedIdentity(input.preparation);
   if (input.operation === "generateKey" || input.operation === "restoreKey") {
     const wallet = input.operation === "generateKey"
       ? await DirectSecp256k1HdWallet.generate(24, { prefix: input.addressPrefix ?? "cosmos" })

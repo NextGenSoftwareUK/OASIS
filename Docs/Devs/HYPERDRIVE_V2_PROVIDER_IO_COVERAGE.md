@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos independent signed preparation verification — 2026-10-12
+
+Added offline `verifyCosmosPreparedIdentity` and read-only `verifyNativePreparation` dispatch before RPC activation. Retained official CosmJS crypto/amino/protobuf libraries verify original TxRaw SHA256, matching SignDoc chain/body/auth bytes, exactly one direct-mode secp256k1 signer, public-key-derived sender and signature over SHA256(SignDoc). Bounded canonical base64 required. Real offline signing case accepts its original and rejects altered chain/sender/hash/document/encoding plus a changed signature with recomputed transaction hash. Explicit offline suite **50/50**, zero skips/todos (dispatcher added afterward; exercised helper covers verifier, dispatcher-specific test remains needed).
+
+Crypto/amino currently resolve from the existing locked CosmJS transitive dependencies; explicit direct package pins/packaging audit remain required. Core SignDoc evidence persistence, C# preparation lifecycle/admission and real ledger/crash-recovery gates remain unfinished. No install, download, ledger submission or release merge.
+
 ### Cosmos original direct SignDoc capture — 2026-10-12
 
 Prepared bridge calls now capture the actual wallet-returned direct SignDoc before submission, encode it using the official protobuf type and bind it to the exact resulting TxRaw SHA256 identity. Prepared descriptor adds `signDocBase64`, retaining actual account number/chain/body/auth context instead of reconstructing guesses. Capture is consumed once and refuses foreign original hashes. Real offline CosmJS signing test verifies account number 7, chain/body/auth byte equality, foreign-hash refusal and repeated-use refusal; rejected persistence still prevents broadcast. Explicit offline `npm test` **50/50**, zero skips/todos.

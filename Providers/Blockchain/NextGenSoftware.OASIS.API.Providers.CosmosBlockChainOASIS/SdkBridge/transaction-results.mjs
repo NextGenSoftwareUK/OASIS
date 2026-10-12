@@ -3,8 +3,38 @@ import { fromBech32 } from '@cosmjs/encoding';
 import { decodeTxRaw } from '@cosmjs/proto-signing';
 import { createHash } from 'node:crypto';
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { SignDoc, TxRaw } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import { SignDoc, TxRaw, AuthInfo } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { fromBase64 } from '@cosmjs/encoding';
+import { Secp256k1, Secp256k1Signature, sha256 } from '@cosmjs/crypto';
+import { rawSecp256k1PubkeyToRawAddress } from '@cosmjs/amino';
+import { PubKey } from 'cosmjs-types/cosmos/crypto/secp256k1/keys';
+
+export function verifyCosmosPreparedIdentity(evidence) {
+  const decode = value => {
+    if (typeof value !== 'string' || value.length === 0 || value.length > 1048576)
+      throw new Error('Bounded canonical Cosmos signed evidence required');
+    const bytes=Buffer.from(value,'base64');
+    if (!bytes.length || bytes.toString('base64') !== value) throw new Error('Canonical Cosmos base64 required');
+    return bytes;
+  };
+  const bytes=decode(evidence.signedTransactionBase64), docBytes=decode(evidence.signDocBase64);
+  const raw=TxRaw.decode(bytes), doc=SignDoc.decode(docBytes);
+  if (createHash('sha256').update(bytes).digest('hex').toUpperCase() !== evidence.transactionHash
+      || doc.chainId !== evidence.chainId || !doc.chainId
+      || !Buffer.from(raw.bodyBytes).equals(doc.bodyBytes) || !Buffer.from(raw.authInfoBytes).equals(doc.authInfoBytes))
+    throw new Error('Cosmos original signed document binding mismatch');
+  const auth=AuthInfo.decode(raw.authInfoBytes);
+  if (raw.signatures.length !== 1 || auth.signerInfos.length !== 1
+      || auth.signerInfos[0].modeInfo?.single?.mode !== 1
+      || auth.signerInfos[0].publicKey?.typeUrl !== '/cosmos.crypto.secp256k1.PubKey')
+    throw new Error('Cosmos preparation requires one direct secp256k1 signer');
+  const key=PubKey.decode(auth.signerInfos[0].publicKey.value).key;
+  const sender=fromBech32(evidence.sender,90);
+  if (!Buffer.from(sender.data).equals(rawSecp256k1PubkeyToRawAddress(key))
+      || !Secp256k1.verifySignature(Secp256k1Signature.fromFixedLength(raw.signatures[0]),sha256(docBytes),key))
+    throw new Error('Cosmos original signature or sender mismatch');
+  return {verified:true,transactionHash:evidence.transactionHash,sender:evidence.sender};
+}
 
 // Capture the actual wallet-returned SignDoc, not a reconstructed account-number guess.
 export function captureCosmosDirectSigning(wallet) {
