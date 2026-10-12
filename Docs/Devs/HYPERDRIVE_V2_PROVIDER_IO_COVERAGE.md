@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Execution-owned Sui verification rejection leaves Mongo unchanged — 2026-10-12
+
+The integrated signed SDK/pipe/Mongo case now sends invalid-signature and wrong-chain evidence through the public execution-owned preparation factory. Both reject without acknowledgement or retained ID; Mongo attempt count and native evidence-byte budget remain unchanged. Chain mismatch returns `NATIVE_PREPARATION_IDENTITY_MISMATCH`. Selected regression **70/70**, zero skips, `TestResults/SuiCurrent/sui-preparation-current.trx`, actual two-minute deadline excluded; existing nullable test-field warning remains. Generated owned database removed; existing service/SDK reused.
+
+Controlled offline authority and fixture chain are unchanged: this proves adapter rejection behavior, not hosted native-fee admission, real network chain binding, submitted transaction recovery or all-provider certification. Those and full live orchestration/interface/deployed gates remain open. No installations, ledger changes or release merge.
+
 ### Execution-owned signed Sui preparation integration — 2026-10-12
 
 The signed Sui/Mongo test now obtains its execution through the canonical `Web4UsageExecution.BeginAsync` protocol with an explicitly controlled offline HTTP authority, and uses the public `CreateNativePreparationServer` factory rather than a direct-store callback. That exercises trusted chain/sender binding, actual official-SDK verification and the execution-owned atomic outbox write together. Exact signed bytes/signature and original ID survive Mongo readback without ledger acknowledgement. Focused **1/1**, zero skips, `TestResults/SuiCurrent/sui-real-preparation.trx`; existing nullable test warning remains. Owned generated database removed in finally; retained environment reused.

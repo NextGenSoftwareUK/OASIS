@@ -105,23 +105,34 @@ public class SuiRealPreparationTests
             altered["signature"]="invalid";
             using var invalid=JsonDocument.Parse(JsonSerializer.Serialize(altered));
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>provider.VerifyOriginalSignedPreparationAsync(invalid.RootElement,deadline.Token));
-            var acceptedInvalid=0;
-            using var rejectedServer=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer(async(evidence,token)=>{
-                await provider.VerifyOriginalSignedPreparationAsync(evidence,token);
-                acceptedInvalid++;
-            });
+            altered["chainId"]="offline-test-chain";
+            using var invalidBound=JsonDocument.Parse(JsonSerializer.Serialize(altered));
+            using var rejectedServer=provider.CreateNativePreparationServer(execution,"invalid-signature","offline-test-chain",signed.RootElement.GetProperty("sender").GetString()!);
             var rejectedServe=rejectedServer.ServeAsync(deadline.Token);
             using(var pipe=new System.IO.Pipes.NamedPipeClientStream(".",rejectedServer.Endpoint.Substring(rejectedServer.Endpoint.LastIndexOf('\\')+1),System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous)){
                 await pipe.ConnectAsync(deadline.Token);
-                var frame=System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new{protocol="oasis.native-preparation.v1",evidence=invalid.RootElement})+"\n");
+                var frame=System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new{protocol="oasis.native-preparation.v1",evidence=invalidBound.RootElement})+"\n");
                 await pipe.WriteAsync(frame,deadline.Token);await pipe.FlushAsync(deadline.Token);
                 await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>rejectedServe);
                 using var reader=new StreamReader(pipe);
                 Assert.IsNull(await reader.ReadLineAsync(deadline.Token),"Rejected signed evidence must not receive an acknowledgement.");
             }
-            Assert.AreEqual(0,acceptedInvalid);
             Assert.IsNull(rejectedServer.PreparedTransactionId);
-            Assert.AreEqual(1,(await store.GetAsync(operationId,deadline.Token)).ProviderAttempts.Count);
+            using var wrongChainServer=provider.CreateNativePreparationServer(execution,"wrong-chain","different-chain",signed.RootElement.GetProperty("sender").GetString()!);
+            var wrongChainServe=wrongChainServer.ServeAsync(deadline.Token);
+            using(var pipe=new System.IO.Pipes.NamedPipeClientStream(".",wrongChainServer.Endpoint.Substring(wrongChainServer.Endpoint.LastIndexOf('\\')+1),System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous)){
+                await pipe.ConnectAsync(deadline.Token);
+                var frame=System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new{protocol="oasis.native-preparation.v1",evidence=boundEvidence.RootElement})+"\n");
+                await pipe.WriteAsync(frame,deadline.Token);await pipe.FlushAsync(deadline.Token);
+                var mismatch=await Assert.ThrowsExceptionAsync<UsageProtocolException>(()=>wrongChainServe);
+                Assert.AreEqual("NATIVE_PREPARATION_IDENTITY_MISMATCH",mismatch.Code);
+                using var reader=new StreamReader(pipe);
+                Assert.IsNull(await reader.ReadLineAsync(deadline.Token));
+            }
+            Assert.IsNull(wrongChainServer.PreparedTransactionId);
+            var afterRejection=await store.GetAsync(operationId,deadline.Token);
+            Assert.AreEqual(1,afterRejection.ProviderAttempts.Count);
+            Assert.AreEqual(persisted.NativePreparationBytes,afterRejection.NativePreparationBytes);
             Assert.IsFalse(provider.IsProviderActivated);
         } finally {
             try {if(!child.HasExited){child.Kill(entireProcessTree:true);await child.WaitForExitAsync();}}
