@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Complete current C# regressions after activation changes — 2026-10-12
+
+Current no-filter Sui suite **74/74**, Cosmos **98/98**, Core **430/430**, shared storage **92/92** all passed with zero skips/failures. Sui/Cosmos include their actual owned-process deadline tests (2m9s/2m7s), not just selected fast cases. Fixed reports: `PriorityProviderCurrent/SuiOASIS-current.trx`, `CosmosBlockChainOASIS-current.trx`, `HyperDriveCurrent/core-current.trx`, `SharedCurrent/shared-current.trx` under `TestResults`. Most recent separate complete suites remain Hedera **37/37** and TRON **242/242**; do not add overlapping selected suites to these totals.
+
+Existing dependencies/output directories reused, no restore/install/node startup or network mutations. Free C was **100600725504 bytes**, still below the user's 150 GB target. These complete unit projects do not certify deployed APIs, funded Hedera, blocked Cosmos live runtime, TRON original unknown outcome, parent-host crash recovery, native billing or every interface/provider. Those explicit release gates remain open and prevent merge.
+
 ### Signed TRON permission-update preparation verification — 2026-10-12
 
 Actual installed SDK signing now exercises `AccountPermissionUpdateContract` through the independent preparation verifier. Exact original ID/owner/signature passes; separately signed foreign-owner and foreign-signature variants fail. Full TRON C# suite **242/242** passed, zero skips (`tron-current.trx`). This verifies cryptographic ownership of signed protobuf evidence, not validity of proposed replacement permissions, live account changes or native-spending intent authorization. Fixture does not invoke broadcast or network calls; no installed environment changes, runtime startup or ledger mutation. Original unknown transaction/release gates remain unresolved.
