@@ -10,17 +10,21 @@ public class HederaProcessBoundaryTests
     private const string Mutation = "0.0.1001@1700000000.000000001";
     private const string Approval = "0.0.1001@1700000000.000000002";
     private const string Secret = "never-log-this-test-key";
-    private static Task<JsonElement> Invoke(string action, CancellationToken cancellationToken) =>
+    private static Task<JsonElement> Invoke(string action, CancellationToken cancellationToken, string stage = "readback") =>
         (Task<JsonElement>)typeof(HashgraphOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.HederaSdkClient")!
             .GetMethod("InvokeAsync", BindingFlags.NonPublic | BindingFlags.Static)!
-            .Invoke(null, new object[] { action, new { transactionId = Mutation, approvalTransactionId = Approval, privateKey = Secret }, cancellationToken })!;
+            .Invoke(null, new object[] { action, new { transactionId = Mutation, approvalTransactionId = Approval, privateKey = Secret, fixtureStage = stage }, cancellationToken })!;
 
     [TestMethod]
     public async Task FailedProcessRetainsConfirmedApprovalMutationAndStageWithoutKey()
     {
         await WithFixture(async () =>
         {
-            var error = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => Invoke("fail", CancellationToken.None));
+            var error = await Assert.ThrowsExceptionAsync<HederaNativeMutationReconciliationException>(() => Invoke("nftEscrowLock", CancellationToken.None));
+            Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(error));
+            Assert.AreEqual(Mutation,error.Evidence.OriginalTransactionId);
+            Assert.AreEqual(Approval,error.Evidence.ApprovalTransactionId);
+            Assert.AreEqual("CONTRACT_REVERT_EXECUTED",error.Evidence.NativeStatus);
             StringAssert.Contains(error.Message, "Confirmed approval: " + Approval);
             StringAssert.Contains(error.Message, "Original escrow mutation: " + Mutation);
             StringAssert.Contains(error.Message, "Failure stage: readback");
@@ -34,13 +38,86 @@ public class HederaProcessBoundaryTests
         await WithFixture(async () =>
         {
             using var cancellation = new CancellationTokenSource(TimeSpan.FromSeconds(1));
-            var error = await Assert.ThrowsExceptionAsync<OperationCanceledException>(() => Invoke("hold", cancellation.Token));
+            var error = await Assert.ThrowsExceptionAsync<HederaNativeMutationCanceledException>(() => Invoke("storagePut", cancellation.Token));
+            Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(error));
             Assert.AreEqual(cancellation.Token, error.CancellationToken);
             StringAssert.Contains(error.Message, Mutation);
             StringAssert.Contains(error.Message, Approval);
             StringAssert.Contains(error.Message, "outcome unverified");
             Assert.IsFalse(error.Message.Contains("Confirmed approval"));
             Assert.IsFalse(error.Message.Contains(Secret));
+        });
+    }
+
+    [DataTestMethod]
+    [DataRow("construction",false)] [DataRow("signing",false)] [DataRow("validation",false)]
+    [DataRow("submission",true)] [DataRow("receipt",true)] [DataRow("readback",true)]
+    public async Task SubmissionStagesRequireReconciliationWithoutReclassifyingKnownPreSubmissionErrors(string stage,bool reconcile)
+    {
+        await WithFixture(async () =>
+        {
+            Exception error;
+            try { await Invoke("transfer",CancellationToken.None,stage); Assert.Fail("Expected controlled SDK failure."); return; }
+            catch(InvalidOperationException failure) {error=failure;}
+            Assert.AreEqual(reconcile,Core.Helpers.NativeMutationReconciliation.IsRequired(error));
+            Assert.IsFalse(error.Message.Contains(Secret));
+        });
+    }
+
+    [DataTestMethod]
+    [DataRow("tokenBurn",true)] [DataRow("tokenMint",false)] [DataRow("generateKey",false)]
+    public async Task MalformedMutationEvidenceStopsReplayButExplicitPreflightAndNonMutationErrorsDoNot(string action,bool reconcile)
+    {
+        await WithFixture(async () =>
+        {
+            Exception error;
+            try {await Invoke(action,CancellationToken.None); Assert.Fail("Expected controlled SDK failure."); return;}
+            catch(InvalidOperationException failure) {error=failure;}
+            Assert.AreEqual(reconcile,Core.Helpers.NativeMutationReconciliation.IsRequired(error));
+            if(action=="tokenBurn") Assert.IsNotNull(error.InnerException);
+            Assert.IsFalse(error.Message.Contains(Secret));
+        });
+    }
+
+    [TestMethod]
+    public async Task CancellationBeforeProcessStartDoesNotDeclareNativeSubmission()
+    {
+        await WithFixture(async () =>
+        {
+            using var cancellation=new CancellationTokenSource(); cancellation.Cancel();
+            var error=await Assert.ThrowsExceptionAsync<OperationCanceledException>(()=>Invoke("storagePut",cancellation.Token));
+            Assert.IsFalse(Core.Helpers.NativeMutationReconciliation.IsRequired(error));
+        });
+    }
+
+    [TestMethod]
+    public async Task ActualProcessTimeoutRetainsUnverifiedOriginalIdsAndStopsReplay()
+    {
+        await WithFixture(async () =>
+        {
+            var error=await Assert.ThrowsExceptionAsync<HederaNativeMutationTimeoutException>(()=>Invoke("storagePut",CancellationToken.None));
+            Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(error));
+            Assert.AreEqual(Mutation,error.Evidence.OriginalTransactionId);
+            Assert.AreEqual(Approval,error.Evidence.ApprovalTransactionId);
+            Assert.AreEqual("process-timed-out",error.Evidence.Stage);
+            Assert.IsNull(error.Evidence.NativeStatus);
+            Assert.IsFalse(error.Message.Contains("Confirmed approval"));
+            Assert.IsFalse(error.Message.Contains(Secret));
+        });
+    }
+
+    [DataTestMethod]
+    [DataRow(null)] [DataRow("")] [DataRow(" ")]
+    public async Task NativeMutationRequiresOriginalIdBeforeLaunchingSdk(string? id)
+    {
+        await WithFixture(async () =>
+        {
+            var method=typeof(HashgraphOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.HederaSdkClient")!
+                .GetMethod("InvokeAsync",BindingFlags.NonPublic|BindingFlags.Static)!;
+            var operation=(Task<JsonElement>)method.Invoke(null,new object[]{"storagePut",new{transactionId=id,privateKey=Secret},CancellationToken.None})!;
+            var error=await Assert.ThrowsExceptionAsync<ArgumentException>(()=>operation);
+            StringAssert.Contains(error.Message,"explicit original transaction ID before SDK launch");
+            Assert.IsFalse(Core.Helpers.NativeMutationReconciliation.IsRequired(error));
         });
     }
 
