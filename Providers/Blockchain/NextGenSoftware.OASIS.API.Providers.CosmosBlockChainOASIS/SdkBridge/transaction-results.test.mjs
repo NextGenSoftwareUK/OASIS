@@ -10,7 +10,7 @@ import { Registry } from '@cosmjs/proto-signing';
 import { defaultRegistryTypes } from '@cosmjs/stargate';
 import { toBech32 } from '@cosmjs/encoding';
 import { TimeoutError, StargateClient } from '@cosmjs/stargate';
-import { captureCosmosDirectSigning } from './transaction-results.mjs';
+import { captureCosmosDirectSigning, verifyCosmosPreparedIdentity } from './transaction-results.mjs';
 import { SignDoc } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 test('official broadcast clears its polling timer when synchronous broadcast rejects', async () => {
   const client = new StargateClient(undefined, {});
@@ -50,6 +50,13 @@ test('official signing waits for durable preparation and persistence failure nev
     const doc=SignDoc.decode(Buffer.from(evidence.signDocBase64,'base64'));
     assert.equal(doc.accountNumber,7n);assert.equal(doc.chainId,'controlled-chain');
     assert.deepEqual(doc.bodyBytes,raw.bodyBytes);assert.deepEqual(doc.authInfoBytes,raw.authInfoBytes);
+    const bound={...evidence,chainId:'controlled-chain',sender:address};
+    assert.equal(verifyCosmosPreparedIdentity(bound).verified,true);
+    for(const changed of [{chainId:'other'},{sender:recipient},{transactionHash:'00'.repeat(32)},{signDocBase64:'AQID'},{signedTransactionBase64:'!'}])
+      assert.throws(()=>verifyCosmosPreparedIdentity({...bound,...changed}));
+    const altered=TxRaw.decode(signed);altered.signatures[0][0]^=1;
+    const alteredBytes=TxRaw.encode(altered).finish();
+    assert.throws(()=>verifyCosmosPreparedIdentity({...bound,signedTransactionBase64:Buffer.from(alteredBytes).toString('base64'),transactionHash:createHash('sha256').update(alteredBytes).digest('hex').toUpperCase()}));
     assert.throws(()=>originalSigning(evidence),/matching original direct SignDoc/);
     assert.equal(Object.isFrozen(evidence),true);
     throw persistenceFailure;
