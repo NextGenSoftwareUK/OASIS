@@ -13,13 +13,17 @@ using IOFile = System.IO.File;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription;
 
+[Collection("Native NFT globals")]
 public sealed class NativeSuiMintManagerTests
 {
     [Theory]
-    [InlineData(false)]
-    [InlineData(true)]
-    public async Task DefaultThreeEntryBatchMintsExactlyThreeAndPersistsRealMetadata(bool encryptedAvatar)
+    [InlineData(false, false)]
+    [InlineData(true, false)]
+    [InlineData(true, true)]
+    public async Task DefaultThreeEntryBatchMintsExactlyThreeAndPersistsRealMetadata(bool encryptedAvatar, bool authenticatedHttp)
     {
+        using var factory = authenticatedHttp ? new SubscriptionWebAppFactory() : null;
+        using var http = factory?.CreateClient();
         var rpc = Environment.GetEnvironmentVariable("OASIS_SUI_TEST_RPC") ?? throw new InvalidOperationException("Retained local Sui RPC required.");
         Assert.True(new Uri(rpc).IsLoopback);
         using var fixture = JsonDocument.Parse(await IOFile.ReadAllTextAsync(Environment.GetEnvironmentVariable("OASIS_SUI_TEST_DEPLOYMENT")
@@ -49,12 +53,16 @@ public sealed class NativeSuiMintManagerTests
         var dna = new OASISDNA();
         dna.OASIS.HyperDriveMode = HyperDriveModes.V2;
         dna.OASIS.StorageProviders = new StorageProviderSettings { LogSwitchingProviders = false };
-        dna.OASIS.Security = new SecuritySettings { OASISProviderPrivateKeys = new EncryptionSettings {
+        const string jwtSecret = "public-test-only-signing-key-0123456789012345678901234567890123456789";
+        dna.OASIS.Security = new SecuritySettings { SecretKey = jwtSecret, OASISProviderPrivateKeys = new EncryptionSettings {
             Rijndael256EncryptionEnabled = true, Rijndael256Key = new string('k', 32) } };
         var registry = new ProviderManager(null!, dna);
         registry.RegisterProvider(local); registry.RegisterProvider(sui);
         var field = typeof(ProviderManager).GetField("_instance", BindingFlags.Static | BindingFlags.NonPublic)!;
         var original = field.GetValue(null);
+        var avatarManagerField = typeof(Program).GetField("_avatarManager", BindingFlags.Static | BindingFlags.NonPublic)!;
+        var originalAvatarManager = avatarManagerField.GetValue(null);
+        var originalBootDna = NextGenSoftware.OASIS.OASISBootLoader.OASISBootLoader.OASISDNA;
         IWeb4NFT? minted = null;
         var actorId = encryptedAvatar ? Guid.NewGuid() : Guid.Empty;
         var actorSaved = false;
@@ -67,7 +75,8 @@ public sealed class NativeSuiMintManagerTests
             {
                 Assert.False(registry.SetAndActivateCurrentStorageProvider(local).IsError);
                 Assert.False((await local.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar {
-                    Id = actorId, Username = "owned-native-mint-" + actorId.ToString("N"), Email = actorId.ToString("N") + "@example.invalid" })).IsError);
+                    Id = actorId, Username = "owned-native-mint-" + actorId.ToString("N"), Email = actorId.ToString("N") + "@example.invalid",
+                    AvatarType = new EnumValue<AvatarType>(AvatarType.Wizard) })).IsError);
                 actorSaved = true;
                 Assert.False((await local.SaveProviderWalletsForAvatarByIdAsync(actorId, new() {
                     [ProviderType.SuiOASIS] = new List<IProviderWallet> { new NextGenSoftware.OASIS.API.Core.Objects.ProviderWallet {
@@ -97,11 +106,48 @@ public sealed class NativeSuiMintManagerTests
                 SendToAddressAfterMinting = signer.Result.WalletAddressLegacy, MintedByAvatarId = actorId,
             };
             await IOFile.WriteAllTextAsync(journal, JsonSerializer.Serialize(new { state = "intent", chain = settings.GetProperty("chainId").GetString(), count = 3 }));
-            var result = await manager.MintNftAsync(request);
-            minted = result.Result;
-            await IOFile.WriteAllTextAsync(journal, JsonSerializer.Serialize(new { state = "returned", error = result.IsError,
-                assets = minted?.NewlyMintedWeb3NFTs?.Select(item => new { item.NFTTokenAddress, item.MintTransactionHash }).ToArray() }));
-            Assert.False(result.IsError, result.Message);
+            if (authenticatedHttp)
+            {
+                factory!.NativeNftManagerForTest = manager;
+                var avatarConstructor = typeof(AvatarManager).GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic).Single(item => item.GetParameters().Length == 3);
+                avatarManagerField.SetValue(null, avatarConstructor.Invoke(new object[] { local, dna, registry }));
+                NextGenSoftware.OASIS.OASISBootLoader.OASISBootLoader.OASISDNA = dna;
+                var jwt = new System.IdentityModel.Tokens.Jwt.JwtSecurityToken("OASIS", "OASIS", new[] {
+                    new System.Security.Claims.Claim("sub", actorId.ToString()), new System.Security.Claims.Claim("id", actorId.ToString()) },
+                    DateTime.UtcNow.AddMinutes(-1), DateTime.UtcNow.AddMinutes(5),
+                    new Microsoft.IdentityModel.Tokens.SigningCredentials(new Microsoft.IdentityModel.Tokens.SymmetricSecurityKey(System.Text.Encoding.ASCII.GetBytes(jwtSecret)), Microsoft.IdentityModel.Tokens.SecurityAlgorithms.HmacSha256));
+                using var message = new HttpRequestMessage(HttpMethod.Post, "/api/nft/mint-nft") {
+                    Content = System.Net.Http.Json.JsonContent.Create(new Models.NFT.MintNFTTransactionRequest {
+                        NumberToMint = 3, Title = request.Title, ImageUrl = request.ImageUrl,
+                        OnChainProvider = "SuiOASIS", OffChainProvider = "LocalFileOASIS", NFTStandardType = "SuiObject", NFTOffChainMetaType = "OASIS",
+                        SendToAddressAfterMinting = signer.Result.WalletAddressLegacy,
+                        // Intentionally omit MintedByAvatarId: authenticated caller must be used.
+                    }) };
+                var bearer = new System.IdentityModel.Tokens.Jwt.JwtSecurityTokenHandler().WriteToken(jwt);
+                Middleware.OasisJwtValidation.Validate(bearer, jwtSecret, "OASIS");
+                message.Headers.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue("Bearer", bearer);
+                using var response = await http!.SendAsync(message);
+                using var body = JsonDocument.Parse(await response.Content.ReadAsStringAsync());
+                var payload = Property(body.RootElement, "Result");
+                if (payload.ValueKind == JsonValueKind.Object)
+                    minted = new NextGenSoftware.OASIS.API.Core.Objects.NFT.Web4NFT {
+                        Id = Property(payload, "Id").GetGuid(),
+                        NewlyMintedWeb3NFTs = Property(payload, "Web3NFTs").EnumerateArray().Select(item => (IWeb3NFT)new NextGenSoftware.OASIS.API.Core.Objects.NFT.Web3NFT {
+                            NFTTokenAddress = Property(item, "NFTTokenAddress").GetString(), MintTransactionHash = Property(item, "MintTransactionHash").GetString(),
+                        }).ToList(),
+                    };
+                await RecordReturnedIntent(journal, minted, Property(body.RootElement, "IsError").GetBoolean());
+                Assert.Equal(System.Net.HttpStatusCode.OK, response.StatusCode);
+                Assert.False(Property(body.RootElement, "IsError").GetBoolean(), Property(body.RootElement, "Message").GetString());
+                Assert.Equal(actorId, Property(payload, "MintedByAvatarId").GetGuid());
+            }
+            else
+            {
+                var result = await manager.MintNftAsync(request);
+                minted = result.Result;
+                await RecordReturnedIntent(journal, minted, result.IsError);
+                Assert.False(result.IsError, result.Message);
+            }
             Assert.NotNull(minted);
             Assert.Equal(3, minted.NewlyMintedWeb3NFTs.Count);
             Assert.Equal(3, minted.NewlyMintedWeb3NFTs.Select(item => item.NFTTokenAddress).Distinct().Count());
@@ -144,6 +190,9 @@ public sealed class NativeSuiMintManagerTests
                     Assert.False((await local.DeleteHolonAsync(id)).IsError);
             });
             field.SetValue(null, original);
+            avatarManagerField.SetValue(null, originalAvatarManager);
+            NextGenSoftware.OASIS.OASISBootLoader.OASISBootLoader.OASISDNA = originalBootDna;
+            if (factory != null) factory.NativeNftManagerForTest = null!;
             await Cleanup(async () => { Assert.False((await sui.DeActivateProviderAsync()).IsError); });
             await Cleanup(async () => { Assert.False((await local.DeActivateProviderAsync()).IsError); });
             if (finished && errors.Count == 0)
@@ -157,4 +206,14 @@ public sealed class NativeSuiMintManagerTests
             if (errors.Count > 0) throw new AggregateException("Owned native mint cleanup incomplete; retain and reconcile intent.", errors);
         }
     }
+
+    private static JsonElement Property(JsonElement record, string name)
+        => record.EnumerateObject().Single(item => string.Equals(item.Name, name, StringComparison.OrdinalIgnoreCase)).Value;
+
+    private static Task RecordReturnedIntent(string journal, IWeb4NFT? minted, bool error)
+        => IOFile.WriteAllTextAsync(journal, JsonSerializer.Serialize(new { state = "returned", error,
+            assets = minted?.NewlyMintedWeb3NFTs?.Select(item => new { item.NFTTokenAddress, item.MintTransactionHash }).ToArray() }));
 }
+
+[CollectionDefinition("Native NFT globals", DisableParallelization = true)]
+public sealed class NativeNftGlobalCollection;
