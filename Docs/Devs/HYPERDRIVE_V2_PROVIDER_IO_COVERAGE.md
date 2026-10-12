@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Expected original identity rejected before preparation persistence — 2026-10-12
+
+Shared parent server accepts explicit expected-original binding and rejects mismatched child ID before invoking persistence. Existing one-argument constructor retained. Hedera public prepared entry passes its explicit request original ID into factory/server. Controlled foreign preparation test proves zero persistence callbacks; entry/lifecycle selection **10/10**, zero skips, `TestResults/PriorityProviderCurrent/hedera-original-binding.trx`. Shared build 0 errors/warnings, provider build 0 errors/2 existing warnings. Constructor forwarding overload added afterward to preserve existing compiled caller compatibility; next build/regression must include it.
+
+Full cross-provider regression, stage-aware escrow, actual submitted recovery and funded/live/deployed gates remain open. No installs, submissions or release merge.
+
 ### Hedera post-preparation generic failure remains reconciliation-required — 2026-10-12
 
 Canonical C# boundary now marks generic invalid-operation child failure after persisted preparation as original-ID reconciliation required. Existing typed native evidence and original parent persistence rejection stay authoritative. Controlled child acknowledges then emits metadata-free failure; lifecycle **8/8**, zero skips, `TestResults/PriorityProviderCurrent/hedera-prepared-process.trx`. Provider build 0 errors/2 existing warnings; test nullable warning remains. This prevents missing child stage metadata from making prepared unknown outcomes retryable.

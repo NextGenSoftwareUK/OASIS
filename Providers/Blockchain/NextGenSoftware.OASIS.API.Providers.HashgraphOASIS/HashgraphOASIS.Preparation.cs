@@ -15,18 +15,22 @@ public partial class HashgraphOASIS
         string clientRequestId,string expectedNetwork,string expectedSender,string expectedPublicKey,CancellationToken token=default)
     {
         token.ThrowIfCancellationRequested();
-        using var server=CreateNativePreparationServer(execution,clientRequestId,expectedNetwork,expectedSender,expectedPublicKey);
+        if(execution==null)throw new ArgumentNullException(nameof(execution));
+        using var document=JsonDocument.Parse(JsonSerializer.Serialize(request));
+        var original=document.RootElement.GetProperty("transactionId").GetString();
+        ArgumentException.ThrowIfNullOrWhiteSpace(original);
+        using var server=CreateNativePreparationServer(execution,clientRequestId,expectedNetwork,expectedSender,expectedPublicKey,original);
         return await HederaSdkClient.InvokePreparedAsync(action,request,server,token);
     }
 
     /// <summary>Caller must supply a public key independently authorised for the expected account.</summary>
     public PreparedSubmissionServer CreateNativePreparationServer(UsageExecutionHandle execution,
-        string clientRequestId, string expectedNetwork, string expectedSender, string expectedPublicKey)
+        string clientRequestId, string expectedNetwork, string expectedSender, string expectedPublicKey,string expectedTransactionId=null)
     {
         if(execution==null)throw new ArgumentNullException(nameof(execution));
         ArgumentException.ThrowIfNullOrWhiteSpace(expectedPublicKey);
         return new PreparedSubmissionServer(execution.NativePreparationPersistence("HashgraphOASIS",null,clientRequestId,expectedNetwork,expectedSender,
-            (evidence,token)=>VerifyOriginalSignedPreparationAsync(evidence,expectedPublicKey,token)));
+            (evidence,token)=>VerifyOriginalSignedPreparationAsync(evidence,expectedPublicKey,token)),expectedTransactionId);
     }
 
     public async Task VerifyOriginalSignedPreparationAsync(JsonElement preparation,string expectedPublicKey,CancellationToken token=default)
