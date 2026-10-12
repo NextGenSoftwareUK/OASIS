@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera original signature verifier and escrow CLI guard — 2026-10-12
+
+Added bounded canonical signed-byte verifier using actual Hiero `Transaction.fromBytes` and trusted expected `PublicKey.verifyTransaction`. It binds original transaction ID and numeric payer; actual signed deployment accepts, unrelated signing key and altered payer/original ID reject. SDK selection **98/98**, zero skips/todos. Verifier does not establish funded-account key authority or network identity from its own input; caller must supply trusted account/network context. C# binding/dispatch still required.
+
+CLI explicitly refuses escrow when configured with current single-ack preparation transport, before account queries or mutations, preventing partial approval followed by unsupported second acknowledgement. Trusted library hooks remain for future stage-aware owner integration. Multi-stage transport, durable admission/outbox and full funded/live/deployed gates remain open. No install, funded submission or release merge.
+
 ### Hedera escrow signed stage preparation hooks — 2026-10-12
 
 NFT/token escrow now await shared signed-evidence persistence separately before original approval and original contract mutation submissions. Approval descriptor uses its distinct approval ID; mutation uses original mutation ID. Helper moved to one imported module and copied into publish output. SDK regression **98/98**, zero skips/todos; not a positive two-stage parent-pipe or funded escrow test.

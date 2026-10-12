@@ -2,6 +2,7 @@ import test from 'node:test';import assert from 'node:assert/strict';
 import {PrivateKey,Transaction,AccountId,Client} from '@hiero-ledger/sdk';
 import {deploymentTransaction,executeDeployment} from './deployment.mjs';
 import {execute,persistSignedSubmission} from './bridge.mjs';
+import {verifyPreparedIdentity} from './native-preparation.mjs';
 test('prepared dispatcher refuses invalid callback and unwired actions before network use',async()=>{
  await assert.rejects(execute('contractCreate',{},true),/awaited callback/);
  let calls=0;
@@ -17,6 +18,10 @@ test('real SDK signed deployment waits for persistence and rejection prevents su
    calls++;assert.equal(evidence.transactionHash,request.transactionId);assert.equal(evidence.sender,request.sender);
    const original=Transaction.fromBytes(Buffer.from(evidence.signedTransactionBase64,'base64'));
    assert.equal(original.transactionId.toString(),request.transactionId);assert.equal(Object.isFrozen(evidence),true);
+   assert.equal(verifyPreparedIdentity(evidence,key.publicKey.toStringDer()).verified,true);
+   assert.throws(()=>verifyPreparedIdentity(evidence,PrivateKey.generateECDSA().publicKey.toStringDer()),/signature mismatch/);
+   assert.throws(()=>verifyPreparedIdentity({...evidence,sender:'0.0.1002'},key.publicKey.toStringDer()),/payer mismatch/);
+   assert.throws(()=>verifyPreparedIdentity({...evidence,transactionHash:'0.0.1001@1700000001.000000001'},key.publicKey.toStringDer()),/identity or payer mismatch/);
    let persisted=0;
    await assert.rejects(persistSignedSubmission(original,{...request,network:'controlled-local'},async prepared=>{
     persisted++;assert.equal(prepared.signedTransactionBase64,evidence.signedTransactionBase64);throw failure;
