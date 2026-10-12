@@ -74,9 +74,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 OASISResultHelper<IHolon, Holon>.CopyResult(result, response.Result);
                 var holon = (Holon)result.Result;
 
-                // Non-Wizards may only access holons they created or that are explicitly public
+                // Non-Wizards may only read holons they created, that are public, or that were shared with them
                 if (holon != null && Avatar?.AvatarType?.Value != AvatarType.Wizard
-                    && holon.CreatedByAvatarId != AvatarId && !holon.IsPublic)
+                    && !HolonAccess.CanRead(holon, AvatarId))
                     return TestDataHelper.CreateErrorResponse<Holon>(
                         "Forbidden. You do not have permission to access this holon.", null, System.Net.HttpStatusCode.Forbidden);
 

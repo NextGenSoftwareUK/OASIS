@@ -50,28 +50,21 @@ public sealed class RadixService : IRadixService
         
         try
         {
-            var data = new
-            {
-                network = _network,
-                account_address = accountAddress,
-                resource_address = _xrdAddress.AddressString()
-            };
+            // HostUri is the Radix Gateway API (e.g. https://stokenet.radixdlt.com), which has no /core/* routes.
+            // The previous Core API call, kept for reference:
+            //var data = new { network = _network, account_address = accountAddress, resource_address = _xrdAddress.AddressString() };
+            //var response = await HttpClientHelper.PostAsync<object, AccountFungibleResourceBalanceDto>(
+            //    _httpClient, $"{_config.HostUri}/core/lts/state/account-fungible-resource-balance", data, token);
+            //result.Result = decimal.Parse(response.Result.FungibleResourceBalance.Amount);
 
-            var response = await HttpClientHelper.PostAsync<object, AccountFungibleResourceBalanceDto>(
-                _httpClient,
-                $"{_config.HostUri}/core/lts/state/account-fungible-resource-balance",
-                data,
-                token
-            );
+            var page = await GatewayPostAsync("/state/entity/page/fungibles",
+                new System.Text.Json.Nodes.JsonObject { ["address"] = accountAddress }, token);
+            var xrd = _xrdAddress.AddressString();
+            var amount = (page?["items"] as System.Text.Json.Nodes.JsonArray)?
+                .FirstOrDefault(item => (string?)item?["resource_address"] == xrd)?["amount"];
 
-            if (response.IsError || response.Result == null)
-            {
-                result.IsError = true;
-                result.Message = response.Message ?? "Failed to get account balance";
-                return result;
-            }
-
-            result.Result = decimal.Parse(response.Result.FungibleResourceBalance.Amount);
+            // An account with no XRD (or not yet on ledger) has no entry: its balance is 0.
+            result.Result = amount == null ? 0m : decimal.Parse((string)amount!, CultureInfo.InvariantCulture);
             result.IsError = false;
             
             return result;
@@ -338,10 +331,21 @@ public sealed class RadixService : IRadixService
                 force_recalculate = true
             };
 
-            var response = await HttpClientHelper.PostAsync<object, TransactionSubmitResponse>(
-                _httpClient,
-                $"{_config.HostUri}/core/lts/transaction/submit",
-                submitData);
+            // Gateway API submit (the Gateway doesn't serve the Core API /core/lts/transaction/submit). Previous call:
+            //var response = await HttpClientHelper.PostAsync<object, TransactionSubmitResponse>(
+            //    _httpClient, $"{_config.HostUri}/core/lts/transaction/submit", submitData);
+            var response = new OASISResult<TransactionSubmitResponse>();
+            try
+            {
+                await GatewayPostAsync("/transaction/submit",
+                    new System.Text.Json.Nodes.JsonObject { ["notarized_transaction_hex"] = payloadHex });
+                response.Result = new TransactionSubmitResponse { TransactionHash = notarizedTransaction.IntentHash().AsStr() };
+            }
+            catch (Exception submitError)
+            {
+                response.IsError = true;
+                response.Message = submitError.Message;
+            }
 
             var transactionHash = notarizedTransaction.IntentHash().AsStr();
 
@@ -376,34 +380,20 @@ public sealed class RadixService : IRadixService
         
         try
         {
-            var data = new
-            {
-                network = _network,
-                intent_hash = transactionHash
-            };
+            // Gateway API status (the Gateway doesn't serve the Core API /core/transaction/status). Previous call:
+            //var response = await HttpClientHelper.PostAsync<object, TransactionStatusResponse>(_httpClient,
+            //    $"{_config.HostUri}/core/transaction/status", new { network = _network, intent_hash = transactionHash }, token);
+            var status = await GatewayPostAsync("/transaction/status",
+                new System.Text.Json.Nodes.JsonObject { ["intent_hash"] = transactionHash }, token);
 
-            var response = await HttpClientHelper.PostAsync<object, TransactionStatusResponse>(
-                _httpClient,
-                $"{_config.HostUri}/core/transaction/status",
-                data,
-                token);
-
-            if (response.IsError || response.Result == null)
+            result.Result = (string?)status?["intent_status"] switch
             {
-                result.IsError = true;
-                result.Message = "Failed to get transaction status";
-                return result;
-            }
-
-            result.Result = response.Result.IntentStatus switch
-            {
-                RadixTransactionStatus.CommittedSuccess => BridgeTransactionStatus.Completed,
-                RadixTransactionStatus.CommittedFailure => BridgeTransactionStatus.Canceled,
-                RadixTransactionStatus.NotSeen => BridgeTransactionStatus.NotFound,
-                RadixTransactionStatus.InMemPool => BridgeTransactionStatus.Pending,
-                RadixTransactionStatus.PermanentRejection => BridgeTransactionStatus.Canceled,
-                RadixTransactionStatus.FateUncertainButLikelyRejection => BridgeTransactionStatus.Canceled,
-                RadixTransactionStatus.FateUncertain => BridgeTransactionStatus.Pending,
+                "CommittedSuccess" => BridgeTransactionStatus.Completed,
+                "CommittedFailure" => BridgeTransactionStatus.Canceled,
+                "PermanentlyRejected" => BridgeTransactionStatus.Canceled,
+                "LikelyButNotCertainRejection" => BridgeTransactionStatus.Canceled,
+                "Pending" => BridgeTransactionStatus.Pending,
+                "CommitPendingOutcomeUnknown" => BridgeTransactionStatus.Pending,
                 _ => BridgeTransactionStatus.NotFound
             };
             
@@ -415,6 +405,18 @@ public sealed class RadixService : IRadixService
             OASISErrorHandling.HandleError<BridgeTransactionStatus>(ref result, $"Error getting transaction status: {ex.Message}", ex);
             return result;
         }
+    }
+
+    /// <summary>POSTs JSON to the Radix Gateway API (snake_case bodies, unlike HttpClientHelper's camelCase).</summary>
+    private async Task<System.Text.Json.Nodes.JsonNode?> GatewayPostAsync(string path, System.Text.Json.Nodes.JsonNode body,
+        CancellationToken token = default)
+    {
+        using var content = new StringContent(body.ToJsonString(), System.Text.Encoding.UTF8, "application/json");
+        using var response = await _httpClient.PostAsync($"{_config.HostUri.TrimEnd('/')}{path}", content, token);
+        var text = await response.Content.ReadAsStringAsync(token);
+        if (!response.IsSuccessStatusCode)
+            throw new HttpRequestException($"Radix Gateway {path} returned {(int)response.StatusCode}: {text}");
+        return System.Text.Json.Nodes.JsonNode.Parse(text);
     }
 
     #region Oracle Methods

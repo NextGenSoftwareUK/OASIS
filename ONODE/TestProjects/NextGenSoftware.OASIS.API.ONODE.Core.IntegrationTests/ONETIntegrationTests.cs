@@ -21,8 +21,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.Core.IntegrationTests;
 /// Protocol -> Security/Discovery/Consensus/Routing/APIGateway chain, and a real two-node connectivity
 /// round-trip over the PING/PONG TCP responder added to fix the previously-missing server side.
 /// </summary>
-public class ONETIntegrationTests
+public class ONETIntegrationTests : IDisposable
 {
+    // Each xUnit test owns its persistent peer cache. Production warm-start state must not
+    // reconnect peers from another test when the OS reuses a previous listener's port.
+    private readonly string _dataDirectory = System.IO.Path.Combine(System.IO.Path.GetTempPath(), $"onet-integration-{Guid.NewGuid():N}");
+
+    private OASISDNA CreateDNA()
+    {
+        System.IO.Directory.CreateDirectory(_dataDirectory);
+        var dna = new OASISDNA();
+        dna.OASIS.DataDirectory = _dataDirectory;
+        return dna;
+    }
+
+    public void Dispose()
+    {
+        if (System.IO.Directory.Exists(_dataDirectory))
+            System.IO.Directory.Delete(_dataDirectory, recursive: true);
+    }
+
     [Fact]
     public void ONETManager_Construction_DoesNotCrash_ForInternalP2PNetworkType()
     {
@@ -153,7 +171,7 @@ public class ONETIntegrationTests
     [Fact]
     public async Task ONETManager_ConnectAndDisconnect_UseTheProtocolPeerTable()
     {
-        var dna = new OASISDNA();
+        var dna = CreateDNA();
         dna.OASIS.ONET = new ONETConfig { TcpPort = GetFreeTcpPort(), BootstrapServers = new List<string>(), AutoRegisterOnBootstrap = false };
         var mgr = new ONETManager(storageProvider: null, oasisdna: dna, networkType: P2PNetworkType.Internal);
         var peer = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
@@ -164,13 +182,19 @@ public class ONETIntegrationTests
         try
         {
             await Task.Delay(300);
+            (await mgr.GetNetworkStatsAsync()).Result["totalNodes"].Should().Be(0,
+                "this test's new state directory has no persisted peers to reconnect");
             (await mgr.ConnectToNodeAsync("peer-1", $"127.0.0.1:{peer.ListenPort}")).IsError.Should().BeFalse();
 
-            (await mgr.GetNetworkStatsAsync()).Result["totalNodes"].Should().Be(1);
+            var connected = (await mgr.GetNetworkStatsAsync()).Result;
+            connected["totalNodes"].Should().Be(1);
+            connected["consensusActiveMembers"].Should().Be(1, "connected peers become consensus members");
             (await mgr.GetConnectedNodesAsync()).Result.Should().ContainSingle(n => n.Id == "peer-1");
 
             (await mgr.DisconnectFromNodeAsync("peer-1")).IsError.Should().BeFalse();
-            (await mgr.GetNetworkStatsAsync()).Result["totalNodes"].Should().Be(0);
+            var disconnected = (await mgr.GetNetworkStatsAsync()).Result;
+            disconnected["totalNodes"].Should().Be(0);
+            disconnected["consensusActiveMembers"].Should().Be(0);
             (await mgr.DisconnectFromNodeAsync("peer-1")).IsError.Should().BeTrue("the peer is no longer connected");
         }
         finally
@@ -278,12 +302,125 @@ public class ONETIntegrationTests
         }
     }
 
+    private static (string Id, string Public, string Private) NewNodeIdentity()
+    {
+        using var key = ECDsa.Create(ECCurve.NamedCurves.nistP256);
+        var publicKey = Convert.ToBase64String(key.ExportSubjectPublicKeyInfo());
+        return (Convert.ToHexString(SHA256.HashData(Convert.FromBase64String(publicKey))).ToLowerInvariant(),
+            publicKey, Convert.ToBase64String(key.ExportPkcs8PrivateKey()));
+    }
+
+    [Fact]
+    public async Task ONETProtocol_SendMessage_DeliversOverSignedChannel_AndRaisesMessageReceived()
+    {
+        var a = NewNodeIdentity();
+        var b = NewNodeIdentity();
+        var nodeA = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        var nodeB = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        await nodeA.StartNetworkAsync();
+        await nodeB.StartNetworkAsync();
+        nodeA.RegisterLocalNodeIdentity(a.Id, a.Public, a.Private);
+        nodeB.RegisterLocalNodeIdentity(b.Id, b.Public, b.Private);
+        _ = nodeB.ApplicationEndpoint;
+        var received = new TaskCompletionSource<MessageReceivedEventArgs>();
+        nodeB.MessageReceived += (_, e) => received.TrySetResult(e);
+
+        try
+        {
+            await Task.Delay(300);
+            (await nodeA.ConnectToNodeAsync(b.Id, $"127.0.0.1:{nodeB.ListenPort}")).IsError.Should().BeFalse();
+            (await nodeB.ConnectToNodeAsync(a.Id, $"127.0.0.1:{nodeA.ListenPort}")).IsError.Should().BeFalse();
+
+            var send = await nodeA.SendMessageAsync(new ONETMessage { TargetNodeId = b.Id, Content = "hello", MessageType = "test" });
+
+            send.IsError.Should().BeFalse(send.Message);
+            var delivered = await received.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            delivered.FromNodeId.Should().Be(a.Id);
+            delivered.Message.Should().Be("hello");
+        }
+        finally
+        {
+            await nodeA.StopNetworkAsync();
+            await nodeB.StopNetworkAsync();
+        }
+    }
+
+    [Fact]
+    public async Task ONETProtocol_SendMessage_ToPeerWithoutEndpoint_ReportsFailure()
+    {
+        var a = NewNodeIdentity();
+        var nodeA = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        var silent = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        await nodeA.StartNetworkAsync();
+        await silent.StartNetworkAsync();
+        nodeA.RegisterLocalNodeIdentity(a.Id, a.Public, a.Private);
+
+        try
+        {
+            await Task.Delay(300);
+            (await nodeA.ConnectToNodeAsync("silent", $"127.0.0.1:{silent.ListenPort}")).IsError.Should().BeFalse();
+
+            var send = await nodeA.SendMessageAsync(new ONETMessage { TargetNodeId = "silent", Content = "x" });
+
+            send.IsError.Should().BeTrue("a peer that never acknowledges must not be reported as delivered");
+        }
+        finally
+        {
+            await nodeA.StopNetworkAsync();
+            await silent.StopNetworkAsync();
+        }
+    }
+
+    [Fact]
+    public async Task ONETManager_PeerExchange_OverSignedOnetChannel_ReturnsResponderPeers()
+    {
+        var dna = CreateDNA();
+        dna.OASIS.ONET = new ONETConfig { TcpPort = GetFreeTcpPort(), BootstrapServers = new List<string>(), AutoRegisterOnBootstrap = false };
+        var responder = new ONETManager(storageProvider: null, oasisdna: dna, networkType: P2PNetworkType.Internal);
+        await responder.InitializeAsync();
+        await responder.StartNetworkAsync();
+
+        var requesterId = NewNodeIdentity();
+        var thirdId = NewNodeIdentity();
+        var requester = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        var third = new ONETProtocol(storageProvider: null) { ListenPort = GetFreeTcpPort() };
+        await requester.StartNetworkAsync();
+        await third.StartNetworkAsync();
+        requester.RegisterLocalNodeIdentity(requesterId.Id, requesterId.Public, requesterId.Private);
+        third.RegisterLocalNodeIdentity(thirdId.Id, thirdId.Public, thirdId.Private);
+
+        try
+        {
+            await Task.Delay(300);
+            (await responder.ConnectToNodeAsync(thirdId.Id, $"127.0.0.1:{third.ListenPort}")).IsError.Should().BeFalse();
+            (await requester.ConnectToNodeAsync(dna.OASIS.ONET.NodeId, $"127.0.0.1:{dna.OASIS.ONET.TcpPort}")).IsError.Should().BeFalse();
+
+            using var endpoint = new ONETRequestResponseEndpoint(new ONETTcpApplicationMessageChannel(requester));
+            using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+            var payload = System.Text.Json.JsonSerializer.Serialize(new { replyAddress = $"127.0.0.1:{requester.ListenPort}" });
+
+            var response = await endpoint.RequestAsync(dna.OASIS.ONET.NodeId, ONETManager.PeerExchangeOperation, payload, timeout.Token);
+
+            response.IsError.Should().BeFalse(response.Message);
+            var peers = System.Text.Json.JsonSerializer.Deserialize<List<NextGenSoftware.OASIS.API.ONODE.Core.Network.NodeInfo>>(response.Result,
+                new System.Text.Json.JsonSerializerOptions(System.Text.Json.JsonSerializerDefaults.Web))!;
+            peers.Should().Contain(p => p.Id == thirdId.Id);
+            peers.Should().NotContain(p => p.Id == requesterId.Id, "the requester is not returned to itself");
+        }
+        finally
+        {
+            await requester.StopNetworkAsync();
+            await third.StopNetworkAsync();
+            await responder.StopNetworkAsync();
+        }
+    }
+
     [Fact]
     public async Task ONETManager_InitializeAsync_SamePublicKey_ProducesSameNodeId_OnReinit()
     {
         // Verifies the deterministic NodeId derivation: SHA-256 of the public key bytes.
         // Re-initialising with the same keypair in DNA must yield the exact same NodeId.
-        var dna = new OASISDNA();
+        var dna = CreateDNA();
         dna.OASIS.ONET = new ONETConfig
         {
             BootstrapServers = new List<string>(),
@@ -420,7 +557,7 @@ public class ONETIntegrationTests
     [Fact]
     public async Task ONETManager_GetNetworkStatsAsync_IncludesLatencyAndThroughput()
     {
-        var dna = new OASISDNA();
+        var dna = CreateDNA();
         dna.OASIS.ONET = new ONETConfig
         {
             TcpPort = GetFreeTcpPort(),
