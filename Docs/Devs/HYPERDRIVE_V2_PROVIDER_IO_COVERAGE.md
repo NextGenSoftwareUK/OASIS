@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Live encrypted TRON recursive-cycle read proof (2026-10-11)
+
+New `TronParentCycleTests` passes **1/1**, zero skips (`TestResults/HyperDriveTron/tron-parent-cycle.trx`). Existing official/native TRON client and encrypted contract storage persist one fixed self-parented owned holon after checking authoritative absence. Async recursive single-holon read returns the specific InvalidDataException; sync parent collection read errors; explicit depth-one read returns the single expected child. The fixture is deleted in finally, and retained runtime paused after terminal completion. This independently proves the shared guard on real encrypted-provider storage, not every provider/graph/route option or all release gates. No runtime recreation/reset/install/download/new environment/public-chain spending/merge.
+
 ### Shared recursive-parent cycle protection (2026-10-11)
 
 Shared recursive child loading previously had no ancestor-path guard, allowing self-parent/two-node cycles to recurse indefinitely with default unlimited depth. It now tracks the current ancestor path and throws a specific InvalidDataException at a repeated parent; existing read boundaries return an explicit error rather than fabricated/truncated success. Two cases cover self/two-node cycles through async single-holon and sync parent collection reads, and successful explicit depth-one termination. Full shared suite passes **51/51**, zero skips (`shared-current.trx`); changed provider build succeeds with zero errors/two warnings.
