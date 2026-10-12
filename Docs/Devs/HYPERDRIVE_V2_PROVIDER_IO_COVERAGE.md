@@ -5,6 +5,12 @@
 
 ## Routing contract
 
+### Current Core live regression and explicit remaining-handler inventory (2026-10-11)
+
+At Core `8f7396de7d8ce3bcd7f3a886d0231b6398f773bf`, expanded retained TRON V2 routing passes **1/1**, zero skips, 64 seconds (`tron-v2-routing.trx`). Actual outage failover/measured balancing and expanded replicated storage/read/delete paths still pass after karma/settings routing fixes. WEB4 host bounded rebuild succeeds (zero errors, 253 warnings); manifest/seven Dockerfiles/gitlinks validator passes. These do not prove deployed image or live high-level karma. Runtime paused afterward; approximately 113.54 GB decimal free; no new install/download/environment/merge.
+
+Static comparison of all **42** router storage switch labels with this scenario's literal operation names finds ten absent handlers: `AddKarmaToAvatar`, `RemoveKarmaFromAvatar`, `DeleteAvatarByEmail`, `DeleteAvatarByProviderKey`, `DeleteAvatarByUsername`, `DeleteHolonByProviderKey`, `LoadAvatarByPrivateKey`, `LoadAvatarByProviderKey`, `LoadAvatarByPublicKey`, `Search`. This is a **source inventory**, not runtime branch coverage: the other 32 names do not establish every sync/async projection, option, failover or replica combination. Required next work includes these missing live paths, incomplete projections of already-present handlers, other providers/native/API/image gates and documented deferred Hedera funding. Karma commands require one business-owner invocation, never replica replay.
+
 ### High-level karma projection warning boundary (2026-10-11)
 
 Two focused helper-contract cases initially reproduce dropped warnings: ledger `IsWarning` without a count, or successful AvatarDetail payload with replica warning. Core `8f7396de7d8ce3bcd7f3a886d0231b6398f773bf` recognizes both warning flags/counts and surfaces incomplete projection while retaining the already-committed KarmaAkashicRecord and non-error status. It does not replay ledger writes. Full Core suite passes **378/378**, zero skips (`core-current.trx`); bounded dual-framework build succeeds. These pure response-boundary tests close the previously recorded helper gap, not live ledger/leaderboard/API proof or complete structured diagnostic propagation in every response. Core pushed and parent manifest/gitlink advance together. No runtime/ledger mutation/install/download/merge; remaining full release gates stay open.
