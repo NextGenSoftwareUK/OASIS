@@ -18,8 +18,10 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
     {
         public readonly ConcurrentDictionary<string, string> Items = new();
         public bool Reachable = true;
+        public bool ThrowReads;
 
-        public Task<string> GetAsync(string key, CancellationToken ct = default) => Task.FromResult(Items.TryGetValue(key, out var v) ? v : null);
+        public Task<string> GetAsync(string key, CancellationToken ct = default) => ThrowReads
+            ? throw new InvalidOperationException("store read unavailable") : Task.FromResult(Items.TryGetValue(key, out var v) ? v : null);
         public Task PutAsync(string key, string value, CancellationToken ct = default) { Items[key] = value; return Task.CompletedTask; }
         public Task DeleteAsync(string key, CancellationToken ct = default) { Items.TryRemove(key, out _); return Task.CompletedTask; }
         public Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken ct = default)
@@ -40,6 +42,37 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
     [TestClass]
     public class KeyValueStorageProviderBaseTests
     {
+        [TestMethod]
+        public async Task Transport_failure_cannot_be_classified_as_authoritative_absence()
+        {
+            _backend.ThrowReads = true;
+            var result = await _provider.LoadAvatarAsync(Guid.NewGuid());
+            Assert.IsTrue(result.IsError); Assert.IsNotNull(result.Exception);
+            Assert.AreNotEqual("OASIS_RECORD_NOT_FOUND", result.ErrorCode);
+        }
+
+        [DataTestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task Present_corrupt_record_or_index_cannot_be_classified_as_absent(bool index)
+        {
+            var avatar = NewAvatar(); avatar.Id = Guid.NewGuid();
+            Assert.IsFalse((await _provider.SaveAvatarAsync(avatar)).IsError);
+            var key = _backend.Items.Keys.Single(value => index ? value.Contains("avatar-username/") : value.EndsWith("avatar/" + avatar.Id.ToString("N")));
+            _backend.Items[key] = index ? "invalid-id" : "null";
+            var result = index ? await _provider.LoadAvatarByUsernameAsync(avatar.Username) : await _provider.LoadAvatarAsync(avatar.Id);
+            Assert.IsTrue(result.IsError); Assert.IsNotNull(result.Exception);
+            Assert.AreNotEqual("OASIS_RECORD_NOT_FOUND", result.ErrorCode);
+        }
+
+        [TestMethod]
+        public async Task Missing_detail_index_preserves_authoritative_absence_code()
+        {
+            var result = await _provider.LoadAvatarDetailByUsernameAsync("missing-user");
+            Assert.IsTrue(result.IsError); Assert.IsNull(result.Result); Assert.IsNull(result.Exception);
+            Assert.AreEqual("OASIS_RECORD_NOT_FOUND", result.ErrorCode);
+        }
+
         private InMemoryBackend _backend;
         private TestProvider _provider;
 
