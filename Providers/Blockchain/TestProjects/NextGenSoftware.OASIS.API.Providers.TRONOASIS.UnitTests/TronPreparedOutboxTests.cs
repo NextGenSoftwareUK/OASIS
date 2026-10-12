@@ -42,7 +42,11 @@ public class TronPreparedOutboxTests
             var flags=BindingFlags.Instance|BindingFlags.NonPublic;
             var signer=(ITransactionClient)typeof(TronNativeTransferClient).GetField("_transactions",flags)!.GetValue(runtime.NativeTransfers)!;
             var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
-            var signed=signer.GetTransactionSign(new Transaction{RawData=new Transaction.Types.raw{Timestamp=now,Expiration=now+60000}},new string('0',63)+"1");
+            var transaction=new Transaction{RawData=new Transaction.Types.raw{Timestamp=now,Expiration=now+60000}};
+            var operationOwner=new byte[21];operationOwner[0]=0x41;new Nethereum.Signer.EthECKey(new string('0',63)+"1").GetPublicAddressAsBytes().CopyTo(operationOwner,1);
+            transaction.RawData.Contract.Add(new Transaction.Types.Contract{Type=Transaction.Types.Contract.Types.ContractType.TransferContract,
+                Parameter=Google.Protobuf.WellKnownTypes.Any.Pack(new TransferContract{OwnerAddress=ByteString.CopyFrom(operationOwner),ToAddress=ByteString.CopyFrom(operationOwner),Amount=1})});
+            var signed=signer.GetTransactionSign(transaction,new string('0',63)+"1");
             var id=Convert.ToHexString(SHA256.HashData(signed.RawData.ToByteArray())).ToLowerInvariant();var bytes=Convert.ToBase64String(signed.ToByteArray());
             var sender=new byte[21];sender[0]=0x41;new Nethereum.Signer.EthECKey(new string('0',63)+"1").GetPublicAddressAsBytes().CopyTo(sender,1);
             var view=runtime.CreatePreparedNativeTransfers(execution,"signed-attempt",sender);
