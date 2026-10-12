@@ -108,6 +108,9 @@ public class TronUnknownBroadcastEvidenceTests
         }:null);
         var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
         var transaction = new Transaction { RawData = new Transaction.Types.raw { Timestamp = now, Expiration = now + 60000 } };
+        var owner=wallet.ParseAddress(new TronECKey(new string('0',63)+"1",TronNetwork.MainNet).GetPublicAddress());
+        transaction.RawData.Contract.Add(new Transaction.Types.Contract{Type=Transaction.Types.Contract.Types.ContractType.TransferContract,
+            Parameter=Google.Protobuf.WellKnownTypes.Any.Pack(new TransferContract{OwnerAddress=owner,ToAddress=owner,Amount=1})});
         var submit = (Task<string>)typeof(TronNativeTransferClient).GetMethod("SignBroadcastConfirmAsync", flags)!.Invoke(client,
             new object?[] { transaction, new string('0', 63) + "1", "controlled public memo", CancellationToken.None, false, false, false, null })!;
         if(persistenceRejected){
