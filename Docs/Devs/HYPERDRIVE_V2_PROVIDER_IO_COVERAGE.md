@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Cosmos default-output module and reused SDK execution (2026-10-11)
+
+Provider project explicitly copies new transaction-results.mjs into build/publish bridge assets; bounded rebuild passes and built module exists. Existing output-dependency reuse helper now supports `-Provider Cosmos` with explicit CosmosSdkBridge output, requiring matching source/output manifest and lockfile plus existing exact-pinned installation, expected junction and full bridge-import verification. Built output passes that verifier and actual Node process SDK key generation/recovery, with secret material retained only in subprocess memory/input and never printed. Initial diagnostic mistakenly read a nonexistent privateKey field from the generation response; corrected invocation uses its documented mnemonic field. Full Cosmos units remain **34/34**, zero skips. No source-bridge override/install/download/new environment/network mutation/merge. This is verified local output execution, not self-contained published image or live chain proof; remaining gates stay open.
+
 ### Cosmos returned bank failure preserves reconciliation identity (2026-10-11)
 
 Bank-transfer bridge previously threw only SDK rawLog on returned nonzero execution code, discarding its known transaction hash. A small result validator now requires an exact nonnegative integer code/64-hex transaction hash, accepts code-zero evidence unchanged and reports nonzero code plus original hash with explicit reconciliation-before-retry guidance. Untrusted rawLog is not echoed. Pure success/failure/malformed cases join existing real SDK key/unreachable checks: **9/9** pass, zero skips (`npm test`); bridge syntax/import/direct-pin verifier passes. No submission replay, synthetic hash or live-runtime bypass. This covers returned SDK results, not every SDK-thrown error, unknown submission outcome or current live failed-consensus readback; those remain open. Existing bridge asset-copy pattern must include the new module in published output; image/live gates remain required. No installs/downloads/new environment/ledger mutation/merge.
