@@ -1,0 +1,100 @@
+name: Build and publish OGEngineClient profiles
+on:
+  workflow_call:
+    inputs:
+      version:
+        type: string
+        required: true
+      publish:
+        type: boolean
+        required: true
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
+permissions:
+  contents: write
+jobs:
+  build:
+    strategy:
+      fail-fast: false
+      matrix:
+        profile: [RemoteOnly, Edge]
+        platform:
+          - { os: windows-latest, rid: win-x64 }
+          - { os: ubuntu-latest, rid: linux-x64 }
+          - { os: ubuntu-24.04-arm, rid: linux-arm64 }
+          - { os: macos-15-intel, rid: osx-x64 }
+          - { os: macos-latest, rid: osx-arm64 }
+    runs-on: ${{ matrix.platform.os }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Checkout immutable sibling dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          . Docker/oasis-dependency-versions.env
+          git clone --no-checkout "$LIBRARIES_REPO" ../NextGenSoftware-Libraries
+          git -C ../NextGenSoftware-Libraries checkout --detach "$LIBRARIES_COMMIT"
+          git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
+          git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+      - name: Build explicit managed and native profile outputs
+        shell: pwsh
+        env:
+          PROFILE: ${{ matrix.profile }}
+          RID: ${{ matrix.platform.rid }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          if ($env:VERSION -notmatch '^\d+\.\d+\.\d+$') { throw 'Explicit stable version required.' }
+          $edge = if ($env:PROFILE -eq 'Edge') { 'true' } else { 'false' }
+          $project = 'OASIS Omniverse/OGEngineClient/OGEngineClient.csproj'
+          $root = "artifacts/ogengine/$env:PROFILE/$env:RID"
+          dotnet publish $project -c Release -r $env:RID --self-contained false -p:PublishAot=false -p:OGEngineIncludeEdge=$edge -p:Version=$env:VERSION -o "$root/Managed"
+          if ($LASTEXITCODE -ne 0) { throw 'Managed profile compilation failed.' }
+          $edgeDll = Test-Path "$root/Managed/NextGenSoftware.OGEngine.Client.Edge.dll"
+          if ($edgeDll -ne ($edge -eq 'true')) { throw 'Managed profile dependency boundary violated.' }
+          dotnet publish $project -c Release -r $env:RID --self-contained true -p:PublishAot=true -p:OGEngineIncludeEdge=$edge -p:Version=$env:VERSION -o "$root/Native"
+          if ($LASTEXITCODE -ne 0) { throw 'Native profile compilation failed.' }
+          $extension = if ($env:RID.StartsWith('win')) { 'dll' } elseif ($env:RID.StartsWith('osx')) { 'dylib' } else { 'so' }
+          $native = @(Get-ChildItem "$root/Native" -File | Where-Object { $_.Name -match "ogengine.*\.$extension$" })
+          if (-not $native.Count) { throw 'Native shared library missing.' }
+          Copy-Item 'OASIS Omniverse/OGEngineClient/ogengine.h' "$root/Native/ogengine.h"
+          Copy-Item Docs/Devs/EDGE_DISTRIBUTIONS.md "$root/README.md"
+          "Profile=$env:PROFILE; RID=$env:RID; Source=$env:GITHUB_SHA" | Set-Content "$root/PROFILE.txt"
+          New-Item artifacts/ogengine-assets -ItemType Directory -Force | Out-Null
+          Compress-Archive "$root/*" "artifacts/ogengine-assets/OGEngineClient.$env:PROFILE.v$env:VERSION.$env:RID.zip"
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ogengine-${{ matrix.profile }}-${{ matrix.platform.rid }}
+          path: artifacts/ogengine-assets/*.zip
+  publish:
+    if: inputs.publish
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v7
+        with:
+          pattern: ogengine-*
+          merge-multiple: true
+          path: artifacts/releases
+      - name: Publish two separate complete profile releases
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ inputs.version }}
+        run: |
+          foreach ($profile in @('RemoteOnly','Edge')) {
+            $assets = @(foreach ($rid in @('win-x64','linux-x64','linux-arm64','osx-x64','osx-arm64')) {
+              $path = "artifacts/releases/OGEngineClient.$profile.v$env:VERSION.$rid.zip"
+              if (-not (Test-Path $path) -or (Get-Item $path).Length -le 0) { throw "Missing $profile platform: $rid" }
+              (Resolve-Path $path).Path
+            })
+            gh release create "OGEngineClient-$profile-v$env:VERSION" @assets --target $env:GITHUB_SHA --title "OGEngineClient $profile v$env:VERSION" --notes-file Docs/Devs/EDGE_DISTRIBUTIONS.md
+            if ($LASTEXITCODE -ne 0) { throw "Publication failed for $profile; reconcile partial publication before resuming." }
+          }
