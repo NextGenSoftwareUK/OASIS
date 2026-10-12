@@ -24,6 +24,7 @@ public class TronParentCycleTests
         using var storage = new TronPrivateStorageBackend(runtime.NativeTransfers, new TronNet.TronECKey(key, TronNet.TronNetwork.MainNet).GetPublicAddress(),
             contract, () => key, () => SHA256.HashData(Encoding.UTF8.GetBytes("public reusable local TRON encryption fixture")));
         var provider = new TRONOASIS(rpcEndpoint: "http://127.0.0.1:9090", nativeTransfers: runtime.NativeTransfers, storageBackend: storage);
+        provider.IsVersionControlEnabled = true;
         var id = Guid.Parse("45506b2c-414a-4bfb-9b68-019399d73287"); var saved = false;
         try
         {
@@ -46,6 +47,16 @@ public class TronParentCycleTests
             metadata.Result.Single().Children.Should().ContainSingle(value => value.Id == id);
             var recursiveCollection = await provider.LoadAllHolonsAsync();
             recursiveCollection.IsError.Should().BeTrue(); recursiveCollection.Message.Should().Contain("Cyclic holon parent relationship");
+            var newParent = Guid.Parse("5e0be8a0-cb6e-4a50-9faf-54bc29a798af");
+            (await provider.SaveHolonAsync(new Holon { Id = id, ParentHolonId = newParent, Name = "Owned moved fixture" })).IsError.Should().BeFalse();
+            var latestOld = await provider.LoadHolonsForParentAsync(id);
+            latestOld.IsError.Should().BeFalse(latestOld.Message); latestOld.Result.Should().BeEmpty();
+            var historicalOld = await provider.LoadHolonsForParentAsync(id, recursive: false, version: 1);
+            historicalOld.IsError.Should().BeFalse(historicalOld.Message); historicalOld.Result.Should().ContainSingle(value => value.Id == id && value.Name == "Owned real parent-cycle fixture");
+            var historicalNew = provider.LoadHolonsForParent(newParent, recursive: false, version: 1);
+            historicalNew.IsError.Should().BeFalse(historicalNew.Message); historicalNew.Result.Should().BeEmpty();
+            var latestNew = provider.LoadHolonsForParent(newParent);
+            latestNew.IsError.Should().BeFalse(latestNew.Message); latestNew.Result.Should().ContainSingle(value => value.Id == id && value.Name == "Owned moved fixture");
         }
         finally
         {
