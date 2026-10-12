@@ -50,6 +50,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         private readonly string _bridgePoolAccountId;
         private readonly Func<string> _bridgePoolSigningKey;
         private readonly Dictionary<string, string> _consensusNodes;
+        private readonly string _rawTransferAccountId;
+        private readonly Func<string> _rawTransferSigningKey;
 
         public WalletManager WalletManager
         {
@@ -62,7 +64,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             set => _walletManager = value;
         }
 
-        public HashgraphOASIS(string rpcEndpoint = "https://mainnet-public.mirrornode.hedera.com/api/v1", string network = "mainnet", string chainId = "295", WalletManager walletManager = null, IDictionary<string, string> consensusNodes = null, HederaStorageConfiguration storageConfiguration = null, string bridgePoolAccountId = null, Func<string> bridgePoolSigningKey = null, string nftEscrowContractId = null, long nftEscrowGasLimit = 0, long nftEscrowMaxFeeTinybars = 0, string nftEscrowRuntimeCodeHash = null, HederaTokenEscrowConfiguration tokenEscrowConfiguration = null)
+        public HashgraphOASIS(string rpcEndpoint = "https://mainnet-public.mirrornode.hedera.com/api/v1", string network = "mainnet", string chainId = "295", WalletManager walletManager = null, IDictionary<string, string> consensusNodes = null, HederaStorageConfiguration storageConfiguration = null, string bridgePoolAccountId = null, Func<string> bridgePoolSigningKey = null, string nftEscrowContractId = null, long nftEscrowGasLimit = 0, long nftEscrowMaxFeeTinybars = 0, string nftEscrowRuntimeCodeHash = null, HederaTokenEscrowConfiguration tokenEscrowConfiguration = null, string rawTransferAccountId = null, Func<string> rawTransferSigningKey = null)
             : base(new ConfiguredHederaStorageBackend(network, consensusNodes, storageConfiguration))
         {
             if (network != "mainnet" && network != "testnet" && network != "previewnet" && network != "local")
@@ -81,6 +83,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                         throw new ArgumentException("Local consensus nodes require loopback endpoints and numeric account IDs.", nameof(consensusNodes));
                 }
             _walletManager = walletManager;
+            _rawTransferAccountId = rawTransferAccountId;
+            _rawTransferSigningKey = rawTransferSigningKey;
             _bridgePoolAccountId = bridgePoolAccountId;
             _bridgePoolSigningKey = bridgePoolSigningKey;
             _nftEscrowContractId = nftEscrowContractId;
