@@ -79,7 +79,8 @@ async function execute(input) {
         const registry = new Registry(defaultRegistryTypes);
         const transfers = [];
         for (const tx of [...indexed.values()].sort((a, b) => a.height - b.height || a.txIndex - b.txIndex)) {
-          if (tx.code !== 0) continue;
+          if (!Number.isSafeInteger(tx.code) || tx.code < 0)
+            throw new Error('Cosmos indexed transaction lacks an exact execution code');
           const raw = decodeTxRaw(tx.tx);
           const block = await client.getBlock(tx.height);
           for (let messageIndex = 0; messageIndex < raw.body.messages.length; messageIndex++) {
@@ -91,7 +92,7 @@ async function execute(input) {
               if (coin.denom === input.denom)
                 transfers.push({ hash: tx.hash, messageIndex, from: message.fromAddress,
                   to: message.toAddress, amountUnits: coin.amount, denom: coin.denom,
-                  memo: raw.body.memo, time: block.header.time });
+                  code: tx.code, memo: raw.body.memo, time: block.header.time });
           }
         }
         return transfers;
