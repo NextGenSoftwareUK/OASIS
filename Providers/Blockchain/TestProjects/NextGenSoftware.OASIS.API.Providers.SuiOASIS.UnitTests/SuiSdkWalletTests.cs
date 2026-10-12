@@ -5,6 +5,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 [TestClass]
 public class SuiSdkWalletTests
 {
+    [DataTestMethod]
+    [DataRow(0)]
+    [DataRow(-1)]
+    [DataRow(int.MinValue)]
+    public async Task NonpositiveMintCountsFailBeforeSignerOrRecipientResolution(int count)
+    {
+        using var provider = new SuiOASIS("http://127.0.0.1:1", "localnet");
+        var rejected = await provider.MintNFTAsync(new Core.Objects.NFT.Requests.MintWeb3NFTRequest
+        {
+            NumberToMint = count,
+            MintedByAvatarId = Guid.NewGuid(),
+            SendToAvatarAfterMintingId = Guid.NewGuid()
+        });
+        Assert.IsTrue(rejected.IsError);
+        Assert.IsInstanceOfType<ArgumentException>(rejected.Exception);
+        StringAssert.Contains(rejected.Message, "Positive NFT mint count is required.");
+        Assert.IsNull(rejected.Result);
+        Assert.IsFalse(provider.IsProviderActivated);
+    }
+
     [TestMethod]
     public async Task NftEconomicAndProviderOptionsAreValidatedBeforeNetworkOrSigning()
     {
