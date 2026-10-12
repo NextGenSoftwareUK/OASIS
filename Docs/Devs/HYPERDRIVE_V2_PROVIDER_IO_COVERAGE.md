@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Existing outbox signed-preparation storage — 2026-10-12
+
+Core's existing provider-attempt document now optionally stores bounded chain/signer, canonical original signed base64 and serialized signature. Native evidence requires an original identity; existing non-native attempts remain valid. The atomic attempt insertion also increments a stored byte counter and gates aggregate native preparation at 8 MiB, reserving document room rather than permitting 512 unbounded signed payloads. Legacy documents without the counter remain compatible. This is encoding/storage validation, not native cryptographic validation or authenticated binding.
+
+Real local Mongo subscription protocol suite **72/72**, zero skips, including atomic signed-evidence/identity readback and null ledger acknowledgement; report `TestResults/SubscriptionUsageCurrent/subscription-usage-current.trx`. .NET 10 build passed; all-target build remains unverified because existing assets lack netstandard2.1, with no dependency reinstall. Core commit `67a4de8ae0c5d3ddb3f0409f6bc80ea354bede50` published; parent gitlink/manifest advanced together. Production provider lifecycle, persistence callback adapter, cryptographic identity checks, crash/recovery, native billing and live/deployed gates remain open. No ledger mutation or release merge.
+
 ### Real outbox duplicate preparation cannot receive acknowledgement — 2026-10-12
 
 Extended the combined Node/C# pipe/Mongo fixture with a second child attempting the same prepared correlation ID against the same durable operation. Existing atomic outbox insertion rejects it with `PROVIDER_ATTEMPT_ALREADY_STARTED`; parent never acknowledges, child fails, and readback retains exactly one original attempt. Shared suite **87/87**, zero skips; fixed report `TestResults/SharedStorageCurrent/shared-current.trx`. Owned children and generated database cleaned up; existing Mongo service reused.
