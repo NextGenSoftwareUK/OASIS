@@ -24,6 +24,14 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui/Cosmos private-record composition gap — 2026-10-12
+
+Source audit confirms Sui and Cosmos constructors directly compose `SuiStorageBackend` / `CosmosSdkBackend`, while Hedera and TRON explicitly compose `PrivateKeyValueBackend`. The shared storage base serializes avatar/detail records and writes username/email/token indexes through its configured backend. Therefore Sui/Cosmos generic storage currently lacks the private-record wrapper at this composition boundary. This is an exposure risk in implementation, not evidence that a particular user's credentials were written; no user ledger records or secrets were inspected during the audit.
+
+Required release gate: choose private/public record policy, reuse the existing private wrapper and one SDK transport, persist an independent encryption key without regeneration, and explicitly version/migrate existing plaintext records with verified readback and preserved recovery evidence. Blindly wrapping an existing ledger would make old records/indexes unreadable; silently trying plaintext after decryption failure would violate the canonical-format/no-fallback policy. Encryption of new/current values cannot erase historical plaintext from an immutable public ledger. Existing private wrapper also does not hide record counts/sizes/access patterns.
+
+Requested the user's migration/privacy choice asynchronously; no storage format, credentials, ledger state, deployment or branch was changed. Passing real SDK/ledger tests are not private-storage certification. This newly identified gate prevents claiming complete safe provider support or merging the unfinished release.
+
 ### Hedera success cannot invent a skipped approval — 2026-10-12
 
 Added the opposite optional-stage contradiction: controlled NFT/token lock children persist only mutation but return the requested approval ID as if approval ran. Existing parent validation rejects success as reconciliation-required; only mutation is persisted and its original ID is retained. Complete Hedera C# suite **43/43** passed, zero skips (`hedera-current.trx`). These are owned child/pipe consistency tests, not funded consensus or a claim that the requested approval ID was actually submitted. No production code change, installation, spending, deployment or merge; external/live release gates remain open.
