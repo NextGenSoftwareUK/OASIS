@@ -128,7 +128,8 @@ export async function execute(client, tx, signer, include = {}) {
   const context = nativeMutationContext.getStore();
   if (context?.persistPreparedSubmission)
     await context.persistPreparedSubmission(Object.freeze({ transactionHash: originalDigest,
-      signedTransactionBase64: Buffer.from(transactionBytes).toString('base64'), signature, sender: signer.toSuiAddress() }));
+      signedTransactionBase64: Buffer.from(transactionBytes).toString('base64'), signature, sender: signer.toSuiAddress(),
+      ...(context.chainIdentifier ? {chainIdentifier:context.chainIdentifier} : {}) }));
   if (context) context.nativeMutation = { transactionHash: originalDigest, executionSucceeded: null };
   let response;
   try {
@@ -212,6 +213,8 @@ async function invokeCore(request) {
   const { chainIdentifier } = await client.getChainIdentifier();
   if (!chainIdentifier) throw new Error('Sui node returned no genesis chain identifier');
   if (request.chainId && request.chainId !== chainIdentifier) throw new Error('Sui chain identifier mismatch');
+  const nativeScope=nativeMutationContext.getStore();
+  if(nativeScope)nativeScope.chainIdentifier=chainIdentifier;
   if (request.operation === 'probe') return { chainIdentifier };
   if (request.operation === 'nativeFeeReceipt') {
     const fetched = await client.getTransaction({ digest: request.transactionHash, include: { effects: true, transaction: true } });

@@ -37,12 +37,13 @@ async function execute(input, persistPreparedSubmission) {
       broadcastPollIntervalMs: 500,
     })
     : await CosmWasmClient.connect(input.rpcEndpoint);
-  if (isSigned) guardCosmosSigningClient(client, persistPreparedSubmission);
   try {
     const chainId = await client.getChainId();
     if (input.chainId && input.chainId !== chainId)
       throw new Error(`Cosmos chain mismatch: expected ${input.chainId}, received ${chainId}`);
     const sender = wallet ? (await wallet.getAccounts())[0].address : null;
+    if (isSigned) guardCosmosSigningClient(client, persistPreparedSubmission
+      ? evidence => persistPreparedSubmission(Object.freeze({ ...evidence, chainId, sender })) : undefined);
     switch (input.operation) {
       case "nativeFeeReceipt": {
         const hash = input.transactionHash;
