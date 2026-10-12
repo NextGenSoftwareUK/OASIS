@@ -22,6 +22,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### CosmJS cleanup exits and packaging correction gate — 2026-10-12
+
+Added official-client controlled cases for receipt success, receipt lookup rejection and actual short poll deadline; all leave no active timer and preserve receipt/original errors. Combined retained SDK suite **46/46**, zero skips/todos. Docker's existing bridge packager uses npm ci without disabling lifecycle hooks; its verifier now requires the Cosmos postinstall hook and runs the correction script in read-only `--check` mode, rejecting an uncorrected installation/source drift rather than silently applying it during verification. Existing source installation passed bridge syntax/import/direct-pin plus correction verification. No dependency reinstall/download or Docker image build was performed. This is local packaging-gate evidence, not deployed image proof; full live/journal/billing gates remain open.
+
 ### CosmJS rejected-broadcast timer source correction — 2026-10-12
 
 Added a reproducible narrow source correction for pinned CosmJS 0.39.0: the existing official broadcast/poll method now includes `broadcastTxSync` inside the timer's try/finally cleanup. No substitute broadcast, polling or retry path was added. `patch-cosmjs.mjs` checks the installed version and exact reviewed source, fails on drift, and treats an already-corrected installation as unchanged. The bridge's postinstall hook applies it; the provider copies the script to output/publish beside package.json. Existing installations may apply it with `node patch-cosmjs.mjs` without downloading anything.

@@ -21,6 +21,8 @@ const source = readFileSync(path, 'utf8');
 if (source.includes(corrected) && !source.includes(original)) {
     // An already-corrected reusable installation requires no rewrite.
 } else {
+    if (process.argv.includes('--check'))
+        throw new Error('Pinned CosmJS timer correction has not been applied; run the bridge postinstall hook.');
     if (source.split(original).length !== 2 || source.includes(corrected))
         throw new Error('Pinned CosmJS broadcast source does not match the reviewed timer correction.');
     writeFileSync(path, source.replace(original, corrected));
