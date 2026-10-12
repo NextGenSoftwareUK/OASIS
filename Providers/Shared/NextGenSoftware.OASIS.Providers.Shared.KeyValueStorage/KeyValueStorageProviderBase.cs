@@ -398,6 +398,46 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => LoadAllAvatarDetailsAsync(version).GetAwaiter().GetResult();
 
+        public async Task<OASISResult<bool>> DeleteAvatarDetailAsync(Guid id, bool softDelete = true)
+        {
+            try
+            {
+                if (id == Guid.Empty) return Fail<bool>("Avatar detail ID is required.");
+                var loaded = await LoadAvatarDetailAsync(id);
+                if (loaded.IsError) return Fail<bool>(loaded.Message, loaded.Exception);
+                if (softDelete)
+                {
+                    loaded.Result.IsActive = false; loaded.Result.DeletedDate = DateTime.UtcNow;
+                    var saved = await SaveAvatarDetailAsync(loaded.Result);
+                    if (saved.IsError) return Fail<bool>(saved.Message, saved.Exception);
+                }
+                else
+                {
+                    await DeleteVersionsAsync(AvatarDetailKey(id));
+                    await Backend.DeleteAsync(AvatarDetailKey(id));
+                }
+                return new OASISResult<bool>(true) { IsDeleted = true, Message = "Avatar detail deleted." };
+            }
+            catch (Exception ex) { return Fail<bool>("Error deleting avatar detail.", ex); }
+        }
+
+        public OASISResult<bool> DeleteAvatarDetail(Guid id, bool softDelete = true)
+            => DeleteAvatarDetailAsync(id, softDelete).GetAwaiter().GetResult();
+        public async Task<OASISResult<bool>> DeleteAvatarDetailByUsernameAsync(string username, bool softDelete = true)
+        {
+            var avatar = await LoadAvatarByUsernameAsync(username);
+            return avatar.IsError ? Fail<bool>(avatar.Message, avatar.Exception) : await DeleteAvatarDetailAsync(avatar.Result.Id, softDelete);
+        }
+        public OASISResult<bool> DeleteAvatarDetailByUsername(string username, bool softDelete = true)
+            => DeleteAvatarDetailByUsernameAsync(username, softDelete).GetAwaiter().GetResult();
+        public async Task<OASISResult<bool>> DeleteAvatarDetailByEmailAsync(string email, bool softDelete = true)
+        {
+            var avatar = await LoadAvatarByEmailAsync(email);
+            return avatar.IsError ? Fail<bool>(avatar.Message, avatar.Exception) : await DeleteAvatarDetailAsync(avatar.Result.Id, softDelete);
+        }
+        public OASISResult<bool> DeleteAvatarDetailByEmail(string email, bool softDelete = true)
+            => DeleteAvatarDetailByEmailAsync(email, softDelete).GetAwaiter().GetResult();
+
         #endregion
 
         #region Holons

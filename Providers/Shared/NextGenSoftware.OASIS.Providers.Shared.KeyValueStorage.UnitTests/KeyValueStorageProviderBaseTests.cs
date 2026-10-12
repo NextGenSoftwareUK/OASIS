@@ -43,6 +43,36 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
     public class KeyValueStorageProviderBaseTests
     {
         [DataTestMethod]
+        [DataRow("id", false)] [DataRow("id", true)]
+        [DataRow("username", false)] [DataRow("username", true)]
+        [DataRow("email", false)] [DataRow("email", true)]
+        public async Task Explicit_detail_deletion_preserves_identity_and_removes_only_owned_detail_history(string selector, bool asynchronous)
+        {
+            _provider.IsVersionControlEnabled = true;
+            var avatar = NewAvatar(); Assert.IsFalse((await _provider.SaveAvatarAsync(avatar)).IsError);
+            Assert.IsFalse((await _provider.SaveAvatarDetailAsync(new AvatarDetail { Id = avatar.Id, Karma = 42, IsActive = true })).IsError);
+            NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider storage = _provider;
+            async Task<NextGenSoftware.OASIS.Common.OASISResult<bool>> Delete(bool soft) => (selector, asynchronous) switch {
+                ("id", true) => await storage.DeleteAvatarDetailAsync(avatar.Id, soft),
+                ("id", false) => storage.DeleteAvatarDetail(avatar.Id, soft),
+                ("username", true) => await storage.DeleteAvatarDetailByUsernameAsync(avatar.Username, soft),
+                ("username", false) => storage.DeleteAvatarDetailByUsername(avatar.Username, soft),
+                ("email", true) => await storage.DeleteAvatarDetailByEmailAsync(avatar.Email, soft),
+                _ => storage.DeleteAvatarDetailByEmail(avatar.Email, soft) };
+            var soft = await Delete(true); Assert.IsFalse(soft.IsError, soft.Message); Assert.IsTrue(soft.Result);
+            var retained = (await storage.LoadAvatarDetailAsync(avatar.Id)).Result;
+            Assert.IsFalse(retained.IsActive); Assert.AreNotEqual(DateTime.MinValue, retained.DeletedDate); Assert.AreEqual(42, retained.Karma);
+            Assert.IsTrue((await storage.LoadAvatarDetailAsync(avatar.Id, 1)).Result.IsActive);
+            var hard = await Delete(false); Assert.IsFalse(hard.IsError, hard.Message); Assert.IsTrue(hard.Result);
+            Assert.IsNull((await storage.LoadAvatarDetailAsync(avatar.Id)).Result);
+            Assert.IsNull((await storage.LoadAvatarDetailAsync(avatar.Id, 1)).Result);
+            Assert.IsFalse(_backend.Items.Keys.Any(key => key.Contains("avatardetail/")));
+            Assert.AreEqual(avatar.Id, (await storage.LoadAvatarByUsernameAsync(avatar.Username)).Result.Id);
+            Assert.AreEqual(avatar.Id, (await storage.LoadAvatarByEmailAsync(avatar.Email)).Result.Id);
+            Assert.IsTrue((await Delete(false)).IsError);
+        }
+
+        [DataTestMethod]
         [DataRow("verification")]
         [DataRow("reset")]
         [DataRow("refresh")]
