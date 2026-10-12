@@ -1,0 +1,29 @@
+using System.Reflection;
+using System.Text.Json;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
+
+namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
+
+[TestClass]
+public class HederaMirrorStatusTests
+{
+    private static object Map(string json) {
+        using var document = JsonDocument.Parse(json);
+        return typeof(HashgraphClient).GetMethod("MapMirrorTransactionStatus", BindingFlags.NonPublic | BindingFlags.Static)!
+            .Invoke(null, new object[] { document.RootElement, "0.0.1001@1700000000.000000001" })!;
+    }
+    [DataTestMethod]
+    [DataRow("SUCCESS", BridgeTransactionStatus.Completed)]
+    [DataRow("UNKNOWN", BridgeTransactionStatus.Pending)]
+    [DataRow("CONTRACT_REVERT_EXECUTED", BridgeTransactionStatus.Failed)]
+    [DataRow("INSUFFICIENT_TX_FEE", BridgeTransactionStatus.InsufficientFundsForFee)]
+    public void VerifiedIdentityUsesExistingReceiptClassification(string status, BridgeTransactionStatus expected)
+        => Assert.AreEqual(expected, Map($"{{\"transactions\":[{{\"transaction_id\":\"0.0.1001-1700000000-000000001\",\"result\":\"{status}\"}}]}}"));
+    [DataTestMethod]
+    [DataRow("{\"transactions\":[]}")]
+    [DataRow("{\"transactions\":[{\"transaction_id\":\"different\",\"result\":\"SUCCESS\"}]}")]
+    [DataRow("{\"transactions\":[{\"transaction_id\":\"0.0.1001-1700000000-000000001\",\"result\":\"INVENTED\"}]}")]
+    public void AmbiguousOrUnclassifiedResponsesCannotEstablishOutcome(string json)
+        => Assert.ThrowsException<TargetInvocationException>(() => Map(json));
+}
