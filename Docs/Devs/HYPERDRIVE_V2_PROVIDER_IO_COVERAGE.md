@@ -22,6 +22,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos official signing preparation rejection — 2026-10-12
+
+Added an official offline `SigningCosmWasmClient`/`DirectSecp256k1Wallet` bank-transfer signing test with controlled sequence/chain metadata. A prepared-digest persistence callback is reached exactly once; its rejection propagates unchanged and the broadcast function is never called. This strengthens the preparation boundary evidence beyond synthetic byte input, without asserting ledger execution or a real durable write. Full retained SDK suite **49/49**, zero skips/todos. Process/outbox/authenticated chain-payer integration remains unwired and required. No downloads, installation or native mutation.
+
 ### Cosmos awaited preparation persistence boundary — 2026-10-12
 
 The SDK signing guard accepts an explicit awaited preparation-persistence callback before native broadcast. Persistence rejection prevents broadcast and remains a pre-submission error, not a fabricated native outcome. Signed bytes are snapshotted before the await, so caller mutation cannot change the bytes bound to the persisted digest. Controlled ordering/failure/mutation cases pass in the retained SDK suite **48/48**, zero skips/todos.
