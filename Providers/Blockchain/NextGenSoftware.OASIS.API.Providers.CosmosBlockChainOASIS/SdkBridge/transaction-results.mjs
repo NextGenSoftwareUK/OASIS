@@ -1,12 +1,27 @@
 import { TimeoutError } from '@cosmjs/stargate';
 import { fromBech32 } from '@cosmjs/encoding';
 import { decodeTxRaw } from '@cosmjs/proto-signing';
+import { createHash } from 'node:crypto';
+import { AsyncLocalStorage } from 'node:async_hooks';
 
 export class CosmosNativeMutationReconciliationError extends Error {
-  constructor(message, transactionHash, executionSucceeded) {
-    super(message);
+  constructor(message, transactionHash, executionSucceeded, cause) {
+    super(message, cause ? { cause } : undefined);
     this.nativeMutation = { transactionHash: typeof transactionHash === 'string' && /^[0-9a-fA-F]{64}$/.test(transactionHash) ? transactionHash : null, executionSucceeded };
   }
+}
+
+const nativeContext = new AsyncLocalStorage();
+export async function withCosmosNativeEvidence(operation) {
+  return nativeContext.run({ evidence: null }, async () => {
+    try { return await operation(); }
+    catch (error) {
+      const evidence = nativeContext.getStore().evidence;
+      if (evidence && !(error instanceof CosmosNativeMutationReconciliationError))
+        throw new CosmosNativeMutationReconciliationError('Cosmos operation did not complete after submission began; reconcile the original transaction before retrying.', evidence.transactionHash, evidence.executionSucceeded, error);
+      throw error;
+    }
+  });
 }
 
 export function cosmosErrorEnvelope(error) {
@@ -18,6 +33,22 @@ export function cosmosErrorEnvelope(error) {
 // CosmJS execute/upload/instantiate discard failed DeliverTxResponse fields in plain errors.
 // Validate the one real broadcast response before their higher-level mapping runs.
 export function guardCosmosSigningClient(client) {
+  const broadcast = client.broadcastTx.bind(client);
+  client.broadcastTx = async (bytes, ...args) => {
+    if (!(bytes instanceof Uint8Array)) throw new Error('Cosmos broadcast requires exact signed transaction bytes');
+    const hash = createHash('sha256').update(bytes).digest('hex').toUpperCase();
+    const context = nativeContext.getStore();
+    if (context) context.evidence = { transactionHash: hash, executionSucceeded: null };
+    let receipt;
+    try { receipt = await broadcast(bytes, ...args); }
+    catch (error) { throw new CosmosNativeMutationReconciliationError('Cosmos original signed submission outcome is unverified; reconcile before retrying.', hash, null, error); }
+    if (typeof receipt?.transactionHash !== 'string' || receipt.transactionHash.toUpperCase() !== hash)
+      throw new CosmosNativeMutationReconciliationError('Cosmos delivery identity does not match the original signed transaction; reconcile before retrying.', hash, null);
+    if (context && Number.isSafeInteger(receipt.height) && receipt.height > 0
+        && Number.isInteger(receipt.code) && receipt.code >= 0 && receipt.code <= 4294967295)
+      context.evidence.executionSucceeded = receipt.code === 0;
+    return receipt;
+  };
   const submit = client.signAndBroadcast.bind(client);
   client.signAndBroadcast = async (...args) => verifiedBankTransfer(await submit(...args));
   return client;
