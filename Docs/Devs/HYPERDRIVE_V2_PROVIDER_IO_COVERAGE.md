@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Prepared Sui interruption retains persisted identity — 2026-10-12
+
+Cancellation, timeout and process communication failures now retain the parent's durably prepared original transaction ID, without claiming ledger acceptance or execution success. Controlled child cancellation after the actual preparation acknowledgement proves the same original ID and caller cancellation token survive; persistence runs once. Revalidated lifecycle selection **5/5**, zero skips, report `TestResults/SuiCurrent/sui-prepared-process.trx`. Provider build previously passed with 0 errors/warnings. The prepared two-minute timeout and communication-failure paths were not separately executed in this checkpoint.
+
+This is controlled lifecycle evidence, not a real signed ledger submission or crash-recovery certification. Prepared error-response binding, positive signed SDK/outbox integration, production native admission, billing and full live/deployed gates remain open. Existing environment reused; no downloads, installations, ledger submissions or release merge.
+
 ### Sui prepared success identity binding — 2026-10-12
 
 Parent server retains its original transaction ID only after persistence succeeds. Sui's explicit prepared process now compares successful reply identity to that retained original and requires reconciliation on mismatch, preserving the original ID without claiming execution success. Controlled child test prepares one ID then returns another valid-shaped digest; rejected as expected. Lifecycle suite **4/4**, zero skips, report `TestResults/SuiCurrent/sui-prepared-process.trx`; shared/Sui builds 0 errors/warnings.

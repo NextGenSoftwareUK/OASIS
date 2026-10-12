@@ -20,13 +20,13 @@ public sealed class SuiNativeMutationReconciliationException : InvalidOperationE
 
 public sealed class SuiNativeMutationCanceledException : OperationCanceledException, INativeMutationReconciliationRequired
 {
-    public string OriginalTransactionId => null;
-    internal SuiNativeMutationCanceledException(string message, Exception innerException, CancellationToken token)
-        : base(message, innerException, token) { }
+    public string OriginalTransactionId { get; }
+    internal SuiNativeMutationCanceledException(string message, Exception innerException, CancellationToken token, string originalTransactionId = null)
+        : base(message, innerException, token) { OriginalTransactionId = originalTransactionId; }
 }
 
 public sealed class SuiNativeMutationTimeoutException : TimeoutException, INativeMutationReconciliationRequired
 {
-    public string OriginalTransactionId => null;
-    internal SuiNativeMutationTimeoutException(string message, Exception innerException) : base(message, innerException) { }
+    public string OriginalTransactionId { get; }
+    internal SuiNativeMutationTimeoutException(string message, Exception innerException, string originalTransactionId = null) : base(message, innerException) { OriginalTransactionId = originalTransactionId; }
 }

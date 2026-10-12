@@ -7,21 +7,24 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 public class SuiUnlockReadbackFailureTests
 {
     [DataTestMethod]
-    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)]
-    public async Task PreparedProcessWaitsForParentAndRetainsPersistenceRejection(bool reject,bool wrongId)
+    [DataRow(false,false,false)] [DataRow(true,false,false)] [DataRow(false,true,false)] [DataRow(false,false,true)]
+    public async Task PreparedProcessWaitsForParentAndRetainsPersistenceRejection(bool reject,bool wrongId,bool cancel)
     {
         await WithProcessFixture(async provider=>{
             var backend=typeof(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase)
                 .GetProperty("Backend",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.GetValue(provider)!;
             var client=backend.GetType().GetProperty("Client",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Public)!.GetValue(backend)!;
             var calls=0;var failure=new InvalidOperationException("controlled durable persistence rejection");
+            using var cancellation=new CancellationTokenSource();
+            if(cancel)cancellation.CancelAfter(TimeSpan.FromSeconds(1));
             using var server=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer((evidence,_)=>{
                 calls++;Assert.AreEqual(new string('1',32),evidence.GetProperty("transactionHash").GetString());
                 return reject?Task.FromException(failure):Task.CompletedTask;
             });
             var operation=(Task<System.Text.Json.JsonElement>)client.GetType().GetMethod("InvokePreparedAsync",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!
-                .Invoke(client,new object[]{"put",new{mode=wrongId?"prepared-wrong-id":"prepared"},server,CancellationToken.None})!;
-            if(reject)Assert.AreSame(failure,await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>operation));
+                .Invoke(client,new object[]{"put",new{mode=cancel?"prepared-hold":wrongId?"prepared-wrong-id":"prepared"},server,cancellation.Token})!;
+            if(cancel){var cancelled=await Assert.ThrowsExceptionAsync<SuiNativeMutationCanceledException>(()=>operation);Assert.AreEqual(new string('1',32),cancelled.OriginalTransactionId);Assert.AreEqual(cancellation.Token,cancelled.CancellationToken);}
+            else if(reject)Assert.AreSame(failure,await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>operation));
             else if(wrongId) {
                 var mismatch=await Assert.ThrowsExceptionAsync<SuiNativeMutationReconciliationException>(()=>operation);
                 Assert.AreEqual(new string('1',32),mismatch.OriginalTransactionId);Assert.IsNull(mismatch.ExecutionSucceeded);
