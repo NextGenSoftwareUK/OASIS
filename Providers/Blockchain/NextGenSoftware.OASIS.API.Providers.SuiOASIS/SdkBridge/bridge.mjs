@@ -23,6 +23,18 @@ export function verifiedHistoryTransaction(tx, digest) {
   return tx;
 }
 
+export function historyScanComplete(reason, coveredCheckpoint, targetCheckpoint) {
+  // QueryEnd's ledger tip is the indexed tip, not necessarily the committed tip.
+  if (reason === 3 || reason === 5) {
+    if (typeof coveredCheckpoint !== 'bigint' || coveredCheckpoint < targetCheckpoint)
+      throw new Error('Sui history index has not covered the fixed committed checkpoint');
+    return true;
+  }
+  // This query sets no exclusive cursor bound, so CURSOR_BOUND cannot prove completion.
+  if (reason !== 1 && reason !== 2) throw new Error('Sui history stream returned an unexpected terminal reason');
+  return false;
+}
+
 export function nativeFeeReceipt(tx, digest) {
   if (!tx || tx.digest !== digest || typeof tx.status?.success !== 'boolean'
       || tx.effects?.transactionDigest !== digest || tx.checkpoint == null || tx.timestampMs == null
@@ -169,10 +181,12 @@ export async function invoke(request) {
     do {
       let cursor;
       let end;
+      let coveredCheckpoint;
       const call = client.ledgerService.listTransactions({ filter, endCheckpoint: info.checkpointHeight + 1n,
         readMask: { paths: ['digest'] }, options: { limit: 50, ordering: 0, after } });
       for await (const frame of call.responses) {
         if (frame.watermark?.cursor) cursor = frame.watermark.cursor;
+        if (frame.watermark?.checkpoint !== undefined) coveredCheckpoint = frame.watermark.checkpoint;
         if (frame.end) end = frame.end.reason;
         if (!frame.transaction) continue;
         const digest = frame.transaction.digest;
@@ -181,6 +195,8 @@ export async function invoke(request) {
         const fetched = await client.getTransaction({ digest,
           include: { effects: true, balanceChanges: true, transaction: true, objectTypes: true } });
         const tx = verifiedHistoryTransaction(fetched.Transaction ?? fetched.FailedTransaction, digest);
+        if (BigInt(tx.checkpoint) > info.checkpointHeight)
+          throw new Error('Sui history receipt exceeds the fixed committed checkpoint');
         const balances = tx.balanceChanges.filter(change => change.address === walletAddress);
         for (const change of balances) {
           if (!decimals.has(change.coinType)) {
@@ -198,8 +214,8 @@ export async function invoke(request) {
           amountUnits: '0', decimals: 0, coinType: null, recipients: [], timestampMs: tx.timestampMs,
           success: tx.status.success, objectChanges: tx.effects.changedObjects.map(item => item.objectId) });
       }
-      if ([3, 4, 5].includes(end)) return records;
-      if (![1, 2].includes(end) || !cursor) throw new Error('Sui history stream returned no valid terminal cursor');
+      if (historyScanComplete(end, coveredCheckpoint, info.checkpointHeight)) return records;
+      if (!cursor) throw new Error('Sui history stream returned no valid terminal cursor');
       const encoded = Buffer.from(cursor).toString('base64');
       if (cursors.has(encoded)) throw new Error('Sui returned a non-advancing history cursor');
       cursors.add(encoded);
