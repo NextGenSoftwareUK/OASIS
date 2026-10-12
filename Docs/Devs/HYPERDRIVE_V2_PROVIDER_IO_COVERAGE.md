@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Current direct TRON SDK lifecycle regression (2026-10-12)
+
+Rebuilt existing integration project against current provider output (zero errors/two warnings), resumed retained TRE node, and executed `TronLocalSdkTests`: **9/9**, zero skips, 16 seconds (`TestResults/TronRuntime/tron-local-sdk-current.trx`). Covers storage version/list/rename behavior, shared native token-send signing rejection, retained account-creation receipt/history, real NFT escrow unauthorized withdrawal with failed-history receipt projection, NFT mint/transfer/discovery/burn, provider and encrypted-store reopen, signed contract storage, and native SDK transfer/solidified receipt. Account creation reuses its persisted public transaction ID rather than recreating the account. This does not include live AccountUpdateContract, TronGrid paged indexer, all native contract types or hosted API. Runtime paused afterward, ledger retained; no install/download/reset.
+
 ### TRON paged history ordering integrity (2026-10-12)
 
 The shared TronGrid native/TRC20 reader now verifies nondecreasing block_timestamp across records and page boundaries, matching its ascending-order request. Reversed history fails rather than returning partial/misordered data; equal timestamps remain valid because multiple transactions can share a block. Added four native/token within/across-page rejection tests and one equal-timestamp acceptance test. Provider build zero errors/23 warnings; full unit suite **183/183**, zero skips (`tron-unit-current.trx`). Evidence is controlled HTTP responses, not live TronGrid/public indexer completeness or remaining native-contract mapping proof. No runtime/install/download/ledger mutation; real native history gaps stay open.
