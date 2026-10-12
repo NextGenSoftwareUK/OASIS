@@ -11,7 +11,8 @@ public class HederaPreparationTests
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     [DataRow(false,true)] [DataRow(true,true)]
-    public async Task SignedEscrowStagesPersistExactEvidenceWithDistinctCorrelations(bool skipApproval,bool fungible=false)
+    [DataRow(false,false,true)] [DataRow(false,true,true)]
+    public async Task SignedEscrowStagesPersistExactEvidenceWithDistinctCorrelations(bool skipApproval,bool fungible=false,bool rejectMutation=false)
     {
         var bridge=Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE")??Path.Combine(AppContext.BaseDirectory,"HederaSdkBridge","bridge.mjs");
         var start=new ProcessStartInfo("node"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true,WorkingDirectory=Path.GetDirectoryName(bridge)};
@@ -28,12 +29,14 @@ public class HederaPreparationTests
               ?[tokenEscrowApprovalTransaction(request),tokenEscrowTransaction('tokenEscrowLock',request)]
               :[escrowApprovalTransaction(request),escrowTransaction('nftEscrowLock',request)];
             for(const tx of stages){
-              tx.setNodeAccountIds([AccountId.fromString('0.0.3')]).freeze();const signed=await tx.sign(key);
+              tx.setNodeAccountIds([AccountId.fromString('0.0.3')]).freeze();
+              const signed=await tx.sign(process.argv[2]==='reject'&&evidence.length===1?PrivateKey.generateECDSA():key);
               evidence.push({transactionHash:tx.transactionId.toString(),sender:request.sender,chainId:'offline-test',signedTransactionBase64:Buffer.from(signed.toBytes()).toString('base64')});
             }
             process.stdout.write(JSON.stringify({publicKey:key.publicKey.toStringDer(),evidence}));
             """);
         start.ArgumentList.Add(fungible?"token":"nft");
+        start.ArgumentList.Add(rejectMutation?"reject":"accept");
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(20));
         using var child=Process.Start(start)??throw new InvalidOperationException("Cannot start retained SDK.");
         const string connection="mongodb://127.0.0.1:27017/?serverSelectionTimeoutMS=3000";
@@ -50,17 +53,27 @@ public class HederaPreparationTests
             using var server=new HashgraphOASIS().CreateEscrowPreparationServer(execution,"escrow","offline-test","0.0.1001",
                 signed.RootElement.GetProperty("publicKey").GetString()!,evidence[0].GetProperty("transactionHash").GetString()!,evidence[1].GetProperty("transactionHash").GetString()!);
             var serving=server.ServeAsync(deadline.Token);
+            long approvalBytes=0;
             for(var stage=skipApproval?1:0;stage<2;stage++){
                 using var pipe=new System.IO.Pipes.NamedPipeClientStream(".",server.Endpoint.Substring(server.Endpoint.LastIndexOf('\\')+1),System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous);
                 await pipe.ConnectAsync(deadline.Token);
                 await pipe.WriteAsync(System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new{protocol="oasis.native-preparation.v1",evidence=evidence[stage]})+"\n"),deadline.Token);
                 await pipe.FlushAsync(deadline.Token);using var reader=new StreamReader(pipe);
+                if(rejectMutation&&stage==1){
+                    await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>serving);
+                    Assert.IsNull(await reader.ReadLineAsync(deadline.Token));
+                    var rejected=await store.GetAsync(execution.OperationId,deadline.Token);
+                    Assert.AreEqual(1,rejected.ProviderAttempts.Count);Assert.AreEqual(approvalBytes,rejected.NativePreparationBytes);
+                    Assert.AreEqual(evidence[0].GetProperty("transactionHash").GetString(),server.PreparedTransactionId);
+                    Assert.AreEqual(1,server.PreparedTransactionIds.Count);break;
+                }
                 using var ack=JsonDocument.Parse(await reader.ReadLineAsync(deadline.Token)??throw new InvalidOperationException("Missing acknowledgement."));
                 Assert.AreEqual(evidence[stage].GetProperty("transactionHash").GetString(),ack.RootElement.GetProperty("transactionHash").GetString());
                 var current=await store.GetAsync(execution.OperationId,deadline.Token);
                 Assert.AreEqual(stage+1-(skipApproval?1:0),current.ProviderAttempts.Count);
+                if(stage==0)approvalBytes=current.NativePreparationBytes;
             }
-            await serving;var stored=await store.GetAsync(execution.OperationId,deadline.Token);
+            if(!rejectMutation)await serving;var stored=await store.GetAsync(execution.OperationId,deadline.Token);
             for(var index=0;index<stored.ProviderAttempts.Count;index++){
                 var stage=index+(skipApproval?1:0);var attempt=stored.ProviderAttempts[index];
                 Assert.AreEqual(stage==0?"escrow:approval":"escrow:mutation",attempt.ClientRequestId);
