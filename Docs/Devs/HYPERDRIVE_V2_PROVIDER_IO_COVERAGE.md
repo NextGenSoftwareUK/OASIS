@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Cosmos contract execution receipt integrity (2026-10-12)
+
+SDK bridge put/delete/execute now validates returned transaction hash (64 hex) and committed positive safe-integer height before projecting success. Malformed height with valid hash retains that original identity in the explicit reconciliation error; missing/malformed hashes cannot fabricate success. SDK already throws execution failures; this check validates the successful result shape, not an independent consensus lookup. Eight added result-contract tests cover preserved valid result, missing/zero/negative/string/fractional/unsafe height and bad hashes. Existing pinned SDK tests **19/19**, zero skips; provider bounded build zero errors/two warnings; C# units **39/39**, zero skips (`cosmos-unit-current.trx`). No install/download/runtime startup/ledger mutation. Current real Cosmos runtime/deployment and full interface gates remain unresolved; pure result validation is not live policy proof.
+
 ### Current direct TRON SDK lifecycle regression (2026-10-12)
 
 Rebuilt existing integration project against current provider output (zero errors/two warnings), resumed retained TRE node, and executed `TronLocalSdkTests`: **9/9**, zero skips, 16 seconds (`TestResults/TronRuntime/tron-local-sdk-current.trx`). Covers storage version/list/rename behavior, shared native token-send signing rejection, retained account-creation receipt/history, real NFT escrow unauthorized withdrawal with failed-history receipt projection, NFT mint/transfer/discovery/burn, provider and encrypted-store reopen, signed contract storage, and native SDK transfer/solidified receipt. Account creation reuses its persisted public transaction ID rather than recreating the account. This does not include live AccountUpdateContract, TronGrid paged indexer, all native contract types or hosted API. Runtime paused afterward, ledger retained; no install/download/reset.
