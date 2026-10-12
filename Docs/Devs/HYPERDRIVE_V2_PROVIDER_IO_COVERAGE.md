@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Current WEB4 host rebuild/recheck (2026-10-11)
+
+Current host source builds successfully with **0 errors/253 warnings**, bounded workers, `--no-restore` and `BuildProjectReferences=false`. Initial compilation found a missing entire `Microsoft.CodeAnalysis.Analyzers/3.3.3` cache directory; inspected its absence, then restored this host only with `--no-dependencies --force` instead of disabling analyzers or duplicating the environment. Rebuilt-host HyperDrive unit suite **16/16** and HTTP read/auth suite **9/9**, zero skips (`web4-hyperdrive-current.trx`, `web4-hyperdrive-http-auth.trx`). This supersedes the retained-host-DLL caveat for host source itself, but referenced dependencies were reused: full publish/image dependency parity, successful real JWT avatar lookup, live provider API and complete routes remain open. Free disk before/after: 114,954,682,368 / 114,794,913,792 bytes. Existing runtime/dependencies retained for reuse; no ledger mutation/deployment/merge.
+
 ### JWT identity ambiguity regressions (2026-10-11)
 
 Actual signed JWT suite now passes **12/12**, zero skips (`web4-jwt-crypto.trx`), adding missing/duplicate avatar ID, duplicate subject, conflicting subject alias and future not-before cases. Duplicate reserved `sub` serializes as an array and is rejected by the installed parser as `ArgumentException`; the initial test expected only `SecurityTokenException`, then was corrected to the exact parser behavior already handled by middleware. No production JWT policy was relaxed. This is cryptographic/identity boundary evidence, not successful authenticated avatar storage lookup or live provider/API verification. Existing build/cache reused; no install/download or ledger mutation.
