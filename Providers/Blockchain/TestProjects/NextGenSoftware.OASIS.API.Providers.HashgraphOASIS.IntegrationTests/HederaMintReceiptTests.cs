@@ -21,6 +21,26 @@ public class HederaMintReceiptTests
         var method=typeof(HashgraphOASIS).GetMethod("ApplyHederaMintReceipt",BindingFlags.Static|BindingFlags.NonPublic)!;
         var error=Assert.ThrowsException<TargetInvocationException>(()=>method.Invoke(null,new object[] {response,receipt.RootElement,Id,2}));
         Assert.AreEqual(Id,response.TransactionResult);StringAssert.Contains(error.InnerException!.Message,"reconcile");
+        Assert.IsInstanceOfType<HederaNativeMutationReconciliationException>(error.InnerException);
+        var evidence=(HederaNativeMutationReconciliationException)error.InnerException;
+        Assert.AreEqual(Id,evidence.OriginalTransactionId);Assert.AreEqual("SUCCESS",evidence.Evidence.NativeStatus);
+        Assert.AreEqual("mint-receipt-validation",evidence.Evidence.Stage);Assert.IsNotNull(evidence.InnerException);
+        Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(evidence));
+    }
+
+    [DataTestMethod]
+    [DataRow("{}")] [DataRow("{\"status\":\"FAIL_INVALID\",\"transactionId\":\"foreign\"}")]
+    [DataRow("{\"status\":\"SUCCESS\",\"transactionId\":\"foreign\"}")]
+    public void UnverifiedMintReceiptFencesOriginalWithoutInventingSuccess(string json)
+    {
+        using var receipt=JsonDocument.Parse(json);var response=new Web3NFTTransactionResponse();
+        var method=typeof(HashgraphOASIS).GetMethod("ApplyHederaMintReceipt",BindingFlags.Static|BindingFlags.NonPublic)!;
+        var error=Assert.ThrowsException<TargetInvocationException>(()=>method.Invoke(null,new object[]{response,receipt.RootElement,Id,2}));
+        Assert.IsInstanceOfType<HederaNativeMutationReconciliationException>(error.InnerException);
+        var evidence=(HederaNativeMutationReconciliationException)error.InnerException!;
+        Assert.AreEqual(Id,evidence.OriginalTransactionId);Assert.IsNull(evidence.Evidence.NativeStatus);
+        Assert.IsNull(response.TransactionResult);Assert.IsNotNull(evidence.InnerException);
+        Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(evidence));
     }
 
     [TestMethod]
