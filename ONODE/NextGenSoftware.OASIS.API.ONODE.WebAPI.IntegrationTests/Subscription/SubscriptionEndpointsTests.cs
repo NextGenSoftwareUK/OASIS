@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
     /// Subscription services and repositories are replaced with mocks so no OASIS storage layer is required.
     /// To run tests against the real Railway stack instead, set ONODE_BASE_URL and skip these tests.
     /// </summary>
-    public class SubscriptionEndpointsTests : IClassFixture<SubscriptionWebAppFactory>
+    public partial class SubscriptionEndpointsTests : IClassFixture<SubscriptionWebAppFactory>
     {
         private readonly HttpClient _client;
         private readonly HttpClient _authenticatedClient;
