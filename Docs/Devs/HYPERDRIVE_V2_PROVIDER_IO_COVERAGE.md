@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera MSTest project real activation contract audit — 2026-10-12
+
+Corrected historical tests assuming unconfigured provider activates: actual implementation must error/remain inactive without signing/storage configuration. Deactivation test now explicitly covers already-inactive unconfigured provider, not funded active shutdown. Entire MSTest project **20/20**, zero skips, `TestResults/PriorityProviderCurrent/hedera-mstest-current.trx`, including preparation cases; existing nullable test-field warning remains. This is distinct from older 244-case separate regression evidence; do not add counts or claim funded activation.
+
+Same read-only WSL inspection remains live (Windows PIDs 3128/11588), service running, no outcome inferred. Funded/live/deployed and full permission/admission/recovery gates remain open. Existing Mongo/SDK reused, owned database cleaned; no installs, submissions or release merge.
+
 ### TRON prepared permission authority gap is fail-closed — 2026-10-12
 
 Prepared verifier now explicitly rejects nonzero contract permission IDs: current trusted-owner single-key proof must not masquerade as active/multisig on-chain permission authority. Actual signed nonzero-permission case rejects; entire unit project **212/212**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`; build 0 errors/21 existing warnings. Full active-permission support remains a required gap, not considered completed by rejection.
