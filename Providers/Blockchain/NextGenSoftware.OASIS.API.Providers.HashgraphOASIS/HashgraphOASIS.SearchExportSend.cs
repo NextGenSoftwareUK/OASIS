@@ -255,36 +255,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<ITransactionResponse>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
-                }
-
-                var transactionData = new HashgraphTransactionData
-                {
-                    FromAddress = fromWalletAddress,
-                    ToAddress = toWalletAddress,
-                    Amount = amount,
-                    Memo = memoText
-                };
-
-                var hashgraphClient = new HashgraphClient();
-                var transactionResult = await hashgraphClient.SendTransactionAsync(transactionData);
-
-                if (transactionResult != null)
-                {
-                    result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
-                    {
-                        TransactionResult = transactionResult.TransactionId ?? "Hashgraph transaction sent successfully"
-                    };
-                    result.IsError = false;
-                    result.Message = "Hashgraph transaction sent successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to send Hashgraph transaction");
-                }
+                if (string.IsNullOrWhiteSpace(_rawTransferAccountId) || _rawTransferSigningKey == null)
+                    throw new InvalidOperationException("Raw-address transfers require an explicitly configured sender account and signing-key resolver; use avatar-wallet or explicit-key SendToken for other senders.");
+                if (!string.Equals(fromWalletAddress, _rawTransferAccountId, StringComparison.Ordinal))
+                    throw new ArgumentException("Requested sender does not match the configured raw-transfer signing account.");
+                return await SendTokenAsync(new SendWeb3TokenRequest { FromWalletAddress = fromWalletAddress,
+                    ToWalletAddress = toWalletAddress, Amount = amount, MemoText = memoText,
+                    FromTokenAddress = "HBAR", OwnerPrivateKey = _rawTransferSigningKey() });
             }
             catch (Exception ex)
             {
