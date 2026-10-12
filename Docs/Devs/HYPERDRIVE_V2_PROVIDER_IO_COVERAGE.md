@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Live TRON read failover after actual SDK transport closure — 2026-10-12
+
+After healthy read/distribution checks, the read-only harness enables Gold V2 failover, activates TRON as current provider, closes the actual runtime channels, and proves synchronous and asynchronous `LoadAvatar` requests succeed through LocalFile with `LastFailoverDiagnostic.SelectedProvider=LocalFileOASIS`. The original native fence and records are untouched. Runtime disposal is now idempotent so deliberate transport closure and subsequent owned cleanup do not shut the same channels twice.
+
+Live integration **1/1** passed (`TestResults/TronRuntime/tron-original-fixture-readback.trx`); complete TRON unit suite **234/234** passed, no skips (`TestResults/PriorityProviderCurrent/tron-current.trx`). Provider build passed with existing warnings. Same container paused afterward. This proves closed-transport read failover, not paused-node failover, safe native-mutation replay, full replication or every interface. No ledger writes, new installs, deployment or merge.
+
 ### Live TRON performance and Free selector exclusion — 2026-10-12
 
 Extended the same read-only fixture to assert V2 Performance chooses the provider with the lower actual measured read duration, records exactly one request there and returns its authoritative avatar result. After Gold round-robin checks, Free DNA configuration excludes TRON across RoundRobin, WeightedRoundRobin, LeastConnections, Geographic and Performance in both synchronous and asynchronous reads: candidates contain only LocalFile and TRON's request count does not increase. Live integration **1/1** passed with zero skips (`TestResults/TronRuntime/tron-original-fixture-readback.trx`). Existing container unpaused only for reads then paused again, with no ledger mutations, installs or replay. This is configured-DNA selection evidence, not hosted subscription admission, weighted/concurrent/geographic distribution between permitted providers, replication/failover, or resolution of the original transaction. Those gates remain open.

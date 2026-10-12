@@ -94,6 +94,17 @@ public sealed class TronRealProviderRoutingTests
                     }
                 }
                 manager.PerformanceMonitor.GetMetrics(ProviderType.TRONOASIS).TotalRequests.Should().Be(excludedBefore);
+                dna.OASIS.SubscriptionConfig.PlanType="Gold";
+                manager.IsAutoLoadBalanceEnabled=false;manager.IsAutoFailOverEnabled=true;
+                manager.SetAndReplaceAutoFailOverListForProviders(new[]{new EnumValue<ProviderType>(ProviderType.TRONOASIS),new EnumValue<ProviderType>(ProviderType.LocalFileOASIS)}).IsError.Should().BeFalse();
+                manager.SetAndActivateCurrentStorageProvider(tron).IsError.Should().BeFalse();
+                await runtime.DisposeAsync();
+                foreach(var asynchronous in new[]{false,true}){
+                    var request=new StorageOperationRequest{Operation="LoadAvatar",AvatarId=id,PreferredProvider=ProviderType.TRONOASIS};
+                    var read=asynchronous?await router.RouteRequestAsync<IAvatar>(request):router.RouteRequest<IAvatar>(request);
+                    read.IsError.Should().BeFalse(read.Message);(read.Result?.Id).Should().Be(localAvatar.Result?.Id);
+                    manager.LastFailoverDiagnostic.SelectedProvider.Should().Be(ProviderType.LocalFileOASIS);
+                }
             }finally{await local.DeActivateProviderAsync();}
             File.Exists(Path.Combine(root,"pending-native-outcome.json")).Should().BeTrue();
         }finally{await tron.DeActivateProviderAsync();}
