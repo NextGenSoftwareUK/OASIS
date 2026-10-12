@@ -10,6 +10,27 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 public class CosmosWalletHistoryProjectionTests
 {
     [DataTestMethod]
+    [DataRow("hash", "fabricated")]
+    [DataRow("amountUnits", "-1")]
+    [DataRow("amountUnits", "01")]
+    [DataRow("amountUnits", "1.5")]
+    [DataRow("denom", "other")]
+    [DataRow("from", "")]
+    public void MalformedIndexerRowIsNotProjectedAsSuccess(string field, string value)
+    {
+        var row = new System.Collections.Generic.Dictionary<string,object> {
+            ["hash"] = new string('a',64), ["messageIndex"] = 0, ["code"] = 0,
+            ["from"] = "sender", ["to"] = "recipient", ["amountUnits"] = "1",
+            ["denom"] = "uatom", ["time"] = "2026-10-12T00:00:00Z", ["memo"] = "fixture" };
+        row[field] = value;
+        using var json = JsonDocument.Parse(JsonSerializer.Serialize(row));
+        using var provider = new CosmosBlockChainOASIS();
+        var method = typeof(CosmosBlockChainOASIS).GetMethod("MapIndexedWalletTransaction",BindingFlags.Instance|BindingFlags.NonPublic)!;
+        var error = Assert.ThrowsException<TargetInvocationException>(() => method.Invoke(provider,new object[] {json.RootElement,"sender"}));
+        Assert.IsInstanceOfType<InvalidOperationException>(error.InnerException);
+    }
+
+    [DataTestMethod]
     [DataRow(0)]
     [DataRow(5)]
     public void NativeHistoryPreservesExactUnitsAndBothDirections(int code)
