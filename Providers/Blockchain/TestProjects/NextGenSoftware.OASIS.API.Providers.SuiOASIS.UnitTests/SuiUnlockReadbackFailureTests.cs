@@ -6,6 +6,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class SuiUnlockReadbackFailureTests
 {
+    [DataTestMethod]
+    [DataRow("valid")] [DataRow("rejected")]
+    public async Task OriginalPreparationVerifierRequiresExplicitMatchingSdkAcknowledgement(string mode)
+    {
+        await WithProcessFixture(async provider=>{
+            using var document=System.Text.Json.JsonDocument.Parse("{\"transactionHash\":\"controlled\",\"sender\":\"controlled-sender\",\"mode\":\""+mode+"\"}");
+            if(mode=="valid")await provider.VerifyOriginalSignedPreparationAsync(document.RootElement);
+            else await Assert.ThrowsExceptionAsync<System.IO.InvalidDataException>(()=>provider.VerifyOriginalSignedPreparationAsync(document.RootElement));
+        });
+    }
+
     [TestMethod]
     public void DigestValidationRequiresExactDecodedWidthAndBase58Alphabet()
     {
