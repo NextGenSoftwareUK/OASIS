@@ -10,6 +10,15 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
 
 public partial class HashgraphOASIS
 {
+    /// <summary>Single-stage native preparation; caller supplies admission and independently trusted signer context.</summary>
+    public async Task<JsonElement> ExecutePreparedNativeAsync(string action,object request,UsageExecutionHandle execution,
+        string clientRequestId,string expectedNetwork,string expectedSender,string expectedPublicKey,CancellationToken token=default)
+    {
+        token.ThrowIfCancellationRequested();
+        using var server=CreateNativePreparationServer(execution,clientRequestId,expectedNetwork,expectedSender,expectedPublicKey);
+        return await HederaSdkClient.InvokePreparedAsync(action,request,server,token);
+    }
+
     /// <summary>Caller must supply a public key independently authorised for the expected account.</summary>
     public PreparedSubmissionServer CreateNativePreparationServer(UsageExecutionHandle execution,
         string clientRequestId, string expectedNetwork, string expectedSender, string expectedPublicKey)
