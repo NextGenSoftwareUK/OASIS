@@ -1,7 +1,17 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { invoke, publicationArtifacts } from './bridge.mjs';
+import { invoke, publicationArtifacts, verifiedHistoryTransaction } from './bridge.mjs';
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
+
+test('history requires original digest and explicit outcome while preserving failed execution', () => {
+  const tx = {digest:'original',status:{success:false},transaction:{sender:'owner'},timestampMs:1,effects:{},balanceChanges:[]};
+  assert.equal(verifiedHistoryTransaction(tx,'original'),tx);
+  assert.throws(() => verifiedHistoryTransaction(tx,'different'), /mismatched/);
+  for (const status of [undefined,{}, {success:'false'}])
+    assert.throws(() => verifiedHistoryTransaction({...tx,status},'original'), /incomplete/);
+  for (const timestampMs of [null,undefined])
+    assert.throws(() => verifiedHistoryTransaction({...tx,timestampMs},'original'), /incomplete/);
+});
 
 test('publication parses Move objects without treating package as a struct tag', () => {
   const packageId = '0x' + 'a'.repeat(64);

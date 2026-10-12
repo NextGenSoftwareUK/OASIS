@@ -13,6 +13,13 @@ function wallet(keypair) {
   return { privateKey: keypair.getSecretKey(), publicKey: keypair.getPublicKey().toBase64(), address: keypair.toSuiAddress() };
 }
 
+export function verifiedHistoryTransaction(tx, digest) {
+  if (!tx || tx.digest !== digest || typeof tx.status?.success !== 'boolean'
+      || !tx.transaction?.sender || tx.timestampMs == null || !tx.effects || !Array.isArray(tx.balanceChanges))
+    throw new Error('Sui returned mismatched or incomplete checkpointed wallet history');
+  return tx;
+}
+
 const Storage = bcs.struct('Storage', {
   id: bcs.Address, owner: bcs.Address,
   values: bcs.struct('Table', { id: bcs.Address, size: bcs.u64() }),
@@ -150,9 +157,7 @@ export async function invoke(request) {
         digests.add(digest);
         const fetched = await client.getTransaction({ digest,
           include: { effects: true, balanceChanges: true, transaction: true, objectTypes: true } });
-        const tx = fetched.Transaction ?? fetched.FailedTransaction;
-        if (!tx?.transaction?.sender || tx.timestampMs === null || !tx.effects || !Array.isArray(tx.balanceChanges))
-          throw new Error('Sui returned incomplete checkpointed wallet history');
+        const tx = verifiedHistoryTransaction(fetched.Transaction ?? fetched.FailedTransaction, digest);
         const balances = tx.balanceChanges.filter(change => change.address === walletAddress);
         for (const change of balances) {
           if (!decimals.has(change.coinType)) {
