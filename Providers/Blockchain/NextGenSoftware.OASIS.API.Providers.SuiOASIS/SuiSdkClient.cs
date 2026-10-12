@@ -68,7 +68,30 @@ internal sealed class SuiSdkClient : IDisposable
                 throw new InvalidOperationException($"Sui SDK exited {process.ExitCode} without a response: {await error}");
             using var envelope = JsonDocument.Parse(response);
             if (process.ExitCode != 0 || !envelope.RootElement.GetProperty("ok").GetBoolean())
+            {
+                if (envelope.RootElement.TryGetProperty("nativeMutation", out var mutation))
+                {
+                    if (!envelope.RootElement.TryGetProperty("error", out var errorMessage) || errorMessage.ValueKind != JsonValueKind.String)
+                        throw new SuiNativeMutationReconciliationException("Malformed Sui native mutation error envelope; reconcile submission before retrying.", null, null,
+                            new InvalidDataException("Native mutation error envelope requires a string error message."));
+                    var message = errorMessage.GetString();
+                    string transactionHash = null;
+                    bool? executionSucceeded = null;
+                    try
+                    {
+                        transactionHash = mutation.GetProperty("transactionHash").GetString();
+                        var status = mutation.GetProperty("executionSucceeded");
+                        executionSucceeded = status.ValueKind == JsonValueKind.Null ? null : status.GetBoolean();
+                    }
+                    catch (Exception ex) when (ex is InvalidOperationException || ex is KeyNotFoundException)
+                    {
+                        // Declared mutation evidence cannot become retryable when its schema is malformed.
+                        throw new SuiNativeMutationReconciliationException(message, transactionHash, null, ex);
+                    }
+                    throw new SuiNativeMutationReconciliationException(message, transactionHash, executionSucceeded);
+                }
                 throw new InvalidOperationException(envelope.RootElement.GetProperty("error").GetString());
+            }
             return envelope.RootElement.GetProperty("result").Clone();
         }
         catch (OperationCanceledException)

@@ -92,18 +92,32 @@ async function storageInfo(client, request) {
   return Storage.parse(object.content);
 }
 
+export class NativeMutationReconciliationError extends Error {
+  constructor(message, transactionHash, executionSucceeded, cause) {
+    super(message, cause ? { cause } : undefined);
+    this.nativeMutation = { transactionHash: transactionHash ?? null, executionSucceeded };
+  }
+}
+
+export function sdkErrorEnvelope(error) {
+  return { ok: false, error: error.message,
+    ...(error instanceof NativeMutationReconciliationError ? { nativeMutation: error.nativeMutation } : {}) };
+}
+
 export async function execute(client, tx, signer, include = {}) {
   tx.setSender(signer.toSuiAddress());
   const response = await client.signAndExecuteTransaction({ transaction: tx, signer, include: { effects: true, ...include } });
-  if (response.FailedTransaction) {
+  if (response?.FailedTransaction) {
     const failed = response.FailedTransaction;
-    throw new Error(`Sui execution failed for original transaction ${failed.digest ?? '(digest unavailable)'}: ${JSON.stringify(failed.status)}. Reconcile this transaction before any retry.`);
+    throw new NativeMutationReconciliationError(`Sui execution failed for original transaction ${failed.digest ?? '(digest unavailable)'}: ${JSON.stringify(failed.status)}. Reconcile this transaction before any retry.`, failed.digest, failed.status?.success === false ? false : null);
   }
-  if (!response.Transaction?.digest) throw new Error('Sui SDK returned no successful transaction digest');
+  if (!response?.Transaction?.digest) throw new NativeMutationReconciliationError('Sui SDK returned no successful transaction digest; reconcile submission before any retry.', null, null);
+  if (response.Transaction.status?.success !== true)
+    throw new NativeMutationReconciliationError(`Sui original transaction ${response.Transaction.digest} lacks an explicit successful execution outcome; reconcile submission before any retry.`, response.Transaction.digest, response.Transaction.status?.success === false ? false : null);
   try {
     await client.waitForTransaction({ digest: response.Transaction.digest });
   } catch (error) {
-    throw new Error(`Sui execution returned original transaction ${response.Transaction.digest} but transaction readback failed: ${error.message}. Reconcile this transaction before any retry.`, { cause: error });
+    throw new NativeMutationReconciliationError(`Sui execution returned original transaction ${response.Transaction.digest} but transaction readback failed: ${error.message}. Reconcile this transaction before any retry.`, response.Transaction.digest, true, error);
   }
   return response.Transaction;
 }
@@ -116,7 +130,7 @@ export function publicationArtifacts(committed) {
   const registrationId = Object.entries(committed.objectTypes).find(([, type]) => type !== 'package'
     && normalizeStructTag(type) === normalizeStructTag(`0x2::coin_registry::Currency<${coinType}>`))?.[0];
   if (!packageId || !storageId || !currencyObjectId || !registrationId)
-    throw new Error(`Publication ${committed.digest} committed but required OASIS objects were absent`);
+    throw new NativeMutationReconciliationError(`Publication ${committed.digest} committed but required OASIS objects were absent`, committed.digest, true);
   return { packageAddress: packageId, storageObjectId: storageId, currencyObjectId, coinType, registrationId };
 }
 
@@ -237,7 +251,7 @@ export async function invoke(request) {
       tx.moveCall({ target: `${request.packageAddress}::nft::mint`, arguments: [tx.pure.string(request.metadata[i]), tx.pure.address(request.recipient)] });
     const committed = await execute(client, tx, signer, { objectTypes: true });
     const tokenIds = Object.entries(committed.objectTypes).filter(([, type]) => type === `${normalizeSuiAddress(request.packageAddress)}::nft::NFT`).map(([id]) => id);
-    if (tokenIds.length !== request.count) throw new Error(`Mint ${committed.digest} committed but returned an unexpected NFT object count`);
+    if (tokenIds.length !== request.count) throw new NativeMutationReconciliationError(`Mint ${committed.digest} committed but returned an unexpected NFT object count`, committed.digest, true);
     return { transactionHash: committed.digest, tokenIds, recipient: normalizeSuiAddress(request.recipient) };
   }
   if (['nftEscrowGet', 'nftUnlock'].includes(request.operation)) {
@@ -449,7 +463,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const result = await invoke(JSON.parse(input));
     process.stdout.write(JSON.stringify({ ok: true, result }));
   } catch (error) {
-    process.stdout.write(JSON.stringify({ ok: false, error: error.message }));
+    process.stdout.write(JSON.stringify(sdkErrorEnvelope(error)));
     process.exitCode = 1;
   }
 }
