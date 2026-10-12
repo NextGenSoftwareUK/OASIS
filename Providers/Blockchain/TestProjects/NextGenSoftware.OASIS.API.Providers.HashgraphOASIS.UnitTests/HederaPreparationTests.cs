@@ -34,6 +34,24 @@ public class HederaPreparationTests
                 Environment.SetEnvironmentVariable("OASIS_NATIVE_PREPARATION_PIPE","controlled-unrelated-pipe");
                 Environment.SetEnvironmentVariable("OASIS_NATIVE_PREPARATION_MODULE","controlled-unrelated-module");
                 await provider.VerifyOriginalSignedPreparationAsync(signed.RootElement.GetProperty("preparation"),signed.RootElement.GetProperty("publicKey").GetString()!,deadline.Token);
+                var verified=0;
+                using var server=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer(async(evidence,token)=>{
+                    await provider.VerifyOriginalSignedPreparationAsync(evidence,signed.RootElement.GetProperty("publicKey").GetString()!,token);
+                    verified++;
+                });
+                var serving=server.ServeAsync(deadline.Token);
+                using(var pipe=new System.IO.Pipes.NamedPipeClientStream(".",server.Endpoint.Substring(server.Endpoint.LastIndexOf('\\')+1),System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous)){
+                    await pipe.ConnectAsync(deadline.Token);
+                    var frame=System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new{protocol="oasis.native-preparation.v1",evidence=signed.RootElement.GetProperty("preparation")})+"\n");
+                    await pipe.WriteAsync(frame,deadline.Token);await pipe.FlushAsync(deadline.Token);
+                    using var reader=new StreamReader(pipe);
+                    using var ack=JsonDocument.Parse(await reader.ReadLineAsync(deadline.Token)??throw new InvalidOperationException("Parent acknowledgement absent."));
+                    Assert.IsTrue(ack.RootElement.GetProperty("persisted").GetBoolean());
+                    Assert.AreEqual(signed.RootElement.GetProperty("preparation").GetProperty("transactionHash").GetString(),ack.RootElement.GetProperty("transactionHash").GetString());
+                    Assert.AreEqual(1,verified);
+                }
+                await serving;
+                Assert.AreEqual(signed.RootElement.GetProperty("preparation").GetProperty("transactionHash").GetString(),server.PreparedTransactionId);
                 await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>provider.VerifyOriginalSignedPreparationAsync(signed.RootElement.GetProperty("preparation"),signed.RootElement.GetProperty("otherKey").GetString()!,deadline.Token));
                 Assert.AreEqual("controlled-unrelated-pipe",Environment.GetEnvironmentVariable("OASIS_NATIVE_PREPARATION_PIPE"));
             }finally{

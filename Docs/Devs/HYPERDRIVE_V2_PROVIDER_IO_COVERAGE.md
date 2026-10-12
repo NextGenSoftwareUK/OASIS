@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Real signed Hedera evidence through parent pipe verifier — 2026-10-12
+
+Actual offline Hiero-signed evidence now travels through real Windows preparation pipe; parent callback awaits official C# SDK signature verification with the independently expected public key before acknowledgement. Callback once, acknowledged and retained original IDs match. Preparation selection **2/2**, zero skips, `TestResults/PriorityProviderCurrent/hedera-preparation.trx`; existing nullable test warning remains. Callback persistence is controlled in-memory, so protocol `persisted` acknowledgement here is not Mongo durability evidence.
+
+Real outbox factory integration, rejection through pipe, actual prepared child lifecycle, stage-aware escrow and complete funded/live/deployed gates remain required. No installs, funded/consensus submissions or release merge.
+
 ### Hedera ambient preparation isolation — 2026-10-12
 
 Canonical ordinary C# invocation removes inherited preparation pipe/module variables from its child environment without changing host state. Actual signed-verifier test sets unrelated ambient values and proves verification still succeeds, unrelated key rejects and host pipe remains unchanged; settings restored in finally. Preparation selection **2/2**, zero skips, `TestResults/PriorityProviderCurrent/hedera-preparation.trx`; provider build 0 errors/2 existing warnings, test nullable warning remains.
