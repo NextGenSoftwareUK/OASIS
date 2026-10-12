@@ -22,6 +22,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui original execution identity on readback failure (2026-10-12)
+
+The shared real SDK execution helper previously let `waitForTransaction` throw an error without the digest already returned by `signAndExecuteTransaction`. It now retains that original digest in the propagated error, keeps the readback exception as its JavaScript cause, and explicitly requires reconciliation before retry. This covers every operation using this helper, not only NFT minting. No second sign/broadcast or mutation retry is introduced. Three controlled tests use the installed official SDK transaction/keypair types with a controlled client: successful execution/readback, explicit failed execution, and execution-response success followed by readback transport failure. Each asserts exactly one submission, with readback bound to the original digest when applicable. Full SDK **12/12**, zero skips. These tests do not prove a real native transport outage, durable pre-submit journaling, structured cross-process receipt transport, fee settlement or public API reconciliation. Errors before the execution response supplies a digest remain a separate unknown-outcome gate.
+
 ### Native NFT option preflight and contract audit (2026-10-12)
 
 Sui `MintNFTAsync` previously rejected nonpositive `NumberToMint` only after signing-wallet lookup, SDK key restoration and recipient-wallet resolution. Validation now precedes those operations. Three controlled cases (zero, minus one, minimum integer) use unconfigured signing/recipient avatar IDs and an unavailable RPC endpoint; each returns the intended argument error with no result or provider activation. Full Sui C# **35/35**, zero skips, `TestResults/PriorityProviderCurrent/SuiOASIS-unit-current.trx`; provider build zero errors/two warnings. No native mint was submitted for this correction; prior live positive evidence is not represented as a fresh run.
