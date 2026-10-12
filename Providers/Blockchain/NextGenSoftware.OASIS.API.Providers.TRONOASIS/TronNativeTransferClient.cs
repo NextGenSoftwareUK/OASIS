@@ -888,7 +888,7 @@ public sealed class TronNativeTransferClient
         }
         catch (Exception error) when (approvalId != null)
         {
-            throw new InvalidOperationException($"Escrow deposit failed after confirmed approval {approvalId}: {error.Message} Reconcile the original transactions and remaining allowance before retrying.", error);
+            throw new TronEscrowReconciliationException(approvalId,_genesisBlockId,error);
         }
     }
 

@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON confirmed approval always fences failed escrow — 2026-10-12
+
+Fixed another shipping retry-classification gap: token escrow's post-approval catch returned ordinary InvalidOperationException if the subsequent deposit failed before getting a mutation ID. It now returns `TronEscrowReconciliationException`, always retaining confirmed approval ID/genesis/cause and the mutation ID only when supplied by verified original-submission/readback evidence. The existing Core classifier detects its marker through aggregate wrapping, so a lack of mutation identity cannot hide the already-confirmed approval side effect.
+
+Complete TRON C# suite **250/250** passed, zero skips (`tron-current.trx`), with construction/unknown-submission/committed-readback evidence cases. Build zero errors/21 existing warnings. Full controlled escrow RPC branch and live propagation remain separate gates; no approval, deposit or network transaction was submitted. No installs, replay, deployment or merge.
+
 ### Full controlled TRON account-create/readback branch — 2026-10-12
 
 Added actual SDK/gRPC construction, signing, broadcast and confirmation through an owned loopback server with controlled protobuf responses. Successful readback returns the exact signed ID; empty, foreign-address and unavailable RPC readbacks throw the committed-readback reconciliation marker with the same ID/genesis and original cause. Every case asserts exactly one broadcast and one account readback; no mutation retry occurs. Complete TRON unit suite **247/247** passed, zero skips (`tron-current.trx`). Initial valid-case assertion evaluated the expected hash before awaiting broadcast; corrected harness ordering before the passing run.
