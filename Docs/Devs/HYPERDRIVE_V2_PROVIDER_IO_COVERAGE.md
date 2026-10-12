@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Hedera avatar-wallet token burn projection and key conflict proof (2026-10-11)
+
+`HederaBurnResolvesEncryptedDefaultAvatarWalletAndRejectsConflictingKey` passes **1/1**, zero skips (`hedera-avatar-burn.trx`), using existing WEB4 integration dependencies and real V2 WalletManager/LocalFile wallet storage. A marked default Hedera wallet after a non-default decoy is selected/decrypted; controlled Node transport checks exact sender/recipient/key/public key/token/amount/network projection and returns the original transaction ID. A conflicting supplied private key fails at provider validation, and stored key remains encrypted. Fixed owned wallet map is refused if pre-existing, cleared after execution, and bridge environment restored. Fixture is explicitly controlled transport, not an SDK signer, funded ledger or HTTP call. Initial compile errors (File namespace collision/init-only request field) were corrected before any execution. No dependency restore/install/download/new environment/network mutation/merge; funded consensus and full release gates remain open.
+
 ### Repeatable current Hedera non-funded output regression (2026-10-11)
 
 Current output suite passes **195/195**, zero skips (`TestResults/HederaCurrent/hedera-nonfunded-current.trx`), including new token-burn seed cases. Initial filter incorrectly excluded `HederaStorageTests` rather than actual `HederaTestnetStorageTests`, causing one extra funded-storage case to fail immediately at missing private-key configuration, before provider construction/network access. The corrected run explicitly excludes both funded classes; it does not convert their pending gates to passes.
