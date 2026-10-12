@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON execution-owned view reuses exact existing clients — 2026-10-12
+
+Runtime can create an explicit preparation-owned native-client view using the existing native client's wallet/transaction objects and channels, leaving ordinary client callback unchanged. Initial test exposed DI transient resolution producing different client instances; corrected factory to reuse exact existing references. Focused suite **9/9**, zero skips, `TestResults/PriorityProviderCurrent/tron-unknown-evidence.trx`; final build 0 errors/21 existing warnings. No new runtime/service container or RPC.
+
+Execution-outbox admission/callback adapter and live recovery remain open; view creation alone is not fee permission or provider activation proof. No downloads, installs, submissions or release merge.
+
 ### TRON prepared verifier malformed-evidence regression — 2026-10-12
 
 Actual signed-evidence tests now reject wrong expected original ID, noncanonical base64 whitespace, malformed trusted sender length, missing signature and invalid recovery parity. Entire unit project **202/202**, zero skips, refreshed `TestResults/PriorityProviderCurrent/tron-current.trx`. These checks augment existing correct/incorrect sender recovery; they do not prove contract owner/account permission/network/window binding.
