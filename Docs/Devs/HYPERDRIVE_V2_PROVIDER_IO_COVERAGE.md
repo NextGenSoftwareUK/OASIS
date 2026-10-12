@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### WEB4 NFT file-import denial and export malformed-input HTTP checks (2026-10-11)
+
+Expanded existing test-auth HTTP suite passes **4/4**, zero skips (`web4-nft-binding-http.trx`), retaining the nested-body and invalid-import-body cases and adding another-avatar file-import denial before manager/file access plus invalid-export-body HTTP 400. File import now returns the same HTTP 403/`AVATAR_OPERATION_FORBIDDEN` envelope as object import while preserving the existing Wizard exception. Build succeeds with zero errors/253 warnings. No server files were read/written by these negative cases. They do not establish successful persistence/export, real-JWT authorization or allowed server-path confinement; those remain distinct verification/security gates. No runtime/install/download/environment allocation/merge.
+
 ### Actual HTTP WEB4 NFT import binding and forbidden actor (2026-10-11)
 
 Existing ASP.NET authenticated test host passes **2/2**, zero skips (`web4-nft-binding-http.trx`): nested concrete Web3NFT JSON successfully binds the WEB4 import route before another-avatar authorization rejects it with HTTP 403/`AVATAR_OPERATION_FORBIDDEN`; invalid GUID JSON is rejected with HTTP 400 before the action. The import action now matches the existing WEB3 import forbidden response instead of returning an HTTP-200 error envelope, preserving its Wizard exception and stopping before manager access. WEB4 rebuild succeeds (zero errors/253 warnings). These tests use the existing test-auth handler, not real JWT/chain credentials, and deliberately do not execute import/export persistence or server-file writes. Positive real-JWT provider operations and export HTTP checks remain pending. No install/download/runtime allocation/merge.

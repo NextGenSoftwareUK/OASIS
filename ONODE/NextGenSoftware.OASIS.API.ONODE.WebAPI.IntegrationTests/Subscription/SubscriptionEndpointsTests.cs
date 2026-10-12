@@ -210,6 +210,22 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
             response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
         }
 
+        [Fact]
+        public async Task Web4NftFileImportRejectsAnotherAvatarBeforeFileAccess()
+        {
+            var response = await _authenticatedClient.PostAsync("/api/nft/import-web4-nft-from-file/22222222-2222-2222-2222-222222222222/nonexistent-owned-test-fixture.json", null);
+            response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
+            (await response.Content.ReadAsStringAsync()).Should().Contain("AVATAR_OPERATION_FORBIDDEN");
+        }
+
+        [Fact]
+        public async Task Web4NftExportRejectsMalformedBodyBeforeFileAccess()
+        {
+            var response = await _authenticatedClient.PostAsync("/api/nft/export-web4-nft",
+                new StringContent("{\"id\":\"not-a-guid\"}", Encoding.UTF8, "application/json"));
+            response.StatusCode.Should().Be(HttpStatusCode.BadRequest);
+        }
+
         [Theory]
         [InlineData("burn-token","BurntByAvatarId")]
         [InlineData("lock-token","LockedByAvatarId")]
