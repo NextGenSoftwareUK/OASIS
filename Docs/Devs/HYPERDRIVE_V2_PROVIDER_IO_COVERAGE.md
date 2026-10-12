@@ -22,6 +22,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### WEB4 and NFT orchestration compatibility refreshed against current binaries (2026-10-12)
+
+Rebuilt existing WEB4 host after current Core admission changes and TRON structured unknown-broadcast evidence: zero errors/255 warnings; full WEB4 unit **138/138, zero skips**, `TestResults/Web4Current/web4-unit-current.trx`. Rebuilt ONODE Core zero errors/154 warnings; full unit **244/244, zero skips**, 13 seconds, `TestResults/OnodeCoreCurrent/onode-core-current.trx`. SHA256 comparison proves WEB4 output's Core and TRON DLLs exactly match their latest source-project build outputs, not stale referenced copies. Current Core source pin remains `dbcfca480037e8f652fd3bc5087f0681cf1cd9ea`; controlled Core404/TRON198 checkpoints above retain precise scope.
+
+Reused checkout/cached dependencies, no restore/download/new environment/Docker image. Builds used bounded workers and existing sibling `C:\Source\OASIS\STAR ODK\NextGenSoftware.OASIS.STAR.STARDNA\NextGenSoftware.OASIS.STAR.DNA.csproj` via established StarDnaProjectPath because task STAR checkout is absent; this **does not prove exact deployed STAR dependency revision or Railway packaging**. Free C102709469184 bytes after WEB4 tests. No runtime resume, funded operation, deployment or Development merge. Mint restriction remains; actual checkout/webhook/native-fee durable reservation/settlement, Cosmos blocked runs, funded Hedera, unresolved TRON original transaction/stable memory and complete API/interface/release gates are not established by these compatibility passes.
+
 ### Historical interrupted TRON timing cannot be recovered from retained logs (2026-10-12)
 
 Read-only exact-hash search for `db05ea6d3067038a56dfc75b64d2c46c32824282e8242335ce007d1e34a415bb` found no matching record in retained `/tron/FullNode/logs/tron.log` or actual `/tron/FullNode/logs/db/db.log`. Initial database path guesses were wrong; resolved the real path inside the existing container before the authoritative search. Thus no historical signed expiry or original serialized payload is established by those logs. No inferred expiry, fee/outcome or fence clearance. Earlier RPC absence remains absence, not terminal proof.
