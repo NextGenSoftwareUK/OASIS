@@ -5,6 +5,10 @@
 
 ## Routing contract
 
+### Wallet mutation ownership HTTP reporting (2026-10-11)
+
+Burn/lock/unlock token ownership denials now return HTTP **403** with `AVATAR_OPERATION_FORBIDDEN`, not a misleading HTTP 200 error envelope; Wizard policy is unchanged. Three actual HTTP pipeline cases pass **3/3**, zero skips (`web4-wallet-token-ownership.trx`) with test-authenticated non-Wizard avatar and a different requested actor. Requests fail at the ownership guard before WalletManager/provider activation. Initial burn fixture omitted required signer properties and hit model-binding HTTP 400; supplying public test-only fields exercises the intended authorization boundary. Host source build succeeds. These tests do not prove native token operations or signer forwarding; positive blockchain mutation routes remain gates. No testnet mutation, download/install or merge.
+
 ### TRON-backed real JWT HTTP authentication (2026-10-11)
 
 Real persisted-avatar HTTP theory now includes TRON's retained encrypted storage contract/official SDK runtime alongside Sui and LocalFile. Full read-route subset passes **12/12**, zero skips, 18 seconds (`web4-hyperdrive-http-auth.trx`): actual signed JWT, successful V2 avatar reads with exact provider request increments, and 401/INVALID_AVATAR after deleting the same avatar from each store. TRON expected local genesis identity and loopback endpoints are explicit; public local test key/encryption fixture reused, no public chain funds. Owned avatars deleted and static manager/DNA restored; TRON paused and owned Sui PID 38596 stopped afterward. This proves authentication/storage reads, not all NFT/token/business routes or Cosmos/Hedera JWT paths. Remaining full provider/API/publish gates stay open; no installation/download/reset/new environment/merge.
