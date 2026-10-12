@@ -5,7 +5,7 @@
 
 ## Current provider status — not full certification
 
-Most recent report scopes re-read from TRX (2026-10-12): **subscription protocol local-Mongo 77/77; Sui selected C# 70/70; Cosmos selected C# 93/93; Hedera preparation class 11/11, followed by separate prepared-child lifecycle 8/8**. Zero failures/nonexecuted cases in these reports. Selections overlap: do not sum them. Sui/Cosmos selections exclude their actual two-minute deadlines; reports precede some later focused changes as recorded chronologically below. Latest SDK runs separately passed **Sui 25/25, Cosmos 51/51, Hedera 98/98**; these are offline selections, not funded consensus proof.
+Latest complete C# reports re-read from TRX (2026-10-12): **Sui 75/75; Cosmos 99/99; TRON 260/260**, zero failures/nonexecuted cases. Sui/Cosmos include actual two-minute process deadlines; Cosmos explicitly uses the retained source SDK installation, not published-output packaging proof. Current live Sui V2 healthy routing **1/1**, outage routing **2/2**, and activation/prepared-submission/lost-confirmed-reply checks **3/3** passed separately. These scopes overlap; do not sum them or infer full-interface/hosted API certification. Other provider/shared/Core/SDK checkpoints are revision-specific evidence detailed below, not freshly rerun certifications.
 
 Earlier, not freshly rerun whole-branch checkpoints: Core 430/430, shared storage 87/87, TRON 199/199, Hedera selected C# 244/244 plus separate deadline 1/1 and later fee 14/14, WEB4 141/141, ONODE Core 244/244. Earlier retained-binary Sui live healthy routing 1/1 and outage routing 2/2 passed separately. These revision-specific results do not certify all later changes or missing live/deployed gates. Exact chronological scopes below apply.
 
@@ -23,6 +23,12 @@ Broader providers with narrower recorded real-runtime/SDK/API evidence: MongoDB,
 Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 244/244, Cosmos C# 56/56/SDK 29/29, Hedera non-funded 209/209; zero skips in the stated selections. Exact revisions and limitations are recorded below. Task branch contains Development reconciliation, but Development/master have not received this task's release merge. Hosted dev revision last checked was `77c65eaa80aa06fb767715322eb97d8d3844282f`, not this task code. User authorizes a safe Development merge/automatic Railway deployment; resolve regression/deployment gates before claiming release success. Native NFT models and mint actor/recipient/batch safety have changed; positive authenticated minting, durable subscription/fee integration, live Cosmos corrected assets/multi-send/bridge receipt, funded Hedera storage/NFT/V2, full interface/options/hosted API and broader provider gates remain open. Update this summary whenever coverage or remaining gates change; retain exact checkpoint reports below rather than silently promote narrow evidence to broader claims.
 
 ## Routing contract
+
+### Current live Sui preparation and activation after SDK-owner refactor — 2026-10-12
+
+Reused the same pinned runtime/network/SDK and existing Mongo service. Current integration host passed **3/3**, zero skips, 14 seconds (`TestResults/SuiCurrent/sui-prepared-live-current.trx`): activation checks actual owner and unchanged balance; normal and lost-confirmed-reply paths persist real signed evidence before live local execution, fence duplicate correlation and reconcile original digests. Normal original write `3JbbZBaVdMS1rvhoYqEPew3byP2xs9NgXT1fCZtVjKMz`, cleanup `qiv8n5jN7hctLNh1rLYzen6shcGg1SXnXSBGPJ6xEWy`; lost-reply original write `B8W9XsnbdmXr4RM9box74bKSaABCeFXtsByUj98FdCRK`, cleanup `Fovjwhfo6RxiHAV9ZwqtUF2ZErj5xf3gBcSbnX6AN52x`.
+
+Owned records/temporary Mongo databases were cleaned by successful test paths; fixed pending journal absent after completion. Exactly owned PID 226967 stopped with the validated helper; original process handle terminal. Existing warnings persisted. C: free afterward 100,367,958,016 bytes, still below requested 150 GB target. No new installation, reset, merge or deployment. Actual parent-host crash/reopen recovery, native fee admission/settlement, private storage migration and all remaining interface/deployed gates remain unproven.
 
 ### Fresh live Sui V2 routing after SDK-owner changes — 2026-10-12
 
