@@ -1,30 +1,128 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { invoke, execute, sdkErrorEnvelope, NativeMutationReconciliationError, publicationArtifacts, verifiedHistoryTransaction, nativeFeeReceipt, historyScanComplete } from './bridge.mjs';
+import { invoke, execute, withNativeMutationEvidence, sdkErrorEnvelope, NativeMutationReconciliationError, publicationArtifacts, verifiedHistoryTransaction, nativeFeeReceipt, historyScanComplete } from './bridge.mjs';
 import { Transaction } from '@mysten/sui/transactions';
+import { toBase58 } from '@mysten/sui/utils';
+import { verifyTransactionSignature } from '@mysten/sui/verify';
+import { SuiGrpcClient } from '@mysten/sui/grpc';
+
+function offlineTransaction(signer) {
+  const tx = new Transaction();
+  tx.setSender(signer.toSuiAddress());
+  tx.setGasPrice(1); tx.setGasBudget(1000);
+  tx.setGasPayment([{ objectId: '0x'+'2'.repeat(64), version: '1', digest: toBase58(new Uint8Array(32).fill(1)) }]);
+  return tx;
+}
+const originalDigest = await offlineTransaction(Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7))).getDigest();
+
+test('post-execution mapping errors retain verified original evidence across the whole operation', async () => {
+  const signer = Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
+  const mappingError = new Error('controlled post-execution mapping failure');
+  await assert.rejects(withNativeMutationEvidence(async () => {
+    await execute({ async executeTransaction() { return { Transaction: { digest: originalDigest, status: { success: true } } }; },
+      async waitForTransaction() {} }, offlineTransaction(signer), signer);
+    throw mappingError;
+  }), error => {
+    assert.deepEqual(sdkErrorEnvelope(error).nativeMutation, { transactionHash: originalDigest, executionSucceeded: true });
+    assert.equal(error.cause, mappingError);
+    return true;
+  });
+});
+
+test('concurrent operation contexts cannot overwrite each other or reclassify preflight errors', async () => {
+  const outcomes = await Promise.all([7,8].map(async seed => {
+    const signer = Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(seed));
+    const digest = await offlineTransaction(signer).getDigest();
+    try {
+      await withNativeMutationEvidence(async () => {
+        await execute({ async executeTransaction(request) {
+          await Promise.resolve();
+          return { Transaction: { digest: await Transaction.from(request.transaction).getDigest(), status: { success: true } } };
+        }, async waitForTransaction() {} }, offlineTransaction(signer), signer);
+        await Promise.resolve(); throw new Error('post-execution failure');
+      });
+      assert.fail('Expected mapping failure');
+    } catch (error) { assert.equal(sdkErrorEnvelope(error).nativeMutation.transactionHash, digest); return digest; }
+  }));
+  assert.notEqual(outcomes[0], outcomes[1]);
+  const preflight = new Error('ordinary preflight failure');
+  await assert.rejects(withNativeMutationEvidence(async () => { throw preflight; }), error => error === preflight && !sdkErrorEnvelope(error).nativeMutation);
+});
+
+test('submission transport interruption retains digest of the exact signed bytes and never resubmits', async () => {
+  const key = Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
+  let signatures = 0, submissions = 0;
+  const transportError = new Error('controlled submission transport interruption');
+  const signer = { toSuiAddress: () => key.toSuiAddress(), async signTransaction(bytes) { signatures++; return key.signTransaction(bytes); } };
+  await assert.rejects(execute({
+    async executeTransaction(request) {
+      submissions++;
+      assert.equal(await Transaction.from(request.transaction).getDigest(), originalDigest);
+      assert.equal((await verifyTransactionSignature(request.transaction, request.signatures[0])).toSuiAddress(), key.toSuiAddress());
+      throw transportError;
+    },
+    async waitForTransaction() { assert.fail('Unknown submission cannot enter successful readback'); }
+  }, offlineTransaction(key), signer), error => {
+    assert.deepEqual(sdkErrorEnvelope(error).nativeMutation, { transactionHash: originalDigest, executionSucceeded: null });
+    assert.equal(error.cause, transportError);
+    return true;
+  });
+  assert.equal(signatures, 1); assert.equal(submissions, 1);
+});
+
+test('real official gRPC transport failure retains original signed identity without a node or ledger mutation', { timeout: 10000 }, async () => {
+  const signer = Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
+  const client = new SuiGrpcClient({ network: 'localnet', baseUrl: 'http://127.0.0.1:1' });
+  await assert.rejects(execute(client, offlineTransaction(signer), signer), error => {
+    assert.deepEqual(sdkErrorEnvelope(error).nativeMutation, { transactionHash: originalDigest, executionSucceeded: null });
+    assert.ok(error.cause instanceof Error);
+    return true;
+  });
+});
+
+test('build and signing failures remain pre-submission errors with zero broadcasts', async () => {
+  const key = Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
+  let submissions = 0;
+  const client = { async executeTransaction() { submissions++; assert.fail('No prepared signature exists'); } };
+  await assert.rejects(execute(client, new Transaction(), key), error => !sdkErrorEnvelope(error).nativeMutation);
+  const signingError = new Error('controlled signing failure');
+  await assert.rejects(execute(client, offlineTransaction(key), { toSuiAddress: () => key.toSuiAddress(), async signTransaction() { throw signingError; } }), error => error === signingError);
+  assert.equal(submissions, 0);
+});
+
+test('execution receipts for another digest cannot replace original signed identity or establish outcome', async () => {
+  const signer = Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
+  for (const response of [{ Transaction: { digest: 'another-digest', status: { success: true } } }, { FailedTransaction: { digest: 'another-digest', status: { success: false } } }])
+    await assert.rejects(execute({ async executeTransaction() { return response; } }, offlineTransaction(signer), signer), error => {
+      assert.deepEqual(sdkErrorEnvelope(error).nativeMutation, { transactionHash: originalDigest, executionSucceeded: null });
+      return true;
+    });
+});
 
 test('execution readback failure retains original digest and never resubmits', async () => {
   const signer = Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
   const readbackError = new Error('controlled index transport failure');
   let submissions = 0, reads = 0;
   const client = {
-    async signAndExecuteTransaction(request) {
+    async executeTransaction(request) {
       submissions++;
-      assert.equal(request.signer, signer);
+      const publicKey = await verifyTransactionSignature(request.transaction, request.signatures[0]);
+      assert.equal(publicKey.toSuiAddress(), signer.toSuiAddress());
+      assert.equal(await Transaction.from(request.transaction).getDigest(), originalDigest);
       assert.equal(request.include.effects, true);
-      return { Transaction: { digest: 'original-executed-digest', status: { success: true } } };
+      return { Transaction: { digest: originalDigest, status: { success: true } } };
     },
     async waitForTransaction(request) {
       reads++;
-      assert.equal(request.digest, 'original-executed-digest');
+      assert.equal(request.digest, originalDigest);
       throw readbackError;
     }
   };
-  await assert.rejects(execute(client, new Transaction(), signer), error => {
-    assert.match(error.message, /original-executed-digest/);
+  await assert.rejects(execute(client, offlineTransaction(signer), signer), error => {
+    assert.ok(error.message.includes(originalDigest));
     assert.match(error.message, /Reconcile this transaction before any retry/);
     assert.equal(error.cause, readbackError);
-    assert.deepEqual(sdkErrorEnvelope(error).nativeMutation, { transactionHash: 'original-executed-digest', executionSucceeded: true });
+    assert.deepEqual(sdkErrorEnvelope(error).nativeMutation, { transactionHash: originalDigest, executionSucceeded: true });
     return true;
   });
   assert.equal(submissions, 1);
@@ -35,15 +133,15 @@ test('failed execution retains original failure and does not wait or resubmit', 
   const signer = Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
   let submissions = 0;
   const client = {
-    async signAndExecuteTransaction() {
+    async executeTransaction() {
       submissions++;
-      return { FailedTransaction: { digest: 'original-failed-digest', status: { success: false, error: 'controlled Move abort' } } };
+      return { FailedTransaction: { digest: originalDigest, status: { success: false, error: 'controlled Move abort' } } };
     },
     async waitForTransaction() { assert.fail('Failed execution must not enter success readback'); }
   };
-  await assert.rejects(execute(client, new Transaction(), signer), error => {
-    assert.match(error.message, /original-failed-digest.*controlled Move abort/);
-    assert.deepEqual(sdkErrorEnvelope(error).nativeMutation, { transactionHash: 'original-failed-digest', executionSucceeded: false });
+  await assert.rejects(execute(client, offlineTransaction(signer), signer), error => {
+    assert.ok(error.message.includes(originalDigest)); assert.match(error.message, /controlled Move abort/);
+    assert.deepEqual(sdkErrorEnvelope(error).nativeMutation, { transactionHash: originalDigest, executionSucceeded: false });
     return true;
   });
   assert.equal(submissions, 1);
@@ -51,13 +149,13 @@ test('failed execution retains original failure and does not wait or resubmit', 
 
 test('successful execution waits on and returns the original transaction once', async () => {
   const signer = Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
-  const transaction = { digest: 'original-success-digest', status: { success: true } };
+  const transaction = { digest: originalDigest, status: { success: true } };
   let submissions = 0, reads = 0;
   const client = {
-    async signAndExecuteTransaction() { submissions++; return { Transaction: transaction }; },
+    async executeTransaction() { submissions++; return { Transaction: transaction }; },
     async waitForTransaction(request) { reads++; assert.equal(request.digest, transaction.digest); }
   };
-  assert.equal(await execute(client, new Transaction(), signer), transaction);
+  assert.equal(await execute(client, offlineTransaction(signer), signer), transaction);
   assert.equal(submissions, 1);
   assert.equal(reads, 1);
 });
@@ -76,10 +174,10 @@ test('missing execution digest remains unreconciled rather than becoming an ordi
   const signer = Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
   let submissions = 0;
   await assert.rejects(execute({
-    async signAndExecuteTransaction() { submissions++; return {}; },
+    async executeTransaction() { submissions++; return {}; },
     async waitForTransaction() { assert.fail('No digest is available for readback'); }
-  }, new Transaction(), signer), error => {
-    assert.deepEqual(sdkErrorEnvelope(error).nativeMutation, { transactionHash: null, executionSucceeded: null });
+  }, offlineTransaction(signer), signer), error => {
+    assert.deepEqual(sdkErrorEnvelope(error).nativeMutation, { transactionHash: originalDigest, executionSucceeded: null });
     return true;
   });
   assert.equal(submissions, 1);
@@ -88,17 +186,17 @@ test('missing execution digest remains unreconciled rather than becoming an ordi
 test('execution response does not manufacture success or failure from missing status', async () => {
   const signer = Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
   for (const [response, outcome] of [
-    [{ FailedTransaction: { digest: 'original-digest' } }, null],
-    [{ Transaction: { digest: 'original-digest', status: { success: false } } }, false],
-    [{ Transaction: { digest: 'original-digest' } }, null],
-    [{ Transaction: { digest: 'original-digest', status: { success: 'true' } } }, null]
+    [{ FailedTransaction: { digest: originalDigest } }, null],
+    [{ Transaction: { digest: originalDigest, status: { success: false } } }, false],
+    [{ Transaction: { digest: originalDigest } }, null],
+    [{ Transaction: { digest: originalDigest, status: { success: 'true' } } }, null]
   ]) {
     let submissions = 0;
     await assert.rejects(execute({
-      async signAndExecuteTransaction() { submissions++; return response; },
+      async executeTransaction() { submissions++; return response; },
       async waitForTransaction() { assert.fail('Unverified execution cannot enter successful readback'); }
-    }, new Transaction(), signer), error => {
-      assert.deepEqual(sdkErrorEnvelope(error).nativeMutation, { transactionHash: 'original-digest', executionSucceeded: outcome });
+    }, offlineTransaction(signer), signer), error => {
+      assert.deepEqual(sdkErrorEnvelope(error).nativeMutation, { transactionHash: originalDigest, executionSucceeded: outcome });
       return true;
     });
     assert.equal(submissions, 1);

@@ -6,6 +6,7 @@ import { bcs } from '@mysten/sui/bcs';
 import { ObjectError } from '@mysten/sui/client';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
+import { AsyncLocalStorage } from 'node:async_hooks';
 import { generateMnemonic } from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english.js';
 
@@ -104,16 +105,43 @@ export function sdkErrorEnvelope(error) {
     ...(error instanceof NativeMutationReconciliationError ? { nativeMutation: error.nativeMutation } : {}) };
 }
 
+const nativeMutationContext = new AsyncLocalStorage();
+export async function withNativeMutationEvidence(operation) {
+  return nativeMutationContext.run({ nativeMutation: null }, async () => {
+    try { return await operation(); }
+    catch (error) {
+      const evidence = nativeMutationContext.getStore().nativeMutation;
+      if (evidence && !(error instanceof NativeMutationReconciliationError))
+        throw new NativeMutationReconciliationError(`Sui operation did not complete after submission began for original signed transaction ${evidence.transactionHash}; reconcile before retrying.`, evidence.transactionHash, evidence.executionSucceeded, error);
+      throw error;
+    }
+  });
+}
+
 export async function execute(client, tx, signer, include = {}) {
   tx.setSender(signer.toSuiAddress());
-  const response = await client.signAndExecuteTransaction({ transaction: tx, signer, include: { effects: true, ...include } });
+  const transactionBytes = await tx.build({ client });
+  const { signature } = await signer.signTransaction(transactionBytes);
+  const originalDigest = await Transaction.from(transactionBytes).getDigest();
+  const context = nativeMutationContext.getStore();
+  if (context) context.nativeMutation = { transactionHash: originalDigest, executionSucceeded: null };
+  let response;
+  try {
+    response = await client.executeTransaction({ transaction: transactionBytes, signatures: [signature], include: { effects: true, ...include } });
+  } catch (error) {
+    throw new NativeMutationReconciliationError(`Sui submission outcome for original signed transaction ${originalDigest} is unverified. Reconcile this transaction before any retry.`, originalDigest, null, error);
+  }
   if (response?.FailedTransaction) {
     const failed = response.FailedTransaction;
+    if (failed.digest !== originalDigest)
+      throw new NativeMutationReconciliationError('Sui failed execution response does not match the original signed transaction; reconcile before retrying.', originalDigest, null);
     throw new NativeMutationReconciliationError(`Sui execution failed for original transaction ${failed.digest ?? '(digest unavailable)'}: ${JSON.stringify(failed.status)}. Reconcile this transaction before any retry.`, failed.digest, failed.status?.success === false ? false : null);
   }
-  if (!response?.Transaction?.digest) throw new NativeMutationReconciliationError('Sui SDK returned no successful transaction digest; reconcile submission before any retry.', null, null);
+  if (response?.Transaction?.digest !== originalDigest)
+    throw new NativeMutationReconciliationError('Sui execution response does not match the original signed transaction; reconcile submission before any retry.', originalDigest, null);
   if (response.Transaction.status?.success !== true)
     throw new NativeMutationReconciliationError(`Sui original transaction ${response.Transaction.digest} lacks an explicit successful execution outcome; reconcile submission before any retry.`, response.Transaction.digest, response.Transaction.status?.success === false ? false : null);
+  if (context) context.nativeMutation.executionSucceeded = true;
   try {
     await client.waitForTransaction({ digest: response.Transaction.digest });
   } catch (error) {
@@ -152,6 +180,10 @@ async function custodyReceipt(client, request) {
 }
 
 export async function invoke(request) {
+  return withNativeMutationEvidence(() => invokeCore(request));
+}
+
+async function invokeCore(request) {
   if (request.operation === 'generateKey') return wallet(Ed25519Keypair.generate());
   if (request.operation === 'restoreKey') return wallet(Ed25519Keypair.fromSecretKey(request.privateKey));
   if (request.operation === 'createAccount') {
