@@ -20,6 +20,10 @@ Latest combined-branch unit checkpoint is parent `537a88e49`: Core 378/378, WEB4
 
 ## Routing contract
 
+### Cosmos successful bank receipt height (2026-10-12)
+
+Bank sends with code zero now also require the shared positive safe-integer committed-height/hash validator; nonzero execution retains its existing explicit failure/hash without being reclassified. Six regressions cover absent/zero/negative/string/fractional/unsafe heights and preserve original valid digest in reconciliation errors. Installed SDK suite **27/27**, zero skips. Pure result checks do not replace the pending real Cosmos V2/runtime, native/interface or hosted route gates. No runtime/download/install/mutation; retained Cosmos start authorization still pending.
+
 ### Sui history fetched-receipt identity validation (2026-10-12)
 
 Live paged-history rerun with this validator passes **1/1**, zero skips, 71 seconds (`sui-history-current.trx`), retaining all 53 incoming receipt/raw-unit assertions, sender presence and error checks. Source bridge override explicitly selects the current validated module, not stale copied output. Owned PID 158083 stopped afterward; same ledger/runtime reused. This supersedes the pending-live-recheck note below for successful native history only; actual failed-history and complete native/interface/hosted gates remain open.
