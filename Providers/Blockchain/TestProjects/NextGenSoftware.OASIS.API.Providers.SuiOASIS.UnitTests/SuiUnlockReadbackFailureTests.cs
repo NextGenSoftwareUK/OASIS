@@ -6,6 +6,27 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class SuiUnlockReadbackFailureTests
 {
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task PreparedProcessWaitsForParentAndRetainsPersistenceRejection(bool reject)
+    {
+        await WithProcessFixture(async provider=>{
+            var backend=typeof(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase)
+                .GetProperty("Backend",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.GetValue(provider)!;
+            var client=backend.GetType().GetProperty("Client",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Public)!.GetValue(backend)!;
+            var calls=0;var failure=new InvalidOperationException("controlled durable persistence rejection");
+            using var server=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer((evidence,_)=>{
+                calls++;Assert.AreEqual(new string('1',32),evidence.GetProperty("transactionHash").GetString());
+                return reject?Task.FromException(failure):Task.CompletedTask;
+            });
+            var operation=(Task<System.Text.Json.JsonElement>)client.GetType().GetMethod("InvokePreparedAsync",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!
+                .Invoke(client,new object[]{"put",new{mode="prepared"},server,CancellationToken.None})!;
+            if(reject)Assert.AreSame(failure,await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>operation));
+            else Assert.AreEqual(new string('1',32),(await operation).GetProperty("transactionHash").GetString());
+            Assert.AreEqual(1,calls);
+        });
+    }
+
     [TestMethod]
     public async Task PreparedProcessCannotReturnSuccessWithoutPersistenceAcknowledgement()
     {
