@@ -60,7 +60,7 @@ public partial class SuiOASIS
             result.Result = new Web3NFTTransactionResponse { TransactionResult = digest, Web3NFT = metadata };
             var loaded = await LoadOnChainNFTDataAsync(request.NFTTokenAddress);
             if (loaded.IsError || loaded.Result == null)
-                throw new InvalidOperationException("Unlock committed as " + digest + " but NFT readback failed; reconcile before retrying: " + loaded.Message, loaded.Exception);
+                throw new SuiNativeMutationReconciliationException("Unlock committed as " + digest + " but NFT readback failed; reconcile before retrying: " + loaded.Message, digest, true, loaded.Exception);
             result.Result.Web3NFT = loaded.Result;
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
@@ -179,7 +179,7 @@ public partial class SuiOASIS
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException("Mint committed as " + hash + " but NFT readback failed; reconcile before retrying: " + ex.Message, ex);
+                throw new SuiNativeMutationReconciliationException("Mint committed as " + hash + " but NFT readback failed; reconcile before retrying: " + ex.Message, hash, true, ex);
             }
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
@@ -229,7 +229,7 @@ public partial class SuiOASIS
             result.Result = new Web3NFTTransactionResponse { TransactionResult = hash, SendNFTTransactionResult = hash };
             var loaded = await LoadOnChainNFTDataAsync(tokenId);
             if (loaded.IsError || loaded.Result == null)
-                throw new InvalidOperationException("NFT transfer committed as " + hash + " but readback failed; reconcile before retrying: " + loaded.Message, loaded.Exception);
+                throw new SuiNativeMutationReconciliationException("NFT transfer committed as " + hash + " but readback failed; reconcile before retrying: " + loaded.Message, hash, true, loaded.Exception);
             loaded.Result.SendNFTTransactionHash = hash;
             result.Result.Web3NFT = loaded.Result;
         }
