@@ -23,7 +23,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
     {
         private static readonly JsonSerializerSettings AvatarDeserializeSettings = new JsonSerializerSettings
         {
-            Converters = { new ProviderWalletsJsonConverter() }
+            Converters = { new ProviderWalletsJsonConverter(), new KarmaAkashicRecordJsonConverter() }
         };
         //private string _filePath = "wallets.json";
         private string _filePath = "";

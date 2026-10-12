@@ -270,7 +270,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                 if (File.Exists(avatarDetailFilePath))
                 {
                     var jsonContent = await File.ReadAllTextAsync(avatarDetailFilePath);
-                    var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(jsonContent);
+                    var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(jsonContent, AvatarDeserializeSettings);
                     
                     if (avatarDetail != null && (version == 0 || avatarDetail.Version == version))
                     {
@@ -329,7 +329,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         try
                         {
                             var jsonContent = await File.ReadAllTextAsync(file);
-                            var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(jsonContent);
+                            var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(jsonContent, AvatarDeserializeSettings);
                             
                             if (avatarDetail != null && avatarDetail.Email != null && 
                                 avatarDetail.Email.Equals(avatarEmail, StringComparison.OrdinalIgnoreCase) &&
@@ -389,7 +389,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         try
                         {
                             var jsonContent = await File.ReadAllTextAsync(file);
-                            var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(jsonContent);
+                            var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(jsonContent, AvatarDeserializeSettings);
                             
                             if (avatarDetail != null && avatarDetail.Username != null && 
                                 avatarDetail.Username.Equals(avatarUsername, StringComparison.OrdinalIgnoreCase) &&
@@ -450,7 +450,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         try
                         {
                             var jsonContent = await File.ReadAllTextAsync(file);
-                            var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(jsonContent);
+                            var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(jsonContent, AvatarDeserializeSettings);
                             
                             if (avatarDetail != null && (version == 0 || avatarDetail.Version == version))
                             {
