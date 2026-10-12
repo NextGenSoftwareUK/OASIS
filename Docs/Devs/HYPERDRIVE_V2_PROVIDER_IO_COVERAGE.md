@@ -1275,6 +1275,12 @@ The same owned TRON container and ledger were recovered without recreation or do
 
 Hedera wallet-history fixture tests pass **14/14, zero skips** (`TestResults/HederaRuntime/hedera-wallet-history.trx`): configured mirror URL, complete bounded paging, fixed scan cutoff, exact signed tinybar deltas, failed native results, duplicate rejection and no partial payload after page failure. These are HTTP fixtures, not funded live consensus proof. The reusable encrypted local test identity remains unfunded/unverified. Live Hedera mutations, all-operation orchestration, authenticated route coverage and remaining token/NFT capability gates remain open. No completion or merge claim follows from this checkpoint.
 
+## Hosted WEB4 revision check — 2026-10-12
+
+User requested hosted WEB4 instead of allocating a local Docker API image. No API image download/build was started. Read-only Railway deployment metadata confirms dev WEB4 deployment `2d60b0dc-107e-4550-9695-11cb1492497e` is SUCCESS, built with `Docker/Dockerfile.web4` from Development commit `f4f6beba16278a9f431000ada73b9f279fa3470e`. Production deployment `827385c7-106b-41be-a3e3-87440957aea9` and staging deployment `53bb2125-8aac-4005-b3cd-6ee02bbcf585` are SUCCESS at master commit `54bb599ed3b9b00d3be6711e1ff150b7edb66bb9`.
+
+The task revision checked was `11d2c4ff10674d1d38854cfc7d58101070db7e96`. Direct Git comparison against deployed dev confirms material Sui, Hedera and SDK packaging differences. Therefore existing hosted deployment tests cannot establish that current provider changes or packaging work. Anonymous GET `https://dev.api.web4.oasisomniverse.one/api/hyperdrive/mode` returned HTTP 401 with JSON, confirming reachability and anonymous rejection only, not authenticated V2 behavior. Required next deployment gate: use a suitable hosted test service for this task revision before claiming current-code live proof; do not prematurely merge into Development/master or mutate shared provider credentials. No deployment/configuration changes were made during this check.
+
 ## Staging deployment evidence
 
 Verified on 2026-10-07 against `https://web4-oasis-api-staging.up.railway.app`:
