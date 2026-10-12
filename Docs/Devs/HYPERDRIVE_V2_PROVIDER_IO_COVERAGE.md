@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON prepared contract-owner binding — 2026-10-12
+
+Verifier now requires exactly one supported operation contract and binds its protobuf owner to trusted expected signature sender. Explicit owner mappings cover native transfer/account create/account update/contract trigger/contract deploy; unknown mappings fail closed. Offline signed tests/Mongo fixture now include actual transfer contract protobuf rather than empty raw transaction. Full unit project **204/204**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`; build 0 errors/21 existing warnings.
+
+Fixture transfer is not a submitted valid-economic transaction (same source/destination); no ledger proof. Dedicated altered-owner/empty-contract/unsupported-type matrix, account permission and fee/window/request binding remain required. No RPC, installs, submissions or release merge.
+
 ### TRON adapter duplicate/genesis/sender snapshot regression — 2026-10-12
 
 Actual signed runtime/Mongo case now mutates caller sender after view creation and proves immutable trusted copy still accepts original. Duplicate preparation rejects `PROVIDER_ATTEMPT_ALREADY_STARTED`; wrong configured genesis rejects before persistence; wrong sender view rejects. One original attempt/evidence-byte budget remains unchanged. Entire TRON unit project **204/204**, zero skips, `TestResults/PriorityProviderCurrent/tron-current.trx`; includes new runtime-view and Mongo integration cases, not live ledger proof. Owned database removed; retained environment reused.
