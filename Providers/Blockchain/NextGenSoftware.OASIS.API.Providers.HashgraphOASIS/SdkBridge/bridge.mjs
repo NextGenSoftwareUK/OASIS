@@ -26,7 +26,12 @@ export function storageTransaction(action, request) {
     .setFunctionParameters(getBytes(storageAbi.encodeFunctionData(name, args)));
 }
 
-async function storageWrite(action, request) {
+export async function persistSignedSubmission(signed,request,persist){
+  if(!persist)return;
+  if(signed.transactionId.toString()!==request.transactionId)throw new Error('Prepared Hedera original identity mismatch.');
+  await persist(Object.freeze({transactionHash:request.transactionId,chainId:request.network,sender:request.sender,signedTransactionBase64:Buffer.from(signed.toBytes()).toString('base64')}));
+}
+async function storageWrite(action, request, persist) {
   const mutation = storageTransaction(action, request);
   const key = restoreKey(request);
   if (request.publicKey && request.publicKey.toLowerCase() !== key.publicKey.toStringDer().toLowerCase())
@@ -43,6 +48,7 @@ async function storageWrite(action, request) {
     singleSubmission(mutation, id).setMaxTransactionFee(Hbar.fromTinybars(request.maxFeeTinybars)).freezeWith(client);
     stage = 'signing';
     const signed = await mutation.sign(key);
+    stage = 'preparation';await persistSignedSubmission(signed,request,persist);
     stage = 'submission';
     const submitted = await signed.execute(client);
     stage = 'receipt';
@@ -51,6 +57,7 @@ async function storageWrite(action, request) {
     return { transactionId: submitted.transactionId.toString(), status: 'SUCCESS' };
   } catch (cause) {
     const error = new Error('Hedera storage mutation did not establish consensus success. Track the original transaction before retrying.');
+    if(stage==='preparation')throw cause;
     error.transactionId = id.toString();
     error.stage = stage;
     error.status = nativeFailureStatus(cause);
@@ -197,7 +204,7 @@ export function fileTransaction(action, request, publicKey) {
   return new FileDeleteTransaction().setFileId(request.fileId);
 }
 
-async function executeFile(action, request) {
+async function executeFile(action, request, persist) {
   const key = restoreKey(request);
   if (request.publicKey && request.publicKey.toLowerCase() !== key.publicKey.toStringDer().toLowerCase())
     throw new Error('File signing key does not match the supplied public key.');
@@ -220,6 +227,7 @@ async function executeFile(action, request) {
     singleSubmission(mutation, id).setMaxTransactionFee(ceiling).freezeWith(client);
     stage = 'signing';
     const signed = await mutation.sign(key);
+    stage = 'preparation';await persistSignedSubmission(signed,request,persist);
     stage = 'submission';
     const submitted = await signed.execute(client);
     stage = 'receipt';
@@ -229,6 +237,7 @@ async function executeFile(action, request) {
       fileId: action === 'fileCreate' ? receipt.fileId.toString() : FileId.fromString(request.fileId).toString() };
   } catch (cause) {
     const error = new Error('Hedera file operation failed.');
+    if(stage==='preparation')throw cause;
     error.transactionId = id?.toString();
     error.stage = stage;
     error.status = nativeFailureStatus(cause);
@@ -239,7 +248,7 @@ async function executeFile(action, request) {
 export async function execute(action, request, persistPreparedSubmission) {
   if(persistPreparedSubmission!==undefined&&typeof persistPreparedSubmission!=='function')throw new TypeError('Prepared Hedera persistence must be an awaited callback.');
   if(['bytecodeFileCreate','bytecodeFileAppend','contractCreate','nftCollectionCreate','tokenCollectionDelete','nftMetadataUpdate'].includes(action)) return executeDeployment(action,request,{createClient,restoreKey,persistPreparedSubmission});
-  if(persistPreparedSubmission)throw new Error('Prepared submission is not yet supported for this Hedera action.');
+  if(persistPreparedSubmission&&!['storagePut','storageDelete','fileCreate','fileUpdate','fileDelete','transfer','tokenTransfer','tokenMint','tokenBurn','nftTransfer','nftMint','nftBurn'].includes(action))throw new Error('Prepared submission is not yet supported for this Hedera action.');
   if (['nftEscrowLock', 'nftEscrowUnlock'].includes(action)) return executeEscrow(action, request, { createClient, restoreKey });
   if (['tokenEscrowLock', 'tokenEscrowUnlock'].includes(action)) return executeTokenEscrow(action, request, { createClient, restoreKey });
   if (['generateMnemonic', 'restoreMnemonic'].includes(action)) {
@@ -250,9 +259,9 @@ export async function execute(action, request, persistPreparedSubmission) {
     const key = await mnemonic.toStandardEd25519PrivateKey('', 0);
     return { privateKey: key.toStringDer(), publicKey: key.publicKey.toStringDer(), seedPhrase: mnemonic.toString() };
   }
-  if (['storagePut', 'storageDelete'].includes(action)) return storageWrite(action, request);
+  if (['storagePut', 'storageDelete'].includes(action)) return storageWrite(action, request,persistPreparedSubmission);
   if (['storageGet', 'storageList'].includes(action)) return storageRead(action, request);
-  if (['fileCreate', 'fileUpdate', 'fileDelete', 'fileRead'].includes(action)) return executeFile(action, request);
+  if (['fileCreate', 'fileUpdate', 'fileDelete', 'fileRead'].includes(action)) return executeFile(action, request,persistPreparedSubmission);
   if (action === 'generateKey') {
     const key = request.keyType === 'ed25519' ? PrivateKey.generateED25519()
       : request.keyType === 'ecdsa' ? PrivateKey.generateECDSA() : null;
@@ -321,6 +330,7 @@ export async function execute(action, request, persistPreparedSubmission) {
     singleSubmission(transfer, transactionId).freezeWith(client);
     transferStage = 'signing';
     const signed = await transfer.sign(key);
+    transferStage = 'preparation';await persistSignedSubmission(signed,request,persistPreparedSubmission);
     transferStage = 'submission';
     const submitted = await signed.execute(client);
     transferStage = 'receipt';
@@ -330,6 +340,7 @@ export async function execute(action, request, persistPreparedSubmission) {
       ...(action === 'nftMint' ? { serials: receipt.serials.map(serial => serial.toString()) } : {}) };
   } catch (cause) {
     const error = new Error('Hedera transfer did not establish consensus success. Track the original transaction before retrying.');
+    if(transferStage==='preparation')throw cause;
     error.transactionId = transactionId.toString();
     error.status = nativeFailureStatus(cause);
     error.stage = transferStage;

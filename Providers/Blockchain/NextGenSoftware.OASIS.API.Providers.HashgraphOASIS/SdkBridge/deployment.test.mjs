@@ -1,11 +1,11 @@
 import test from 'node:test';import assert from 'node:assert/strict';
 import {PrivateKey,Transaction,AccountId,Client} from '@hiero-ledger/sdk';
 import {deploymentTransaction,executeDeployment} from './deployment.mjs';
-import {execute} from './bridge.mjs';
+import {execute,persistSignedSubmission} from './bridge.mjs';
 test('prepared dispatcher refuses invalid callback and unwired actions before network use',async()=>{
  await assert.rejects(execute('contractCreate',{},true),/awaited callback/);
  let calls=0;
- await assert.rejects(execute('transfer',{},async()=>{calls++;}),/not yet supported/);
+ await assert.rejects(execute('nftEscrowLock',{},async()=>{calls++;}),/not yet supported/);
  assert.equal(calls,0);
 });
 test('real SDK signed deployment waits for persistence and rejection prevents submission',async()=>{
@@ -17,6 +17,12 @@ test('real SDK signed deployment waits for persistence and rejection prevents su
    calls++;assert.equal(evidence.transactionHash,request.transactionId);assert.equal(evidence.sender,request.sender);
    const original=Transaction.fromBytes(Buffer.from(evidence.signedTransactionBase64,'base64'));
    assert.equal(original.transactionId.toString(),request.transactionId);assert.equal(Object.isFrozen(evidence),true);
+   let persisted=0;
+   await assert.rejects(persistSignedSubmission(original,{...request,network:'controlled-local'},async prepared=>{
+    persisted++;assert.equal(prepared.signedTransactionBase64,evidence.signedTransactionBase64);throw failure;
+   }),error=>error===failure);
+   assert.equal(persisted,1);
+   await assert.rejects(persistSignedSubmission(original,{...request,transactionId:'0.0.1001@1700000001.000000001'},async()=>assert.fail('Foreign original must never persist')),/identity mismatch/);
    throw failure;
   }
  }),error=>error===failure);
