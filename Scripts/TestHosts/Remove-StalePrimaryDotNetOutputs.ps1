@@ -12,6 +12,7 @@ $projects=Get-ChildItem -LiteralPath $root -Filter '*.csproj' -File -Recurse | W
 }
 $seen=[Collections.Generic.HashSet[string]]::new([StringComparer]::OrdinalIgnoreCase)
 $removed=0L
+$journal=Join-Path (Split-Path (Split-Path $PSScriptRoot -Parent) -Parent) 'TestResults/cleanup-events.jsonl'
 foreach($project in $projects){
     foreach($name in @('bin','obj')){
         $target=Join-Path $project.DirectoryName $name
@@ -33,7 +34,15 @@ foreach($project in $projects){
             Write-Output "Preserving linked output: $target";continue
         }
         $bytes=($files | Measure-Object Length -Sum).Sum
-        if($Remove){Remove-Item -LiteralPath $target -Recurse -Force; $removed+=$bytes}
+        if($Remove){
+            $before=(Get-PSDrive C).Free
+            @{Event='DeleteIntent';Utc=[DateTime]::UtcNow.ToString('o');Path=$target;Bytes=$bytes;FreeBytes=$before} |
+                ConvertTo-Json -Compress | Add-Content -LiteralPath $journal
+            Remove-Item -LiteralPath $target -Recurse -Force
+            $removed+=$bytes
+            @{Event='Deleted';Utc=[DateTime]::UtcNow.ToString('o');Path=$target;Bytes=$bytes;FreeBytes=(Get-PSDrive C).Free} |
+                ConvertTo-Json -Compress | Add-Content -LiteralPath $journal
+        }
         [pscustomobject]@{Path=$target;MiB=[math]::Round($bytes/1MB,2);Removed=[bool]$Remove}|ConvertTo-Json -Compress
     }
 }
