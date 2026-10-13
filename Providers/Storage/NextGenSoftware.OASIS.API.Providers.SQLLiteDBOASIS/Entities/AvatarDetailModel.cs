@@ -52,8 +52,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         public ConsoleColor STARCLIColour { get; set; }
         
         public AvatarType AvatarType { get; set; }
-        public OASISType CreatedOASISType { get; set; }
-        public ProviderType CreatedProviderType { get; set; }
+        public OASISType? CreatedOASISType { get; set; }
+        public ProviderType? CreatedProviderType { get; set; }
 
         public long Karma { get; set; }
         public int XP { get; set; }
@@ -138,8 +138,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
             this.FavouriteColour=source.FavouriteColour;
             this.STARCLIColour=source.STARCLIColour;
             
-            this.CreatedOASISType=source.CreatedOASISType.Value;
-            this.CreatedProviderType = source.CreatedProviderType.Value;
+            this.CreatedOASISType=source.CreatedOASISType?.Value;
+            this.CreatedProviderType = source.CreatedProviderType?.Value;
 
             this.Karma=source.Karma;
             this.XP=source.XP;
@@ -182,7 +182,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
                 this.Gifts.Add(new AvatarGiftModel(gift));
             }
 
-            foreach(HeartRateEntry heartRate in source.HeartRateData){
+            foreach(HeartRateEntry heartRate in source.HeartRateData ?? new List<NextGenSoftware.OASIS.API.Core.Interfaces.Avatar.IHeartRateEntry>()){
 
                 HeartRateEntryModel model=new HeartRateEntryModel(heartRate);
                 model.AvatarId=this.Id;
@@ -258,8 +258,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
             item.FavouriteColour=this.FavouriteColour;
             item.STARCLIColour=this.STARCLIColour;
             
-            item.CreatedOASISType= new EnumValue<OASISType>(this.CreatedOASISType);
-            item.CreatedProviderType = new EnumValue<ProviderType>(this.CreatedProviderType);
+            item.CreatedOASISType= this.CreatedOASISType.HasValue ? new EnumValue<OASISType>(this.CreatedOASISType.Value) : null;
+            item.CreatedProviderType = this.CreatedProviderType.HasValue ? new EnumValue<ProviderType>(this.CreatedProviderType.Value) : null;
 
             item.Karma=this.Karma;
             item.XP=this.XP;

@@ -41,6 +41,39 @@ public sealed class RealProviderRoutingTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task AvatarDetailReplicationPreservesKarmaAndXpAcrossUpdates(bool synchronous)
+    {
+        Directory.CreateDirectory(_root);
+        var local = new LocalFileOASIS(storageDirectory: FilesPath);
+        using var sqlite = new SQLLiteDBOASIS($"Data Source={SqlitePath};Pooling=False");
+        (await local.ActivateProviderAsync()).IsError.Should().BeFalse();
+        (await sqlite.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var manager = CreateManager(autoReplication:true);
+        manager.RegisterProvider(local);
+        manager.RegisterProvider(sqlite);
+        manager.SetAndReplaceAutoReplicationListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.LocalFileOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
+        var detail = new AvatarDetail { Id = Guid.NewGuid(), Username = "owned-detail", Email = "detail@test.local", Karma = 345, XP = 123 };
+        var request = new StorageOperationRequest { Operation = "SaveAvatarDetail", Payload = detail, PreferredProvider = ProviderType.LocalFileOASIS };
+        var router = new OASISHyperDrive(manager);
+        foreach (var updating in new[] { false, true })
+        {
+            if (updating) { detail.Karma = 456; detail.XP = 234; }
+            var result = synchronous ? router.RouteRequest<IAvatarDetail>(request) : await router.RouteRequestAsync<IAvatarDetail>(request);
+            result.IsError.Should().BeFalse(result.Message);
+            result.IsWarning.Should().BeFalse(string.Join("; ", manager.LastReplicationDiagnostic.Attempts.Select(attempt => attempt.Message)));
+            foreach (var loaded in new[] { await local.LoadAvatarDetailAsync(detail.Id), await sqlite.LoadAvatarDetailAsync(detail.Id) })
+            {
+                loaded.IsError.Should().BeFalse(loaded.Message);
+                loaded.Result.Should().NotBeNull();
+                loaded.Result.Karma.Should().Be(detail.Karma);
+                loaded.Result.XP.Should().Be(detail.XP);
+            }
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task AvatarReplicationPreservesIdentityInBothRealStores(bool synchronous)
     {
         Directory.CreateDirectory(_root);
