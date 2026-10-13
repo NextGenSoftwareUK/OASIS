@@ -5,6 +5,14 @@
 
 ## Current provider status — not full certification
 
+### Actual Sui metadata-key query verification — 2026-10-13
+
+Reused installed Sui1.81.1 and existing `/var/tmp/oasis-sui/network` ledger, first verifying network.yaml existed (no genesis/reset/download). Added a pre-write CreateNew ownership journal to the existing holon test, including only owned IDs/chain/package references, not signing secrets. It queries the same full golden metadata exemption list plus `AppRegion` and preserves the fence on failed verification/cleanup.
+
+Live actual-provider/official SDK test **1/1** passed in55s (`TestResults/SuiRuntime/sui-real-encrypted-query-keys-current.trx`): encrypted physical key/value inspection, holon read/reopen, nested history preservation, parent lookup and each string-equality metadata query returned the owned GUID. Logical deletion/parent absence verified before journal removal. Source SDK path reused; this is not published Linux artifact or manager+provider combined encryption proof. Other providers, typed/nested query selectors, compound queries and full Mongo parity remain gates.
+
+Owned PID236840 was verified by executable/config path and stopped with the retained stop script (exit0); original node handle is terminal (exit1 after SIGTERM), and no Sui process/journal remains. Retained runtime/ledger remain reusable. Free disk moved from98,524,086,272 to97,291,333,632 bytes during startup/test (~1.15GiB), cause not proven. Read-only inspection found retained Sui ledger965MiB and runtime209MiB, no new runtime/download. Do not describe that unexplained host-disk change as reclaimed or erase the retained ledger to mask it.
+
 ### Actual Cosmos metadata-key query verification — 2026-10-13
 
 Reused the retained pinned wasmd container `58a873de020d2f79ab11e7087361db25063c277a5b5a5c2cabba72263b35f8f3` and existing `oasis-cosmos-local` ledger/contract, without downloads/reset. Extended `HolonsPersistMetadataParentIndexesAndDeletion` to persist a pre-write CreateNew ownership journal, query every golden built-in metadata key plus `AppRegion` through the actual provider/official SDK, and retain the journal on verification/cleanup failure. Successful verification checks logical deletion and parent index absence before removing the journal; no blind cleanup follows failed/unknown writes.
