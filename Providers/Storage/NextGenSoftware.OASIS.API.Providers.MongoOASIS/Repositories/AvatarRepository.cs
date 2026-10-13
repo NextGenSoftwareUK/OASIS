@@ -566,7 +566,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                     avatarResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
 
                                 avatarResult.Result.DeletedDate = DateTime.Now;
-                                await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
+                                await _dbContext.Avatar.ReplaceOneAsync(session, filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
 
                                 OASISResult<AvatarDetail> avatarDetailResult = await GetAvatarDetailAsync(avatarResult.Result.Username);
 
@@ -576,7 +576,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                         avatarDetailResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
 
                                     avatarDetailResult.Result.DeletedDate = DateTime.Now;
-                                    await _dbContext.AvatarDetail.ReplaceOneAsync(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
+                                    await _dbContext.AvatarDetail.ReplaceOneAsync(session, filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
                                     result.Result = true;
                                 }
                                 else
@@ -589,22 +589,22 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     else
                     {
                         FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.HolonId == id);
-                        _dbContext.Avatar.DeleteOne(data);
+                        await _dbContext.Avatar.DeleteOneAsync(session, data);
 
                         FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
-                        _dbContext.AvatarDetail.DeleteOne(dataDetail);
+                        await _dbContext.AvatarDetail.DeleteOneAsync(session, dataDetail);
                         result.Result = true;
                     }
+                    if (!result.IsError) await session.CommitTransactionAsync();
                 }
                 catch (Exception ex)
                 {
+                    result.Result = false;
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
                 }
 
-                if (result.IsError)
-                    session.AbortTransaction();
-                else
-                    session.CommitTransaction();
+                if (result.IsError && session.IsInTransaction)
+                    await session.AbortTransactionAsync();
             }
 
             return result;
@@ -636,7 +636,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                     avatarResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
 
                                 avatarResult.Result.DeletedDate = DateTime.Now;
-                                _dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
+                                _dbContext.Avatar.ReplaceOne(session, filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
 
                                 OASISResult<AvatarDetail> avatarDetailResult = GetAvatarDetail(avatarResult.Result.Username);
 
@@ -646,7 +646,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                         avatarDetailResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id.ToString();
 
                                     avatarDetailResult.Result.DeletedDate = DateTime.Now;
-                                    _dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
+                                    _dbContext.AvatarDetail.ReplaceOne(session, filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
                                     result.Result = true;
                                 }
                                 else
@@ -659,22 +659,22 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     else
                     {
                         FilterDefinition<Avatar> data = Builders<Avatar>.Filter.Where(x => x.HolonId == id);
-                        _dbContext.Avatar.DeleteOne(data);
+                        _dbContext.Avatar.DeleteOne(session, data);
 
                         FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
-                        _dbContext.AvatarDetail.DeleteOne(dataDetail);
+                        _dbContext.AvatarDetail.DeleteOne(session, dataDetail);
                         result.Result = true;
                     }
+                    if (!result.IsError) session.CommitTransaction();
                 }
                 catch (Exception ex)
                 {
+                    result.Result = false;
                     OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
                 }
 
-                if (result.IsError)
+                if (result.IsError && session.IsInTransaction)
                     session.AbortTransaction();
-                else
-                    session.CommitTransaction();
             }
 
             return result;
