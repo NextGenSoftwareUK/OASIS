@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Installed Mongo runtime identified for reuse — 2026-10-12
+
+- Targeted inventory found installed `C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe`, also referenced by the normal Windows MongoDB service. Binary version command succeeded; do not change the service/config/user database. No replacement portable runtime is needed.
+- Existing task `TestResults/SubscriptionUsageCurrent` contains retained compact reports but no replica-set data directory; subscription test project already has restored assets. Port 27029 has no observed listener. A fixed, explicitly owned loopback replica-set test store can reuse the installed binary and existing task folder; initialization/lease/exact process ownership, bounded tests and cleanup still need implementation/verification before use.
+- No service/node/database mutation, installation, download or duplicate runtime occurred during inventory. This changes the next action from runtime installation to reuse. Production recovery and original broader release gates remain open.
+
+
 ### Reusable Mongo environment location and old portable-runner audit — 2026-10-12
 
 - Checked expected `TestResults/HostedMongoRelease/runtime` and `TestResults/GeoHotSpotMatrix/portable-providers/runtime`: no retained mongod executable found there. Running Windows MongoDB service was not repurposed. This does not establish that no reusable runtime exists elsewhere; continue targeted inventory before any install.
