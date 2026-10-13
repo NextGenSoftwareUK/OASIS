@@ -249,6 +249,33 @@ public class SuiUnlockReadbackFailureTests
     }
 
     [DataTestMethod]
+    [DataRow("valid", false)]
+    [DataRow("short-recipient", false)]
+    [DataRow("missing", true)]
+    [DataRow("duplicate-token", true)]
+    [DataRow("foreign-id", true)]
+    [DataRow("duplicate-id", true)]
+    [DataRow("foreign-creator", true)]
+    [DataRow("foreign-recipient", true)]
+    public async Task CommittedMintRequiresCompleteOriginalIdentitySet(string mode, bool rejected)
+    {
+        await WithProcessFixture(async provider =>
+        {
+            var result = await provider.MintNFTAsync(new MintWeb3NFTRequest { Title = "identity/" + mode, NumberToMint = 2,
+                SendToAddressAfterMinting = mode == "short-recipient" ? "0xab" : null });
+            Assert.AreEqual(rejected, result.IsError);
+            Assert.IsNotNull(result.Result);
+            Assert.AreEqual(new string('1', 32), result.Result.TransactionResult);
+            if (rejected) AssertCommittedReadbackEvidence(result.Exception);
+            else
+            {
+                Assert.AreEqual(2, result.Result.Web3NFTs.Count());
+                Assert.AreEqual(2, result.Result.Web3NFTs.Select(nft => nft.Id).Distinct().Count());
+            }
+        });
+    }
+
+    [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]
     public async Task ExplicitNftSignerAndCommittedSendDigestSurviveReadbackFailure(bool agreeingSelectors)
