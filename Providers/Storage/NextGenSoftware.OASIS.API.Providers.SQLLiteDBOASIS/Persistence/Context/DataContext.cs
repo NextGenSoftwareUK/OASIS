@@ -75,6 +75,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
             var inventoryColumns = new HashSet<string>(StringComparer.Ordinal)
             {
                 nameof(InventoryItemModel.Id), nameof(InventoryItemModel.AvatarId),
+                nameof(InventoryItemModel.ItemId),
                 nameof(InventoryItemModel.Name), nameof(InventoryItemModel.Description),
                 nameof(InventoryItemModel.Quantity), nameof(InventoryItemModel.Stack),
                 nameof(InventoryItemModel.GameSource), nameof(InventoryItemModel.ItemType),
