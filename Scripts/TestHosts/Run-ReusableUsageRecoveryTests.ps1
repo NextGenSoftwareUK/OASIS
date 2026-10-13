@@ -30,7 +30,10 @@ try{
             $owned.Dispose()
         }
     }finally{
-        foreach($name in $prior.Keys){[Environment]::SetEnvironmentVariable($name,$prior[$name])}
+        foreach($name in $prior.Keys){
+            if($null -eq $prior[$name]){Remove-Item -LiteralPath "Env:$name" -ErrorAction SilentlyContinue}
+            else{[Environment]::SetEnvironmentVariable($name,$prior[$name])}
+        }
         $lease.Dispose()
     }
 }
