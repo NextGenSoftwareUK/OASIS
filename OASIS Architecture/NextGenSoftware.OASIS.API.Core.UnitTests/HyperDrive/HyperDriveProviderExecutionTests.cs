@@ -3885,6 +3885,8 @@ public sealed class HyperDriveProviderExecutionTests
     [InlineData(false,"generic-sync")] [InlineData(true,"generic-sync")]
     [InlineData(false,"bulk-async")] [InlineData(true,"bulk-async")]
     [InlineData(false,"bulk-sync")] [InlineData(true,"bulk-sync")]
+    [InlineData(false,"generic-bulk-async")] [InlineData(true,"generic-bulk-async")]
+    [InlineData(false,"generic-bulk-sync")] [InlineData(true,"generic-bulk-sync")]
     public async Task InvalidDnaEncryptionPreventsV2ProviderWritesAndPreservesMetadata(bool quantum,string entry)
     {
         var dna=CreateDna(HyperDriveModes.V2);
@@ -3902,7 +3904,9 @@ public sealed class HyperDriveProviderExecutionTests
             result.IsError.Should().BeTrue();result.ErrorCode.Should().Be("HOLON_SAVE_PREPARATION_FAILED");
             result.Exception.Should().BeOfType<InvalidOperationException>();result.Result.Should().BeNull();
         }
-        if(entry=="bulk-async")Check(await manager.SaveHolonsAsync(new[]{holon},actor,providerType:ProviderType.IPFSOASIS));
+        if(entry=="generic-bulk-async")Check(await manager.SaveHolonsAsync<Holon>(new[]{holon},actor,providerType:ProviderType.IPFSOASIS));
+        else if(entry=="generic-bulk-sync")Check(manager.SaveHolons<Holon>(new[]{holon},actor,providerType:ProviderType.IPFSOASIS));
+        else if(entry=="bulk-async")Check(await manager.SaveHolonsAsync(new[]{holon},actor,providerType:ProviderType.IPFSOASIS));
         else if(entry=="bulk-sync")Check(manager.SaveHolons(new[]{holon},actor,providerType:ProviderType.IPFSOASIS));
         else if(entry=="generic-async")Check(await manager.SaveHolonAsync<Holon>(holon,actor,providerType:ProviderType.IPFSOASIS));
         else if(entry=="generic-sync")Check(manager.SaveHolon<Holon>(holon,actor,providerType:ProviderType.IPFSOASIS));
