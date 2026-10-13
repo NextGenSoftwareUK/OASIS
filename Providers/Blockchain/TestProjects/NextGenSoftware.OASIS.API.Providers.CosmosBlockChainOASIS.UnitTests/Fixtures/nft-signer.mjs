@@ -27,6 +27,7 @@ if(['put','get'].includes(request.operation)) {
   process.stdout.write(JSON.stringify(envelope));if(mode==='preflight')process.exitCode=1;
  }
 }
+else if(request.operation==='nativeFeeReceipt')result={transactionHash:request.transactionHash,chainId:'fixture-chain',basis:'observed-ante-fee-deduction',payer:'fixture-owner',success:false,fees:[{denom:'stake',amount:'5'}]};
 else if(request.operation==='restoreKey')result={publicKey:'fixture-public',address:'fixture-owner'};
 else if(request.operation==='verifyNftCustodyReceipt'){
  if(request.contractAddress!=='fixture-contract'||request.tokenId!=='fixture-token'||request.custody!=='fixture-owner')
