@@ -1,6 +1,6 @@
 # HyperDrive V2 current release gates
 
-Updated 2026-10-12, inspected parent `688c18bb2`. This is a current navigation checklist, not a replacement for the original all-provider scope or the detailed evidence log. **Not release-ready; do not merge yet.**
+Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation checklist, not a replacement for the original all-provider scope or the detailed evidence log. **Not release-ready; do not merge yet.**
 
 ## Authoritative state
 
@@ -21,6 +21,7 @@ Updated 2026-10-12, inspected parent `688c18bb2`. This is a current navigation c
 | Core routing | Latest full suite 477 passed; generic sync V2 routing fixed; preparation errors structured; later-record missing-key batch failure prevents provider writes; attributed properties extracted/encrypted across sync/async single/bulk/null-metadata cases | Broader mixed-record/child preparation, successful generic/bulk replication/live distribution and original complete route matrix |
 | WEB4 | Current build: 0 errors, 253 warnings; 147 unit tests passed; Core source-build/API/test-output DLL hashes match | Authenticated hosted endpoints with real providers, Linux published artifact execution and other consumers |
 | Encryption | DNA helper combinations/negative checks, private whole-record tests, real Cosmos/Sui storage, DNA key references | Unified policy/key lifecycle, positive live custom-reference registration, Mongo end-to-end coverage, scale/rotation |
+| NFT off-chain mode | Cosmos/Sui URI projection implemented; shared full111, current Sui affected13/Cosmos affected11, paired real-Mongo controlled on/off-chain4 passed | Actual live mint/readback/escrow with durable owner, external metadata availability/authentication, deployed request/response behavior |
 | SDK packaging | Retained Windows output imports/direct pins verified; 9 verifier tests; Docker installs/verifies dependencies | Actual published Linux/runtime execution; source-path or junction proof is not that proof |
 | Usage recovery | Durable contracts/worker exist; 77 tests passed against owned real Mongo replica set, initializer 1 passed; worker refuses missing/conflicting evidence | Production resolver/registration and NFT execution host ownership, valuation, original signed binding, all-attempt receipts, crash/concurrency/exact settlement |
 

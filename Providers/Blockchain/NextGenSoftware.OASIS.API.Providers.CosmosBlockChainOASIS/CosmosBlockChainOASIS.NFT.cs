@@ -94,8 +94,7 @@ public partial class CosmosBlockChainOASIS
         {
             if (request == null) throw new ArgumentNullException(nameof(request));
             cancellationToken.ThrowIfCancellationRequested();
-            if (request.StoreNFTMetaDataOnChain == false)
-                throw new ArgumentException("This CosmWasm NFT ABI stores metadata on-chain; off-chain-only metadata is not implemented and must not be silently published.");
+            NftMetadataProjection.Validate(request.StoreNFTMetaDataOnChain, request.JSONMetaDataURL);
             if (request.NumberToMint.HasValue && request.NumberToMint != 1)
                 throw new ArgumentException("This NFT call mints one unique token; use separate calls for multiple tokens.");
             if (request.NFTStandardType.HasValue && request.NFTStandardType != Core.Enums.NFTStandardType.OASISCosmWasm)
@@ -131,13 +130,13 @@ public partial class CosmosBlockChainOASIS
                 Tags = request.Tags?.ToList() ?? new List<string>(), MintedByAvatarId = request.MintedByAvatarId,
                 MintedOn = DateTime.UtcNow, CurrentOwnerAvatarId = request.SendToAvatarAfterMintingId,
                 OnChainProvider = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.CosmosBlockChainOASIS),
-                StoreNFTMetaDataOnChain = true
+                StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain != false
             };
             using var preparationServer = execution == null ? null
                 : CreateNativePreparationServer(execution, clientRequestId, _sdkBackend.ChainId, signer);
             var hash = await ExecuteAssetAsync(new { nft_mint = new
             {
-                token_id = id.ToString("N"), recipient, metadata_json = OasisJson.Serialize(nft)
+                token_id = id.ToString("N"), recipient, metadata_json = OasisJson.Serialize(NftMetadataProjection.ForOnChainStorage(nft))
             } }, key, signer, contract, preparationServer, cancellationToken);
             nft.MintTransactionHash = hash;
             result.Result = new Web3NFTTransactionResponse { TransactionResult = hash, Web3NFT = nft };
