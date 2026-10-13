@@ -480,7 +480,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 var belongsToAvatar = entry.Entity is AvatarDetailModel detail && detail.Id == id;
                 var avatarKey = entry.Metadata.FindProperty("AvatarId");
                 if (avatarKey != null && avatarKey.ClrType == typeof(string))
-                    belongsToAvatar |= (string)entry.Property("AvatarId").CurrentValue == id;
+                    belongsToAvatar |= (string)entry.Property("AvatarId").CurrentValue == id
+                        || (string)entry.Property("AvatarId").OriginalValue == id;
                 if (belongsToAvatar && (entry.State == EntityState.Added || entry.State == EntityState.Modified || entry.State == EntityState.Deleted))
                     entry.State = EntityState.Detached;
             }

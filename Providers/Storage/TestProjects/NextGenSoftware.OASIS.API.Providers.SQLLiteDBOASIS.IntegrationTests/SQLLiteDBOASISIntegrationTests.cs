@@ -72,12 +72,17 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
         (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
         var detail = new AvatarDetail { Id = Guid.NewGuid(), Username = "rejected-detail", Karma = 100 };
+        var item = new InventoryItem { Id = Guid.NewGuid(), Name = "rollback-seed", Quantity = 2 };
+        item.MetaData["quest-source"] = "original-tree";
+        detail.Inventory.Add(item);
         detail.Stats.HP.Current = 31;
         (await provider.SaveAvatarDetailAsync(detail)).IsError.Should().BeFalse();
         using var control = new DataContext(TestConnectionString);
         control.Database.ExecuteSqlRaw("CREATE TRIGGER reject_detail_update BEFORE UPDATE ON AvatarDetail BEGIN SELECT RAISE(ABORT, 'owned detail rejection'); END;");
         detail.Karma = 999;
         detail.Stats.HP.Current = 88;
+        item.Quantity = 9;
+        item.MetaData["quest-source"] = "rejected-tree";
         var rejected = synchronous ? provider.SaveAvatarDetail(detail) : await provider.SaveAvatarDetailAsync(detail);
         rejected.IsError.Should().BeTrue();
         rejected.Exception.Should().NotBeNull();
@@ -88,6 +93,9 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         var loaded = await reopened.LoadAvatarDetailAsync(detail.Id);
         loaded.Result.Karma.Should().Be(100);
         loaded.Result.Stats.HP.Current.Should().Be(31);
+        loaded.Result.Inventory.Single().Id.Should().Be(item.Id);
+        loaded.Result.Inventory.Single().Quantity.Should().Be(2);
+        loaded.Result.Inventory.Single().MetaData["quest-source"].ToString().Should().Be("original-tree");
     }
 
     [Theory]
