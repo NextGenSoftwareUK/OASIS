@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sync/async attributed generic V2 preparation matrix — 2026-10-12
+
+- Expanded preparation tests to sixteen combinations: synchronous/asynchronous generic single/bulk saves, DNA GCM enabled/disabled, null/non-null input metadata. Controlled provider callbacks assert attributed dialogue extraction, encrypted envelope/decryptable value when enabled and retained exempt Status where supplied. All manager calls return success through configured V2.
+- Full Core **477/477 passed**, zero skips, `TestResults/CoreCurrent/core-sync-custom-property-current.trx`. This closes focused sync custom-property coverage, not child traversal/StoreAsJson/per-save overrides/live quest serialization or all-provider distribution. No production change in this checkpoint.
+- Current consumer refresh and original broader release gates remain open. No runtime/install/download/funds/deployment/merge.
+
+
 ### Null derived-holon metadata V2 preparation correction — 2026-10-12
 
 - Core `8650408495ab646a302e3cad12e1409ed0c3918e` initializes null metadata at V2 single/bulk preparation before existing attributed extraction. Shared legacy extraction initializes too late; legacy remains unchanged/documented. Batch input is materialized before initialization/preparation; null records still fail through the structured boundary.

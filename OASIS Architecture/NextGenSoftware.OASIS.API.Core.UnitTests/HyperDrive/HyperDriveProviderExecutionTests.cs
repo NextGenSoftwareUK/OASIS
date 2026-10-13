@@ -29,9 +29,11 @@ public sealed class HyperDriveProviderExecutionTests
         public string QuestDialogue { get; set; }="Keep my custom data";
     }
     [Theory]
-    [InlineData(false,false,false)] [InlineData(true,false,false)] [InlineData(false,true,false)] [InlineData(true,true,false)]
-    [InlineData(false,false,true)] [InlineData(true,false,true)] [InlineData(false,true,true)] [InlineData(true,true,true)]
-    public async Task V2GenericPreparationExtractsAttributedPropertiesBeforeProviderWrite(bool bulk,bool encrypted,bool nullMetadata)
+    [InlineData(false,false,false,false)] [InlineData(true,false,false,false)] [InlineData(false,true,false,false)] [InlineData(true,true,false,false)]
+    [InlineData(false,false,true,false)] [InlineData(true,false,true,false)] [InlineData(false,true,true,false)] [InlineData(true,true,true,false)]
+    [InlineData(false,false,false,true)] [InlineData(true,false,false,true)] [InlineData(false,true,false,true)] [InlineData(true,true,false,true)]
+    [InlineData(false,false,true,true)] [InlineData(true,false,true,true)] [InlineData(false,true,true,true)] [InlineData(true,true,true,true)]
+    public async Task V2GenericPreparationExtractsAttributedPropertiesBeforeProviderWrite(bool bulk,bool encrypted,bool nullMetadata,bool synchronous)
     {
         var dna=CreateDna(HyperDriveModes.V2);
         var encryption=new EncryptionSettings { QuantumEncryptionEnabled=encrypted,QuantumEncryptionKey="public-custom-property-test-key" };
@@ -49,6 +51,10 @@ public sealed class HyperDriveProviderExecutionTests
         }
         var provider=CreateActiveProvider(ProviderType.SQLLiteDBOASIS,"attributed-v2-save");
         provider.Setup(value=>value.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        provider.Setup(value=>value.SaveHolon(It.IsAny<IHolon>(),true,true,0,true,false))
+            .Returns((IHolon value,bool a,bool b,int c,bool d,bool e)=>{CheckPayload(value);return new OASISResult<IHolon>(value);});
+        provider.Setup(value=>value.SaveHolons(It.IsAny<IEnumerable<IHolon>>(),true,true,0,0,true,false))
+            .Returns((IEnumerable<IHolon> values,bool a,bool b,int c,int d,bool e,bool f)=>{CheckPayload(values.Single());return new OASISResult<IEnumerable<IHolon>>(values);});
         provider.Setup(value=>value.SaveHolonAsync(It.IsAny<IHolon>(),true,true,0,true,false))
             .ReturnsAsync((IHolon value,bool a,bool b,int c,bool d,bool e)=>{
                 CheckPayload(value);return new OASISResult<IHolon>(value);});
@@ -60,7 +66,9 @@ public sealed class HyperDriveProviderExecutionTests
         var manager=new HolonManager(null,dna,providers);var holon=new AttributedSaveHolon{Id=Guid.NewGuid()};
         holon.MetaData["Status"]="Pending";
         if(nullMetadata)holon.MetaData=null!;
-        if(bulk)(await manager.SaveHolonsAsync<AttributedSaveHolon>(new[]{holon},Guid.NewGuid(),providerType:ProviderType.SQLLiteDBOASIS)).IsError.Should().BeFalse();
+        if(synchronous && bulk)manager.SaveHolons<AttributedSaveHolon>(new[]{holon},Guid.NewGuid(),providerType:ProviderType.SQLLiteDBOASIS).IsError.Should().BeFalse();
+        else if(synchronous)manager.SaveHolon<AttributedSaveHolon>(holon,Guid.NewGuid(),providerType:ProviderType.SQLLiteDBOASIS).IsError.Should().BeFalse();
+        else if(bulk)(await manager.SaveHolonsAsync<AttributedSaveHolon>(new[]{holon},Guid.NewGuid(),providerType:ProviderType.SQLLiteDBOASIS)).IsError.Should().BeFalse();
         else (await manager.SaveHolonAsync<AttributedSaveHolon>(holon,Guid.NewGuid(),providerType:ProviderType.SQLLiteDBOASIS)).IsError.Should().BeFalse();
     }
     [Theory]
