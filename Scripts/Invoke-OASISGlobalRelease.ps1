@@ -335,16 +335,16 @@ function Get-PlannedPackageVersion($Project, $PublishedRelease) {
         return '1.0.0'
     }
     $provenance = $PublishedRelease.Repository
-    if (-not $provenance -or $provenance.commit -notmatch '^[a-fA-F0-9]{40}$' -or
-        $provenance.url.TrimEnd('/') -notmatch '^https://github.com/NextGenSoftwareUK/OASIS(?:\.git)?$') {
+    if (-not $provenance -or $provenance.commit -notmatch '^[a-fA-F0-9]{40}$') {
         throw "Cannot prove published source for $($Project.PackageId) $publishedVersion; review repository provenance before publication."
     }
     $relative = $Project.File.FullName.Substring($repoRoot.Length).TrimStart('\', '/').Replace('\', '/')
     $graph = $sourceGraphs.($Project.PackageId)
     if (-not $graph) {
-        $graphJson = & python (Join-Path $PSScriptRoot 'nuget_source_graph.py') --root $repoRoot --baseline $provenance.commit --current HEAD --project $relative
+        $request = @(@{ packageId=$Project.PackageId; root=$repoRoot; previousVersion=$publishedVersion; publishedRepository=$provenance; current='HEAD'; project=$relative })
+        $graphJson = ConvertTo-Json -InputObject $request -Depth 8 -Compress | & python (Join-Path $PSScriptRoot 'nuget_source_graph.py') --batch
         if ($LASTEXITCODE -ne 0) { throw "Source graph verification failed for $($Project.PackageId)." }
-        $graph = $graphJson | ConvertFrom-Json
+        $graph = ($graphJson | ConvertFrom-Json).($Project.PackageId)
     }
     $sourceDecisions.Add([pscustomobject]@{ packageId=$Project.PackageId; previousVersion=$publishedVersion; project=$relative; graph=$graph })
     if (-not $graph.changed) {
@@ -546,12 +546,12 @@ if ($NuGetPackages) {
         $release = Get-LatestNuGetRelease $project.PackageId
         $publishedReleases[$project.PackageId] = $release
         if ($release) {
-            if ($release.Repository.commit -notmatch '^[a-fA-F0-9]{40}$' -or $release.Repository.url -notmatch '^https://github.com/NextGenSoftwareUK/OASIS(?:\.git)?/?$') { throw "Missing or foreign source provenance: $($project.PackageId)." }
-            @{ packageId=$project.PackageId; root=$repoRoot; baseline=$release.Repository.commit; current='HEAD'; project=$project.File.FullName.Substring($repoRoot.Length).TrimStart('\', '/').Replace('\', '/') }
+            if ($release.Repository.commit -notmatch '^[a-fA-F0-9]{40}$') { throw "Missing source provenance: $($project.PackageId)." }
+            @{ packageId=$project.PackageId; root=$repoRoot; previousVersion=$release.Version; publishedRepository=$release.Repository; current='HEAD'; project=$project.File.FullName.Substring($repoRoot.Length).TrimStart('\', '/').Replace('\', '/') }
         }
     })
     if ($graphRequests.Count) {
-        $graphsJson = ConvertTo-Json -InputObject $graphRequests -Depth 4 -Compress | & python (Join-Path $PSScriptRoot 'nuget_source_graph.py') --batch
+        $graphsJson = ConvertTo-Json -InputObject $graphRequests -Depth 8 -Compress | & python (Join-Path $PSScriptRoot 'nuget_source_graph.py') --batch
         if ($LASTEXITCODE -ne 0) { throw 'Package source graph analysis failed; nothing may be packed or published.' }
         $sourceGraphs = $graphsJson | ConvertFrom-Json
     }
@@ -655,7 +655,9 @@ if ($NuGetPackages) {
         }
         foreach ($package in $packagePlan) {
             $projectPath = Join-Path $repoRoot $package.project
-            & dotnet pack $projectPath -c Release -o $packageOutput --nologo
+            # Global packages are built from the parent dependency graph, not an
+            # unqualified child commit. Record that graph in every future package.
+            & dotnet pack $projectPath -c Release -o $packageOutput --nologo "-p:RepositoryCommit=$($plan.sourceCommit)" '-p:RepositoryUrl=https://github.com/NextGenSoftwareUK/OASIS'
             if ($LASTEXITCODE -ne 0) { throw "Packing $($package.packageId) failed." }
         }
     }

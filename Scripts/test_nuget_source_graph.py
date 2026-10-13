@@ -1,7 +1,7 @@
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-from nuget_source_graph import Graph, compare
+from nuget_source_graph import Graph, compare, resolve_baseline, load_receipts
 
 
 class SourceGraphTests(unittest.TestCase):
@@ -45,6 +45,22 @@ class SourceGraphTests(unittest.TestCase):
         old["A/A.csproj:xml"] = '<Project><ProjectReference Include="$(Dependency)/X.csproj"/></Project>'
         with self.assertRaisesRegex(ValueError, "dynamic external"):
             self.comparison(old, old)
+
+    def test_reviewed_holonet_correction_requires_exact_identity(self):
+        receipts = load_receipts(Path(__file__).resolve().parent.parent)
+        receipt = receipts[("nextgensoftware.holochain.holonet.orm", "4.1.5")]
+        correction = receipt["metadataCorrection"]
+        item = {"root": str(Path.cwd()), "project": "HoloNET-ORM/X.csproj", "packageId": correction["packageId"], "previousVersion": "4.1.5", "publishedRepository": {"commit": correction["recordedCommit"], "url": correction["recordedUrl"]}}
+        with patch.object(Graph, "location", return_value=(Path.cwd() / "HoloNET-ORM", correction["recordedCommit"], "X.csproj")), patch.object(Graph, "git", return_value=correction["actualOwner"]):
+            self.assertEqual(receipt["sourceCommit"], resolve_baseline(item, receipts))
+            item["publishedRepository"]["commit"] = "f" * 40
+            with self.assertRaisesRegex(ValueError, "contradicts"):
+                resolve_baseline(item, receipts)
+
+    def test_unknown_foreign_publication_is_not_guessed(self):
+        item = {"root": str(Path.cwd()), "project": "X.csproj", "packageId": "Unknown", "previousVersion": "1.0.0", "publishedRepository": {"commit": "a" * 40, "url": "https://github.com/foreign/repo"}}
+        with self.assertRaisesRegex(ValueError, "reviewed parent"):
+            resolve_baseline(item, {})
 
 
 if __name__ == "__main__":
