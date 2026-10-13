@@ -117,6 +117,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
             if (result.IsError)
             {
+                result.Result = false;
                 dbContextTransaction.Rollback();
                 DetachFailedAvatarDeletion(id.ToString(), deletionEntities);
             }
