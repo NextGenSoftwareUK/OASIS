@@ -57,7 +57,7 @@ $selectedVersionedComponents = @($OASISRuntime, $STARRuntime, $EdgeRuntime, $Edg
 if ($EdgeUnity -and -not $NuGetPackages) {
     throw 'The coordinated Edge Runtime release requires NuGetPackages because its nine reusable assemblies are part of the release contract.'
 }
-if ($VersionMode -eq 'Manual' -and $selectedVersionedComponents.Count -ne 1) {
+if ($VersionMode -eq 'Manual' -and $selectedVersionedComponents.Count -ne 1 -and -not ($NuGetPackages -and $selectedVersionedComponents.Count -eq 0)) {
     throw 'Manual version mode requires exactly one selected component.'
 }
 
@@ -352,11 +352,11 @@ function Get-PlannedPackageVersion($Project, $PublishedRelease) {
         return $null
     }
     $baseline = if ([version]$publishedVersion -gt [version]$sourceVersion) { $publishedVersion } else { $sourceVersion }
-    if ([version]$sourceVersion -gt [version]$publishedVersion) { return $sourceVersion }
+    if ($VersionMode -in @('Automatic','Patch') -and [version]$sourceVersion -gt [version]$publishedVersion) { return $sourceVersion }
     switch ($VersionMode) {
         Major { return '{0}.0.0' -f (([version]$baseline).Major + 1) }
         Minor { $parsed=[version]$baseline; return '{0}.{1}.0' -f $parsed.Major, ($parsed.Minor + 1) }
-        Manual { if ([version]$ManualVersion -le [version]$baseline) { throw 'Manual NuGet version must exceed its immutable registry baseline.' }; return $ManualVersion }
+        Manual { if ($ManualVersion -notmatch '^\d+\.\d+\.\d+$' -or [version]$ManualVersion -le [version]$baseline) { throw 'Manual NuGet version must be stable and exceed its immutable registry/source baseline.' }; return $ManualVersion }
         default { return Get-NextPatchVersion $baseline }
     }
 }
@@ -524,6 +524,7 @@ if ($NuGetPackages) {
         }
     }
     Assert-PackageMetadata $packageProjects
+    if (-not $reviewedPlan -and $VersionMode -eq 'Manual' -and $packageProjects.Count -ne 1) { throw 'Manual NuGet version mode requires exactly one selected package.' }
     if ($reviewedPlan) {
         $unchangedPackages = @($reviewedPlan.unchangedPackages)
         foreach ($unchanged in $unchangedPackages) {
@@ -559,6 +560,7 @@ if ($NuGetPackages) {
         $publishedRelease = $publishedReleases[$_.PackageId]
         $version = Get-PlannedPackageVersion $_ $publishedRelease
         if (-not $version) { return }
+        $versionDecisions.Add([pscustomobject]@{ scope=$_.PackageId; current=if($publishedRelease){$publishedRelease.Version}else{'unpublished'}; proposed=$version; bump=$VersionMode; reason=if($publishedRelease){'Verified committed package input changes.'}else{'Verified registry identity has no stable release.'} })
         [pscustomobject]@{
             packageId = $_.PackageId
             version = $version
