@@ -58,6 +58,26 @@ public sealed class MongoSqliteRealProviderRoutingTests
             (await mongo.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Name.Should().Be(holon.Name);
             (await sqlite.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Name.Should().Be(holon.Name);
             manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            holon.Name = "priority-updated";
+            holon.Version = 3;
+            holon.MetaData["Email"] = "priority@test.local";
+            var updated = synchronous ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
+            updated.IsError.Should().BeFalse(updated.Message);
+            updated.IsWarning.Should().BeFalse(string.Join("; ",manager.LastReplicationDiagnostic.Attempts.Select(x=>x.Message)));
+            foreach (var loaded in new[] { await mongo.LoadHolonAsync(holon.Id,loadChildren:false), await sqlite.LoadHolonAsync(holon.Id,loadChildren:false) })
+            {
+                loaded.IsError.Should().BeFalse(loaded.Message);
+                loaded.Result.Name.Should().Be("priority-updated");
+                loaded.Result.Version.Should().Be(3);
+                loaded.Result.MetaData["Email"].ToString().Should().Be("priority@test.local");
+            }
+            var delete = new StorageOperationRequest { Operation = "DeleteHolon", HolonId = holon.Id, SoftDelete = false, PreferredProvider = request.PreferredProvider };
+            var deleted = synchronous ? router.RouteRequest<IHolon>(delete) : await router.RouteRequestAsync<IHolon>(delete);
+            deleted.IsError.Should().BeFalse(deleted.Message);
+            deleted.IsWarning.Should().BeFalse(string.Join("; ",manager.LastReplicationDiagnostic.Attempts.Select(x=>x.Message)));
+            (await mongo.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Should().BeNull();
+            (await sqlite.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Should().BeNull();
+            manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
             await mongo.DeActivateProviderAsync();
         }
         finally
