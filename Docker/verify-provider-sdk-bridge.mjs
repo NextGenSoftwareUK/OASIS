@@ -15,8 +15,8 @@ for(const entry of fs.readdirSync(root).filter(name=>name.endsWith('.mjs'))){
  const checked=spawnSync(process.execPath,['--check',file],{encoding:'utf8'});
  if(checked.status!==0)throw new Error(`Invalid bridge module ${entry}: ${checked.stderr}`);
  const source=fs.readFileSync(file,'utf8');
- const imports=[...source.matchAll(/\bfrom\s+["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']\s*\)/g)]
-  .map(match=>match[1]??match[2]);
+ const imports=[...source.matchAll(/\bfrom\s+["']([^"']+)["']|\bimport\s*\(\s*["']([^"']+)["']\s*\)|\bimport\s*["']([^"']+)["']/g)]
+  .map(match=>match[1]??match[2]??match[3]);
  for(const name of imports){
   if(name.startsWith('.')){
    if(!fs.statSync(path.resolve(root,name)).isFile())throw new Error(`Missing local bridge module ${name}`);
