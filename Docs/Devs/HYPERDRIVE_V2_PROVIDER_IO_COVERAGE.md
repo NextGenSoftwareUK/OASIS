@@ -5,6 +5,14 @@
 
 ## Current provider status — not full certification
 
+### Hedera admitted mint and separate delivery ownership — 2026-10-13
+
+Added a public typed `MintNFTAsync(request, UsageExecutionHandle, clientRequestId, cancellationToken)` overload sharing the existing HTS mint core. Mint and optional recipient transfer each use existing `ExecutePreparedNativeAsync`/signature verifier with the selected wallet's account/public key, original transaction IDs and distinct `:mint`/`:delivery` correlations. Correlation guards reserve suffix space within bounded attempt identifiers. Standard mint remains explicit; no new billing ledger, automatic replay, funded tests or sponsorship policy was enabled. Host receipt collection/settlement and public authenticated route integration remain incomplete.
+
+Provider build and focused receipt/delivery/stage guards **19/19** passed (`TestResults/HederaCurrent/hedera-mint-owner-stage-guards-current.trx`). Extended the existing replica runner with `-HederaPreparedOwners`; the existing offline SDK signed-escrow tests now require its exact owned port27029 rather than the unrelated Mongo service. Replica initialization **1/1**, real official SDK signed preparation plus actual Mongo cases **6/6** passed (`TestResults/SubscriptionUsageCurrent/hedera-real-signed-owner-mongo-current.trx`). Those six cases validate optional/distinct stages and bad-signature rejection, but are escrow-preparation evidence—not end-to-end typed mint/delivery execution. Source SDK dependencies were reused with no downloads/restore; owned fixture DBs were removed and runtime stopped by the runner. Ownership refusal checks3 passed. Free disk97,077,776,384 bytes after checks; unexplained host disk growth remains under review.
+
+Final selected non-funded Hedera integration suite **280/280** passed in2m7s (`TestResults/HederaCurrent/hedera-nonfunded-typed-owner-current.trx`). Funded testnet and original charged-failure cases were deliberately excluded; this is not full consensus/storage/NFT/V2 certification.
+
 ### Actual Sui metadata-key query verification — 2026-10-13
 
 Reused installed Sui1.81.1 and existing `/var/tmp/oasis-sui/network` ledger, first verifying network.yaml existed (no genesis/reset/download). Added a pre-write CreateNew ownership journal to the existing holon test, including only owned IDs/chain/package references, not signing secrets. It queries the same full golden metadata exemption list plus `AppRegion` and preserves the fence on failed verification/cleanup.

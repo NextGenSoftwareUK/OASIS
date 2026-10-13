@@ -8,6 +8,20 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 [TestClass]
 public class HederaNftDeliveryResponseTests
 {
+    [DataTestMethod]
+    [DataRow("", false)] [DataRow(" ", false)] [DataRow("bad\ncorrelation", false)]
+    [DataRow(119, true)] [DataRow(120, false)]
+    public void MintCorrelationReservesRoomForDistinctBoundedStageIds(object value, bool valid)
+    {
+        var correlation = value is int length ? new string('a', length) : (string)value;
+        var method = typeof(HashgraphOASIS).GetMethod("ValidateMintOwnerCorrelation", BindingFlags.Static | BindingFlags.NonPublic)!;
+        if (valid) method.Invoke(null, new object[] { correlation });
+        else
+        {
+            var error = Assert.ThrowsException<TargetInvocationException>(() => method.Invoke(null, new object[] { correlation }));
+            Assert.IsInstanceOfType<ArgumentException>(error.InnerException);
+        }
+    }
     [TestMethod]
     public void BatchResponseRetainsEverySerialWithIndependentMetadataAndStableIds()
     {
