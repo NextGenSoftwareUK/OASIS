@@ -98,13 +98,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                ArgumentException.ThrowIfNullOrWhiteSpace(providerKey);
                 var holonEntities = _dbContext.Holons
+                    .Where(p => p.LocalProviderKey == providerKey && (version == 0 || p.Version == version))
                     .ToList()
                     .Select(GetHolonFromEntity)
-                    .FirstOrDefault(p => p.Version == version);
+                    .SingleOrDefault();
                 return new OASISResult<IHolon>
                 {
-                    IsLoaded = true,
+                    IsLoaded = holonEntities != null,
                     IsError = false,
                     Message = "Holon Loaded successfully",
                     Result = holonEntities
@@ -114,9 +116,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 return new OASISResult<IHolon>
                 {
-                    IsLoaded = true,
-                    IsError = false,
-                    Message = ex.ToString()
+                    IsLoaded = false,
+                    IsError = true,
+                    Exception = ex, Message = ex.Message
                 };
             }
         }
@@ -126,13 +128,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var holonEntity = _dbContext.Holons
-                    .ToList()
-                    .Select(GetHolonFromEntity)
-                    .FirstOrDefault(p => p.Version == version);
+                ArgumentException.ThrowIfNullOrWhiteSpace(providerKey);
+                var stored = await _dbContext.Holons.SingleOrDefaultAsync(p => p.LocalProviderKey == providerKey && (version == 0 || p.Version == version));
+                var holonEntity = stored == null ? null : GetHolonFromEntity(stored);
                 return new OASISResult<IHolon>
                 {
-                    IsLoaded = true,
+                    IsLoaded = holonEntity != null,
                     IsError = false,
                     Message = "Holon Loaded successfully",
                     Result = holonEntity
@@ -142,9 +143,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 return new OASISResult<IHolon>
                 {
-                    IsLoaded = true,
-                    IsError = false,
-                    Message = ex.ToString()
+                    IsLoaded = false,
+                    IsError = true,
+                    Exception = ex, Message = ex.Message
                 };
             }
         }
@@ -520,7 +521,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var holonEntity = _dbContext.Holons
-                    .FirstOrDefault(p => p.ProviderKey.Any(pk => pk.Value == providerKey));
+                    .FirstOrDefault(p => p.LocalProviderKey == providerKey);
                 
                 if (holonEntity != null)
                 {
@@ -569,7 +570,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var holonEntity = await _dbContext.Holons
-                    .FirstOrDefaultAsync(p => p.ProviderKey.Any(pk => pk.Value == providerKey));
+                    .FirstOrDefaultAsync(p => p.LocalProviderKey == providerKey);
                 
                 if (holonEntity != null)
                 {
@@ -657,25 +658,33 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Version = holonEntity.Version,
                 HolonType = holonEntity.HolonType,
                 MetaData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string,object>>(holonEntity.MetaDataJson)
-                    ?? throw new System.IO.InvalidDataException("Stored holon metadata must be a JSON object.")
+                    ?? throw new System.IO.InvalidDataException("Stored holon metadata must be a JSON object."),
+                ProviderUniqueStorageKey = System.Text.Json.JsonSerializer.Deserialize<Dictionary<ProviderType,string>>(holonEntity.ProviderKeysJson)
+                    ?? throw new System.IO.InvalidDataException("Stored provider keys must be a JSON object.")
             };
 
         private HolonModel CreateHolonModel(IHolon holon)
         {
+            var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+            var keys = holon.ProviderUniqueStorageKey == null ? new Dictionary<ProviderType,string>() : new Dictionary<ProviderType,string>(holon.ProviderUniqueStorageKey);
+            if (!keys.ContainsKey(ProviderType.SQLLiteDBOASIS)) keys[ProviderType.SQLLiteDBOASIS] = id.ToString();
+            ArgumentException.ThrowIfNullOrWhiteSpace(keys[ProviderType.SQLLiteDBOASIS]);
             return new()
             {
                 CreatedDate = holon.CreatedDate,
                 DeletedDate = holon.DeletedDate,
                 Description = holon.Description,
                 ParentHolonId = holon.ParentHolonId.ToString(),
-                Id = holon.Id.ToString(),
+                Id = id.ToString(),
                 IsActive = holon.IsActive,
                 IsChanged = holon.IsChanged,
                 ModifiedDate = holon.ModifiedDate,
                 Name = holon.Name,
                 Version = holon.Version,
                 HolonType = holon.HolonType,
-                MetaDataJson = System.Text.Json.JsonSerializer.Serialize(holon.MetaData ?? new Dictionary<string,object>())
+                MetaDataJson = System.Text.Json.JsonSerializer.Serialize(holon.MetaData ?? new Dictionary<string,object>()),
+                LocalProviderKey = keys[ProviderType.SQLLiteDBOASIS],
+                ProviderKeysJson = System.Text.Json.JsonSerializer.Serialize(keys)
             };
         }
 
