@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Real Mongo selector lookup rejection — 2026-10-13
+
+Owned-server app-scoped find rejection checks all email/username/native-key deletion selectors sync/async: result error/false/original MongoCommandException, no avatar/detail mutation. Expanded real pair4/4 passes (`TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`). Transaction-stage selector rejection, uniqueness/custom keys, API attribution, full-provider interfaces and production recovery remain open. No additional downloads/environments.
+
 ### Mongo hard and missing deletion selector verification — 2026-10-13
 
 Expanded real pair4/4 passes all three email/username/native-key selectors sync/async for soft deletion followed by permanent deletion and error/false on repeated deletion after absence. Direct avatar/detail native-store readback is absent. Report `TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`. These remain four expanded scenarios; storage-error/rejection/uniqueness/custom-key/API attribution and production recovery are separate gates. No runtime/download/environment duplication.
