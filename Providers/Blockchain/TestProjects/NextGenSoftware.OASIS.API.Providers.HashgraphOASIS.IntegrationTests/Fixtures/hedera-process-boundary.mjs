@@ -2,7 +2,11 @@
 let input='';
 for await (const chunk of process.stdin) input+=chunk;
 const envelope=JSON.parse(input);
-if(envelope.action==='storageDelete') {
+if(envelope.action==='nftTransfer'&&envelope.request.privateKey==='test-only-delivery-key') {
+ if(envelope.request.sender!=='0.0.1001'||envelope.request.recipient!=='0.0.1002'
+  ||envelope.request.tokenId!=='0.0.1234'||envelope.request.serials[0]!=='7')throw new Error('Delivery fixture selectors differ');
+ process.stdout.write(JSON.stringify({transactionId:envelope.request.transactionId,status:'SUCCESS'}));
+} else if(envelope.action==='storageDelete') {
  const mode=envelope.request.fixtureStage;
  if(mode==='invalid-utf8')process.stdout.write(Buffer.from([0xff]));
  else if(mode==='bad-json')process.stdout.write('invalid JSON');
