@@ -5,7 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums;
 
 namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests;
 
-[TestClass]
+[TestClass,DoNotParallelize]
 public class CosmosAssetTests
 {
     public TestContext TestContext { get; set; } = null!;
@@ -24,6 +24,8 @@ public class CosmosAssetTests
     [TestInitialize]
     public async Task Setup()
     {
+        Assert.IsTrue(new Uri(Required("OASIS_COSMOS_TEST_RPC")).IsLoopback,"Public development identities must only be used on the retained local node.");
+        Assert.AreEqual("oasis-cosmos-local",Required("OASIS_COSMOS_TEST_CHAIN"));
         _contract = Required("OASIS_COSMOS_TEST_CONTRACT");
         _provider = new CosmosBlockChainOASIS(Required("OASIS_COSMOS_TEST_RPC"), Required("OASIS_COSMOS_TEST_CHAIN"),
             Required("OASIS_COSMOS_TEST_KEY"), _contract, "wasm", "0.025stake", "stake", 0);
@@ -43,7 +45,7 @@ public class CosmosAssetTests
         _recipientPublicKey = wallet.GetProperty("publicKey").GetString()!;
         var balance = await _provider.GetAccountBalanceAsync(_recipient);
         Assert.IsFalse(balance.IsError, balance.Message);
-        if (balance.Result < 100000m)
+        if (TestContext.TestName!=nameof(GenericContractQueryAndSignedExecutionUseDeployedAbi) && balance.Result < 100000m)
         {
             var funded = await _provider.SendTransactionAsync(_owner, _recipient, 100000m - balance.Result, "Cosmos reusable asset actor gas");
             Assert.IsFalse(funded.IsError, funded.Message);
@@ -197,8 +199,17 @@ public class CosmosAssetTests
     public async Task GenericContractQueryAndSignedExecutionUseDeployedAbi()
     {
         var key = "oasis/generic/" + Guid.NewGuid().ToString("N");
+        var root=new DirectoryInfo(AppContext.BaseDirectory);
+        while(root!=null&&!File.Exists(Path.Combine(root.FullName,"Scripts/TestHosts/stop-owned-cosmos-test-node.sh")))root=root.Parent;
+        Assert.IsNotNull(root);
+        var path=Path.Combine(root!.FullName,"TestResults/CosmosRuntime/generic-pending.jsonl");
+        using var journal=new FileStream(path,FileMode.CreateNew,FileAccess.Write,FileShare.Read);
+        void Append(object record){journal.Write(System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(record));journal.WriteByte(10);journal.Flush(true);}
+        Append(new{stage="intent",chain="oasis-cosmos-local",contract=_contract,key,owner=_owner,recovery="Read original identities and owned key; never repeat unknown writes."});
+        try {
         var committed = await _provider.ExecuteContractAsync(_contract, new { put = new { key, value = "generic execution evidence" } }, fromWalletAddress: _owner);
         Assert.IsFalse(committed.IsError, committed.Message);
+        Append(new{stage="write-returned",transactionId=committed.Result.TransactionResult});
         var query = await _provider.QueryContractAsync(_contract, new { get = new { key } });
         Assert.IsFalse(query.IsError, query.Message);
         Assert.AreEqual("generic execution evidence", query.Result.GetString());
@@ -207,11 +218,19 @@ public class CosmosAssetTests
         Assert.AreEqual(BridgeTransactionStatus.Completed, status.Result);
         var unauthorized = await _provider.ExecuteContractAsync(_contract, new { put = new { key, value = "must fail" } }, _recipientKey, _recipient);
         Assert.IsTrue(unauthorized.IsError);
+        Assert.IsFalse(Core.Helpers.NativeMutationReconciliation.IsRequired(unauthorized.Exception),"An uncertain unauthorized submission must be reconciled before cleanup.");
         StringAssert.Contains(unauthorized.Message, "storage owner required");
         var deleted = await _provider.ExecuteContractAsync(_contract, new { delete = new { key } }, fromWalletAddress: _owner);
         Assert.IsFalse(deleted.IsError, deleted.Message);
+        Append(new{stage="cleanup-returned",transactionId=deleted.Result.TransactionResult});
+        Assert.AreNotEqual(committed.Result.TransactionResult,deleted.Result.TransactionResult);
+        var cleanupStatus=await _provider.GetTransactionStatusAsync(deleted.Result.TransactionResult);
+        Assert.IsFalse(cleanupStatus.IsError,cleanupStatus.Message);Assert.AreEqual(BridgeTransactionStatus.Completed,cleanupStatus.Result);
         var missing = await _provider.QueryContractAsync(_contract, new { get = new { key } });
         Assert.IsFalse(missing.IsError, missing.Message);
         Assert.AreEqual(System.Text.Json.JsonValueKind.Null, missing.Result.ValueKind);
+        TestContext.WriteLine($"Confirmed generic write={committed.Result.TransactionResult}; cleanup={deleted.Result.TransactionResult}; owned key={key}");
+        journal.Dispose();File.Delete(path);
+        } catch {TestContext.WriteLine("Retained generic contract recovery journal: "+path);throw;}
     }
 }

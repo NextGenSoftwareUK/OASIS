@@ -8,6 +8,20 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationT
 public class CosmosTransferTests
 {
     [TestMethod]
+    public async Task ExistingSuccessfulContractFeeReceiptBindsActualOwnerAndObservedCost()
+    {
+        using var provider=Provider();
+        var hash=Environment.GetEnvironmentVariable("OASIS_COSMOS_TEST_SUCCESSFUL_HASH")??throw new InvalidOperationException("Existing confirmed original hash required; do not submit a new fee fixture.");
+        var owner=(await InvokeSdk("restoreKey",new{})).GetProperty("address").GetString();
+        Core.Interfaces.IOASISNativeFeeReceiptProvider capability=provider;
+        var result=await capability.GetNativeFeeReceiptAsync(hash);Assert.IsFalse(result.IsError,result.Message);
+        var receipt=result.Result;Assert.AreEqual(hash,receipt.GetProperty("transactionHash").GetString());Assert.AreEqual(Chain,receipt.GetProperty("chainId").GetString());
+        Assert.AreEqual(owner,receipt.GetProperty("payer").GetString());Assert.IsTrue(receipt.GetProperty("success").GetBoolean());
+        Assert.AreEqual("observed-ante-fee-deduction",receipt.GetProperty("basis").GetString());
+        Assert.IsTrue(receipt.GetProperty("fees").EnumerateArray().Any(coin=>coin.GetProperty("denom").GetString()=="stake"&&System.Numerics.BigInteger.Parse(coin.GetProperty("amount").GetString()!)>0));
+        Assert.IsFalse(provider.IsProviderActivated);Console.WriteLine("Existing original Cosmos fee evidence verified without submission: "+hash);
+    }
+    [TestMethod]
     public async Task OriginalFailedBankFeeReceiptRetainsObservedDeduction()
     {
         using var provider = Provider();
