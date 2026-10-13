@@ -3,11 +3,10 @@ import {execute} from '../../Providers/Blockchain/NextGenSoftware.OASIS.API.Prov
 import {deploymentTransaction} from '../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/SdkBridge/deployment.mjs';
 import {estimatedTinybars,validateDeploymentBudget} from './hedera-deployment-fee.mjs';
 import {saveDeploymentState} from './hedera-deployment-state.mjs';
+import {Client,TransactionId,ContractByteCodeQuery,AccountId,AccountInfoQuery,Hbar} from './hedera-deployment-sdk.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const existing=createRequire(path.join(root,'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/package.json'));
 const solc=existing('solc');
-const sdk=createRequire(path.join(root,'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/SdkBridge/package.json'));
-const {Client,TransactionId,ContractByteCodeQuery,AccountId,AccountInfoQuery,Hbar}=sdk('@hiero-ledger/sdk');
 const {keccak256}=existing('ethers');
 let input='';for await(const chunk of process.stdin){input+=chunk;if(Buffer.byteLength(input)>16384)throw new Error('Deployment input too large.');}
 const request=JSON.parse(input);input='';
