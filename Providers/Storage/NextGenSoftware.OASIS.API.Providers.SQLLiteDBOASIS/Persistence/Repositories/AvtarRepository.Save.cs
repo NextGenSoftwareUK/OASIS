@@ -373,24 +373,27 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
         public OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
         {
+            AvatarModel avatarEntity = null;
             try
             {
-                AvatarModel avatarEntity = CreateAvatarModel(avatar);
-                _dbContext.Avatars.Add(avatarEntity);
-                _dbContext.SaveChangesAsync();
+                avatarEntity = AddOrUpdateAvatar(CreateAvatarModel(avatar));
+                _dbContext.SaveChanges();
                 return new OASISResult<IAvatar>
                 {
                     IsSaved = true,
                     IsError = false,
+                    Result = GetAvatarFromEntity(avatarEntity),
                     Message = avatarEntity.FirstName + " Record saved successfully"
                 };
             }
             catch (Exception ex)
             {
+                if (avatarEntity != null) _dbContext.Entry(avatarEntity).State = EntityState.Detached;
                 return new OASISResult<IAvatar>
                 {
                     IsSaved = false,
                     IsError = true,
+                    Exception = ex,
                     Message = ex.ToString()
                 };
             }
@@ -398,10 +401,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
         public async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
+            AvatarModel avatarEntity = null;
             try
             {
-                AvatarModel avatarEntity = CreateAvatarModel(avatar);
-                _dbContext.Avatars.Add(avatarEntity);
+                avatarEntity = AddOrUpdateAvatar(CreateAvatarModel(avatar));
                 await _dbContext.SaveChangesAsync();
                 //return Avatar;
                 return new OASISResult<IAvatar>
@@ -409,18 +412,33 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsSaved = true,
                     IsError = false,
                     Message = avatar.FirstName + " Record saved successfully",
-                    Result = avatar
+                    Result = GetAvatarFromEntity(avatarEntity)
                 };
             }
             catch (Exception ex)
             {
+                if (avatarEntity != null) _dbContext.Entry(avatarEntity).State = EntityState.Detached;
                 return new OASISResult<IAvatar>
                 {
                     IsSaved = false,
                     IsError = true,
+                    Exception = ex,
                     Message = ex.ToString()
                 };
             }
+        }
+
+        private AvatarModel AddOrUpdateAvatar(AvatarModel incoming)
+        {
+            var existing = _dbContext.Avatars.Local.SingleOrDefault(row => row.Id == incoming.Id)
+                ?? _dbContext.Avatars.SingleOrDefault(row => row.Id == incoming.Id);
+            if (existing == null)
+            {
+                _dbContext.Avatars.Add(incoming);
+                return incoming;
+            }
+            _dbContext.Entry(existing).CurrentValues.SetValues(incoming);
+            return existing;
         }
 
         public AvatarModel CreateAvatarModel(IAvatar avatar)

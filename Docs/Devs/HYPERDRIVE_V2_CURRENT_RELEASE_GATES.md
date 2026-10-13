@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+Avatar update replication root cause: expanded18-case real V2 suite initially failed two avatar updates because SQLite SaveAvatar always Added existing identity. Repository now updates its existing tracked/persisted row by Id, synchronously completes SaveChanges, returns mapped persisted avatar and preserves original exceptions/scoped failed tracking. Real V2 class18/18 and SQLite28/28 pass (`sqlite-localfile-v2-avatar-update-fixed.trx`, `sqlite-avatar-upsert-current.trx`); updates verified by username/new-email lookups in both stores. Failed original report retained. Full avatar/detail audit/history/mappings, failure recovery and remaining selectors remain open.
+
 Real V2 avatar checkpoint: public SaveAvatar through sync/async V2 replicates to actual LocalFile and SQLite; direct LoadAvatar by Id in both verifies public identity, username and email, diagnostics succeeded1/failed0. Full focused class18/18 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-avatar-current.trx`). Full avatar/detail fields, updates, other identity selectors and deletion remain distinct gates.
 
 Real V2 read-policy checkpoint: sync/async reads with configured lists and disabled load balancing retain active LocalFile despite secondary-favoring performance metrics. With failover enabled, authoritative primary absence does not return a stale SQLite replica. Four new cases/full class16/16 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-read-policies-current.trx`). These are real-store behavior assertions, not full read-selector consistency/latency strategy/API coverage.
