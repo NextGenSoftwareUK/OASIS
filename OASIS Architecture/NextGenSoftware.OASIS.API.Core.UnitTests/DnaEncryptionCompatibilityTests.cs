@@ -7,6 +7,27 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public class DnaEncryptionCompatibilityTests
 {
     [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public void EnabledEncryptionCannotSilentlySkipMissingKeys(bool quantum)
+    {
+        var settings=new EncryptionSettings { BCryptEncryptionEnabled=true,
+            Rijndael256EncryptionEnabled=!quantum,QuantumEncryptionEnabled=quantum };
+        Assert.Throws<InvalidOperationException>(()=>PasswordEncryptionHelper.EncryptValue("private",settings));
+        Assert.Throws<InvalidOperationException>(()=>PasswordEncryptionHelper.HashPassword("password",settings));
+        if(quantum)Assert.Throws<InvalidOperationException>(()=>PasswordEncryptionHelper.WrapQuantumLayer("encrypted-inner",settings));
+    }
+    [Fact]
+    public void DecryptionCannotReturnCiphertextOnMissingKeyOrAuthenticationFailure()
+    {
+        var settings=new EncryptionSettings { QuantumEncryptionEnabled=true,QuantumEncryptionKey="public-test-key" };
+        var encrypted=PasswordEncryptionHelper.EncryptValue("private",settings);
+        Assert.Throws<InvalidOperationException>(()=>PasswordEncryptionHelper.DecryptValue(encrypted,new EncryptionSettings()));
+        Assert.Throws<InvalidOperationException>(()=>PasswordEncryptionHelper.UnwrapQuantumLayer(encrypted,new EncryptionSettings()));
+        var wrong=new EncryptionSettings { QuantumEncryptionEnabled=true,QuantumEncryptionKey="wrong-public-test-key" };
+        Assert.ThrowsAny<System.Security.Cryptography.CryptographicException>(()=>PasswordEncryptionHelper.DecryptValue(encrypted,wrong));
+        Assert.ThrowsAny<System.Security.Cryptography.CryptographicException>(()=>PasswordEncryptionHelper.UnwrapQuantumLayer(encrypted,wrong));
+    }
+    [Theory]
     [InlineData(false,false)] [InlineData(true,false)] [InlineData(false,true)] [InlineData(true,true)]
     public void PasswordLayersVerifyOriginalWithoutReversiblePasswordStorage(bool rijndael,bool quantum)
     {
