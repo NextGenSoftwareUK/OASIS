@@ -10,6 +10,9 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationT
 public class CosmosBlockChainOASISIntegrationTests
 {
     private CosmosBlockChainOASIS _provider = null!;
+    // Retained public local-only fixture key, independent of signing credentials.
+    private static byte[] LocalStorageKey()=>System.Security.Cryptography.SHA256.HashData(
+        System.Text.Encoding.UTF8.GetBytes("oasis-cosmos-local-storage-fixture-v1"));
 
     private static string Required(string name) => Environment.GetEnvironmentVariable(name)
         ?? throw new InvalidOperationException($"Required real-chain test setting {name} is missing. No mock or skipped evidence is allowed.");
@@ -19,7 +22,7 @@ public class CosmosBlockChainOASISIntegrationTests
     {
         _provider = new CosmosBlockChainOASIS(Required("OASIS_COSMOS_TEST_RPC"),
             Required("OASIS_COSMOS_TEST_CHAIN"), Required("OASIS_COSMOS_TEST_KEY"),
-            Required("OASIS_COSMOS_TEST_CONTRACT"), "wasm", "0.025stake")
+            Required("OASIS_COSMOS_TEST_CONTRACT"), "wasm", "0.025stake",storageEncryptionKeyResolver:LocalStorageKey)
         { IsVersionControlEnabled = true };
         var activation = await _provider.ActivateProviderAsync();
         Assert.IsFalse(activation.IsError, activation.Message);
@@ -83,6 +86,23 @@ public class CosmosBlockChainOASISIntegrationTests
             var loaded = await _provider.LoadHolonAsync(id, loadChildren: false);
             Assert.IsFalse(loaded.IsError, loaded.Message);
             Assert.AreEqual(holon.Description, loaded.Result.Description);
+            var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+            var raw=(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.IKeyValueBackend)
+                typeof(CosmosBlockChainOASIS).GetField("_sdkBackend",flags)!.GetValue(_provider)!;
+            var physicalKeys=await raw.ListKeysAsync("oasis/private/v1/");
+            Assert.IsTrue(physicalKeys.Count>0);
+            foreach(var physicalKey in physicalKeys){
+                Assert.IsFalse(physicalKey.Contains(id.ToString(),StringComparison.OrdinalIgnoreCase));
+                var ciphertext=await raw.GetAsync(physicalKey);
+                StringAssert.StartsWith(ciphertext,"oasis-aes256gcm-");
+                Assert.IsFalse(ciphertext.Contains(holon.Description,StringComparison.Ordinal));
+            }
+            using(var reopened=new CosmosBlockChainOASIS(Required("OASIS_COSMOS_TEST_RPC"),Required("OASIS_COSMOS_TEST_CHAIN"),
+                Required("OASIS_COSMOS_TEST_KEY"),Required("OASIS_COSMOS_TEST_CONTRACT"),"wasm","0.025stake",storageEncryptionKeyResolver:LocalStorageKey)){
+                var activation=await reopened.ActivateProviderAsync();Assert.IsFalse(activation.IsError,activation.Message);
+                var persisted=await reopened.LoadHolonAsync(id,loadChildren:false);
+                Assert.IsFalse(persisted.IsError,persisted.Message);Assert.AreEqual(holon.Description,persisted.Result.Description);
+            }
             Assert.AreEqual(id.ToString("N"), loaded.Result.MetaData["evidence"].ToString());
             var children = await _provider.LoadHolonsForParentAsync(parentId, loadChildren: false);
             Assert.IsFalse(children.IsError, children.Message);
