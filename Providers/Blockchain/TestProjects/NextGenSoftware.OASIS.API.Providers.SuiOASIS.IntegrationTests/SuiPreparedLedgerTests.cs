@@ -207,8 +207,11 @@ public class SuiPreparedLedgerTests
         var settings=deployment.RootElement;
         using var provider=new SuiOASIS(rpc,"localnet",settings.GetProperty("chainId").GetString()!,settings.GetProperty("packageAddress").GetString()!,
             settings.GetProperty("privateKey").GetString()!,settings.GetProperty("storageObjectId").GetString()!);
-        const string connection="mongodb://127.0.0.1:27017/?serverSelectionTimeoutMS=3000";
-        var database="usage_sui_live_prepared_"+Guid.NewGuid().ToString("N");var mongo=new MongoDB.Driver.MongoClient(connection);
+        const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"),
+            "Use the retained owned test service; never fall back to the user's Mongo instance.");
+        const string database="usage_sui_live_prepared";
+        var mongo=new MongoDB.Driver.MongoClient(connection);
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(90));
         var key="oasis/prepared-test/"+Guid.NewGuid().ToString("N");
         var directory=new DirectoryInfo(AppContext.BaseDirectory);
@@ -216,6 +219,10 @@ public class SuiPreparedLedgerTests
         Assert.IsNotNull(directory,"Existing task repository required.");
         var journal=Path.Combine(directory!.FullName,"TestResults/SuiCurrent/prepared-live-pending.json");
         Directory.CreateDirectory(Path.GetDirectoryName(journal)!);
+        Assert.IsFalse(File.Exists(journal),"Existing prepared intent must be reconciled, not replaced.");
+        using(var databases=await mongo.ListDatabaseNamesAsync(cancellationToken:deadline.Token))
+            Assert.IsFalse((await MongoDB.Driver.IAsyncCursorExtensions.ToListAsync(databases,deadline.Token)).Contains(database),
+                "Retained prepared database requires inspection/reconciliation before reuse; do not drop it blindly.");
         // CreateNew is an atomic fence: never repeat a previous unknown submission.
         using var journalFile=new FileStream(journal,FileMode.CreateNew,FileAccess.Write,FileShare.Read);
         try{
