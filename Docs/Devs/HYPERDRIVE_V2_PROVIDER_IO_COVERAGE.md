@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Synchronous generic V2 failover evidence — 2026-10-12
+
+- Current full Core suite **450/450 passed**, zero skips, `TestResults/CoreCurrent/core-generic-v2-failover-current.trx`. Two new tests enter actual `HolonManager.SaveHolon<Holon>` under configured V2: known availability failure calls the second provider exactly once and returns the saved typed holon; native uncertainty retains the exact original exception and never calls a second write. Both assert exactly one first-provider invocation.
+- Providers are controlled mocks, not live SDKs. This proves manager/router integration and no-replay behavior for that entry point, not live all-provider failover, replication, bulk or every operation option. Initial fixture lacked explicit activation results; adding fixture activation fixed it without production changes.
+- Bulk preparation, generic replication/live matrices, unified DNA private-storage policy, production recovery and broader release gates remain open. No install/download/merge/deployment.
+
+
 ### Generic synchronous V2 save routing correction — 2026-10-12
 
 - Expanded missing-key tests across sync/async and generic/non-generic single saves (eight cases). They exposed synchronous `SaveHolon<T>` executing the legacy path despite configured V2. Core `6f6f62a9e685a1f2bf499941d799f75501649d68` now delegates that V2 entry to the existing single-save owner and maps the result, matching async generic routing. No legacy implementation changes.
