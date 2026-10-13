@@ -173,7 +173,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error in GetAvatar method in AvatarRepository loading Avatar. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in GetAvatar method in AvatarRepository loading Avatar. Reason: {ex}", ex);
             }
 
             return result;
@@ -186,11 +186,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 var filter = Builders<Avatar>.Filter.Where(expression);
-                result.Result = _dbContext.Avatar.Find(filter).FirstOrDefault();
+                result.Result = await _dbContext.Avatar.Find(filter).FirstOrDefaultAsync();
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error in GetAvatarAsync method in AvatarRepository loading Avatar. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in GetAvatarAsync method in AvatarRepository loading Avatar. Reason: {ex}", ex);
             }
 
             return result;
