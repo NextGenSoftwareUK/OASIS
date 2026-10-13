@@ -1,5 +1,6 @@
 using FluentAssertions;
 using MongoDB.Driver;
+using MongoDB.Bson;
 using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -164,6 +165,33 @@ public sealed class MongoSqliteRealProviderRoutingTests
                     loaded.Result.MetaData["park-source"].ToString().Should().Be("priority-park");
                 }
                 (await freshMongo.DeActivateProviderAsync()).IsError.Should().BeFalse();
+            }
+            const string failureApp = "oasis-v2-owned-failure";
+            var failureMongo = new MongoDBOASIS(uri + "&appName=" + failureApp,databaseName);
+            (await failureMongo.ActivateProviderAsync()).IsError.Should().BeFalse();
+            var failManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true };
+            failManager.RegisterProvider(failureMongo);
+            failManager.RegisterProvider(sqlite);
+            failManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
+            failManager.SetAndActivateCurrentStorageProvider(failureMongo).IsError.Should().BeFalse();
+            var admin = client.GetDatabase("admin");
+            try
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                    { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("times",1) },
+                    { "data", new BsonDocument { { "failCommands", new BsonArray { "find" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                });
+                var failRouter = new OASISHyperDrive(failManager);
+                var detailRead = new StorageOperationRequest { Operation = "LoadAvatarDetail", AvatarId = detail.Id };
+                var recovered = synchronous ? failRouter.RouteRequest<IAvatarDetail>(detailRead) : await failRouter.RouteRequestAsync<IAvatarDetail>(detailRead);
+                recovered.IsError.Should().BeFalse(recovered.Message);
+                recovered.Result.Karma.Should().Be(456);
+                failManager.LastFailoverDiagnostic.SelectedProvider.Should().Be(ProviderType.SQLLiteDBOASIS);
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+                await failureMongo.DeActivateProviderAsync();
             }
             using (var control = new DataContext($"Data Source={dbPath};Pooling=False")) control.Database.ExecuteSqlRaw("DROP TABLE Holon;");
             manager.IsAutoReplicationEnabled = false;

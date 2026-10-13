@@ -21,7 +21,9 @@ try{
     if(Get-NetTCPConnection -State Listen -LocalPort 27029 -ErrorAction SilentlyContinue){throw 'Owned port already in use; no process will be stopped.'}
     if([IO.Path]::GetFullPath($data) -ne (Join-Path $taskRoot 'TestResults/SubscriptionUsageCurrent/mongo-data')){throw 'Unexpected owned data path.'}
     New-Item -ItemType Directory -Force -Path $data | Out-Null
-    $owned=Start-Process -FilePath $runtime -ArgumentList @('--dbpath',$data,'--bind_ip','127.0.0.1','--port','27029','--replSet','oasisRecoveryRs','--wiredTigerCacheSizeGB','0.25','--oplogSize','32','--logpath',(Join-Path $work 'mongo-current.log'),'--logappend') -PassThru -WindowStyle Hidden
+    $mongoArguments=@('--dbpath',$data,'--bind_ip','127.0.0.1','--port','27029','--replSet','oasisRecoveryRs','--wiredTigerCacheSizeGB','0.25','--oplogSize','32','--logpath',(Join-Path $work 'mongo-current.log'),'--logappend')
+    if($MongoV2){$mongoArguments+=@('--setParameter','enableTestCommands=1')}
+    $owned=Start-Process -FilePath $runtime -ArgumentList $mongoArguments -PassThru -WindowStyle Hidden
     $startupDeadline=[DateTime]::UtcNow.AddSeconds(30)
     do {
         if($owned.HasExited){throw 'Owned Mongo exited before listening.'}
