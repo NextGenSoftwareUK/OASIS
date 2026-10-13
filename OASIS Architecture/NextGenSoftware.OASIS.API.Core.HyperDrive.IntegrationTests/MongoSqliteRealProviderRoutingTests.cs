@@ -359,6 +359,38 @@ public sealed class MongoSqliteRealProviderRoutingTests
             failManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
             failManager.SetAndActivateCurrentStorageProvider(failureMongo).IsError.Should().BeFalse();
             var admin = client.GetDatabase("admin");
+            foreach (var rejectDetailUpdate in new[] { false, true })
+            {
+                try
+                {
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                        { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("times",1) },
+                        { "data", new BsonDocument { { "failCommands", new BsonArray { "update" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                    });
+                    if (rejectDetailUpdate)
+                    {
+                        var attempted = (await mongo.LoadAvatarDetailAsync(detail.Id)).Result;
+                        attempted.Karma = 999;
+                        var rejectedUpdate = synchronous ? failureMongo.SaveAvatarDetail(attempted) : await failureMongo.SaveAvatarDetailAsync(attempted);
+                        rejectedUpdate.IsError.Should().BeTrue();
+                        rejectedUpdate.Exception.Should().BeOfType<MongoCommandException>();
+                        (await mongo.LoadAvatarDetailAsync(detail.Id)).Result.Karma.Should().Be(456);
+                    }
+                    else
+                    {
+                        var attempted = (await mongo.LoadAvatarAsync(avatar.Id)).Result;
+                        attempted.FirstName = "rejected-update";
+                        var rejectedUpdate = synchronous ? failureMongo.SaveAvatar(attempted) : await failureMongo.SaveAvatarAsync(attempted);
+                        rejectedUpdate.IsError.Should().BeTrue();
+                        rejectedUpdate.Exception.Should().BeOfType<MongoCommandException>();
+                        (await mongo.LoadAvatarAsync(avatar.Id)).Result.FirstName.Should().Be("Updated");
+                    }
+                }
+                finally
+                {
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+                }
+            }
             foreach (var rejectDetailInsert in new[] { false, true })
             {
                 var rejectedId = Guid.NewGuid();

@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Mongo update rejection and WEB4 consumer refresh — 2026-10-13
+
+Real avatar/detail update rejection exposed dropped original exceptions4/4. All four update catches now preserve driver evidence; expanded real4/4 verifies unchanged stored FirstName/karma. WEB4 build0errors/253warnings and147/147 tests pass (`TestResults/Web4Current/web4-provider-refresh-current.trx`); provider/API/test Mongo DLL hashes match5FC96D4732382B030F882C16F193AC3A76C289AFD41B19ADEB1EA535085C5824. Current local consumer verification is not hosted current-code/full-route evidence. No merge/deploy/new environment/download; original provider/recovery scope remains open.
+
 ### Mongo rejected avatar/detail inserts retain evidence — 2026-10-13
 
 Real owned-server insert rejection reproduced missing original exception4/4. Avatar/detail Add sync/async catches retain driver exception; expanded4/4 verifies error/original MongoCommandException and no stored rejected record. Report `mongo-sqlite-v2-current.trx`. Network ambiguity/create reconciliation/concurrency/full interfaces/API remain unproven. Same runtime/environment reused.
