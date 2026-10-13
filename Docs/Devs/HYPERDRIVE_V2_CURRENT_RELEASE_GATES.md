@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+SQLite avatar provider-key checkpoint: local key now persisted/indexed independently with full provider map JSON; sync/async selectors match only local key/current or explicit version instead of any foreign key value. Real suite44/44 passed (`TestResults/SQLiteCurrent/sqlite-avatar-provider-key-current.trx`), preserving foreign map while refusing foreign selector and wrong version. Unique index/schema/backfill upgrade requires review; existing-data conversion not performed. Duplicate-key recovery/replication key-map/full selector coverage remain gates.
+
 SQLite detail origin attribution checkpoint: read mapper now reconstructs nullable CreatedProviderType/CreatedOASISType. Sync/async version updates omit these fields and preserve original MongoDB attribution/OASIS type in direct identity reads. SQLite42/42 passed (`TestResults/SQLiteCurrent/sqlite-detail-origin-current.trx`). This closes focused classification read loss; full audit graph/history/provider-key/encryption/API coverage remains open.
 
 Detail creation audit checkpoint: sync/async updates no longer overwrite persisted CreatedByAvatarId/CreatedDate from incoming replacement fields. Version-update tests omit both and verify original creator/date across identity selectors; SQLite42/42 passed (`TestResults/SQLiteCurrent/sqlite-detail-creation-audit-current.trx`). Classification/complete nested audit mappings and hosted update semantics still require verification.
