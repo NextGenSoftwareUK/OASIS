@@ -6,11 +6,13 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using ChainProvider = NextGenSoftware.OASIS.API.Core.Enums.ProviderType;
 
 namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
@@ -108,7 +110,7 @@ public partial class HashgraphOASIS
                 MetaData = request.MetaData == null ? new() : new(request.MetaData)
             };
             nft.MetaData["HederaSerials"] = System.Text.Json.JsonSerializer.Serialize(serials);
-            result.Result = new Web3NFTTransactionResponse { TransactionResult = mintId, Web3NFT = nft };
+            result.Result = CreateHederaMintResponse(nft, serials, mintId);
             var recipient = targets.FirstOrDefault();
             if (recipient != null && recipient != wallet.WalletAddress)
             {
@@ -134,6 +136,24 @@ public partial class HashgraphOASIS
 
     private static Exception RetainHederaPostMintEvidence(Exception cause,string confirmedMintId,string requestedDeliveryId)
         => confirmedMintId==null?cause:new HederaNftPostMintReconciliationException(confirmedMintId,requestedDeliveryId,cause);
+
+    private static Web3NFTTransactionResponse CreateHederaMintResponse(Web3NFT template, string[] serials, string mintId)
+    {
+        ArgumentNullException.ThrowIfNull(template);
+        if (serials == null || serials.Length == 0 || serials.Distinct(StringComparer.Ordinal).Count() != serials.Length)
+            throw new InvalidOperationException("A minted batch requires distinct original serials.");
+        var nfts = serials.Select(serial =>
+        {
+            var address = template.CollectionPublicKey + "/" + serial;
+            ParseHederaNftAddress(address);
+            var nft = OasisJson.Deserialize<Web3NFT>(OasisJson.Serialize(template));
+            nft.NFTTokenAddress = address;
+            nft.Id = CreateDeterministicGuid($"{ChainProvider.HashgraphOASIS}:nft:{address}");
+            nft.MintTransactionHash = mintId;
+            return (IWeb3NFT)nft;
+        }).ToList();
+        return new Web3NFTTransactionResponse { TransactionResult = mintId, Web3NFT = nfts[0], Web3NFTs = nfts };
+    }
 
     private static string[] ApplyHederaMintReceipt(IWeb3NFTTransactionResponse response,
         System.Text.Json.JsonElement receipt, string requestedId, int count)
@@ -165,7 +185,13 @@ public partial class HashgraphOASIS
         if (response?.Web3NFT == null || string.IsNullOrWhiteSpace(transactionId))
             throw new InvalidOperationException("A confirmed NFT delivery requires its original transaction ID and minted NFT.");
         response.SendNFTTransactionResult = transactionId;
-        response.Web3NFT.SendNFTTransactionHash = transactionId;
-        response.Web3NFT.SendToAddressAfterMinting = recipient;
+        void Update(IWeb3NFT nft)
+        {
+            nft.SendNFTTransactionHash = transactionId;
+            nft.SendToAddressAfterMinting = recipient;
+        }
+        Update(response.Web3NFT);
+        if (response.Web3NFTs != null)
+            foreach (var nft in response.Web3NFTs.Where(nft => !ReferenceEquals(nft, response.Web3NFT))) Update(nft);
     }
 }

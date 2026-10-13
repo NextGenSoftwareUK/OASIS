@@ -100,6 +100,8 @@ Neither method should hash wallet keys or full records using BCrypt. Neither gua
 
 ## How to merge sensibly
 
+User approved this direction on 2026-10-13 with the explicit invariant that existing exemption/configured-key queries must continue to work. Compatibility coverage now fixes the full built-in list plus an application key in golden tests: manager CBC/GCM preservation and shared encrypted provider sync/async string-equality queries after reopening passed. This does not yet prove all live providers or implement unified policy; native Mongo indexes and encrypted key/value decryption/filtering remain distinct execution strategies.
+
 ### Concrete lookup example
 
 For a private holon with ID `123`, the application asks for its logical record key (illustratively `holon/123`; not a literal provider key contract). Storage sees only a keyed address and an authenticated ciphertext. Knowing `123` alone is insufficient to compute the address without the index key. The authorized backend computes it without scanning. An existing logical email index can likewise be addressed by its HMAC; its index value is encrypted too.
