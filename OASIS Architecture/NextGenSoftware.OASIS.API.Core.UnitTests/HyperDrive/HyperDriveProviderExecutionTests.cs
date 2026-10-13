@@ -25,6 +25,37 @@ public sealed class HyperDriveProviderExecutionTests
 {
     [Theory]
     [InlineData(false)] [InlineData(true)]
+    public void GenericSynchronousV2SaveFailsOverOnlyForKnownAvailabilityFailure(bool uncertain)
+    {
+        var dna=CreateDna(HyperDriveModes.V2);dna.OASIS.SubscriptionConfig.PlanType="Gold";
+        var first=CreateActiveProvider(ProviderType.SQLLiteDBOASIS,"generic-v2-first");
+        var second=CreateActiveProvider(ProviderType.MongoDBOASIS,"generic-v2-second");
+        foreach(var provider in new[]{first,second}){
+            provider.Setup(value=>value.ActivateProvider()).Returns(new OASISResult<bool>(true));
+            provider.Setup(value=>value.ActivateProviderAsync()).ReturnsAsync(new OASISResult<bool>(true));
+        }
+        var original=uncertain?(Exception)new UnreconciledMutationException():new IOException("known unavailable");
+        var failure=new OASISResult<IHolon>{IsError=true,Message="original failure",Exception=original};
+        first.Setup(value=>value.SaveHolon(It.IsAny<IHolon>(),true,true,0,true,false)).Returns(failure);
+        first.Setup(value=>value.SaveHolonAsync(It.IsAny<IHolon>(),true,true,0,true,false)).ReturnsAsync(failure);
+        second.Setup(value=>value.SaveHolon(It.IsAny<IHolon>(),true,true,0,true,false))
+            .Returns((IHolon value,bool a,bool b,int c,bool d,bool e)=>new OASISResult<IHolon>(value){IsSaved=true});
+        second.Setup(value=>value.SaveHolonAsync(It.IsAny<IHolon>(),true,true,0,true,false))
+            .ReturnsAsync((IHolon value,bool a,bool b,int c,bool d,bool e)=>new OASISResult<IHolon>(value){IsSaved=true});
+        var providers=new ProviderManager(null,dna){IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=false,IsAutoLoadBalanceEnabled=false};
+        providers.RegisterProvider(first.Object);providers.RegisterProvider(second.Object);
+        providers.SetAndActivateCurrentStorageProvider(first.Object).IsError.Should().BeFalse();
+        providers.SetAndReplaceAutoFailOverListForProviders(new[]{new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS),new EnumValue<ProviderType>(ProviderType.MongoDBOASIS)}).IsError.Should().BeFalse();
+        var holon=new Holon{Id=Guid.NewGuid(),Name="generic-v2-failover"};
+        var result=new HolonManager(null,dna,providers).SaveHolon<Holon>(holon,Guid.NewGuid());
+        result.IsError.Should().Be(uncertain);
+        if(uncertain)result.Exception.Should().BeSameAs(original);
+        else {result.Result.Id.Should().Be(holon.Id);result.IsSaved.Should().BeTrue();}
+        first.Invocations.Count(call=>call.Method.Name=="SaveHolon"||call.Method.Name=="SaveHolonAsync").Should().Be(1);
+        second.Invocations.Count(call=>call.Method.Name=="SaveHolon"||call.Method.Name=="SaveHolonAsync").Should().Be(uncertain?0:1);
+    }
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
     public async Task ExplicitFailoverPreservesNativeUncertaintyAsFailureButContinuesOrdinaryAvailabilityFailures(bool uncertain)
     {
         var holon = new Holon { Id = Guid.NewGuid() };
