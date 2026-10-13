@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera transfer caller preserves mirror configuration — 2026-10-12
+
+First non-funded regression after mirror binding had **268 passed / 1 failed / 269 total**: existing `HashgraphClient.SendTransactionAsync` delegates to canonical HashgraphOASIS but discarded its configured mirror URL, so local provider construction failed. Forwarded that existing endpoint with consensus network/nodes; testnet/local transfer fixtures now supply consistent explicit mirror configuration rather than the old contradictory mainnet literal. Focused transfer/mirror selection **13/13 passed**, zero skips (`hedera-mirror-transfer-current.trx`). This is compatibility wiring for the constructor invariant, not legacy wallet/key-derivation/parser feature completion. Final non-funded rerun **269/269 passed**, zero skips, 127 seconds (`hedera-nonfunded-current.trx`), including the actual two-minute process deadline, excluding funded Testnet classes and original public fee lookup. No funded consensus certification inferred. Manifest/gitlink validator passed; C: free 100,104,257,536 bytes.
+
+Current existing SDK offline suites separately passed **Cosmos 52/52, Sui 26/26, Hedera 101/101**, zero failures/skips/TODO tests; no SDK install or funded consensus query. They prove their declared offline cases, not all relevant interfaces/live V2/deployed routes. No ledger mutation, merge or deployment.
+
 ### Hedera default mirror now follows selected consensus network — 2026-10-12
 
 Found shipping configuration mismatch: selecting testnet/previewnet without rpcEndpoint still used the constructor's mainnet mirror literal. Optional endpoint now defaults to null and resolves the configured network's canonical public mirror. Known mainnet (including old mainnet-public alias), testnet and previewnet hosts cannot be labelled another consensus network. Local network requires an explicit mirror. Explicit custom HTTPS/loopback mirrors remain a configured trust boundary, not cryptographic proof of network identity. Canonical public mapping verified against [official Hedera REST documentation](https://docs.hedera.com/reference/rest-api).

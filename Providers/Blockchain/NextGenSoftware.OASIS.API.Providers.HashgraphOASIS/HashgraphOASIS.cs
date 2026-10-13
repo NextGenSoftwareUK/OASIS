@@ -289,7 +289,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 public async Task<HashgraphTransactionData> SendTransactionAsync(HashgraphTransactionData transactionData)
         {
             ArgumentNullException.ThrowIfNull(transactionData);
-            var provider = new HashgraphOASIS(network: _transferNetwork, consensusNodes: _transferConsensusNodes, rawTransferAccountId: _accountId, rawTransferSigningKey: () => _privateKey);
+            var provider = new HashgraphOASIS(rpcEndpoint: _networkUrl, network: _transferNetwork, consensusNodes: _transferConsensusNodes, rawTransferAccountId: _accountId, rawTransferSigningKey: () => _privateKey);
             var result = await provider.SendTransactionAsync(transactionData.FromAddress, transactionData.ToAddress, transactionData.Amount, transactionData.Memo);
             if (result.IsError) throw new InvalidOperationException(result.Message, result.Exception);
             return new HashgraphTransactionData { FromAddress = transactionData.FromAddress, ToAddress = transactionData.ToAddress,
