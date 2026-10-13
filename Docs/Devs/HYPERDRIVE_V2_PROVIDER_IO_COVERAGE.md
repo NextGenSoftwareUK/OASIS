@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Generic V2 bulk encryption error coverage — 2026-10-12
+
+- Source audit confirms sync/async generic bulk saves delegate to the existing V2 batch owner. Four additional missing CBC/GCM key cases now exercise those actual generic entry points and assert structured error code, original exception, null result, private/exempt metadata preservation for the tested record, and no single/bulk provider save invocation.
+- Full current Core suite **458/458 passed**, zero skips, `TestResults/CoreCurrent/core-generic-bulk-encryption-current.trx`. Sixteen missing-key cases now cover sync/async, generic/non-generic, single/bulk entry points. This is controlled provider coverage, not live API or SDK certification, and uses a single-record batch; mixed-record/child preparation remains unverified.
+- No production change required in this checkpoint. Wider successful bulk routing, private DNA-policy integration, production recovery, funded Hedera and all-provider release gates remain open. No new runtime/dependency/download/deployment/merge.
+
+
 ### V2 bulk preparation boundary — 2026-10-12
 
 - Core `ca7b722a3b53089519e0643ac1164b7cbebc9d8e` materializes V2 bulk preparation inside one error boundary before provider execution. Sync/async non-generic bulk saves now return `HOLON_SAVE_PREPARATION_FAILED` with original exception on preparation failure. Legacy unchanged. This prevents provider writes on preparation failure, not transactional rollback of caller objects already prepared earlier in a multi-record batch.
