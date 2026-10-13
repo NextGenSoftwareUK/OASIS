@@ -440,6 +440,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     if (softDelete)
                     {
                         holon.IsActive = false;
+                        holon.DeletedDate = DateTime.UtcNow;
                         _dbContext.Holons.Update(holon);
                     }
                     else
@@ -447,11 +448,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                         _dbContext.Holons.Remove(holon);
                     }
 
-                    _dbContext.SaveChangesAsync();
+                    _dbContext.SaveChanges();
                     return new OASISResult<IHolon>
                     {
                         IsDeleted = true,
                         DeletedCount = 1,
+                        Result = GetHolonFromEntity(holon),
                         Message = "Holon Deleted Successfully"
                     };
                 }
@@ -482,6 +484,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     if (softDelete)
                     {
                         holon.IsActive = false;
+                        holon.DeletedDate = DateTime.UtcNow;
                         _dbContext.Holons.Update(holon);
                     }
                     else
@@ -495,8 +498,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                         IsError = false,
                         Message = "Holon Deleted Successfully",
                         IsDeleted = true,
-                        DeletedCount = 1
-                        //Result = holon
+                        DeletedCount = 1,
+                        Result = GetHolonFromEntity(holon)
                     };
                 }
 
@@ -541,7 +544,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     return new OASISResult<IHolon>
                     {
                         IsError = false,
-                        IsSaved = true,
+                        IsDeleted = true,
+                        DeletedCount = 1,
                         Message = softDelete ? "Holon soft deleted successfully" : "Holon deleted successfully",
                         Result = holon
                     };
@@ -590,7 +594,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     return new OASISResult<IHolon>
                     {
                         IsError = false,
-                        IsSaved = true,
+                        IsDeleted = true,
+                        DeletedCount = 1,
                         Message = softDelete ? "Holon soft deleted successfully" : "Holon deleted successfully",
                         Result = holon
                     };
