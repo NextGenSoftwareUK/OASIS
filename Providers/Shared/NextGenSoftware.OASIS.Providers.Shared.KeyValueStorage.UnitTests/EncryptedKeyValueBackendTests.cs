@@ -10,6 +10,33 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class EncryptedKeyValueBackendTests
 {
+    [DataTestMethod]
+    [DataRow("missing")] [DataRow("empty")] [DataRow("malformed")]
+    [DataRow("short")] [DataRow("long")] [DataRow("whitespace")] [DataRow("valid")]
+    public void EnvironmentEncryptionKeysRequireExactCanonicalPersistedBytes(string mode)
+    {
+        const string variable="OASIS_TEST_PERSISTED_ENCRYPTION_KEY_VALIDATION";
+        var prior=Environment.GetEnvironmentVariable(variable);
+        var expected=Enumerable.Range(0,32).Select(value=>(byte)value).ToArray();
+        var valid=Convert.ToBase64String(expected);
+        var encoded=mode switch {
+            "missing"=>null,"empty"=>"","malformed"=>"not-a-secret:invalid-base64",
+            "short"=>Convert.ToBase64String(new byte[31]),"long"=>Convert.ToBase64String(new byte[33]),
+            "whitespace"=>" "+valid, _=>valid };
+        try{
+            Environment.SetEnvironmentVariable(variable,encoded);
+            if(mode=="valid"){
+                var actual=PersistedPrivateKeyValueBackend.ResolveEnvironmentKey(variable);
+                try{CollectionAssert.AreEqual(expected,actual);}finally{CryptographicOperations.ZeroMemory(actual);}
+            }else{
+                Exception failure;
+                if(mode=="malformed")failure=Assert.ThrowsException<FormatException>(()=>PersistedPrivateKeyValueBackend.ResolveEnvironmentKey(variable));
+                else failure=Assert.ThrowsException<InvalidOperationException>(()=>PersistedPrivateKeyValueBackend.ResolveEnvironmentKey(variable));
+                if(!string.IsNullOrEmpty(encoded))Assert.IsFalse(failure.Message.Contains(encoded,StringComparison.Ordinal));
+                Assert.AreEqual(encoded??"",Environment.GetEnvironmentVariable(variable)??"","Validation must not generate or replace a configured key.");
+            }
+        }finally{Environment.SetEnvironmentVariable(variable,prior);}
+    }
     [TestMethod]
     public async Task PersistedPrivateCompositionRestartsAndVerifiesWithoutChangingEncryptedRecords()
     {
