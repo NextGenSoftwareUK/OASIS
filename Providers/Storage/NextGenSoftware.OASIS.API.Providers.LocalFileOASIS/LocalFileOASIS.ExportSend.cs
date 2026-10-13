@@ -53,15 +53,16 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         
                         result.Result = loadResult.Result;
                         result.IsError = false;
-                        result.IsSaved = true;
+                        result.IsDeleted = true;
+                        result.DeletedCount = 1;
                         result.Message = "Holon deleted successfully";
                     }
                     else
                     {
-                        // File exists but couldn't load it, delete anyway
-                        File.Delete(holonFilePath);
-                        result.IsError = false;
-                        result.Message = "Holon file deleted (but could not be loaded)";
+                        // A failed read is not authority to destroy an unreadable record.
+                        result.IsError = true;
+                        result.Exception = loadResult.Exception;
+                        result.Message = $"Holon was not deleted because it could not be loaded: {loadResult.Message}";
                     }
                 }
                 else
