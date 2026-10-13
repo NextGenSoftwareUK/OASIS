@@ -369,12 +369,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(providerKey));
+            return DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.Id == providerKey && (version == 0 || x.Version == version)));
         }
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(providerKey));
+            return DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.Id == providerKey && (version == 0 || x.Version == version)));
         }
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
