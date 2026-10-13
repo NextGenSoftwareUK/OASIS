@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+SQLite optional-stats lifecycle verified: detail constructor accepts absent Stats without creating defaults. Sync/async full replacement removes only that avatar's stats; reopened read is null, another avatar's HP remains27, subsequent explicit stats restoration reads HP39. Full suite38/38 passed (`TestResults/SQLiteCurrent/sqlite-detail-optional-stats-current.trx`). This is full replacement, not PATCH omission semantics. Nested graph completeness/schema upgrades/failure atomicity remain open.
+
 SQLite stats update/selector checkpoint: all existing detail query paths now include Stats; sync/async updates copy stats into the existing owned row rather than ignoring changed values. Fresh-connection test now saves then updates HP and reads GUID/username/email stats; suite36/36 passed (`TestResults/SQLiteCurrent/sqlite-detail-stats-update-current.trx`). Missing stats on full replacement remove only the owned stats row; that null lifecycle needs explicit coverage. Other nested graph mappings and update/failure atomicity remain gates.
 
 SQLite fresh-connection stats checkpoint: two new sync/async tests reproduced lost HP/Mana/Stamina after reopen (0/2). GUID detail selectors now eagerly load Stats and mapper reconstructs persisted Stats rather than retaining newly constructed defaults. Full suite36/36 passed (`TestResults/SQLiteCurrent/sqlite-detail-stats-current.trx`); original failed report retained. Other detail selectors must load equivalent nested data, and update mappings must preserve/update stats; these remain open. This proves initial GUID readback, not full nested lifecycle.
