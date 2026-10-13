@@ -7,6 +7,24 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 public class SuiUnlockReadbackFailureTests
 {
     [DataTestMethod]
+    [DataRow("fixture-chain",false)] [DataRow("foreign-chain",true)] [DataRow("",true)]
+    public async Task NativeFeeEvidenceRequiresConfiguredExactChain(string chain,bool rejected)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","unlock-readback-failure.mjs"));
+        try{
+            using var provider=new SuiOASIS("http://127.0.0.1:1","localnet",chainId:chain);
+            Core.Interfaces.IOASISNativeFeeReceiptProvider capability=provider;
+            var result=await capability.GetNativeFeeReceiptAsync(new string('1',32));
+            Assert.AreEqual(rejected,result.IsError);Assert.IsFalse(provider.IsProviderActivated);
+            if(rejected)Assert.AreEqual(System.Text.Json.JsonValueKind.Undefined,result.Result.ValueKind);
+            else{
+                Assert.AreEqual(chain,result.Result.GetProperty("chainIdentifier").GetString());
+                Assert.IsFalse(result.Result.GetProperty("success").GetBoolean());Assert.AreEqual("5",result.Result.GetProperty("netUnits").GetString());
+            }
+        }finally{Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",previous);}
+    }
+    [DataTestMethod]
     [DataRow(false,false,false,false)] [DataRow(true,false,false,false)] [DataRow(false,true,false,false)] [DataRow(false,false,true,false)] [DataRow(false,false,false,true)]
     public async Task PreparedProcessWaitsForParentAndRetainsPersistenceRejection(bool reject,bool wrongId,bool cancel,bool foreignError)
     {
