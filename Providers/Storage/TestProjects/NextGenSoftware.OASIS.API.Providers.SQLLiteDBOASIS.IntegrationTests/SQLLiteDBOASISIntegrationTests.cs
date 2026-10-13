@@ -41,6 +41,21 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task AvatarDeletionLookupFailureReturnsOriginalStorageError(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        using var control = new DataContext(TestConnectionString);
+        control.Database.ExecuteSqlRaw("DROP TABLE Avatar;");
+        var result = synchronous ? provider.DeleteAvatar(Guid.NewGuid(), false) : await provider.DeleteAvatarAsync(Guid.NewGuid(), false);
+        result.IsError.Should().BeTrue();
+        result.Result.Should().BeFalse();
+        result.Exception.Should().NotBeNull();
+    }
+
+    [Theory]
     [InlineData(true, true)]
     [InlineData(false, true)]
     [InlineData(true, false)]
