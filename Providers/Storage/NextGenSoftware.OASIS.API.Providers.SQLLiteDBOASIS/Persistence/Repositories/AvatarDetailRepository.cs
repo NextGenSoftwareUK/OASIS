@@ -30,6 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 var avatarDetailEntity =
                     _dbContext.AvatarDetails
                         .Include(a => a.InventoryItems)
+                        .Include(a => a.Stats)
                         .ToList()
                         .Select(GetAvatarDetailFromEntity)
                         .FirstOrDefault(x => x.Id == id && x.Version == version);
@@ -137,6 +138,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 var obj = await _dbContext.AvatarDetails
                     .Include(a => a.InventoryItems)
+                    .Include(a => a.Stats)
                     .Where(x => x.Id == id.ToString() && x.Version == version)
                     .FirstOrDefaultAsync();
                 if (obj == null)
@@ -473,6 +475,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Town = avatarDetailEntity.Town,
                 Username = avatarDetailEntity.Username,
                 XP = avatarDetailEntity.XP,
+                Stats = avatarDetailEntity.Stats?.GetAvatarStats(),
                 CreatedByAvatarId = Guid.Parse(avatarDetailEntity.CreatedByAvatarId),
                 CreatedDate = avatarDetailEntity.CreatedDate,
                 DeletedByAvatarId = Guid.Parse(avatarDetailEntity.DeletedByAvatarId),
