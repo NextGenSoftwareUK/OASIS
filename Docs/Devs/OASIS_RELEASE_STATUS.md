@@ -2,6 +2,8 @@
 
 Status snapshot: 12 October 2026, America/Cancun. This inventory distinguishes releases completed in the current publication run from older downloadable releases. Older assets do not establish that the requested updates are complete.
 
+Optional OIDE/HyperDrive publication run 38340851481 stopped at OIDE's existing v1.0.0 tag; HyperDrive was not dispatched. The optional prerelease API-array enumeration bug is corrected in Development; preview 38342066211 passed. Planner logs now print exact versions, classification decisions and blockers for review before another publication attempt. Neither optional update is verified published.
+
 Full original-artifact reconciliation run 38326306085 found 10 content-identical published packages, 79 unpublished candidates and 140 existing-version content collisions (including later updated Edge packages). No pushes occurred. Original bulk artifacts cannot be blindly resumed; collision identities need reviewed current-version/source decisions, while successful uploads must remain untouched. A structured recovery report is now retained by the hosted audit workflow.
 
 Original-artifact recovery preflight run 38325000220 verified the previously uploaded packages against registry content, then rejected the pre-existing AbstractOASIS 2.0.2 content collision. No packages were pushed. Preflight now collects all content collisions before rejecting the whole set, so recovery can reconcile the complete inventory rather than discovering conflicts one at a time. A corrected unpublished-package plan is still required.
