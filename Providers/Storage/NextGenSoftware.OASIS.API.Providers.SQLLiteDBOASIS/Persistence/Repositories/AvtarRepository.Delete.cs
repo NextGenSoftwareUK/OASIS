@@ -95,7 +95,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     if (data != null)
                     {
                         _dbContext.Remove(data);
-                        var dataDetail = _dbContext.AvatarDetails.Where(x => x.Id == data.Id).ToList();
+                        var dataDetail = _dbContext.AvatarDetails.Include(x => x.InventoryItems).Include(x => x.Stats).Where(x => x.Id == data.Id).ToList();
+                        foreach (var detail in dataDetail)
+                        {
+                            RemoveAvatarDetailDependents(detail);
+                        }
                         _dbContext.RemoveRange(dataDetail);
                         result.Result = true;
                     }
@@ -104,6 +108,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
+                DetachFailedAvatarDeletion(id.ToString());
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
                     ex);
             }
@@ -114,6 +119,39 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 dbContextTransaction.Commit();
 
             return result;
+        }
+
+        private void RemoveAvatarDetailDependents(object entity)
+        {
+            var entry = _dbContext.Entry(entity);
+            foreach (var navigation in entry.Navigations.Where(n => n.Metadata is Microsoft.EntityFrameworkCore.Metadata.INavigation mapped && !mapped.IsOnDependent).ToList())
+            {
+                navigation.Load();
+                if (navigation.CurrentValue == null) continue;
+                var children = navigation.Metadata.IsCollection
+                    ? ((System.Collections.IEnumerable)navigation.CurrentValue).Cast<object>().ToList()
+                    : new List<object> { navigation.CurrentValue };
+                foreach (var child in children)
+                {
+                    RemoveAvatarDetailDependents(child);
+                    _dbContext.Remove(child);
+                }
+            }
+        }
+
+        private void DetachFailedAvatarDeletion(string id)
+        {
+            foreach (var entry in _dbContext.ChangeTracker.Entries().ToList())
+            {
+                var belongsToAvatar = entry.Entity is AvatarModel avatar && avatar.Id == id
+                    || entry.Entity is AvatarDetailModel detail && detail.Id == id;
+                var avatarKey = entry.Metadata.FindProperty("AvatarId");
+                if (avatarKey != null && avatarKey.ClrType == typeof(string))
+                    belongsToAvatar |= (string)entry.Property("AvatarId").CurrentValue == id
+                        || (string)entry.Property("AvatarId").OriginalValue == id;
+                if (belongsToAvatar && (entry.State == EntityState.Added || entry.State == EntityState.Modified || entry.State == EntityState.Deleted))
+                    entry.State = EntityState.Detached;
+            }
         }
 
         public OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)

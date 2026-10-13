@@ -41,6 +41,43 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task RejectedAvatarDeleteCannotReplayDuringUnrelatedSave(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = "delete-rejection", Email = "delete@test.local",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+        var detail = new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Karma = 123 };
+        var item = new InventoryItem { Id = Guid.NewGuid(), Name = "preserved-after-rejection", Quantity = 2 };
+        detail.Inventory.Add(item);
+        detail.Stats.HP.Current = 37;
+        (await provider.SaveAvatarDetailAsync(detail)).IsError.Should().BeFalse();
+        using var control = new DataContext(TestConnectionString);
+        control.Database.ExecuteSqlRaw("CREATE TRIGGER reject_avatar_delete BEFORE DELETE ON Avatar BEGIN SELECT RAISE(ABORT, 'owned avatar deletion rejection'); END;");
+        var rejected = synchronous ? provider.DeleteAvatar(avatar.Id, false) : await provider.DeleteAvatarAsync(avatar.Id, false);
+        rejected.IsError.Should().BeTrue();
+        rejected.Exception.Should().NotBeNull();
+        control.Database.ExecuteSqlRaw("DROP TRIGGER reject_avatar_delete;");
+        (await provider.SaveHolonAsync(new Holon { Id = Guid.NewGuid(), Name = "unrelated-after-rejected-delete" })).IsError.Should().BeFalse();
+        using var reopened = new SQLLiteDBOASIS(TestConnectionString);
+        (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
+        (await reopened.LoadAvatarAsync(avatar.Id)).Result.Should().NotBeNull();
+        var preserved = (await reopened.LoadAvatarDetailAsync(avatar.Id)).Result;
+        preserved.Karma.Should().Be(123);
+        preserved.Stats.HP.Current.Should().Be(37);
+        preserved.Inventory.Single().Id.Should().Be(item.Id);
+        preserved.Inventory.Single().Quantity.Should().Be(2);
+        var accepted = synchronous ? provider.DeleteAvatar(avatar.Id, false) : await provider.DeleteAvatarAsync(avatar.Id, false);
+        accepted.IsError.Should().BeFalse(accepted.Message);
+        accepted.Result.Should().BeTrue();
+        (await reopened.LoadAvatarAsync(avatar.Id)).Result.Should().BeNull();
+        (await reopened.LoadAvatarDetailAsync(avatar.Id)).Result.Should().BeNull();
+    }
+
+    [Theory]
     [InlineData(true, "username")]
     [InlineData(false, "username")]
     [InlineData(true, "email")]

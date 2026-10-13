@@ -94,7 +94,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     if (data != null)
                     {
                         _dbContext.Remove(data);
-                        var dataDetail = await _dbContext.AvatarDetails.Where(x => x.Id == data.Id).ToListAsync();
+                        var dataDetail = await _dbContext.AvatarDetails.Include(x => x.InventoryItems).Include(x => x.Stats).Where(x => x.Id == data.Id).ToListAsync();
+                        foreach (var detail in dataDetail)
+                        {
+                            RemoveAvatarDetailDependents(detail);
+                        }
                         _dbContext.RemoveRange(dataDetail);
                         result.Result = true;
                     }
@@ -103,6 +107,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
+                DetachFailedAvatarDeletion(id.ToString());
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
                     ex);
             }
