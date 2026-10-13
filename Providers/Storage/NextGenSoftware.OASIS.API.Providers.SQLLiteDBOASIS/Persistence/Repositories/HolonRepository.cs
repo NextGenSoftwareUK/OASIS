@@ -672,6 +672,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             new Holon()
             {
                 CreatedDate = holonEntity.CreatedDate,
+                CreatedByAvatarId = holonEntity.CreatedByAvatarId == null ? Guid.Empty : Guid.Parse(holonEntity.CreatedByAvatarId),
+                ModifiedByAvatarId = holonEntity.ModifiedByAvatarId == null ? Guid.Empty : Guid.Parse(holonEntity.ModifiedByAvatarId),
+                DeletedByAvatarId = holonEntity.DeletedByAvatarId == null ? Guid.Empty : Guid.Parse(holonEntity.DeletedByAvatarId),
+                DimensionLevel = holonEntity.DimensionLevel,
+                SubDimensionLevel = holonEntity.SubDimensionLevel,
                 DeletedDate = holonEntity.DeletedDate,
                 Description = holonEntity.Description,
                 ParentHolonId = Guid.Parse(holonEntity.ParentHolonId),
@@ -697,6 +702,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             return new()
             {
                 CreatedDate = holon.CreatedDate,
+                CreatedByAvatarId = holon.CreatedByAvatarId.ToString(),
+                ModifiedByAvatarId = holon.ModifiedByAvatarId.ToString(),
+                DeletedByAvatarId = holon.DeletedByAvatarId.ToString(),
+                DimensionLevel = holon.DimensionLevel,
+                SubDimensionLevel = holon.SubDimensionLevel,
                 DeletedDate = holon.DeletedDate,
                 Description = holon.Description,
                 ParentHolonId = holon.ParentHolonId.ToString(),
