@@ -260,6 +260,25 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 await failureMongo.DeActivateProviderAsync();
             }
             var avatarDelete = new StorageOperationRequest { Operation = "DeleteAvatar", AvatarId = avatar.Id, SoftDelete = false, PreferredProvider = request.PreferredProvider };
+            (await failureMongo.ActivateProviderAsync()).IsError.Should().BeFalse();
+            try
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                    { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("skip",1) },
+                    { "data", new BsonDocument { { "failCommands", new BsonArray { "delete" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                });
+                var rejectedDelete = synchronous ? failureMongo.DeleteAvatar(avatar.Id, false) : await failureMongo.DeleteAvatarAsync(avatar.Id, false);
+                rejectedDelete.IsError.Should().BeTrue();
+                rejectedDelete.Result.Should().BeFalse();
+                rejectedDelete.Exception.Should().NotBeNull();
+                (await mongo.LoadAvatarAsync(avatar.Id)).Result.Should().NotBeNull();
+                (await mongo.LoadAvatarDetailAsync(detail.Id)).Result.Karma.Should().Be(456);
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+                await failureMongo.DeActivateProviderAsync();
+            }
             var avatarDeleted = synchronous ? router.RouteRequest<bool>(avatarDelete) : await router.RouteRequestAsync<bool>(avatarDelete);
             avatarDeleted.IsError.Should().BeFalse(avatarDeleted.Message);
             avatarDeleted.IsWarning.Should().BeFalse(string.Join("; ",manager.LastReplicationDiagnostic.Attempts.Select(x=>x.Message)));
