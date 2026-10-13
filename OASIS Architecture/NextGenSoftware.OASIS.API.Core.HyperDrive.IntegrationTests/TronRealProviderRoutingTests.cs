@@ -35,6 +35,10 @@ public sealed class TronRealProviderRoutingTests
         await using var runtime=new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),new Uri("http://127.0.0.1:50052"),
             "0000000000000000c93baa76a4a508f798a96f59156d9eb17ecede8ec845df2f",contractFeeLimitSun:1000000000);
         var owner=new TronECKey(key,TronNetwork.MainNet).GetPublicAddress();
+        var fencePath=Path.Combine(root,"pending-native-outcome.json");
+        var fenceBefore=SHA256.HashData(await File.ReadAllBytesAsync(fencePath));
+        var revisionCall=Convert.FromHexString(new Nethereum.Util.Sha3Keccack().CalculateHash("revision()")[..8]);
+        var revisionBefore=await runtime.NativeTransfers.QueryContractAsync(owner,contract,revisionCall);
         using var authorityDeadline=new CancellationTokenSource(TimeSpan.FromSeconds(20));
         var authority=await runtime.NativeTransfers.LoadPermissionAuthorityAsync(owner,authorityDeadline.Token);
         TronPermissionVerifier.Verify(authority,authority.Address,0,(int)TronNet.Protocol.Transaction.Types.Contract.Types.ContractType.TransferContract,new[]{authority.Address});
@@ -128,6 +132,9 @@ public sealed class TronRealProviderRoutingTests
                 manager.IsAutoLoadBalanceEnabled=false;manager.IsAutoFailOverEnabled=true;
                 manager.SetAndReplaceAutoFailOverListForProviders(new[]{new EnumValue<ProviderType>(ProviderType.TRONOASIS),new EnumValue<ProviderType>(ProviderType.LocalFileOASIS)}).IsError.Should().BeFalse();
                 manager.SetAndActivateCurrentStorageProvider(tron).IsError.Should().BeFalse();
+                var revisionAfter=await runtime.NativeTransfers.QueryContractAsync(owner,contract,revisionCall);
+                revisionAfter.Should().Equal(revisionBefore,"activation and inspection must not change the storage contract revision");
+                SHA256.HashData(await File.ReadAllBytesAsync(fencePath)).Should().Equal(fenceBefore,"the unresolved original fence must remain byte-for-byte intact");
                 await runtime.DisposeAsync();
                 foreach(var asynchronous in new[]{false,true}){
                     var request=new StorageOperationRequest{Operation="LoadAvatar",AvatarId=id,PreferredProvider=ProviderType.TRONOASIS};
