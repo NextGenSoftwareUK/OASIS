@@ -36,6 +36,16 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui encrypted V2 real-provider routing — 2026-10-12
+
+- Existing Sui routing fixtures now use the same retained public local-only storage encryption key as the real storage test. No production key, runtime install, deployment or ledger reset was introduced.
+- **1/1 healthy V2 test passed**, zero skips, `TestResults/HyperDriveSui/sui-encrypted-v2-healthy-current.trx`: real Sui/LocalFile avatar, detail and holon replication/update/deletion; synchronous/asynchronous identity, token, parent, metadata and search projections; measured Performance selection; Free-policy exclusion across five configured strategies; Gold-policy six alternating sync/async RoundRobin reads split three per real provider. This is actual provider I/O, not mocks. Weighted/least-connections/geographic multi-provider distributions remain unproven by this test.
+- **2/2 failover cases passed**, zero skips, `TestResults/HyperDriveSui/sui-encrypted-v2-outage-current.trx`: disposed transport and stopped owned retained node both selected LocalFile and persisted the requested holon there. The owned node is terminal after the outage test.
+- Replication now flushes a fixed `encrypted-replication-pending.json` ownership fence with chain/storage binding and exact generated record IDs before writes; CreateNew refuses a blind repeat after interruption. Successful assertions and cleanup removed the fence in the live run. A subsequent guard strengthens retention on any failed assertion; it still needs a controlled failure/crash test and explicit reconciliation path. No automatic replay or removal of unresolved evidence.
+- Audit finding: TRON activation currently invokes both raw and private write/delete probes. Earlier descriptions of activation-based TRON inspection as strictly read-only are incorrect; fixing that admission/query boundary remains required before another inspection run.
+- Remaining: full encrypted interface/version/options coverage, wider failure/distribution matrices, production usage recovery and deployment/consumer validation. These results do not certify every API endpoint or authorize merging.
+
+
 ### Sui real encrypted-ledger roundtrip — 2026-10-12
 
 - Updated the existing `SuiStorageTests` fixture with one retained, public local-only encryption key derived from the fixed fixture label `oasis-sui-local-storage-fixture-v1`, independent of its signing key. This key is strictly test data, not production configuration.

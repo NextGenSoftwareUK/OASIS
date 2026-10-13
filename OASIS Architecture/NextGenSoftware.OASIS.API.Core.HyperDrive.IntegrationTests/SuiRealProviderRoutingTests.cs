@@ -19,6 +19,8 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 
 public sealed class SuiRealProviderRoutingTests
 {
+    private static byte[] LocalStorageKey() => System.Security.Cryptography.SHA256.HashData(
+        System.Text.Encoding.UTF8.GetBytes("oasis-sui-local-storage-fixture-v1"));
     [Fact]
     public async Task ReconcileExactOwnedInterruptedAvatarFixture()
     {
@@ -28,7 +30,7 @@ public sealed class SuiRealProviderRoutingTests
         using var fixture = JsonDocument.Parse(File.ReadAllText(Required("OASIS_SUI_TEST_DEPLOYMENT")));
         var settings = fixture.RootElement;
         using var sui = new SuiOASIS(rpc, "localnet", settings.GetProperty("chainId").GetString()!, settings.GetProperty("packageAddress").GetString()!,
-            settings.GetProperty("privateKey").GetString()!, settings.GetProperty("storageObjectId").GetString()!);
+            settings.GetProperty("privateKey").GetString()!, settings.GetProperty("storageObjectId").GetString()!,storageEncryptionKeyResolver:LocalStorageKey);
         var local = new LocalFileOASIS(storageDirectory: Path.Combine(root, "files"));
         var id = Guid.Parse("c63bdd86-cf89-49ca-8e7f-8a4099b335f8");
         const string username = "sui-v2-1b84cc7a726345119c8425bbe7c0a43a";
@@ -81,7 +83,7 @@ public sealed class SuiRealProviderRoutingTests
         var settings = fixture.RootElement;
         using var sui = new SuiOASIS(rpc, "localnet", settings.GetProperty("chainId").GetString()!,
             settings.GetProperty("packageAddress").GetString()!, settings.GetProperty("privateKey").GetString()!,
-            settings.GetProperty("storageObjectId").GetString()!);
+            settings.GetProperty("storageObjectId").GetString()!,storageEncryptionKeyResolver:LocalStorageKey);
         var local = new LocalFileOASIS(storageDirectory: Path.Combine(root, "files"));
         var activated = await sui.ActivateProviderAsync();
         activated.IsError.Should().BeFalse(activated.Message);
@@ -147,7 +149,7 @@ public sealed class SuiRealProviderRoutingTests
         var settings = fixture.RootElement;
         using var sui = new SuiOASIS(rpc, "localnet", settings.GetProperty("chainId").GetString()!,
             settings.GetProperty("packageAddress").GetString()!, settings.GetProperty("privateKey").GetString()!,
-            settings.GetProperty("storageObjectId").GetString()!);
+            settings.GetProperty("storageObjectId").GetString()!,storageEncryptionKeyResolver:LocalStorageKey);
         var local = new LocalFileOASIS(storageDirectory: Path.Combine(root, "files"));
         var holon = new Holon { Id = Guid.NewGuid(), Name = "real-v2-sui-replication" };
         holon.ParentHolonId = Guid.NewGuid();
@@ -166,6 +168,16 @@ public sealed class SuiRealProviderRoutingTests
         avatar.RefreshTokens = new() { new RefreshToken { Token = "owned-sui-refresh-" + avatar.Id } };
         var detail = new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Email = avatar.Email };
         var avatarSaved = false;
+        var allAssertionsPassed=false;
+        var pendingPath=Path.Combine(root,"encrypted-replication-pending.json");
+        using(var pending=new FileStream(pendingPath,FileMode.CreateNew,FileAccess.Write,FileShare.None))
+        {
+            JsonSerializer.Serialize(pending,new { holonId=holon.Id,parentId=parent.Id,avatarId=avatar.Id,
+                avatar.Username,avatar.Email,chainId=settings.GetProperty("chainId").GetString(),
+                storageObjectId=settings.GetProperty("storageObjectId").GetString(),
+                encryptionKeyLabel="oasis-sui-local-storage-fixture-v1" });
+            pending.Flush(flushToDisk:true);
+        }
         (await local.ActivateProviderAsync()).IsError.Should().BeFalse();
         var activated = await sui.ActivateProviderAsync();
         activated.IsError.Should().BeFalse(activated.Message);
@@ -406,6 +418,7 @@ public sealed class SuiRealProviderRoutingTests
             avatarSaved = false;
             await AssertAvatarLists(false);
             await AssertTokenLookups(false);
+            allAssertionsPassed=true;
         }
         finally
         {
@@ -436,6 +449,7 @@ public sealed class SuiRealProviderRoutingTests
                 await sui.DeActivateProviderAsync();
                 await local.DeActivateProviderAsync();
             }
+            if(allAssertionsPassed)File.Delete(pendingPath); // Failed/interrupted runs retain their exact ownership fence.
         }
     }
 }
