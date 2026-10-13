@@ -8,6 +8,34 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class CosmosPreparationTests
 {
+    [TestMethod]
+    public async Task ConcurrentStorageOwnersStayIsolatedAndNestedOwnerCannotReplaceParent()
+    {
+        var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+        var type=typeof(CosmosBlockChainOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.CosmosSdkBackend")!;
+        using var backend=(IDisposable)Activator.CreateInstance(type,new object[]{"http://127.0.0.1:1","chain","key","contract","cosmos","0.025uatom","node",Path.Combine(AppContext.BaseDirectory,"Fixtures/nft-signer.mjs")})!;
+        var storage=(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.IKeyValueBackend)backend;
+        var method=type.GetMethod("WithStoragePreparationAsync",flags)!.MakeGenericMethod(typeof(string));
+        var ready=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        var entered=0;var persisted=new System.Collections.Concurrent.ConcurrentBag<string>();
+        Task<string> Scope(Func<Task<string>> action,Func<string,string,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer> owner)
+            => (Task<string>)method.Invoke(backend,new object[]{action,owner})!;
+        var operations=new[]{"a","b"}.Select(label=>Scope(async()=>{
+            if(Interlocked.Increment(ref entered)==2)ready.SetResult();
+            await ready.Task.WaitAsync(TimeSpan.FromSeconds(10));
+            await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>Scope(()=>Task.FromResult("nested"),
+                (_,_)=>throw new AssertFailedException("Nested owner must not be invoked")));
+            await storage.PutAsync("prepared-storage-"+label,"encrypted fixture");
+            return label;
+        },(operation,key)=>{
+            Assert.AreEqual("put",operation);Assert.AreEqual("prepared-storage-"+label,key);
+            return new((_,_)=>{persisted.Add(label);return Task.CompletedTask;});
+        })).ToArray();
+        CollectionAssert.AreEquivalent(new[]{"a","b"},await Task.WhenAll(operations));
+        CollectionAssert.AreEquivalent(new[]{"a","b"},persisted.ToArray());
+        await storage.PutAsync("ordinary","fixture");
+        Assert.AreEqual(2,persisted.Count);
+    }
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     public async Task StorageScopeUsesExistingPreparationGateAndClearsOwnerAfterFailure(bool reject)

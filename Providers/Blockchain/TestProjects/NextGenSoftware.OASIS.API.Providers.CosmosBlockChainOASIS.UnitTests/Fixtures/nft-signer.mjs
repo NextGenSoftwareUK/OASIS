@@ -2,7 +2,7 @@
 let input='';for await(const chunk of process.stdin)input+=chunk;const request=JSON.parse(input);
 let result,error,failureEnvelope,handled=false;
 if(['put','get','delete'].includes(request.operation)) {
- handled=true;const mode=request.mode ?? (request.key==='prepared-storage'?'prepared':undefined);
+ handled=true;const mode=request.mode ?? (request.key?.startsWith('prepared-storage')?'prepared':undefined);
  if(mode?.startsWith('prepared')){
   const {pathToFileURL}=await import('node:url');
   const {preparationClient}=await import(pathToFileURL(process.env.OASIS_NATIVE_PREPARATION_MODULE).href);
