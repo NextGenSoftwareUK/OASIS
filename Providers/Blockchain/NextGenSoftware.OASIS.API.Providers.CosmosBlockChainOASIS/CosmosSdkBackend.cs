@@ -15,7 +15,18 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
     private readonly string _rpcEndpoint, _chainId, _privateKey, _contractAddress;
     private readonly string _addressPrefix, _gasPrice, _nodeExecutable, _bridgePath;
     private bool _disposed;
-    private readonly AsyncLocal<Func<string, string, PreparedSubmissionServer>> _storagePreparation = new();
+    private readonly AsyncLocal<StoragePreparationScope> _storagePreparation = new();
+    private sealed class StoragePreparationScope(Func<string, string, PreparedSubmissionServer> factory)
+    {
+        private int _closed;
+        public void Close() => Interlocked.Exchange(ref _closed, 1);
+        public PreparedSubmissionServer Create(string operation, string key)
+        {
+            if (Volatile.Read(ref _closed) != 0)
+                throw new InvalidOperationException("Cosmos storage execution owner has already completed.");
+            return factory(operation, key);
+        }
+    }
     internal string ChainId => _chainId;
 
     public CosmosSdkBackend(string rpcEndpoint, string chainId, string privateKey, string contractAddress,
@@ -53,16 +64,17 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
         ArgumentNullException.ThrowIfNull(operation);
         ArgumentNullException.ThrowIfNull(preparation);
         if (_storagePreparation.Value != null) throw new InvalidOperationException("Cosmos storage execution ownership cannot be nested.");
-        _storagePreparation.Value = preparation;
+        var scope = new StoragePreparationScope(preparation);
+        _storagePreparation.Value = scope;
         try { return await operation(); }
-        finally { _storagePreparation.Value = null; }
+        finally { scope.Close(); _storagePreparation.Value = null; }
     }
 
     private async Task InvokeStorageMutationAsync(string operation, string key, object args, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
         var owner = _storagePreparation.Value;
-        using var server = owner?.Invoke(operation, key);
+        using var server = owner?.Create(operation, key);
         if (owner != null && server == null) throw new InvalidOperationException("Storage owner returned no preparation gate.");
         await InvokeCoreAsync(operation, args, token, server);
     }

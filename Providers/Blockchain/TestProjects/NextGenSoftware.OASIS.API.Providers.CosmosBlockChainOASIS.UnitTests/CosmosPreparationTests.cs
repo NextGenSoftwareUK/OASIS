@@ -9,6 +9,29 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 public class CosmosPreparationTests
 {
     [TestMethod]
+    public async Task DetachedChildCannotSubmitUsingCompletedStorageOwner()
+    {
+        var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+        var type=typeof(CosmosBlockChainOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.CosmosSdkBackend")!;
+        using var backend=(IDisposable)Activator.CreateInstance(type,new object[]{"http://127.0.0.1:1","chain","key","contract","cosmos","0.025uatom","node",Path.Combine(AppContext.BaseDirectory,"Fixtures/nft-signer.mjs")})!;
+        var storage=(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.IKeyValueBackend)backend;
+        var release=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+        Task? detached=null;var ownerCalls=0;
+        Func<Task<string>> action=()=>{
+            detached=Task.Run(async()=>{await release.Task;await storage.PutAsync("prepared-storage","fixture");});
+            return Task.FromResult("completed");
+        };
+        Func<string,string,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer> owner=(_,_)=>{
+            ownerCalls++;throw new AssertFailedException("Closed owner cannot create another submission gate");
+        };
+        var scoped=(Task<string>)type.GetMethod("WithStoragePreparationAsync",flags)!.MakeGenericMethod(typeof(string))
+            .Invoke(backend,new object[]{action,owner})!;
+        Assert.AreEqual("completed",await scoped);
+        release.SetResult();
+        var failure=await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>detached!);
+        StringAssert.Contains(failure.Message,"already completed");Assert.AreEqual(0,ownerCalls);
+    }
+    [TestMethod]
     public async Task ConcurrentStorageOwnersStayIsolatedAndNestedOwnerCannotReplaceParent()
     {
         var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
