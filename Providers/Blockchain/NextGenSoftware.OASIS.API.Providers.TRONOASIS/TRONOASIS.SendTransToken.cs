@@ -43,7 +43,7 @@ using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 {
-    public partial class TRONOASIS
+    public partial class TRONOASIS : Core.Interfaces.IOASISNativeFeeReceiptProvider
     {
         public Task<OASISResult<ITransactionResponse>> SendTransactionByUsernameAsync(string fromAvatarUsername, string toAvatarUsername, decimal amount, string token)
             => SendAvatarTokenAsync(fromAvatarUsername, toAvatarUsername, amount, token, byEmail: false);

@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Shared read-only native fee receipt capability for recovery — 2026-10-12
+
+Existing real receipt APIs in Cosmos/Hedera/Sui/TRON now implement `IOASISNativeFeeReceiptProvider` in Core, exposing their current `OASISResult<JsonElement>`/cancellation contract without reflection or duplicate transport. Interface explicitly forbids submission, treating missing evidence as zero cost, implicit spending authority, currency conversion or settlement. Provider-native receipt schemas remain authoritative; this change does not fabricate a unified price or conversion rate.
+
+Core net10 build passed (129 existing warnings), complete unit suite **430/430 passed**, zero skips (`core-current.trx`); all four provider builds passed (Sui/Cosmos zero warnings, Hedera two and TRON 21 existing warnings). Core interface commit `9af77ff52a9496a4f831e9541ee773bfed91a67b` pushed on existing branch; parent gitlink/manifest advanced together. No netstandard build, new live fee lookup, actual recovery resolver/registration or deployed packaging proof claimed. Production native fee admission/pricing/settlement and parent-host crash recovery remain gates. No installs, HBAR spending, merge or deployment.
+
 ### Parent-host crash recovery production wiring audit — 2026-10-12
 
 Inspected actual `Web4UsageExecution`, `Web4UsageSettlementWorker` and `IUsageRecoveryResolver`, and searched ONODE/STAR ODK/OASIS Architecture source including ignored files (excluding bin/obj/.git). The only located resolver implementations are controlled `EvidenceResolver`/`PoisonResolver` tests. No production native-chain resolver implementation/registration was found in that inspected source. Worker handles interrupted leases by querying one registered resolver; absent evidence it marks indeterminate and keeps reconciliation required. `BeginAsync` does not resume an existing execution: it prevents duplicate execution. Therefore durable preparation and lost-child-reply tests do NOT prove production automatic recovery after parent-host death.
