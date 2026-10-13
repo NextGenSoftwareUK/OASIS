@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Actual Cosmos burn evidence through V2 routing — 2026-10-12
+
+Added eight controlled provider/process→storage-result→real V2 router cases using actual `BurnNFTAsync` responses: completed/failed/unknown native evidence stops alternate writes, while ordinary preflight error controls fail over successfully, sync/async. Exact original hash/outcome retained where established; unknown evidence does not invent identity. Combined cross-provider router class **34/34 passed**, zero skips (`TestResults/TronRuntime/native-reconciliation-routing.trx`), including prior TRON/Sui cases; selections overlap. Required request members were added to the harness before the passing build.
+
+Cosmos SDK/source receipt handling audited without adding speculative fallback: inspected mutation operations already use typed evidence. This is controlled child fixture, not official SDK ledger execution or live Cosmos V2. Runtime policy, corrected assets/history/custody live checks, durable crash recovery, private storage and deployed-route gates remain open. No install, network mutation, merge or deployment.
+
 ### Concrete Hedera post-mint evidence stops V2 alternate writes — 2026-10-12
 
 Added controlled storage-base/V2 router composition **4/4 passed**, zero skips (`hedera-postmint-routing-current.trx`), sync/async with/without requested delivery identity. Actual shipping post-mint helper creates evidence; real storage base converts its exception to a result; real V2 router retains the same exception and both IDs, with exactly one primary write attempt and zero alternate writes. Uses existing Hedera test project/transitive references: no new dependency, restore or environment needed. Corrected missing namespace import and nullable test annotations before final passing run.
