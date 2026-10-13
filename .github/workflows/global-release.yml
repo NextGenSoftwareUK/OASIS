@@ -16,6 +16,10 @@ on:
         description: Required exact exclusion count; mismatches stop before packing or upload
         type: number
         default: 0
+      nuget_plan_only:
+        description: Review NuGet plan without packing or publishing packages
+        type: boolean
+        default: false
       nuget_packages:
         description: Release all first-party NuGet packages
         required: true
@@ -216,7 +220,7 @@ jobs:
             artifacts/global-release/release-notes/*.md
 
   nuget:
-    if: inputs.nuget_packages
+    if: inputs.nuget_packages && !inputs.nuget_plan_only
     needs: plan
     runs-on: windows-latest
     timeout-minutes: 240
