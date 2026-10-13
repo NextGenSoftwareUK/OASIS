@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos complete corrected source regression — 2026-10-12
+
+- Fresh complete current Cosmos unit run **118/118 passed**, zero skips, 2m9s, `TestResults/CosmosRuntime/cosmos-full-source-current.trx`, with corrected activation fixture and explicitly retained source SDK path. Same test process awaited through intentional timeout; no restart/download/new environment/live node.
+- This closes the current source-suite rerun gap, not packaging. Provider project declares bridge/helper/manifests CopyToOutput/CopyToPublish, but does not itself copy installed node modules. Published deployment installation/verification must be independently checked; source SDK execution cannot certify it. Preserve the earlier failed setup report separately.
+- Full live interfaces/options, authenticated endpoints, production recovery, unified encryption configuration and other release gates remain open. No deployment or merge.
+
+
 ### Cosmos full-regression setup audit — 2026-10-12
 
 - Current provider rebuild passed. First complete unit run **115 passed / 3 failed / 118 total**, no skips, `TestResults/CosmosRuntime/cosmos-full-private-current.trx`: two real offline SDK cases used output bridge without installed source dependencies; missing-owner activation case reached mandatory missing-encryption-key rejection before its intended signer check.
