@@ -13,6 +13,7 @@
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Providers\Storage\NextGenSoftware.OASIS.API.Providers.MongoOASIS\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj" />
     <ProjectReference Include="..\..\Providers\Storage\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS\NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj" />

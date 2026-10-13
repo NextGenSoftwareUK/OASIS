@@ -1,6 +1,7 @@
 #Requires -Version 7.0
-param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$MongoProjection,[switch]$MongoTransactions)
+param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2)
 $ErrorActionPreference='Stop'
+if($MongoV2 -and ($SuiMintOwner -or $ReconcileControlledMintOwner -or $HederaPreparedOwners -or $MongoProjection -or $MongoTransactions)){throw 'Choose one provider verification suite.'}
 if(($MongoProjection -or $MongoTransactions) -and ($SuiMintOwner -or $ReconcileControlledMintOwner -or $HederaPreparedOwners)){throw 'Choose one provider verification suite.'}
 if($MongoProjection -and $MongoTransactions){throw 'Choose projection-only or transaction verification.'}
 if($SuiMintOwner -and $ReconcileControlledMintOwner){throw 'Choose verification or explicit controlled-fixture reconciliation, not both.'}
@@ -21,12 +22,26 @@ try{
     if([IO.Path]::GetFullPath($data) -ne (Join-Path $taskRoot 'TestResults/SubscriptionUsageCurrent/mongo-data')){throw 'Unexpected owned data path.'}
     New-Item -ItemType Directory -Force -Path $data | Out-Null
     $owned=Start-Process -FilePath $runtime -ArgumentList @('--dbpath',$data,'--bind_ip','127.0.0.1','--port','27029','--replSet','oasisRecoveryRs','--wiredTigerCacheSizeGB','0.25','--oplogSize','32','--logpath',(Join-Path $work 'mongo-current.log'),'--logappend') -PassThru -WindowStyle Hidden
+    $startupDeadline=[DateTime]::UtcNow.AddSeconds(30)
+    do {
+        if($owned.HasExited){throw 'Owned Mongo exited before listening.'}
+        $listener=Get-NetTCPConnection -State Listen -LocalPort 27029 -ErrorAction SilentlyContinue
+        if($listener){
+            if(@($listener | Where-Object OwningProcess -ne $owned.Id).Count){throw 'Listener belongs to a different process; refusing initialization.'}
+            break
+        }
+        if([DateTime]::UtcNow -ge $startupDeadline){throw 'Owned Mongo did not begin listening within startup deadline.'}
+        Start-Sleep -Milliseconds 100
+    }while($true)
     $env:OASIS_OWNED_RECOVERY_REPLICA_URI='mongodb://127.0.0.1:27029/?directConnection=true&serverSelectionTimeoutMS=2000'
     $env:SUBSCRIPTION_TEST_MONGODB_URI='mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000'
     $project=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core/Tests/SubscriptionUsage/SubscriptionUsage.Tests.csproj'
     & dotnet test $project --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --filter FullyQualifiedName~OwnedReplicaInitializationTests --logger 'trx;LogFileName=owned-replica-init-current.trx' --results-directory $work -v:q
     if($LASTEXITCODE -ne 0){throw 'Owned replica initialization failed.'}
-    if($MongoProjection -or $MongoTransactions){
+    if($MongoV2){
+        $routingProject=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
+        & dotnet test $routingProject --no-build --no-restore --filter 'FullyQualifiedName~IntegrationTests.MongoSqliteRealProviderRoutingTests.' --logger 'trx;LogFileName=mongo-sqlite-v2-current.trx' --results-directory $work -v:q
+    }elseif($MongoProjection -or $MongoTransactions){
         $env:OASIS_MONGO_REPLICA_SET_CONNECTION=$env:SUBSCRIPTION_TEST_MONGODB_URI
         $mongoProject=Join-Path $taskRoot 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests.csproj'
         $mongoFilter=if($MongoTransactions){'Category!=ExternalPrimaryTermination&FullyQualifiedName!~AcknowledgedOperationRemainsIdempotentAcrossPrimaryElection'}else{'FullyQualifiedName~HostedMongoProjectionContractTests'}
