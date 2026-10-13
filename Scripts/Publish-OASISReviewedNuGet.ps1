@@ -3,6 +3,7 @@ param(
     [Parameter(Mandatory)][string]$PlanPath,
     [Parameter(Mandatory)][string]$PackageDirectory,
     [switch]$Publish,
+    [string]$ReportPath = '',
     [string]$NuGetApiKey = $env:NUGET_API_KEY
 )
 $ErrorActionPreference = 'Stop'
@@ -32,6 +33,7 @@ if ($packages.Count -ne @($plan.packages).Count) { throw 'Packed package count d
 if ($Publish -and [string]::IsNullOrWhiteSpace($NuGetApiKey)) { throw 'NUGET_API_KEY is required.' }
 $pending = [Collections.Generic.List[string]]::new()
 $collisions = [Collections.Generic.List[string]]::new()
+$reconciliation = [Collections.Generic.List[object]]::new()
 $http = [Net.Http.HttpClient]::new()
 try {
     # Preflight the whole immutable set before pushing any package. NuGet repository
@@ -47,21 +49,27 @@ try {
         $url = "https://api.nuget.org/v3-flatcontainer/$id/$version/$id.$version.nupkg"
         $response = $http.GetAsync($url).GetAwaiter().GetResult()
         try {
-            if ([int]$response.StatusCode -eq 404) { $pending.Add($matches[0].FullName); continue }
+            if ([int]$response.StatusCode -eq 404) { $pending.Add($matches[0].FullName); $reconciliation.Add([pscustomobject]@{packageId=$planned.packageId;version=$planned.version;status='unpublished'}); continue }
             $response.EnsureSuccessStatusCode() | Out-Null
             $remoteEntries = Get-PackageEntries ($response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult())
-            if ($remoteEntries.Count -ne $localEntries.Count) { $collisions.Add("$name (archive entry coverage)"); continue }
+            if ($remoteEntries.Count -ne $localEntries.Count) { $collisions.Add("$name (archive entry coverage)"); $reconciliation.Add([pscustomobject]@{packageId=$planned.packageId;version=$planned.version;status='collision';reason='archive entry coverage'}); continue }
             $differentEntries = [Collections.Generic.List[string]]::new()
             foreach ($entry in $localEntries.Keys) {
                 if (-not $remoteEntries.ContainsKey($entry) -or $remoteEntries[$entry] -ne $localEntries[$entry]) {
                     $differentEntries.Add($entry)
                 }
             }
-            if ($differentEntries.Count) { $collisions.Add("$name (entries: $($differentEntries -join ', '))"); continue }
+            if ($differentEntries.Count) { $collisions.Add("$name (entries: $($differentEntries -join ', '))"); $reconciliation.Add([pscustomobject]@{packageId=$planned.packageId;version=$planned.version;status='collision';entries=@($differentEntries)}); continue }
+            $reconciliation.Add([pscustomobject]@{packageId=$planned.packageId;version=$planned.version;status='identical'})
             Write-Host "Verified identical published package: $name"
         } finally { $response.Dispose() }
     }
 } finally { $http.Dispose() }
+if ($ReportPath) {
+    $reportFile = [IO.Path]::GetFullPath($ReportPath)
+    [IO.Directory]::CreateDirectory([IO.Path]::GetDirectoryName($reportFile)) | Out-Null
+    [IO.File]::WriteAllText($reportFile, (ConvertTo-Json -InputObject @($reconciliation.ToArray()) -Depth 6), [Text.UTF8Encoding]::new($false))
+}
 if ($collisions.Count) {
     foreach ($collision in $collisions) { Write-Host "Immutable content collision: $collision" }
     throw "Preflight rejected $($collisions.Count) content collisions; no packages were pushed. Unpublished candidates: $($pending.Count)."
