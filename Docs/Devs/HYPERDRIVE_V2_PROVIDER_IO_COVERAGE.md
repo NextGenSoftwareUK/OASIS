@@ -26,6 +26,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Original TRON provider status and fee reconciliation guard — 2026-10-12
+
+Expanded existing live read-only fixture to parse retained original transaction ID from pending-native-outcome.json and query the actual provider status and fee interfaces. Current original db05ea6d3067038a56dfc75b64d2c46c32824282e8242335ce007d1e34a415bb returns NotFound without status error; fee receipt returns error, not fabricated zero-fee success. Test explicitly fails if original status changes so terminal reconciliation is reviewed before mutation. NotFound is NOT proof of non-submission; original unknown fence remains unchanged.
+
+Rebuilt existing integration project and current expanded live test **1/1 passed**, zero skips (`tron-original-fixture-readback.trx`), also retaining previous actual owner/signature/private-storage/read-routing assertions. Resumed same pinned retained container/ledger, then independently paused it through validated reusable helper. No replacement transaction, live write, new install, deployment or release merge. Actual original terminal evidence and complete mutation replication remain open gates.
+
 ### TRON legacy staking history — 2026-10-12
 
 Actual SDK FreezeBalanceContract maps owner and optional resource receiver (empty receiver means self), exact requested frozen_balance as RawAmount, and SUN-STAKED/<resource> denomination rather than ordinary transfer SUN. Legacy display Amount retains SUN-to-TRX scale; this is requested locked value, not spendable balance or confirmed balance delta. Reject unknown resource, negative duration/amount and invalid/unrelated participants. Original operation-owner mapping also recognises this contract. Protocol source: https://github.com/tronprotocol/protocol/blob/master/core/contract/balance_contract.proto . Provider build succeeded; focused history suite **13/13 passed**, zero skips (`tron-history-current.trx`), including self/delegated staking, large exact quantity and negative rejection. Controlled projection only; no live stake submission, unstaking inferred payout, stake-v2 or full native-resource certification. No new dependencies, live ledger writes or release merge.
