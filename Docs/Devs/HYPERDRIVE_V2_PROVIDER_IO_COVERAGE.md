@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Mongo avatar key read identity/version — 2026-10-13
+
+Mongo wider real42/42 refreshed atd38098fde. Native key reads failed4/4 because wrappers used username overload and ignored version. They now query native Id and current0/exact version. Real pair4/4 passes native current/exact3, rejects mismatch2 and username-as-key (`mongo-sqlite-v2-current.trx`). Historical versions, custom/foreign keys, read-error exception retention and full hosted API remain gates. No new downloads/environment.
+
 ### Latest paired-provider refresh — 2026-10-13
 
 At5edd564ed rebuilt current integration assembly: actual Mongo/SQLite expanded4/4 and SQLite/LocalFile24/24 passed, zero skips. Reports `TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`, `TestResults/HyperDriveSqliteCurrent/sqlite-localfile-latest-current.trx`; direct SQLite72/72 remains current, wider Mongo42 predates newest selector edits. Disposable fixtures absent and owned Mongo27029 stopped; free disk93.09GB decimal. No installs/new environments. Full interface/API/provider completion and production recovery remain open; counts overlap.

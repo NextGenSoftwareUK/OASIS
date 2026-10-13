@@ -208,12 +208,19 @@ public sealed class MongoSqliteRealProviderRoutingTests
             const string failureApp = "oasis-v2-owned-failure";
             foreach (var selector in new[] { "email", "username", "key" })
             {
-                var selectorAvatar = new Avatar { Id = Guid.NewGuid(), Username = "mongo-selector-" + selector, Email = selector + "@mongo-selector.local",
+                var selectorAvatar = new Avatar { Id = Guid.NewGuid(), Version = 3, Username = "mongo-selector-" + selector, Email = selector + "@mongo-selector.local",
                     AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
                 var savedSelector = await mongo.SaveAvatarAsync(selectorAvatar);
                 savedSelector.IsError.Should().BeFalse(savedSelector.Message);
                 (await mongo.SaveAvatarDetailAsync(new AvatarDetail { Id = selectorAvatar.Id, Username = "independent-" + selector, Karma = 123 })).IsError.Should().BeFalse();
                 var localKey = savedSelector.Result.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS];
+                var keyRead = synchronous ? mongo.LoadAvatarByProviderKey(localKey) : await mongo.LoadAvatarByProviderKeyAsync(localKey);
+                keyRead.IsError.Should().BeFalse(keyRead.Message);
+                keyRead.Result.Should().NotBeNull();
+                keyRead.Result.Id.Should().Be(selectorAvatar.Id);
+                (synchronous ? mongo.LoadAvatarByProviderKey(localKey, 3) : await mongo.LoadAvatarByProviderKeyAsync(localKey, 3)).Result.Id.Should().Be(selectorAvatar.Id);
+                (synchronous ? mongo.LoadAvatarByProviderKey(localKey, 2) : await mongo.LoadAvatarByProviderKeyAsync(localKey, 2)).Result.Should().BeNull();
+                (synchronous ? mongo.LoadAvatarByProviderKey(selectorAvatar.Username) : await mongo.LoadAvatarByProviderKeyAsync(selectorAvatar.Username)).Result.Should().BeNull();
                 var selectorDeleted = selector == "email"
                     ? (synchronous ? mongo.DeleteAvatarByEmail(selectorAvatar.Email, true) : await mongo.DeleteAvatarByEmailAsync(selectorAvatar.Email, true))
                     : selector == "username"
