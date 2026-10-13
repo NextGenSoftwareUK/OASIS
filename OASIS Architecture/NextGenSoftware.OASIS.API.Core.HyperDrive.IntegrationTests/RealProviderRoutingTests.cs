@@ -56,11 +56,13 @@ public sealed class RealProviderRoutingTests : IDisposable
         detail.Stats.HP.Current = 37;
         detail.Stats.Mana.Current = 42;
         detail.Stats.Stamina.Current = 53;
+        var item = new InventoryItem { Id = Guid.NewGuid(), Name = "owned-seed", Quantity = 3 };
+        detail.Inventory.Add(item);
         var request = new StorageOperationRequest { Operation = "SaveAvatarDetail", Payload = detail, PreferredProvider = ProviderType.LocalFileOASIS };
         var router = new OASISHyperDrive(manager);
         foreach (var updating in new[] { false, true })
         {
-            if (updating) { detail.Karma = 456; detail.XP = 234; detail.Stats.HP.Current = 38; detail.Stats.Mana.Current = 43; detail.Stats.Stamina.Current = 54; }
+            if (updating) { detail.Karma = 456; detail.XP = 234; detail.Stats.HP.Current = 38; detail.Stats.Mana.Current = 43; detail.Stats.Stamina.Current = 54; item.Quantity = 4; }
             var result = synchronous ? router.RouteRequest<IAvatarDetail>(request) : await router.RouteRequestAsync<IAvatarDetail>(request);
             result.IsError.Should().BeFalse(result.Message);
             result.IsWarning.Should().BeFalse(string.Join("; ", manager.LastReplicationDiagnostic.Attempts.Select(attempt => attempt.Message)));
@@ -73,6 +75,8 @@ public sealed class RealProviderRoutingTests : IDisposable
                 loaded.Result.Stats.HP.Current.Should().Be(detail.Stats.HP.Current);
                 loaded.Result.Stats.Mana.Current.Should().Be(detail.Stats.Mana.Current);
                 loaded.Result.Stats.Stamina.Current.Should().Be(detail.Stats.Stamina.Current);
+                loaded.Result.Inventory.Single().Id.Should().Be(item.Id);
+                loaded.Result.Inventory.Single().Quantity.Should().Be(item.Quantity);
             }
         }
         using var freshSqlite = new SQLLiteDBOASIS($"Data Source={SqlitePath};Pooling=False");
@@ -81,6 +85,8 @@ public sealed class RealProviderRoutingTests : IDisposable
         persisted.Result.Stats.HP.Current.Should().Be(38);
         persisted.Result.Stats.Mana.Current.Should().Be(43);
         persisted.Result.Stats.Stamina.Current.Should().Be(54);
+        persisted.Result.Inventory.Single().Id.Should().Be(item.Id);
+        persisted.Result.Inventory.Single().Quantity.Should().Be(4);
     }
 
     [Theory]
