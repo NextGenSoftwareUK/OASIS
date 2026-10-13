@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui/Hedera retained output SDK and verifier checks — 2026-10-12
+
+- Existing reuse helper verified the current Sui unit-output and Hedera integration-output bridge manifests against retained source SDK installations, linked/revalidated shared dependency junctions, and passed actual bridge syntax/import/direct SDK pin checks. No packages installed/downloaded or dependency trees duplicated.
+- Packaging verifier tests **9/9 passed**, zero skips: builtin/ESM conditional imports, side-effect/dynamic companion resolution, syntax validation, installed version and lockfile pin mismatch rejection. Verifier resolves imports without executing ledger operations. These tests cover that verifier's contract, not complete parsing of every JavaScript expression or runtime behavior.
+- This verifies retained Windows output dependency wiring. Fresh Linux published-image execution, hosted endpoint matrices, funded Hedera, production recovery and original broader release gates remain open. No runtime/node/funds/deployment/merge.
+
+
 ### Cosmos output SDK dependency reuse verification — 2026-10-12
 
 - WEB4 Docker source already calls `Docker/package-provider-sdk-bridges.sh`, which installs pinned bridge dependencies and verifies them. Provider csproj file-copy declarations alone were not the whole Docker packaging workflow. Linux image execution remains unproven; no image build/download was requested or performed.
