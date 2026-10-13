@@ -1,9 +1,15 @@
 # HyperDrive V2 provider-I/O coverage
 
-**Updated:** 2026-10-12 (scope-specific evidence below; full completion unproven)
+**Updated:** 2026-10-13 (scope-specific evidence below; full completion unproven)
 **Branch:** `codex/hyperdrive-dual-mode-route-matrix`
 
 ## Current provider status — not full certification
+
+### Priority Mongo/SQLite current checkpoint — 2026-10-13
+
+Current real pairing4/4 covers bidirectional sync/async replicated holon/avatar/detail updates and direct readback; populated stats/inventory; all28 built-in exemption metadata keys plus AppRegion as plaintext string equality; two-field All/Any and current/exact/mismatched version filtering; actual measured read selection; SQLite schema-I/O failure to Mongo fallback; app-scoped real Mongo find rejection to SQLite fallback; real Mongo replica insert rejection with successful primary/warning diagnostics; and permanent holon/avatar/detail deletion. Report: `TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`. These are four expanded scenarios, not every endpoint/operation or independent counts to sum.
+
+Latest deletion expansion exposed and corrected SQLite GUID sync/async query-object removal/missing SaveChanges and Mongo async GUID softDelete argument loss. Final pair4/4 and SQLite regression56/56 passed (`TestResults/SQLiteCurrent/sqlite-avatar-delete-current.trx`). Wider real Mongo transactions42/42 passed before this wrapper-only correction; not rerun afterward yet. Owned node stopped, disposable pair fixtures cleaned, no additional installations/downloads. Remaining gates include complete mappings/options/history/schema upgrades, concurrency, nested child deletion and failed-avatar-delete recovery, Mongo atomicity/elections, manager encryption compatibility, full authenticated hosted APIs and published Linux runtime. No top-priority provider is yet fully certified. Work order remains Mongo/SQLite → Ethereum/Solana → IPFS → clouds → L2s → Neo4j → remaining chains → SOLID/ActivityPub; original four-chain obligations remain intact.
 
 ### SQLite tracked-update and rejected-write recovery — 2026-10-13
 

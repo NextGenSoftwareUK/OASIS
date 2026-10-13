@@ -259,6 +259,14 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
                 await failureMongo.DeActivateProviderAsync();
             }
+            var avatarDelete = new StorageOperationRequest { Operation = "DeleteAvatar", AvatarId = avatar.Id, SoftDelete = false, PreferredProvider = request.PreferredProvider };
+            var avatarDeleted = synchronous ? router.RouteRequest<bool>(avatarDelete) : await router.RouteRequestAsync<bool>(avatarDelete);
+            avatarDeleted.IsError.Should().BeFalse(avatarDeleted.Message);
+            avatarDeleted.IsWarning.Should().BeFalse(string.Join("; ",manager.LastReplicationDiagnostic.Attempts.Select(x=>x.Message)));
+            (await mongo.LoadAvatarAsync(avatar.Id)).Result.Should().BeNull();
+            (await sqlite.LoadAvatarAsync(avatar.Id)).Result.Should().BeNull();
+            (await mongo.LoadAvatarDetailAsync(detail.Id)).Result.Should().BeNull();
+            (await sqlite.LoadAvatarDetailAsync(detail.Id)).Result.Should().BeNull();
             using (var control = new DataContext($"Data Source={dbPath};Pooling=False")) control.Database.ExecuteSqlRaw("DROP TABLE Holon;");
             manager.IsAutoReplicationEnabled = false;
             manager.IsAutoFailOverEnabled = true;
