@@ -291,9 +291,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatar(avatar.IsNewHolon || avatar.CreatedDate == DateTime.MinValue ?
-               await _avatarRepository.AddAsync(DataHelper.ConvertOASISAvatarToMongoEntity(avatar)) :
-               await _avatarRepository.UpdateAsync(DataHelper.ConvertOASISAvatarToMongoEntity(avatar)));
+            var existing = await _avatarRepository.GetAvatarAsync(avatar.Id);
+            if (existing.IsError) return DataHelper.ConvertMongoEntityToOASISAvatar(existing);
+            var entity = DataHelper.ConvertOASISAvatarToMongoEntity(avatar);
+            if (existing.Result == null) return DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.AddAsync(entity));
+            entity.Id = existing.Result.Id;
+            entity.CreatedDate = existing.Result.CreatedDate;
+            entity.CreatedByAvatarId = existing.Result.CreatedByAvatarId;
+            return DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.UpdateAsync(entity));
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatar)
@@ -312,9 +317,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatar(avatar.IsNewHolon || avatar.CreatedDate == DateTime.MinValue ?
-                _avatarRepository.Add(DataHelper.ConvertOASISAvatarToMongoEntity(avatar)) :
-                _avatarRepository.Update(DataHelper.ConvertOASISAvatarToMongoEntity(avatar)));
+            var existing = _avatarRepository.GetAvatar(avatar.Id);
+            if (existing.IsError) return DataHelper.ConvertMongoEntityToOASISAvatar(existing);
+            var entity = DataHelper.ConvertOASISAvatarToMongoEntity(avatar);
+            if (existing.Result == null) return DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.Add(entity));
+            entity.Id = existing.Result.Id;
+            entity.CreatedDate = existing.Result.CreatedDate;
+            entity.CreatedByAvatarId = existing.Result.CreatedByAvatarId;
+            return DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.Update(entity));
         }
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)

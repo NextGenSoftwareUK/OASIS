@@ -101,6 +101,23 @@ public sealed class MongoSqliteRealProviderRoutingTests
             (await mongo.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Should().BeNull();
             (await sqlite.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Should().BeNull();
             manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            var avatar = new Avatar { Id = Guid.NewGuid(), Username = "priority-avatar", Email = "priority-avatar@test.local", FirstName = "Initial", AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
+            var avatarRequest = new StorageOperationRequest { Operation = "SaveAvatar", Payload = avatar, PreferredProvider = request.PreferredProvider };
+            foreach (var updating in new[] { false, true })
+            {
+                if (updating) { avatar.FirstName = "Updated"; avatar.Email = "priority-updated@test.local"; }
+                var saved = synchronous ? router.RouteRequest<IAvatar>(avatarRequest) : await router.RouteRequestAsync<IAvatar>(avatarRequest);
+                saved.IsError.Should().BeFalse(saved.Message);
+                saved.IsWarning.Should().BeFalse(string.Join("; ",manager.LastReplicationDiagnostic.Attempts.Select(x=>x.Message)));
+                foreach (var loaded in new[] { await mongo.LoadAvatarAsync(avatar.Id), await sqlite.LoadAvatarAsync(avatar.Id),
+                    await mongo.LoadAvatarByUsernameAsync(avatar.Username), await sqlite.LoadAvatarByEmailAsync(avatar.Email) })
+                {
+                    loaded.IsError.Should().BeFalse(loaded.Message);
+                    loaded.Result.Id.Should().Be(avatar.Id);
+                    loaded.Result.Email.Should().Be(avatar.Email);
+                    loaded.Result.FirstName.Should().Be(avatar.FirstName);
+                }
+            }
             using (var control = new DataContext($"Data Source={dbPath};Pooling=False")) control.Database.ExecuteSqlRaw("DROP TABLE Holon;");
             manager.IsAutoReplicationEnabled = false;
             manager.IsAutoFailOverEnabled = true;
