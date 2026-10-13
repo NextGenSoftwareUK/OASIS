@@ -66,6 +66,20 @@ public sealed class RealProviderRoutingTests : IDisposable
             loaded.Result.Username.Should().Be(avatar.Username);
             loaded.Result.Email.Should().Be(avatar.Email);
         }
+        avatar.FirstName = "Updated";
+        avatar.Email = "updated-owned-v2@test.local";
+        var updated = synchronous ? router.RouteRequest<IAvatar>(request) : await router.RouteRequestAsync<IAvatar>(request);
+        updated.IsError.Should().BeFalse(updated.Message);
+        manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
+        foreach (var loaded in new[] { await local.LoadAvatarByUsernameAsync(avatar.Username), await sqlite.LoadAvatarByUsernameAsync(avatar.Username),
+            await local.LoadAvatarByEmailAsync(avatar.Email), await sqlite.LoadAvatarByEmailAsync(avatar.Email) })
+        {
+            loaded.IsError.Should().BeFalse(loaded.Message);
+            loaded.Result.Should().NotBeNull();
+            loaded.Result.Id.Should().Be(avatar.Id);
+            loaded.Result.Email.Should().Be(avatar.Email);
+            loaded.Result.FirstName.Should().Be("Updated");
+        }
     }
 
     [Theory]
