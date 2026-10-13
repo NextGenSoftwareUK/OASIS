@@ -36,6 +36,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Persisted encryption configuration verification — 2026-10-12
+
+- Shared current suite **101/101 passed**, zero skips, `TestResults/SharedPrivate/shared-encryption-config-current.trx`. Seven new cases cover missing/empty/malformed, wrong-width, whitespace/noncanonical and valid environment keys used by Cosmos/Sui defaults. Validation neither generates/replaces configuration nor echoes rejected key text; valid decoded bytes exactly match the configured retained key. Test environment value is restored and decoded owned buffers cleared.
+- The local Mongo listener is the running Windows `MongoDB` service (`mongod.exe`), not the identified disposable replica set required by subscription tests. It was not modified or used for disposable tests. Native production recovery integration remains open; this encryption configuration evidence does not close that gate.
+
+
 ### Production native recovery registration audit — 2026-10-12
 
 - Current source audit finds `IUsageRecoveryResolver` implementations only in `UsageProtocolTests` (`EvidenceResolver` and `PoisonResolver`), not production. The worker rejects competing owners and retains missing/failed terminal evidence as indeterminate; native receipt capabilities alone do not provide production settlement recovery.
