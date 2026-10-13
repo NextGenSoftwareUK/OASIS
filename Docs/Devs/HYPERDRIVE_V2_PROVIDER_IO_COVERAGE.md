@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Complete Sui unit regression after bridge correction — 2026-10-12
+
+- Complete current Sui unit suite **85/85 passed**, zero skips, 2m10s, `TestResults/SuiRuntime/sui-full-bridge-current.trx`, after original-error preservation fix. Includes the intentional native process timeout; waited for the same confirmed live handle to finish, no restart/new environment.
+- Cosmos native Withdraw/Deposit source audit confirms both already throw the original `transfer.Exception` when present; no equivalent patch needed there. This is source evidence for that pattern, not a new live Cosmos bridge test.
+- Current Sui unit results do not certify live custody/mint/escrow, all options, hosted endpoints, published SDK packaging or production recovery. Earlier real encrypted-storage/V2 evidence remains revision-scoped. No node, install, download, funds, deployment or merge used.
+
+
 ### Sui native bridge error identity preservation — 2026-10-12
 
 - Sui custodial native Deposit/Withdraw previously replaced a failed `SendSuiAsync` result with a plain exception, discarding typed original transaction reconciliation evidence. Both now preserve the existing exception; an error with no exception still surfaces an ordinary error, never success. No second transfer or retry was added.
