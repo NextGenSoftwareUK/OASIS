@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Exact SQLite deletion-graph rollback ownership — 2026-10-13
+
+Real pair refreshed4/4 on7cf545fb8. Further SQLite public-key OwnerId fixture reproduced failed-delete replay2/2; per-operation exact graph entity set now participates in scoped failed-write detachment, rather than relying only on AvatarId field naming. Full58/58 passes with preserved public key after rejected deletion/unrelated save and removed key after later explicit delete (`TestResults/SQLiteCurrent/sqlite-avatar-owner-delete-current.trx`). Original failing report `sqlite-avatar-owner-delete-before.trx` retained. Deeper graph fixtures, asynchronous graph loading, deletion-selector matrix and newest-revision V2 refresh remain open; no full provider certification claim.
+
 ### SQLite rejected avatar deletion — 2026-10-13
 
 Real trigger tests reproduced rollback leaving EF pending avatar deletion, which a later unrelated save silently replayed. GUID sync/async catches now detach changed avatar/detail and AvatarId-owned entries for that identity only. Reloaded explicit deletion loads/removes mapped principal-to-dependent detail records within the existing transaction, fixing unloaded-child foreign-key failures without changing schema. Full58/58 regression passes (`TestResults/SQLiteCurrent/sqlite-avatar-delete-recovery-current.trx`), including preserved avatar/karma/HP/inventory after rejection and subsequent successful explicit deletion. Pre-fix2/2 failure report retained. Additional nested OwnerId/ChakraId rollback ownership, rich graph fixtures, soft/username/email/key variants and real V2 refresh remain required; do not treat this as full certification.

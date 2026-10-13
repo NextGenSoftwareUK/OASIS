@@ -36,6 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             OASISResult<bool> result = new();
             string errorMessage = "Error occured in DeleteAsync method in AvatarRepository in Sqllite Provider.";
             using var dbContextTransaction = _dbContext.Database.BeginTransaction();
+            var deletionEntities = new HashSet<object>();
             try
             {
                 if (softDelete)
@@ -95,10 +96,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     if (data != null)
                     {
                         _dbContext.Remove(data);
+                        deletionEntities.Add(data);
                         var dataDetail = _dbContext.AvatarDetails.Include(x => x.InventoryItems).Include(x => x.Stats).Where(x => x.Id == data.Id).ToList();
                         foreach (var detail in dataDetail)
                         {
-                            RemoveAvatarDetailDependents(detail);
+                            deletionEntities.Add(detail);
+                            RemoveAvatarDetailDependents(detail, deletionEntities);
                         }
                         _dbContext.RemoveRange(dataDetail);
                         result.Result = true;
@@ -108,7 +111,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
-                DetachFailedAvatarDeletion(id.ToString());
+                DetachFailedAvatarDeletion(id.ToString(), deletionEntities);
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
                     ex);
             }
@@ -121,7 +124,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             return result;
         }
 
-        private void RemoveAvatarDetailDependents(object entity)
+        private void RemoveAvatarDetailDependents(object entity, HashSet<object> deletionEntities)
         {
             var entry = _dbContext.Entry(entity);
             foreach (var navigation in entry.Navigations.Where(n => n.Metadata is Microsoft.EntityFrameworkCore.Metadata.INavigation mapped && !mapped.IsOnDependent).ToList())
@@ -133,17 +136,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     : new List<object> { navigation.CurrentValue };
                 foreach (var child in children)
                 {
-                    RemoveAvatarDetailDependents(child);
+                    deletionEntities.Add(child);
+                    RemoveAvatarDetailDependents(child, deletionEntities);
                     _dbContext.Remove(child);
                 }
             }
         }
 
-        private void DetachFailedAvatarDeletion(string id)
+        private void DetachFailedAvatarDeletion(string id, HashSet<object> deletionEntities)
         {
             foreach (var entry in _dbContext.ChangeTracker.Entries().ToList())
             {
-                var belongsToAvatar = entry.Entity is AvatarModel avatar && avatar.Id == id
+                var belongsToAvatar = deletionEntities.Contains(entry.Entity) || entry.Entity is AvatarModel avatar && avatar.Id == id
                     || entry.Entity is AvatarDetailModel detail && detail.Id == id;
                 var avatarKey = entry.Metadata.FindProperty("AvatarId");
                 if (avatarKey != null && avatarKey.ClrType == typeof(string))

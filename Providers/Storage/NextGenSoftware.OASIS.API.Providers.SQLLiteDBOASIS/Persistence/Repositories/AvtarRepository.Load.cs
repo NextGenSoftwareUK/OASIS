@@ -36,6 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             OASISResult<bool> result = new();
             string errorMessage = "Error occured in DeleteAsync method in AvatarRepository in Sqllite Provider.";
             using var dbContextTransaction = await _dbContext.Database.BeginTransactionAsync();
+            var deletionEntities = new HashSet<object>();
             try
             {
                 if (softDelete)
@@ -94,10 +95,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     if (data != null)
                     {
                         _dbContext.Remove(data);
+                        deletionEntities.Add(data);
                         var dataDetail = await _dbContext.AvatarDetails.Include(x => x.InventoryItems).Include(x => x.Stats).Where(x => x.Id == data.Id).ToListAsync();
                         foreach (var detail in dataDetail)
                         {
-                            RemoveAvatarDetailDependents(detail);
+                            deletionEntities.Add(detail);
+                            RemoveAvatarDetailDependents(detail, deletionEntities);
                         }
                         _dbContext.RemoveRange(dataDetail);
                         result.Result = true;
@@ -107,7 +110,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
-                DetachFailedAvatarDeletion(id.ToString());
+                DetachFailedAvatarDeletion(id.ToString(), deletionEntities);
                 OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}",
                     ex);
             }
