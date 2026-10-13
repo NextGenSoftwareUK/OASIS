@@ -731,6 +731,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             if (tracked != null)
             {
                 holon.CreatedDate = tracked.CreatedDate;
+                holon.CreatedByAvatarId = tracked.CreatedByAvatarId;
                 _dbContext.Entry(tracked).CurrentValues.SetValues(holon);
                 return tracked;
             }
@@ -747,6 +748,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             // A full replacement may omit immutable creation audit data. Preserve the
             // persisted value rather than treating its presence as a create signal.
             holon.CreatedDate = persistedHolon.CreatedDate;
+            holon.CreatedByAvatarId = persistedHolon.CreatedByAvatarId;
             _dbContext.Holons.Update(holon);
             return holon;
         }
