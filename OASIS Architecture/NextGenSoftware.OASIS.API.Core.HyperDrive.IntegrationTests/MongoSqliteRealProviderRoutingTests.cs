@@ -215,6 +215,26 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 Func<Task> duplicateInsert = () => collection.InsertOneAsync(duplicateRecord);
                 var duplicateError = await duplicateInsert.Should().ThrowAsync<MongoWriteException>();
                 duplicateError.Which.WriteError.Category.Should().Be(ServerErrorCategory.DuplicateKey);
+                var identityIndex = collectionName == "Avatar" ? "oasis_avatar_public_identity" : "oasis_avatar_detail_public_identity";
+                await collection.Indexes.DropOneAsync(identityIndex);
+                await collection.InsertOneAsync(duplicateRecord);
+                try
+                {
+                    for (var activationAttempt = 0; activationAttempt < 2; activationAttempt++)
+                    {
+                        var duplicateActivation = synchronous ? mongo.ActivateProvider() : await mongo.ActivateProviderAsync();
+                        duplicateActivation.IsError.Should().BeTrue();
+                        duplicateActivation.Exception.Should().BeOfType<MongoCommandException>();
+                        mongo.IsProviderActivated.Should().BeFalse();
+                    }
+                    (await collection.CountDocumentsAsync(new BsonDocument("_id", duplicateRecord["_id"]))).Should().Be(1);
+                    (await collection.CountDocumentsAsync(new BsonDocument("_id", existingRecord["_id"]))).Should().Be(1);
+                }
+                finally
+                {
+                    await collection.DeleteOneAsync(new BsonDocument("_id", duplicateRecord["_id"]));
+                }
+                (synchronous ? mongo.ActivateProvider() : await mongo.ActivateProviderAsync()).IsError.Should().BeFalse();
             }
             var staleDetail = new AvatarDetail { Id = Guid.NewGuid(), Username = "secondary-only-detail", Karma = 999 };
             (await sqlite.SaveAvatarDetailAsync(staleDetail)).IsError.Should().BeFalse();
