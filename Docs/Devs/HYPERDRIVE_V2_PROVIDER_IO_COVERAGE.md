@@ -26,6 +26,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON witness-vote history mapping — 2026-10-12
+
+Added real SDK VoteWitnessContract owner mapping and wallet-history projection. Voting is not a token transfer: requested transfer amount remains zero, owner is both history participants, execution outcome comes from the receipt, unrelated wallets are rejected. Vote count is never treated as SUN. Protocol reference: https://github.com/tronprotocol/protocol/blob/master/core/contract/witness_contract.proto . Provider build zero errors/23 existing warnings; focused complete TronWalletHistoryTests **11/11 passed**, zero skips (`tron-history-current.trx`), including success/failure with vote counts beyond JavaScript exact integer range. This is controlled actual protobuf projection, not voting submission/live governance or current full-suite certification. Other native history types and remaining release gates stay open. No installation, node mutation or release merge.
+
 ### Complete Cosmos regression refreshed after SDK probe fix — 2026-10-12
 
 Rebuilt/reran existing Cosmos UnitTests project with no restore, BuildProjectReferences=false, two workers and shared compilation disabled; explicit OASIS_COSMOS_SDK_BRIDGE uses retained source SDK. Terminal process exit zero; freshly parsed `TestResults/CosmosRuntime/cosmos-current.trx` confirms total/executed/passed 102, all failure/nonexecution counters zero. Duration two minutes eight seconds includes actual process deadline. No new runtime, dependency download or live ledger mutation. Free C space after run 100,098,007,040 bytes. This refresh covers C# regressions after the probe fix, not deployed Linux packaging, full live interfaces, native billing or parent-host recovery. No merge or sponsored spending enabled.

@@ -9,6 +9,30 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 public sealed class TronWalletHistoryTests
 {
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void WitnessVotesAreNotTokenTransfersAndRetainExecutionOutcome(bool failed)
+    {
+        var bytes = new byte[21]; bytes[0] = 0x41; bytes[20] = 7;
+        var owner = ByteString.CopyFrom(bytes);
+        var vote = new VoteWitnessContract { OwnerAddress = owner };
+        vote.Votes.Add(new VoteWitnessContract.Types.Vote { VoteAddress = owner, VoteCount = 9007199254740993L });
+        var transaction = new Transaction { RawData = new Transaction.Types.raw { Timestamp = 1700000000000 } };
+        transaction.RawData.Contract.Add(new Transaction.Types.Contract {
+            Type = Transaction.Types.Contract.Types.ContractType.VoteWitnessContract, Parameter = Any.Pack(vote) });
+        var receipt = new TransactionInfo { Id = ByteString.CopyFrom(new byte[32]), Result = (TransactionInfo.Types.code)(failed ? 1 : 0) };
+        var method = typeof(TronNativeTransferClient).GetMethod("MapWalletTransaction", BindingFlags.NonPublic | BindingFlags.Static)!;
+        var mapped = (NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses.IWalletTransaction)method.Invoke(null, new object[] { transaction, receipt, owner })!;
+        Assert.Equal("VoteWitnessContract", mapped.NativeOperation);
+        Assert.Equal("0", mapped.RawAmount); Assert.Equal(0d, mapped.Amount);
+        Assert.Equal(mapped.FromWalletAddress, mapped.ToWalletAddress);
+        Assert.Equal(!failed, mapped.NativeExecutionResult == "Success");
+        bytes[20] = 8;
+        var error = Assert.Throws<TargetInvocationException>(() => method.Invoke(null, new object[] { transaction, receipt, ByteString.CopyFrom(bytes) }));
+        Assert.Contains("does not involve", error.InnerException!.Message);
+    }
+
+    [Theory]
     [InlineData("missing-asset")] [InlineData("negative-quantity")] [InlineData("foreign-wallet")]
     public void NativeAssetHistoryRejectsMissingIdentityInvalidQuantityOrUnrelatedWallet(string mode)
     {
