@@ -24,6 +24,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos fixture cleanup ordering corrected — 2026-10-12
+
+Corrected healthy V2 fixture failure-path ordering: delete owned holon/avatar records before deactivation. Nested finally guarantees local deactivation is attempted even if Cosmos deactivation throws; cleanup failures remain visible and the recovery intent is retained. Removed duplicated deactivation after avatar cleanup. Bounded no-restore integration-project build passed with zero errors/five existing warnings. Earlier live routing reports predate this cleanup-only change; injected failure-path execution remains unverified. No node restart, ledger mutation, installation, release merge or sponsorship enabled for this checkpoint.
+
 ### Current live Cosmos V2 routing — 2026-10-12
 
 Current reports independently re-read: healthy `cosmos-v2-combined-current.trx` **1/1 passed**, outage `cosmos-v2-failover-current.trx` **2/2 passed**, zero failures/nonexecuted cases. Healthy fixture explicitly uses Gold eligibility, verifies replicated owned records/deletion/index absence, measured selection, Free-plan Cosmos exclusion across five policies, and six alternating synchronous/asynchronous round-robin reads with three actual requests to each provider. Outage cases exercise disposed real transport and stopping the retained actual node, not a mocked provider failure.
