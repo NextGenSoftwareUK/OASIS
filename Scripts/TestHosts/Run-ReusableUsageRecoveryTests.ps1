@@ -1,0 +1,37 @@
+#Requires -Version 7.0
+$ErrorActionPreference='Stop'
+$taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+$work=Join-Path $taskRoot 'TestResults/SubscriptionUsageCurrent'
+$data=Join-Path $work 'mongo-data'
+$runtime='C:\Program Files\MongoDB\Server\8.3\bin\mongod.exe'
+if(!(Test-Path -LiteralPath $runtime -PathType Leaf)){throw 'Existing installed Mongo runtime is required; no download attempted.'}
+if((& $runtime --version | Select-Object -First 1) -ne 'db version v8.3.11'){throw 'Retained runtime version differs; inspect before reuse.'}
+New-Item -ItemType Directory -Force -Path $work | Out-Null
+$lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
+$owned=$null
+$prior=@{}
+foreach($name in 'OASIS_OWNED_RECOVERY_REPLICA_URI','SUBSCRIPTION_TEST_MONGODB_URI'){$prior[$name]=[Environment]::GetEnvironmentVariable($name)}
+try{
+    if(Get-NetTCPConnection -State Listen -LocalPort 27029 -ErrorAction SilentlyContinue){throw 'Owned port already in use; no process will be stopped.'}
+    if([IO.Path]::GetFullPath($data) -ne (Join-Path $taskRoot 'TestResults/SubscriptionUsageCurrent/mongo-data')){throw 'Unexpected owned data path.'}
+    New-Item -ItemType Directory -Force -Path $data | Out-Null
+    $owned=Start-Process -FilePath $runtime -ArgumentList @('--dbpath',$data,'--bind_ip','127.0.0.1','--port','27029','--replSet','oasisRecoveryRs','--wiredTigerCacheSizeGB','0.25','--oplogSize','32','--logpath',(Join-Path $work 'mongo-current.log'),'--logappend') -PassThru -WindowStyle Hidden
+    $env:OASIS_OWNED_RECOVERY_REPLICA_URI='mongodb://127.0.0.1:27029/?directConnection=true&serverSelectionTimeoutMS=2000'
+    $env:SUBSCRIPTION_TEST_MONGODB_URI='mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000'
+    $project=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core/Tests/SubscriptionUsage/SubscriptionUsage.Tests.csproj'
+    & dotnet test $project --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --filter FullyQualifiedName~OwnedReplicaInitializationTests --logger 'trx;LogFileName=owned-replica-init-current.trx' --results-directory $work -v:q
+    if($LASTEXITCODE -ne 0){throw 'Owned replica initialization failed.'}
+    & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName!~OwnedReplicaInitializationTests' --logger 'trx;LogFileName=usage-real-replica-current.trx' --results-directory $work -v:q
+    if($LASTEXITCODE -ne 0){throw 'Usage recovery regression failed.'}
+}finally{
+    try{
+        if($owned){
+            if(!$owned.HasExited){$owned.Kill();if(!$owned.WaitForExit(10000)){throw 'Owned Mongo did not terminate.'}}
+            $owned.Dispose()
+        }
+    }finally{
+        foreach($name in $prior.Keys){[Environment]::SetEnvironmentVariable($name,$prior[$name])}
+        $lease.Dispose()
+    }
+}
+# Retain one reusable replica data directory; individual fixture databases are removed by tests.
