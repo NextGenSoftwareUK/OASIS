@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Recovery runner occupied-port cleanup correction — 2026-10-12
+
+- Failure-injected a harmless in-process listener on owned port 27029. Runner refused before Mongo launch and preserved the listener, but initially restored absent environment variables as empty entries. Corrected finally to remove originally absent variables explicitly and preserve existing values with the setter.
+- Repeated actual refusal check passed: listener stays bound, environment values exactly unchanged, exclusive lease can immediately reopen. Test listener stopped in its own finally. No Mongo/service/data mutation or download occurred. Successful-path/nonempty environment/concurrent lease/process failure coverage and log bounds still need verification.
+- Broader production native recovery/provider gates remain open; no deployment/merge.
+
+
 ### Reusable durable recovery test runner — 2026-10-12
 
 - Added `Scripts/TestHosts/Run-ReusableUsageRecoveryTests.ps1`: reuses installed 8.3.11 Mongo executable, fixed owned task data/report folder, exclusive environment lease, loopback port and retained process handle. Refuses occupied port/version mismatch, restores environment references and stops only its own process in finally. No downloads, fresh runtime copies or GUID environment directories.
