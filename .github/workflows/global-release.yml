@@ -8,6 +8,10 @@ on:
         required: true
         type: boolean
         default: false
+      excluded_nuget_ids:
+        description: Comma-separated already-completed package IDs, recorded in the immutable plan
+        type: string
+        default: ''
       nuget_packages:
         description: Release all first-party NuGet packages
         required: true
@@ -127,6 +131,7 @@ jobs:
           -Operation Plan
           -NuGetPackages $${{ inputs.nuget_packages }}
           -NuGetPackageScope '${{ inputs.nuget_package_scope }}'
+          -ExcludedPackageIds ('${{ inputs.excluded_nuget_ids }}'.Split(',', [StringSplitOptions]::RemoveEmptyEntries))
           -OASISRuntime $${{ inputs.oasis_runtime }}
           -STARRuntime $${{ inputs.star_runtime }}
           -EdgeRuntime $${{ inputs.edge_runtime }}
