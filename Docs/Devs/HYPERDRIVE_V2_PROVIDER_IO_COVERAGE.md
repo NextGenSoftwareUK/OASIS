@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### SQLite rejected avatar deletion — 2026-10-13
+
+Real trigger tests reproduced rollback leaving EF pending avatar deletion, which a later unrelated save silently replayed. GUID sync/async catches now detach changed avatar/detail and AvatarId-owned entries for that identity only. Reloaded explicit deletion loads/removes mapped principal-to-dependent detail records within the existing transaction, fixing unloaded-child foreign-key failures without changing schema. Full58/58 regression passes (`TestResults/SQLiteCurrent/sqlite-avatar-delete-recovery-current.trx`), including preserved avatar/karma/HP/inventory after rejection and subsequent successful explicit deletion. Pre-fix2/2 failure report retained. Additional nested OwnerId/ChakraId rollback ownership, rich graph fixtures, soft/username/email/key variants and real V2 refresh remain required; do not treat this as full certification.
+
 ### Priority Mongo/SQLite current checkpoint — 2026-10-13
 
 Current real pairing4/4 covers bidirectional sync/async replicated holon/avatar/detail updates and direct readback; populated stats/inventory; all28 built-in exemption metadata keys plus AppRegion as plaintext string equality; two-field All/Any and current/exact/mismatched version filtering; actual measured read selection; SQLite schema-I/O failure to Mongo fallback; app-scoped real Mongo find rejection to SQLite fallback; real Mongo replica insert rejection with successful primary/warning diagnostics; and permanent holon/avatar/detail deletion. Report: `TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`. These are four expanded scenarios, not every endpoint/operation or independent counts to sum.
