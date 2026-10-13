@@ -41,6 +41,34 @@ public sealed class RealProviderRoutingTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task ReplicaIoFailurePreservesPrimaryAndReportsPartialReplication(bool synchronous)
+    {
+        Directory.CreateDirectory(_root);
+        var local = new LocalFileOASIS(storageDirectory: FilesPath);
+        using var sqlite = new SQLLiteDBOASIS($"Data Source={SqlitePath};Pooling=False");
+        (await local.ActivateProviderAsync()).IsError.Should().BeFalse();
+        (await sqlite.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var manager = CreateManager(autoReplication:true);
+        manager.RegisterProvider(local);
+        manager.RegisterProvider(sqlite);
+        manager.SetAndReplaceAutoReplicationListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS), new EnumValue<ProviderType>(ProviderType.LocalFileOASIS) }).IsError.Should().BeFalse();
+        Directory.Delete(FilesPath, recursive:true);
+        File.WriteAllText(FilesPath, "owned replica I/O failure");
+        var holon = new Holon { Id = Guid.NewGuid(), Name = "primary-survives" };
+        var request = new StorageOperationRequest { Operation = "SaveHolon", Payload = holon, SaveChildren = false, PreferredProvider = ProviderType.SQLLiteDBOASIS };
+        var router = new OASISHyperDrive(manager);
+        var result = synchronous ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
+        result.IsError.Should().BeFalse(result.Message);
+        result.IsWarning.Should().BeTrue();
+        (await sqlite.LoadHolonAsync(holon.Id, loadChildren:false)).Result.Name.Should().Be(holon.Name);
+        manager.LastReplicationDiagnostic.SucceededCount.Should().Be(0);
+        manager.LastReplicationDiagnostic.FailedCount.Should().Be(1);
+        manager.LastReplicationDiagnostic.Attempts.Single().Provider.Should().Be(ProviderType.LocalFileOASIS);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task LocalFileDeletionPreservesUnreadableRecordAndReportsSuccessfulDeletion(bool synchronous)
     {
         Directory.CreateDirectory(_root);
