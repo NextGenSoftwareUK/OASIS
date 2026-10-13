@@ -67,6 +67,8 @@ public sealed class RealProviderRoutingTests : IDisposable
             if (updating) { detail.Karma = 456; detail.XP = 234; detail.Stats.HP.Current = 38; detail.Stats.Mana.Current = 43; detail.Stats.Stamina.Current = 54; item.Quantity = 4; }
             var result = synchronous ? router.RouteRequest<IAvatarDetail>(request) : await router.RouteRequestAsync<IAvatarDetail>(request);
             result.IsError.Should().BeFalse(result.Message);
+            result.Result.Should().NotBeNull();
+            result.Result.Id.Should().Be(detail.Id);
             result.IsWarning.Should().BeFalse(string.Join("; ", manager.LastReplicationDiagnostic.Attempts.Select(attempt => attempt.Message)));
             foreach (var loaded in new[] { await local.LoadAvatarDetailAsync(detail.Id), await sqlite.LoadAvatarDetailAsync(detail.Id) })
             {
