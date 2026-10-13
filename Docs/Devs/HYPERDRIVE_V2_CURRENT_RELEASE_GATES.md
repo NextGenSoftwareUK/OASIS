@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+Mongo metadata version forwarding fixed: all four single/compound sync/async wrapper/repository signatures now carry version; Mongo query filters exact Version when nonzero instead of ignoring API argument. Real Mongo/SQLite single-key wrongVersion2/wrongTypeQuest exclusions pass in expanded four scenarios. Current0 remains current stored row, not historical-version proof. Report `TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`; compound explicit version and wider regression/API/packaged compatibility still require coverage.
+
 Real compound metadata checkpoint: sync/async Mongo/SQLite All/Any matching over Email+parkType checked with zero/one/two mismatches; exact target or empty result required, no false storage errors. Full four pairing scenarios passed (`TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`). This verifies two string fields; typed/nested/encrypted/manager/API semantics and version/type filter combinations remain gates.
 
 Priority golden-key query coverage: four bidirectional sync/async scenarios now query every28 built-in exemption key plus AppRegion in actual Mongo and SQLite using distinct string values after replicatedVersion3 update; each returns exactly original publicId.4/4 passed (`TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`). Golden list copied from existing Core compatibility contract, not dynamically shrunk. This proves direct plaintext string equality only, not manager encryption integration, typed/compound queries, indexes/scale or other providers/APIs.

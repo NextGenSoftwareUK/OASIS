@@ -108,6 +108,15 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 }
             }
             balanceManager.RegisterProvider(sqlite);
+            foreach (var provider in new IOASISStorageProvider[] { mongo, sqlite })
+            {
+                var mismatch = synchronous ? provider.LoadHolonsByMetaData("Email","priority@test.local",loadChildren:false,version:2) : await provider.LoadHolonsByMetaDataAsync("Email","priority@test.local",loadChildren:false,version:2);
+                mismatch.IsError.Should().BeFalse(mismatch.Message);
+                mismatch.Result.Should().BeEmpty();
+                var wrongType = synchronous ? provider.LoadHolonsByMetaData("Email","priority@test.local",HolonType.Quest,loadChildren:false,version:3) : await provider.LoadHolonsByMetaDataAsync("Email","priority@test.local",HolonType.Quest,loadChildren:false,version:3);
+                wrongType.IsError.Should().BeFalse(wrongType.Message);
+                wrongType.Result.Should().BeEmpty();
+            }
             balanceManager.SetAndReplaceAutoLoadBalanceListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
             var timer = Stopwatch.StartNew();
             (await mongo.LoadHolonAsync(holon.Id,loadChildren:false)).IsError.Should().BeFalse();

@@ -89,7 +89,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 : Builders<Holon>.Filter.Or(filters);
         }
 
-        public async Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType holonType)
+        public async Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType holonType, int version = 0)
         {
             OASISResult<IEnumerable<Holon>> result = new OASISResult<IEnumerable<Holon>>();
 
@@ -123,6 +123,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 // and $toString to handle any BSON value type — all server-side.
                 FilterDefinition<Holon> filter = BuildHolonTypeFilter(holonType);
                 filter = Builders<Holon>.Filter.And(filter, BuildMetaDataFilter(metaKey, metaValue));
+                if (version != 0) filter &= Builders<Holon>.Filter.Eq(x => x.Version, version);
 
                 result.Result = await _dbContext.Holon.FindAsync(filter).Result.ToListAsync();
             }
@@ -138,7 +139,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             return result;
         }
 
-        public OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(string metaKey, string metaValue, HolonType holonType)
+        public OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(string metaKey, string metaValue, HolonType holonType, int version = 0)
         {
             OASISResult<IEnumerable<Holon>> result = new OASISResult<IEnumerable<Holon>>();
 
@@ -167,7 +168,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 //}
 
                 FilterDefinition<Holon> filter = Builders<Holon>.Filter.And(
-                    BuildHolonTypeFilter(holonType), BuildMetaDataFilter(metaKey, metaValue));
+                    BuildHolonTypeFilter(holonType), BuildMetaDataFilter(metaKey, metaValue),
+                    version == 0 ? Builders<Holon>.Filter.Empty : Builders<Holon>.Filter.Eq(x => x.Version, version));
 
                 result.Result = _dbContext.Holon.Find(filter).ToList();
             }
@@ -183,7 +185,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType)
+        public async Task<OASISResult<IEnumerable<Holon>>> GetHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType, int version = 0)
         {
             OASISResult<IEnumerable<Holon>> result = new OASISResult<IEnumerable<Holon>>();
 
@@ -217,6 +219,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                 FilterDefinition<Holon> filter = Builders<Holon>.Filter.And(
                     BuildHolonTypeFilter(holonType),
+                    version == 0 ? Builders<Holon>.Filter.Empty : Builders<Holon>.Filter.Eq(x => x.Version, version),
                     BuildMetaDataMultiFilter(metaKeyValuePairs, metaKeyValuePairMatchMode));
 
                 result.Result = await _dbContext.Holon.FindAsync(filter).Result.ToListAsync();
@@ -238,7 +241,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             return result; 
         }
 
-        public OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType)
+        public OASISResult<IEnumerable<Holon>> GetHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType holonType, int version = 0)
         {
             OASISResult<IEnumerable<Holon>> result = new OASISResult<IEnumerable<Holon>>();
 
@@ -246,6 +249,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 FilterDefinition<Holon> filter = Builders<Holon>.Filter.And(
                     BuildHolonTypeFilter(holonType),
+                    version == 0 ? Builders<Holon>.Filter.Empty : Builders<Holon>.Filter.Eq(x => x.Version, version),
                     BuildMetaDataMultiFilter(metaKeyValuePairs, metaKeyValuePairMatchMode));
 
                 result.Result = _dbContext.Holon.Find(filter).ToList();
