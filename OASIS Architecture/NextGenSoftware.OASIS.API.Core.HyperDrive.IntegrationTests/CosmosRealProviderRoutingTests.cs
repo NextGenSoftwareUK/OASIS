@@ -230,20 +230,24 @@ public sealed class CosmosRealProviderRoutingTests
         }
         finally
         {
-            if (!deletedThroughRouter)
+            try
             {
-                var deleted = await cosmos.DeleteHolonAsync(holon.Id);
-                deleted.IsError.Should().BeFalse(deleted.Message);
-                (await local.DeleteHolonAsync(holon.Id)).IsError.Should().BeFalse();
+                if (!deletedThroughRouter)
+                {
+                    var deleted = await cosmos.DeleteHolonAsync(holon.Id);
+                    deleted.IsError.Should().BeFalse(deleted.Message);
+                    (await local.DeleteHolonAsync(holon.Id)).IsError.Should().BeFalse();
+                }
+                if (avatarSaved)
+                {
+                    (await cosmos.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsError.Should().BeFalse();
+                    (await local.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsError.Should().BeFalse();
+                }
             }
-            await cosmos.DeActivateProviderAsync();
-            await local.DeActivateProviderAsync();
-            if (avatarSaved)
+            finally
             {
-                (await cosmos.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsError.Should().BeFalse();
-                (await local.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsError.Should().BeFalse();
-                await cosmos.DeActivateProviderAsync();
-                await local.DeActivateProviderAsync();
+                try { await cosmos.DeActivateProviderAsync(); }
+                finally { await local.DeActivateProviderAsync(); }
             }
             if(verifiedComplete){journal.Dispose();File.Delete(journalPath);}
             else Console.WriteLine("Retained owned Cosmos V2 recovery intent: "+journalPath);
