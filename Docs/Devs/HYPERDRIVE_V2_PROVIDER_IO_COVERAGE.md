@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Mongo avatar key-read failures retain driver evidence — 2026-10-13
+
+Real owned-server app-scoped find rejection reproduced dropped exceptions4/4. Expression sync/async catches now retain original Mongo exception; async expression query awaits driver API. Expanded real pair4/4 passes error/null/original MongoCommandException plus earlier key/version/routing/deletion assertions (`mongo-sqlite-v2-current.trx`). Other selectors/lists, full interface/API and production recovery stay open. Existing runtime/environment reused.
+
 ### Mongo avatar key read identity/version — 2026-10-13
 
 Mongo wider real42/42 refreshed atd38098fde. Native key reads failed4/4 because wrappers used username overload and ignored version. They now query native Id and current0/exact version. Real pair4/4 passes native current/exact3, rejects mismatch2 and username-as-key (`mongo-sqlite-v2-current.trx`). Historical versions, custom/foreign keys, read-error exception retention and full hosted API remain gates. No new downloads/environment.
