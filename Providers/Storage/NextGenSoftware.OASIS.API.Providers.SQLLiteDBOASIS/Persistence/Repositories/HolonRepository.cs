@@ -158,8 +158,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 var holonEntities =
                     _dbContext.Holons
+                        .Where(p => p.ParentHolonId == id.ToString() && (version == 0 || p.Version == version) && (type == HolonType.All || p.HolonType == type))
                         .ToList()
-                        .Where(p => p.Id == id.ToString() && p.Version == version)
                         .Select(GetHolonFromEntity)
                         .ToList();
                 return new OASISResult<IEnumerable<IHolon>>
@@ -174,9 +174,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 return new OASISResult<IEnumerable<IHolon>>
                 {
-                    IsLoaded = true,
-                    IsError = false,
-                    Message = ex.ToString()
+                    IsLoaded = false,
+                    IsError = true,
+                    Exception = ex,
+                    Message = ex.Message
                 };
             }
         }
@@ -187,9 +188,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var holonEntities = _dbContext.Holons
-                    .ToList()
-                    .Where(p => p.Id == id.ToString() && p.Version == version)
+                var rows = await _dbContext.Holons
+                    .Where(p => p.ParentHolonId == id.ToString() && (version == 0 || p.Version == version) && (type == HolonType.All || p.HolonType == type))
+                    .ToListAsync();
+                var holonEntities = rows
                     .Select(GetHolonFromEntity)
                     .ToList();
                 return new OASISResult<IEnumerable<IHolon>>
@@ -204,9 +206,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 return new OASISResult<IEnumerable<IHolon>>
                 {
-                    IsLoaded = true,
-                    IsError = false,
-                    Message = ex.ToString()
+                    IsLoaded = false,
+                    IsError = true,
+                    Exception = ex,
+                    Message = ex.Message
                 };
             }
         }
@@ -218,8 +221,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var holonEntities = _dbContext.Holons
-                    .Where(p => p.Version == version)
-                    .Select(x => GetHolonFromEntity(x))
+                    .Where(p => _dbContext.Holons.Any(parent => parent.LocalProviderKey == providerKey && parent.Id == p.ParentHolonId)
+                        && (version == 0 || p.Version == version) && (type == HolonType.All || p.HolonType == type))
+                    .ToList()
+                    .Select(GetHolonFromEntity)
                     .ToList();
                 return new OASISResult<IEnumerable<IHolon>>
                 {
@@ -246,10 +251,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var holonEntities = await _dbContext.Holons
-                    .Where(p => p.Version == version)
-                    .Select(x => GetHolonFromEntity(x))
+                var rows = await _dbContext.Holons
+                    .Where(p => _dbContext.Holons.Any(parent => parent.LocalProviderKey == providerKey && parent.Id == p.ParentHolonId)
+                        && (version == 0 || p.Version == version) && (type == HolonType.All || p.HolonType == type))
                     .ToListAsync();
+                var holonEntities = rows.Select(GetHolonFromEntity).ToList();
                 return new OASISResult<IEnumerable<IHolon>>
                 {
                     IsLoaded = true,
@@ -262,9 +268,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 return new OASISResult<IEnumerable<IHolon>>
                 {
-                    IsLoaded = true,
-                    IsError = false,
-                    Message = ex.ToString()
+                    IsLoaded = false,
+                    IsError = true,
+                    Exception = ex,
+                    Message = ex.Message
                 };
             }
         }

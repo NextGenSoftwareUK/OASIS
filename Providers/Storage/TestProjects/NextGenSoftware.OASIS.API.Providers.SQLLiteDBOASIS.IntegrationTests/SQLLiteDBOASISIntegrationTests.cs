@@ -41,6 +41,28 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ParentSelectorsIsolateChildrenAndRespectTypeAndVersion(bool synchronous)
+    {
+        using var context = new DataContext(TestConnectionString);
+        context.Database.EnsureCreated();
+        var repository = new HolonRepository(context);
+        var parent = new Holon { Id = Guid.NewGuid() };
+        parent.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS] = "local-parent";
+        parent.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = "foreign-parent";
+        var child = new Holon { Id = Guid.NewGuid(), ParentHolonId = parent.Id, HolonType = HolonType.Quest, Version = 3 };
+        foreach (var row in new[] { parent, child, new Holon { Id = Guid.NewGuid(), HolonType = HolonType.Quest, Version = 3 }, new Holon { Id = Guid.NewGuid(), ParentHolonId = parent.Id, Version = 2 } })
+            repository.SaveHolon(row).IsError.Should().BeFalse();
+        var byId = synchronous ? repository.LoadHolonsForParent(parent.Id, HolonType.Quest, loadChildren:false) : await repository.LoadHolonsForParentAsync(parent.Id, HolonType.Quest, loadChildren:false);
+        byId.Result.Select(row => row.Id).Should().Equal(child.Id);
+        var byKey = synchronous ? repository.LoadHolonsForParent("local-parent", HolonType.Quest, loadChildren:false, version:3) : await repository.LoadHolonsForParentAsync("local-parent", HolonType.Quest, loadChildren:false, version:3);
+        byKey.Result.Select(row => row.Id).Should().Equal(child.Id);
+        repository.LoadHolonsForParent("foreign-parent", loadChildren:false).Result.Should().BeEmpty();
+        repository.LoadHolonsForParent(parent.Id, HolonType.Quest, loadChildren:false, version:2).Result.Should().BeEmpty();
+    }
+
+    [Theory]
     [InlineData(true, true)]
     [InlineData(true, false)]
     [InlineData(false, true)]
