@@ -1,0 +1,88 @@
+# Workspace cleanup ledger and repeatable checks
+
+Updated 2026-10-13. Units: GiB = 1,073,741,824 bytes; GB = 1,000,000,000 bytes. File totals, logical VHD length, and recovered drive space are different measurements. Concurrent cleanup means a drive-space increase cannot all be attributed to this chat.
+
+## Rules
+
+- Reuse the existing HyperDrive checkout and compatible installed runtimes. No new clones, worktrees, replacement environments or repeated downloads.
+- Commit source before removing a checkout. Preserve detached heads and initialized submodule heads in the existing primary repositories; do not delete their branches.
+- Validate exact resolved targets, tracked/uncommitted files, ignored data, links, active processes and credentials before removal. No broad workspace/home deletion.
+- Retain credentials, user data, required current evidence and unresolved native transaction ownership journals. Never reset an uncertain ledger or replay an uncertain mutation.
+- Build only when needed, with bounded workers; do not restore into caches another cleanup is currently deleting. User last confirmed that cleanup is still running.
+- Default to inspection. Explicit removal mode applies only to validated disposable output. A policy-denied deletion is not retried through another tool, shell or script.
+
+## Confirmed removals
+
+| Exact target | Removed material | Size / evidence | Recovery or regeneration |
+|---|---|---|---|
+| `/nix/var/nix/builds/nix-583-3695671890/build/source/target` | Stale generated Holochain compilation | 3.5 GiB file footprint; original PID absent, no compiler/open files. Linux used72→69GiB; TRIM returned **2.45 GiB measured C: space** | Rebuild the retained Holochain source with existing tooling if required. Source and Nix store were retained |
+| `C:/Source/ourworld-main-promotion` | Clean redundant worktree | Earlier file inventory2.44GiB | `refs/archive/cleanup/ourworld-main-promotion` in `C:/Source/Our-World`; existing history retained |
+| `C:/Source/OASIS-api-host-resilience-dev` | Clean redundant worktree and generated output | Earlier2.87GiB | Parent and initialized submodule recovery refs in primary OASIS repos |
+| `C:/Source/OASIS-api-host-resilience-prod` | Clean redundant worktree | Earlier0.36GiB | Same reference convention; existing branches retained |
+| `C:/Source/OASIS-sharing` | Clean redundant worktree and generated output | Earlier1.37GiB | Same reference convention; branch retained |
+| `C:/Source/OASIS/.claude/worktrees/practical-austin-2d6d0a` | Clean redundant worktree, no ignored data or initialized submodules | Removal confirmed; byte recovery not separately measured | `refs/archive/cleanup/practical-austin-2d6d0a` in primary OASIS |
+| Generated `bin`/`obj` belonging to `.csproj` projects under `C:/Source/OASIS` | Untracked unused .NET output; tracked output/credentials/dependency links excluded | Script aggregate **9.60GiB** removed. Source status clean afterward | Normal build of the required project, using existing environment, not a fresh checkout |
+| Stale Git worktree registrations for already-absent `.codex/worktrees` checkouts | Administrative records only | `git worktree prune --expire now`; no live checkout or branch removed | Existing branches/history retained |
+
+The first .NET removal streamed per-directory results, but no durable per-file manifest was retained. Do not invent one retrospectively. Future removals record exact directory intent/completion in the compact journal described below.
+
+## Commit-first preservation
+
+These are local preservation commits, not tested releases or deployment authorization:
+
+- Android reusable runtime: `d324df1`; line-ending-only apparent changes normalized, actual Cargo lock change committed.
+- Main OASIS submodules: ONODEManager `789df4c`, STAR `357af79`, WEB6 `aae330d`.
+- Main OASIS parent: `6ee2e46eb`; matching dependency pins `71d2c455d`. Existing Python validator passed manifest/seven Dockerfiles/gitlinks checks.
+- Our World source and Edge package: `e0224439`. Private/untracked `BuildLogs` were not staged or deleted.
+- Current provider work remains on the existing HyperDrive task branch; no new branch created and no premature merge.
+
+## `C:/Source/OASIS/artifacts` inspection
+
+Approximate total2.8GiB, no tracked files and no process referencing this directory at inspection:
+
+| Item | GiB | Current disposition |
+|---|---:|---|
+| `unity-edge-validation-project` | 2.398 | User authorized unused generated output removal, but deletion was policy-blocked; remains |
+| `native-games` | 0.311 | Generated object and duplicate DLL/PDB; duplicate hashes match retained publish copies. Deletion attempt blocked; remains |
+| `unity` | 0.046 | Packaged/unpacked generated Edge output; remains |
+| `release-promotion` | 0.030 | Generated archives/packages and test reports; remains |
+| Remaining logs/reports/protected session/backup directories | Small | User subsequently said Railway backup already exists and unused artifacts may be removed; **whole-directory deletion still policy-blocked** |
+
+No artifact deletion is claimed. Do not bypass the policy through a different mechanism. User may remove this explicitly named directory manually after confirming needed backups/data are elsewhere. Current HyperDrive evidence and native pending journals are outside it.
+
+Known producers to consult before rerunning:
+
+- `Scripts/validate_edge_unity_package.ps1` creates the validation project. Do not blindly recreate its disposable project copy: prefer the existing suitable Unity project, and review necessity before any duplicate allocation.
+- `OASIS Omniverse/OGEngineClient/Scripts/publish_and_deploy_star_api.ps1` produces native Edge builds/publish outputs. Do not run merely to regenerate deleted artifacts; deployment is a separate authorized action.
+- `Docs/Devs/THREE_GAME_EDGE_RELEASE_ARTIFACT_MAP.md` documents native build/deployment ownership.
+
+## Re-run and monitor
+
+From the **existing** `C:/Source/OASIS-hyperdrive-v2-gaps` checkout:
+
+```powershell
+# Read-only current Windows drive measurement.
+Get-PSDrive C | Select-Object Used, Free
+
+# Read-only generated .NET output audit; does not restore or build.
+& Scripts/TestHosts/Remove-StalePrimaryDotNetOutputs.ps1
+
+# Only after source preservation, target/process/data verification and no overlap:
+& Scripts/TestHosts/Remove-StalePrimaryDotNetOutputs.ps1 -Remove
+
+# Inspect recovery references and retained checkouts.
+git -C C:/Source/OASIS worktree list
+git -C C:/Source/OASIS for-each-ref refs/archive/cleanup
+```
+
+Future `-Remove` writes JSONL **before each deletion** (`DeleteIntent`) and after success (`Deleted`) to `TestResults/cleanup-events.jsonl`, with exact directory, bytes and free-space observations. An intent without completion is not proof of deletion. Keep this compact journal, not copies of deleted output. Inspection alone does not create it. No scheduled automation has been created.
+
+Do not rerun `cleanup-stale-holochain-build.sh` expecting further recovery: its one exact target was already removed. It must refuse missing/changed/in-use targets. WSL TRIM only releases unused filesystem blocks; never treat its reported trimmed capacity as actual Windows recovery.
+
+## Still retained / unresolved
+
+- Main repositories and the one active HyperDrive checkout, pinned runtimes and current reusable outputs.
+- Private `BuildLogs`, DPAPI test identities, live account keys, pending Cosmos/TRON/native deployment journals and necessary current test evidence.
+- Conda environments `piper-art`, `slp`, `mfa`: ownership/continued need unresolved. Their33GiB combined installation footprint is not proof of33GiB newly leaked data.
+- NEAR runtime/build folders have not been removed; source/dependency ownership needs review before disposal.
+- Requested150GB recovery is unfinished. Last observed123.29GiB =132.38GB free, while another cleanup is active.
