@@ -28,6 +28,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera funding gate and current free mirror reads — 2026-10-12
+
+Free public mirror GET for retained account 0.0.10993779 reports deleted=false, balance 391606260 tinybars (3.91606260 test HBAR), balance timestamp 1791758574.827904258. Not sufficient for previously estimated contract deployment; no new funding assumed and funded storage/NFT/V2 tests remain deferred. Queried no paid consensus SDK operation.
+
+Existing readonly mirror tests **2/2 passed**, zero skips (`hedera-mirror-readonly-current.trx`): actual public node-account balance through provider API and exact original failed deployment 0.0.10993779@1791758571.546470406 classified InsufficientFundsForFee. These were excluded from preceding strictly non-testnet run and are separately scoped; no funded mutation, fee quote refresh, real V2 storage proof or release merge. Existing bytecode upload journal preserved; no install/download.
+
 ### Current complete Sui regression after recipient invariant — 2026-10-12
 
 Complete current Sui provider suite **81/81 passed**, zero skips/failures (`sui-current.trx`), two minutes ten seconds including actual process deadline; same session terminal exit zero. Uses retained source SDK and current dependency output after ownership/case comparison, no restore/install/new runtime/live ledger calls. Supersedes earlier 78-case complete checkpoint; narrower 48-case report overlaps. Asked user to choose mandatory separately keyed on-chain encryption versus private off-chain storage for Sui/Cosmos; no reply recorded at this checkpoint and no persisted-format/key migration assumed. Pricing remains unapproved. Those privacy/recovery/billing/live/deployed gates remain open; no merge.
