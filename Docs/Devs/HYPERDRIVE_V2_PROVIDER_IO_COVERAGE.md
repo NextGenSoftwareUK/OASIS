@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Soft deletion identity and current Mongo regressions — 2026-10-13
+
+Real pair4/4 and real single-node Mongo transactions42/42 refreshed atf8b849978. SQLite sync/async soft deletion failed2/2 when detail username differs; lookup now uses shared Id, and any error-result rollback clears scoped pending changes. Full66/66 passes (`TestResults/SQLiteCurrent/sqlite-avatar-soft-delete-current.trx`) with persisted avatar/detail deletion timestamps and unchanged karma. Missing-detail/rejected soft-write rollback still needs direct tests; activity/read filtering/audit mapping and original full-provider gates remain open. Existing environment reused, no downloads.
+
 ### SQLite avatar deletion selector consolidation — 2026-10-13
 
 Six real email/username/custom-local-key sync/async deletion checks failed against duplicated legacy implementations. Selectors now query persisted identity and delegate to GUID deletion with the requested softDelete argument, preserving lookup exceptions and explicit absence errors. Detail username intentionally differs from avatar username; both must be deleted by shared Id. Full64/64 passed (`TestResults/SQLiteCurrent/sqlite-avatar-delete-selectors-current.trx`), with pre-fix6/6 failures retained. Real pairing refreshed4/4 at2890b0cc1, before this selector edit. Soft deletion, missing/failure selector matrix, fresh pair refresh and broader original gates remain unverified.
