@@ -43,6 +43,26 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task AvatarProviderKeySelectorMatchesOnlyLocalKeyAndRetainsForeignMap(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = "key-avatar", Version = 3,
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        avatar.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS] = "local-avatar-key";
+        avatar.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = "foreign-avatar-key";
+        (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+        var loaded = synchronous ? provider.LoadAvatarByProviderKey("local-avatar-key") : await provider.LoadAvatarByProviderKeyAsync("local-avatar-key");
+        loaded.IsError.Should().BeFalse(loaded.Message);
+        loaded.Result.Id.Should().Be(avatar.Id);
+        loaded.Result.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS].Should().Be("foreign-avatar-key");
+        (await provider.LoadAvatarByProviderKeyAsync("foreign-avatar-key")).Result.Should().BeNull();
+        provider.LoadAvatarByProviderKey("local-avatar-key",version:2).Result.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task DetailVersionUpdatesRemainQueryableAsCurrentAndByExactVersion(bool synchronous)
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString);

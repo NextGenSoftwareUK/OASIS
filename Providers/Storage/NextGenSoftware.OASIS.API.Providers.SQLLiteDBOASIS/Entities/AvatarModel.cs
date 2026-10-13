@@ -13,10 +13,13 @@ using NextGenSoftware.Utilities;
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
 
     [Table("Avatar")]
+    [Microsoft.EntityFrameworkCore.Index(nameof(LocalProviderKey), IsUnique = true)]
     public class AvatarModel {
 
         [Required, Key]
         public string Id { get; set;}
+        public string LocalProviderKey { get; set; }
+        public string ProviderKeysJson { get; set; } = "{}";
 
         public AvatarType AvatarType { get; set;}
         public HolonType HolonType { get; set;}

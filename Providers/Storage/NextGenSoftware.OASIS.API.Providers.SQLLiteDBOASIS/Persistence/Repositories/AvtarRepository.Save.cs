@@ -202,7 +202,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var avatarEntity = await _dbContext.Avatars
-                    .FirstOrDefaultAsync(p => p.ProviderKey.Any(pk => pk.Value == providerKey) && (version == 0 || p.Version == version));
+                    .SingleOrDefaultAsync(p => p.LocalProviderKey == providerKey && (version == 0 || p.Version == version));
                 
                 if (avatarEntity != null)
                 {
@@ -241,7 +241,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var avatarEntity = _dbContext.Avatars
-                    .FirstOrDefault(p => p.ProviderKey.Any(pk => pk.Value == providerKey) && (version == 0 || p.Version == version));
+                    .SingleOrDefault(p => p.LocalProviderKey == providerKey && (version == 0 || p.Version == version));
                 
                 if (avatarEntity != null)
                 {
@@ -443,12 +443,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
         public AvatarModel CreateAvatarModel(IAvatar avatar)
         {
+            var keys = avatar.ProviderUniqueStorageKey == null ? new Dictionary<ProviderType,string>() : new Dictionary<ProviderType,string>(avatar.ProviderUniqueStorageKey);
+            if (!keys.ContainsKey(ProviderType.SQLLiteDBOASIS)) keys[ProviderType.SQLLiteDBOASIS] = avatar.Id.ToString();
+            ArgumentException.ThrowIfNullOrWhiteSpace(keys[ProviderType.SQLLiteDBOASIS]);
             return new()
             {
                 AcceptTerms = avatar.AcceptTerms,
                 Email = avatar.Email,
                 FirstName = avatar.FirstName,
                 Id = avatar.Id.ToString(),
+                LocalProviderKey = keys[ProviderType.SQLLiteDBOASIS],
+                ProviderKeysJson = System.Text.Json.JsonSerializer.Serialize(keys),
                 Version = avatar.Version,
                 JwtToken = avatar.JwtToken,
                 LastName = avatar.LastName,
@@ -475,6 +480,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Email = avatar.Email,
                 FirstName = avatar.FirstName,
                 Id = Guid.Parse(avatar.Id),
+                ProviderUniqueStorageKey = System.Text.Json.JsonSerializer.Deserialize<Dictionary<ProviderType,string>>(avatar.ProviderKeysJson)
+                    ?? throw new System.IO.InvalidDataException("Stored avatar provider keys must be a JSON object."),
                 Version = avatar.Version,
                 JwtToken = avatar.JwtToken,
                 LastName = avatar.LastName,
