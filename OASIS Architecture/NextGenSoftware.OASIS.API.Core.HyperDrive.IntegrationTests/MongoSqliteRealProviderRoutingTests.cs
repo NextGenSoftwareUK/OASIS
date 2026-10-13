@@ -260,6 +260,30 @@ public sealed class MongoSqliteRealProviderRoutingTests
             failManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
             failManager.SetAndActivateCurrentStorageProvider(failureMongo).IsError.Should().BeFalse();
             var admin = client.GetDatabase("admin");
+            foreach (var selector in new[] { "email", "username", "key" })
+            {
+                try
+                {
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                        { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("times",1) },
+                        { "data", new BsonDocument { { "failCommands", new BsonArray { "find" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                    });
+                    var selectorFailure = selector == "email"
+                        ? (synchronous ? failureMongo.DeleteAvatarByEmail(avatar.Email, false) : await failureMongo.DeleteAvatarByEmailAsync(avatar.Email, false))
+                        : selector == "username"
+                            ? (synchronous ? failureMongo.DeleteAvatarByUsername(avatar.Username, false) : await failureMongo.DeleteAvatarByUsernameAsync(avatar.Username, false))
+                            : (synchronous ? failureMongo.DeleteAvatar(avatar.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS], false) : await failureMongo.DeleteAvatarAsync(avatar.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS], false));
+                    selectorFailure.IsError.Should().BeTrue();
+                    selectorFailure.Result.Should().BeFalse();
+                    selectorFailure.Exception.Should().BeOfType<MongoCommandException>();
+                    (await mongo.LoadAvatarAsync(avatar.Id)).Result.Should().NotBeNull();
+                    (await mongo.LoadAvatarDetailAsync(detail.Id)).Result.Karma.Should().Be(456);
+                }
+                finally
+                {
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+                }
+            }
             try
             {
                 await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
