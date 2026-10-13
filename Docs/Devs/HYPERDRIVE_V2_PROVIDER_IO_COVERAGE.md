@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Mongo creation publishes key in one insert — 2026-10-13
+
+Avatar/detail Add sync/async previously inserted then updated key while ignoring update result. Native ObjectId and local provider key now assigned before one insert. Real update-rejection failpoint remains enabled during creation; direct typed native-store reads verify stored keys equal nativeIds. Expanded4/4 passes (`mongo-sqlite-v2-current.trx`). Origin/audit attribution, insert concurrency/error retention, wider regression and complete provider/recovery remain gates. Existing environment reused.
+
 ### Mongo real duplicate data activation refusal — 2026-10-13
 
 Wider real42/42 refreshed aftera5a5c4c37. Owned fixture deliberately removes each identity index and inserts publicId duplicate/different nativeId. Repeated activation fails/error/inactive with original Mongo exception, preserves both records; finally removes only injected record and healthy activation recreates index. Expanded4/4 passes (`mongo-sqlite-v2-current.trx`). No production audit/deduplication/migration; history/API/full-provider/recovery still open. Existing runtime/environment reused.
