@@ -362,6 +362,25 @@ public sealed class MongoSqliteRealProviderRoutingTests
             try
             {
                 await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                    { "configureFailPoint", "failCommand" }, { "mode", "alwaysOn" },
+                    { "data", new BsonDocument { { "failCommands", new BsonArray { "update" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                });
+                var singleWriteAvatar = new Avatar { Id = Guid.NewGuid(), Username = "single-write-avatar", AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
+                (synchronous ? failureMongo.SaveAvatar(singleWriteAvatar) : await failureMongo.SaveAvatarAsync(singleWriteAvatar)).IsError.Should().BeFalse();
+                var singleWriteDetail = new AvatarDetail { Id = singleWriteAvatar.Id, Username = singleWriteAvatar.Username, Karma = 123 };
+                (synchronous ? failureMongo.SaveAvatarDetail(singleWriteDetail) : await failureMongo.SaveAvatarDetailAsync(singleWriteDetail)).IsError.Should().BeFalse();
+                var storedAvatar = await client.GetDatabase(databaseName).GetCollection<API.Providers.MongoDBOASIS.Entities.Avatar>("Avatar").Find(x => x.HolonId == singleWriteAvatar.Id).FirstOrDefaultAsync();
+                var storedDetail = await client.GetDatabase(databaseName).GetCollection<API.Providers.MongoDBOASIS.Entities.AvatarDetail>("AvatarDetail").Find(x => x.HolonId == singleWriteAvatar.Id).FirstOrDefaultAsync();
+                storedAvatar.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS].Should().Be(storedAvatar.Id);
+                storedDetail.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS].Should().Be(storedDetail.Id);
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+            }
+            try
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
                     { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("times",1) },
                     { "data", new BsonDocument { { "failCommands", new BsonArray { "createIndexes" } }, { "appName", failureApp }, { "errorCode", 2 } } }
                 });

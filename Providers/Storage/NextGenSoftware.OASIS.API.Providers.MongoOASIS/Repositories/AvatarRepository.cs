@@ -55,10 +55,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                 avatar.CreatedProviderType = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
 
-                await _dbContext.Avatar.InsertOneAsync(avatar);
+                if (string.IsNullOrEmpty(avatar.Id)) avatar.Id = ObjectId.GenerateNewId().ToString();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
-                
-                await UpdateAsync(avatar);
+                await _dbContext.Avatar.InsertOneAsync(avatar);
                 result.Result = avatar;
             }
             catch (Exception ex)
@@ -80,10 +79,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                 avatar.CreatedProviderType = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
 
-                await _dbContext.AvatarDetail.InsertOneAsync(avatar);
+                if (string.IsNullOrEmpty(avatar.Id)) avatar.Id = ObjectId.GenerateNewId().ToString();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
-
-                await UpdateAsync(avatar);
+                await _dbContext.AvatarDetail.InsertOneAsync(avatar);
                 result.Result = avatar;
             }
             catch (Exception ex)
@@ -105,10 +103,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                 avatar.CreatedProviderType = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
 
-                _dbContext.Avatar.InsertOne(avatar);
+                if (string.IsNullOrEmpty(avatar.Id)) avatar.Id = ObjectId.GenerateNewId().ToString();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
-
-                Update(avatar);
+                _dbContext.Avatar.InsertOne(avatar);
                 result.Result = avatar;
             }
             catch (Exception ex)
@@ -130,10 +127,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                 avatar.CreatedProviderType = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
 
-                _dbContext.AvatarDetail.InsertOne(avatar);
+                if (string.IsNullOrEmpty(avatar.Id)) avatar.Id = ObjectId.GenerateNewId().ToString();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
-
-                Update(avatar);
+                _dbContext.AvatarDetail.InsertOne(avatar);
                 result.Result = avatar;
             }
             catch (Exception ex)
