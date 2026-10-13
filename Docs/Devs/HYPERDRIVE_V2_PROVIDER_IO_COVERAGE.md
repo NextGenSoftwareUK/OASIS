@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Existing NFTManager off-chain metadata integration points — 2026-10-12
+
+- Source trace locates existing off-chain mode handling in ONODE Core `NFTManager.Wallets2.cs`: Pinata/IPFS/Arweave/OASIS upload modes and ExternalJSONURL validation. `NFTManager.Wallets.cs` merges nullable Web3 overrides, branches on StoreNFTMetaDataOnChain and forwards NFTOffChainMetaType/Store flag; `NFTManager.MintLoad.cs` also forwards these parent WEB4 fields into provider requests.
+- Cosmos/Sui current provider code does not independently handle off-chain mode fields and rejects StoreNFTMetaDataOnChain=false. Proper support must reuse the manager's existing URI/storage workflow, with explicit URI availability/order, asset metadata representation and authorized readback contract. Do not add provider-specific parallel upload systems or claim mode forwarding is implementation proof.
+- Required next trace/test: follow the exact mint execution ordering and provider result ID/locator through JSON upload and persistence, then implement off-chain asset linkage/readback consistently. External metadata URLs also need existing access/security constraints retained. Full operation/option and production recovery gates remain open; no production change/SDK/network/funds/install/deployment/merge in this source audit.
+
+
 ### NFT option persistence versus enforcement audit — 2026-10-12
 
 - Cosmos `MintNFTAsync` validates provider/NFT-standard selection and numeric/date constraints, then copies price/discount/royalty/seller basis points/sale flags/dates into Web3NFT metadata serialized for `nft_mint`. These fields are persisted, not simply dropped. That C# path alone does not prove marketplace sale constraints or royalty enforcement by the contract/coordinator; those are separate semantics requiring contract and manager tests.
