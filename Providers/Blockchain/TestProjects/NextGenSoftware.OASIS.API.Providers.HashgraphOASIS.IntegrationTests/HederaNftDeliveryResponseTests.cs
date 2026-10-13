@@ -8,6 +8,21 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 [TestClass]
 public class HederaNftDeliveryResponseTests
 {
+    [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(true,true)]
+    public void PostMintFailureRetainsBothOriginalIdentitiesWithoutInventingDelivery(bool minted,bool deliveryRequested)
+    {
+        const string mint="0.0.1001@1700000000.000000001";const string delivery="0.0.1001@1700000001.000000001";
+        var cause=new IOException("controlled post-mint failure");
+        var method=typeof(HashgraphOASIS).GetMethod("RetainHederaPostMintEvidence",BindingFlags.Static|BindingFlags.NonPublic)!;
+        var error=(Exception)method.Invoke(null,new object?[]{cause,minted?mint:null,deliveryRequested?delivery:null})!;
+        if(!minted){Assert.AreSame(cause,error);Assert.IsFalse(Core.Helpers.NativeMutationReconciliation.IsRequired(error));return;}
+        Assert.IsInstanceOfType<HederaNftPostMintReconciliationException>(error);
+        var evidence=(HederaNftPostMintReconciliationException)error;
+        Assert.AreEqual(mint,evidence.ConfirmedMintTransactionId);Assert.AreEqual(deliveryRequested?delivery:null,evidence.RequestedDeliveryTransactionId);
+        Assert.AreEqual(deliveryRequested?delivery:mint,evidence.OriginalTransactionId);Assert.AreSame(cause,evidence.InnerException);
+        Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(evidence));
+    }
     [TestMethod]
     public void ConfirmedSendSurvivesOnodeResponseProjection()
     {
