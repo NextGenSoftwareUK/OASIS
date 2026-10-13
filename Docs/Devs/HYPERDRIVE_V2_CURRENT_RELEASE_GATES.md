@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+Real V2 avatar/detail bidirectional checkpoint: both SQLite-primary→LocalFile and LocalFile-primary→SQLite initial/update replication pass via public sync/async routing. Identity/username/email selectors and detail karma/XP/stats/inventory publicId/quantity/metadata readbacks remain asserted, including fresh SQLite. Full class24/24 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-bidirectional-current.trx`). Other operations, failure combinations, encryption/HTTP and provider pairs remain gates; no all-provider claim.
+
 SQLite detail result contract: sync/async inserts and updates now return mapped saved IAvatarDetail, not success with null Result. Existing integration checks verify returned identity/update stats; full42/42 passed (`TestResults/SQLiteCurrent/sqlite-detail-result-current.trx`). Broader result-field completeness and SQLite-primary V2 response/replica matrix remain open; returned data uses current mapper, not a certification of omitted nested fields.
 
 Inventory rejection recovery root cause: populated rollback test initially lost original item after later unrelated save. EF relationship clearing changed deleted child's current AvatarId; owned cleanup now considers original AvatarId too, so pending deletion is detached. Sync/async trigger failures preserve original item identity/Quantity2/quest-source metadata alongside karma/stats; full42/42 passed (`TestResults/SQLiteCurrent/sqlite-inventory-rollback-fixed.trx`). Failed report retained. No broad tracker clear or unrelated owner deletion; deeper graph/concurrency and provider matrix gates remain open.
