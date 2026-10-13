@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Generic synchronous V2 save routing correction — 2026-10-12
+
+- Expanded missing-key tests across sync/async and generic/non-generic single saves (eight cases). They exposed synchronous `SaveHolon<T>` executing the legacy path despite configured V2. Core `6f6f62a9e685a1f2bf499941d799f75501649d68` now delegates that V2 entry to the existing single-save owner and maps the result, matching async generic routing. No legacy implementation changes.
+- Full Core suite **448/448 passed**, zero skips, `TestResults/CoreCurrent/core-v2-save-entry-current.trx`; all eight negative cases assert structured errors/original exceptions, null result, preserved private/exempt metadata, and no provider writes. Actual successful generic route/failover/replication and bulk preparation matrices still require focused coverage.
+- Core build passed; pushed revision pinned in parent gitlink/manifest together. No merge/deployment. Wider provider/recovery/encryption-policy gates remain open.
+
+
 ### V2 single-holon preparation error boundary — 2026-10-12
 
 - Core `5e7239147c7dd6e352e723b8a0d9ac2def2c7c8f` adds one shared V2 single-holon preparation boundary used by sync/async non-generic saves. Failures return `HOLON_SAVE_PREPARATION_FAILED`, original exception, null result, and no provider write. Legacy code is unchanged. Generic/bulk entry paths still need explicit audit/coverage; this is not a complete save-surface claim.
