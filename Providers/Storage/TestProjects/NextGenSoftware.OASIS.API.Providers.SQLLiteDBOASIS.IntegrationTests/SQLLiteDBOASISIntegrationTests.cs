@@ -41,6 +41,37 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(true, true)]
+    [InlineData(false, true)]
+    [InlineData(true, false)]
+    [InlineData(false, false)]
+    public async Task FailedAvatarSoftDeletionDoesNotReplayDuringLaterSave(bool synchronous, bool missingDetail)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = "soft-rejection",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+        if (!missingDetail)
+            (await provider.SaveAvatarDetailAsync(new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Karma = 123 })).IsError.Should().BeFalse();
+        using var control = new DataContext(TestConnectionString);
+        if (!missingDetail)
+            control.Database.ExecuteSqlRaw("CREATE TRIGGER reject_soft_detail BEFORE UPDATE ON AvatarDetail BEGIN SELECT RAISE(ABORT, 'owned soft deletion rejection'); END;");
+        var failed = synchronous ? provider.DeleteAvatar(avatar.Id, true) : await provider.DeleteAvatarAsync(avatar.Id, true);
+        failed.IsError.Should().BeTrue();
+        failed.Result.Should().BeFalse();
+        if (!missingDetail)
+        {
+            failed.Exception.Should().NotBeNull();
+            control.Database.ExecuteSqlRaw("DROP TRIGGER reject_soft_detail;");
+        }
+        (await provider.SaveHolonAsync(new Holon { Id = Guid.NewGuid(), Name = "after-soft-rejection" })).IsError.Should().BeFalse();
+        control.Avatars.AsNoTracking().Single(a => a.Id == avatar.Id.ToString()).DeletedDate.Should().Be(DateTime.MinValue);
+        if (!missingDetail)
+            control.AvatarDetails.AsNoTracking().Single(a => a.Id == avatar.Id.ToString()).DeletedDate.Should().Be(DateTime.MinValue);
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task AvatarSoftDeletionMatchesDetailByIdentityAndPersists(bool synchronous)
