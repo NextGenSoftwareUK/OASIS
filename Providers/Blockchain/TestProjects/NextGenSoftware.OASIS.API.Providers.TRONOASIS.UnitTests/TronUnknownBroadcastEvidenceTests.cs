@@ -141,7 +141,7 @@ public class TronUnknownBroadcastEvidenceTests
         public string? ReplacementSigningKey;
         public bool BroadcastAccepted;
         public bool NullAcknowledgement;
-        public int NegativeResponseCode;
+        public int? NegativeResponseCode;
         public Action? BeforeBroadcast;
         public Exception Interruption = new TimeoutException("controlled transport interruption");
         protected override object? Invoke(MethodInfo? method, object?[]? args)
@@ -156,10 +156,10 @@ public class TronUnknownBroadcastEvidenceTests
                 Signed = ((Transaction)args![0]!).Clone();
                 BeforeBroadcast?.Invoke();
                 BroadcastCount++;
-                if(NegativeResponseCode!=0){
+                if(NegativeResponseCode.HasValue){
                     var response=new Return{Result=false};
                     var property=typeof(Return).GetProperty(nameof(Return.Code))!;
-                    property.SetValue(response,Enum.ToObject(property.PropertyType,NegativeResponseCode));
+                    property.SetValue(response,Enum.ToObject(property.PropertyType,NegativeResponseCode.Value));
                     return Task.FromResult(response);
                 }
                 return NullAcknowledgement?Task.FromResult<Return>(null!):BroadcastAccepted ? Task.FromResult(new Return{Result=true}) : Task.FromException<Return>(Interruption);
@@ -180,11 +180,12 @@ public class TronUnknownBroadcastEvidenceTests
         }
     }
     [Theory]
-    [InlineData(false,false,false,false,false,0)] [InlineData(true,false,false,false,false,0)] [InlineData(false,true,false,false,false,0)] [InlineData(false,false,true,false,false,0)]
-    [InlineData(false,false,true,true,false,0)] [InlineData(false,false,true,false,true,0)]
+    [InlineData(false,false,false,false,false,null)] [InlineData(true,false,false,false,false,null)] [InlineData(false,true,false,false,false,null)] [InlineData(false,false,true,false,false,null)]
+    [InlineData(false,false,true,true,false,null)] [InlineData(false,false,true,false,true,null)]
     [InlineData(false,false,true,false,false,5)] [InlineData(false,false,true,false,false,11)]
     [InlineData(false,false,true,false,false,3)] [InlineData(false,false,true,false,false,20)] [InlineData(false,false,true,false,false,99)]
-    public async Task ActualClientSignsOnceAndPreservesOriginalEvidenceWhenBroadcastOrConfirmationIsInterrupted(bool broadcastAccepted,bool persistenceRejected,bool prepared,bool wrongSignature,bool nullAcknowledgement,int negativeResponseCode)
+    [InlineData(false,false,true,false,false,0)]
+    public async Task ActualClientSignsOnceAndPreservesOriginalEvidenceWhenBroadcastOrConfirmationIsInterrupted(bool broadcastAccepted,bool persistenceRejected,bool prepared,bool wrongSignature,bool nullAcknowledgement,int? negativeResponseCode)
     {
         const string genesis = "0000000000000000c93baa76a4a508f798a96f59156d9eb17ecede8ec845df2f";
         var service=ServerServiceDefinition.CreateBuilder()
@@ -260,7 +261,7 @@ public class TronUnknownBroadcastEvidenceTests
         Assert.Equal(now, evidence.TransactionTimestampMilliseconds);
         Assert.Equal(now + 60000, evidence.TransactionExpirationMilliseconds);
         Assert.Equal(genesis, evidence.ChainGenesisId);
-        if(negativeResponseCode!=0)Assert.Contains("original reconciliation",evidence.InnerException!.Message);
+        if(negativeResponseCode.HasValue)Assert.Contains("original reconciliation",evidence.InnerException!.Message);
         else if(nullAcknowledgement)Assert.Contains("no broadcast acknowledgement",evidence.InnerException!.Message);
         else Assert.Same(controlled.Interruption, evidence.InnerException);
         } finally { await server.ShutdownAsync(); }

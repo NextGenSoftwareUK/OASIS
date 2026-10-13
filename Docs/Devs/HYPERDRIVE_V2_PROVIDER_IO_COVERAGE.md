@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON contradictory broadcast acknowledgement branch test — 2026-10-12
+
+- Added actual-client controlled reply `result=false` with protocol SUCCESS=0, verifying typed original uncertainty, exact signed transaction ID/genesis/validity window, one persistence/sign/broadcast and no replacement. Fixture now uses nullable response-code selection so zero is a real injected code, not confused with absence of injection.
+- Full current TRON suite **294/294 passed**, zero skips, `TestResults/TronRuntime/tron-contradictory-ack-current.trx`. This closes the focused contradictory-response branch gap, not live original reconciliation or all negative response/source classifications.
+- No live node/fence/funds/download/install/deployment/merge; broader completion gates remain open.
+
+
 ### TRON ambiguous negative broadcast replies — 2026-10-12
 
 - Extended original-outcome preservation to execution error (3), generic error (20), unknown enum values and contradictory false+SUCCESS (0). None is treated as authoritative proof that a replacement transaction is safe. This conservative uncertainty classification does not assert those transactions committed; it requires original reconciliation. Remaining specific validation/resource response classifications still need independent audit.
