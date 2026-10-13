@@ -48,6 +48,34 @@ public sealed class NFTStandaloneReconciliationTests
     }
 
     [Theory]
+    [InlineData(false,"missing-response")] [InlineData(true,"missing-response")]
+    [InlineData(false,"missing-result")] [InlineData(true,"missing-result")]
+    [InlineData(false,"missing-id")] [InlineData(true,"missing-id")]
+    public void MissingDeliveryIdentityCannotEnableWaitLoopReplay(bool asynchronous,string mode)
+    {
+        var provider=new Mock<IOASISStorageProvider>();
+        provider.SetupGet(x=>x.ProviderType).Returns(new EnumValue<ProviderType>(ProviderType.SuiOASIS));
+        provider.SetupGet(x=>x.IsProviderActivated).Returns(true);
+        var nft=provider.As<IOASISNFTProvider>();
+        OASISResult<IWeb3NFTTransactionResponse>? response=mode=="missing-response"?null:new() {
+            Result=mode=="missing-result"?null:new NextGenSoftware.OASIS.API.Core.Objects.Wallets.Response.Web3NFTTransactionResponse() };
+        nft.Setup(x=>x.SendNFT(It.IsAny<ISendWeb3NFTRequest>())).Returns(response!);
+        nft.Setup(x=>x.SendNFTAsync(It.IsAny<ISendWeb3NFTRequest>())).ReturnsAsync(response!);
+        var request=new SendWeb4NFTRequest{FromProvider=new EnumValue<ProviderType>(ProviderType.SuiOASIS),WaitTillNFTSent=true,
+            AttemptToSendNFTEveryXSeconds=0,WaitForNFTToSendInSeconds=1};
+        Action<NFTManager> check=manager=>{
+            var result=asynchronous?manager.SendNFTAsync(Guid.NewGuid(),request).GetAwaiter().GetResult():manager.SendNFT(Guid.NewGuid(),request);
+            Assert.True(result.IsError);Assert.Null(result.Result);
+            var error=Assert.IsType<NFTDeliveryReconciliationException>(result.Exception);
+            Assert.Null(error.OriginalTransactionId);
+        };
+        typeof(NFTProviderActivationTests).GetMethod("WithRegistry",BindingFlags.NonPublic|BindingFlags.Static)!
+            .Invoke(null,new object[]{provider.Object,check});
+        nft.Verify(x=>x.SendNFT(It.IsAny<ISendWeb3NFTRequest>()),asynchronous?Times.Never():Times.Once());
+        nft.Verify(x=>x.SendNFTAsync(It.IsAny<ISendWeb3NFTRequest>()),asynchronous?Times.Once():Times.Never());
+    }
+
+    [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public void WaitOptionCannotReplayAReconciliationRequiredSend(bool asynchronous)

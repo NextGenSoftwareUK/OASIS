@@ -28,6 +28,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Standalone NFT missing-response replay fence — 2026-10-12
+
+Shared standalone-send result validator rejects absent response or success-shaped absent result/transaction identity as NFTDeliveryReconciliationException implementing existing Core marker, unknown original ID (not fabricated). Sync/async wait loops stop before another provider invocation. Ordinary error/preflight retry behavior not changed. Matrix **12/12 passed**, zero skips (`nft-standalone-reconciliation-current.trx`): six malformed cases each provider once, previous confirmed/metadata and native-evidence tests retained. Dependency build zero errors/152 existing warnings. ONODE Core 8df2bf738de05f0159e4e418fae9944c12957562 pushed; parent pin/gitlink advanced together. No install, ledger mutation or merge; original parent recovery/hosted routes and one-shot mint delivery evidence remain separate gates.
+
 ### Standalone manager confirmed-send response — 2026-10-12
 
 Standalone manager sync/async success branches dereferenced optional Web3NFT (TRON returns only confirmed hash) and never populated ISendWeb4NFTResponse. Now populate SendTransactionResult from original confirmed provider response, update NFT send hash only when metadata supplied, and format both success messages. No synthetic NFT record or second send. New matrix covers sync/async with/without metadata, preserving one provider invocation. Focused manager class **6/6 passed**, zero skips (`nft-standalone-reconciliation-current.trx`), retaining earlier unresolved replay fences. Initial relative Core namespace resolved to ONODE.Core; corrected full namespace and rebuilt dependency first, zero errors/152 existing warnings.
