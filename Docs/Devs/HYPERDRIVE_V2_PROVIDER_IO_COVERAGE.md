@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Mongo list real errors and signature regression — 2026-10-13
+
+Owned-server app-scoped find failures for avatar/detail lists sync/async preserve error/null/original MongoCommandException; expanded pair4/4 passes. Wider Mongo regression project rebuilt after repository signatures changed and42/42 passed. Reports `TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`, `mongo-single-node-transactions-current.trx`. Other consumers/deployed host, pagination/scale/history/full interfaces and production recovery remain gates. Existing environment reused.
+
 ### Mongo avatar/detail list version filters — 2026-10-13
 
 Real pairing failed4/4 because list wrappers discarded version. All four wrappers/repository methods now carry current0/exact version, filter in Mongo and materialize within original-error handling; async driver calls awaited. Expanded4/4 passes current/exact3 inclusion and mismatch2 exclusion for avatar/detail lists. Report `mongo-sqlite-v2-current.trx`. Actual list rejection, pagination/scale/history, changed-signature consumer builds/wider regression and hosted API remain open. Existing environment reused.

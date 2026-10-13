@@ -314,6 +314,34 @@ public sealed class MongoSqliteRealProviderRoutingTests
             failManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
             failManager.SetAndActivateCurrentStorageProvider(failureMongo).IsError.Should().BeFalse();
             var admin = client.GetDatabase("admin");
+            foreach (var detailsList in new[] { false, true })
+            {
+                try
+                {
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                        { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("times",1) },
+                        { "data", new BsonDocument { { "failCommands", new BsonArray { "find" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                    });
+                    if (detailsList)
+                    {
+                        var listFailure = synchronous ? failureMongo.LoadAllAvatarDetails() : await failureMongo.LoadAllAvatarDetailsAsync();
+                        listFailure.IsError.Should().BeTrue();
+                        listFailure.Exception.Should().BeOfType<MongoCommandException>();
+                        listFailure.Result.Should().BeNull();
+                    }
+                    else
+                    {
+                        var listFailure = synchronous ? failureMongo.LoadAllAvatars() : await failureMongo.LoadAllAvatarsAsync();
+                        listFailure.IsError.Should().BeTrue();
+                        listFailure.Exception.Should().BeOfType<MongoCommandException>();
+                        listFailure.Result.Should().BeNull();
+                    }
+                }
+                finally
+                {
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+                }
+            }
             foreach (var detailSelector in new[] { "id", "username", "email" })
             {
                 try
