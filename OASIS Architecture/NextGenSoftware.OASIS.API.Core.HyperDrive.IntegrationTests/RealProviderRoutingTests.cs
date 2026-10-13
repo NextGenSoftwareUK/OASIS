@@ -66,8 +66,10 @@ public sealed class RealProviderRoutingTests : IDisposable
         (await local.LoadHolonAsync(valid.Id)).Result.Should().BeNull();
     }
 
-    [Fact]
-    public async Task AutoReplication_WritesMutationToBothRealStores()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task AutoReplication_WritesMutationToBothRealStores(bool synchronous)
     {
         Directory.CreateDirectory(_root);
         var local = new LocalFileOASIS(storageDirectory: FilesPath);
@@ -86,8 +88,9 @@ public sealed class RealProviderRoutingTests : IDisposable
         var holon = new Holon { Id = Guid.NewGuid(), Name = $"replicated-{Guid.NewGuid():N}", CreatedByAvatarId = creator,
             CreatedDate = new DateTime(2025,1,2,3,4,5,DateTimeKind.Utc), MetaData = new Dictionary<string,object> { ["Email"] = "private-query@test.local" } };
 
-        var result = await new OASISHyperDrive(manager).RouteRequestAsync<IHolon>(
-            new StorageOperationRequest { Operation = "SaveHolon", Payload = holon, PreferredProvider = ProviderType.LocalFileOASIS });
+        var router = new OASISHyperDrive(manager);
+        var save = new StorageOperationRequest { Operation = "SaveHolon", Payload = holon, SaveChildren = false, PreferredProvider = ProviderType.LocalFileOASIS };
+        var result = synchronous ? router.RouteRequest<IHolon>(save) : await router.RouteRequestAsync<IHolon>(save);
 
         result.IsError.Should().BeFalse(result.Message);
         (await local.LoadHolonAsync(holon.Id)).Result.Name.Should().Be(holon.Name);
@@ -97,8 +100,7 @@ public sealed class RealProviderRoutingTests : IDisposable
         holon.Name = "replicated-update";
         holon.ModifiedByAvatarId = Guid.NewGuid();
         holon.Version = 3;
-        var updated = await new OASISHyperDrive(manager).RouteRequestAsync<IHolon>(
-            new StorageOperationRequest { Operation = "SaveHolon", Payload = holon, SaveChildren = false, PreferredProvider = ProviderType.LocalFileOASIS });
+        var updated = synchronous ? router.RouteRequest<IHolon>(save) : await router.RouteRequestAsync<IHolon>(save);
         updated.IsError.Should().BeFalse(updated.Message);
         foreach (var stored in new[] { (await local.LoadHolonAsync(holon.Id)).Result, (await sqlite.LoadHolonAsync(holon.Id)).Result })
         {
@@ -109,8 +111,8 @@ public sealed class RealProviderRoutingTests : IDisposable
             stored.MetaData["Email"].ToString().Should().Be("private-query@test.local");
         }
         manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
-        var deleted = await new OASISHyperDrive(manager).RouteRequestAsync<IHolon>(
-            new StorageOperationRequest { Operation = "DeleteHolon", HolonId = holon.Id, SoftDelete = false, PreferredProvider = ProviderType.LocalFileOASIS });
+        var delete = new StorageOperationRequest { Operation = "DeleteHolon", HolonId = holon.Id, SoftDelete = false, PreferredProvider = ProviderType.LocalFileOASIS };
+        var deleted = synchronous ? router.RouteRequest<IHolon>(delete) : await router.RouteRequestAsync<IHolon>(delete);
         deleted.IsError.Should().BeFalse(deleted.Message);
         deleted.IsDeleted.Should().BeTrue();
         (await local.LoadHolonAsync(holon.Id)).Result.Should().BeNull();
@@ -119,8 +121,10 @@ public sealed class RealProviderRoutingTests : IDisposable
         manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
     }
 
-    [Fact]
-    public async Task AutoFailover_WritesToRealSecondaryAfterPrimaryStorageFails()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task AutoFailover_WritesToRealSecondaryAfterPrimaryStorageFails(bool synchronous)
     {
         Directory.CreateDirectory(_root);
         var local = new LocalFileOASIS(storageDirectory: FilesPath);
@@ -140,16 +144,19 @@ public sealed class RealProviderRoutingTests : IDisposable
         File.WriteAllText(FilesPath, "force LocalFile I/O failure");
         var holon = new Holon { Id = Guid.NewGuid(), Name = $"failover-{Guid.NewGuid():N}" };
 
-        var result = await new OASISHyperDrive(manager).RouteRequestAsync<IHolon>(
-            new StorageOperationRequest { Operation = "SaveHolon", Payload = holon });
+        var router = new OASISHyperDrive(manager);
+        var request = new StorageOperationRequest { Operation = "SaveHolon", Payload = holon, SaveChildren = false };
+        var result = synchronous ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
 
         result.IsError.Should().BeFalse(result.Message);
         (await sqlite.LoadHolonAsync(holon.Id)).Result.Name.Should().Be(holon.Name);
         manager.LastFailoverDiagnostic.SelectedProvider.Should().Be(ProviderType.SQLLiteDBOASIS);
     }
 
-    [Fact]
-    public async Task AutoLoadBalancing_UsesLatencyMeasuredFromRealProviderCalls()
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task AutoLoadBalancing_UsesLatencyMeasuredFromRealProviderCalls(bool synchronous)
     {
         Directory.CreateDirectory(_root);
         var local = new LocalFileOASIS(storageDirectory: FilesPath);
@@ -174,8 +181,9 @@ public sealed class RealProviderRoutingTests : IDisposable
         manager.PerformanceMonitor.RecordRequest(ProviderType.SQLLiteDBOASIS, true, sqliteMs);
         ProviderType expected = localMs <= sqliteMs ? ProviderType.LocalFileOASIS : ProviderType.SQLLiteDBOASIS;
 
-        var result = await new OASISHyperDrive(manager).RouteRequestAsync<IHolon>(
-            new StorageOperationRequest { Operation = "LoadHolon", HolonId = holon.Id }, LoadBalancingStrategy.Performance);
+        var router = new OASISHyperDrive(manager);
+        var request = new StorageOperationRequest { Operation = "LoadHolon", HolonId = holon.Id, LoadChildren = false };
+        var result = synchronous ? router.RouteRequest<IHolon>(request, LoadBalancingStrategy.Performance) : await router.RouteRequestAsync<IHolon>(request, LoadBalancingStrategy.Performance);
 
         result.IsError.Should().BeFalse(result.Message);
         result.Result.Id.Should().Be(holon.Id);
