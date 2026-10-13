@@ -26,6 +26,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Legacy supplemental client gaps separated from V2 — 2026-10-12
+
+Current source audit found public supplemental TRONClient/HashgraphClient helpers distinct from the KeyValueStorageProviderBase provider classes. TRONClient.GetAccountInfoAsync swallows transport/parsing failures and defaults missing fields to zero; email lookup unconditionally returns null. HashgraphClient account/email/NFT helpers swallow failures; email helper sends an unverified email query selector; its CreateAccountAsync derives local keys and resolves an existing identity rather than proving funded account creation. Do not certify these helpers from V2 provider tests. Per user instruction legacy gaps are documented only, not implemented here.
+
+Search across both provider directories, Core architecture, ONODE and STAR ODK source found account helper names only at declarations and no GetNFTData invocation. This is scoped source evidence, not proof external consumers cannot call public helpers. HashgraphClient.SendTransactionAsync separately delegates the real provider and already received network forwarding fixes; its existence does not validate remaining helpers. Active V2 storage/native/interface checks remain required independently. No source implementation changes, installs, ledger mutations or merge for this audit.
+
 ### Provider runner absent environment restoration verified — 2026-10-12
 
 Fixed Windows null restoration explicitly: originally absent process variable is removed through Env provider, nonempty prior value is restored. Added reusable `Scripts/TestHosts/verify-provider-matrix-environment-cleanup.ps1`; extracts exactly one actual runner finally block (no copied implementation), executes absent/nonempty cases with no provider processes, checks Environment.GetEnvironmentVariables presence rather than ambiguous null/empty equality, restores its probe afterward. Executed PASS and diff check clean. Supersedes earlier unverified absent-value limitation. No installs/downloads/provider runs or merges; full matrix process-tree/race integration remains separate.
