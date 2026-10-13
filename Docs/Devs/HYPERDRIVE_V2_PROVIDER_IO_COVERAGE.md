@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera broader non-funded regression after bridge fixes — 2026-10-12
+
+- Current integration-project non-funded selection **274/274 passed**, zero skips, 2m7s, `TestResults/HederaCurrent/hedera-nonfunded-bridge-current.trx`. Filter was `FullyQualifiedName!~Testnet&FullyQualifiedName!~OriginalChargedFailure`; it intentionally excludes deferred testnet/funded original-failure cases. Existing retained source SDK bridge/dependencies reused; waited on the same running process through timeout tests.
+- Includes the four new bridge-wrapper original-marker cases along with existing non-funded process/validation/receipt tests. This is not the complete funded integration suite or proof of live consensus contract/storage/NFT/V2 operations. Do not sum overlapping focused reports into a broader test count.
+- No new runtime/download/environment, live node, paid consensus query, deployment or merge. Funded Hedera, production recovery, unified encryption configuration and original provider/API release gates remain open.
+
+
 ### TRON duplicate/P2P original-evidence branch verification — 2026-10-12
 
 - Two new actual native-client controlled transport cases inject explicit negative protocol codes 5/11. Both assert one signing operation, one persisted preparation and one broadcast; typed unknown outcome retains the SHA-256 of exact signed raw bytes, original genesis, timestamp/expiry and persisted transaction ID. No replacement transaction or ledger submission occurs in the fixture.
