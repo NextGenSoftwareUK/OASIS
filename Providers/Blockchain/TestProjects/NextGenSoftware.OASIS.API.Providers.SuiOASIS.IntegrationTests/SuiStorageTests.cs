@@ -103,8 +103,26 @@ public class SuiStorageTests
     {
         var parentId = Guid.NewGuid();
         var id = Guid.NewGuid();
+        var directory = new System.IO.DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null && !System.IO.File.Exists(System.IO.Path.Combine(directory.FullName,"Scripts/TestHosts/start-sui-test-network.sh"))) directory = directory.Parent;
+        Assert.IsNotNull(directory);
+        var journal = System.IO.Path.Combine(directory!.FullName,"TestResults/SuiRuntime/holon-query-pending.json");
+        using var ownership = new System.IO.FileStream(journal,System.IO.FileMode.CreateNew,System.IO.FileAccess.Write,System.IO.FileShare.Read);
+        using (var definition = System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(Required("OASIS_SUI_TEST_DEPLOYMENT"))))
+            await System.Text.Json.JsonSerializer.SerializeAsync(ownership,new { id,parentId,
+                chainId=definition.RootElement.GetProperty("chainId").GetString(),
+                packageAddress=definition.RootElement.GetProperty("packageAddress").GetString(),
+                recovery="Owned local holon query fixture. Reconcile these IDs before rerun; do not reset the ledger." });
+        ownership.Flush(true);
+        var verified = false;
+        var queryKeys = new[] { "CreatedByAvatarId", "Active", "HolonType", "STARNETHolonId", "_versionStamp", "data",
+            "Username", "Email", "Name", "Description", "ParentId", "ParentProviderKey", "SearchQuery", "parkType", "env",
+            "web3TokenId", "NFT.MintedByAvatarId", "NFT.MintWalletAddress", "NFT.ParentWeb4NFTId",
+            "GEONFT.PlacedByAvatarId", "GEONFT.MintedByAvatarId", "GEONFT.OriginalOASISNFT.MintWalletAddress", "GEONFT.LatLong",
+            "Status", "ActiveQuestId", "ActiveObjectiveId", "ParentMissionId", "Avatar", "AppRegion" };
         var holon = new Holon { Id = id, ParentHolonId = parentId, Name = "Sui roundtrip", Description = "real contract storage" };
         holon.MetaData["evidence"] = id.ToString("N");
+        foreach (var name in queryKeys) holon.MetaData[name] = id.ToString("N") + ":" + name;
         holon.MetaData["history"] = new List<Dictionary<string, object>> { new() { ["amount"] = 42L, ["avatarId"] = id } };
         try
         {
@@ -148,14 +166,26 @@ public class SuiStorageTests
             var filtered = await _provider.LoadHolonsByMetaDataAsync("evidence", id.ToString("N"), loadChildren: false);
             Assert.IsFalse(filtered.IsError, filtered.Message);
             Assert.IsTrue(filtered.Result.Any(x => x.Id == id));
+            foreach (var name in queryKeys)
+            {
+                var match = await _provider.LoadHolonsByMetaDataAsync(name,id.ToString("N") + ":" + name,loadChildren:false);
+                Assert.IsFalse(match.IsError,match.Message);
+                Assert.AreEqual(id,match.Result.Single().Id,name);
+            }
+            verified = true;
         }
         finally
         {
-            var deleted = await _provider.DeleteHolonAsync(id);
-            Assert.IsFalse(deleted.IsError, deleted.Message);
+            if (verified)
+            {
+                var deleted = await _provider.DeleteHolonAsync(id);
+                Assert.IsFalse(deleted.IsError, deleted.Message);
+                Assert.IsTrue((await _provider.LoadHolonAsync(id)).IsError);
+                Assert.IsFalse((await _provider.LoadHolonsForParentAsync(parentId)).Result.Any(x => x.Id == id));
+                ownership.Dispose();
+                System.IO.File.Delete(journal);
+            }
         }
-        Assert.IsTrue((await _provider.LoadHolonAsync(id)).IsError);
-        Assert.IsFalse((await _provider.LoadHolonsForParentAsync(parentId)).Result.Any(x => x.Id == id));
     }
 
     [TestMethod]

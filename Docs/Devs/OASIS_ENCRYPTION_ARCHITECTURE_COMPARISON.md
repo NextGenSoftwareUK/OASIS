@@ -84,6 +84,8 @@ An authorized application knows the logical ID and key, so it can compute the ph
 
 For arbitrary metadata search, the application decrypts and filters. That solves correctness for current key/value tests, not scalability. Enumeration is at least linear in the private physical record count and requires record reads/decryption; histories/index entries can increase that count. Activation currently validates existing private records and can therefore also become expensive. Concurrent writes can invalidate enumeration. Pagination/resource caps and measured large-store performance remain gates.
 
+Current retained-chain tests now verify string-equality filters for every built-in exemption key plus a configured application key against both actual Cosmos and Sui providers/official SDKs, with encrypted storage and reopening. This strengthens the shared-backend tests, but does not certify typed/compound/nested queries, Mongo feature parity, every provider, or combined manager+provider deployed encryption. See the dated coverage log for exact reports and cleanup evidence.
+
 ## Pros and cons
 
 | Aspect | DNA selective metadata protection | Private whole-record key/value protection |
