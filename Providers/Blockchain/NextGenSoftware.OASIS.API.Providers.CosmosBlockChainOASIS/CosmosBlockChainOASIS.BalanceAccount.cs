@@ -19,7 +19,7 @@ using KeyPairAndWallet = NextGenSoftware.Utilities.KeyHelper.KeyPairAndWallet;
 
 namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 {
-    public partial class CosmosBlockChainOASIS
+    public partial class CosmosBlockChainOASIS : Core.Interfaces.IOASISNativeFeeReceiptProvider
     {
         private decimal NativeDisplayAmount(string units)
         {
