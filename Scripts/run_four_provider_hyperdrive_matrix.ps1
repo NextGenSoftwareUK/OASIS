@@ -1,3 +1,4 @@
+#Requires -Version 7.0
 <#
 .SYNOPSIS
 Runs real isolated MongoDB, SQLite, IPFS and Ethereum provider evidence.
@@ -20,7 +21,11 @@ $kuboVersion = '0.43.1'
 $kuboSha256 = 'C25871516DEC4D97CE1D160A26C1E3FDAD294CB0EEA065C0C0343BCFCA86C524'
 $kuboApiPort = 5001
 $ganachePort = 8545
-$started = [Collections.Generic.List[int]]::new()
+$started = [Collections.Generic.List[Diagnostics.Process]]::new()
+$previousEnvironment = @{}
+foreach ($name in @('IPFS_PATH', 'IPFSOASIS_TEST_API', 'ETHEREUMOASIS_TEST_RPC', 'ETHEREUMOASIS_TEST_CHAIN_ID', 'ETHEREUMOASIS_TEST_PRIVATE_KEY')) {
+    $previousEnvironment[$name] = [Environment]::GetEnvironmentVariable($name, 'Process')
+}
 
 function Wait-LoopbackPort([int]$Port, [int]$Seconds = 60) {
     $deadline = [DateTime]::UtcNow.AddSeconds($Seconds)
@@ -69,11 +74,11 @@ try {
     & $ipfs config Addresses.API "/ip4/127.0.0.1/tcp/$kuboApiPort"
     & $ipfs config Addresses.Gateway '/ip4/127.0.0.1/tcp/8080'
     $kubo = Start-Process $ipfs -ArgumentList @('daemon', '--offline') -PassThru -WindowStyle Hidden -RedirectStandardOutput (Join-Path $artifacts 'kubo.out.log') -RedirectStandardError (Join-Path $artifacts 'kubo.err.log')
-    $started.Add($kubo.Id)
+    $started.Add($kubo)
     Wait-LoopbackPort $kuboApiPort
 
     $ganache = Start-Process npx.cmd -ArgumentList @('--yes', 'ganache', '--server.host', '127.0.0.1', '--server.port', "$ganachePort", '--chain.chainId', '31337', '--wallet.deterministic') -PassThru -WindowStyle Hidden -RedirectStandardOutput (Join-Path $artifacts 'ganache.out.log') -RedirectStandardError (Join-Path $artifacts 'ganache.err.log')
-    $started.Add($ganache.Id)
+    $started.Add($ganache)
     Wait-LoopbackPort $ganachePort
 
     $env:IPFSOASIS_TEST_API = "http://127.0.0.1:$kuboApiPort"
@@ -96,11 +101,16 @@ try {
     } | ConvertTo-Json -Depth 4 | Set-Content -Encoding utf8 (Join-Path $artifacts 'summary.json')
 }
 finally {
-    foreach ($processId in $started) { Stop-Process -Id $processId -Force -ErrorAction SilentlyContinue }
-    foreach ($port in @($kuboApiPort, $ganachePort)) {
-        Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue |
-            Select-Object -ExpandProperty OwningProcess -Unique |
-            ForEach-Object { Stop-Process -Id $_ -Force -ErrorAction SilentlyContinue }
+    foreach ($ownedProcess in $started) {
+        try {
+            if (!$ownedProcess.HasExited) {
+                $ownedProcess.Kill($true)
+                if (!$ownedProcess.WaitForExit(10000)) { Write-Warning "Owned provider process $($ownedProcess.Id) did not exit within the cleanup deadline." }
+            }
+        } catch { Write-Warning "Owned provider process cleanup failed: $($_.Exception.Message)" }
+        finally { $ownedProcess.Dispose() }
     }
-    Remove-Item Env:IPFSOASIS_TEST_API, Env:ETHEREUMOASIS_TEST_RPC, Env:ETHEREUMOASIS_TEST_CHAIN_ID, Env:ETHEREUMOASIS_TEST_PRIVATE_KEY -ErrorAction SilentlyContinue
+    foreach ($name in $previousEnvironment.Keys) {
+        [Environment]::SetEnvironmentVariable($name, $previousEnvironment[$name], 'Process')
+    }
 }
