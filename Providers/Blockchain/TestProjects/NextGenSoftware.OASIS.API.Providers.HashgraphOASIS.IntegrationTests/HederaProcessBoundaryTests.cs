@@ -70,6 +70,26 @@ public class HederaProcessBoundaryTests
     private const string Mutation = "0.0.1001@1700000000.000000001";
     private const string Approval = "0.0.1001@1700000000.000000002";
     private const string Secret = "never-log-this-test-key";
+    [DataTestMethod]
+    [DataRow("construction")] [DataRow("readback")]
+    public async Task DeliveryProcessFailureCannotEraseAlreadyConfirmedMint(string stage)
+    {
+        await WithFixture(async()=>{
+            Exception? cause=null;
+            try{await Invoke("nftTransfer",CancellationToken.None,stage);}catch(Exception error){cause=error;}
+            Assert.IsNotNull(cause);
+            var method=typeof(HashgraphOASIS).GetMethod("RetainHederaPostMintEvidence",BindingFlags.NonPublic|BindingFlags.Static)!;
+            var wrapped=(Exception)method.Invoke(null,new object[]{cause,Approval,Mutation})!;
+            Assert.IsInstanceOfType<HederaNftPostMintReconciliationException>(wrapped);
+            var evidence=(HederaNftPostMintReconciliationException)wrapped;
+            Assert.AreEqual(Approval,evidence.ConfirmedMintTransactionId);Assert.AreEqual(Mutation,evidence.RequestedDeliveryTransactionId);
+            Assert.AreEqual(Mutation,evidence.OriginalTransactionId);Assert.AreSame(cause,evidence.InnerException);
+            Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(evidence));
+            Assert.IsFalse(evidence.Message.Contains(Secret));
+            if(stage=="readback")Assert.IsInstanceOfType<HederaNativeMutationReconciliationException>(cause);
+            else Assert.IsFalse(Core.Helpers.NativeMutationReconciliation.IsRequired(cause));
+        });
+    }
     private static Task<JsonElement> Invoke(string action, CancellationToken cancellationToken, string stage = "readback") =>
         (Task<JsonElement>)typeof(HashgraphOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.HederaSdkClient")!
             .GetMethod("InvokeAsync", BindingFlags.NonPublic | BindingFlags.Static)!
