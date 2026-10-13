@@ -212,8 +212,21 @@ public sealed class MongoSqliteRealProviderRoutingTests
                     AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
                 var savedSelector = await mongo.SaveAvatarAsync(selectorAvatar);
                 savedSelector.IsError.Should().BeFalse(savedSelector.Message);
-                (await mongo.SaveAvatarDetailAsync(new AvatarDetail { Id = selectorAvatar.Id, Username = "independent-" + selector, Karma = 123 })).IsError.Should().BeFalse();
+                var selectorDetail = new AvatarDetail { Id = selectorAvatar.Id, Version = 3, Username = "independent-" + selector, Email = "detail-" + selector + "@mongo-selector.local", Karma = 123 };
+                (await mongo.SaveAvatarDetailAsync(selectorDetail)).IsError.Should().BeFalse();
                 var localKey = savedSelector.Result.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS];
+                foreach (var requestedVersion in new[] { 0, 3, 2 })
+                {
+                    foreach (var detailRead in new[] {
+                        synchronous ? mongo.LoadAvatarDetail(selectorDetail.Id, requestedVersion) : await mongo.LoadAvatarDetailAsync(selectorDetail.Id, requestedVersion),
+                        synchronous ? mongo.LoadAvatarDetailByUsername(selectorDetail.Username, requestedVersion) : await mongo.LoadAvatarDetailByUsernameAsync(selectorDetail.Username, requestedVersion),
+                        synchronous ? mongo.LoadAvatarDetailByEmail(selectorDetail.Email, requestedVersion) : await mongo.LoadAvatarDetailByEmailAsync(selectorDetail.Email, requestedVersion) })
+                    {
+                        detailRead.IsError.Should().BeFalse(detailRead.Message);
+                        if (requestedVersion == 2) detailRead.Result.Should().BeNull();
+                        else detailRead.Result.Karma.Should().Be(123);
+                    }
+                }
                 foreach (var requestedVersion in new[] { 0, 3, 2 })
                 {
                     foreach (var versionRead in new[] {

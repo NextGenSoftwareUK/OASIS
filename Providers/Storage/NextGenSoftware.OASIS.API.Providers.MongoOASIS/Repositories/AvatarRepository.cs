@@ -362,26 +362,33 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
         public OASISResult<AvatarDetail> GetAvatarDetail(Expression<Func<AvatarDetail, bool>> expression)
         {
-            OASISResult<AvatarDetail> result = new OASISResult<AvatarDetail>();
-            var filter = Builders<AvatarDetail>.Filter.Where(expression);
-            result.Result = _dbContext.AvatarDetail.Find(filter).FirstOrDefault();
-
-            if (result.Result == null)
-                OASISErrorHandling.HandleError(ref result, "Avatar Not Found");
-
+            var result = new OASISResult<AvatarDetail>();
+            try
+            {
+                result.Result = _dbContext.AvatarDetail.Find(expression).FirstOrDefault();
+                result.IsLoaded = result.Result != null;
+                if (result.Result == null) result.Message = "Avatar detail not found";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, "MongoDB avatar detail lookup failed.", ex);
+            }
             return result;
         }
 
         public async Task<OASISResult<AvatarDetail>> GetAvatarDetailAsync(Expression<Func<AvatarDetail, bool>> expression)
         {
-            OASISResult<AvatarDetail> result = new OASISResult<AvatarDetail>();
-            var filter = Builders<AvatarDetail>.Filter.Where(expression);
-            var findResult = await _dbContext.AvatarDetail.FindAsync(filter);
-            result.Result = await findResult.FirstOrDefaultAsync();
-
-            if (result.Result == null)
-                OASISErrorHandling.HandleError(ref result, "Avatar Not Found");
-
+            var result = new OASISResult<AvatarDetail>();
+            try
+            {
+                result.Result = await _dbContext.AvatarDetail.Find(expression).FirstOrDefaultAsync();
+                result.IsLoaded = result.Result != null;
+                if (result.Result == null) result.Message = "Avatar detail not found";
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, "MongoDB avatar detail lookup failed.", ex);
+            }
             return result;
         }
 

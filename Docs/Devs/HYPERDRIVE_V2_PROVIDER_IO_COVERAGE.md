@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Mongo avatar-detail identity/version parity — 2026-10-13
+
+Six detail GUID/username/email sync/async wrappers discarded version; new real pair failed4/4. Identity+version filters now use expression detail repository, whose absence is non-error/IsLoaded=false and whose real exceptions are retained. Real pair4/4 passes current/exact3/mismatch2 with karma123 (`mongo-sqlite-v2-current.trx`). Absence semantic compatibility/hosted API, actual rejected expression read, history/full interfaces/recovery still need verification. Existing runtime reused.
+
 ### Mongo avatar GUID/username/email version forwarding — 2026-10-13
 
 Real current3/exact3/mismatch2 tests failed4/4 because six sync/async GUID/username/email wrappers ignored version. Wrappers now filter public identity+version in Mongo via existing expression repository, retaining errors and async driver behavior. Real expanded4/4 passes (`mongo-sqlite-v2-current.trx`). Historical storage, token/detail/list versions and full interface/API/recovery remain open. No fresh environments/downloads.
