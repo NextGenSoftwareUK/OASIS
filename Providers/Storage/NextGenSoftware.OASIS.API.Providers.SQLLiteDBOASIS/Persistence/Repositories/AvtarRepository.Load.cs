@@ -35,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
             OASISResult<bool> result = new();
             string errorMessage = "Error occured in DeleteAsync method in AvatarRepository in Sqllite Provider.";
-            var dbContextTransaction = _dbContext.Database.BeginTransaction();
+            using var dbContextTransaction = await _dbContext.Database.BeginTransactionAsync();
             try
             {
                 if (softDelete)
@@ -94,11 +94,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     if (data != null)
                     {
                         _dbContext.Remove(data);
-                        var dataDetail = _dbContext.AvatarDetails.Where(x => x.Username == data.Username);
-                        if (dataDetail != null) _dbContext.Remove(dataDetail);
+                        var dataDetail = await _dbContext.AvatarDetails.Where(x => x.Id == data.Id).ToListAsync();
+                        _dbContext.RemoveRange(dataDetail);
                         result.Result = true;
                     }
                 }
+                if (!result.IsError) await _dbContext.SaveChangesAsync();
             }
             catch (Exception ex)
             {
