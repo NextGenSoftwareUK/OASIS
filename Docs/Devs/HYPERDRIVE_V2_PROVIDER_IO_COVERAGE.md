@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Mongo commit replay safety — 2026-10-13
+
+GUID deletion commit exceptions now carry MongoTransactionReconciliationException implementing the existing reconciliation marker, retaining original sessionId+transactionNumber and inner exception. HyperDrive's existing guard blocks replay on another provider. Controlled routing2/2 passed (`TestResults/HyperDriveMongoSqliteCurrent/mongo-commit-no-replay-current.trx`); these are not live commit/recovery proof. Real marker emission, durable ownership/recovery, outstanding locks and other mutation paths remain open. See official transaction core/callback semantics: https://www.mongodb.com/docs/manual/core/transactions-in-applications/ . No guessed retry, additional runtime or download.
+
 ### Mongo GUID deletion transaction binding and open commit recovery — 2026-10-13
 
 GUID sync/async Mongo deletion opened a session but wrote without it. Writes now pass session; async hard delete/commit/abort await SDK, commit errors return false with original exception. Real owned-server second-delete rejection (failCommand skip1/delete/error2) proves atomic rollback/direct intact avatar+detail and later successful replicated deletion in4/4 pair scenarios. Report `TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`. Separately, commit rejection preserved records but subsequent deletion hit WriteConflict due to outstanding server transaction:4/4 failed over5m56s, report retained `mongo-avatar-commit-rejection-open.trx`. Commit recovery is explicitly NOT closed by the passing second-write test; no automatic replay/guessed retries introduced. Remaining soft identity/auth-context/session-read, selector transaction, session-start/abort and unknown commit gates remain open.
