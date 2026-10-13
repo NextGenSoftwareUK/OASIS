@@ -26,6 +26,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### SDK packaging side-effect import gap closed — 2026-10-12
+
+Current Railway manifest/seven Dockerfile/parent gitlink validator passed. Packaging SDK verifier omitted side-effect imports, allowing an absent companion module to evade its import inventory. Extended existing scanner to side-effect local/external imports; controlled absent companion rejects and installed pinned side-effect SDK accepts without executing bridge entry. Complete verifier suite **9/9 passed**, zero skips. Tiny owned generated fixtures removed by existing test finally; no SDK download/image build/deployment. Static regex scanner still is not a full JavaScript module parser; passing syntax/import/pin checks alone does not prove Linux runtime or hosted endpoints. Release merge remains gated.
+
 ### Current Cosmos complete regression and smart-contract interface audit — 2026-10-12
 
 Current complete Cosmos suite **116/116 passed**, zero failures/skips (`cosmos-current.trx`), two minutes nine seconds including real deadline; exact original process terminal exit zero. Uses retained source SDK after latest default-prefix fix and current deployment/NFT ownership changes, no restore/install/live ledger mutation. Supersedes older 102-case whole-suite checkpoint, not live API/assets/packaging/parent-recovery gates.

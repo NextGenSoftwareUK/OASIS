@@ -27,6 +27,19 @@ test('rejects absent dynamic companion module',()=>{
  const result=fixture("async function operation(){await import('./missing.mjs');}");
  assert.notEqual(result.status,0);assert.match(result.stderr,/missing.mjs/);
 });
+
+test('rejects absent side-effect companion module',()=>{
+ const result=fixture("import './missing-setup.mjs';");
+ assert.notEqual(result.status,0);assert.match(result.stderr,/missing-setup.mjs/);
+});
+
+test('resolves side-effect SDK imports without executing bridge operations',()=>{
+ const result=fixture("import 'side-effect-sdk'; throw new Error('Must not execute bridge');",{'side-effect-sdk':'1.0.0'},{
+  'node_modules/side-effect-sdk/package.json':JSON.stringify({name:'side-effect-sdk',version:'1.0.0',type:'module',exports:'./index.mjs'}),
+  'node_modules/side-effect-sdk/index.mjs':'export const ready=true;'
+ });
+ assert.equal(result.status,0,result.stderr);
+});
 test('rejects invalid module syntax',()=>{
  const result=fixture('export function broken( {');
  assert.notEqual(result.status,0);assert.match(result.stderr,/Invalid bridge module/);
