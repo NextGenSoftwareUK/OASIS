@@ -148,6 +148,23 @@ public sealed class MongoSqliteRealProviderRoutingTests
                     loaded.Result.Inventory.Single().MetaData["quest-source"].ToString().Should().Be("priority-tree");
                 }
             }
+            var freshMongo = new MongoDBOASIS(uri,databaseName);
+            using (var freshSqlite = new SQLLiteDBOASIS($"Data Source={dbPath};Pooling=False"))
+            {
+                (await freshMongo.ActivateProviderAsync()).IsError.Should().BeFalse();
+                (await freshSqlite.ActivateProviderAsync()).IsError.Should().BeFalse();
+                foreach (var loaded in new[] { await freshMongo.LoadAvatarDetailAsync(detail.Id), await freshSqlite.LoadAvatarDetailAsync(detail.Id) })
+                {
+                    loaded.IsError.Should().BeFalse(loaded.Message);
+                    loaded.Result.Karma.Should().Be(456);
+                    loaded.Result.XP.Should().Be(234);
+                    loaded.Result.Stats.HP.Current.Should().Be(38);
+                    loaded.Result.Inventory.Single().Id.Should().Be(item.Id);
+                    loaded.Result.Inventory.Single().Quantity.Should().Be(4);
+                    loaded.Result.MetaData["park-source"].ToString().Should().Be("priority-park");
+                }
+                (await freshMongo.DeActivateProviderAsync()).IsError.Should().BeFalse();
+            }
             using (var control = new DataContext($"Data Source={dbPath};Pooling=False")) control.Database.ExecuteSqlRaw("DROP TABLE Holon;");
             manager.IsAutoReplicationEnabled = false;
             manager.IsAutoFailOverEnabled = true;
