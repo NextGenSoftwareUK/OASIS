@@ -31,6 +31,15 @@ switch(request.operation){
  case 'restoreKey':result={privateKey:request.privateKey,publicKey:'fixture-public',address:'fixture-owner'};break;
  case 'nftMint': {
   const title=JSON.parse(request.metadata[0]).Title;
+  if(title.startsWith('identity/')) {
+   const mode=title.split('/')[1];
+   const ids=request.metadata.map(metadata=>JSON.parse(metadata).Id);
+   const tokenIds=ids.map(id=>`identity:${mode}:${id}:${ids[0]}`);
+   if(mode==='missing')tokenIds.pop();
+   if(mode==='duplicate-token')tokenIds[1]=tokenIds[0];
+   result={transactionHash:'1'.repeat(32),tokenIds,recipient:mode==='foreign-recipient'?'foreign-owner':mode==='short-recipient'?'0x'+'ab'.padStart(64,'0'):'fixture-owner'};
+   break;
+  }
   if(title.startsWith('native-evidence/')) {
    const mode=title.split('/')[1];
    const mutation=mode==='bad-shape' ? [] : {
@@ -49,7 +58,12 @@ switch(request.operation){
   if(request.privateKey!=='test-only-explicit')throw new Error('Explicit signer was not forwarded.');
   result={transactionHash:'1'.repeat(32)};break;
  case 'nftGet':
-  if(request.tokenId.startsWith('ownership-'))result={metadata:'{}',creator:'fixture-owner',
+  if(request.tokenId.startsWith('identity:')) {
+   const [,mode,id,firstId]=request.tokenId.split(':');
+   result={metadata:JSON.stringify({Id:mode==='foreign-id'?'9daf56a1-a66d-4507-a5bc-a31de17e223a':mode==='duplicate-id'?firstId:id}),
+    creator:mode==='foreign-creator'?'foreign-creator':'fixture-owner',owner:{AddressOwner:mode==='short-recipient'?'0x'+'ab'.padStart(64,'0'):'fixture-owner'}};
+  }
+  else if(request.tokenId.startsWith('ownership-'))result={metadata:'{}',creator:'fixture-owner',
    owner:{AddressOwner:'0x'+(request.tokenId==='ownership-matching'?'ab':'cd').repeat(32)}};
   else {process.stdout.write(JSON.stringify({ok:false,error:'forced separate NFT readback failure'}));process.exitCode=1;}
   break;
