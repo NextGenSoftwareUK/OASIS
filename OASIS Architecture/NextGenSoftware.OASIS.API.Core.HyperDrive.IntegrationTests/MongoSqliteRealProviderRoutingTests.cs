@@ -391,6 +391,38 @@ public sealed class MongoSqliteRealProviderRoutingTests
                     await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
                 }
             }
+            foreach (var rejectDetailLookup in new[] { false, true })
+            {
+                try
+                {
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                        { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("times",1) },
+                        { "data", new BsonDocument { { "failCommands", new BsonArray { "find" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                    });
+                    if (rejectDetailLookup)
+                    {
+                        var attempted = (await mongo.LoadAvatarDetailAsync(detail.Id)).Result;
+                        attempted.Karma = 998;
+                        var rejected = synchronous ? failureMongo.SaveAvatarDetail(attempted) : await failureMongo.SaveAvatarDetailAsync(attempted);
+                        rejected.IsError.Should().BeTrue();
+                        rejected.Exception.Should().BeOfType<MongoCommandException>();
+                        (await mongo.LoadAvatarDetailAsync(detail.Id)).Result.Karma.Should().Be(456);
+                    }
+                    else
+                    {
+                        var attempted = (await mongo.LoadAvatarAsync(avatar.Id)).Result;
+                        attempted.FirstName = "rejected-preflight";
+                        var rejected = synchronous ? failureMongo.SaveAvatar(attempted) : await failureMongo.SaveAvatarAsync(attempted);
+                        rejected.IsError.Should().BeTrue();
+                        rejected.Exception.Should().BeOfType<MongoCommandException>();
+                        (await mongo.LoadAvatarAsync(avatar.Id)).Result.FirstName.Should().Be("Updated");
+                    }
+                }
+                finally
+                {
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+                }
+            }
             foreach (var rejectDetailInsert in new[] { false, true })
             {
                 var rejectedId = Guid.NewGuid();

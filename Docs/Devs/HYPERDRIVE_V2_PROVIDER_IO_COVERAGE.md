@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Mongo save preflight preserves native lookup failure — 2026-10-13
+
+Expanded actual Mongo/SQLite routing fixture rejects one app-scoped find with native error2 during SaveAvatar/SaveAvatarDetail preflight in sync/async paths. Before fix **4/4 failed** because original exception was null (`TestResults/SubscriptionUsageCurrent/mongo-save-preflight-before.trx`). GUID avatar repository lookup now passes original driver exception to OASISErrorHandling; async path awaits Find(...).FirstOrDefaultAsync instead of blocking FindAsync(...).Result. Existing wrapper already stops before writes on preflight error; no alternate path/retry added. Expanded **4/4 passed**, proving native MongoCommandException retained and stored FirstName Updated/karma456 unchanged. Wider single-node real Mongo **42/42** and WEB4 **147/147** refreshed/passed, zero skips. API build0errors/253warnings; Mongo provider/API/test-output DLL hashes all **71ACE0100C31849C2E8403EC6B3F1924BE5DFAF2F6DFFC3A565DD963A433AAE3**. Reports `mongo-sqlite-v2-current.trx`, `mongo-single-node-transactions-current.trx`, `web4-provider-refresh-current.trx` in existing fixed directories. Not hosted JWT/all routes, live multi-member elections or durable production recovery certification. Owned reusable Mongo27029 process stopped; normal27017 untouched. Free79.33GiB (~85.18GB decimal), no new downloads/environment.
+
 Current Sui outage refresh **2/2 passed**, zero skips,3s (`TestResults/HyperDriveSui/sui-retained-v2-outage-current.trx`). Closed transport and actual owned node shutdown both fail over to real LocalFile. Reused same runtime/ledger/fixture; runner restored environment and terminally exited, no Sui PID remains. This supplements healthy1/1 below, not broader completion.
 
 ### Current retained Sui V2 healthy refresh — 2026-10-13
