@@ -378,7 +378,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
 
                 // Load holons by metadata from SQLite - using LoadAllHolons and filter
-                var allHolons = await _holonRepository.LoadAllHolonsAsync();
+                var allHolons = await _holonRepository.LoadAllHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,version);
                 var holons = new OASISResult<IEnumerable<IHolon>>();
                 if (allHolons.IsError)
                 {
@@ -429,7 +429,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
 
                 // Load holons by multiple metadata pairs from SQLite - using LoadAllHolons and filter
-                var allHolons = await _holonRepository.LoadAllHolonsAsync();
+                var allHolons = await _holonRepository.LoadAllHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,version);
                 var holons = new OASISResult<IEnumerable<IHolon>>();
                 if (allHolons.IsError)
                 {

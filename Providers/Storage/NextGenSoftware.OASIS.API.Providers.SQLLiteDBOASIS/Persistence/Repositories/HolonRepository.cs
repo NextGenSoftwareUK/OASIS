@@ -30,7 +30,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 var holonEntity = _dbContext.Holons
                     .ToList()
                     .Select(GetHolonFromEntity)
-                    .FirstOrDefault(p => p.Id == id && p.Version == version);
+                    .FirstOrDefault(p => p.Id == id && (version == 0 || p.Version == version));
                 if (holonEntity == null)
                     return new OASISResult<IHolon>
                     {
@@ -64,7 +64,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 var holonEntity = _dbContext.Holons
                     .ToList()
-                    .Where(p => p.Id == id.ToString())
+                    .Where(p => p.Id == id.ToString() && (version == 0 || p.Version == version))
                     .Select(GetHolonFromEntity)
                     .FirstOrDefault();
                 if (holonEntity == null)
@@ -275,7 +275,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var holonEntities = _dbContext.Holons
-                    .Where(p => p.Version == version)
+                    .Where(p => (version == 0 || p.Version == version) && (type == HolonType.All || p.HolonType == type))
                     .ToList()
                     .Select(GetHolonFromEntity)
                     .ToList();
@@ -305,7 +305,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var holonEntities = _dbContext.Holons
-                    .Where(p => p.Version == version)
+                    .Where(p => (version == 0 || p.Version == version) && (type == HolonType.All || p.HolonType == type))
                     .ToList()
                     .Select(GetHolonFromEntity)
                     .ToList();
@@ -654,7 +654,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 IsChanged = holonEntity.IsChanged,
                 ModifiedDate = holonEntity.ModifiedDate,
                 Name = holonEntity.Name,
-                Version = holonEntity.Version
+                Version = holonEntity.Version,
+                HolonType = holonEntity.HolonType,
+                MetaData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string,object>>(holonEntity.MetaDataJson)
+                    ?? throw new System.IO.InvalidDataException("Stored holon metadata must be a JSON object.")
             };
 
         private HolonModel CreateHolonModel(IHolon holon)
@@ -670,7 +673,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 IsChanged = holon.IsChanged,
                 ModifiedDate = holon.ModifiedDate,
                 Name = holon.Name,
-                Version = holon.Version
+                Version = holon.Version,
+                HolonType = holon.HolonType,
+                MetaDataJson = System.Text.Json.JsonSerializer.Serialize(holon.MetaData ?? new Dictionary<string,object>())
             };
         }
 
