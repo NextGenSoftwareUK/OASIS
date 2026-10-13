@@ -222,6 +222,22 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 selectorDeleted.IsError.Should().BeFalse(selectorDeleted.Message);
                 selectorDeleted.Result.Should().BeTrue();
                 (await mongo.LoadAvatarDetailAsync(selectorAvatar.Id)).Result.DeletedDate.Should().NotBe(DateTime.MinValue);
+                var hardDeleted = selector == "email"
+                    ? (synchronous ? mongo.DeleteAvatarByEmail(selectorAvatar.Email, false) : await mongo.DeleteAvatarByEmailAsync(selectorAvatar.Email, false))
+                    : selector == "username"
+                        ? (synchronous ? mongo.DeleteAvatarByUsername(selectorAvatar.Username, false) : await mongo.DeleteAvatarByUsernameAsync(selectorAvatar.Username, false))
+                        : (synchronous ? mongo.DeleteAvatar(localKey, false) : await mongo.DeleteAvatarAsync(localKey, false));
+                hardDeleted.IsError.Should().BeFalse(hardDeleted.Message);
+                hardDeleted.Result.Should().BeTrue();
+                (await mongo.LoadAvatarAsync(selectorAvatar.Id)).Result.Should().BeNull();
+                (await mongo.LoadAvatarDetailAsync(selectorAvatar.Id)).Result.Should().BeNull();
+                var missingDeleted = selector == "email"
+                    ? (synchronous ? mongo.DeleteAvatarByEmail(selectorAvatar.Email, false) : await mongo.DeleteAvatarByEmailAsync(selectorAvatar.Email, false))
+                    : selector == "username"
+                        ? (synchronous ? mongo.DeleteAvatarByUsername(selectorAvatar.Username, false) : await mongo.DeleteAvatarByUsernameAsync(selectorAvatar.Username, false))
+                        : (synchronous ? mongo.DeleteAvatar(localKey, false) : await mongo.DeleteAvatarAsync(localKey, false));
+                missingDeleted.IsError.Should().BeTrue();
+                missingDeleted.Result.Should().BeFalse();
             }
             var softAvatar = new Avatar { Id = Guid.NewGuid(), Username = "mongo-soft-avatar", Email = "mongo-soft@test.local",
                 AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
