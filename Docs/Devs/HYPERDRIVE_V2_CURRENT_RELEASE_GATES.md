@@ -5,7 +5,7 @@ Updated 2026-10-12, inspected parent `a376d2578a7ec354677dd8c0f91785909e134742`.
 ## Authoritative state
 
 - Reuse `C:/Source/OASIS-hyperdrive-v2-gaps` and its existing branch. Do not create/rename `codex/` branches.
-- Core pin: `9cb23c72cc7c451d60db470954f55eac4888438e`; ONODE Core pin: `f9c985d0faff66b3b4525ebd9b4becba1f564f93`. Full Core/consumer regressions need refresh after this latest diagnostic mapping fix.
+- Core pin: `9cb23c72cc7c451d60db470954f55eac4888438e`; ONODE Core pin: `f9c985d0faff66b3b4525ebd9b4becba1f564f93`. Full Core 459 and WEB4 147 tests plus consumer builds refreshed successfully against this diagnostic mapping fix; deployed verification remains open.
 - TRON `TestResults/HyperDriveTron/pending-native-outcome.json` exists and must be preserved. Original transaction outcome is unresolved; NotFound is not non-submission proof.
 - Cosmos/Sui replication ownership journals are absent after verified cleanup. Do not delete new pending journals blindly.
 - Free space observed 91.79 GiB. Requested disk recovery is not achieved. No broad cleanup of unrelated services/data is authorized by this checklist.

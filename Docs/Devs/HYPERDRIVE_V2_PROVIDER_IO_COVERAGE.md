@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Latest diagnostic-fix consumer regression refresh — 2026-10-12
+
+- Current Core pin `9cb23c72cc7c451d60db470954f55eac4888438e`: full Core **459/459 passed**, zero skips, `TestResults/CoreCurrent/core-bulk-diagnostics-full-current.trx`. Sequential BootLoader/ONODE Core/WEB4 rebuilds passed, zero errors (2/152/253 existing warnings).
+- Rebuilt current WEB4 tests **147/147 passed**, zero skips, `TestResults/Web4Current/web4-latest-core-diagnostics-current.trx`; manifest/seven Dockerfiles/committed gitlinks validator passed. Existing dependencies/environment reused without restore/download/installation.
+- These refresh the source consumer gate after generic bulk diagnostic preservation. They do not prove partial-provider commit semantics, authenticated live endpoints, Linux image execution, production recovery or full all-provider coverage. No merge/deployment; broader release gates remain open.
+
+
 ### V2 async generic bulk result diagnostics — 2026-10-12
 
 - Core `9cb23c72cc7c451d60db470954f55eac4888438e` replaces incomplete manual result mapping in async generic bulk saves with the existing shared OASIS result-copy helper, retaining error/warning counts and diagnostics while mapping only the typed payload. No legacy path change.
