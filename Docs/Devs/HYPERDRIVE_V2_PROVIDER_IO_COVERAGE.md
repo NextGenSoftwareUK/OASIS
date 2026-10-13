@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Mongo rejected avatar/detail inserts retain evidence — 2026-10-13
+
+Real owned-server insert rejection reproduced missing original exception4/4. Avatar/detail Add sync/async catches retain driver exception; expanded4/4 verifies error/original MongoCommandException and no stored rejected record. Report `mongo-sqlite-v2-current.trx`. Network ambiguity/create reconciliation/concurrency/full interfaces/API remain unproven. Same runtime/environment reused.
+
 ### Mongo creation-provider attribution preservation — 2026-10-13
 
 Real native avatar/detail reads reproduced overwritten SQLite creation origin4/4. Add sync/async now sets Mongo origin only if absent, preserving supplied attribution. Expanded4/4 passes native SQLite origin plus single-insert key assertions (`mongo-sqlite-v2-current.trx`). Default enum/audit-update invariants, broader regression/API and original provider/recovery gates remain open. Same environment reused.
