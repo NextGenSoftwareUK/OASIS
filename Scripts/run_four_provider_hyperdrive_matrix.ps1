@@ -34,7 +34,7 @@ function Wait-LoopbackPort([int]$Port, [int]$Seconds = 60) {
 function Invoke-ProviderTest([string]$Name, [string]$Project) {
     $resultPath = Join-Path $artifacts $Name
     New-Item -ItemType Directory -Force $resultPath | Out-Null
-    & dotnet test $Project -c Release --logger "trx;LogFileName=$Name.trx" --results-directory $resultPath -v:minimal
+    & dotnet test $Project -c Release /m:2 /nr:false /p:UseSharedCompilation=false --logger "trx;LogFileName=$Name.trx" --results-directory $resultPath -v:minimal
     if ($LASTEXITCODE -ne 0) { throw "$Name provider evidence failed with exit code $LASTEXITCODE." }
 }
 
@@ -51,12 +51,19 @@ try {
     $kuboRepo = Join-Path $kuboRoot 'repo'
     $kuboZip = Join-Path $downloads "kubo_v$($kuboVersion)_windows-amd64.zip"
     New-Item -ItemType Directory -Force $downloads, $kuboRoot | Out-Null
-    if (!(Test-Path -LiteralPath $kuboZip -PathType Leaf)) {
-        Invoke-WebRequest "https://github.com/ipfs/kubo/releases/download/v$kuboVersion/kubo_v$($kuboVersion)_windows-amd64.zip" -OutFile $kuboZip -MaximumRedirection 8
-    }
-    if ((Get-FileHash $kuboZip -Algorithm SHA256).Hash -ne $kuboSha256) { throw 'The pinned Kubo archive checksum did not match.' }
     $ipfs = Join-Path $kuboRoot 'kubo/ipfs.exe'
-    if (!(Test-Path -LiteralPath $ipfs -PathType Leaf)) { Expand-Archive $kuboZip -DestinationPath $kuboRoot -Force }
+    if (!(Test-Path -LiteralPath $ipfs -PathType Leaf)) {
+        if (!(Test-Path -LiteralPath $kuboZip -PathType Leaf)) {
+            if ((Get-PSDrive C).Free -lt 5GB) { throw 'Insufficient space for missing pinned Kubo runtime.' }
+            Invoke-WebRequest "https://github.com/ipfs/kubo/releases/download/v$kuboVersion/kubo_v$($kuboVersion)_windows-amd64.zip" -OutFile $kuboZip -MaximumRedirection 8
+        }
+        if ((Get-FileHash $kuboZip -Algorithm SHA256).Hash -ne $kuboSha256) { throw 'The pinned Kubo archive checksum did not match.' }
+        Expand-Archive $kuboZip -DestinationPath $kuboRoot -Force
+    }
+    $installedVersion = & $ipfs version --number
+    if ($LASTEXITCODE -ne 0 -or $installedVersion.Trim() -ne $kuboVersion) {
+        throw 'Existing Kubo executable does not match the pinned version; do not automatically replace it.'
+    }
     $env:IPFS_PATH = $kuboRepo
     if (!(Test-Path -LiteralPath (Join-Path $kuboRepo 'config'))) { & $ipfs init --profile=test }
     & $ipfs config Addresses.API "/ip4/127.0.0.1/tcp/$kuboApiPort"
