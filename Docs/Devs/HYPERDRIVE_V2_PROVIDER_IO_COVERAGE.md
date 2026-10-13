@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Extracted custom-property DNA encryption verification — 2026-10-12
+
+- Expanded actual V2 generic single/bulk save tests to encryption-disabled and DNA GCM-enabled cases. Controlled provider sees attributed QuestDialogue extracted into metadata when disabled, or only encrypted envelope with correct decrypted dialogue when enabled. Plaintext dialogue is absent from encrypted payload; exempt Status remains Pending/queryable.
+- Full current Core **465/465 passed**, zero skips, `TestResults/CoreCurrent/core-encrypted-custom-properties-current.trx`. These verify manager preparation/extraction/encryption order, not live quest/provider/index queries or full sync/child/per-save override combinations.
+- Current Core pin `a65e4ab591f294bcd5f9b319d74fb1ccf15095ad`; source consumer refresh after extraction fix remains required. No installs/downloads/live node/funds/deployment/merge; broader release gates remain open.
+
+
 ### Attributed derived-holon V2 save preparation — 2026-10-12
 
 - Core `a65e4ab591f294bcd5f9b319d74fb1ccf15095ad` enables existing attributed property extraction in the shared V2 single/bulk preparation owner. Previously false skipped custom properties on derived holons despite generic saves; base Holon remains excluded by the existing runtime type check. Legacy unchanged, no second save pipeline.
