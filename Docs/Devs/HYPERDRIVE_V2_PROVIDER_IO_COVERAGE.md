@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Actual registered key-reference lifetime tests — 2026-10-12
+
+- Two new tests invoke actual BootLoader registration for Cosmos/Sui in the existing restored WEB4 test project. Each registers with a missing custom key variable, changes DNA to a valid replacement variable, then activates the created provider: missing original key rejection remains, proving no redirection/fallback to replacement configuration. No SDK/network access is needed because mandatory key resolution fails first.
+- Tests serialize shared static state via nonparallel collection and restore prior DNA, provider registration and environment values in finally. Focused **2/2 passed**, zero skips; report `TestResults/Web4Current/private-registration-current.trx`. Full current WEB4 suite **147/147 passed**, zero skips, `TestResults/Web4Current/web4-private-registration-current.trx`.
+- This closes registration-reference capture coverage, not positive live custom-key activation, full encryption policy merging or hosted configuration. No new project restore/download/environment, deployment or merge; original broader release gates remain open.
+
+
 ### Registered private-key reference lifetime correction — 2026-10-12
 
 - Cosmos/Sui BootLoader resolvers now capture the configured storage-key environment variable name at provider registration instead of re-reading mutable global DNA at first storage activation. This preserves each created provider's configuration identity. Key bytes remain lazily resolved and cached by the private wrapper, not copied into DNA or derived from signing keys.
