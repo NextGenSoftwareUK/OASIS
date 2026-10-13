@@ -214,6 +214,18 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 savedSelector.IsError.Should().BeFalse(savedSelector.Message);
                 (await mongo.SaveAvatarDetailAsync(new AvatarDetail { Id = selectorAvatar.Id, Username = "independent-" + selector, Karma = 123 })).IsError.Should().BeFalse();
                 var localKey = savedSelector.Result.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS];
+                foreach (var requestedVersion in new[] { 0, 3, 2 })
+                {
+                    foreach (var versionRead in new[] {
+                        synchronous ? mongo.LoadAvatar(selectorAvatar.Id, requestedVersion) : await mongo.LoadAvatarAsync(selectorAvatar.Id, requestedVersion),
+                        synchronous ? mongo.LoadAvatarByUsername(selectorAvatar.Username, requestedVersion) : await mongo.LoadAvatarByUsernameAsync(selectorAvatar.Username, requestedVersion),
+                        synchronous ? mongo.LoadAvatarByEmail(selectorAvatar.Email, requestedVersion) : await mongo.LoadAvatarByEmailAsync(selectorAvatar.Email, requestedVersion) })
+                    {
+                        versionRead.IsError.Should().BeFalse(versionRead.Message);
+                        if (requestedVersion == 2) versionRead.Result.Should().BeNull();
+                        else versionRead.Result.Id.Should().Be(selectorAvatar.Id);
+                    }
+                }
                 var keyRead = synchronous ? mongo.LoadAvatarByProviderKey(localKey) : await mongo.LoadAvatarByProviderKeyAsync(localKey);
                 keyRead.IsError.Should().BeFalse(keyRead.Message);
                 keyRead.Result.Should().NotBeNull();
