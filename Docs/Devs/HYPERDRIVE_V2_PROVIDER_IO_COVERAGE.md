@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Later-record V2 batch preparation failure verification — 2026-10-12
+
+- Bulk missing-key cases now use two records: an earlier record containing only exempt Status metadata can prepare, followed by a private record whose enabled CBC/GCM key is missing. Sync/async and generic/non-generic bulk entry points return structured errors with no provider save invocation, preserving tested Status/private values and inserting no ciphertext envelopes.
+- Full current Core suite **459/459 passed**, zero skips, `TestResults/CoreCurrent/core-mixed-batch-preparation-current.trx`. This verifies whole-batch write prevention for that later-record configuration failure. It does not prove transactional rollback of all caller fields, an earlier successfully encrypted record, nested child failures or provider partial-commit atomicity.
+- No production change required; broader live/provider/configuration/recovery/release gates remain open. No runtime/install/download/deployment/merge.
+
+
 ### TRON contradictory broadcast acknowledgement branch test — 2026-10-12
 
 - Added actual-client controlled reply `result=false` with protocol SUCCESS=0, verifying typed original uncertainty, exact signed transaction ID/genesis/validity window, one persistence/sign/broadcast and no replacement. Fixture now uses nullable response-code selection so zero is a real injected code, not confused with absence of injection.

@@ -3900,14 +3900,16 @@ public sealed class HyperDriveProviderExecutionTests
         var holon=new Holon { Id=Guid.NewGuid(),MetaData=new Dictionary<string,object> { ["private-secret"]="preserve-me",["Status"]="Pending" } };
         var manager=new HolonManager(null,dna,providerManager);
         var actor=Guid.NewGuid();
+        var earlier=new Holon { Id=Guid.NewGuid(),MetaData=new Dictionary<string,object>{["Status"]="EarlierPending"} };
+        var batch=new[]{earlier,holon};
         void Check<T>(OASISResult<T> result){
             result.IsError.Should().BeTrue();result.ErrorCode.Should().Be("HOLON_SAVE_PREPARATION_FAILED");
             result.Exception.Should().BeOfType<InvalidOperationException>();result.Result.Should().BeNull();
         }
-        if(entry=="generic-bulk-async")Check(await manager.SaveHolonsAsync<Holon>(new[]{holon},actor,providerType:ProviderType.IPFSOASIS));
-        else if(entry=="generic-bulk-sync")Check(manager.SaveHolons<Holon>(new[]{holon},actor,providerType:ProviderType.IPFSOASIS));
-        else if(entry=="bulk-async")Check(await manager.SaveHolonsAsync(new[]{holon},actor,providerType:ProviderType.IPFSOASIS));
-        else if(entry=="bulk-sync")Check(manager.SaveHolons(new[]{holon},actor,providerType:ProviderType.IPFSOASIS));
+        if(entry=="generic-bulk-async")Check(await manager.SaveHolonsAsync<Holon>(batch,actor,providerType:ProviderType.IPFSOASIS));
+        else if(entry=="generic-bulk-sync")Check(manager.SaveHolons<Holon>(batch,actor,providerType:ProviderType.IPFSOASIS));
+        else if(entry=="bulk-async")Check(await manager.SaveHolonsAsync(batch,actor,providerType:ProviderType.IPFSOASIS));
+        else if(entry=="bulk-sync")Check(manager.SaveHolons(batch,actor,providerType:ProviderType.IPFSOASIS));
         else if(entry=="generic-async")Check(await manager.SaveHolonAsync<Holon>(holon,actor,providerType:ProviderType.IPFSOASIS));
         else if(entry=="generic-sync")Check(manager.SaveHolon<Holon>(holon,actor,providerType:ProviderType.IPFSOASIS));
         else if(entry=="sync")Check(manager.SaveHolon(holon,actor,providerType:ProviderType.IPFSOASIS));
@@ -3915,6 +3917,8 @@ public sealed class HyperDriveProviderExecutionTests
         holon.MetaData.Should().ContainKey("private-secret").WhoseValue.Should().Be("preserve-me");
         holon.MetaData.Should().ContainKey("Status").WhoseValue.Should().Be("Pending");
         holon.MetaData.Should().NotContainKey("__oasis_enc__");
+        earlier.MetaData.Should().ContainKey("Status").WhoseValue.Should().Be("EarlierPending");
+        earlier.MetaData.Should().NotContainKey("__oasis_enc__");
         provider.Invocations.Should().NotContain(call=>call.Method.Name=="SaveHolonAsync" || call.Method.Name=="SaveHolon" || call.Method.Name=="SaveHolonsAsync" || call.Method.Name=="SaveHolons");
     }
 
