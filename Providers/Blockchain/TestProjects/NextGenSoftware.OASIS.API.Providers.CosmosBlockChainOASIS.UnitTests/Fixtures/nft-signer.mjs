@@ -28,7 +28,13 @@ if(['put','get'].includes(request.operation)) {
  }
 }
 else if(request.operation==='nativeFeeReceipt')result={transactionHash:request.transactionHash,chainId:'fixture-chain',basis:'observed-ante-fee-deduction',payer:'fixture-owner',success:false,fees:[{denom:'stake',amount:'5'}]};
-else if(['upload','instantiate'].includes(request.operation))result={transactionHash:'a'.repeat(64),...(request.mode==='valid'?(request.operation==='upload'?{codeId:2}:{contractAddress:'fixture-contract'}):{})};
+else if(['upload','instantiate'].includes(request.operation)){
+ result={transactionHash:'a'.repeat(64)};
+ const field=request.operation==='upload'?'codeId':'contractAddress';
+ const values=request.operation==='upload'?{valid:2,zero:0,negative:-1,string:'2',null:null,overflow:1e30,fraction:1.5}
+  :{valid:'fixture-contract',blank:' ',number:2,null:null};
+ if(Object.hasOwn(values,request.mode))result[field]=values[request.mode];
+}
 else if(request.operation==='restoreKey')result={publicKey:'fixture-public',address:'fixture-owner'};
 else if(request.operation==='verifyNftCustodyReceipt'){
  if(request.contractAddress!=='fixture-contract'||request.tokenId!=='fixture-token'||request.custody!=='fixture-owner')
