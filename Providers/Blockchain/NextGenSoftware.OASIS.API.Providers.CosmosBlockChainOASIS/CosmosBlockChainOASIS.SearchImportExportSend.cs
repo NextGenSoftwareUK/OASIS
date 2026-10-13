@@ -39,6 +39,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
         public void Dispose()
         {
             IsProviderActivated = false;
+            _privateStorage.Dispose();
             _sdkBackend.Dispose();
         }
         public OASISResult<ITransactionResponse> SendTransaction(string fromWalletAddress, string toWalletAddress, decimal amount, string memoText)

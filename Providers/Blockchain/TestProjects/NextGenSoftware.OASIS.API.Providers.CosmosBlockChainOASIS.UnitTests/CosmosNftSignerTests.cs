@@ -7,6 +7,15 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 public class CosmosNftSignerTests
 {
     [TestMethod]
+    public async Task MissingPersistedEncryptionKeyFailsBeforeStorageActivation()
+    {
+        using var provider=new CosmosBlockChainOASIS(storageEncryptionKeyResolver:()=>null!);
+        var result=await provider.ActivateProviderAsync();
+        Assert.IsTrue(result.IsError);Assert.IsFalse(provider.IsProviderActivated);
+        StringAssert.Contains(result.Message,"separately persisted");
+    }
+
+    [TestMethod]
     public async Task OffChainOnlyMetadataCannotBeSilentlyPublished()
     {
         using var provider=new CosmosBlockChainOASIS();

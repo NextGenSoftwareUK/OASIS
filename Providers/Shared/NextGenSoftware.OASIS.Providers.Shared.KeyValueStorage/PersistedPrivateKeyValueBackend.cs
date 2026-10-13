@@ -9,19 +9,34 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 /// <summary>Mandatory private storage with a separately persisted key; never generates keys or accepts plaintext.</summary>
 public sealed class PersistedPrivateKeyValueBackend : IKeyValueBackend, IDisposable
 {
+    public static byte[] ResolveEnvironmentKey(string variableName)
+    {
+        var encoded=Environment.GetEnvironmentVariable(variableName);
+        if (string.IsNullOrWhiteSpace(encoded))
+            throw new InvalidOperationException("Private storage encryption key must be configured separately from the signing key.");
+        var key=Convert.FromBase64String(encoded);
+        if (key.Length!=32 || Convert.ToBase64String(key)!=encoded)
+        {
+            CryptographicOperations.ZeroMemory(key);
+            throw new InvalidOperationException("Storage encryption key must be canonical base64 for exactly 32 bytes.");
+        }
+        return key;
+    }
     private readonly Lazy<PrivateKeyValueBackend> _private;
+    private readonly IKeyValueBackend _inner;
     private bool _disposed;
     /// <param name="keyResolver">Returns a caller-owned temporary 32-byte key buffer, zeroed after copying.</param>
     public PersistedPrivateKeyValueBackend(IKeyValueBackend inner, Func<byte[]> keyResolver)
     {
         ArgumentNullException.ThrowIfNull(inner);
         ArgumentNullException.ThrowIfNull(keyResolver);
+        _inner=inner;
         _private = new Lazy<PrivateKeyValueBackend>(() => {
             var key = keyResolver();
             try {
                 if (key == null || key.Length != 32)
                     throw new InvalidOperationException("Private ledger storage requires a separately persisted 32-byte encryption key.");
-                return new PrivateKeyValueBackend(inner, key, compress: true);
+                return new PrivateKeyValueBackend(_inner, key, compress: true);
             } finally { if (key != null) CryptographicOperations.ZeroMemory(key); }
         });
     }
