@@ -2,6 +2,7 @@
 let input='';for await(const chunk of process.stdin)input+=chunk;
 const request=JSON.parse(input);let result;
 switch(request.operation){
+ case 'transfer':process.stdout.write(JSON.stringify({ok:false,error:'controlled original transfer outcome',nativeMutation:{transactionHash:'1'.repeat(32),executionSucceeded:true}}));process.exitCode=1;break;
  case 'nativeFeeReceipt':result={transactionHash:request.transactionHash,currency:'SUI',unit:'MIST',payer:'fixture-owner',chainIdentifier:'fixture-chain',success:false,netUnits:'5'};break;
  case 'verifyNativePreparation':result={verified:request.preparation.mode==='valid',transactionHash:request.preparation.transactionHash,sender:request.preparation.sender};break;
  case 'put': case 'get': {
