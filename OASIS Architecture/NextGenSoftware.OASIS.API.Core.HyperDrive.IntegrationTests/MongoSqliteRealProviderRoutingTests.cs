@@ -339,6 +339,23 @@ public sealed class MongoSqliteRealProviderRoutingTests
             failManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
             failManager.SetAndActivateCurrentStorageProvider(failureMongo).IsError.Should().BeFalse();
             var admin = client.GetDatabase("admin");
+            try
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                    { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("times",1) },
+                    { "data", new BsonDocument { { "failCommands", new BsonArray { "createIndexes" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                });
+                var failedActivation = synchronous ? failureMongo.ActivateProvider() : await failureMongo.ActivateProviderAsync();
+                failedActivation.IsError.Should().BeTrue();
+                failedActivation.Exception.Should().BeOfType<MongoCommandException>();
+                failureMongo.IsProviderActivated.Should().BeFalse();
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+            }
+            (synchronous ? failureMongo.ActivateProvider() : await failureMongo.ActivateProviderAsync()).IsError.Should().BeFalse();
+            failureMongo.IsProviderActivated.Should().BeTrue();
             foreach (var detailsList in new[] { false, true })
             {
                 try
