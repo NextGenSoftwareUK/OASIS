@@ -24,6 +24,14 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera default mirror now follows selected consensus network — 2026-10-12
+
+Found shipping configuration mismatch: selecting testnet/previewnet without rpcEndpoint still used the constructor's mainnet mirror literal. Optional endpoint now defaults to null and resolves the configured network's canonical public mirror. Known mainnet (including old mainnet-public alias), testnet and previewnet hosts cannot be labelled another consensus network. Local network requires an explicit mirror. Explicit custom HTTPS/loopback mirrors remain a configured trust boundary, not cryptographic proof of network identity. Canonical public mapping verified against [official Hedera REST documentation](https://docs.hedera.com/reference/rest-api).
+
+Focused **8/8 passed**, zero skips (`hedera-mirror-network-current.trx`): three default networks, four public-host mismatch rejections and explicit custom loopback. Build zero errors/four source/restore warnings. Binary callers compiled with the old optional literal must recompile or explicitly correct their endpoint; no silent reinterpretation of explicit URLs. Legacy `HashgraphClient` unchanged. Full non-funded regression after constructor change still required; no public query, HBAR, install, merge or deployment.
+
+Separately, current complete Cosmos suite **102/102 passed**, zero skips, including actual two-minute process deadline (`cosmos-current.trx`), with retained source SDK configured. This closes its added fee-capability regression, not live Cosmos or deployed packaging gates.
+
 ### Full Sui fee-chain regression and Cosmos existing chain invariant — 2026-10-12
 
 Complete current Sui suite **78/78 passed**, zero skips, including real two-minute process deadline (`sui-current.trx`), after fee-chain binding. Cosmos capability boundary **3/3 passed**, zero skips (`cosmos-fee-chain-current.trx`): absent chain rejected by existing constructor, foreign returned chain rejected by existing fee reader, matching charged-failure evidence retains explicit false outcome and nonzero exact amount. Initial empty-chain test expected a result but constructor already rejected it; corrected test to enforce the actual invariant and removed an unnecessary duplicate production guard. Cosmos production code unchanged in this checkpoint.

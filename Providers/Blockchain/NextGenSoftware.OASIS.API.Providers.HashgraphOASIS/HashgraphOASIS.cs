@@ -64,7 +64,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             set => _walletManager = value;
         }
 
-        public HashgraphOASIS(string rpcEndpoint = "https://mainnet-public.mirrornode.hedera.com/api/v1", string network = "mainnet", string chainId = "295", WalletManager walletManager = null, IDictionary<string, string> consensusNodes = null, HederaStorageConfiguration storageConfiguration = null, string bridgePoolAccountId = null, Func<string> bridgePoolSigningKey = null, string nftEscrowContractId = null, long nftEscrowGasLimit = 0, long nftEscrowMaxFeeTinybars = 0, string nftEscrowRuntimeCodeHash = null, HederaTokenEscrowConfiguration tokenEscrowConfiguration = null, string rawTransferAccountId = null, Func<string> rawTransferSigningKey = null)
+        public HashgraphOASIS(string rpcEndpoint = null, string network = "mainnet", string chainId = "295", WalletManager walletManager = null, IDictionary<string, string> consensusNodes = null, HederaStorageConfiguration storageConfiguration = null, string bridgePoolAccountId = null, Func<string> bridgePoolSigningKey = null, string nftEscrowContractId = null, long nftEscrowGasLimit = 0, long nftEscrowMaxFeeTinybars = 0, string nftEscrowRuntimeCodeHash = null, HederaTokenEscrowConfiguration tokenEscrowConfiguration = null, string rawTransferAccountId = null, Func<string> rawTransferSigningKey = null)
             : base(new ConfiguredHederaStorageBackend(network, consensusNodes, storageConfiguration))
         {
             if (network != "mainnet" && network != "testnet" && network != "previewnet" && network != "local")
@@ -110,8 +110,26 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
             _httpClient = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false })
             {
-                BaseAddress = NormalizeMirrorEndpoint(rpcEndpoint)
+                BaseAddress = ResolveMirrorEndpoint(rpcEndpoint,network)
             };
+        }
+
+        private static Uri ResolveMirrorEndpoint(string endpoint,string network)
+        {
+            if(endpoint==null){
+                if(network=="local")throw new ArgumentException("Local Hedera requires an explicit mirror endpoint.",nameof(endpoint));
+                endpoint="https://"+network+".mirrornode.hedera.com/api/v1";
+            }
+            var uri=NormalizeMirrorEndpoint(endpoint);
+            var publicNetwork=uri.Host.ToLowerInvariant() switch{
+                "mainnet.mirrornode.hedera.com" or "mainnet-public.mirrornode.hedera.com"=>"mainnet",
+                "testnet.mirrornode.hedera.com"=>"testnet",
+                "previewnet.mirrornode.hedera.com"=>"previewnet",
+                _=>null
+            };
+            if(publicNetwork!=null&&publicNetwork!=network)
+                throw new ArgumentException("Hedera public mirror endpoint does not match configured consensus network.",nameof(endpoint));
+            return uri;
         }
 
         internal static Uri NormalizeMirrorEndpoint(string endpoint)
