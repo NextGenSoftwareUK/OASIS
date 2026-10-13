@@ -20,6 +20,11 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 
 public sealed class MongoSqliteRealProviderRoutingTests
 {
+    private static readonly string[] QueryKeys = { "CreatedByAvatarId", "Active", "HolonType", "STARNETHolonId", "_versionStamp", "data",
+        "Username", "Email", "Name", "Description", "ParentId", "ParentProviderKey", "SearchQuery", "parkType", "env",
+        "web3TokenId", "NFT.MintedByAvatarId", "NFT.MintWalletAddress", "NFT.ParentWeb4NFTId", "GEONFT.PlacedByAvatarId",
+        "GEONFT.MintedByAvatarId", "GEONFT.OriginalOASISNFT.MintWalletAddress", "GEONFT.LatLong", "Status", "ActiveQuestId",
+        "ActiveObjectiveId", "ParentMissionId", "Avatar", "AppRegion" };
     [Theory]
     [InlineData(true, true)]
     [InlineData(true, false)]
@@ -66,6 +71,7 @@ public sealed class MongoSqliteRealProviderRoutingTests
             holon.Name = "priority-updated";
             holon.Version = 3;
             holon.MetaData["Email"] = "priority@test.local";
+            foreach (var key in QueryKeys.Where(key=>key!="Email")) holon.MetaData[key] = "query-value:" + key;
             var updated = synchronous ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
             updated.IsError.Should().BeFalse(updated.Message);
             updated.IsWarning.Should().BeFalse(string.Join("; ",manager.LastReplicationDiagnostic.Attempts.Select(x=>x.Message)));
@@ -77,12 +83,13 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 loaded.Result.MetaData["Email"].ToString().Should().Be("priority@test.local");
             }
             var balanceManager = new ProviderManager(null,dna) { IsAutoLoadBalanceEnabled = true };
+            foreach (var key in QueryKeys)
             foreach (var query in new[] {
-                synchronous ? mongo.LoadHolonsByMetaData("Email","priority@test.local",loadChildren:false) : await mongo.LoadHolonsByMetaDataAsync("Email","priority@test.local",loadChildren:false),
-                synchronous ? sqlite.LoadHolonsByMetaData("Email","priority@test.local",loadChildren:false) : await sqlite.LoadHolonsByMetaDataAsync("Email","priority@test.local",loadChildren:false) })
+                synchronous ? mongo.LoadHolonsByMetaData(key,holon.MetaData[key].ToString(),loadChildren:false) : await mongo.LoadHolonsByMetaDataAsync(key,holon.MetaData[key].ToString(),loadChildren:false),
+                synchronous ? sqlite.LoadHolonsByMetaData(key,holon.MetaData[key].ToString(),loadChildren:false) : await sqlite.LoadHolonsByMetaDataAsync(key,holon.MetaData[key].ToString(),loadChildren:false) })
             {
                 query.IsError.Should().BeFalse(query.Message);
-                query.Result.Select(x=>x.Id).Should().Equal(holon.Id);
+                query.Result.Select(x=>x.Id).Should().Equal(new[] { holon.Id }, "metadata key {0} must remain queryable", key);
             }
             balanceManager.RegisterProvider(mongo);
             balanceManager.RegisterProvider(sqlite);
