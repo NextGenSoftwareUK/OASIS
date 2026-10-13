@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Reusable durable recovery test runner — 2026-10-12
+
+- Added `Scripts/TestHosts/Run-ReusableUsageRecoveryTests.ps1`: reuses installed 8.3.11 Mongo executable, fixed owned task data/report folder, exclusive environment lease, loopback port and retained process handle. Refuses occupied port/version mismatch, restores environment references and stops only its own process in finally. No downloads, fresh runtime copies or GUID environment directories.
+- Actual reuse run passed existing-store initializer **1/1** and durable usage suite **77/77**, zero skips; existing reports overwritten at fixed paths. Port 27029 verified closed after terminal runner completion, normal service untouched. This also exercises Mongo recovery after the preceding owned process termination; no graceful-stop claim.
+- Retained data is reusable; fixture databases clean themselves. Log-size bounding and failure-injected lifecycle/concurrent-lease cleanup tests remain required. This runner provides test infrastructure, not the still-missing production native resolver/valuation/host registration. No deployment/merge; original broader gates remain open.
+
+
 ### Reused installed Mongo real durable-usage regression — 2026-10-12
 
 - Reused installed MongoDB 8.3.11 binary, not the normal service, for one fixed owned loopback replica set `oasisRecoveryRs` at 127.0.0.1:27029 with data in `TestResults/SubscriptionUsageCurrent/mongo-data`, 0.25 GiB cache and 32 MiB oplog. No runtime/download/install/clone. Normal service/data untouched.
