@@ -1,19 +1,22 @@
-param([ValidateSet('Healthy','Outage')][string]$Mode = 'Healthy')
+param([ValidateSet('Healthy','Outage','Prepared')][string]$Mode = 'Healthy')
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
 $fixtureRoot = Join-Path $taskRoot 'TestResults/HyperDriveSui'
 $deploymentPath = '\\wsl.localhost\Ubuntu\var\tmp\oasis-sui\deployment.json'
 if (!(Test-Path -LiteralPath $deploymentPath)) { throw 'Retained protected Sui deployment is unavailable; no copy or new wallet created.' }
 if (Test-Path -LiteralPath (Join-Path $fixtureRoot 'encrypted-replication-pending.json')) { throw 'Pending Sui ownership intent requires reconciliation before another run.' }
+if (Test-Path -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/prepared-live-pending.json')) { throw 'Pending prepared Sui ownership requires reconciliation before another run.' }
 & wsl -d Ubuntu -u root -- test -f /var/tmp/oasis-sui/network/network.yaml
 if ($LASTEXITCODE -ne 0) { throw 'Existing Sui ledger configuration missing; refusing genesis creation.' }
 & wsl -d Ubuntu -u root -- pgrep -x sui *> $null
 if ($LASTEXITCODE -eq 0) { throw 'Existing Sui runtime is in use; refusing to take ownership.' }
 $project = Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
+if($Mode -eq 'Prepared'){$project=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests.csproj'}
 & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
 if ($LASTEXITCODE -ne 0) { throw 'Current V2 integration consumer build failed.' }
-& (Join-Path $PSScriptRoot 'Use-ReusableHederaOutputDependencies.ps1') -Provider Sui -OutputBridge 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/bin/Debug/net10.0/SuiSdkBridge'
-$names = @('OASIS_SUI_TEST_RPC','OASIS_SUI_TEST_DEPLOYMENT','OASIS_SUI_TEST_OWNED_PID','OASIS_SUI_TEST_STOP_SCRIPT','OASIS_HYPERDRIVE_TEST_ROOT')
+$outputBridge=if($Mode -eq 'Prepared'){'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/bin/Debug/net10.0/SuiSdkBridge'}else{'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/bin/Debug/net10.0/SuiSdkBridge'}
+& (Join-Path $PSScriptRoot 'Use-ReusableHederaOutputDependencies.ps1') -Provider Sui -OutputBridge $outputBridge
+$names = @('OASIS_SUI_TEST_RPC','OASIS_SUI_TEST_DEPLOYMENT','OASIS_SUI_TEST_OWNED_PID','OASIS_SUI_TEST_STOP_SCRIPT','OASIS_HYPERDRIVE_TEST_ROOT','OASIS_SUI_SDK_BRIDGE')
 $prior = @{}
 foreach ($name in $names) { $prior[$name] = [Environment]::GetEnvironmentVariable($name,'Process') }
 $ownedPid = $null
@@ -55,9 +58,14 @@ try {
     $env:OASIS_SUI_TEST_OWNED_PID = $ownedPid
     $env:OASIS_SUI_TEST_STOP_SCRIPT = '/mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/stop-owned-sui-test-node.sh'
     $env:OASIS_HYPERDRIVE_TEST_ROOT = $fixtureRoot
-    $method = if ($Mode -eq 'Healthy') { 'V2ReplicatesToSuiAndSelectsFromMeasuredRealProviderReads' } else { 'V2FailsOverToRealStoreAfterSuiFailure' }
-    & dotnet test $project --no-build --no-restore --filter "FullyQualifiedName~IntegrationTests.SuiRealProviderRoutingTests.$method" --logger "trx;LogFileName=sui-retained-v2-$($Mode.ToLowerInvariant())-current.trx" --results-directory $fixtureRoot -v:q
-    if ($LASTEXITCODE -ne 0) { throw 'Current real Sui V2 verification failed; preserve ownership journal.' }
+    if($Mode -eq 'Prepared'){
+        $env:OASIS_SUI_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/bridge.mjs'
+        & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -SuiPreparedLedger
+    }else{
+        $method = if ($Mode -eq 'Healthy') { 'V2ReplicatesToSuiAndSelectsFromMeasuredRealProviderReads' } else { 'V2FailsOverToRealStoreAfterSuiFailure' }
+        & dotnet test $project --no-build --no-restore --filter "FullyQualifiedName~IntegrationTests.SuiRealProviderRoutingTests.$method" --logger "trx;LogFileName=sui-retained-v2-$($Mode.ToLowerInvariant())-current.trx" --results-directory $fixtureRoot -v:q
+        if ($LASTEXITCODE -ne 0) { throw 'Current real Sui V2 verification failed; preserve ownership journal.' }
+    }
 } finally {
     foreach ($name in $names) { [Environment]::SetEnvironmentVariable($name,$prior[$name],'Process') }
     $settings = $null
