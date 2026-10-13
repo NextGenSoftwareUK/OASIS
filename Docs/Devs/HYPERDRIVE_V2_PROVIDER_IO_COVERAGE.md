@@ -26,6 +26,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui current comparison and readback regression verified — 2026-10-12
+
+Rebuilt current provider successfully before tests (explicit build-failure gate avoids stale DLL). Expanded recipient checks to full 32-byte hex addresses: matching lowercase, matching uppercase request/lowercase readback, foreign owner. Complete SuiUnlockReadbackFailureTests **48/48 passed**, zero skips/failures (`sui-readback-current.trx`), two minutes six seconds including actual deadline. Supersedes prior unrerun comparison limitation. Process handle terminal exit zero; no restart/reinstallation or live node mutation. This remains controlled process/provider regression, not full current suite or live hosted NFT delivery certification.
+
 ### Sui post-send recipient readback invariant — 2026-10-12
 
 Actual SendNFTAsync accepted any successful ownership readback after committed transfer. Added case-insensitive recipient identity comparison (SDK already requires a full valid Sui address); mismatch returns existing reconciliation-required exception with committed digest, executionSucceeded=true and explicit ownership cause. Retained transaction response is not discarded; no resend. Controlled matching/foreign owner public-entry tests **2/2 passed**, zero skips (`sui-send-owner-current.trx`). Initial provider build failed for missing System.IO import and chained test used stale dependency; fixed import, then required successful dependency build before current passing run. Final case-insensitive comparison change is compile-equivalent but not separately rerun at this checkpoint. No live transfer, full-suite/hosted certification, installs or merge.
