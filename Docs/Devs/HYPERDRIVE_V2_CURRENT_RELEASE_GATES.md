@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+Selector-first stats evidence strengthened: six fresh-provider first-query username/email/list sync/async cases verify HP37 without prior GUID query/tracking fixup. Async detail list previously omitted Stats and materialized synchronously; now includes Stats and awaits filtered ToListAsync. Full56/56 passed (`TestResults/SQLiteCurrent/sqlite-detail-selector-first-current.trx`). This supersedes weaker same-context stats-selector evidence, not full nested graphs/scale/API certification.
+
 Detail corruption isolation checkpoint: sync Id/username/email selectors filter SQL before payload mapping and eagerly load Stats. Real corrupt unrelated detail metadata cannot poison valid identity reads; corrupt target stays an error. Full50/50 passed (`TestResults/SQLiteCurrent/sqlite-detail-corruption-isolation-current.trx`). Removed duplicate Stats includes found during source audit. Existing earlier stats-selector tests shared one tracking context; isolated selector-first nested reads/list loading require stronger coverage, not reliance on EF relationship fixup. Complete nested/query/API certification remains open.
 
 Avatar corruption isolation checkpoint: GUID sync/async and synchronous username/email selectors now filter SQL row before metadata/key-map materialization. Actual corrupt unrelated avatar metadata leaves valid Id/username/email lookup working; direct corrupt read remains an error. Full48/48 passed (`TestResults/SQLiteCurrent/sqlite-avatar-corruption-isolation-current.trx`). Async GUID now uses FirstOrDefaultAsync; remaining list/credential/detail paths and exception retention are separate gates.
