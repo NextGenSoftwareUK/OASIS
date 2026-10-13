@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Mongo GUID deletion transaction binding and open commit recovery — 2026-10-13
+
+GUID sync/async Mongo deletion opened a session but wrote without it. Writes now pass session; async hard delete/commit/abort await SDK, commit errors return false with original exception. Real owned-server second-delete rejection (failCommand skip1/delete/error2) proves atomic rollback/direct intact avatar+detail and later successful replicated deletion in4/4 pair scenarios. Report `TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`. Separately, commit rejection preserved records but subsequent deletion hit WriteConflict due to outstanding server transaction:4/4 failed over5m56s, report retained `mongo-avatar-commit-rejection-open.trx`. Commit recovery is explicitly NOT closed by the passing second-write test; no automatic replay/guessed retries introduced. Remaining soft identity/auth-context/session-read, selector transaction, session-start/abort and unknown commit gates remain open.
+
 ### SQLite avatar deletion error boundary — 2026-10-13
 
 Missing-table GUID deletion sync/async checks reproduced escaped exceptions2/2. Lookup and transaction lifecycle now sit inside result error handling; async initial lookup is awaited. Full72/72 passes (`TestResults/SQLiteCurrent/sqlite-avatar-delete-lookup-current.trx`), preserving actual exception and false result. Commit-ambiguity/tracker recovery and asynchronous graph loading remain separate open gates; no full provider completion claim or new environment/download.
