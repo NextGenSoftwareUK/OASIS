@@ -73,7 +73,7 @@ public class TronPermissionRpcTests
                 // Controlled SDK/RPC operation fixture, not real chain activation evidence.
                 typeof(TRONOASIS).GetProperty("IsProviderActivated")!.SetValue(provider,true);
                 var response = await provider.SendNFTAsync(new Core.Objects.NFT.Requests.SendWeb3NFTRequest {
-                    TokenAddress=contract,TokenId="1",FromWalletAddress=owner,ToWalletAddress=contract,
+                    TokenAddress=contract,TokenId="1",FromNFTTokenAddress=contract+"/1",FromWalletAddress=owner,ToWalletAddress=contract,
                     OwnerPrivateKey=key,Amount=1 });
                 Assert.False(response.IsError,response.Message);
                 Assert.Equal(Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),response.Result.TransactionResult);

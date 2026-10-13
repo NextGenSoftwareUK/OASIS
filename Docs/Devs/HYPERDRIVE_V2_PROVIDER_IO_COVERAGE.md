@@ -26,6 +26,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON send source locator consistency — 2026-10-12
+
+SendNFTAsync previously ignored populated FromNFTTokenAddress. Now reuses existing native contract/uint256 locator parser for selected contract/token and optional source locator; contradictory or malformed source selectors fail before activation/signing. This also applies existing uint256 bound before SDK construction. No guessing between identities or locator-only API expansion. Controlled tests reject foreign contract/serial/malformed token, and existing actual SDK/gRPC public-send case supplies agreeing source locator and still broadcasts once. Focused combined **18/18 passed**, zero skips (`tron-nft-selectors-current.trx`), dependency build succeeded first. Not live ledger/hosted certification; no installs, mutation or merge.
+
 ### TRON standalone NFT send-specific identity — 2026-10-12
 
 Standalone SendNFTAsync populated TransactionResult but omitted SendNFTTransactionResult. Added the confirmed hash to the send-specific field without inventing a Web3NFT metadata record. Existing controlled actual SDK/gRPC matrix now includes public provider send entry, rotated owner authority, original signed protobuf identity, one construction/broadcast and confirmed receipt; asserts both response hashes. Provider activation is explicitly set for this controlled operation fixture, NOT live activation proof. Expanded matrix **11/11 passed**, zero skips (`tron-contract-send-current.trx`); dependency build succeeded first. Recipient metadata/readback and live original-outcome/replication/hosted gates remain open. No install, live node submission or merge.

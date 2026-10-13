@@ -8,6 +8,21 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 public sealed class TronNftTransferSafetyTests
 {
     [Theory]
+    [InlineData("different-contract/1")]
+    [InlineData("fixture-contract/2")]
+    [InlineData("fixture-contract/not-a-token")]
+    public async Task ContradictoryOrMalformedSourceLocatorFailsBeforeActivation(string source)
+    {
+        var provider = new TRONOASIS();
+        var result = await provider.SendNFTAsync(new Core.Objects.NFT.Requests.SendWeb3NFTRequest {
+            TokenAddress="fixture-contract",TokenId="1",FromNFTTokenAddress=source,Amount=1 });
+        Assert.True(result.IsError); Assert.Null(result.Result);
+        Assert.IsType<ArgumentException>(result.Exception);
+        Assert.False(provider.IsProviderActivated);
+        Assert.DoesNotContain("signing key", result.Message);
+    }
+
+    [Theory]
     [InlineData("0")]
     [InlineData("9007199254740993")]
     public void SafeTransferRetainsExplicitTokenIdentityAndBothAddresses(string token)
