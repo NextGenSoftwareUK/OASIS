@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+Compound-version verification: real Mongo/SQLite All/Any positive/partial/full mismatch matrix now includes current0, exact3 and absent2 for sync/async bidirectional scenarios.4/4 pairing cases and rebuilt wider real Mongo transactions42/42 passed after repository signature/filter change. Existing reports `mongo-sqlite-v2-current.trx` and `mongo-single-node-transactions-current.trx`. Counts overlap; not proof of history/all operations/hosted compatibility.
+
 Mongo metadata version forwarding fixed: all four single/compound sync/async wrapper/repository signatures now carry version; Mongo query filters exact Version when nonzero instead of ignoring API argument. Real Mongo/SQLite single-key wrongVersion2/wrongTypeQuest exclusions pass in expanded four scenarios. Current0 remains current stored row, not historical-version proof. Report `TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`; compound explicit version and wider regression/API/packaged compatibility still require coverage.
 
 Real compound metadata checkpoint: sync/async Mongo/SQLite All/Any matching over Email+parkType checked with zero/one/two mismatches; exact target or empty result required, no false storage errors. Full four pairing scenarios passed (`TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`). This verifies two string fields; typed/nested/encrypted/manager/API semantics and version/type filter combinations remain gates.
