@@ -26,6 +26,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos send evidence through V2 retry classifier — 2026-10-12
+
+Added synchronous/asynchronous routing regressions using actual Cosmos SendNFTAsync with controlled SDK committed transfer/readback failure. Assert exact original hash, confirmed execution flag, preserved response/cause, then feed that same exception through existing controlled storage adapter into actual V2 router: first write once, alternate writes zero, same evidence returned. Complete cross-provider reconciliation class **36/36 passed**, zero skips (`cross-provider-reconciliation-current.trx`), retaining ordinary preflight failover controls and earlier TRON/Sui/Cosmos cases.
+
+This proves the real Cosmos error-production-to-router-classifier contract via an adapter; it is NOT direct NFT endpoint routing, live ledger transfer, HTTP hosting or crash recovery. No dependency installs, ledger writes, sponsorship or merge. Full relevant interfaces and deployed gates remain required.
+
 ### Cosmos committed NFT transfer readback retry fence — 2026-10-12
 
 Production audit found SendNFTAsync threw an ordinary InvalidOperationException when post-transfer readback failed, despite retaining a committed transaction response. Replaced post-commit error classification with existing CosmosNativeMutationReconciliationException (INativeMutationReconciliationRequired), original committed hash, executionSucceeded=true and retained underlying cause. Covers readback error/absent result and subsequent metadata assignment failures; preflight remains ordinary failure. No alternate transfer or lookup fallback added.

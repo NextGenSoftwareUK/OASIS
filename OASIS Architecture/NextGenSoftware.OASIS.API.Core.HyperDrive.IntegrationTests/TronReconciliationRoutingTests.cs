@@ -88,6 +88,35 @@ public class TronReconciliationRoutingTests
     }
 
     [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task CosmosCommittedNftSendReadbackEvidencePreventsAlternateWrite(bool asynchronous)
+    {
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        const string relative = "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests/Fixtures/nft-signer.mjs";
+        while (root != null && !File.Exists(Path.Combine(root.FullName, relative))) root = root.Parent;
+        Assert.NotNull(root);
+        var previous = Environment.GetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE", Path.Combine(root.FullName, relative));
+        try
+        {
+            using var provider = new API.Providers.CosmosBlockChainOASIS.CosmosBlockChainOASIS(
+                "http://127.0.0.1:1", "fixture-chain", "different-configured-key", "fixture-contract");
+            var send = await provider.SendNFTAsync(new API.Core.Objects.NFT.Requests.SendWeb3NFTRequest {
+                TokenAddress = "fixture-contract#fixture-token", FromWalletAddress = "fixture-owner",
+                ToWalletAddress = "fixture-recipient", OwnerPrivateKey = "test-only-explicit", Amount = 1 });
+            Assert.True(send.IsError);
+            var evidence = Assert.IsType<API.Providers.CosmosBlockChainOASIS.CosmosNativeMutationReconciliationException>(send.Exception);
+            Assert.Equal(new string('a', 64), evidence.OriginalTransactionId);
+            Assert.True(evidence.ExecutionSucceeded);
+            Assert.Equal(evidence.OriginalTransactionId, send.Result.SendNFTTransactionResult);
+            Assert.NotNull(evidence.InnerException);
+            await VerifyRouter(evidence, ProviderType.CosmosBlockChainOASIS, asynchronous, true);
+        }
+        finally { Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE", previous); }
+    }
+
+    [Theory]
     [InlineData("executed",false)] [InlineData("executed",true)]
     [InlineData("failed",false)] [InlineData("failed",true)]
     [InlineData("unknown",false)] [InlineData("unknown",true)]
