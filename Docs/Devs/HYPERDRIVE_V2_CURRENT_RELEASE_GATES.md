@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+Mongo runner reuse checkpoint: hosted-election runner no longer downloads/extracts MongoDB7/mongosh. It requires existing executable paths, defaults mongod to installed8.3, bounds each cache/oplog, preserves prior process environment and refuses existing ledger paths. Cleanup targets only directories created by this invocation after owned processes terminate. PowerShell parsing and diff checks passed; runtime ownership/election tests still required. No shell found in targeted PATH/Program Files/retained hosted-runtime inventory; no download or live run performed. Historical43 results remain historical, not current certification.
+
 SQLite immutable creation checkpoint: updates preserve persisted CreatedByAvatarId alongside the already-preserved CreatedDate, both for tracked rows and newly reopened contexts. Four real sync/async tracked/reopen checks pass; full suite28/28 (`TestResults/SQLiteCurrent/sqlite-immutable-audit-current.trx`). This prevents omitted creator fields erasing existing creation attribution. Other audit/classification fields and complete replication semantics remain open.
 
 SQLite audit checkpoint: repository mappings now persist/read CreatedByAvatarId, ModifiedByAvatarId, DeletedByAvatarId, DimensionLevel and SubDimensionLevel using existing columns. Null historical audit IDs represent Guid.Empty; invalid non-null IDs are not silently replaced. Sync/async public save plus fresh-provider readback tested. Full suite24/24 passed (`TestResults/SQLiteCurrent/sqlite-audit-current.trx`). Remaining scalar/classification/rich graph mappings, preservation semantics, historical versions and full V2 routing still require work.
