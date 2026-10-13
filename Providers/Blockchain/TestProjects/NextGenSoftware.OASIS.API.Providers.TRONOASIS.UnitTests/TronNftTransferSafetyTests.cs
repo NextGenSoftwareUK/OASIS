@@ -7,6 +7,27 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public sealed class TronNftTransferSafetyTests
 {
+    [Fact]
+    public async Task OversizedTokenIdentityFailsBeforeActivationOrSigning()
+    {
+        var provider = new TRONOASIS();
+        var result = await provider.SendNFTAsync(new Core.Objects.NFT.Requests.SendWeb3NFTRequest {
+            TokenAddress="fixture-contract",TokenId=(BigInteger.One << 256).ToString(),Amount=1 });
+        Assert.True(result.IsError);Assert.Null(result.Result);
+        Assert.IsType<ArgumentException>(result.Exception);
+        Assert.False(provider.IsProviderActivated);
+    }
+
+    [Fact]
+    public void LocatorPreservesMaximumUint256WithoutPrecisionLoss()
+    {
+        var expected=(BigInteger.One << 256)-1;
+        var parsed=((string Contract,BigInteger TokenId))typeof(TronNativeTransferClient)
+            .GetMethod("ParseNftAddress",BindingFlags.NonPublic|BindingFlags.Static)!
+            .Invoke(null,new object[]{"fixture-contract/"+expected})!;
+        Assert.Equal("fixture-contract",parsed.Contract);Assert.Equal(expected,parsed.TokenId);
+    }
+
     [Theory]
     [InlineData("different-contract/1")]
     [InlineData("fixture-contract/2")]

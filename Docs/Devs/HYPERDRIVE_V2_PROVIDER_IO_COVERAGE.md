@@ -26,6 +26,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Current complete TRON suite and uint256 send boundary — 2026-10-12
+
+Added public send preflight rejection of 2^256 before activation/signing and existing-parser preservation of maximum 2^256-1 exactly. Current complete TRON suite **285/285 passed**, zero skips/failures (`tron-current.trx`), covering latest standalone delivery response, conflicting selectors and native history additions. Reused current provider output from successful dependency build; no source changes to dependency since that build. No live ledger execution/install/merge; original uncertain transaction and live mutation replication remain fenced, and hosted interfaces/private recovery/native billing gates remain unproven.
+
 ### TRON send source locator consistency — 2026-10-12
 
 SendNFTAsync previously ignored populated FromNFTTokenAddress. Now reuses existing native contract/uint256 locator parser for selected contract/token and optional source locator; contradictory or malformed source selectors fail before activation/signing. This also applies existing uint256 bound before SDK construction. No guessing between identities or locator-only API expansion. Controlled tests reject foreign contract/serial/malformed token, and existing actual SDK/gRPC public-send case supplies agreeing source locator and still broadcasts once. Focused combined **18/18 passed**, zero skips (`tron-nft-selectors-current.trx`), dependency build succeeded first. Not live ledger/hosted certification; no installs, mutation or merge.
