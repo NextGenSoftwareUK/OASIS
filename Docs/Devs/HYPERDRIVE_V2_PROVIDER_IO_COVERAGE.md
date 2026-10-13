@@ -28,6 +28,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Standalone manager confirmed-send response — 2026-10-12
+
+Standalone manager sync/async success branches dereferenced optional Web3NFT (TRON returns only confirmed hash) and never populated ISendWeb4NFTResponse. Now populate SendTransactionResult from original confirmed provider response, update NFT send hash only when metadata supplied, and format both success messages. No synthetic NFT record or second send. New matrix covers sync/async with/without metadata, preserving one provider invocation. Focused manager class **6/6 passed**, zero skips (`nft-standalone-reconciliation-current.trx`), retaining earlier unresolved replay fences. Initial relative Core namespace resolved to ONODE.Core; corrected full namespace and rebuilt dependency first, zero errors/152 existing warnings.
+
+ONODE Core 128b0125990feb25542ae87fda5842cd9fc646d7 committed/pushed; parent gitlink and manifest updated together. Controlled manager/provider registry, not hosted positive delivery. No SDK install, ledger mutation or merge; malformed-success identity and ordinary retry policy still need audit.
+
 ### Standalone NFT manager retry fence — 2026-10-12
 
 Tracing off-chain flow found separate ONODE NFTManager standalone SendNFT/SendNFTAsync loops repeated provider send after reconciliation-required error when WaitTillNFTSent=true. Both now use existing Core NativeMutationReconciliation classifier before success/retry handling, throw original evidence to outer OASISResult handler, stop further send attempts. Existing mint-delivery one-shot helper is a separate path, not proof these loops were safe.
