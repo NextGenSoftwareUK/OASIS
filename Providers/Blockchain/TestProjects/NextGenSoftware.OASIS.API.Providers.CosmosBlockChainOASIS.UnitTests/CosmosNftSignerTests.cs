@@ -7,6 +7,34 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 public class CosmosNftSignerTests
 {
     [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task CommittedSendReadbackMustMatchRecipient(bool matching)
+    {
+        var previous = Environment.GetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE", Path.Combine(AppContext.BaseDirectory,"Fixtures","nft-signer.mjs"));
+        try
+        {
+            using var provider = new CosmosBlockChainOASIS("http://127.0.0.1:1","fixture-chain","different-configured-key","fixture-contract");
+            var result = await provider.SendNFTAsync(new SendWeb3NFTRequest {
+                TokenAddress="fixture-contract#"+(matching?"ownership-matching":"ownership-foreign"),
+                FromWalletAddress="fixture-owner",ToWalletAddress="fixture-recipient",OwnerPrivateKey="test-only-explicit",Amount=1 });
+            Assert.AreEqual(!matching,result.IsError);
+            Assert.AreEqual(new string('a',64),result.Result.SendNFTTransactionResult);
+            if (matching) Assert.AreEqual("fixture-recipient",result.Result.Web3NFT.SendToAddressAfterMinting);
+            else
+            {
+                Assert.IsInstanceOfType<CosmosNativeMutationReconciliationException>(result.Exception);
+                var evidence=(CosmosNativeMutationReconciliationException)result.Exception;
+                Assert.AreEqual(new string('a',64),evidence.OriginalTransactionId);
+                Assert.AreEqual(true,evidence.ExecutionSucceeded);
+                Assert.IsInstanceOfType<System.IO.InvalidDataException>(evidence.InnerException);
+            }
+        }
+        finally { Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",previous); }
+    }
+
+    [DataTestMethod]
     [DataRow("fixture-chain",false)] [DataRow("foreign-chain",true)] [DataRow("",true)]
     public async Task NativeFeeCapabilityRequiresConfiguredExactChain(string chain,bool rejected)
     {
