@@ -8,6 +8,38 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public sealed class TronWalletHistoryTests
 {
+    [Theory]
+    [InlineData("missing-asset")] [InlineData("negative-quantity")] [InlineData("foreign-wallet")]
+    public void NativeAssetHistoryRejectsMissingIdentityInvalidQuantityOrUnrelatedWallet(string mode)
+    {
+        var bytes=new byte[21];bytes[0]=0x41;bytes[20]=7;var owner=ByteString.CopyFrom(bytes);
+        var transaction=new Transaction{RawData=new Transaction.Types.raw{Timestamp=1700000000000}};
+        transaction.RawData.Contract.Add(new Transaction.Types.Contract{Type=Transaction.Types.Contract.Types.ContractType.TransferAssetContract,
+            Parameter=Any.Pack(new TransferAssetContract{OwnerAddress=owner,ToAddress=owner,
+                AssetName=mode=="missing-asset"?ByteString.Empty:ByteString.CopyFromUtf8("1000001"),Amount=mode=="negative-quantity"?-1:1})});
+        bytes[20]=8;var wallet=mode=="foreign-wallet"?ByteString.CopyFrom(bytes):owner;
+        var method=typeof(TronNativeTransferClient).GetMethod("MapWalletTransaction",BindingFlags.NonPublic|BindingFlags.Static)!;
+        var failure=Assert.Throws<TargetInvocationException>(()=>method.Invoke(null,new object[]{transaction,new TransactionInfo{Id=ByteString.CopyFrom(new byte[32])},wallet}));
+        Assert.IsType<InvalidOperationException>(failure.InnerException);
+    }
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public void NativeAssetHistoryRetainsRawIdentityQuantityAndOutcomeWithoutSunScaling(bool failed)
+    {
+        var bytes=new byte[21];bytes[0]=0x41;bytes[20]=7;var owner=ByteString.CopyFrom(bytes);
+        bytes[20]=8;var recipient=ByteString.CopyFrom(bytes);var assetId=ByteString.CopyFromUtf8("1000001");
+        var transaction=new Transaction{RawData=new Transaction.Types.raw{Timestamp=1700000000000}};
+        var contract=new Transaction.Types.Contract{Type=Transaction.Types.Contract.Types.ContractType.TransferAssetContract,
+            Parameter=Any.Pack(new TransferAssetContract{OwnerAddress=owner,ToAddress=recipient,AssetName=assetId,Amount=9007199254740993})};
+        transaction.RawData.Contract.Add(contract);
+        var receipt=new TransactionInfo{Id=ByteString.CopyFrom(new byte[32]),Result=(TransactionInfo.Types.code)(failed?1:0)};
+        var method=typeof(TronNativeTransferClient).GetMethod("MapWalletTransaction",BindingFlags.NonPublic|BindingFlags.Static)!;
+        var mapped=(NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses.IWalletTransaction)method.Invoke(null,new object[]{transaction,receipt,owner})!;
+        Assert.Equal("9007199254740993",mapped.RawAmount);Assert.Equal("TRC10-RAW/31303030303031",mapped.AmountUnit);
+        Assert.Equal("TransferAssetContract",mapped.NativeOperation);Assert.Equal(failed?"Failed":"Success",mapped.NativeExecutionResult);
+        Assert.Equal((double)9007199254740993m,mapped.Amount);
+        Assert.Equal(owner,typeof(TronNativeTransferClient).GetMethod("OriginalOperationOwner",BindingFlags.NonPublic|BindingFlags.Static)!.Invoke(null,new object[]{contract}));
+    }
     [Fact]
     public void PermissionUpdateMapsOwnerWithoutInventingTransferredFunds()
     {
