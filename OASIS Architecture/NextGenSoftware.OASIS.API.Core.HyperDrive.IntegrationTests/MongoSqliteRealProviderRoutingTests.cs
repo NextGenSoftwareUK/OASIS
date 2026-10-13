@@ -92,6 +92,21 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 query.Result.Select(x=>x.Id).Should().Equal(new[] { holon.Id }, "metadata key {0} must remain queryable", key);
             }
             balanceManager.RegisterProvider(mongo);
+            foreach (var mode in new[] { MetaKeyValuePairMatchMode.All, MetaKeyValuePairMatchMode.Any })
+            foreach (var mismatchCount in new[] { 0, 1, 2 })
+            {
+                var pairs = new Dictionary<string,string> { ["Email"] = mismatchCount == 2 ? "not-matching" : "priority@test.local",
+                    ["parkType"] = mismatchCount > 0 ? "not-matching" : holon.MetaData["parkType"].ToString() };
+                foreach (var query in new[] {
+                    synchronous ? mongo.LoadHolonsByMetaData(pairs,mode,loadChildren:false) : await mongo.LoadHolonsByMetaDataAsync(pairs,mode,loadChildren:false),
+                    synchronous ? sqlite.LoadHolonsByMetaData(pairs,mode,loadChildren:false) : await sqlite.LoadHolonsByMetaDataAsync(pairs,mode,loadChildren:false) })
+                {
+                    query.IsError.Should().BeFalse(query.Message);
+                    if (mismatchCount == 0 || (mode == MetaKeyValuePairMatchMode.Any && mismatchCount == 1))
+                        query.Result.Select(x=>x.Id).Should().Equal(holon.Id);
+                    else query.Result.Should().BeEmpty();
+                }
+            }
             balanceManager.RegisterProvider(sqlite);
             balanceManager.SetAndReplaceAutoLoadBalanceListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
             var timer = Stopwatch.StartNew();
