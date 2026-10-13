@@ -303,16 +303,26 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatar)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(avatar.IsNewHolon || avatar.CreatedDate == DateTime.MinValue ?
-               _avatarRepository.Add(DataHelper.ConvertOASISAvatarDetailToMongoEntity(avatar)) :
-               _avatarRepository.Update(DataHelper.ConvertOASISAvatarDetailToMongoEntity(avatar)));
+            var existing = _avatarRepository.GetAvatarDetail(avatar.Id);
+            if (existing.IsError) return DataHelper.ConvertMongoEntityToOASISAvatarDetail(existing);
+            var entity = DataHelper.ConvertOASISAvatarDetailToMongoEntity(avatar);
+            if (existing.Result == null) return DataHelper.ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.Add(entity));
+            entity.Id = existing.Result.Id;
+            entity.CreatedDate = existing.Result.CreatedDate;
+            entity.CreatedByAvatarId = existing.Result.CreatedByAvatarId;
+            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(_avatarRepository.Update(entity));
         }
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatar)
         {
-            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(avatar.IsNewHolon || avatar.CreatedDate == DateTime.MinValue ?
-               await _avatarRepository.AddAsync(DataHelper.ConvertOASISAvatarDetailToMongoEntity(avatar)) :
-               await _avatarRepository.UpdateAsync(DataHelper.ConvertOASISAvatarDetailToMongoEntity(avatar)));
+            var existing = await _avatarRepository.GetAvatarDetailAsync(avatar.Id);
+            if (existing.IsError) return DataHelper.ConvertMongoEntityToOASISAvatarDetail(existing);
+            var entity = DataHelper.ConvertOASISAvatarDetailToMongoEntity(avatar);
+            if (existing.Result == null) return DataHelper.ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.AddAsync(entity));
+            entity.Id = existing.Result.Id;
+            entity.CreatedDate = existing.Result.CreatedDate;
+            entity.CreatedByAvatarId = existing.Result.CreatedByAvatarId;
+            return DataHelper.ConvertMongoEntityToOASISAvatarDetail(await _avatarRepository.UpdateAsync(entity));
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
