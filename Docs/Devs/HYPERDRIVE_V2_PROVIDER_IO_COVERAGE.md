@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Mongo avatar/detail list version filters — 2026-10-13
+
+Real pairing failed4/4 because list wrappers discarded version. All four wrappers/repository methods now carry current0/exact version, filter in Mongo and materialize within original-error handling; async driver calls awaited. Expanded4/4 passes current/exact3 inclusion and mismatch2 exclusion for avatar/detail lists. Report `mongo-sqlite-v2-current.trx`. Actual list rejection, pagination/scale/history, changed-signature consumer builds/wider regression and hosted API remain open. Existing environment reused.
+
 ### Real Mongo authoritative detail absence versus stale secondary — 2026-10-13
 
 New real fixture stores detail only in SQLite, absent in Mongo. Sync/async V2 with Mongo primary/failover enabled returns non-error/null rather than stale secondary karma999; SQLite direct read stays999. Expanded pair4/4 passes (`mongo-sqlite-v2-current.trx`). Hosted API/legacy consumer compatibility and all-selector/provider gates remain open. Existing environment reused.
