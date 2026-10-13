@@ -383,7 +383,10 @@ public sealed class TronNativeTransferClient
             FromWalletAddress = Address(from),
             ToWalletAddress = contract.Type == Transaction.Types.Contract.Types.ContractType.CreateSmartContract
                 && to.IsEmpty && execution != "Success" ? null : Address(to),
-            Amount = (double)(amount / displayScale),
+            // Resource delegation does not pay TRX to the resource receiver.
+            // Preserve requested locked SUN in RawAmount, not the legacy transfer Amount.
+            Amount = contract.Type == Transaction.Types.Contract.Types.ContractType.FreezeBalanceContract
+                ? 0d : (double)(amount / displayScale),
             CreatedDate = DateTimeOffset.FromUnixTimeMilliseconds(transaction.RawData.Timestamp).UtcDateTime,
             TransactionType = from.Equals(wallet) ? Core.Enums.TransactionType.Debit : Core.Enums.TransactionType.Credit,
             Description = "TRON " + contract.Type + " (" + execution + "; amount is requested value): " + Convert.ToHexString(receipt.Id.Span).ToLowerInvariant()
