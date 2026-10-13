@@ -8,6 +8,72 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests;
 public class SuiPreparedLedgerTests
 {
     [TestMethod]
+    public async Task PublicMintRetainsOriginalAttemptInReusableMongo()
+    {
+        // Real durable outbox, controlled SDK/authority: no chain or fee claim.
+        const string connection = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.AreEqual(connection, Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null && !File.Exists(Path.Combine(directory.FullName, "Scripts/TestHosts/Run-ReusableUsageRecoveryTests.ps1"))) directory = directory.Parent;
+        Assert.IsNotNull(directory);
+        var journal = Path.Combine(directory!.FullName, "TestResults/SubscriptionUsageCurrent/sui-mint-owner-pending.json");
+        const string database = "usage_sui_mint_owner_fixture";
+        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+        var previous = Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE");
+        var complete = false;
+        using var journalFile = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
+        var mongo = new MongoDB.Driver.MongoClient(connection);
+        try
+        {
+            using (var databases = await mongo.ListDatabaseNamesAsync(cancellationToken: deadline.Token))
+            {
+                var names = await MongoDB.Driver.IAsyncCursorExtensions.ToListAsync(databases, deadline.Token);
+                Assert.IsFalse(names.Contains(database), "Existing fixture database requires reconciliation; never overwrite or delete it.");
+            }
+            var store = new MongoUsageOutboxStore(connection, database);
+            await store.InitializeAsync(deadline.Token);
+            var user = Guid.NewGuid().ToString("D");
+            using var http = new HttpClient(new TestAuthority(user));
+            var authority = new Web4SubscriptionAuthorizationClient(http, "https://test-authority.invalid", "WEB6", "test-key");
+            var execution = await new Web4UsageExecution(authority, store, new Web4UsageLedgerOptions { Service = "WEB6", PersistenceTimeout = TimeSpan.FromSeconds(5) })
+                .BeginAsync("test-only", user, "sui-mint-owner-fixture", new string('a', 64), "POST /controlled-mint-test",
+                    new UsageEndpointPolicy { MeterCategory = "api.request", ReservedUnits = 1 }, deadline.Token);
+            await JsonSerializer.SerializeAsync(journalFile, new { database, operationId = execution.OperationId,
+                recovery = "Controlled SDK evidence only. Preserve and inspect this outbox; never use these fixture bytes on a real chain." }, cancellationToken: deadline.Token);
+            journalFile.Flush(true);
+            Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE", Path.Combine(directory.FullName,
+                "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests/Fixtures/unlock-readback-failure.mjs"));
+            using var provider = new SuiOASIS("http://127.0.0.1:1", "localnet", "fixture-chain", privateKey: "test-only-secret");
+            var request = new Core.Objects.NFT.Requests.MintWeb3NFTRequest { Title = "identity/valid", NumberToMint = 2 };
+            var minted = await provider.MintNFTAsync(request, execution, "mint", deadline.Token);
+            Assert.IsFalse(minted.IsError, minted.Message);
+            var reopened = new MongoUsageOutboxStore(connection, database);
+            var retained = await reopened.GetAsync(execution.OperationId, deadline.Token);
+            Assert.AreEqual(1, retained.ProviderAttempts.Count);
+            var attempt = retained.ProviderAttempts.Single();
+            Assert.AreEqual("SuiOASIS", attempt.Provider);
+            Assert.AreEqual("mint", attempt.ClientRequestId);
+            Assert.AreEqual(minted.Result.TransactionResult, attempt.ProviderRequestId);
+            Assert.AreEqual("fixture-chain", attempt.NativePreparation.ChainId);
+            Assert.AreEqual("fixture-owner", attempt.NativePreparation.Sender);
+            Assert.AreEqual("AQID", attempt.NativePreparation.SignedTransactionBase64);
+            Assert.IsNull(attempt.AcknowledgedAtUtc);
+            Assert.IsNull(retained.Settlement);
+            var duplicate = await provider.MintNFTAsync(request, execution, "mint", deadline.Token);
+            Assert.IsTrue(duplicate.IsError, "Same owned attempt must not be submitted again.");
+            Assert.IsInstanceOfType<UsageProtocolException>(duplicate.Exception);
+            Assert.AreEqual(1, (await reopened.GetAsync(execution.OperationId, deadline.Token)).ProviderAttempts.Count);
+            await mongo.DropDatabaseAsync(database, deadline.Token);
+            complete = true;
+        }
+        finally
+        {
+            Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE", previous);
+            journalFile.Dispose();
+            if (complete) File.Delete(journal);
+        }
+    }
+    [TestMethod]
     public async Task ExistingOriginalFeeReceiptBindsActualPayerAndExactComponents()
     {
         var rpc=Environment.GetEnvironmentVariable("OASIS_SUI_TEST_RPC")??throw new InvalidOperationException("Retained RPC required.");Assert.IsTrue(new Uri(rpc).IsLoopback);
