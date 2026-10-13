@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+Real V2 partial replication checkpoint: sync/async SQLite primary writes succeed and remain readable when the actual LocalFile replica path is replaced with an owned blocking file. Result carries IsWarning, replica diagnostics report failed1/succeeded0 and identify LocalFile. Full focused class10/10 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-partial-current.trx`). No automatic replay/recovery claim; other operations/pairs and production recovery remain open.
+
 Real V2 synchronous/asynchronous checkpoint: expanded all three SQLite/LocalFile policy scenarios to both public RouteRequest and RouteRequestAsync. Suite8/8 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-sync-async-current.trx`), covering replicated initial/update/permanent-delete readbacks, filesystem-I/O failover and measured-latency selection, plus two LocalFile corruption-preservation cases. Child processing explicitly disabled: this report does not prove it or the other interface operations/provider pairs/hosted APIs. Existing fixed fixture reused and disposed.
 
 LocalFile deletion safety verified: actual corrupt JSON remains byte-for-byte unchanged after sync/async delete attempts; both return error with no deletion flags/count. Valid deletion returns IsDeleted/count1/record, not IsSaved, and subsequent load is absent. Existing real V2 class5/5 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-delete-safety-current.trx`), including the three policy scenarios. Fixed owned fixture cleaned after tests. This closes the focused unreadable-file deletion regression gate; broad provider certification remains open.
