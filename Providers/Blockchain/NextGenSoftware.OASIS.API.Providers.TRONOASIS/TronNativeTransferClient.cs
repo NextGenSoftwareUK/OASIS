@@ -1070,7 +1070,14 @@ public sealed class TronNativeTransferClient
             throw new TronBroadcastOutcomeUnknownException(transactionId,_genesisBlockId,
                 signed.RawData.Timestamp,signed.RawData.Expiration,new InvalidOperationException("TRON returned no broadcast acknowledgement."));
         if (!broadcast.Result)
+        {
+            // Protocol DUP_TRANSACTION_ERROR=5 and NOT_ENOUGH_EFFECTIVE_CONNECTION=11
+            // do not establish non-submission: the node may already retain the transaction.
+            if((int)broadcast.Code is 5 or 11)
+                throw new TronBroadcastOutcomeUnknownException(transactionId,_genesisBlockId,
+                    signed.RawData.Timestamp,signed.RawData.Expiration,new InvalidOperationException($"TRON broadcast requires original reconciliation: {broadcast.Code}"));
             throw new InvalidOperationException($"TRON rejected broadcast {transactionId}: {broadcast?.Code} {broadcast?.Message.ToStringUtf8()}");
+        }
 
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         deadline.CancelAfter(TimeSpan.FromMinutes(3));
