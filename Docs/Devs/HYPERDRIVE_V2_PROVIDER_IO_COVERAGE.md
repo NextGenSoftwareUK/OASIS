@@ -24,6 +24,14 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Current live Cosmos generic ABI and original fee proof — 2026-10-12
+
+Protected generic ABI fixture with fixed `generic-pending.jsonl`: CreateNew fences unknown previous runs; flushes owned chain/contract/key intent before mutation and original write/cleanup IDs after return; errors retain journal, success deletes it only after confirmed cleanup and absent-key readback. This is an intent/result fence, NOT pre-broadcast signed evidence or parent-host automatic recovery. Asset fixtures now require retained loopback chain and do not unnecessarily fund the recipient for this generic test; other token/NFT fixtures still need equivalent durable protection before broad reruns.
+
+Live generic ABI **1/1 passed**, zero skips, eight seconds (`cosmos-generic-live-current.trx`): actual signed put/query/status, unauthorized preflight (not uncertain submission), delete/status and absence. Original write `804C825E510E2091D3EF305EEB354D454F99B4D30FA69EAFBCDE49CF4DC4C13D`; distinct cleanup `0B6E6F114B85040B86A5BB27C0175387CADE793E6053B5D7CD6C5FCE4C5FFDD7`; exactly owned key removed and pending journal absent. Existing-original fee capability **1/1 passed**, zero skips (`cosmos-fee-live-current.trx`): exact chain/hash, actual owner payer, success and nonzero observed stake fee, without provider activation or another submission.
+
+Reused retained container/image/ledger/SDK, stopped wasmd with validated helper, original handle terminal; no installs/reset/merge/deployment. Native fee valuation/settlement, corrected full assets/history/custody, current V2 and parent-host recovery remain gates.
+
 ### Cosmos runtime gate cleared; live probe context bug fixed — 2026-10-12
 
 Current execution policy accepted normal startup of the exact retained oasis-wasmd container/pinned image and existing /root/.wasmd ledger; no policy workaround, genesis reset, install or deployment. RPC independently reported oasis-cosmos-local, existing height 8792 and catching_up false. First live read-only activation test failed: probe was not a signed operation, so SDK wallet/sender context was null before owner verification. Fixed the actual context owner: derive the configured official wallet for probe, while retaining the read-only CosmWasmClient and no signing/preparation/broadcast path.
