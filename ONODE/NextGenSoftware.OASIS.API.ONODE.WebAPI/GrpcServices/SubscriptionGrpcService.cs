@@ -10,29 +10,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
     public class SubscriptionGrpcService : Grpc.SubscriptionService.SubscriptionServiceBase
     {
         private readonly ISubscriptionService _subscriptionService;
+        private readonly SubscriptionPlanCatalogue _catalogue;
 
-        public SubscriptionGrpcService(ISubscriptionService subscriptionService)
+        public SubscriptionGrpcService(ISubscriptionService subscriptionService, SubscriptionPlanCatalogue catalogue)
         {
             _subscriptionService = subscriptionService;
+            _catalogue = catalogue;
         }
 
-        public override Task<JsonResponse> GetPlans(SubEmptyRequest request, ServerCallContext context)
+        public override async Task<JsonResponse> GetPlans(SubEmptyRequest request, ServerCallContext context)
         {
-            // Plans are hardcoded; return a stub JSON array
-            var plans = new[] {
-                new { id = "free", name = "Free", priceMonthly = 0 },
-                new { id = "bronze", name = "Bronze", priceMonthly = 9 },
-                new { id = "silver", name = "Silver", priceMonthly = 29 },
-                new { id = "gold", name = "Gold", priceMonthly = 99 }
-            };
-            return Task.FromResult(new JsonResponse { Json = JsonSerializer.Serialize(plans) });
+            try { return new JsonResponse { Json = JsonSerializer.Serialize(await _catalogue.GetAllAsync(context.CancellationToken)) }; }
+            catch (Exception ex) { return new JsonResponse { IsError = true, Message = ex.Message }; }
         }
 
         public override async Task<JsonResponse> GetMySubscriptions(SubByUserRequest request, ServerCallContext context)
         {
             try
             {
-                var record = await _subscriptionService.GetSubscriptionAsync(request.UserId);
+                var record = await _subscriptionService.GetSubscriptionAsync(SubscriptionServiceIdentity.RequireSubscriber(context.GetHttpContext(), request.UserId));
                 return new JsonResponse { Json = JsonSerializer.Serialize(record) };
             }
             catch (Exception ex) { return new JsonResponse { IsError = true, Message = ex.Message }; }
@@ -42,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
-                var orders = await _subscriptionService.GetOrdersAsync(request.UserId);
+                var orders = await _subscriptionService.GetOrdersAsync(SubscriptionServiceIdentity.RequireSubscriber(context.GetHttpContext(), request.UserId));
                 return new JsonResponse { Json = JsonSerializer.Serialize(orders) };
             }
             catch (Exception ex) { return new JsonResponse { IsError = true, Message = ex.Message }; }
@@ -53,7 +49,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
             try
             {
                 var now = DateTime.UtcNow;
-                var usage = await _subscriptionService.GetUsageAsync(request.UserId, now.Year, now.Month);
+                var usage = await _subscriptionService.GetUsageAsync(SubscriptionServiceIdentity.RequireSubscriber(context.GetHttpContext(), request.UserId), now.Year, now.Month);
                 return new JsonResponse { Json = JsonSerializer.Serialize(usage) };
             }
             catch (Exception ex) { return new JsonResponse { IsError = true, Message = ex.Message }; }
@@ -78,7 +74,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
         {
             try
             {
-                await _subscriptionService.SetPayAsYouGoAsync(request.UserId, request.Enabled);
+                await _subscriptionService.SetPayAsYouGoAsync(SubscriptionServiceIdentity.RequireSubscriber(context.GetHttpContext(), request.UserId), request.Enabled);
                 return new OASISGrpcResponse();
             }
             catch (Exception ex) { return new OASISGrpcResponse { IsError = true, Message = ex.Message }; }

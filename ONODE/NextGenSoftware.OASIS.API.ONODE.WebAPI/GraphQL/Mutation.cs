@@ -724,9 +724,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
             return Task.FromResult<string>(null);
         }
 
-        public async Task<bool> TogglePayAsYouGo(string userId, bool enable, [Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService)
+        public async Task<bool> TogglePayAsYouGo(string userId, bool enable, [Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService, [Service] Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor)
         {
-            await subscriptionService.SetPayAsYouGoAsync(userId, enable);
+            await subscriptionService.SetPayAsYouGoAsync(NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.SubscriptionServiceIdentity.RequireSubscriber(httpContextAccessor.HttpContext, userId), enable);
             return true;
         }
 
