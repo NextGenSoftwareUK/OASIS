@@ -129,12 +129,22 @@ def resolve_baseline(item, receipts):
     if receipt:
         baseline = receipt["sourceCommit"]
         graph = Graph(root, baseline)
-        owner_root, owner_commit, _ = graph.location(root / item["project"])
+        owner_root, owner_commit, owner_project = graph.location(root / item["project"])
         owner_url = normalize_url(graph.git(owner_root, "remote", "get-url", "origin"))
         correction = receipt.get("metadataCorrection")
         corrected = correction and commit == correction["recordedCommit"] and url == normalize_url(correction["recordedUrl"]) and owner_url == normalize_url(correction["actualOwner"])
-        if commit not in (baseline, owner_commit) or (url not in (owner_url, normalize_url("https://github.com/NextGenSoftwareUK/OASIS")) and not corrected):
+        if commit not in (baseline, owner_commit):
             raise ValueError(f"Catalog provenance contradicts reviewed publication: {package} {version}")
+        if url not in (owner_url, normalize_url("https://github.com/NextGenSoftwareUK/OASIS")) and not corrected:
+            # A reviewed global publication records its parent graph. Verify that
+            # any inherited stale URL was actually declared by that exact source,
+            # not an arbitrary foreign registry identity. Never infer a parent
+            # graph from a child commit or URL alone.
+            source_xml = ET.fromstring(graph.git(owner_root, "show", f"{owner_commit}:{owner_project}").lstrip("\ufeff"))
+            ids = {node.text for node in source_xml.iter() if node.tag.rsplit("}", 1)[-1] == "PackageId"}
+            urls = {normalize_url(node.text or "") for node in source_xml.iter() if node.tag.rsplit("}", 1)[-1] == "RepositoryUrl"}
+            if package not in ids or url not in urls:
+                raise ValueError(f"Catalog metadata differs from reviewed published source: {package} {version}")
         return baseline
     if url != normalize_url("https://github.com/NextGenSoftwareUK/OASIS"):
         raise ValueError(f"Component publication requires a reviewed parent dependency-graph receipt: {package} {version}")
