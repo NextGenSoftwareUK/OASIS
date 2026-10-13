@@ -28,6 +28,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Standalone NFT manager retry fence — 2026-10-12
+
+Tracing off-chain flow found separate ONODE NFTManager standalone SendNFT/SendNFTAsync loops repeated provider send after reconciliation-required error when WaitTillNFTSent=true. Both now use existing Core NativeMutationReconciliation classifier before success/retry handling, throw original evidence to outer OASISResult handler, stop further send attempts. Existing mint-delivery one-shot helper is a separate path, not proof these loops were safe.
+
+Current ONODE Core dependency build zero errors/152 existing warnings; new registry-controlled public sync/async manager tests **2/2 passed**, zero skips, original exception preserved and provider once despite wait option (`nft-standalone-reconciliation-current.trx`). Initial test used ProviderType rather than EnumValue, corrected test compile. Dependency source committed/pushed eff8bfdd69c46a9157f3ffde70e97bddecdd6049; parent gitlink/manifest advanced together. No SDK install, ledger mutation, hosted certification or merge; ordinary retry/success response behavior and off-chain integration still need review.
+
 ### Explicit off-chain NFT metadata request privacy fence — 2026-10-12
 
 Audit found Cosmos/Sui MintNFTAsync always serialized metadata on-chain even when StoreNFTMetaDataOnChain=false. Both now reject that explicitly unsupported choice before signing/SDK access, rather than publishing against the request. Current ABIs still require on-chain metadata; this fence is NOT off-chain functionality or full option support, which remains required work. Null/true behavior unchanged; no automatic storage-format migration or privacy decision assumed. RoyaltyPercentage is int? in the shared request, so suspected fractional truncation was not an active contract bug.
