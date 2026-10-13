@@ -185,14 +185,12 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
             deleted.IsDeleted.Should().BeTrue();
             deleted.DeletedCount.Should().Be(1);
             deleted.Result.Id.Should().Be(id);
-            deleted.Result.IsActive.Should().BeFalse();
-            deleted.Result.DeletedDate.Should().NotBe(default(DateTime));
+            (await provider.LoadHolonAsync(id, loadChildren:false)).Result.Should().BeNull();
         }
         using var reopened = new SQLLiteDBOASIS(TestConnectionString);
         (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
         var loaded = await reopened.LoadHolonAsync(id, loadChildren:false);
-        loaded.Result.IsActive.Should().BeFalse();
-        loaded.Result.DeletedDate.Should().NotBe(default(DateTime));
+        loaded.Result.Should().BeNull();
     }
 
     [Fact]
@@ -244,7 +242,7 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         provider.DeleteHolon("foreign-delete-key").IsError.Should().BeTrue();
         (await provider.LoadHolonAsync(holon.Id,loadChildren:false)).Result.IsActive.Should().BeTrue();
         (await provider.DeleteHolonAsync("local-delete-key")).IsError.Should().BeFalse();
-        (await provider.LoadHolonAsync(holon.Id,loadChildren:false)).Result.IsActive.Should().BeFalse();
+        (await provider.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Should().BeNull();
     }
 
     [Theory]
