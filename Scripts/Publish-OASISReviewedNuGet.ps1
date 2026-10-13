@@ -43,6 +43,21 @@ try {
         $matches = @($packages | Where-Object Name -eq $name)
         if ($matches.Count -ne 1) { throw "Missing or duplicated reviewed package: $name" }
         $localBytes = [IO.File]::ReadAllBytes($matches[0].FullName)
+        $identityStream = [IO.MemoryStream]::new($localBytes, $false)
+        $identityArchive = [IO.Compression.ZipArchive]::new($identityStream, [IO.Compression.ZipArchiveMode]::Read)
+        try {
+            $nuspecs = @($identityArchive.Entries | Where-Object FullName -like '*.nuspec')
+            if ($nuspecs.Count -ne 1) { throw "Expected exactly one package manifest: $name" }
+            $reader = [IO.StreamReader]::new($nuspecs[0].Open())
+            try { [xml]$nuspec = $reader.ReadToEnd() } finally { $reader.Dispose() }
+            $metadata = $nuspec.SelectSingleNode("/*[local-name()='package']/*[local-name()='metadata']")
+            if (-not $metadata) { throw "Missing package metadata: $name" }
+            $actualId = $metadata.SelectSingleNode("*[local-name()='id']").InnerText
+            $actualVersion = $metadata.SelectSingleNode("*[local-name()='version']").InnerText
+            if ($actualId -ne $planned.packageId -or $actualVersion -ne $planned.version) {
+                throw "Package manifest does not match reviewed identity: $name"
+            }
+        } finally { $identityArchive.Dispose(); $identityStream.Dispose() }
         $localEntries = Get-PackageEntries $localBytes
         $id = $planned.packageId.ToLowerInvariant()
         $version = $planned.version.ToLowerInvariant()
