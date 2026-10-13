@@ -31,9 +31,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     _dbContext.AvatarDetails
                         .Include(a => a.InventoryItems)
                         .Include(a => a.Stats)
+                        .Where(x => x.Id == id.ToString() && (version == 0 || x.Version == version))
                         .ToList()
                         .Select(GetAvatarDetailFromEntity)
-                    .FirstOrDefault(x => x.Id == id && (version == 0 || x.Version == version));
+                        .FirstOrDefault();
                 if (avatarDetailEntity == null)
                     return new OASISResult<IAvatarDetail>
                     {
@@ -67,9 +68,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 var avatarDetailEntity =
                     _dbContext.AvatarDetails
                         .Include(a => a.InventoryItems)
+                        .Include(a => a.Stats)
+                        .Where(x => x.Email == avatarEmail && (version == 0 || x.Version == version))
                         .ToList()
                         .Select(GetAvatarDetailFromEntity)
-                    .FirstOrDefault(x => x.Email == avatarEmail && (version == 0 || x.Version == version));
+                        .FirstOrDefault();
                 if (avatarDetailEntity == null)
                     return new OASISResult<IAvatarDetail>
                     {
@@ -103,9 +106,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 var avatarDetailEntity =
                     _dbContext.AvatarDetails
                         .Include(a => a.InventoryItems)
+                        .Include(a => a.Stats)
+                        .Where(x => x.Username == avatarUsername && (version == 0 || x.Version == version))
                         .ToList()
                         .Select(GetAvatarDetailFromEntity)
-                    .FirstOrDefault(x => x.Username == avatarUsername && (version == 0 || x.Version == version));
+                        .FirstOrDefault();
                 if (avatarDetailEntity == null)
                     return new OASISResult<IAvatarDetail>
                     {
@@ -138,8 +143,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 var obj = await _dbContext.AvatarDetails
                     .Include(a => a.InventoryItems)
-                    .Include(a => a.Stats)
-                    .Include(a => a.Stats)
                     .Include(a => a.Stats)
                     .Where(x => x.Id == id.ToString() && (version == 0 || x.Version == version))
                     .FirstOrDefaultAsync();
@@ -312,7 +315,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 var idStr = avatarDetailEntity.Id.ToString();
                 var existing = _dbContext.AvatarDetails
                     .Include(a => a.InventoryItems)
-                    .Include(a => a.Stats)
                     .Include(a => a.Stats)
                     .FirstOrDefault(x => x.Id == idStr);
 
