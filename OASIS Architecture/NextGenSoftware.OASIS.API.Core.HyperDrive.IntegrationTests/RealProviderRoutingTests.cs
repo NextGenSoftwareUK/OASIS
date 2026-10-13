@@ -57,6 +57,8 @@ public sealed class RealProviderRoutingTests : IDisposable
         detail.Stats.Mana.Current = 42;
         detail.Stats.Stamina.Current = 53;
         var item = new InventoryItem { Id = Guid.NewGuid(), Name = "owned-seed", Quantity = 3 };
+        item.Properties = new Dictionary<string,object> { ["species"] = "oak" };
+        item.MetaData["quest-source"] = "owned-tree";
         detail.Inventory.Add(item);
         var request = new StorageOperationRequest { Operation = "SaveAvatarDetail", Payload = detail, PreferredProvider = ProviderType.LocalFileOASIS };
         var router = new OASISHyperDrive(manager);
@@ -77,6 +79,8 @@ public sealed class RealProviderRoutingTests : IDisposable
                 loaded.Result.Stats.Stamina.Current.Should().Be(detail.Stats.Stamina.Current);
                 loaded.Result.Inventory.Single().Id.Should().Be(item.Id);
                 loaded.Result.Inventory.Single().Quantity.Should().Be(item.Quantity);
+                loaded.Result.Inventory.Single().Properties["species"].ToString().Should().Be("oak");
+                loaded.Result.Inventory.Single().MetaData["quest-source"].ToString().Should().Be("owned-tree");
             }
         }
         using var freshSqlite = new SQLLiteDBOASIS($"Data Source={SqlitePath};Pooling=False");
@@ -87,6 +91,8 @@ public sealed class RealProviderRoutingTests : IDisposable
         persisted.Result.Stats.Stamina.Current.Should().Be(54);
         persisted.Result.Inventory.Single().Id.Should().Be(item.Id);
         persisted.Result.Inventory.Single().Quantity.Should().Be(4);
+        persisted.Result.Inventory.Single().Properties["species"].ToString().Should().Be("oak");
+        persisted.Result.Inventory.Single().MetaData["quest-source"].ToString().Should().Be("owned-tree");
     }
 
     [Theory]
