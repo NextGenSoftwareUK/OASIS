@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera native/NFT bridge error preservation — 2026-10-12
+
+- Native and HTS NFT custodial bridge wrappers previously replaced failed transfer results with plain exceptions, losing original typed transaction uncertainty. Both now throw the existing transfer exception when present; missing exception/transaction evidence still returns an error. No retry or new transfer path added.
+- Provider build passed; **16/16 existing bridge preflight tests passed**, zero skips, `TestResults/HederaCurrent/hedera-bridge-error-preflight-current.trx`. These exercise input/pool/signing preflight behavior, not post-submission original-evidence preservation. Controlled SDK envelope entry tests and current wider regressions remain required, as do funded live bridge/interface tests.
+- No funded queries, testnet submissions, SDK install/download, new environment, deployment or merge. Production recovery and original broader provider gates remain open.
+
+
 ### Complete Sui unit regression after bridge correction — 2026-10-12
 
 - Complete current Sui unit suite **85/85 passed**, zero skips, 2m10s, `TestResults/SuiRuntime/sui-full-bridge-current.trx`, after original-error preservation fix. Includes the intentional native process timeout; waited for the same confirmed live handle to finish, no restart/new environment.
