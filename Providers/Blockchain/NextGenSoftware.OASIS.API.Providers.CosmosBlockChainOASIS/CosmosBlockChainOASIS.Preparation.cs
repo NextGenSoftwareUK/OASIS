@@ -10,6 +10,23 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
 
 public partial class CosmosBlockChainOASIS
 {
+    /// <summary>Bind all storage writes in this admitted operation to the existing durable usage owner.
+    /// Each native write has its own original signed identity; this does not settle fees or resolve prior attempts.</summary>
+    public async Task<T> ExecutePreparedStorageAsync<T>(Func<Task<T>> operation, UsageExecutionHandle execution,
+        string clientRequestId, string expectedSender, CancellationToken token = default)
+    {
+        token.ThrowIfCancellationRequested();
+        ArgumentNullException.ThrowIfNull(operation);
+        ArgumentNullException.ThrowIfNull(execution);
+        if (string.IsNullOrWhiteSpace(clientRequestId) || clientRequestId.Length > 128)
+            throw new ArgumentException("Bounded storage client request identity required.", nameof(clientRequestId));
+        if (string.IsNullOrWhiteSpace(expectedSender)) throw new ArgumentException("Expected storage signer required.", nameof(expectedSender));
+        var sequence = 0;
+        return await _sdkBackend.WithStoragePreparationAsync(operation, (_, _) =>
+            CreateNativePreparationServer(execution, clientRequestId + ".storage." + Interlocked.Increment(ref sequence),
+                _sdkBackend.ChainId, expectedSender));
+    }
+
     /// <summary>Explicit prepared native invocation; caller supplies admitted execution and trusted chain/signer context.</summary>
     public async Task<JsonElement> ExecutePreparedNativeAsync(string operation, object args, UsageExecutionHandle execution,
         string clientRequestId, string expectedChainId, string expectedSender, CancellationToken token = default)
