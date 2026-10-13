@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Mongo identity-based soft deletion — 2026-10-13
+
+Real soft-delete fixture with independent detail username reproduced global AvatarManager initialization failure in4/4 pairing cases. GUID paths now use session-bound identity reads and writes, shared UTC timestamp, acknowledged match/delete counts, and retained session/abort failure evidence. Storage no longer reads global login state. Real expanded4/4 passed (`TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`). Authenticated deleting-user attribution and activity filtering still need end-to-end API verification; other selector paths and production commit recovery remain open. This does not certify all deletion interfaces or solve outstanding recovery.
+
 ### Real Mongo commit replay fence — 2026-10-13
 
 Current four real pair scenarios verify actual app-scoped commit rejection produces original typed session/transaction evidence, prevents Mongo→SQLite fallback deletion, and preserves both stores. Test cleanup ends only exact owned session via killSessions, then ordinary replicated deletion succeeds.4/4 passed (`TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`). No production killSessions/recovery mechanism was introduced; durable evidence, production lock resolution and unknown network commit outcome remain gates. Earlier `mongo-avatar-commit-rejection-open.trx` retained, not relabeled green. No new runtime/download/environment.
