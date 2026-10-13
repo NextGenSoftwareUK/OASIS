@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Generic bulk provider-result diagnostic parity — 2026-10-12
+
+- Two new controlled-provider cases compare actual async generic/non-generic V2 batch saves for warning-bearing success and provider failure. Assert parity of saved/error/warning flags, error/warning counts, messages, error code and inner diagnostics, with exactly one provider invocation per request.
+- Focused **2/2** and full current Core **461/461 passed**, zero skips, `TestResults/CoreCurrent/generic-bulk-provider-diagnostics-current.trx` and `core-provider-diagnostics-full-current.trx`. These prove diagnostic mapping parity, not partial on-chain commits, transactional atomicity or live generic replication.
+- No production change/download/install/node/funds/deployment/merge; original broader gates remain open.
+
+
 ### Latest diagnostic-fix consumer regression refresh — 2026-10-12
 
 - Current Core pin `9cb23c72cc7c451d60db470954f55eac4888438e`: full Core **459/459 passed**, zero skips, `TestResults/CoreCurrent/core-bulk-diagnostics-full-current.trx`. Sequential BootLoader/ONODE Core/WEB4 rebuilds passed, zero errors (2/152/253 existing warnings).

@@ -25,6 +25,30 @@ public sealed class HyperDriveProviderExecutionTests
 {
     [Theory]
     [InlineData(false)] [InlineData(true)]
+    public async Task GenericAsyncBulkRetainsNonGenericProviderDiagnostics(bool failure)
+    {
+        var dna=CreateDna(HyperDriveModes.V2);
+        var provider=CreateActiveProvider(ProviderType.SQLLiteDBOASIS,"bulk-diagnostics");
+        provider.Setup(value=>value.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        var holon=new Holon { Id=Guid.NewGuid(),Name="bulk-diagnostics" };
+        provider.Setup(value=>value.SaveHolonsAsync(It.IsAny<IEnumerable<IHolon>>(),true,true,0,0,true,false))
+            .ReturnsAsync(()=>new OASISResult<IEnumerable<IHolon>> {
+                Result=failure?null:new[]{holon},IsError=failure,ErrorCount=failure?2:0,
+                IsWarning=true,WarningCount=3,Message="original provider diagnostics",
+                ErrorCode=failure?"CONTROLLED_BULK_FAILURE":null,InnerMessages=new(){"first diagnostic","second diagnostic"} });
+        var providers=new ProviderManager(null,dna){IsAutoFailOverEnabled=false,IsAutoReplicationEnabled=false,IsAutoLoadBalanceEnabled=false};
+        providers.RegisterProvider(provider.Object);providers.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+        var manager=new HolonManager(null,dna,providers);var actor=Guid.NewGuid();
+        var baseline=await manager.SaveHolonsAsync(new[]{holon},actor,providerType:ProviderType.SQLLiteDBOASIS);
+        var generic=await manager.SaveHolonsAsync<Holon>(new[]{holon},actor,providerType:ProviderType.SQLLiteDBOASIS);
+        generic.IsError.Should().Be(baseline.IsError);generic.IsWarning.Should().Be(baseline.IsWarning);
+        generic.IsSaved.Should().Be(baseline.IsSaved);generic.ErrorCount.Should().Be(baseline.ErrorCount);
+        generic.WarningCount.Should().Be(baseline.WarningCount);generic.Message.Should().Be(baseline.Message);
+        generic.ErrorCode.Should().Be(baseline.ErrorCode);generic.InnerMessages.Should().Equal(baseline.InnerMessages);
+        provider.Invocations.Count(call=>call.Method.Name=="SaveHolonsAsync").Should().Be(2);
+    }
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
     public void GenericSynchronousV2SaveFailsOverOnlyForKnownAvailabilityFailure(bool uncertain)
     {
         var dna=CreateDna(HyperDriveModes.V2);dna.OASIS.SubscriptionConfig.PlanType="Gold";
