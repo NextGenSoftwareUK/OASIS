@@ -26,6 +26,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Retained real SDK packaging verifier execution — 2026-10-12
+
+Executed current Docker/verify-provider-sdk-bridge.mjs against existing source Cosmos, Hedera and Sui SdkBridge directories. All three passed syntax/import resolution/direct manifest-lock-installed pin checks; Cosmos additionally passed reviewed SDK patch --check. Source project inspection confirms CopyToOutput/CopyToPublish declarations for bridge manifests and shared prepared-submission companion (and Cosmos SDK patch). Existing source runtime/dependencies reused; no npm ci, download, image build or ledger access. Free C bytes 100,113,108,992 after checks. This proves Windows retained source SDK installation, not published Linux tree/image or authenticated hosted API; those gates remain open and no merge occurred.
+
 ### SDK packaging side-effect import gap closed — 2026-10-12
 
 Current Railway manifest/seven Dockerfile/parent gitlink validator passed. Packaging SDK verifier omitted side-effect imports, allowing an absent companion module to evade its import inventory. Extended existing scanner to side-effect local/external imports; controlled absent companion rejects and installed pinned side-effect SDK accepts without executing bridge entry. Complete verifier suite **9/9 passed**, zero skips. Tiny owned generated fixtures removed by existing test finally; no SDK download/image build/deployment. Static regex scanner still is not a full JavaScript module parser; passing syntax/import/pin checks alone does not prove Linux runtime or hosted endpoints. Release merge remains gated.
