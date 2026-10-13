@@ -14,6 +14,7 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 | Area | Current evidence | Remaining gate |
 | --- | --- | --- |
+| Mongo/SQLite priority foundation | Historical Mongo43 and narrow V2 local store tests; SQLite current-row version/type/metadata fixes with real integration4 passed | SQLite schema upgrade/history/provider-key/children/full interfaces; current Mongo implementation/API/routing audit and real complete matrix |
 | Cosmos | Actual retained-chain encrypted query test covers all golden exemption keys plus AppRegion; typed mint owner/Mongo proof; full119 and affected subsets passed; historical V2 live subsets | Typed/combined query parity across manager+provider, live owned mint/escrow/crash recovery, host/valuation/resolver, complete interfaces/API/failure matrix and published Linux |
 | Sui | Actual retained-chain equality queries cover golden metadata keys+AppRegion; typed mint owner/Mongo proof; current affected subsets and earlier full97; historical V2 live subsets | Typed/compound/manager query parity, deployed host/receipt/valuation, crash recovery/live NFT ownership; complete custody/options/routing/API |
 | TRON | 294 unit tests passed; read-only actual retained-node inspection preserves revision/fence; selected real read distribution/closed-transport failover passed | Original uncertain mutation reconciliation, current mutation/replication, all response classifications/options/API |
@@ -29,11 +30,11 @@ Counts are revision-scoped and overlap. Do not add them together or claim all en
 
 ## Work order
 
-1. Implement production native recovery in the actual execution host with original signed evidence and approved valuation; do not register a guessed resolver in WEB4 merely because it is the billing authority. No zero-charge inference or rebroadcast.
+1. Return to the user-approved provider order: MongoDB/SQLite, Ethereum/Solana, IPFS, clouds, L2s, Neo4j, remaining chains, protocol integrations. Current SQLite fixes are incomplete; historical passing subsets do not certify priority providers. Preserve native uncertainty fences and the original four-chain completion scope.
 2. Close unified encryption configuration/policy and live registration gaps without exposing legacy exempt private fields on-chain or breaking database indexes.
 3. Complete live interfaces/options and failure/distribution matrices; preserve uncertain transaction ownership. Resume funded Hedera only when adequately funded, without real-money fees.
 4. Prove authenticated API and published Linux packaging in approved existing infrastructure. Do not create another Docker/runtime environment by default.
-5. Apply the documented higher-priority broader provider order (Mongo/SQLite, Ethereum/Solana, IPFS, clouds, L2s, Neo4j, remaining chains, protocol integrations). This does not remove any provider from the requested completion scope.
+5. Complete production native recovery in the actual execution host with original signed evidence and approved valuation; no guessed resolver, zero-charge inference or rebroadcast. Do not let lower-priority chain work indefinitely displace the agreed order.
 6. Audit every original requirement against current authoritative evidence. Merge/push to dev and promote only after all required gates pass; current green subsets are insufficient.
 
 ## Documents
