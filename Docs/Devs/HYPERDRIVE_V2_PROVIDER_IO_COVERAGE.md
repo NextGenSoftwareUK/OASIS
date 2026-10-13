@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+Current verification after user-confirmed cleanup completion (2026-10-13): restored required TRON unit-test dependency graph into the existing shared NuGet cache, which cleanup had removed; no new environment/checkout/runtime. Bounded current provider build0errors/23warnings, consumer0errors/2warnings. First compilation found ambiguous Enum in added negative test; qualified System.Enum. Full current **299/299 passes, zero skips**, fixed report `TestResults/HyperDriveTron/tron-unit-current.trx`527222bytes. Provider/test-output DLL hashes both5DD6454CEDCE7D7203F2BA4F693162F09815242BBAF3FE56769C0C0EC32466CC. This supersedes draft-only status immediately below, not live/native/API/recovery gates. Windows free132383277056→130237968384bytes (~2.00GiB net dependency/build footprint), shared cache retained for reuse.
+
+Retained offline SDK refresh (2026-10-13): Hedera101/101, Cosmos56/56, Sui26/26, zero skips; all three existing `Docker/verify-provider-sdk-bridge.mjs` packaging checks passed. Direct terminal Node test output, no persistent TAP files, downloads, funded transactions or chain mutation. Scope is SDK imports/wire validation and controlled transport/receipt behavior; not live policy/all-interface or published-host proof. See current release gates for commands and unresolved requirements.
+
 TRON draft regression expansion during ongoing cleanup (2026-10-13): added two failed-receipt/foreign-wallet cases and one undefined-unstaking-resource case to the previous two native unstake/reward mapping cases. These five new cases are NOT compiled/run; existing294 result cannot certify current source. No build/restore/cache repopulation/ledger mutation/new environment. Current gate navigation updated to reflect unverified source and latest cleanup ledger, not historical all-green assumptions.
 
 ### User-authorized commit-first checkout/output cleanup — 2026-10-13

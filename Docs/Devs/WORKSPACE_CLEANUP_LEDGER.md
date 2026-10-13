@@ -85,4 +85,4 @@ Do not rerun `cleanup-stale-holochain-build.sh` expecting further recovery: its 
 - Private `BuildLogs`, DPAPI test identities, live account keys, pending Cosmos/TRON/native deployment journals and necessary current test evidence.
 - Conda environments `piper-art`, `slp`, `mfa`: ownership/continued need unresolved. Their33GiB combined installation footprint is not proof of33GiB newly leaked data.
 - NEAR runtime/build folders have not been removed; source/dependency ownership needs review before disposal.
-- Requested150GB recovery is unfinished. Last observed123.29GiB =132.38GB free, while another cleanup is active.
+- Requested150GB recovery is unfinished. Last observed123.29GiB =132.38GB free before resuming dependency verification. User subsequently confirmed concurrent cleanup finished. The shared global NuGet packages directory was removed; required dependencies may now be restored into that same cache, without another environment or checkout. Reuse remains mandatory globally in `C:/Users/david/.codex/AGENTS.md`.

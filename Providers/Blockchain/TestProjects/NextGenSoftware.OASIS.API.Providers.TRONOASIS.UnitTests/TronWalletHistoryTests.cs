@@ -40,7 +40,7 @@ public sealed class TronWalletHistoryTests
         var bytes=new byte[21];bytes[0]=0x41;bytes[20]=7;var owner=ByteString.CopyFrom(bytes);
         var request=new UnfreezeBalanceContract { OwnerAddress=owner };
         var resource=typeof(UnfreezeBalanceContract).GetProperty(nameof(UnfreezeBalanceContract.Resource))!;
-        resource.SetValue(request,Enum.ToObject(resource.PropertyType,999));
+        resource.SetValue(request,System.Enum.ToObject(resource.PropertyType,999));
         var transaction=new Transaction { RawData=new Transaction.Types.raw { Timestamp=1700000000000 } };
         transaction.RawData.Contract.Add(new Transaction.Types.Contract {
             Type=Transaction.Types.Contract.Types.ContractType.UnfreezeBalanceContract,Parameter=Any.Pack(request) });
