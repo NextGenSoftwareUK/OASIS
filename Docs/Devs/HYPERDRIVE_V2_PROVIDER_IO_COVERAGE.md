@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Full Sui fee-chain regression and Cosmos existing chain invariant — 2026-10-12
+
+Complete current Sui suite **78/78 passed**, zero skips, including real two-minute process deadline (`sui-current.trx`), after fee-chain binding. Cosmos capability boundary **3/3 passed**, zero skips (`cosmos-fee-chain-current.trx`): absent chain rejected by existing constructor, foreign returned chain rejected by existing fee reader, matching charged-failure evidence retains explicit false outcome and nonzero exact amount. Initial empty-chain test expected a result but constructor already rejected it; corrected test to enforce the actual invariant and removed an unnecessary duplicate production guard. Cosmos production code unchanged in this checkpoint.
+
+Source audit confirms Cosmos SDK verifies exact signed transaction hash, observed fee deduction versus signed fee amount, explicit payer/granter, fee denomination uniqueness and execution code; no speculative parallel validation/parser added. This is source plus controlled process evidence, not current live Cosmos consensus; complete 102-case Cosmos suite remains to rerun after the three added tests. Build zero errors/two restore pruning warnings. No network mutation, installs, merge or deployment; remaining live, recovery, private-storage and hosted gates stay open.
+
 ### Sui fee evidence binds explicit configured genesis chain — 2026-10-12
 
 Sui's C# fee reader now requires an explicit configured chain ID and matches returned chainIdentifier exactly, rather than accepting any nonempty value. Existing SDK chain check remains; C# boundary also protects alternate process replies. Shared SDK client exposes its configured ID internally, without a second transport/configuration owner. Controlled capability cases **3/3 passed**, zero skips (`sui-fee-chain-current.trx`): exact match, foreign chain and absent configured chain. Matching charged-failure receipt preserves success=false and exact nonzero units; rejected evidence remains undefined and provider inactive.

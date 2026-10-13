@@ -7,6 +7,27 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 public class CosmosNftSignerTests
 {
     [DataTestMethod]
+    [DataRow("fixture-chain",false)] [DataRow("foreign-chain",true)] [DataRow("",true)]
+    public async Task NativeFeeCapabilityRequiresConfiguredExactChain(string chain,bool rejected)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","nft-signer.mjs"));
+        try{
+            if(chain==""){
+                Assert.ThrowsException<ArgumentException>(()=>new CosmosBlockChainOASIS("http://127.0.0.1:1",chain));return;
+            }
+            using var provider=new CosmosBlockChainOASIS("http://127.0.0.1:1",chain);
+            Core.Interfaces.IOASISNativeFeeReceiptProvider capability=provider;
+            var result=await capability.GetNativeFeeReceiptAsync(new string('a',64));
+            Assert.AreEqual(rejected,result.IsError);Assert.IsFalse(provider.IsProviderActivated);
+            if(rejected)Assert.AreEqual(System.Text.Json.JsonValueKind.Undefined,result.Result.ValueKind);
+            else{
+                Assert.AreEqual(chain,result.Result.GetProperty("chainId").GetString());Assert.IsFalse(result.Result.GetProperty("success").GetBoolean());
+                Assert.AreEqual("5",result.Result.GetProperty("fees")[0].GetProperty("amount").GetString());
+            }
+        }finally{Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",previous);}
+    }
+    [DataTestMethod]
     [DataRow("failed")] [DataRow("executed")] [DataRow("unknown")]
     [DataRow("bad-status")] [DataRow("bad-shape")] [DataRow("missing-status")]
     [DataRow("bad-error")] [DataRow("missing-error")] [DataRow("ordinary")]
