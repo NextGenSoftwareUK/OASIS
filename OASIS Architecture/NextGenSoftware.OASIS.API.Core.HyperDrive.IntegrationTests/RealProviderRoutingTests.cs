@@ -81,6 +81,14 @@ public sealed class RealProviderRoutingTests : IDisposable
             stored.MetaData["Email"].ToString().Should().Be("private-query@test.local");
         }
         manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+        var deleted = await new OASISHyperDrive(manager).RouteRequestAsync<IHolon>(
+            new StorageOperationRequest { Operation = "DeleteHolon", HolonId = holon.Id, SoftDelete = false, PreferredProvider = ProviderType.LocalFileOASIS });
+        deleted.IsError.Should().BeFalse(deleted.Message);
+        deleted.IsDeleted.Should().BeTrue();
+        (await local.LoadHolonAsync(holon.Id)).Result.Should().BeNull();
+        (await sqlite.LoadHolonAsync(holon.Id)).Result.Should().BeNull();
+        manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+        manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
     }
 
     [Fact]
