@@ -133,6 +133,9 @@ jobs:
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - name: Verify source-aware NuGet planning invariants
         run: python -B Scripts/test_nuget_source_graph.py
+      - name: Verify NuGet version-selection invariants
+        shell: pwsh
+        run: ./Scripts/Test-NuGetVersionSelection.ps1
       - name: Checkout pinned source-graph dependencies
         shell: bash
         run: |
