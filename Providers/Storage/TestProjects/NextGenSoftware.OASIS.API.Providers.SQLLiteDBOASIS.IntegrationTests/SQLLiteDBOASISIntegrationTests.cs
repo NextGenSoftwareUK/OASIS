@@ -58,6 +58,19 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         loaded.Result.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS].Should().Be("foreign-avatar-key");
         (await provider.LoadAvatarByProviderKeyAsync("foreign-avatar-key")).Result.Should().BeNull();
         provider.LoadAvatarByProviderKey("local-avatar-key",version:2).Result.Should().BeNull();
+        var duplicate = new Avatar { Id = Guid.NewGuid(), Username = "conflicting-key-avatar",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        duplicate.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS] = "local-avatar-key";
+        var rejected = synchronous ? provider.SaveAvatar(duplicate) : await provider.SaveAvatarAsync(duplicate);
+        rejected.IsError.Should().BeTrue();
+        rejected.Exception.Should().NotBeNull();
+        (await provider.LoadAvatarAsync(duplicate.Id)).Result.Should().BeNull();
+        (await provider.LoadAvatarByProviderKeyAsync("local-avatar-key")).Result.Id.Should().Be(avatar.Id);
+        var next = new Avatar { Id = Guid.NewGuid(), Username = "valid-after-key-rejection",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        var saved = synchronous ? provider.SaveAvatar(next) : await provider.SaveAvatarAsync(next);
+        saved.IsError.Should().BeFalse(saved.Message);
+        (await provider.LoadAvatarAsync(next.Id)).Result.Id.Should().Be(next.Id);
     }
 
     [Theory]
