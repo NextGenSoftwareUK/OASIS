@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+Real V2 read-policy checkpoint: sync/async reads with configured lists and disabled load balancing retain active LocalFile despite secondary-favoring performance metrics. With failover enabled, authoritative primary absence does not return a stale SQLite replica. Four new cases/full class16/16 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-read-policies-current.trx`). These are real-store behavior assertions, not full read-selector consistency/latency strategy/API coverage.
+
 Real V2 disabled-policy checkpoint: with real providers and both lists configured, disabled replication leaves SQLite empty after successful LocalFile primary write; disabled failover leaves SQLite empty after actual primary I/O failure and returns error. Sync/async both checked; class12/12 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-disabled-current.trx`). This verifies these two flags, not disabled load balancing or complete configuration combinations.
 
 Real V2 partial replication checkpoint: sync/async SQLite primary writes succeed and remain readable when the actual LocalFile replica path is replaced with an owned blocking file. Result carries IsWarning, replica diagnostics report failed1/succeeded0 and identify LocalFile. Full focused class10/10 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-partial-current.trx`). No automatic replay/recovery claim; other operations/pairs and production recovery remain open.
