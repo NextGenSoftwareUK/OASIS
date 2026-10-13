@@ -11,6 +11,40 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 public class EncryptedKeyValueBackendTests
 {
     [TestMethod]
+    public async Task PersistedPrivateCompositionRestartsAndVerifiesWithoutChangingEncryptedRecords()
+    {
+        var store=new InMemoryBackend();
+        var persisted=RandomNumberGenerator.GetBytes(32);
+        var resolved=(byte[])persisted.Clone();
+        using(var first=new PersistedPrivateKeyValueBackend(store,()=>resolved))
+        {
+            await first.PutAsync("avatar/email/private@example.invalid","private avatar value");
+            Assert.IsTrue(resolved.All(value=>value==0));
+        }
+        var before=store.Items.OrderBy(pair=>pair.Key).ToArray();
+        Assert.IsFalse(before.Any(pair=>pair.Key.Contains("private@example.invalid")||pair.Value.Contains("private avatar value")));
+        using(var reopened=new PersistedPrivateKeyValueBackend(store,()=>(byte[])persisted.Clone()))
+        {
+            await reopened.VerifyAsync();
+            Assert.AreEqual("private avatar value",await reopened.GetAsync("avatar/email/private@example.invalid"));
+        }
+        CollectionAssert.AreEqual(before,store.Items.OrderBy(pair=>pair.Key).ToArray());
+        using var wrong=new PersistedPrivateKeyValueBackend(store,()=>RandomNumberGenerator.GetBytes(32));
+        await Assert.ThrowsExceptionAsync<AuthenticationTagMismatchException>(()=>wrong.VerifyAsync());
+        CollectionAssert.AreEqual(before,store.Items.OrderBy(pair=>pair.Key).ToArray());
+    }
+
+    [TestMethod]
+    public async Task MissingPrivateStorageKeyCannotActivateOrWritePlaintext()
+    {
+        var store=new InMemoryBackend();
+        using var backend=new PersistedPrivateKeyValueBackend(store,()=>null!);
+        await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>backend.VerifyAsync());
+        await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>backend.PutAsync("private","value"));
+        Assert.AreEqual(0,store.Items.Count);
+    }
+
+    [TestMethod]
     public async Task AuthenticatedCompressedRecordsRejectExpansionBombAndInvalidGzip()
     {
         var store = new InMemoryBackend();
