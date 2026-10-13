@@ -30,6 +30,7 @@ public sealed class CosmosRealProviderRoutingTests
         Path.GetFileName(root).Should().Be("HyperDriveCosmos");
         Directory.CreateDirectory(root);
         using var lease = new FileStream(Path.Combine(root, "store.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        File.Exists(Path.Combine(root,"replication-pending.json")).Should().BeFalse("reconcile prior owned replication intent before outage tests");
         using var cosmos = new CosmosBlockChainOASIS(rpc, Required("OASIS_COSMOS_TEST_CHAIN"),
             Required("OASIS_COSMOS_TEST_KEY"), Required("OASIS_COSMOS_TEST_CONTRACT"),
             "wasm", "0.025stake", "stake");
@@ -41,6 +42,7 @@ public sealed class CosmosRealProviderRoutingTests
             { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
         var manager = new ProviderManager(null, dna)
             { IsAutoFailOverEnabled = true, IsAutoReplicationEnabled = false, IsAutoLoadBalanceEnabled = false };
+        dna.OASIS.SubscriptionConfig.PlanType="Gold";
         manager.RegisterProvider(cosmos);
         manager.RegisterProvider(local);
         manager.SetAndActivateCurrentStorageProvider(cosmos).IsError.Should().BeFalse();
@@ -106,11 +108,17 @@ public sealed class CosmosRealProviderRoutingTests
             { HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
         var manager = new ProviderManager(null, dna)
             { IsAutoFailOverEnabled = false, IsAutoReplicationEnabled = true, IsAutoLoadBalanceEnabled = false };
+        dna.OASIS.SubscriptionConfig.PlanType="Gold";
         manager.RegisterProvider(local);
         manager.RegisterProvider(cosmos);
         manager.SetAndReplaceAutoReplicationListForProviders(new[]
             { new EnumValue<ProviderType>(ProviderType.LocalFileOASIS), new EnumValue<ProviderType>(ProviderType.CosmosBlockChainOASIS) })
             .IsError.Should().BeFalse();
+        var journalPath=Path.Combine(root,"replication-pending.json");
+        using var journal=new FileStream(journalPath,FileMode.CreateNew,FileAccess.Write,FileShare.Read);
+        await System.Text.Json.JsonSerializer.SerializeAsync(journal,new{chain=Required("OASIS_COSMOS_TEST_CHAIN"),contract=Required("OASIS_COSMOS_TEST_CONTRACT"),
+            holonId=holon.Id,avatarId=avatar.Id,avatar.Username,avatar.Email,recovery="Inspect exactly owned records; do not repeat an uncertain replication run."});
+        journal.Flush(true);var verifiedComplete=false;
         try
         {
             var router = new OASISHyperDrive(manager);
@@ -175,6 +183,24 @@ public sealed class CosmosRealProviderRoutingTests
             loaded.IsError.Should().BeFalse(loaded.Message);
             loaded.Result.Name.Should().Be(holon.Name);
             manager.PerformanceMonitor.GetMetrics(expected).TotalRequests.Should().Be(before + 1);
+            dna.OASIS.SubscriptionConfig.PlanType="Free";
+            var excludedBefore=manager.PerformanceMonitor.GetMetrics(ProviderType.CosmosBlockChainOASIS).TotalRequests;
+            foreach(var strategy in new[]{LoadBalancingStrategy.RoundRobin,LoadBalancingStrategy.WeightedRoundRobin,LoadBalancingStrategy.LeastConnections,LoadBalancingStrategy.Geographic,LoadBalancingStrategy.Performance}){
+                var request=new StorageOperationRequest{Operation="LoadHolon",HolonId=holon.Id,LoadChildren=false};
+                foreach(var permitted in new[]{router.RouteRequest<IHolon>(request,strategy),await router.RouteRequestAsync<IHolon>(request,strategy)}){
+                    permitted.IsError.Should().BeFalse(permitted.Message);permitted.Result.Id.Should().Be(holon.Id);
+                    manager.LastProviderSelectionDiagnostic.Candidates.Select(value=>value.Provider).Should().Equal(ProviderType.LocalFileOASIS);
+                }
+            }
+            manager.PerformanceMonitor.GetMetrics(ProviderType.CosmosBlockChainOASIS).TotalRequests.Should().Be(excludedBefore);
+            dna.OASIS.SubscriptionConfig.PlanType="Gold";
+            var roundRobinBefore=new[]{ProviderType.LocalFileOASIS,ProviderType.CosmosBlockChainOASIS}.ToDictionary(type=>type,type=>manager.PerformanceMonitor.GetMetrics(type).TotalRequests);
+            for(var index=0;index<6;index++){
+                var request=new StorageOperationRequest{Operation="LoadHolon",HolonId=holon.Id,LoadChildren=false};
+                var balanced=index%2==0?router.RouteRequest<IHolon>(request,LoadBalancingStrategy.RoundRobin):await router.RouteRequestAsync<IHolon>(request,LoadBalancingStrategy.RoundRobin);
+                balanced.IsError.Should().BeFalse(balanced.Message);balanced.Result.Id.Should().Be(holon.Id);
+            }
+            foreach(var type in roundRobinBefore.Keys)manager.PerformanceMonitor.GetMetrics(type).TotalRequests.Should().Be(roundRobinBefore[type]+3);
             manager.IsAutoLoadBalanceEnabled = false;
             manager.IsAutoReplicationEnabled = true;
             var removed = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
@@ -200,6 +226,7 @@ public sealed class CosmosRealProviderRoutingTests
             (await cosmos.LoadAvatarByUsernameAsync(avatar.Username)).Result.Should().BeNull();
             (await cosmos.LoadAvatarByEmailAsync(avatar.Email)).Result.Should().BeNull();
             avatarSaved = false;
+            verifiedComplete=true;
         }
         finally
         {
@@ -218,6 +245,8 @@ public sealed class CosmosRealProviderRoutingTests
                 await cosmos.DeActivateProviderAsync();
                 await local.DeActivateProviderAsync();
             }
+            if(verifiedComplete){journal.Dispose();File.Delete(journalPath);}
+            else Console.WriteLine("Retained owned Cosmos V2 recovery intent: "+journalPath);
         }
     }
 }
