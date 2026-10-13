@@ -32,6 +32,7 @@ param(
     [string]$ReleaseNotes = '',
     [string]$ReviewedPlanPath = '',
     [string[]]$ExcludedPackageIds = @(),
+    [int]$ExpectedExcludedPackageCount = 0,
     [string]$OutputDirectory = (Join-Path $PSScriptRoot '..\artifacts\global-release'),
     [string]$NuGetApiKey = $env:NUGET_API_KEY,
     [switch]$Offline
@@ -479,6 +480,9 @@ $edgePackageIds = @(
 if ($NuGetPackages) {
     $packageProjects = @(Get-PackageProjects)
     $excludedIds = if ($reviewedPlan) { @($reviewedPlan.excludedPackageIds) } else { @($ExcludedPackageIds) }
+    $expectedExclusionCount = if ($reviewedPlan) { [int]$reviewedPlan.expectedExcludedPackageCount } else { $ExpectedExcludedPackageCount }
+    if (@($excludedIds).Count -ne $expectedExclusionCount) { throw "Exclusion scope mismatch: expected $expectedExclusionCount IDs, received $(@($excludedIds).Count)." }
+    if (@($excludedIds | Sort-Object -Unique).Count -ne @($excludedIds).Count) { throw 'Excluded package IDs must be unique.' }
     foreach ($excludedId in $excludedIds) {
         if ($excludedId -notin @($packageProjects.PackageId)) { throw "Excluded package is not in the source inventory: $excludedId" }
     }
@@ -569,6 +573,7 @@ $plan = [ordered]@{
     apiVersions = if ($webVersions) { $webVersions } else { 'unchanged' }
     packages = $packagePlan
     excludedPackageIds = @($excludedIds)
+    expectedExcludedPackageCount = $expectedExclusionCount
     edgePackageIds = $edgePackageIds
     blockers = @($planBlockers)
     versionDecisions = @($versionDecisions)
