@@ -283,35 +283,31 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         //    return result;
         //}
 
-        public async Task<OASISResult<IEnumerable<Avatar>>> GetAvatarsAsync()
+        public async Task<OASISResult<IEnumerable<Avatar>>> GetAvatarsAsync(int version = 0)
         {
-            OASISResult<IEnumerable<Avatar>> result = new OASISResult<IEnumerable<Avatar>>();
-
+            var result = new OASISResult<IEnumerable<Avatar>>();
             try
             {
-                result.Result = await _dbContext.Avatar.FindAsync(_ => true).Result.ToListAsync();
+                result.Result = await _dbContext.Avatar.Find(x => version == 0 || x.Version == version).ToListAsync();
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error in GetAvatarsAsync method in AvatarRepository in MongoDBOASIS Provider loading avatars. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, "MongoDB avatar list lookup failed.", ex);
             }
-
             return result;
         }
 
-        public OASISResult<IEnumerable<Avatar>> GetAvatars()
+        public OASISResult<IEnumerable<Avatar>> GetAvatars(int version = 0)
         {
-            OASISResult<IEnumerable<Avatar>> result = new OASISResult<IEnumerable<Avatar>>();
-
+            var result = new OASISResult<IEnumerable<Avatar>>();
             try
             {
-                result.Result = _dbContext.Avatar.Find(_ => true).ToList();
+                result.Result = _dbContext.Avatar.Find(x => version == 0 || x.Version == version).ToList();
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error in GetAvatars method in AvatarRepository in MongoDBOASIS Provider loading avatars. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, "MongoDB avatar list lookup failed.", ex);
             }
-
             return result;
         }
 
@@ -470,36 +466,31 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             return result;
         }
 
-        public async Task<OASISResult<IEnumerable<AvatarDetail>>> GetAvatarDetailsAsync()
+        public async Task<OASISResult<IEnumerable<AvatarDetail>>> GetAvatarDetailsAsync(int version = 0)
         {
-            OASISResult<IEnumerable<AvatarDetail>> result = new OASISResult<IEnumerable<AvatarDetail>>();
-
+            var result = new OASISResult<IEnumerable<AvatarDetail>>();
             try
             {
-                var cursor = await _dbContext.AvatarDetail.FindAsync(_ => true);
-                result.Result = cursor.ToEnumerable();
+                result.Result = await _dbContext.AvatarDetail.Find(x => version == 0 || x.Version == version).ToListAsync();
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error in GetAvatarDetailsAsync method in AvatarRepository in MongoDBOASIS Provider loading Avatar Details. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, "MongoDB avatar detail list lookup failed.", ex);
             }
-
             return result;
         }
 
-        public OASISResult<IEnumerable<AvatarDetail>> GetAvatarDetails()
+        public OASISResult<IEnumerable<AvatarDetail>> GetAvatarDetails(int version = 0)
         {
-            OASISResult<IEnumerable<AvatarDetail>> result = new OASISResult<IEnumerable<AvatarDetail>>();
-
+            var result = new OASISResult<IEnumerable<AvatarDetail>>();
             try
             {
-                result.Result = _dbContext.AvatarDetail.Find(_ => true).ToEnumerable();
+                result.Result = _dbContext.AvatarDetail.Find(x => version == 0 || x.Version == version).ToList();
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error in GetAvatarDetails method in AvatarRepository in MongoDBOASIS Provider loading Avatar Details. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, "MongoDB avatar detail list lookup failed.", ex);
             }
-
             return result;
         }
 

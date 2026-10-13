@@ -213,12 +213,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
-            return DataHelper.ConvertMongoEntitysToOASISAvatars(await _avatarRepository.GetAvatarsAsync());
+            return DataHelper.ConvertMongoEntitysToOASISAvatars(await _avatarRepository.GetAvatarsAsync(version));
         }
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {
-            return DataHelper.ConvertMongoEntitysToOASISAvatars(_avatarRepository.GetAvatars());
+            return DataHelper.ConvertMongoEntitysToOASISAvatars(_avatarRepository.GetAvatars(version));
         }
 
         public override OASISResult<IAvatar> LoadAvatarByVerificationToken(string verificationToken, int version = 0)

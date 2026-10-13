@@ -228,6 +228,15 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 var selectorDetail = new AvatarDetail { Id = selectorAvatar.Id, Version = 3, Username = "independent-" + selector, Email = "detail-" + selector + "@mongo-selector.local", Karma = 123 };
                 (await mongo.SaveAvatarDetailAsync(selectorDetail)).IsError.Should().BeFalse();
                 var localKey = savedSelector.Result.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS];
+                foreach (var listVersion in new[] { 0, 3, 2 })
+                {
+                    var avatarList = synchronous ? mongo.LoadAllAvatars(listVersion) : await mongo.LoadAllAvatarsAsync(listVersion);
+                    var detailList = synchronous ? mongo.LoadAllAvatarDetails(listVersion) : await mongo.LoadAllAvatarDetailsAsync(listVersion);
+                    avatarList.IsError.Should().BeFalse(avatarList.Message);
+                    detailList.IsError.Should().BeFalse(detailList.Message);
+                    avatarList.Result.Any(a => a.Id == selectorAvatar.Id).Should().Be(listVersion != 2);
+                    detailList.Result.Any(a => a.Id == selectorDetail.Id).Should().Be(listVersion != 2);
+                }
                 foreach (var requestedVersion in new[] { 0, 3, 2 })
                 {
                     foreach (var detailRead in new[] {

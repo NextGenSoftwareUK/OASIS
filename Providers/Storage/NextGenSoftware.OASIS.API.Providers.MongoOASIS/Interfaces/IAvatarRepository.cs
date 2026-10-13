@@ -27,10 +27,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
         OASISResult<AvatarDetail> GetAvatarDetail(string username);
         Task<OASISResult<AvatarDetail>> GetAvatarDetailAsync(Guid id);
         Task<OASISResult<AvatarDetail>> GetAvatarDetailAsync(string username);
-        OASISResult<IEnumerable<Avatar>> GetAvatars();
-        Task<OASISResult<IEnumerable<Avatar>>> GetAvatarsAsync();
-        Task<OASISResult<IEnumerable<AvatarDetail>>> GetAvatarDetailsAsync();
-        OASISResult<IEnumerable<AvatarDetail>> GetAvatarDetails();
+        OASISResult<IEnumerable<Avatar>> GetAvatars(int version = 0);
+        Task<OASISResult<IEnumerable<Avatar>>> GetAvatarsAsync(int version = 0);
+        Task<OASISResult<IEnumerable<AvatarDetail>>> GetAvatarDetailsAsync(int version = 0);
+        OASISResult<IEnumerable<AvatarDetail>> GetAvatarDetails(int version = 0);
         OASISResult<Avatar> Update(Avatar avatar);
         Task<OASISResult<Avatar>> UpdateAsync(Avatar avatar);
         OASISResult<AvatarDetail> Update(AvatarDetail avatar);
