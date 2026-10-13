@@ -29,5 +29,11 @@ jobs:
       - name: Compare original immutable packages with registry without publishing
         shell: pwsh
         run: |
-          ./Scripts/Publish-OASISReviewedNuGet.ps1 -PlanPath artifacts/original-plan/release-plan.json -PackageDirectory artifacts/original-packages
+          ./Scripts/Publish-OASISReviewedNuGet.ps1 -PlanPath artifacts/original-plan/release-plan.json -PackageDirectory artifacts/original-packages -ReportPath artifacts/recovery/reconciliation.json
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - uses: actions/upload-artifact@v7
+        if: always()
+        with:
+          name: immutable-nuget-reconciliation
+          path: artifacts/recovery/reconciliation.json
+          if-no-files-found: error
