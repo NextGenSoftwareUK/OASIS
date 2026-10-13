@@ -53,14 +53,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
         /// <param name="rpcEndpoint">Sui RPC endpoint URL</param>
         /// <param name="network">Sui network (mainnet, testnet, devnet)</param>
         /// <param name="privateKey">Private key for signing transactions</param>
-        public SuiOASIS(string rpcEndpoint = "https://fullnode.mainnet.sui.io:443", string network = "mainnet", string chainId = "", string contractAddress = "", string privateKey = "", string storageObjectId = "", string currencyObjectId = "")
-            : this(new SuiSdkClient(rpcEndpoint, network, chainId, privateKey, contractAddress, storageObjectId, currencyObjectId),privateKey,contractAddress)
+        public SuiOASIS(string rpcEndpoint = "https://fullnode.mainnet.sui.io:443", string network = "mainnet", string chainId = "", string contractAddress = "", string privateKey = "", string storageObjectId = "", string currencyObjectId = "", Func<byte[]> storageEncryptionKeyResolver = null)
+            : this(new SuiSdkClient(rpcEndpoint, network, chainId, privateKey, contractAddress, storageObjectId, currencyObjectId),privateKey,contractAddress,storageEncryptionKeyResolver)
         { }
 
         private readonly SuiSdkClient _sdkClient;
-        private SuiOASIS(SuiSdkClient client,string privateKey,string contractAddress)
-            : base(new SuiStorageBackend(client))
+        private readonly NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend _privateStorage;
+        private SuiOASIS(SuiSdkClient client,string privateKey,string contractAddress,Func<byte[]> keyResolver)
+            : this(client,privateKey,contractAddress,new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend(
+                new SuiStorageBackend(client),keyResolver ?? (() => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend.ResolveEnvironmentKey("OASIS_SUI_STORAGE_ENCRYPTION_KEY"))))
+        { }
+        private SuiOASIS(SuiSdkClient client,string privateKey,string contractAddress,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend storage)
+            : base(storage)
         {
+            _privateStorage=storage;
             _sdkClient=client;
             this.ProviderName = "SuiOASIS";
             this.ProviderDescription = "Sui Provider - High-performance blockchain platform";
@@ -78,6 +84,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
 
         public void Dispose()
         {
+            _privateStorage.Dispose();
             _sdkClient.Dispose();
             IsProviderActivated = false;
         }

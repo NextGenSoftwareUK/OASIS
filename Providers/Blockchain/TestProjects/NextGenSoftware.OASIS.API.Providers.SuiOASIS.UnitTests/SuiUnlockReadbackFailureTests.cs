@@ -42,7 +42,7 @@ public class SuiUnlockReadbackFailureTests
         await WithProcessFixture(async provider=>{
             var backend=typeof(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase)
                 .GetProperty("Backend",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.GetValue(provider)!;
-            var client=backend.GetType().GetProperty("Client",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Public)!.GetValue(backend)!;
+            var client=typeof(SuiOASIS).GetField("_sdkClient",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.GetValue(provider)!;
             var calls=0;var failure=new InvalidOperationException("controlled durable persistence rejection");
             using var cancellation=new CancellationTokenSource();
             if(cancel)cancellation.CancelAfter(TimeSpan.FromSeconds(1));
@@ -69,7 +69,7 @@ public class SuiUnlockReadbackFailureTests
         await WithProcessFixture(async provider=>{
             var backend=typeof(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase)
                 .GetProperty("Backend",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.GetValue(provider)!;
-            var client=backend.GetType().GetProperty("Client",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Public)!.GetValue(backend)!;
+            var client=typeof(SuiOASIS).GetField("_sdkClient",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.GetValue(provider)!;
             var calls=0;
             using var server=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer((_,_)=>{calls++;return Task.CompletedTask;});
             var operation=(Task<System.Text.Json.JsonElement>)client.GetType().GetMethod("InvokePreparedAsync",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!

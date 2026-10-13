@@ -14,9 +14,20 @@ public class SuiRealPreparationTests
         using var provider=new SuiOASIS("http://127.0.0.1:1","localnet");
         var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
         var backend=typeof(SuiOASIS).GetProperty("Backend",flags)!.GetValue(provider)!;
+        Assert.IsInstanceOfType<NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend>(backend);
+        backend=backend.GetType().GetField("_inner",flags)!.GetValue(backend)!;
         var storageClient=backend.GetType().GetProperty("Client",flags)!.GetValue(backend);
         var nativeClient=typeof(SuiOASIS).GetField("_sdkClient",flags)!.GetValue(provider);
         Assert.AreSame(storageClient,nativeClient,"Storage composition must not allocate a second signing transport.");
+    }
+    [TestMethod]
+    public async Task MissingPersistedEncryptionKeyFailsBeforeStorageActivation()
+    {
+        using var provider=new SuiOASIS("http://127.0.0.1:1","localnet",storageEncryptionKeyResolver:()=>null!);
+        var result=await provider.ActivateProviderAsync();
+        Assert.IsTrue(result.IsError);
+        Assert.IsFalse(provider.IsProviderActivated);
+        StringAssert.Contains(result.Message,"separately persisted");
     }
     [DataTestMethod]
     [DataRow("rpcEndpoint")] [DataRow("network")] [DataRow("chainId")]

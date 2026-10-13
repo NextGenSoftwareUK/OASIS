@@ -36,6 +36,14 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui mandatory encrypted-storage wiring — 2026-10-12
+
+- Sui private storage now uses `PersistedPrivateKeyValueBackend` around the existing `SuiStorageBackend`, retaining the same single SDK client for native operations. Private values and logical keys use the existing authenticated encrypted format and keyed physical index; there is no plaintext fallback or generated replacement key.
+- Configure `OASIS_SUI_STORAGE_ENCRYPTION_KEY` as canonical base64 for a separately persisted 32-byte key, independent of the signing key. The optional final constructor resolver supports explicitly managed keys; missing keys reject activation before SDK access. Disposal clears the private wrapper and disposes the native client.
+- Current evidence: shared-storage tests **94/94**, Sui focused ownership/missing-key/native process-boundary tests **51/51**, both dependency/provider builds passed. Reports: `TestResults/SharedPrivate/shared-private-current.trx` and `TestResults/SuiRuntime/sui-private-wiring-current.trx`. These are controlled tests, not live encrypted-ledger certification.
+- Remaining gates: update owned live fixtures to supply retained test encryption keys, prove encrypted storage and real V2 routing on the retained node, rebuild all constructor consumers, and verify hosted deployment. The added optional constructor argument is source-compatible but changes the binary signature. Earlier live results do not certify this new wiring. No deployment, funded minting enablement, or dev merge occurred.
+
+
 ### Cosmos mandatory encrypted-storage wiring — 2026-10-12
 
 Cosmos provider storage now uses PersistedPrivateKeyValueBackend around its existing CosmosSdkBackend; native/prepared SDK invocation retains same transport independently. Optional constructor storageEncryptionKeyResolver supplies an owned temporary 32-byte buffer; default resolves OASIS_COSMOS_STORAGE_ENCRYPTION_KEY as canonical base64 for exactly 32 bytes, separate from signing key. No generated default, plaintext fallback or key regeneration; missing key blocks storage activation before SDK probe. Dispose clears encryption state and SDK. Constructor signature changed, so consumers must rebuild before deployment.
