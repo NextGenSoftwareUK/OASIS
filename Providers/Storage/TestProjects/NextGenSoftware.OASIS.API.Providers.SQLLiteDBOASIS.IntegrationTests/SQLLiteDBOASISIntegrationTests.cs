@@ -43,6 +43,34 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task CorruptUnrelatedAvatarCannotPoisonIdentityLookup(bool synchronous)
+    {
+        var bad = new Avatar { Id = Guid.NewGuid(), Username = "corrupt-avatar", AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        var good = new Avatar { Id = Guid.NewGuid(), Username = "valid-avatar", Email = "valid-avatar@test.local", AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        using (var provider = new SQLLiteDBOASIS(TestConnectionString))
+        {
+            (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+            (await provider.SaveAvatarAsync(bad)).IsError.Should().BeFalse();
+            (await provider.SaveAvatarAsync(good)).IsError.Should().BeFalse();
+        }
+        using var control = new DataContext(TestConnectionString);
+        control.Database.ExecuteSqlInterpolated($"UPDATE Avatar SET MetaDataJson = {'{'} WHERE Id = {bad.Id.ToString()}");
+        using var reopened = new SQLLiteDBOASIS(TestConnectionString);
+        (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var byId = synchronous ? reopened.LoadAvatar(good.Id) : await reopened.LoadAvatarAsync(good.Id);
+        var byName = synchronous ? reopened.LoadAvatarByUsername(good.Username) : await reopened.LoadAvatarByUsernameAsync(good.Username);
+        var byEmail = synchronous ? reopened.LoadAvatarByEmail(good.Email) : await reopened.LoadAvatarByEmailAsync(good.Email);
+        foreach (var loaded in new[] { byId, byName, byEmail })
+        {
+            loaded.IsError.Should().BeFalse(loaded.Message);
+            loaded.Result.Id.Should().Be(good.Id);
+        }
+        (await reopened.LoadAvatarAsync(bad.Id)).IsError.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task CorruptUnrelatedHolonCannotPoisonGuidLookup(bool synchronous)
     {
         var bad = new Holon { Id = Guid.NewGuid(), Name = "owned-corrupt" };
