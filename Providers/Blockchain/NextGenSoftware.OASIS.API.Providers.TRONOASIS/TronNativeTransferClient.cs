@@ -122,6 +122,7 @@ public sealed class TronNativeTransferClient
     internal static ByteString OriginalOperationOwner(Transaction.Types.Contract contract) => contract.Type switch {
         Transaction.Types.Contract.Types.ContractType.TransferAssetContract => contract.Parameter.Unpack<TransferAssetContract>().OwnerAddress,
         Transaction.Types.Contract.Types.ContractType.VoteWitnessContract => contract.Parameter.Unpack<VoteWitnessContract>().OwnerAddress,
+        Transaction.Types.Contract.Types.ContractType.FreezeBalanceContract => contract.Parameter.Unpack<FreezeBalanceContract>().OwnerAddress,
         Transaction.Types.Contract.Types.ContractType.TransferContract => contract.Parameter.Unpack<TransferContract>().OwnerAddress,
         Transaction.Types.Contract.Types.ContractType.AccountCreateContract => contract.Parameter.Unpack<AccountCreateContract>().OwnerAddress,
         Transaction.Types.Contract.Types.ContractType.AccountUpdateContract => contract.Parameter.Unpack<AccountUpdateContract>().OwnerAddress,
@@ -345,6 +346,14 @@ public sealed class TronNativeTransferClient
             case Transaction.Types.Contract.Types.ContractType.VoteWitnessContract:
                 var vote = contract.Parameter.Unpack<VoteWitnessContract>();
                 from = vote.OwnerAddress; to = vote.OwnerAddress; amount = 0; break;
+            case Transaction.Types.Contract.Types.ContractType.FreezeBalanceContract:
+                var freeze = contract.Parameter.Unpack<FreezeBalanceContract>();
+                if (!Enum.IsDefined(freeze.Resource) || freeze.FrozenDuration < 0)
+                    throw new InvalidOperationException("Invalid native staking resource or duration.");
+                from = freeze.OwnerAddress;
+                to = freeze.ReceiverAddress.IsEmpty ? from : freeze.ReceiverAddress;
+                amount = freeze.FrozenBalance;
+                amountUnit = "SUN-STAKED/" + freeze.Resource; break;
             case Transaction.Types.Contract.Types.ContractType.AccountPermissionUpdateContract:
                 var permissions = contract.Parameter.Unpack<AccountPermissionUpdateContract>();
                 from = permissions.OwnerAddress; to = permissions.OwnerAddress; amount = 0; break;
