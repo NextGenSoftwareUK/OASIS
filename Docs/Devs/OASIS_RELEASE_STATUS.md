@@ -1,6 +1,8 @@
 # OASIS release inventory
 
-Status snapshot: 12 October 2026, America/Cancun. This inventory distinguishes releases completed in the current publication run from older downloadable releases. Older assets do not establish that the requested updates are complete.
+Status snapshot: 13 October 2026, America/Cancun. This inventory distinguishes verified current publications from historical candidates. Bulk NuGet is now uploaded and publicly indexed; the earlier 79/140 audit counts below are historical, not remaining unpublished totals. OurWorld Cloud setup, documentation verification and future-workflow reliability work remain outstanding.
+
+Exclusion scope guard hosted verification: negative run 38383978301 rejected expected 19 IDs/received 0 before packing; positive run 38387409813 passed with exactly 19 exclusions and 210 planned packages, with pack/publish skipped under `nuget_plan_only=true`. Neither verification run uploaded anything. Latest guard/plan-only changes require checked promotion to master.
 
 Run 38376265788 completed successfully: 229 packages packed, whole-set manifest/content preflight passed, and 229 push confirmations occurred. Important correction: its actual logged `excluded_nuget_ids` input was empty, so the intended 19 exclusions did not take effect; completed IDs received new versions rather than remaining untouched. Existing immutable versions were not overwritten, but this did not meet the requested no-unnecessary-bump scope. Public registry indexing is still pending (sample indices remained on earlier versions at the first post-run check). Do not rerun this completed upload; verify exact newly pushed versions and fix dispatch/expected-exclusion enforcement before future publication.
 
