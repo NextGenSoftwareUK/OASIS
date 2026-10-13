@@ -54,7 +54,9 @@ public sealed class RealProviderRoutingTests : IDisposable
             new EnumValue<ProviderType>(ProviderType.LocalFileOASIS),
             new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)
         }).IsError.Should().BeFalse();
-        var holon = new Holon { Id = Guid.NewGuid(), Name = $"replicated-{Guid.NewGuid():N}" };
+        var creator = Guid.NewGuid();
+        var holon = new Holon { Id = Guid.NewGuid(), Name = $"replicated-{Guid.NewGuid():N}", CreatedByAvatarId = creator,
+            CreatedDate = new DateTime(2025,1,2,3,4,5,DateTimeKind.Utc), MetaData = new Dictionary<string,object> { ["Email"] = "private-query@test.local" } };
 
         var result = await new OASISHyperDrive(manager).RouteRequestAsync<IHolon>(
             new StorageOperationRequest { Operation = "SaveHolon", Payload = holon, PreferredProvider = ProviderType.LocalFileOASIS });
@@ -64,6 +66,21 @@ public sealed class RealProviderRoutingTests : IDisposable
         (await sqlite.LoadHolonAsync(holon.Id)).Result.Name.Should().Be(holon.Name);
         manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
         manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
+        holon.Name = "replicated-update";
+        holon.ModifiedByAvatarId = Guid.NewGuid();
+        holon.Version = 3;
+        var updated = await new OASISHyperDrive(manager).RouteRequestAsync<IHolon>(
+            new StorageOperationRequest { Operation = "SaveHolon", Payload = holon, SaveChildren = false, PreferredProvider = ProviderType.LocalFileOASIS });
+        updated.IsError.Should().BeFalse(updated.Message);
+        foreach (var stored in new[] { (await local.LoadHolonAsync(holon.Id)).Result, (await sqlite.LoadHolonAsync(holon.Id)).Result })
+        {
+            stored.Name.Should().Be("replicated-update");
+            stored.Version.Should().Be(3);
+            stored.CreatedByAvatarId.Should().Be(creator);
+            stored.ModifiedByAvatarId.Should().Be(holon.ModifiedByAvatarId);
+            stored.MetaData["Email"].ToString().Should().Be("private-query@test.local");
+        }
+        manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
     }
 
     [Fact]
