@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Off-chain NFT URI pre-mint ordering confirmed — 2026-10-12
+
+- `NFTManager.Wallets2.MintNFTInternalAsync` performs JSON upload/ExternalJSONURL selection before mint dispatch, forces individual provider NumberToMint=1, then assigns `web3Request.JSONMetaDataURL=mergedRequest.JSONMetaDataURL`. Thus off-chain URI is already available to provider minting; no parallel uploader/pre-mint ID guess is needed.
+- Cosmos retained asset schema stores `metadata_json` string, while current provider readback deserializes that string as Web3NFT metadata. Proper StoreNFTMetaDataOnChain=false support needs a defined minimal pointer representation and resolution behavior compatible with NFTManager's existing metadata format/access rules, rather than publishing the full record or returning an unexplained partial object. Removing the existing rejection alone is not completion.
+- Next implementation gate: trace manager-generated external JSON shape and its authorized load flow, implement one shared pointer/readback contract reused by Cosmos/Sui, test manager-to-provider mint/load including identity and untrusted URI handling. No schema/contract deployment, funds, SDK operation or speculative alternate flow changed in this audit.
+
+
 ### Existing NFTManager off-chain metadata integration points — 2026-10-12
 
 - Source trace locates existing off-chain mode handling in ONODE Core `NFTManager.Wallets2.cs`: Pinata/IPFS/Arweave/OASIS upload modes and ExternalJSONURL validation. `NFTManager.Wallets.cs` merges nullable Web3 overrides, branches on StoreNFTMetaDataOnChain and forwards NFTOffChainMetaType/Store flag; `NFTManager.MintLoad.cs` also forwards these parent WEB4 fields into provider requests.
