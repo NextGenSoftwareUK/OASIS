@@ -43,6 +43,27 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task CredentialRepositorySelectorRequiresMatchingStoredCredentialAndVersion(bool synchronous)
+    {
+        using var context = new DataContext(TestConnectionString);
+        context.Database.EnsureCreated();
+        var repository = new AvatarRepository(context);
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = "credential-fixture", Password = "owned-stored-credential", Version = 3,
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        repository.SaveAvatar(avatar).IsError.Should().BeFalse();
+        var loaded = synchronous ? repository.LoadAvatar(avatar.Username, avatar.Password) : await repository.LoadAvatarAsync(avatar.Username, avatar.Password);
+        loaded.IsLoaded.Should().BeTrue();
+        loaded.Result.Id.Should().Be(avatar.Id);
+        var rejected = synchronous ? repository.LoadAvatar(avatar.Username, "wrong") : await repository.LoadAvatarAsync(avatar.Username, "wrong");
+        rejected.Result.Should().BeNull();
+        rejected.IsLoaded.Should().BeFalse();
+        var mismatch = synchronous ? repository.LoadAvatar(avatar.Username, avatar.Password, 2) : await repository.LoadAvatarAsync(avatar.Username, avatar.Password, 2);
+        mismatch.Result.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task AvatarCurrentVersionAndExplicitSelectorsRespectPersistedVersion(bool synchronous)
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
