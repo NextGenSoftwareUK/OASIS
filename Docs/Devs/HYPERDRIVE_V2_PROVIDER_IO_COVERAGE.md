@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Real Mongo commit replay fence — 2026-10-13
+
+Current four real pair scenarios verify actual app-scoped commit rejection produces original typed session/transaction evidence, prevents Mongo→SQLite fallback deletion, and preserves both stores. Test cleanup ends only exact owned session via killSessions, then ordinary replicated deletion succeeds.4/4 passed (`TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`). No production killSessions/recovery mechanism was introduced; durable evidence, production lock resolution and unknown network commit outcome remain gates. Earlier `mongo-avatar-commit-rejection-open.trx` retained, not relabeled green. No new runtime/download/environment.
+
 ### Mongo commit replay safety — 2026-10-13
 
 GUID deletion commit exceptions now carry MongoTransactionReconciliationException implementing the existing reconciliation marker, retaining original sessionId+transactionNumber and inner exception. HyperDrive's existing guard blocks replay on another provider. Controlled routing2/2 passed (`TestResults/HyperDriveMongoSqliteCurrent/mongo-commit-no-replay-current.trx`); these are not live commit/recovery proof. Real marker emission, durable ownership/recovery, outstanding locks and other mutation paths remain open. See official transaction core/callback semantics: https://www.mongodb.com/docs/manual/core/transactions-in-applications/ . No guessed retry, additional runtime or download.
