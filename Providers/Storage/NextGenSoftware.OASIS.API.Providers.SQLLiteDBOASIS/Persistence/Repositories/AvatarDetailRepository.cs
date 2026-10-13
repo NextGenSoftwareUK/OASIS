@@ -139,6 +139,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 var obj = await _dbContext.AvatarDetails
                     .Include(a => a.InventoryItems)
                     .Include(a => a.Stats)
+                    .Include(a => a.Stats)
+                    .Include(a => a.Stats)
                     .Where(x => x.Id == id.ToString() && x.Version == version)
                     .FirstOrDefaultAsync();
                 if (obj == null)
@@ -174,6 +176,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 var avatarDetailEntity = _dbContext.AvatarDetails
                     .Include(a => a.InventoryItems)
+                    .Include(a => a.Stats)
                     .ToList()
                     .Where(x => x.Username == avatarUsername && x.Version == version)
                     .Select(GetAvatarDetailFromEntity)
@@ -210,6 +213,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 var avatarDetailEntity = _dbContext.AvatarDetails
                     .Include(a => a.InventoryItems)
+                    .Include(a => a.Stats)
                     .ToList()
                     .Where(x => x.Email == avatarEmail && x.Version == version)
                     .Select(GetAvatarDetailFromEntity)
@@ -247,6 +251,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 var avatarDetailEntities = 
                     _dbContext.AvatarDetails
                     .Include(a => a.InventoryItems)
+                    .Include(a => a.Stats)
                     .ToList()
                     .Where(x => x.Version == version)
                     .Select(GetAvatarDetailFromEntity)
@@ -307,6 +312,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 var idStr = avatarDetailEntity.Id.ToString();
                 var existing = _dbContext.AvatarDetails
                     .Include(a => a.InventoryItems)
+                    .Include(a => a.Stats)
+                    .Include(a => a.Stats)
                     .FirstOrDefault(x => x.Id == idStr && x.Version == avatarDetailEntity.Version);
 
                 if (existing != null)
@@ -323,6 +330,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.Town = avatarDetailEntity.Town;
                     existing.Username = avatarDetailEntity.Username;
                     existing.XP = avatarDetailEntity.XP;
+                    SetStats(existing, avatarDetailEntity);
                     existing.CreatedByAvatarId = avatarDetailEntity.CreatedByAvatarId.ToString();
                     existing.CreatedDate = avatarDetailEntity.CreatedDate;
                     existing.DeletedByAvatarId = avatarDetailEntity.DeletedByAvatarId.ToString();
@@ -385,6 +393,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 var idStr = AvatarDetailEntity.Id.ToString();
                 var existing = await _dbContext.AvatarDetails
                     .Include(a => a.InventoryItems)
+                    .Include(a => a.Stats)
                     .FirstOrDefaultAsync(x => x.Id == idStr && x.Version == AvatarDetailEntity.Version);
 
                 if (existing != null)
@@ -402,6 +411,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.Town = AvatarDetailEntity.Town;
                     existing.Username = AvatarDetailEntity.Username;
                     existing.XP = AvatarDetailEntity.XP;
+                    SetStats(existing, AvatarDetailEntity);
                     existing.CreatedByAvatarId = AvatarDetailEntity.CreatedByAvatarId.ToString();
                     existing.CreatedDate = AvatarDetailEntity.CreatedDate;
                     existing.DeletedByAvatarId = AvatarDetailEntity.DeletedByAvatarId.ToString();
@@ -457,6 +467,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     Message = ex.ToString()
                 };
             }
+        }
+
+        private void SetStats(AvatarDetailModel existing, IAvatarDetail source)
+        {
+            if (source.Stats == null)
+            {
+                if (existing.Stats != null) _dbContext.Remove(existing.Stats);
+                existing.Stats = null;
+                return;
+            }
+            var incoming = new AvatarStatsModel(source.Stats) { Id = existing.Id, AvatarId = existing.Id };
+            if (existing.Stats == null) existing.Stats = incoming;
+            else _dbContext.Entry(existing.Stats).CurrentValues.SetValues(incoming);
         }
 
         private IAvatarDetail GetAvatarDetailFromEntity(AvatarDetailModel avatarDetailEntity) =>
