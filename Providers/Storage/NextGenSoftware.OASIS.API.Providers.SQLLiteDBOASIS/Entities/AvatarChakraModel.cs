@@ -21,9 +21,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public string SanskritName { get; set; }
         public string Description { get; set; }
         public string WhatItControls { get; set; }
-        public YogaPoseType YogaPose { get; set; } 
+        public YogaPoseType? YogaPose { get; set; } 
         public string WhenItDevelops { get; set; }
-        public ElementType Element { get; set; } 
+        public ElementType? Element { get; set; } 
         public CrystalModel Crystal { get; set; }
         public int Level { get; set; }
         public int Progress { get; set; }
@@ -44,12 +44,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             this.SanskritName=source.SanskritName;
             this.Description=source.Description;
             this.WhatItControls=source.WhatItControls;
-            this.YogaPose=source.YogaPose.Value;
+            this.YogaPose=source.YogaPose?.Value;
             this.WhenItDevelops=source.WhenItDevelops;
-            this.Element=source.Element.Value;
+            this.Element=source.Element?.Value;
 
-            this.Crystal=new CrystalModel(source.Crystal);
-            this.Crystal.AvatarChakraId=this.Id;
+            if (source.Crystal != null)
+            {
+                this.Crystal=new CrystalModel(source.Crystal);
+                this.Crystal.AvatarChakraId=this.Id;
+            }
 
             this.Level=source.Level;
             this.Progress=source.Progress;
@@ -97,8 +100,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             item.Description=this.Description;
             item.WhatItControls=this.WhatItControls;
 
-            item.YogaPose=new EnumValue<YogaPoseType>(this.YogaPose);
-            item.Element=new EnumValue<ElementType>(this.Element);
+            item.YogaPose=this.YogaPose.HasValue ? new EnumValue<YogaPoseType>(this.YogaPose.Value) : null;
+            item.Element=this.Element.HasValue ? new EnumValue<ElementType>(this.Element.Value) : null;
+            item.Crystal=this.Crystal?.GetCrystal();
 
             item.WhenItDevelops=this.WhenItDevelops;
 
