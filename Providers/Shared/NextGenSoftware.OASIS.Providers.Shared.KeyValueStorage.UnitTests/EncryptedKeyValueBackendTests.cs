@@ -10,6 +10,39 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class EncryptedKeyValueBackendTests
 {
+    [TestMethod]
+    public async Task PrivateStoragePreservesExistingExemptMetadataEqualityQueriesAfterReopen()
+    {
+        var keys = new[] { "CreatedByAvatarId", "Active", "HolonType", "STARNETHolonId", "_versionStamp", "data",
+            "Username", "Email", "Name", "Description", "ParentId", "ParentProviderKey", "SearchQuery", "parkType", "env",
+            "web3TokenId", "NFT.MintedByAvatarId", "NFT.MintWalletAddress", "NFT.ParentWeb4NFTId",
+            "GEONFT.PlacedByAvatarId", "GEONFT.MintedByAvatarId", "GEONFT.OriginalOASISNFT.MintWalletAddress", "GEONFT.LatLong",
+            "Status", "ActiveQuestId", "ActiveObjectiveId", "ParentMissionId", "Avatar", "AppRegion" };
+        var store = new InMemoryBackend();
+        var key = RandomNumberGenerator.GetBytes(32);
+        using (var backend = new PrivateKeyValueBackend(store, key))
+        {
+            var provider = new TestProvider(backend);
+            var selected = new Holon { Id = Guid.NewGuid(), MetaData = keys.ToDictionary(name => name, name => (object)("match:" + name)) };
+            var other = new Holon { Id = Guid.NewGuid(), MetaData = keys.ToDictionary(name => name, name => (object)("other:" + name)) };
+            Assert.IsFalse((await provider.SaveHolonAsync(selected)).IsError);
+            Assert.IsFalse((await provider.SaveHolonAsync(other)).IsError);
+            using var reopened = new PrivateKeyValueBackend(store, key);
+            var reader = new TestProvider(reopened);
+            foreach (var name in keys)
+            {
+                var asynchronous = await reader.LoadHolonsByMetaDataAsync(name, "match:" + name, loadChildren: false);
+                Assert.IsFalse(asynchronous.IsError, asynchronous.Message);
+                Assert.AreEqual(selected.Id, asynchronous.Result.Single().Id, name);
+                var synchronous = reader.LoadHolonsByMetaData(name, "match:" + name, loadChildren: false);
+                Assert.IsFalse(synchronous.IsError, synchronous.Message);
+                Assert.AreEqual(selected.Id, synchronous.Result.Single().Id, name);
+            }
+            Assert.IsTrue(store.Items.Keys.All(address => address.StartsWith("oasis/private/v1/", StringComparison.Ordinal)));
+            Assert.IsTrue(store.Items.Values.All(value => !value.Contains("match:") && !value.Contains("other:")));
+        }
+    }
+
     [DataTestMethod]
     [DataRow("missing")] [DataRow("empty")] [DataRow("malformed")]
     [DataRow("short")] [DataRow("long")] [DataRow("whitespace")] [DataRow("valid")]

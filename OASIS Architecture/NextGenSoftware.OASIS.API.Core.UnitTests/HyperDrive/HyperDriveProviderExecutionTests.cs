@@ -23,6 +23,42 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive;
 
 public sealed class HyperDriveProviderExecutionTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void ExistingMetadataQueryExemptionsSurviveEncryptionAndDecryption(bool quantum)
+    {
+        // Golden compatibility contract, not a reflection-derived list that could silently shrink.
+        var keys = new[] { "CreatedByAvatarId", "Active", "HolonType", "STARNETHolonId", "_versionStamp", "data",
+            "Username", "Email", "Name", "Description", "ParentId", "ParentProviderKey", "SearchQuery", "parkType", "env",
+            "web3TokenId", "NFT.MintedByAvatarId", "NFT.MintWalletAddress", "NFT.ParentWeb4NFTId",
+            "GEONFT.PlacedByAvatarId", "GEONFT.MintedByAvatarId", "GEONFT.OriginalOASISNFT.MintWalletAddress", "GEONFT.LatLong",
+            "Status", "ActiveQuestId", "ActiveObjectiveId", "ParentMissionId", "Avatar", "AppRegion" };
+        var dna = CreateDna(HyperDriveModes.V2);
+        dna.OASIS.Security = new SecuritySettings { HolonDataEncryption = new EncryptionSettings {
+            Rijndael256EncryptionEnabled = !quantum, Rijndael256Key = new string('k',32),
+            QuantumEncryptionEnabled = quantum, QuantumEncryptionKey = "controlled-test-key",
+            AdditionalQueryableKeys = new List<string> { "AppRegion" } } };
+        var manager = new HolonManager(null, dna, new ProviderManager(null,dna));
+        var holon = new Holon { Id = Guid.NewGuid(), MetaData = keys.ToDictionary(key => key, key => (object)("query:" + key)) };
+        var id = holon.Id;
+        holon.MetaData["secret"] = "classified";
+        holon.MetaData["email"] = "case-sensitive-private";
+        typeof(HolonManager).GetMethod("EncryptHolonMetaData", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+            .Invoke(manager, new object[] { holon });
+        holon.Id.Should().Be(id);
+        foreach (var key in keys) holon.MetaData[key].Should().Be("query:" + key);
+        holon.MetaData.Should().NotContainKey("secret"); holon.MetaData.Should().NotContainKey("email");
+        holon.MetaData.Should().ContainKey("__oasis_enc__");
+        var result = (OASISResult<bool>)typeof(HolonManager).GetMethod("DecryptHolonMetaData", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!
+            .Invoke(manager, new object[] { holon })!;
+        result.IsError.Should().BeFalse();
+        foreach (var key in keys) holon.MetaData[key].Should().Be("query:" + key);
+        holon.MetaData["secret"].ToString().Should().Be("classified");
+        holon.MetaData["email"].ToString().Should().Be("case-sensitive-private");
+        holon.MetaData.Should().NotContainKey("__oasis_enc__");
+    }
+
     public class AttributedSaveHolon:Holon
     {
         [NextGenSoftware.OASIS.API.Core.CustomAttrbiutes.CustomOASISProperty]
