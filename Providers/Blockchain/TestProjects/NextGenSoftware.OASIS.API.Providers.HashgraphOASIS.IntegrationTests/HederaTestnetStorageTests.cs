@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Text.Json;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
 
@@ -37,8 +38,21 @@ public class HederaTestnetStorageTests
         var avatar = new Avatar { Id = Guid.NewGuid(), Username = "owned-" + suffix,
             Email = suffix + "@oasis-test.invalid", Password = "test-only-" + suffix };
         var holon = new Holon { Id = Guid.NewGuid(), Name = "owned encrypted test " + suffix };
+        var evidenceRoot = Path.GetFullPath(Required("OASIS_HEDERA_TEST_STORAGE_ROOT"));
+        Directory.CreateDirectory(evidenceRoot);
+        var intentPath = Path.Combine(evidenceRoot, "storage-pending.json");
+        // CreateNew fences subsequent funded runs until an interrupted/failed run
+        // has been reconciled. Never lose the ownership IDs of partial saves.
+        using (var intent = new FileStream(intentPath, FileMode.CreateNew, FileAccess.Write, FileShare.None))
+        {
+            JsonSerializer.Serialize(intent, new { network = "testnet", configuration.ContractId,
+                configuration.OperatorAccountId, avatarId = avatar.Id, holonId = holon.Id,
+                avatar.Username, avatar.Email, encryptionKeyLabel = "oasis-hedera-testnet-storage-fixture-v1" });
+            intent.Flush(flushToDisk: true);
+        }
         var avatarSaved = false;
         var holonSaved = false;
+        Exception? primaryFailure = null;
         try
         {
             var saved = await provider.SaveAvatarAsync(avatar);
@@ -60,8 +74,15 @@ public class HederaTestnetStorageTests
             Assert.IsFalse(loadedHolon.IsError, loadedHolon.Message);
             Assert.AreEqual(holon.Name, loadedHolon.Result.Name);
         }
+        catch (Exception exception)
+        {
+            primaryFailure = exception;
+            throw;
+        }
         finally
         {
+            try
+            {
             // Remove only records whose writes established success. An uncertain write
             // must be reconciled by its original transaction ID, never blindly retried.
             if (holonSaved)
@@ -76,6 +97,15 @@ public class HederaTestnetStorageTests
                 Assert.IsFalse(deleted.IsError, deleted.Message);
                 Assert.IsNull(await storage.GetAsync($"oasis/avatar/{avatar.Id:N}"));
                 Assert.IsNull(await storage.GetAsync($"oasis/avatardetail/{avatar.Id:N}"));
+            }
+                if (primaryFailure == null)
+                    File.Delete(intentPath);
+            }
+            catch (Exception cleanupFailure)
+            {
+                if (primaryFailure != null)
+                    throw new AggregateException("Funded storage verification and cleanup both failed; retain ownership intent.", primaryFailure, cleanupFailure);
+                throw;
             }
         }
     }
