@@ -3860,8 +3860,11 @@ public sealed class HyperDriveProviderExecutionTests
         providerManager.RegisterProvider(provider.Object).Should().BeTrue();
         providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
         var holon=new Holon { Id=Guid.NewGuid(),MetaData=new Dictionary<string,object> { ["private-secret"]="preserve-me",["Status"]="Pending" } };
-        await Assert.ThrowsAsync<InvalidOperationException>(()=>new HolonManager(null,dna,providerManager).SaveHolonAsync(
-            holon,Guid.NewGuid(),providerType:ProviderType.IPFSOASIS));
+        var result=await new HolonManager(null,dna,providerManager).SaveHolonAsync(
+            holon,Guid.NewGuid(),providerType:ProviderType.IPFSOASIS);
+        result.IsError.Should().BeTrue();
+        result.ErrorCode.Should().Be("HOLON_SAVE_PREPARATION_FAILED");
+        result.Exception.Should().BeOfType<InvalidOperationException>();
         holon.MetaData.Should().ContainKey("private-secret").WhoseValue.Should().Be("preserve-me");
         holon.MetaData.Should().ContainKey("Status").WhoseValue.Should().Be("Pending");
         holon.MetaData.Should().NotContainKey("__oasis_enc__");

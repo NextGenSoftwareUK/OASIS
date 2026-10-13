@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### V2 single-holon preparation error boundary — 2026-10-12
+
+- Core `5e7239147c7dd6e352e723b8a0d9ac2def2c7c8f` adds one shared V2 single-holon preparation boundary used by sync/async non-generic saves. Failures return `HOLON_SAVE_PREPARATION_FAILED`, original exception, null result, and no provider write. Legacy code is unchanged. Generic/bulk entry paths still need explicit audit/coverage; this is not a complete save-surface claim.
+- Full Core suite **442/442 passed**, zero skips, `TestResults/CoreCurrent/core-v2-preparation-error-current.trx`. Existing two manager negative tests now assert the structured result plus unchanged private/exempt metadata and no provider save invocation. These currently exercise async single saves; sync/generic/bulk negative cases remain required.
+- Core build passed; pushed Core revision pinned by parent gitlink/manifest together. Consumer/deployment regression, unified encryption configuration and original broader provider/recovery gates remain open. No merge/deployment.
+
+
 ### Manager invalid encryption write-prevention evidence — 2026-10-12
 
 - Current Core suite **442/442 passed**, zero skips, `TestResults/CoreCurrent/core-manager-encryption-current.trx`. Two new V2 HolonManager tests invoke actual save preparation with enabled CBC/GCM and missing keys, verifying no provider save invocation, no ciphertext envelope insertion, and preservation of the caller's private metadata and exempt Status value. Providers are controlled mocks; no live Mongo proof is implied.
