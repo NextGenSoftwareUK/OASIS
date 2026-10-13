@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### SQLite avatar deletion error boundary — 2026-10-13
+
+Missing-table GUID deletion sync/async checks reproduced escaped exceptions2/2. Lookup and transaction lifecycle now sit inside result error handling; async initial lookup is awaited. Full72/72 passes (`TestResults/SQLiteCurrent/sqlite-avatar-delete-lookup-current.trx`), preserving actual exception and false result. Commit-ambiguity/tracker recovery and asynchronous graph loading remain separate open gates; no full provider completion claim or new environment/download.
+
 ### SQLite failed soft-delete result and rollback — 2026-10-13
 
 Four new real sync/async missing-detail/SQL-update-trigger-rejection cases verify failed deletion cannot persist during a later unrelated save. Rejected write exposed contradictory IsError=true/boolResult=true; rollback now returns Result=false. Full70/70 passed (`TestResults/SQLiteCurrent/sqlite-avatar-soft-rollback-current.trx`), checking original exception and unchanged persisted deletion timestamps. Commit ambiguity, concurrency, activity/read filtering/audit semantics and original provider certification gates remain open. No new environment/download.

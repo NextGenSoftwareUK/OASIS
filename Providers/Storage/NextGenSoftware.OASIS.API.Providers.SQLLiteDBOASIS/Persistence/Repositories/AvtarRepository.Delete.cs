@@ -20,6 +20,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
         public OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
+            OASISResult<bool> result = new();
+            try
+            {
             OASISResult<AvatarModel> avatarResult = new();
             var avatar = _dbContext.Avatars.FirstOrDefault(p => p.Id == id.ToString());
             if (avatar != null)
@@ -33,7 +36,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 avatarResult.Result = avatar;
             }
 
-            OASISResult<bool> result = new();
             string errorMessage = "Error occured in DeleteAsync method in AvatarRepository in Sqllite Provider.";
             using var dbContextTransaction = _dbContext.Database.BeginTransaction();
             var deletionEntities = new HashSet<object>();
@@ -126,6 +128,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 dbContextTransaction.Commit();
 
             return result;
+            }
+            catch (Exception ex)
+            {
+                result.Result = false;
+                OASISErrorHandling.HandleError(ref result, "SQLite avatar deletion lookup or transaction failed.", ex);
+                return result;
+            }
         }
 
         private void RemoveAvatarDetailDependents(object entity, HashSet<object> deletionEntities)
