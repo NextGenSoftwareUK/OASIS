@@ -261,7 +261,7 @@ function Get-NextOptionalReleaseVersion([string]$Repository, [string[]]$TagPrefi
         $headers = @{ 'User-Agent' = 'OASIS-global-release' }
         if ($env:GH_TOKEN) { $headers.Authorization = "Bearer $($env:GH_TOKEN)" }
         $response = Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/releases?per_page=100" -Headers $headers
-        $releases = @($response | Where-Object { -not $_.draft -and -not $_.prerelease })
+        $releases = @($response | Where-Object { -not $_.draft })
         $published = @($releases | Where-Object { $_.tag_name -match [regex]::Escape($publishedVersion) } | Sort-Object published_at -Descending | Select-Object -First 1)
         $since = if ($published.Count) { [uri]::EscapeDataString(([datetime]$published[0].published_at).ToUniversalTime().ToString('o')) } else { $null }
         $response = if ($since) { Invoke-RestMethod -Uri "https://api.github.com/repos/$Repository/commits?since=$since&per_page=100" -Headers $headers } else { @() }
