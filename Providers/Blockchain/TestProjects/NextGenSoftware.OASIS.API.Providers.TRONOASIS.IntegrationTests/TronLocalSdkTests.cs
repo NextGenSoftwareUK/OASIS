@@ -12,6 +12,38 @@ public sealed class TronLocalSdkTests
     private static readonly string RecipientKey = new string('0', 63) + "2";
 
     [Fact]
+    public async Task InspectOriginalPendingTransactionWithoutSigningOrMutation()
+    {
+        using var bounded = new CancellationTokenSource(TimeSpan.FromSeconds(65));
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null && !File.Exists(Path.Combine(directory.FullName, "Scripts/TestHosts/Use-ReusableTronRuntime.ps1")))
+            directory = directory.Parent;
+        Assert.NotNull(directory);
+        var root = Path.Combine(directory!.FullName, "TestResults/HyperDriveTron");
+        var intentPath = Path.Combine(root, "pending-native-outcome.json");
+        var original = await File.ReadAllBytesAsync(intentPath, bounded.Token);
+        using var intent = System.Text.Json.JsonDocument.Parse(original);
+        var hash = intent.RootElement.GetProperty("transactionId").GetString()!;
+        var genesis = intent.RootElement.GetProperty("chainGenesisId").GetString()!;
+        Assert.Equal(Genesis, genesis);
+        Assert.Equal("db05ea6d3067038a56dfc75b64d2c46c32824282e8242335ce007d1e34a415bb", hash);
+        await using var runtime = new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),
+            new Uri("http://127.0.0.1:50052"), genesis);
+        // No signing key, storage backend, provider activation or broadcast is used.
+        var status = await runtime.NativeTransfers.GetTransactionStatusAsync(hash, bounded.Token);
+        System.Text.Json.JsonElement? fee = null;
+        string? receiptError = null;
+        try { fee = await runtime.NativeTransfers.GetNativeFeeReceiptAsync(hash, bounded.Token); }
+        catch (InvalidOperationException error) { receiptError = error.Message; }
+        var report = new { transactionId = hash, chainGenesisId = genesis, status = status.ToString(),
+            feeReceipt = fee, receiptError, submitted = false, reconciliationComplete = false,
+            note = "Read-only observation; absence does not establish non-submission. Intent remains fenced." };
+        await File.WriteAllTextAsync(Path.Combine(root, "pending-native-inspection-current.json"),
+            System.Text.Json.JsonSerializer.Serialize(report, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }), bounded.Token);
+        Assert.Equal(original, await File.ReadAllBytesAsync(intentPath, bounded.Token));
+    }
+
+    [Fact]
     public async Task NativeBridgePoolRoundTripCommitsActualTransfersAndReceipts()
     {
         using var bounded = new CancellationTokenSource(TimeSpan.FromSeconds(110));
