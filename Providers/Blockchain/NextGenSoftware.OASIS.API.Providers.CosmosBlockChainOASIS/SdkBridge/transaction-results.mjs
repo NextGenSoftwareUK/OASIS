@@ -183,6 +183,20 @@ export function cosmosNativeFeeReceipt(tx, requestedHash) {
     gasUsed: tx.gasUsed.toString(), gasWanted: tx.gasWanted.toString(), basis: 'observed-ante-fee-deduction' };
 }
 
+// A missing index entry is an observation, not proof that no submission occurred.
+export function cosmosIndexedTransactionStatus(tx, requestedHash) {
+  if (!/^[0-9a-fA-F]{64}$/.test(requestedHash ?? ''))
+    throw new Error('Exact Cosmos transaction hash required');
+  if (tx === null) return null;
+  if (!(tx?.tx instanceof Uint8Array) || tx.tx.length === 0
+      || tx.hash !== requestedHash.toUpperCase()
+      || createHash('sha256').update(tx.tx).digest('hex').toUpperCase() !== tx.hash
+      || !Number.isSafeInteger(tx.height) || tx.height <= 0
+      || !Number.isInteger(tx.code) || tx.code < 0 || tx.code > 4294967295)
+    throw new Error('Cosmos status lacks exact committed signed identity and execution code');
+  return { code: tx.code, height: tx.height, hash: tx.hash };
+}
+
 export function verifiedNftCustodyReceipt(tx, expected, registry) {
   if (!tx || tx.hash !== expected.transactionHash || tx.code !== 0
       || !Number.isSafeInteger(tx.height) || tx.height <= 0
