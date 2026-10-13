@@ -5,6 +5,7 @@ import { GasPrice, defaultRegistryTypes } from "@cosmjs/stargate";
 import { fromHex, toHex, fromBech32 } from "@cosmjs/encoding";
 import { pathToFileURL } from 'node:url';
 import { captureCosmosDirectSigning, verifyCosmosPreparedIdentity } from './transaction-results.mjs';
+import { cosmosIndexedTransactionStatus } from './transaction-results.mjs';
 
 async function readInput() {
   const chunks = [];
@@ -121,8 +122,9 @@ async function execute(input, persistPreparedSubmission) {
         return { transactionHash: result.transactionHash, height: result.height, sender };
       }
       case "transactionStatus": {
+        if (!/^[0-9a-fA-F]{64}$/.test(input.transactionHash ?? '')) throw new Error('Exact Cosmos transaction hash required');
         const tx = await client.getTx(input.transactionHash);
-        return tx ? { code: tx.code, height: tx.height, hash: tx.hash } : null;
+        return cosmosIndexedTransactionStatus(tx, input.transactionHash);
       }
       case "upload": {
         const result = await client.upload(sender, Buffer.from(input.wasmBase64, "base64"), "auto");

@@ -13,6 +13,28 @@ import { TimeoutError, StargateClient } from '@cosmjs/stargate';
 import { captureCosmosDirectSigning, verifyCosmosPreparedIdentity } from './transaction-results.mjs';
 import { SignDoc } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
 import { invoke } from './bridge.mjs';
+import { cosmosIndexedTransactionStatus } from './transaction-results.mjs';
+
+test('indexed status binds committed execution to original signed bytes', () => {
+  const bytes = new Uint8Array([1,2,3]);
+  const digest = createHash('sha256').update(bytes).digest('hex').toUpperCase();
+  for (const code of [0,1,4294967295])
+    assert.deepEqual(cosmosIndexedTransactionStatus({tx:bytes,hash:digest,height:42,code},digest.toLowerCase()),
+      {hash:digest,height:42,code});
+  assert.equal(cosmosIndexedTransactionStatus(null,digest),null);
+});
+
+test('indexed status rejects substituted bytes and malformed committed evidence', () => {
+  const bytes = new Uint8Array([1,2,3]);
+  const digest = createHash('sha256').update(bytes).digest('hex').toUpperCase();
+  const valid = {tx:bytes,hash:digest,height:42,code:0};
+  for (const change of [{tx:new Uint8Array([9])},{tx:undefined},{tx:new Uint8Array()},
+    {hash:'00'.repeat(32)},{height:0},{height:1.5},{height:Number.MAX_SAFE_INTEGER+1},
+    {code:-1},{code:1.5},{code:4294967296},{code:undefined}])
+    assert.throws(()=>cosmosIndexedTransactionStatus({...valid,...change},digest),/exact committed/);
+  assert.throws(()=>cosmosIndexedTransactionStatus(undefined,digest),/exact committed/);
+  assert.throws(()=>cosmosIndexedTransactionStatus(null,'invalid'),/Exact Cosmos/);
+});
 test('official broadcast clears its polling timer when synchronous broadcast rejects', async () => {
   const client = new StargateClient(undefined, {});
   const failure = new Error('controlled precheck/transport rejection');
