@@ -24,6 +24,14 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Current WEB4 host build and native fee capability regression — 2026-10-12
+
+Normal WEB4 project-reference build passed, zero errors/2287 source warnings, 80 seconds. Complete WEB4 unit suite **145/145 passed**, zero skips (`TestResults/Web4Current/web4-unit-current.trx`). Four new capability tests invoke each actual provider through `IOASISNativeFeeReceiptProvider` with missing original identity: error, undefined receipt and no provider activation. No SDK process/network/funded operation required by those cases. Manifest/seven Dockerfiles/gitlink validator passed.
+
+Initial no-restore host build failed on absent netstandard2.1 assets; globally forcing net10 was unsuitable for ONET's actual net8/netstandard targets and was not retained. Cache-only restore then failed on missing pinned System.Memory/EF tooling dependencies. Last-resort normal restore reused the existing global NuGet cache and succeeded; no SDK/runtime/environment cloned or reinstalled. Rebuilt normal declared targets rather than changing project files to hide the issue. Free C: before 100,361,338,880 bytes, after 100,101,058,560 bytes (about 260 MB combined dependency/build growth). Required cached dependencies/build outputs retained for reuse; no separate owned download archive or disposable ledger created. Requested 150 GB disk target remains unmet.
+
+This is local compilation/host-unit proof, not Docker/Railway packaging, authenticated hosted provider routes, native recovery/settlement or full-interface certification. No merge/deployment/spending enabled; warnings remain unresolved.
+
 ### Shared read-only native fee receipt capability for recovery — 2026-10-12
 
 Existing real receipt APIs in Cosmos/Hedera/Sui/TRON now implement `IOASISNativeFeeReceiptProvider` in Core, exposing their current `OASISResult<JsonElement>`/cancellation contract without reflection or duplicate transport. Interface explicitly forbids submission, treating missing evidence as zero cost, implicit spending authority, currency conversion or settlement. Provider-native receipt schemas remain authoritative; this change does not fabricate a unified price or conversion rate.
