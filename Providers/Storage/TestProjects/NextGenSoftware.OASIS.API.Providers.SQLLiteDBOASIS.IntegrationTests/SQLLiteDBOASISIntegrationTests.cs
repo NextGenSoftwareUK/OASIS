@@ -114,6 +114,8 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
             detail.Stats = null;
             var saved = synchronous ? provider.SaveAvatarDetail(detail) : await provider.SaveAvatarDetailAsync(detail);
             saved.IsError.Should().BeFalse(saved.Message);
+            saved.Result.Should().NotBeNull();
+            saved.Result.Id.Should().Be(detail.Id);
         }
         using var reopened = new SQLLiteDBOASIS(TestConnectionString);
         (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
@@ -143,6 +145,8 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
             detail.Stats.HP.Current = 38;
             var updated = synchronous ? provider.SaveAvatarDetail(detail) : await provider.SaveAvatarDetailAsync(detail);
             updated.IsError.Should().BeFalse(updated.Message);
+            updated.Result.Should().NotBeNull();
+            updated.Result.Stats.HP.Current.Should().Be(38);
         }
         using var reopened = new SQLLiteDBOASIS(TestConnectionString);
         (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();

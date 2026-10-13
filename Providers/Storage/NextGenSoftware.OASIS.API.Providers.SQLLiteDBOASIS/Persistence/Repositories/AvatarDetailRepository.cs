@@ -361,6 +361,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         IsSaved = true,
                         IsError = false,
+                        Result = GetAvatarDetailFromEntity(existing),
                         Message = existing.Username + " Record updated successfully"
                     };
                 }
@@ -372,6 +373,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsSaved = true,
                     IsError = false,
+                    Result = GetAvatarDetailFromEntity(newModel),
                     Message = newModel.Username + " Record saved successfully"
                 };
             }
@@ -446,6 +448,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         IsSaved = true,
                         IsError = false,
+                        Result = GetAvatarDetailFromEntity(existing),
                         Message = existing.Username + " Record updated successfully"
                     };
                 }
@@ -457,6 +460,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsSaved = true,
                     IsError = false,
+                    Result = GetAvatarDetailFromEntity(newModel),
                     Message = newModel.Username + " Record saved successfully"
                 };
             }
