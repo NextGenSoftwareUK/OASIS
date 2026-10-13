@@ -28,6 +28,7 @@ if(['put','get'].includes(request.operation)) {
  }
 }
 else if(request.operation==='nativeFeeReceipt')result={transactionHash:request.transactionHash,chainId:'fixture-chain',basis:'observed-ante-fee-deduction',payer:'fixture-owner',success:false,fees:[{denom:'stake',amount:'5'}]};
+else if(['upload','instantiate'].includes(request.operation))result={transactionHash:'a'.repeat(64),...(request.mode==='valid'?(request.operation==='upload'?{codeId:2}:{contractAddress:'fixture-contract'}):{})};
 else if(request.operation==='restoreKey')result={publicKey:'fixture-public',address:'fixture-owner'};
 else if(request.operation==='verifyNftCustodyReceipt'){
  if(request.contractAddress!=='fixture-contract'||request.tokenId!=='fixture-token'||request.custody!=='fixture-owner')
