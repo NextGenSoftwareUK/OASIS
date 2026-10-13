@@ -8,6 +8,22 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 [TestClass, DoNotParallelize]
 public class CosmosProcessBoundaryTests
 {
+    [DataTestMethod]
+    [DataRow("upload")]
+    [DataRow("instantiate")]
+    public async Task DeploymentReplyMissingFieldsRetainsOriginalIdentityAndCannotEnableReplay(string operation)
+    {
+        await WithFixture(async provider => {
+            var error = await Assert.ThrowsExceptionAsync<CosmosNativeMutationReconciliationException>(
+                () => Invoke(provider, operation, new { mode = "missing" }, CancellationToken.None));
+            Assert.AreEqual(new string('a', 64), error.OriginalTransactionId);
+            Assert.IsNull(error.ExecutionSucceeded);
+            Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(error));
+            var valid = await Invoke(provider, operation, new { mode = "valid" }, CancellationToken.None);
+            Assert.AreEqual(new string('a', 64), valid.GetProperty("transactionHash").GetString());
+        });
+    }
+
     private static Task<JsonElement> Invoke(CosmosBlockChainOASIS provider, string operation, object args, CancellationToken token)
     {
         var backend = typeof(KeyValueStorageProviderBase).GetProperty("Backend", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(provider)!;

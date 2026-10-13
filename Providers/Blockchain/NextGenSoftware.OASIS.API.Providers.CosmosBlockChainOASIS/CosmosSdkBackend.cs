@@ -186,6 +186,13 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
             if (preparationServer?.PreparedTransactionId != null
                 && !string.Equals(payload.GetProperty("transactionHash").GetString(), preparationServer.PreparedTransactionId, StringComparison.OrdinalIgnoreCase))
                 throw new CosmosNativeMutationReconciliationException("Cosmos reply does not match the persisted original identity.", preparationServer.PreparedTransactionId, null);
+            if (operation == "upload" && (!payload.TryGetProperty("codeId", out var codeId)
+                || codeId.ValueKind != JsonValueKind.Number || !codeId.TryGetInt64(out var numericCodeId) || numericCodeId <= 0)
+                || operation == "instantiate" && (!payload.TryGetProperty("contractAddress", out var address)
+                || address.ValueKind != JsonValueKind.String || string.IsNullOrWhiteSpace(address.GetString())))
+                throw new CosmosNativeMutationReconciliationException(
+                    "Cosmos mutation reply retains an original hash but lacks valid deployment result fields; reconcile before retrying.",
+                    payload.GetProperty("transactionHash").GetString(), null);
             return payload.Clone();
         }
         catch (InvalidOperationException ex) when (!preparationObserved && preparationServer?.PreparedTransactionId != null)
