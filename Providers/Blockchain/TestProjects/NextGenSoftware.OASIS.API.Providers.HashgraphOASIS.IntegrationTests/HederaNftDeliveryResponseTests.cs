@@ -8,6 +8,32 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 [TestClass]
 public class HederaNftDeliveryResponseTests
 {
+    [TestMethod]
+    public void BatchResponseRetainsEverySerialWithIndependentMetadataAndStableIds()
+    {
+        const string mintId = "0.0.1001@1700000000.000000001";
+        var template = new Web3NFT { CollectionPublicKey = "0.0.1234", Title = "HTS batch",
+            MetaData = new Dictionary<string,string> { ["park"] = "oak" } };
+        var method = typeof(HashgraphOASIS).GetMethod("CreateHederaMintResponse", BindingFlags.NonPublic | BindingFlags.Static)!;
+        Web3NFTTransactionResponse Build() => (Web3NFTTransactionResponse)method.Invoke(null, new object[] { template, new[] { "7", "8", "9" }, mintId })!;
+        var response = Build(); var repeated = Build();
+        Assert.AreEqual(3, response.Web3NFTs.Count);
+        Assert.AreSame(response.Web3NFTs[0], response.Web3NFT);
+        CollectionAssert.AreEqual(new[] { "0.0.1234/7", "0.0.1234/8", "0.0.1234/9" }, response.Web3NFTs.Select(nft => nft.NFTTokenAddress).ToArray());
+        Assert.AreEqual(3, response.Web3NFTs.Select(nft => nft.Id).Distinct().Count());
+        CollectionAssert.AreEqual(response.Web3NFTs.Select(nft => nft.Id).ToArray(), repeated.Web3NFTs.Select(nft => nft.Id).ToArray());
+        response.Web3NFTs[0].MetaData["park"] = "changed";
+        Assert.AreEqual("oak", response.Web3NFTs[1].MetaData["park"]);
+        Assert.AreEqual("oak", template.MetaData["park"]);
+        Record(response, "0.0.1001@1700000001.000000001");
+        foreach (var nft in response.Web3NFTs)
+        {
+            Assert.AreNotEqual(Guid.Empty, nft.Id);
+            Assert.AreEqual(mintId, nft.MintTransactionHash);
+            Assert.AreEqual(response.SendNFTTransactionResult, nft.SendNFTTransactionHash);
+            Assert.AreEqual("0.0.1002", nft.SendToAddressAfterMinting);
+        }
+    }
     [DataTestMethod]
     [DataRow(false,false)] [DataRow(true,false)] [DataRow(true,true)]
     public void PostMintFailureRetainsBothOriginalIdentitiesWithoutInventingDelivery(bool minted,bool deliveryRequested)
