@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+Priority golden-key query coverage: four bidirectional sync/async scenarios now query every28 built-in exemption key plus AppRegion in actual Mongo and SQLite using distinct string values after replicatedVersion3 update; each returns exactly original publicId.4/4 passed (`TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`). Golden list copied from existing Core compatibility contract, not dynamically shrunk. This proves direct plaintext string equality only, not manager encryption integration, typed/compound queries, indexes/scale or other providers/APIs.
+
 Priority metadata query checkpoint: direct Mongo and SQLite sync/async Email equality query resolves exactly replicated currentVersion3 holon after update. Four expanded real pairing scenarios passed (`TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`). This is one string key/current row; all exemption keys/typed/compound/encrypted/manager/API query parity remains unproven and must not be inferred from this pass.
 
 Real Mongo replica-write failure checkpoint: app-scoped one-shot owned-server insert/error2 rejection leaves successful SQLite primary readable and Mongo replica absent. Sync/async V2 returns warning, failed1/succeeded0 replication diagnostic; four full pairing scenarios pass (`TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`). Failpoint always disabled afterward. This is definite command rejection, not ambiguous timeout/crash/replay recovery or every write-failure class; remaining original provider/host gates stay open.
