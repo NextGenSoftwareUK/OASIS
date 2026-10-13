@@ -127,6 +127,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class CosmosBlockChainOASISProviderSettings : ProviderSettingsBase
     {
+        public string StorageEncryptionKeyEnvironmentVariable { get; set; } = "OASIS_COSMOS_STORAGE_ENCRYPTION_KEY";
         public string RpcEndpoint { get; set; } = "https://cosmos-rpc.polkachu.com";
         public string Network { get; set; } = "cosmos";
         public string ChainId { get; set; } = "cosmoshub-4";
@@ -159,6 +160,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class SuiOASISProviderSettings : ProviderSettingsBase
     {
+        public string StorageEncryptionKeyEnvironmentVariable { get; set; } = "OASIS_SUI_STORAGE_ENCRYPTION_KEY";
         public string RpcEndpoint { get; set; } = "https://fullnode.mainnet.sui.io:443";
         public string Network { get; set; } = "mainnet";
         public string ChainId { get; set; } = "";

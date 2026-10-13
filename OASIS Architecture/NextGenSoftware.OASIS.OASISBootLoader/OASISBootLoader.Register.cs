@@ -478,7 +478,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.AddressPrefix ?? "cosmos",
                                 OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.GasPrice ?? "0.025uatom",
                                 OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.NativeDenom,
-                                OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.NativeDecimals);
+                                OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.NativeDecimals,
+                                storageEncryptionKeyResolver: () => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend.ResolveEnvironmentKey(
+                                    OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.StorageEncryptionKeyEnvironmentVariable));
                             cosmosProvider.OnStorageProviderError += CosmosBlockChainOASIS_StorageProviderError;
                             result.Result = cosmosProvider;
                         }
@@ -523,7 +525,9 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 OASISDNA.OASIS.StorageProviders.SuiOASIS.ContractAddress ?? "",
                                 OASISDNA.OASIS.StorageProviders.SuiOASIS.PrivateKey ?? "",
                                 OASISDNA.OASIS.StorageProviders.SuiOASIS.StorageObjectId ?? "",
-                                OASISDNA.OASIS.StorageProviders.SuiOASIS.CurrencyObjectId ?? "");
+                                OASISDNA.OASIS.StorageProviders.SuiOASIS.CurrencyObjectId ?? "",
+                                storageEncryptionKeyResolver: () => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend.ResolveEnvironmentKey(
+                                    OASISDNA.OASIS.StorageProviders.SuiOASIS.StorageEncryptionKeyEnvironmentVariable));
                             suiProvider.OnStorageProviderError += SuiOASIS_StorageProviderError;
                             result.Result = suiProvider;
                         }

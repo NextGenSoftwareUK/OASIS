@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos/Sui DNA storage-key reference integration — 2026-10-12
+
+- Added `StorageEncryptionKeyEnvironmentVariable` to Cosmos/Sui provider DNA settings with existing default variable names. BootLoader registration passes a lazy resolver using those configured references to the existing mandatory private backend. Secret key material is not stored in this new setting; signing keys are not used as storage encryption keys. Explicit empty/invalid references do not fall back to another variable.
+- DNA and BootLoader builds passed; focused existing/new DNA compatibility suite **11/11 passed**, zero skips, `TestResults/CoreCurrent/dna-provider-keyrefs-current.trx`, including defaults and JSON custom-reference roundtrips. Actual custom-variable BootLoader activation, full consumers and hosted configuration remain required gates.
+- This aligns secret-reference configuration with TRON/Hedera; it does not merge metadata/password/whole-record policy or formats. No production secrets generated/configured, runtime/download/install/deployment/merge.
+
+
 ### Sui/Hedera retained output SDK and verifier checks — 2026-10-12
 
 - Existing reuse helper verified the current Sui unit-output and Hedera integration-output bridge manifests against retained source SDK installations, linked/revalidated shared dependency junctions, and passed actual bridge syntax/import/direct SDK pin checks. No packages installed/downloaded or dependency trees duplicated.

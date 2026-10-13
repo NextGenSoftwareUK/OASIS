@@ -6,6 +6,16 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 
 public class DnaEncryptionCompatibilityTests
 {
+    [Fact]
+    public void PrivateLedgerKeyReferencesAreConfigurableWithoutPersistingKeyMaterial()
+    {
+        Assert.Equal("OASIS_COSMOS_STORAGE_ENCRYPTION_KEY",new CosmosBlockChainOASISProviderSettings().StorageEncryptionKeyEnvironmentVariable);
+        Assert.Equal("OASIS_SUI_STORAGE_ENCRYPTION_KEY",new SuiOASISProviderSettings().StorageEncryptionKeyEnvironmentVariable);
+        var cosmos=System.Text.Json.JsonSerializer.Deserialize<CosmosBlockChainOASISProviderSettings>("{\"StorageEncryptionKeyEnvironmentVariable\":\"CUSTOM_COSMOS_KEY\"}")!;
+        var sui=System.Text.Json.JsonSerializer.Deserialize<SuiOASISProviderSettings>("{\"StorageEncryptionKeyEnvironmentVariable\":\"CUSTOM_SUI_KEY\"}")!;
+        Assert.Equal("CUSTOM_COSMOS_KEY",cosmos.StorageEncryptionKeyEnvironmentVariable);
+        Assert.Equal("CUSTOM_SUI_KEY",sui.StorageEncryptionKeyEnvironmentVariable);
+    }
     [Theory]
     [InlineData(false)] [InlineData(true)]
     public void EnabledEncryptionCannotSilentlySkipMissingKeys(bool quantum)
