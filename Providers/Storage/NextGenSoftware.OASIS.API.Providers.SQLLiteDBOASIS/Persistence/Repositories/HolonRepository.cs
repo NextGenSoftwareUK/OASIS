@@ -332,21 +332,23 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         public OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true,
             int maxChildDepth = 0, bool continueOnError = true)
         {
+            HolonModel holonEntity = null;
             try
             {
-                HolonModel holonEntity = CreateHolonModel(holon);
-                AddOrUpdateHolon(holonEntity);
+                holonEntity = CreateHolonModel(holon);
+                holonEntity = AddOrUpdateHolon(holonEntity);
                 _dbContext.SaveChanges();
                 return new OASISResult<IHolon>
                     {IsError = false, Result = GetHolonFromEntity(holonEntity), IsSaved = true};
             }
             catch (Exception ex)
             {
+                DetachOwnedFailedWrites(holonEntity == null ? Array.Empty<string>() : new[] { holonEntity.Id });
                 return new OASISResult<IHolon>
                 {
                     IsError = true,
                     IsSaved = false,
-                    Message = ex.ToString()
+                    Exception = ex, Message = ex.Message
                 };
             }
         }
@@ -354,21 +356,23 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         public async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true,
             bool recursive = true, int maxChildDepth = 0, bool continueOnError = true)
         {
+            HolonModel holonEntity = null;
             try
             {
-                HolonModel holonEntity = CreateHolonModel(holon);
-                AddOrUpdateHolon(holonEntity);
+                holonEntity = CreateHolonModel(holon);
+                holonEntity = AddOrUpdateHolon(holonEntity);
                 await _dbContext.SaveChangesAsync();
                 return new OASISResult<IHolon>
                     {IsError = false, Result = GetHolonFromEntity(holonEntity), IsSaved = true};
             }
             catch (Exception ex)
             {
+                DetachOwnedFailedWrites(holonEntity == null ? Array.Empty<string>() : new[] { holonEntity.Id });
                 return new OASISResult<IHolon>
                 {
                     IsError = true,
                     IsSaved = false,
-                    Message = ex.ToString()
+                    Exception = ex, Message = ex.Message
                 };
             }
         }
@@ -376,27 +380,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         public OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true,
             bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true)
         {
+            var models = new List<HolonModel>();
             try
             {
-                HolonModel holonEntity = new();
-                foreach (var holonModel in holons)
-                {
-                    holonEntity = CreateHolonModel(holonModel);
-                    AddOrUpdateHolon(holonEntity);
-                }
+                models = holons.Select(CreateHolonModel).ToList();
+                for (var index = 0; index < models.Count; index++) models[index] = AddOrUpdateHolon(models[index]);
 
                 _dbContext.SaveChanges();
 
                 return new OASISResult<IEnumerable<IHolon>>
-                    {IsError = false, Result = holons, IsSaved = true};
+                    {IsError = false, Result = models.Select(GetHolonFromEntity).ToList(), IsSaved = true};
             }
             catch (Exception ex)
             {
+                DetachOwnedFailedWrites(models.Select(model => model.Id));
                 return new OASISResult<IEnumerable<IHolon>>
                 {
                     IsError = true,
                     IsSaved = false,
-                    Message = ex.ToString()
+                    Exception = ex, Message = ex.Message
                 };
             }
         }
@@ -405,27 +407,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
             bool continueOnError = true)
         {
+            var models = new List<HolonModel>();
             try
             {
-                HolonModel holonEntity = new();
-                foreach (var holonModel in holons)
-                {
-                    holonEntity = CreateHolonModel(holonModel);
-                    AddOrUpdateHolon(holonEntity);
-                }
+                models = holons.Select(CreateHolonModel).ToList();
+                for (var index = 0; index < models.Count; index++) models[index] = AddOrUpdateHolon(models[index]);
 
                 await _dbContext.SaveChangesAsync();
 
                 return new OASISResult<IEnumerable<IHolon>>
-                    {IsError = false, Result = holons, IsSaved = true};
+                    {IsError = false, Result = models.Select(GetHolonFromEntity).ToList(), IsSaved = true};
             }
             catch (Exception ex)
             {
+                DetachOwnedFailedWrites(models.Select(model => model.Id));
                 return new OASISResult<IEnumerable<IHolon>>
                 {
                     IsError = true,
                     IsSaved = false,
-                    Message = ex.ToString()
+                    Exception = ex, Message = ex.Message
                 };
             }
         }
@@ -690,8 +690,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
         // Public OASIS Id is the persistence identity. Provider keys and lifecycle/audit
         // hints are not available to stateless REST or JavaScript callers.
-        private void AddOrUpdateHolon(HolonModel holon)
+        private HolonModel AddOrUpdateHolon(HolonModel holon)
         {
+            var tracked = _dbContext.Holons.Local.SingleOrDefault(existing => existing.Id == holon.Id);
+            if (tracked != null)
+            {
+                holon.CreatedDate = tracked.CreatedDate;
+                _dbContext.Entry(tracked).CurrentValues.SetValues(holon);
+                return tracked;
+            }
             HolonModel persistedHolon = _dbContext.Holons
                 .AsNoTracking()
                 .FirstOrDefault(existingHolon => existingHolon.Id == holon.Id);
@@ -699,13 +706,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             if (persistedHolon == null)
             {
                 _dbContext.Holons.Add(holon);
-                return;
+                return holon;
             }
 
             // A full replacement may omit immutable creation audit data. Preserve the
             // persisted value rather than treating its presence as a create signal.
             holon.CreatedDate = persistedHolon.CreatedDate;
             _dbContext.Holons.Update(holon);
+            return holon;
+        }
+
+        private void DetachOwnedFailedWrites(IEnumerable<string> ids)
+        {
+            var owned = ids.ToHashSet(StringComparer.Ordinal);
+            foreach (var entry in _dbContext.ChangeTracker.Entries<HolonModel>()
+                .Where(entry => owned.Contains(entry.Entity.Id) && (entry.State == EntityState.Added || entry.State == EntityState.Modified)).ToList())
+                entry.State = EntityState.Detached;
         }
     }
 }
