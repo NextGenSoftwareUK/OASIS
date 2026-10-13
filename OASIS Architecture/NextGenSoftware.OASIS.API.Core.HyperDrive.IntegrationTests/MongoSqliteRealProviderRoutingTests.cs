@@ -206,6 +206,19 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 (await freshMongo.DeActivateProviderAsync()).IsError.Should().BeFalse();
             }
             const string failureApp = "oasis-v2-owned-failure";
+            var softAvatar = new Avatar { Id = Guid.NewGuid(), Username = "mongo-soft-avatar", Email = "mongo-soft@test.local",
+                AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
+            (await mongo.SaveAvatarAsync(softAvatar)).IsError.Should().BeFalse();
+            var softDetail = new AvatarDetail { Id = softAvatar.Id, Username = "independent-mongo-detail", Karma = 123 };
+            (await mongo.SaveAvatarDetailAsync(softDetail)).IsError.Should().BeFalse();
+            var softDeleted = synchronous ? mongo.DeleteAvatar(softAvatar.Id, true) : await mongo.DeleteAvatarAsync(softAvatar.Id, true);
+            softDeleted.IsError.Should().BeFalse(softDeleted.Message);
+            softDeleted.Result.Should().BeTrue();
+            var softStoredAvatar = (await mongo.LoadAvatarAsync(softAvatar.Id)).Result;
+            var softStoredDetail = (await mongo.LoadAvatarDetailAsync(softAvatar.Id)).Result;
+            softStoredAvatar.DeletedDate.Should().NotBe(DateTime.MinValue);
+            softStoredDetail.DeletedDate.Should().Be(softStoredAvatar.DeletedDate);
+            softStoredDetail.Karma.Should().Be(123);
             var failureMongo = new MongoDBOASIS(uri + "&appName=" + failureApp,databaseName);
             (await failureMongo.ActivateProviderAsync()).IsError.Should().BeFalse();
             var failManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true };
