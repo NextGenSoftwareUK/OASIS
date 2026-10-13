@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Mongo detail real-error and wider regression refresh — 2026-10-13
+
+Real app-scoped find rejection covers GUID/username/email detail reads sync/async, requiring error/null/original MongoCommandException. Pair4/4 passes; wider real transactions42/42 refreshed after98e3deb2a. Reports `TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`, `mongo-single-node-transactions-current.trx`. Hosted API/legacy absence compatibility, full interfaces/history and production recovery remain open. No new installations/environments.
+
 ### Mongo avatar-detail identity/version parity — 2026-10-13
 
 Six detail GUID/username/email sync/async wrappers discarded version; new real pair failed4/4. Identity+version filters now use expression detail repository, whose absence is non-error/IsLoaded=false and whose real exceptions are retained. Real pair4/4 passes current/exact3/mismatch2 with karma123 (`mongo-sqlite-v2-current.trx`). Absence semantic compatibility/hosted API, actual rejected expression read, history/full interfaces/recovery still need verification. Existing runtime reused.
