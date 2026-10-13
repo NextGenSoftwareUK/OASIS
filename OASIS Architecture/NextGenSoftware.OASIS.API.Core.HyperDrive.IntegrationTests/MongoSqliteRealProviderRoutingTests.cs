@@ -279,6 +279,39 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
                 await failureMongo.DeActivateProviderAsync();
             }
+            (await failureMongo.ActivateProviderAsync()).IsError.Should().BeFalse();
+            API.Providers.MongoDBOASIS.MongoTransactionReconciliationException commitEvidence = null;
+            try
+            {
+                var commitManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true };
+                commitManager.RegisterProvider(failureMongo);
+                commitManager.RegisterProvider(sqlite);
+                commitManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                    { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("times",1) },
+                    { "data", new BsonDocument { { "failCommands", new BsonArray { "commitTransaction" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                });
+                var commitRequest = new StorageOperationRequest { Operation = "DeleteAvatar", AvatarId = avatar.Id, SoftDelete = false, PreferredProvider = ProviderType.MongoDBOASIS };
+                var commitRouter = new OASISHyperDrive(commitManager);
+                var rejectedCommit = synchronous ? commitRouter.RouteRequest<bool>(commitRequest) : await commitRouter.RouteRequestAsync<bool>(commitRequest);
+                commitEvidence = rejectedCommit.Exception as API.Providers.MongoDBOASIS.MongoTransactionReconciliationException;
+                rejectedCommit.IsError.Should().BeTrue();
+                rejectedCommit.Result.Should().BeFalse();
+                commitEvidence.Should().NotBeNull();
+                commitEvidence.TransactionNumber.Should().BeGreaterThanOrEqualTo(0);
+                commitEvidence.InnerException.Should().NotBeNull();
+                (await sqlite.LoadAvatarAsync(avatar.Id)).Result.Should().NotBeNull();
+                (await sqlite.LoadAvatarDetailAsync(detail.Id)).Result.Karma.Should().Be(456);
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+                if (commitEvidence != null)
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument("killSessions", new BsonArray { BsonDocument.Parse(commitEvidence.SessionId) }));
+                await failureMongo.DeActivateProviderAsync();
+            }
+            (await mongo.LoadAvatarAsync(avatar.Id)).Result.Should().NotBeNull();
+            (await mongo.LoadAvatarDetailAsync(detail.Id)).Result.Karma.Should().Be(456);
             var avatarDeleted = synchronous ? router.RouteRequest<bool>(avatarDelete) : await router.RouteRequestAsync<bool>(avatarDelete);
             avatarDeleted.IsError.Should().BeFalse(avatarDeleted.Message);
             avatarDeleted.IsWarning.Should().BeFalse(string.Join("; ",manager.LastReplicationDiagnostic.Attempts.Select(x=>x.Message)));
