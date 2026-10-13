@@ -523,6 +523,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Stats = avatarDetailEntity.Stats?.GetAvatarStats(),
                 CreatedByAvatarId = Guid.Parse(avatarDetailEntity.CreatedByAvatarId),
                 CreatedDate = avatarDetailEntity.CreatedDate,
+                CreatedProviderType = avatarDetailEntity.CreatedProviderType.HasValue
+                    ? new NextGenSoftware.Utilities.EnumValue<NextGenSoftware.OASIS.API.Core.Enums.ProviderType>(avatarDetailEntity.CreatedProviderType.Value) : null,
+                CreatedOASISType = avatarDetailEntity.CreatedOASISType.HasValue
+                    ? new NextGenSoftware.Utilities.EnumValue<NextGenSoftware.OASIS.API.Core.Enums.OASISType>(avatarDetailEntity.CreatedOASISType.Value) : null,
                 DeletedByAvatarId = Guid.Parse(avatarDetailEntity.DeletedByAvatarId),
                 DeletedDate = avatarDetailEntity.DeletedDate,
                 FavouriteColour = avatarDetailEntity.FavouriteColour,
