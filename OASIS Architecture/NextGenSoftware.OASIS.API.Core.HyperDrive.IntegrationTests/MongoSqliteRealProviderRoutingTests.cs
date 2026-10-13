@@ -118,6 +118,21 @@ public sealed class MongoSqliteRealProviderRoutingTests
                     loaded.Result.FirstName.Should().Be(avatar.FirstName);
                 }
             }
+            var detail = new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Email = avatar.Email, Karma = 345, XP = 123 };
+            var detailRequest = new StorageOperationRequest { Operation = "SaveAvatarDetail", Payload = detail, PreferredProvider = request.PreferredProvider };
+            foreach (var updating in new[] { false, true })
+            {
+                if (updating) { detail.Karma = 456; detail.XP = 234; }
+                var saved = synchronous ? router.RouteRequest<IAvatarDetail>(detailRequest) : await router.RouteRequestAsync<IAvatarDetail>(detailRequest);
+                saved.IsError.Should().BeFalse(saved.Message);
+                saved.IsWarning.Should().BeFalse(string.Join("; ",manager.LastReplicationDiagnostic.Attempts.Select(x=>x.Message)));
+                foreach (var loaded in new[] { await mongo.LoadAvatarDetailAsync(detail.Id), await sqlite.LoadAvatarDetailAsync(detail.Id) })
+                {
+                    loaded.IsError.Should().BeFalse(loaded.Message);
+                    loaded.Result.Karma.Should().Be(detail.Karma);
+                    loaded.Result.XP.Should().Be(detail.XP);
+                }
+            }
             using (var control = new DataContext($"Data Source={dbPath};Pooling=False")) control.Database.ExecuteSqlRaw("DROP TABLE Holon;");
             manager.IsAutoReplicationEnabled = false;
             manager.IsAutoFailOverEnabled = true;

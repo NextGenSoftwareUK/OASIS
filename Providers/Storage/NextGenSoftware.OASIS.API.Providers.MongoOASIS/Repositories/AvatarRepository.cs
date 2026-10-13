@@ -392,13 +392,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 var filter = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
                 result.Result = await _dbContext.AvatarDetail.Find(filter).FirstOrDefaultAsync();
-
-                if (result.Result == null)
-                    OASISErrorHandling.HandleError(ref result, "Avatar Not Found");
+                result.IsLoaded = result.Result != null;
+                if (result.Result == null) result.Message = "Avatar detail not found";
             }
             catch (Exception e)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured loading avatar detail in MongoDBOASIS Provider in AvatarRepository.GetAvatarDetailAsync. Reason: {e}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured loading avatar detail in MongoDBOASIS Provider in AvatarRepository.GetAvatarDetailAsync. Reason: {e}", e);
             }
 
             return result;
@@ -412,13 +411,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 var filter = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
                 result.Result = _dbContext.AvatarDetail.Find(filter).FirstOrDefault();
-
-                if (result.Result == null)
-                    OASISErrorHandling.HandleError(ref result, "Avatar Not Found");
+                result.IsLoaded = result.Result != null;
+                if (result.Result == null) result.Message = "Avatar detail not found";
             }
             catch (Exception e)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error occured loading avatar detail in MongoDBOASIS Provider in AvatarRepository.GetAvatarDetail. Reason: {e}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured loading avatar detail in MongoDBOASIS Provider in AvatarRepository.GetAvatarDetail. Reason: {e}", e);
             }
 
             return result;
