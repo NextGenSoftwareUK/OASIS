@@ -137,14 +137,14 @@ public sealed class TronStorageBackend : IKeyValueBackend
 
     public async Task VerifyAsync(CancellationToken cancellationToken = default)
     {
-        var key = "oasis/probe/" + Guid.NewGuid().ToString("N");
-        var value = Guid.NewGuid().ToString("N");
-        await PutAsync(key, value, cancellationToken);
-        try
-        {
-            if (await GetAsync(key, cancellationToken) != value) throw new InvalidOperationException("Storage committed readback mismatch.");
-        }
-        finally { await DeleteAsync(key, cancellationToken); }
-        if (await GetAsync(key, cancellationToken) != null) throw new InvalidOperationException("Storage probe deletion was not committed.");
+        cancellationToken.ThrowIfCancellationRequested();
+        var ownerBytes=NBitcoin.DataEncoders.Encoders.Base58Check.DecodeData(_owner);
+        if(ownerBytes.Length!=21 || ownerBytes[0]!=0x41)
+            throw new InvalidOperationException("Storage owner must be a canonical TRON address.");
+        var expected=new BigInteger(ownerBytes.AsSpan(1),isUnsigned:true,isBigEndian:true);
+        var actual=(BigInteger)(await Query("owner()",Array.Empty<string>(),Array.Empty<object>(),
+            new[]{"uint256"},cancellationToken))[0].Result;
+        if(actual!=expected)throw new InvalidOperationException("Storage contract owner does not match the configured owner.");
+        await ListKeysAsync(string.Empty,cancellationToken);
     }
 }

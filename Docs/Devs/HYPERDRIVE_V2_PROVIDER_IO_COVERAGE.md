@@ -36,6 +36,14 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON read-only activation correction — 2026-10-12
+
+- Removed paid write/delete probes from `TronStorageBackend.VerifyAsync`: it now checks the configured owner's canonical TRON address against the actual contract `owner()` constant call and validates revision-bound key enumeration. The private wrapper uses `VerifyReadOnlyAsync`, which validates/decrypts existing private records without generating probe records.
+- Write authority remains verified by the actual mutation path; successful activation alone does not prove signing permissions or write success. Explicit live mutation tests remain required. Earlier activation-based inspection described as read-only must not be treated as proof of no ledger writes; that old code did submit probes.
+- Build passed; current full TRON unit suite **287/287 passed**, zero skips, report `TestResults/TronRuntime/tron-readonly-activation-current.trx`. Two new controlled official SDK/gRPC tests exercise private verification with matching/foreign contract owners and prove no signing-key resolution. Only constant/genesis query RPCs are registered, so a transaction construction/broadcast would fail. Initial fixture omitted mandatory genesis RPCs; adding those fixture responses fixed the test, without weakening production genesis validation.
+- Live verification on the retained TRON node and current V2 matrix remain outstanding. Preserve the original unresolved transaction fence and do not replay it. No new runtime, downloads, funds or live transactions were used for this checkpoint.
+
+
 ### Sui encrypted V2 real-provider routing — 2026-10-12
 
 - Existing Sui routing fixtures now use the same retained public local-only storage encryption key as the real storage test. No production key, runtime install, deployment or ledger reset was introduced.

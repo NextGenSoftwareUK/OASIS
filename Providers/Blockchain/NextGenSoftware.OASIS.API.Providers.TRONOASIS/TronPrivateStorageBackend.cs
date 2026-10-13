@@ -50,7 +50,7 @@ public sealed class TronPrivateStorageBackend : IKeyValueBackend, IDisposable
     public Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken cancellationToken = default)
         => Resolve(cancellationToken).ListKeysAsync(prefix, cancellationToken);
     public Task VerifyAsync(CancellationToken cancellationToken = default)
-        => Resolve(cancellationToken).VerifyAsync(cancellationToken);
+        => Resolve(cancellationToken).VerifyReadOnlyAsync(cancellationToken);
 
     public void Dispose()
     {

@@ -11,6 +11,43 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 public class TronPermissionRpcTests
 {
     [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task PrivateStorageVerificationUsesOnlyConstantCallsAndRejectsForeignOwner(bool foreign)
+    {
+        var owner=new TronNet.TronECKey(new string('0',63)+"1",TronNet.TronNetwork.MainNet).GetPublicAddress();
+        var address=NBitcoin.DataEncoders.Encoders.Base58Check.DecodeData(owner);
+        var calls=0;var signingResolutions=0;
+        var service=ServerServiceDefinition.CreateBuilder()
+            .AddMethod(Rpc(Wallet.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=ByteString.CopyFrom(new byte[32])}))
+            .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),(NumberMessage request,ServerCallContext context)=>Task.FromResult(new BlockExtention{Blockid=ByteString.CopyFrom(new byte[32])}))
+            .AddMethod(Rpc(Wallet.Descriptor.FullName,"TriggerConstantContract",TriggerSmartContract.Parser,TransactionExtention.Parser),(TriggerSmartContract request,ServerCallContext context)=>{
+                calls++;
+                var selector=Convert.ToHexString(request.Data.ToByteArray()[..4]);
+                string Selector(string signature)=>new Nethereum.Util.Sha3Keccack().CalculateHash(signature)[..8].ToUpperInvariant();
+                byte[] payload;
+                if(selector==Selector("owner()")){
+                    payload=new byte[32];address.AsSpan(1).CopyTo(payload.AsSpan(12));if(foreign)payload[31]^=1;
+                }else{
+                    var signature=selector==Selector("revision()")?"result(uint256)":"result(string[],uint256,uint256)";
+                    Assert.True(selector==Selector("revision()") || selector==Selector("keyPage(uint256,uint256,uint256)"));
+                    var types=signature=="result(uint256)"?new[]{"uint256"}:new[]{"string[]","uint256","uint256"};
+                    var values=types.Length==1?new object[]{System.Numerics.BigInteger.Zero}:new object[]{Array.Empty<string>(),System.Numerics.BigInteger.Zero,System.Numerics.BigInteger.Zero};
+                    var encoded=(byte[])typeof(TronStorageBackend).GetMethod("Encode",BindingFlags.Static|BindingFlags.NonPublic)!.Invoke(null,new object[]{signature,types,values})!;
+                    payload=encoded[4..];
+                }
+                var response=new TransactionExtention{Result=new Return{Result=true}};response.ConstantResult.Add(ByteString.CopyFrom(payload));return Task.FromResult(response);
+            }).Build();
+        var server=new Server{Services={service},Ports={new ServerPort("127.0.0.1",0,ServerCredentials.Insecure)}};server.Start();
+        try{
+            var port=server.Ports.Single().BoundPort;
+            await using var runtime=new TronSdkRuntime(new Uri($"http://127.0.0.1:{port}"),new Uri($"http://127.0.0.1:{port}"),new string('0',64));
+            using var backend=new TronPrivateStorageBackend(runtime.NativeTransfers,owner,owner,()=>{signingResolutions++;throw new InvalidOperationException("Read-only verification must not resolve signing keys.");},()=>new byte[32]);
+            if(foreign)await Assert.ThrowsAsync<InvalidOperationException>(()=>backend.VerifyAsync());
+            else await backend.VerifyAsync();
+            Assert.Equal(0,signingResolutions);Assert.True(calls>0);
+        }finally{await server.ShutdownAsync();}
+    }
+    [Theory]
     [InlineData("call")] [InlineData("deploy")] [InlineData("missing-address")] [InlineData("readback-unavailable")]
     [InlineData("nft-mint")] [InlineData("nft-send")] [InlineData("token-send")] [InlineData("approve")]
     [InlineData("escrow-lock")] [InlineData("escrow-unlock")]
