@@ -276,6 +276,50 @@ public class SuiUnlockReadbackFailureTests
     }
 
     [DataTestMethod]
+    [DataRow("valid", false)]
+    [DataRow("valid", true)]
+    [DataRow("foreign-preparation-chain", false)]
+    [DataRow("invalid-signature", false)]
+    public async Task PublicPreparedMintVerifiesAndAwaitsOwnerPersistence(string mode, bool rejectPersistence)
+    {
+        var previous = Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE", Path.Combine(AppContext.BaseDirectory, "Fixtures", "unlock-readback-failure.mjs"));
+        try
+        {
+            using var provider = new SuiOASIS("http://127.0.0.1:1", "localnet", chainId: "fixture-chain", privateKey: "test-only-secret");
+            var calls = 0;
+            var entered = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var release = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+            var failure = new IOException("controlled owner persistence failure");
+            var execution = provider.MintNFTAsync(new MintWeb3NFTRequest { Title = "identity/" + mode, NumberToMint = 2 },
+                async (evidence, token) =>
+                {
+                    calls++;
+                    Assert.AreEqual("fixture-chain", evidence.GetProperty("chainId").GetString());
+                    Assert.AreEqual(new string('1', 32), evidence.GetProperty("transactionHash").GetString());
+                    entered.TrySetResult();
+                    await release.Task.WaitAsync(token);
+                    if (rejectPersistence) throw failure;
+                }, CancellationToken.None);
+            if (mode == "valid")
+            {
+                try
+                {
+                    await entered.Task.WaitAsync(TimeSpan.FromSeconds(10));
+                    Assert.IsFalse(execution.IsCompleted, "Mint must wait for durable owner acknowledgement.");
+                }
+                finally { release.TrySetResult(); }
+            }
+            var result = await execution;
+            Assert.AreEqual(mode == "valid" ? 1 : 0, calls);
+            Assert.AreEqual(rejectPersistence || mode != "valid", result.IsError);
+            if (rejectPersistence) Assert.AreSame(failure, result.Exception);
+            if (!result.IsError) Assert.AreEqual(2, result.Result.Web3NFTs.Count);
+        }
+        finally { Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE", previous); }
+    }
+
+    [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]
     public async Task ExplicitNftSignerAndCommittedSendDigestSurviveReadbackFailure(bool agreeingSelectors)
