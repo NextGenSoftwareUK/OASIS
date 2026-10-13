@@ -11,6 +11,48 @@ public sealed class TronWalletHistoryTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    public void NativeUnstakeAndWithdrawalRejectForeignWalletAndRetainFailedReceipt(bool reward)
+    {
+        var bytes=new byte[21];bytes[0]=0x41;bytes[20]=7;
+        var owner=ByteString.CopyFrom(bytes);bytes[20]=8;var foreign=ByteString.CopyFrom(bytes);
+        var contract=reward
+            ? new Transaction.Types.Contract { Type=Transaction.Types.Contract.Types.ContractType.WithdrawBalanceContract,
+                Parameter=Any.Pack(new WithdrawBalanceContract { OwnerAddress=owner }) }
+            : new Transaction.Types.Contract { Type=Transaction.Types.Contract.Types.ContractType.UnfreezeBalanceContract,
+                Parameter=Any.Pack(new UnfreezeBalanceContract { OwnerAddress=owner }) };
+        var transaction=new Transaction { RawData=new Transaction.Types.raw { Timestamp=1700000000000 } };
+        transaction.RawData.Contract.Add(contract);
+        var receipt=new TransactionInfo { Id=ByteString.CopyFrom(new byte[32]),Result=(TransactionInfo.Types.code)1,
+            ResMessage=ByteString.CopyFromUtf8("owned failed receipt") };
+        var map=typeof(TronNativeTransferClient).GetMethod("MapWalletTransaction",BindingFlags.NonPublic|BindingFlags.Static)!;
+        var mapped=(NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses.IWalletTransaction)map.Invoke(null,new object[]{transaction,receipt,owner})!;
+        Assert.NotEqual("Success",mapped.NativeExecutionResult);
+        Assert.Equal("owned failed receipt",mapped.NativeError);
+        Assert.Equal("0",mapped.RawAmount);Assert.Equal(0d,mapped.Amount);
+        var error=Assert.Throws<TargetInvocationException>(()=>map.Invoke(null,new object[]{transaction,receipt,foreign}));
+        Assert.IsType<InvalidOperationException>(error.InnerException);
+        Assert.Contains("does not involve",error.InnerException!.Message);
+    }
+
+    [Fact]
+    public void NativeUnstakeRejectsUndefinedResource()
+    {
+        var bytes=new byte[21];bytes[0]=0x41;bytes[20]=7;var owner=ByteString.CopyFrom(bytes);
+        var request=new UnfreezeBalanceContract { OwnerAddress=owner };
+        var resource=typeof(UnfreezeBalanceContract).GetProperty(nameof(UnfreezeBalanceContract.Resource))!;
+        resource.SetValue(request,Enum.ToObject(resource.PropertyType,999));
+        var transaction=new Transaction { RawData=new Transaction.Types.raw { Timestamp=1700000000000 } };
+        transaction.RawData.Contract.Add(new Transaction.Types.Contract {
+            Type=Transaction.Types.Contract.Types.ContractType.UnfreezeBalanceContract,Parameter=Any.Pack(request) });
+        var map=typeof(TronNativeTransferClient).GetMethod("MapWalletTransaction",BindingFlags.NonPublic|BindingFlags.Static)!;
+        var error=Assert.Throws<TargetInvocationException>(()=>map.Invoke(null,new object[]{transaction,new TransactionInfo { Id=ByteString.CopyFrom(new byte[32]) },owner}));
+        Assert.IsType<InvalidOperationException>(error.InnerException);
+        Assert.Contains("unstaking resource",error.InnerException!.Message);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public void NativeUnstakeAndRewardWithdrawalPreserveReceiptUnitsWithoutInventingTransfers(bool reward)
     {
         var bytes=new byte[21];bytes[0]=0x41;bytes[20]=7;

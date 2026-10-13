@@ -1,6 +1,6 @@
 # HyperDrive V2 current release gates
 
-Updated 2026-10-13, inspected parent `71f37efd7` plus the Hedera checkpoint below. This is a current navigation checklist, not a replacement for the original all-provider scope or the detailed evidence log. **Not release-ready; do not merge yet.**
+Updated 2026-10-13, inspected parent `a5f56ff0d` plus pending source tests below. This is a current navigation checklist, not a replacement for the original all-provider scope or the detailed evidence log. **Not release-ready; do not merge yet.**
 
 ## Authoritative state
 
@@ -8,9 +8,11 @@ Updated 2026-10-13, inspected parent `71f37efd7` plus the Hedera checkpoint belo
 - Core pin: `e196295c0e40934cd7ddf3bca5f03b7d5a6457ae`; ONODE Core pin: `f9c985d0faff66b3b4525ebd9b4becba1f564f93`. Full Core 477 tests passed previously. Current WEB4 build and 147 tests passed after attributed-property/null-metadata fixes; deployed verification and other consumer refresh remain required.
 - TRON `TestResults/HyperDriveTron/pending-native-outcome.json` exists and must be preserved. Original transaction outcome is unresolved; NotFound is not non-submission proof.
 - Cosmos replication ownership journal is present and unresolved; Sui journal was absent at last inspection. Do not delete pending journals blindly.
-- Free space observed 85.68 GB decimal (79.80 GiB). WSL VHD size remains 80,685,826,048 bytes. Recent Visual Studio Temp downloads occupy 4.54 GiB; their disposal/ownership is unverified. Requested disk recovery is not achieved. No broad cleanup of unrelated services/data is authorized by this checklist.
+- Last measured free space132.38GB decimal (123.29GiB), with concurrent cleanup active. See `WORKSPACE_CLEANUP_LEDGER.md` for exact removals, preservation commits and denied artifact removals;150GB target remains incomplete. No broad cleanup of unrelated services/data is authorized by this checklist.
 
 ## Evidence versus completion
+
+Pending TRON source verification (2026-10-13): unstaking/reward-withdrawal history and original-owner mappings committedb924bb019, SDK fields verified by retained DLL reflection. Two positive/negative-amount cases plus three added foreign-wallet/failed-receipt/undefined-resource cases are source only, NOT compiled/run. Earlier294-unit pass predates these edits. NuGet TronNet package absent and user confirms concurrent cleanup still active; no restores/builds/new environments. Full current regression, actual solidified receipt/live interface proof and original unknown native transaction remain OPEN. No merge.
 
 Disk cleanup checkpoint (2026-10-13): exact stale Nix Holochain generated target `/nix/var/nix/builds/nix-583-3695671890/build/source/target` was3.5GiB. Guarded script validates resolved nonlinked target, absent original PID583, no cargo/rustc and no open files before removal; source/Nix store/runtimes untouched. Linux use fell72→69GiB; fstrim returned actual Windows free space78.88→81.33GiB (87.32GB decimal), **2.45GiB host recovery**, not3.5GiB host recovery. WSL file length80,685,826,048 unchanged (logical length is not allocated size). Completed Visual Studio Temp4.54GiB deletion was rejected by execution policy and not retried through another mechanism. Conda33GiB comprises envs22GiB (piper-art11,slp9.3,mfa1.7), base libraries7GiB and cache3.3GiB; Nix15GiB before cleanup, container apparent sizes6.5–11GiB depending shared-link accounting. These are observed footprint, NOT proof of70GiB new growth. Requested recovery still incomplete; preserve unrelated environments/credentials/user data.
 

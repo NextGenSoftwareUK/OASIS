@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+TRON draft regression expansion during ongoing cleanup (2026-10-13): added two failed-receipt/foreign-wallet cases and one undefined-unstaking-resource case to the previous two native unstake/reward mapping cases. These five new cases are NOT compiled/run; existing294 result cannot certify current source. No build/restore/cache repopulation/ledger mutation/new environment. Current gate navigation updated to reflect unverified source and latest cleanup ledger, not historical all-green assumptions.
+
 ### User-authorized commit-first checkout/output cleanup — 2026-10-13
 
 User explicitly requested committing all work, removing unnecessary copies and no further clones. Removed clean `ourworld-main-promotion`, `OASIS-api-host-resilience-dev`, `OASIS-api-host-resilience-prod`, `OASIS-sharing`, and nested Claude practical-austin worktree. Parent heads and every initialized submodule head preserved in existing primary repositories under `refs/archive/cleanup/<checkout-name>`; missing objects fetched locally only, no new checkout/repository/environment. Existing branches remain. No unexpected ignored data or modified nested modules in removed worktrees. Pruned stale registrations for already-absent worktrees. OASIS worktree list now only primary and existing active HyperDrive checkout.
