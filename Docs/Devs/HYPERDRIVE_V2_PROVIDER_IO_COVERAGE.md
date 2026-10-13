@@ -36,6 +36,14 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Production native recovery registration audit — 2026-10-12
+
+- Current source audit finds `IUsageRecoveryResolver` implementations only in `UsageProtocolTests` (`EvidenceResolver` and `PoisonResolver`), not production. The worker rejects competing owners and retains missing/failed terminal evidence as indeterminate; native receipt capabilities alone do not provide production settlement recovery.
+- `AddWeb4UsageLedger` registers the durable outbox/execution/worker in WEB7–WEB10 programs. Current WEB4 Program has no such registration; WEB4 is the authority, so a consuming-service registration must not simply be copied into it without designing the NFT execution/admission ownership. WEB4 native NFT entry paths need an explicit durable execution-to-recovery integration, not merely registering a resolver in the wrong process.
+- Required next implementation: identify the exact NFT execution host/owner, bind persisted original signed preparation and every provider attempt to read-only original receipts, apply an approved immutable valuation policy, register one resolver in that host, and prove interrupted/concurrent recovery with durable Mongo evidence. No zero-fee inference, rebroadcast, synthetic terminal result or reservation release is acceptable for missing receipts.
+- Existing subscription protocol tests require an explicitly identified disposable Mongo replica set. Retained root Podman inventory has no Mongo runtime; local port 27017 is listening but ownership/test suitability is not yet established. No test was run against that unidentified service, and no replacement install/environment was created. This audit is source evidence of an open production gap, not completion of recovery.
+
+
 ### Current WEB4 consumer rebuild after encrypted-provider changes — 2026-10-12
 
 - Rebuilt current ONODE Core then WEB4 with retained dependencies (`--no-restore`, bounded workers, `BuildProjectReferences=false` after previously rebuilt provider/BootLoader dependencies). Both succeeded with zero errors; existing warnings were 152 and 253 respectively. No new SDK/runtime/dependency download or duplicate environment.
