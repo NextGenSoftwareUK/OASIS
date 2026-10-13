@@ -41,6 +41,41 @@ public sealed class RealProviderRoutingTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task DisabledPoliciesDoNotReplicateOrFailOverDespiteConfiguredLists(bool synchronous)
+    {
+        Directory.CreateDirectory(_root);
+        var local = new LocalFileOASIS(storageDirectory: FilesPath);
+        using var sqlite = new SQLLiteDBOASIS($"Data Source={SqlitePath};Pooling=False");
+        (await local.ActivateProviderAsync()).IsError.Should().BeFalse();
+        (await sqlite.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var manager = CreateManager();
+        manager.RegisterProvider(local);
+        manager.RegisterProvider(sqlite);
+        var providers = new[] { new EnumValue<ProviderType>(ProviderType.LocalFileOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) };
+        manager.SetAndReplaceAutoReplicationListForProviders(providers).IsError.Should().BeFalse();
+        manager.SetAndReplaceAutoFailOverListForProviders(providers).IsError.Should().BeFalse();
+        manager.IsAutoReplicationEnabled = false;
+        manager.IsAutoFailOverEnabled = false;
+        manager.SetAndActivateCurrentStorageProvider(local).IsError.Should().BeFalse();
+        var router = new OASISHyperDrive(manager);
+        var initial = new Holon { Id = Guid.NewGuid(), Name = "only-primary" };
+        var request = new StorageOperationRequest { Operation = "SaveHolon", Payload = initial, SaveChildren = false };
+        var saved = synchronous ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
+        saved.IsError.Should().BeFalse(saved.Message);
+        (await local.LoadHolonAsync(initial.Id)).Result.Id.Should().Be(initial.Id);
+        (await sqlite.LoadHolonAsync(initial.Id, loadChildren:false)).Result.Should().BeNull();
+        Directory.Delete(FilesPath, recursive:true);
+        File.WriteAllText(FilesPath, "owned primary failure with failover disabled");
+        var failed = new Holon { Id = Guid.NewGuid(), Name = "must-not-failover" };
+        request.Payload = failed;
+        var result = synchronous ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
+        result.IsError.Should().BeTrue();
+        (await sqlite.LoadHolonAsync(failed.Id, loadChildren:false)).Result.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task ReplicaIoFailurePreservesPrimaryAndReportsPartialReplication(bool synchronous)
     {
         Directory.CreateDirectory(_root);

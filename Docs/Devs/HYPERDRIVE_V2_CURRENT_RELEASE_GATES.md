@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+Real V2 disabled-policy checkpoint: with real providers and both lists configured, disabled replication leaves SQLite empty after successful LocalFile primary write; disabled failover leaves SQLite empty after actual primary I/O failure and returns error. Sync/async both checked; class12/12 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-disabled-current.trx`). This verifies these two flags, not disabled load balancing or complete configuration combinations.
+
 Real V2 partial replication checkpoint: sync/async SQLite primary writes succeed and remain readable when the actual LocalFile replica path is replaced with an owned blocking file. Result carries IsWarning, replica diagnostics report failed1/succeeded0 and identify LocalFile. Full focused class10/10 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-partial-current.trx`). No automatic replay/recovery claim; other operations/pairs and production recovery remain open.
 
 Real V2 synchronous/asynchronous checkpoint: expanded all three SQLite/LocalFile policy scenarios to both public RouteRequest and RouteRequestAsync. Suite8/8 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-sync-async-current.trx`), covering replicated initial/update/permanent-delete readbacks, filesystem-I/O failover and measured-latency selection, plus two LocalFile corruption-preservation cases. Child processing explicitly disabled: this report does not prove it or the other interface operations/provider pairs/hosted APIs. Existing fixed fixture reused and disposed.
