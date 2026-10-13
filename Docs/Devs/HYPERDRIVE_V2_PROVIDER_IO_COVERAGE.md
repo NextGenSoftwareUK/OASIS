@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui native bridge error identity preservation — 2026-10-12
+
+- Sui custodial native Deposit/Withdraw previously replaced a failed `SendSuiAsync` result with a plain exception, discarding typed original transaction reconciliation evidence. Both now preserve the existing exception; an error with no exception still surfaces an ordinary error, never success. No second transfer or retry was added.
+- Build passed; **2/2 focused controlled process tests passed**, zero skips, `TestResults/SuiRuntime/sui-bridge-original-error-current.trx`. Actual Deposit/Withdraw entry points retain the original valid digest and successful-execution reconciliation marker from the SDK envelope, with error/null result. Fixture is controlled, not live custody/chain proof. Full Sui suite and live bridge behavior need current regression verification.
+- No node/runtime/install/download/funds/deployment/merge used. Remaining original provider/recovery/configuration gates remain open.
+
+
 ### WEB4 consumer refresh after DNA and V2 save fixes — 2026-10-12
 
 - Current Core pin `ca7b722a3b53089519e0643ac1164b7cbebc9d8e` was consumed by sequential BootLoader, ONODE Core and WEB4 rebuilds using existing dependencies, bounded workers and no restore. All passed with zero errors (2/152/253 existing warnings).
