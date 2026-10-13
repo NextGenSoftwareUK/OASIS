@@ -131,7 +131,7 @@ async function execute(input, persistPreparedSubmission) {
       }
       case "instantiate": {
         const result = await client.instantiate(sender, input.codeId, input.message, input.label, "auto");
-        verifiedInstantiation(result, input.addressPrefix);
+        verifiedInstantiation(result, input.addressPrefix ?? "cosmos");
         return { contractAddress: result.contractAddress, transactionHash: result.transactionHash };
       }
       default: throw new Error(`Unsupported Cosmos SDK operation: ${input.operation}`);
