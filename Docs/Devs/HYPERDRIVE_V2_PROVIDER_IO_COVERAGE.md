@@ -36,6 +36,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Repeatable reusable-runner ownership refusal checks — 2026-10-12
+
+- Added `Test-ReusableUsageRecoveryOwnership.ps1`; **3/3 actual refusal scenarios passed**: occupied port with absent environment variables, occupied port with pre-existing values, and an exclusive lease held by another owner. Existing listener/lease retained; released runner lease can reopen; environment values restored exactly. Harness restores its own environment and stops only its own harmless listener in finally.
+- No Mongo launched, store reset, runtime installed/downloaded or unrelated service changed. This covers admission/refusal cleanup, not mid-run build/test/process failure or log bounds. Production native recovery and original broader release gates remain open; no deployment/merge.
+
+
 ### Recovery runner occupied-port cleanup correction — 2026-10-12
 
 - Failure-injected a harmless in-process listener on owned port 27029. Runner refused before Mongo launch and preserved the listener, but initially restored absent environment variables as empty entries. Corrected finally to remove originally absent variables explicitly and preserve existing values with the setter.
