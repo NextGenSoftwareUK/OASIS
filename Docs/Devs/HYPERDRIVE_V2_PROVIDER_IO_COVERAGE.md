@@ -5,6 +5,14 @@
 
 ## Current provider status — not full certification
 
+### Actual Cosmos metadata-key query verification — 2026-10-13
+
+Reused the retained pinned wasmd container `58a873de020d2f79ab11e7087361db25063c277a5b5a5c2cabba72263b35f8f3` and existing `oasis-cosmos-local` ledger/contract, without downloads/reset. Extended `HolonsPersistMetadataParentIndexesAndDeletion` to persist a pre-write CreateNew ownership journal, query every golden built-in metadata key plus `AppRegion` through the actual provider/official SDK, and retain the journal on verification/cleanup failure. Successful verification checks logical deletion and parent index absence before removing the journal; no blind cleanup follows failed/unknown writes.
+
+Live test **1/1** passed, 1m7s, `TestResults/CosmosRuntime/cosmos-real-encrypted-query-keys-current.trx`: actual encrypted holon write/read, opaque keys/ciphertext inspection, provider reopening, parent lookup and all listed string-equality metadata filters returned the owned GUID. Signing uses the existing public local-only fixture identity; independent fixed storage key is unchanged. Source SDK installation was reused (`OASIS_COSMOS_SDK_BRIDGE`), so this is not published Linux packaging proof. Fixture metadata uses string values; typed/nested metadata, combined filters, manager+provider end-to-end encryption and every other live provider remain gates.
+
+After successful logical deletion/journal cleanup, the identity/image-validated stop script returned0 and the original wasmd process handle exited0. Journal is absent. Retained container/ledger/runtime remain reusable; historical chain data is not claimed physically erased. Free disk98,524,086,272 bytes. No public-chain funds or sponsored spending used.
+
 ### Metadata query compatibility and Hedera batch response — 2026-10-13
 
 User approved unified encryption policy while explicitly requiring existing metadata lookups to keep working. No exemption or `AdditionalQueryableKeys` was removed. Added golden-list manager regression covering every existing built-in key plus configured `AppRegion`, with CBC and GCM separately: exempt values and ordinary ID survive encryption/decryption, non-exempt secrets remain protected, matching remains case-sensitive. Focused **2/2**, full Core **479/479** passed (`TestResults/CoreCurrent/metadata-query-exemptions-current.trx`, `core-full-query-compatibility-current.trx`). This is compatibility protection before unified-policy changes, not an implemented unified policy or all-provider certificate.
