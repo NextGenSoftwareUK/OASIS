@@ -332,8 +332,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.XP = avatarDetailEntity.XP;
                     existing.MetaDataJson = System.Text.Json.JsonSerializer.Serialize(avatarDetailEntity.MetaData ?? new Dictionary<string,object>());
                     SetStats(existing, avatarDetailEntity);
-                    existing.CreatedByAvatarId = avatarDetailEntity.CreatedByAvatarId.ToString();
-                    existing.CreatedDate = avatarDetailEntity.CreatedDate;
                     existing.DeletedByAvatarId = avatarDetailEntity.DeletedByAvatarId.ToString();
                     existing.DeletedDate = avatarDetailEntity.DeletedDate;
                     existing.FavouriteColour = avatarDetailEntity.FavouriteColour;
@@ -418,8 +416,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.XP = AvatarDetailEntity.XP;
                     existing.MetaDataJson = System.Text.Json.JsonSerializer.Serialize(AvatarDetailEntity.MetaData ?? new Dictionary<string,object>());
                     SetStats(existing, AvatarDetailEntity);
-                    existing.CreatedByAvatarId = AvatarDetailEntity.CreatedByAvatarId.ToString();
-                    existing.CreatedDate = AvatarDetailEntity.CreatedDate;
                     existing.DeletedByAvatarId = AvatarDetailEntity.DeletedByAvatarId.ToString();
                     existing.DeletedDate = AvatarDetailEntity.DeletedDate;
                     existing.FavouriteColour = AvatarDetailEntity.FavouriteColour;
