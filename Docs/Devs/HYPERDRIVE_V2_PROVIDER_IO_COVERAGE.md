@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Attributed derived-holon V2 save preparation — 2026-10-12
+
+- Core `a65e4ab591f294bcd5f9b319d74fb1ccf15095ad` enables existing attributed property extraction in the shared V2 single/bulk preparation owner. Previously false skipped custom properties on derived holons despite generic saves; base Holon remains excluded by the existing runtime type check. Legacy unchanged, no second save pipeline.
+- Full Core **463/463 passed**, zero skips, `TestResults/CoreCurrent/core-attributed-v2-current.trx`, with new actual manager generic single/bulk controlled-provider cases asserting attributed dialogue metadata reaches the provider. No claim of live quest/provider serialization proof; encrypted custom-property and child/generic-sync matrices remain required.
+- Pushed Core and parent manifest/gitlink advanced together. Consumer/release gates remain open; no install/download/deployment/merge.
+
+
 ### Generic bulk provider-result diagnostic parity — 2026-10-12
 
 - Two new controlled-provider cases compare actual async generic/non-generic V2 batch saves for warning-bearing success and provider failure. Assert parity of saved/error/warning flags, error/warning counts, messages, error code and inner diagnostics, with exactly one provider invocation per request.
