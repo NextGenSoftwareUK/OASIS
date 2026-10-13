@@ -36,6 +36,14 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Reused installed Mongo real durable-usage regression — 2026-10-12
+
+- Reused installed MongoDB 8.3.11 binary, not the normal service, for one fixed owned loopback replica set `oasisRecoveryRs` at 127.0.0.1:27029 with data in `TestResults/SubscriptionUsageCurrent/mongo-data`, 0.25 GiB cache and 32 MiB oplog. No runtime/download/install/clone. Normal service/data untouched.
+- Added bounded initializer/identity test: **1/1 passed**, `owned-replica-init-current.trx`. Existing real Mongo durable usage/recovery suite **77/77 passed**, zero skips, `usage-real-replica-current.trx`, in the same report directory. Test fixture databases are removed by existing finally/Dispose logic; fixed replica data remains reusable.
+- Validated exact owned process command line/PID before stopping it and verified loopback port closed. This stop is process termination, not a claim of graceful database shutdown; retained journal supports normal Mongo recovery on reuse. No unrelated processes/data removed.
+- These tests verify existing durable outbox/protocol/worker behavior with controlled authority/resolvers and actual replica-set storage. They do not implement production native recovery resolver/valuation/registration or prove live SDK settlement. Those and original provider release gates remain open; no deployment/merge.
+
+
 ### Installed Mongo runtime identified for reuse — 2026-10-12
 
 - Targeted inventory found installed `C:/Program Files/MongoDB/Server/8.3/bin/mongod.exe`, also referenced by the normal Windows MongoDB service. Binary version command succeeded; do not change the service/config/user database. No replacement portable runtime is needed.
