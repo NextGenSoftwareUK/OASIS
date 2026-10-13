@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Retained Cosmos live run failure and preserved pending intent — 2026-10-13
+
+`Scripts/TestHosts/Run-ReusableCosmosV2Tests.ps1` validates retained container/image/chain, reuses keyring owner/runtime/ledger/contract, restores process environment and stops owned node. Live replication0/1 failed; cleanup masked initial failure by deleting nonexistent holon. Fixture cleanup now requires verified replicated record success. Pending intent and local primary avatar preserved; runner refuses mutation replay while intent exists. Read-only inspection1/1 confirms target chain avatar/detail/holon absent, but explicitly reconciliationComplete=false (`cosmos-pending-inspection-current.trx`, `cosmos-inspection-current.json`). Original failed `cosmos-retained-v2-current.trx` retained. Receipt/submission reconciliation and original live root cause remain OPEN; no blind retry, new installation, ledger reset or deployment.
+
 ### Current original-chain regression refresh — 2026-10-13
 
 Rebuilt current Cosmos119/119, Sui97/97, TRON294/294 unit suites and retained-SDK Hedera non-funded283/283; zero skips. Reports under `TestResults/ProviderCurrent` and `TestResults/HederaCurrent`. No new installations or TRON uncertain submission replay. Existing Hedera mirror balance391606260tinybars (~3.916testHBAR), not consensus/signing verification; earlier funded-contract gate remains open and user top-up asked non-blockingly. These results do not prove live chain interfaces/options/HyperDrive policies/hosted APIs/recovery. Original scope retained.
