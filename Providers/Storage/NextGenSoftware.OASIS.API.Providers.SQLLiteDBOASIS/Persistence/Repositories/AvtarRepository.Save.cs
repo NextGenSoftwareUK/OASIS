@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 var avatarEntity = _dbContext.Avatars
                     .ToList()
-                    .Where(p => p.Email == avatarEmail && p.Version == version)
+                    .Where(p => p.Email == avatarEmail && (version == 0 || p.Version == version))
                     .Select(GetAvatarFromEntity)
                     .FirstOrDefault();
                 if (avatarEntity == null)
@@ -60,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 var avatarEntity = _dbContext.Avatars
                     .ToList()
-                    .Where(p => p.Username == avatarUsername && p.Version == version)
+                    .Where(p => p.Username == avatarUsername && (version == 0 || p.Version == version))
                     .Select(GetAvatarFromEntity)
                     .FirstOrDefault();
                 if (avatarEntity == null)
@@ -97,7 +97,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 var avatarEntity = _dbContext.Avatars
                     .ToList()
                     .Select(GetAvatarFromEntity)
-                    .FirstOrDefault(p => p.Id == Id && p.Version == version);
+                    .FirstOrDefault(p => p.Id == Id && (version == 0 || p.Version == version));
                 if (avatarEntity == null)
                     return new OASISResult<IAvatar>
                     {
@@ -133,7 +133,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     _dbContext.Avatars
                         .ToList()
                         .Select(GetAvatarFromEntity)
-                        .FirstOrDefault(p => p.Email == avatarEmail && p.Version == version);
+                    .FirstOrDefault(p => p.Email == avatarEmail && (version == 0 || p.Version == version));
                 if (avatarEntity == null)
                     return new OASISResult<IAvatar>
                     {
@@ -167,7 +167,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 var avatarEntity = _dbContext.Avatars
                     .ToList()
-                    .Where(p => p.Username == username && p.Version == version)
+                    .Where(p => p.Username == username && (version == 0 || p.Version == version))
                     .Select(GetAvatarFromEntity)
                     .FirstOrDefault();
                 if (avatarEntity == null)
@@ -202,7 +202,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var avatarEntity = await _dbContext.Avatars
-                    .FirstOrDefaultAsync(p => p.ProviderKey.Any(pk => pk.Value == providerKey) && p.Version == version);
+                    .FirstOrDefaultAsync(p => p.ProviderKey.Any(pk => pk.Value == providerKey) && (version == 0 || p.Version == version));
                 
                 if (avatarEntity != null)
                 {
@@ -241,7 +241,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var avatarEntity = _dbContext.Avatars
-                    .FirstOrDefault(p => p.ProviderKey.Any(pk => pk.Value == providerKey) && p.Version == version);
+                    .FirstOrDefault(p => p.ProviderKey.Any(pk => pk.Value == providerKey) && (version == 0 || p.Version == version));
                 
                 if (avatarEntity != null)
                 {
@@ -449,6 +449,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Email = avatar.Email,
                 FirstName = avatar.FirstName,
                 Id = avatar.Id.ToString(),
+                Version = avatar.Version,
                 JwtToken = avatar.JwtToken,
                 LastName = avatar.LastName,
                 Name = avatar.FullName,
@@ -474,6 +475,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Email = avatar.Email,
                 FirstName = avatar.FirstName,
                 Id = Guid.Parse(avatar.Id),
+                Version = avatar.Version,
                 JwtToken = avatar.JwtToken,
                 LastName = avatar.LastName,
                 Password = avatar.Password,
