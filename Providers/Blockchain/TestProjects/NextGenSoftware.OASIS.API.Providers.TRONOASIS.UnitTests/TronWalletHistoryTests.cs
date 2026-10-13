@@ -11,6 +11,32 @@ public sealed class TronWalletHistoryTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    public void LegacyStakeHistoryPreservesLockedAmountAndResourceRecipient(bool delegated)
+    {
+        var bytes = new byte[21]; bytes[0] = 0x41; bytes[20] = 7;
+        var owner = ByteString.CopyFrom(bytes); bytes[20] = 8;
+        var recipient = ByteString.CopyFrom(bytes);
+        var freeze = new FreezeBalanceContract { OwnerAddress = owner, FrozenBalance = 9007199254740993L,
+            FrozenDuration = 3, ReceiverAddress = delegated ? recipient : ByteString.Empty };
+        var transaction = new Transaction { RawData = new Transaction.Types.raw { Timestamp = 1700000000000 } };
+        transaction.RawData.Contract.Add(new Transaction.Types.Contract {
+            Type = Transaction.Types.Contract.Types.ContractType.FreezeBalanceContract, Parameter = Any.Pack(freeze) });
+        var receipt = new TransactionInfo { Id = ByteString.CopyFrom(new byte[32]) };
+        var method = typeof(TronNativeTransferClient).GetMethod("MapWalletTransaction", BindingFlags.NonPublic | BindingFlags.Static)!;
+        var mapped = (NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses.IWalletTransaction)method.Invoke(null, new object[] { transaction, receipt, owner })!;
+        Assert.Equal("FreezeBalanceContract", mapped.NativeOperation);
+        Assert.Equal("9007199254740993", mapped.RawAmount);
+        Assert.StartsWith("SUN-STAKED/", mapped.AmountUnit);
+        Assert.Equal(!delegated, mapped.FromWalletAddress == mapped.ToWalletAddress);
+        freeze.FrozenBalance = -1;
+        transaction.RawData.Contract[0].Parameter = Any.Pack(freeze);
+        var error = Assert.Throws<TargetInvocationException>(() => method.Invoke(null, new object[] { transaction, receipt, owner }));
+        Assert.Contains("Negative", error.InnerException!.Message);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public void WitnessVotesAreNotTokenTransfersAndRetainExecutionOutcome(bool failed)
     {
         var bytes = new byte[21]; bytes[0] = 0x41; bytes[20] = 7;

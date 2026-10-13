@@ -26,6 +26,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON legacy staking history — 2026-10-12
+
+Actual SDK FreezeBalanceContract maps owner and optional resource receiver (empty receiver means self), exact requested frozen_balance as RawAmount, and SUN-STAKED/<resource> denomination rather than ordinary transfer SUN. Legacy display Amount retains SUN-to-TRX scale; this is requested locked value, not spendable balance or confirmed balance delta. Reject unknown resource, negative duration/amount and invalid/unrelated participants. Original operation-owner mapping also recognises this contract. Protocol source: https://github.com/tronprotocol/protocol/blob/master/core/contract/balance_contract.proto . Provider build succeeded; focused history suite **13/13 passed**, zero skips (`tron-history-current.trx`), including self/delegated staking, large exact quantity and negative rejection. Controlled projection only; no live stake submission, unstaking inferred payout, stake-v2 or full native-resource certification. No new dependencies, live ledger writes or release merge.
+
 ### TRON witness-vote history mapping — 2026-10-12
 
 Added real SDK VoteWitnessContract owner mapping and wallet-history projection. Voting is not a token transfer: requested transfer amount remains zero, owner is both history participants, execution outcome comes from the receipt, unrelated wallets are rejected. Vote count is never treated as SUN. Protocol reference: https://github.com/tronprotocol/protocol/blob/master/core/contract/witness_contract.proto . Provider build zero errors/23 existing warnings; focused complete TronWalletHistoryTests **11/11 passed**, zero skips (`tron-history-current.trx`), including success/failure with vote counts beyond JavaScript exact integer range. This is controlled actual protobuf projection, not voting submission/live governance or current full-suite certification. Other native history types and remaining release gates stay open. No installation, node mutation or release merge.
