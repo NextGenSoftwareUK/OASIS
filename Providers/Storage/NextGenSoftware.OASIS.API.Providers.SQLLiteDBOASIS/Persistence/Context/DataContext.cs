@@ -76,6 +76,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
             {
                 nameof(InventoryItemModel.Id), nameof(InventoryItemModel.AvatarId),
                 nameof(InventoryItemModel.ItemId),
+                nameof(InventoryItemModel.PropertiesJson), nameof(InventoryItemModel.MetaDataJson),
                 nameof(InventoryItemModel.Name), nameof(InventoryItemModel.Description),
                 nameof(InventoryItemModel.Quantity), nameof(InventoryItemModel.Stack),
                 nameof(InventoryItemModel.GameSource), nameof(InventoryItemModel.ItemType),

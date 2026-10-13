@@ -11,12 +11,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public long Id{ set; get; }
         // Public inventory identity is independent of SQLite's generated row key.
         public System.Guid ItemId { get; set; }
+        public string PropertiesJson { get; set; } = "null";
+        public string MetaDataJson { get; set; } = "{}";
 
         public string AvatarId{ set; get; }
 
         public InventoryItemModel(){}
         public InventoryItemModel(InventoryItem source){
             this.ItemId = source.Id;
+            this.PropertiesJson = System.Text.Json.JsonSerializer.Serialize(source.Properties);
+            this.MetaDataJson = System.Text.Json.JsonSerializer.Serialize(source.MetaData ?? new System.Collections.Generic.Dictionary<string, object>());
             this.Name = source.Name;
             this.Description = source.Description;
             this.Quantity = source.Quantity;
@@ -41,6 +45,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public InventoryItem GetInventoryItem(){
             InventoryItem item = new InventoryItem();
             item.Id = this.ItemId;
+            item.Properties = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, object>>(this.PropertiesJson);
+            item.MetaData = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, object>>(this.MetaDataJson)
+                ?? throw new System.IO.InvalidDataException("Stored inventory metadata must be a JSON object.");
             item.Name = this.Name;
             item.Description = this.Description;
             item.Quantity = this.Quantity;
@@ -56,10 +63,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             item.IsTradeable = this.IsTradeable;
             item.AcquiredOn = this.AcquiredOn;
             item.LastUsedOn = this.LastUsedOn;
-            item.Properties = this.Properties == null ? null : new System.Collections.Generic.Dictionary<string, object>(this.Properties);
             item.HolonType = this.HolonType;
-            if (this.MetaData != null)
-                item.MetaData = new System.Collections.Generic.Dictionary<string, object>(this.MetaData);
             return item;
         }
         
