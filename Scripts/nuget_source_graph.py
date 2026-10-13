@@ -73,7 +73,7 @@ class Graph:
             return
         self.record(path.parent, required=True)
         for ancestor in (path.parent, *path.parent.parents):
-            if not ancestor.is_relative_to(root):
+            if not ancestor.is_relative_to(root) and not ancestor.is_relative_to(self.root):
                 break
             for name in ("Directory.Build.props", "Directory.Build.targets", "Directory.Packages.props", "NuGet.Config", "nuget.config", "global.json"):
                 self.record(ancestor / name)
