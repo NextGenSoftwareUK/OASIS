@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### WEB4 consumer refresh after DNA and V2 save fixes — 2026-10-12
+
+- Current Core pin `ca7b722a3b53089519e0643ac1164b7cbebc9d8e` was consumed by sequential BootLoader, ONODE Core and WEB4 rebuilds using existing dependencies, bounded workers and no restore. All passed with zero errors (2/152/253 existing warnings).
+- Current WEB4 unit suite **145/145 passed**, zero skips, `TestResults/Web4Current/web4-v2-dna-current.trx`; manifest/seven Dockerfiles/committed gitlink validator passed. These checks refresh source integration after fail-closed DNA helper, generic sync V2 routing and bulk preparation changes. They do not prove all authenticated HTTP endpoints or published Linux SDK artifacts.
+- No new environment/runtime/download/deployment/merge. Disk free measured about 92.03 GiB after checks; requested 150 GB recovery is still not achieved. No unrelated cache/service/user data was removed. Full release and unified encryption-policy/recovery/provider gates remain open.
+
+
 ### Generic V2 bulk encryption error coverage — 2026-10-12
 
 - Source audit confirms sync/async generic bulk saves delegate to the existing V2 batch owner. Four additional missing CBC/GCM key cases now exercise those actual generic entry points and assert structured error code, original exception, null result, private/exempt metadata preservation for the tested record, and no single/bulk provider save invocation.
