@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+Detail metadata isolation checkpoint: SQLite detail constructor/update/read now uses per-record MetaDataJson instead of globally property-keyed legacy metadata rows. Real bidirectional V2 class24/24 preserves park-source metadata across initial/update/fresh reads; SQLite42/42 verifies two avatars use the same metadata key with different values without collision (`sqlite-localfile-v2-detail-metadata-current.trx`, `sqlite-detail-metadata-isolation-current.trx`). New column/legacy-row backfill requires upgrade review; no user-data conversion performed. Invalid JSON fails visibly; complete typed/encrypted metadata/provider API coverage remains open.
+
 Real V2 avatar/detail bidirectional checkpoint: both SQLite-primary→LocalFile and LocalFile-primary→SQLite initial/update replication pass via public sync/async routing. Identity/username/email selectors and detail karma/XP/stats/inventory publicId/quantity/metadata readbacks remain asserted, including fresh SQLite. Full class24/24 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-bidirectional-current.trx`). Other operations, failure combinations, encryption/HTTP and provider pairs remain gates; no all-provider claim.
 
 SQLite detail result contract: sync/async inserts and updates now return mapped saved IAvatarDetail, not success with null Result. Existing integration checks verify returned identity/update stats; full42/42 passed (`TestResults/SQLiteCurrent/sqlite-detail-result-current.trx`). Broader result-field completeness and SQLite-primary V2 response/replica matrix remain open; returned data uses current mapper, not a certification of omitted nested fields.
