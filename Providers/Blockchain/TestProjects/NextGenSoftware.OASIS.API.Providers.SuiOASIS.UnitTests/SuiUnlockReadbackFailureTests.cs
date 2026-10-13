@@ -246,6 +246,28 @@ public class SuiUnlockReadbackFailureTests
         finally {Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",previous);}
     }
 
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task CommittedSendRequiresReadbackOwnerToMatchRecipient(bool matching)
+    {
+        var previous = Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE", Path.Combine(AppContext.BaseDirectory,"Fixtures","unlock-readback-failure.mjs"));
+        try
+        {
+            using var provider = new SuiOASIS("http://127.0.0.1:1", "localnet", privateKey:"different-configured-secret");
+            var result = await provider.SendNFTAsync(new SendWeb3NFTRequest {
+                TokenAddress = matching ? "ownership-matching" : "ownership-foreign",
+                FromWalletAddress="fixture-owner", ToWalletAddress="fixture-recipient",
+                OwnerPrivateKey="test-only-explicit", Amount=1 });
+            Assert.AreEqual(!matching, result.IsError);
+            Assert.AreEqual(new string('1',32), result.Result.SendNFTTransactionResult);
+            if (matching) Assert.AreEqual("fixture-recipient", result.Result.Web3NFT.SendToAddressAfterMinting);
+            else AssertCommittedReadbackEvidence(result.Exception);
+        }
+        finally { Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE", previous); }
+    }
+
     [TestMethod]
     public async Task CommittedUnlockDigestSurvivesSeparateReadbackFailure()
     {

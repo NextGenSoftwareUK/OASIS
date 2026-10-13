@@ -47,7 +47,11 @@ switch(request.operation){
  case 'nftSend':
   if(request.privateKey!=='test-only-explicit')throw new Error('Explicit signer was not forwarded.');
   result={transactionHash:'1'.repeat(32)};break;
- case 'nftGet':process.stdout.write(JSON.stringify({ok:false,error:'forced separate NFT readback failure'}));process.exitCode=1;break;
+ case 'nftGet':
+  if(request.tokenId.startsWith('ownership-'))result={metadata:'{}',creator:'fixture-owner',
+   owner:{AddressOwner:request.tokenId==='ownership-matching'?'fixture-recipient':'fixture-owner'}};
+  else {process.stdout.write(JSON.stringify({ok:false,error:'forced separate NFT readback failure'}));process.exitCode=1;}
+  break;
  default:throw new Error('Unexpected fixture operation.');
 }
 if(result)process.stdout.write(JSON.stringify({ok:true,result}));

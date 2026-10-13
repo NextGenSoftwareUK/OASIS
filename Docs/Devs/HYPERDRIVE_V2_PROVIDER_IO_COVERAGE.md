@@ -26,6 +26,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui post-send recipient readback invariant — 2026-10-12
+
+Actual SendNFTAsync accepted any successful ownership readback after committed transfer. Added case-insensitive recipient identity comparison (SDK already requires a full valid Sui address); mismatch returns existing reconciliation-required exception with committed digest, executionSucceeded=true and explicit ownership cause. Retained transaction response is not discarded; no resend. Controlled matching/foreign owner public-entry tests **2/2 passed**, zero skips (`sui-send-owner-current.trx`). Initial provider build failed for missing System.IO import and chained test used stale dependency; fixed import, then required successful dependency build before current passing run. Final case-insensitive comparison change is compile-equivalent but not separately rerun at this checkpoint. No live transfer, full-suite/hosted certification, installs or merge.
+
 ### Cosmos default instantiation prefix invariant — 2026-10-12
 
 SDK already validates Bech32 checksum using official encoding; no second address parser added. Found omitted addressPrefix defaulted wallet derivation to cosmos but passed undefined into instantiation validation, allowing any prefix. Bridge now passes the same cosmos default. Actual bridge-entry controlled signing-client test rejects checksum-valid foreign wasm address when prefix omitted, retaining original confirmed hash evidence, accepts cosmos default and explicit wasm, and closes all three clients. Complete existing SDK suite **54/54 passed**, zero skips; no npm install/download. Initial test mistakes used top-level evidence properties and SDK's unsupported unbounded decode default; corrected test to canonical nativeMutation envelope and explicit 90-character Bech32 limit, no production validation weakened. Controlled transport, not live instantiation/deployed packaging. No ledger writes or merge.
