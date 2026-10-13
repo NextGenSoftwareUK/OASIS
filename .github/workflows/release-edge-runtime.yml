@@ -144,6 +144,7 @@ jobs:
         with:
           dotnet-version: 8.0.x
       - name: Publish the distinct Unity NuGet distribution
+        if: inputs.refresh_existing == false
         shell: pwsh
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
