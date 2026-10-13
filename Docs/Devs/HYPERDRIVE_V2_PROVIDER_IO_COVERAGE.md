@@ -26,6 +26,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Current Cosmos complete regression and smart-contract interface audit — 2026-10-12
+
+Current complete Cosmos suite **116/116 passed**, zero failures/skips (`cosmos-current.trx`), two minutes nine seconds including real deadline; exact original process terminal exit zero. Uses retained source SDK after latest default-prefix fix and current deployment/NFT ownership changes, no restore/install/live ledger mutation. Supersedes older 102-case whole-suite checkpoint, not live API/assets/packaging/parent-recovery gates.
+
+Source audit: IOASISSmartContractProvider currently extends IOASISProvider with no contract operations (marker only). All four declaring it does not certify deploy/query/execute functionality. IOASISBlockchainStorageProvider has concrete token, wallet/history/key and bridge operation contracts; those require per-operation evidence. Cosmos concrete query/execute/upload/instantiate and TRON native query/execute/deploy paths exist, but broader generic smart-contract surface/live/deployed proofs remain incomplete. Do not invent full capability claims from interface declarations. No release merge.
+
 ### Legacy supplemental client gaps separated from V2 — 2026-10-12
 
 Current source audit found public supplemental TRONClient/HashgraphClient helpers distinct from the KeyValueStorageProviderBase provider classes. TRONClient.GetAccountInfoAsync swallows transport/parsing failures and defaults missing fields to zero; email lookup unconditionally returns null. HashgraphClient account/email/NFT helpers swallow failures; email helper sends an unverified email query selector; its CreateAccountAsync derives local keys and resolves an existing identity rather than proving funded account creation. Do not certify these helpers from V2 provider tests. Per user instruction legacy gaps are documented only, not implemented here.
