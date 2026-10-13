@@ -41,6 +41,34 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(true, "email")]
+    [InlineData(false, "email")]
+    [InlineData(true, "username")]
+    [InlineData(false, "username")]
+    [InlineData(true, "key")]
+    [InlineData(false, "key")]
+    public async Task AvatarDeletionSelectorsUsePersistedIdentity(bool synchronous, string selector)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = "selector-delete", Email = "selector-delete@test.local",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        avatar.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS] = "owned-avatar-delete-key";
+        (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+        (await provider.SaveAvatarDetailAsync(new AvatarDetail { Id = avatar.Id, Username = "different-detail-username", Karma = 123 })).IsError.Should().BeFalse();
+        OASISResult<bool> deleted;
+        if (selector == "email") deleted = synchronous ? provider.DeleteAvatarByEmail(avatar.Email, false) : await provider.DeleteAvatarByEmailAsync(avatar.Email, false);
+        else if (selector == "username") deleted = synchronous ? provider.DeleteAvatarByUsername(avatar.Username, false) : await provider.DeleteAvatarByUsernameAsync(avatar.Username, false);
+        else deleted = synchronous ? provider.DeleteAvatar("owned-avatar-delete-key", false) : await provider.DeleteAvatarAsync("owned-avatar-delete-key", false);
+        deleted.IsError.Should().BeFalse(deleted.Message);
+        deleted.Result.Should().BeTrue();
+        using var reopened = new SQLLiteDBOASIS(TestConnectionString);
+        (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
+        (await reopened.LoadAvatarAsync(avatar.Id)).Result.Should().BeNull();
+        (await reopened.LoadAvatarDetailAsync(avatar.Id)).Result.Should().BeNull();
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task RejectedAvatarDeleteCannotReplayDuringUnrelatedSave(bool synchronous)

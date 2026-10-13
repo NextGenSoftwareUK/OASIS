@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### SQLite avatar deletion selector consolidation — 2026-10-13
+
+Six real email/username/custom-local-key sync/async deletion checks failed against duplicated legacy implementations. Selectors now query persisted identity and delegate to GUID deletion with the requested softDelete argument, preserving lookup exceptions and explicit absence errors. Detail username intentionally differs from avatar username; both must be deleted by shared Id. Full64/64 passed (`TestResults/SQLiteCurrent/sqlite-avatar-delete-selectors-current.trx`), with pre-fix6/6 failures retained. Real pairing refreshed4/4 at2890b0cc1, before this selector edit. Soft deletion, missing/failure selector matrix, fresh pair refresh and broader original gates remain unverified.
+
 ### Exact SQLite deletion-graph rollback ownership — 2026-10-13
 
 Real pair refreshed4/4 on7cf545fb8. Further SQLite public-key OwnerId fixture reproduced failed-delete replay2/2; per-operation exact graph entity set now participates in scoped failed-write detachment, rather than relying only on AvatarId field naming. Full58/58 passes with preserved public key after rejected deletion/unrelated save and removed key after later explicit delete (`TestResults/SQLiteCurrent/sqlite-avatar-owner-delete-current.trx`). Original failing report `sqlite-avatar-owner-delete-before.trx` retained. Deeper graph fixtures, asynchronous graph loading, deletion-selector matrix and newest-revision V2 refresh remain open; no full provider certification claim.
