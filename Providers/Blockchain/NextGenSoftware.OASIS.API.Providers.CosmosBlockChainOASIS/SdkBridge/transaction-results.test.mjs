@@ -289,6 +289,21 @@ test('observed Cosmos fee deduction retains exact coins and charged failure with
   assert.equal(receipt.fees[0].amount, '9007199254740993');
   assert.equal(receipt.gasUsed, '30'); assert.equal(receipt.basis, 'observed-ante-fee-deduction');
 });
+
+test('fee evidence preserves exact uint256 boundary and explicit zero without accepting overflow',()=>{
+ for(const amount of ['0',((1n<<256n)-1n).toString()]){
+  const tx=feeTx({amount});
+  assert.equal(cosmosNativeFeeReceipt(tx,tx.hash).fees[0].amount,amount);
+ }
+ const overflow=feeTx({amount:(1n<<256n).toString()});
+ assert.throws(()=>cosmosNativeFeeReceipt(overflow,overflow.hash),/Malformed exact Cosmos fee coin/);
+});
+
+test('duplicate observed fee denominations never become billable or zero evidence',()=>{
+ const tx=feeTx({amount:'1'});
+ tx.events[0].attributes[0].value='1stake,1stake';
+ assert.throws(()=>cosmosNativeFeeReceipt(tx,tx.hash),/Duplicate Cosmos fee denominations/);
+});
 test('Cosmos observed fee granter remains the charged account', () => {
   const granter = toBech32('wasm', new Uint8Array(20).fill(2));
   const tx = feeTx({ granter });

@@ -26,6 +26,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos exact fee boundary regression — 2026-10-12
+
+Audited existing official SDK fee-evidence parser: original signed bytes/hash, committed height/code, unique observed event/payer, exact coins and signed-fee agreement validated there. No duplicate C# coin parser added. Extended tests prove zero and maximum uint256 quantities preserved exactly, 2^256 overflow rejected, duplicate observed denomination rejected (not billable/zero fallback). Complete retained Cosmos SDK suite **56/56 passed**, zero skips. Controlled official protobuf/evidence parsing, not native fee valuation, spending approval or settlement. No install/download/ledger query/submission/merge.
+
 ### Current Hedera strictly non-testnet regression — 2026-10-12
 
 Current selected Hedera integration project **270/270 passed**, zero skips/failures (`TestResults/HederaCurrent/hedera-nonfunded-current.trx`), two minutes seven seconds including actual process deadline. Explicit filter `FullyQualifiedName!~Testnet&FullyQualifiedName!~OriginalChargedFailure` excludes testnet-named cases (including readonly mirror cases) and original charged-failure query. Uses retained source bridge and current dependency output after standalone delivery projection change; no restore or SDK installation. Terminal original session exit zero. Counts differ from earlier 269 due added send tests and stricter exclusion; do not sum or call excluded tests passed. Funded NFT/storage/V2 tests remain deferred/unproven; no ledger submission, deployment or merge.
