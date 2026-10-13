@@ -139,7 +139,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     network = _hederaNetwork, nodes = _consensusNodes, transactionId = transactionHash
                 }, token);
                 var status = receipt.GetProperty("status").GetString();
-                result.Result = MapReceiptStatus(status);
+                result.Result = MapConsensusReceiptStatus(receipt, transactionHash);
                 result.IsError = false;
                 result.Message = $"Transaction status retrieved from the configured Hedera consensus network: {status}.";
             }
@@ -148,6 +148,15 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 OASISErrorHandling.HandleError(ref result, $"Error getting Hashgraph transaction status: {ex.Message}", ex);
             }
             return result;
+        }
+
+        internal static BridgeTransactionStatus MapConsensusReceiptStatus(JsonElement receipt, string requestedId)
+        {
+            if (string.IsNullOrWhiteSpace(requestedId) || receipt.ValueKind != JsonValueKind.Object
+                || !receipt.TryGetProperty("transactionId", out var id) || id.ValueKind != JsonValueKind.String
+                || !string.Equals(id.GetString(), requestedId, StringComparison.Ordinal))
+                throw new InvalidOperationException("Hedera consensus receipt does not match the requested canonical transaction ID.");
+            return MapReceiptStatus(receipt.GetProperty("status").GetString());
         }
 
         internal static BridgeTransactionStatus MapReceiptStatus(string status) => status switch

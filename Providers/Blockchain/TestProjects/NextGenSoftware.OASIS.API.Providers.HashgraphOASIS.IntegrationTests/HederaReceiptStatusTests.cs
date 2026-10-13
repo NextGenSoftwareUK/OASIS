@@ -7,6 +7,30 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 [TestClass]
 public class HederaReceiptStatusTests
 {
+    [DataTestMethod]
+    [DataRow("SUCCESS", BridgeTransactionStatus.Completed)]
+    [DataRow("CONTRACT_REVERT_EXECUTED", BridgeTransactionStatus.Failed)]
+    public void ConsensusReceiptBindsStatusToOriginalIdentity(string status, BridgeTransactionStatus expected)
+    {
+        const string id = "0.0.123@1700000000.123456789";
+        using var receipt = System.Text.Json.JsonDocument.Parse($"{{\"transactionId\":\"{id}\",\"status\":\"{status}\"}}");
+        var method = typeof(HashgraphOASIS).GetMethod("MapConsensusReceiptStatus", BindingFlags.NonPublic | BindingFlags.Static)!;
+        Assert.AreEqual(expected, method.Invoke(null, new object[] { receipt.RootElement, id }));
+    }
+
+    [DataTestMethod]
+    [DataRow("{\"transactionId\":\"foreign\",\"status\":\"SUCCESS\"}")]
+    [DataRow("{\"status\":\"SUCCESS\"}")]
+    [DataRow("{\"transactionId\":null,\"status\":\"SUCCESS\"}")]
+    [DataRow("null")]
+    public void ForeignOrMissingConsensusIdentityCannotReportCompletion(string json)
+    {
+        using var receipt = System.Text.Json.JsonDocument.Parse(json);
+        var method = typeof(HashgraphOASIS).GetMethod("MapConsensusReceiptStatus", BindingFlags.NonPublic | BindingFlags.Static)!;
+        var error = Assert.ThrowsException<TargetInvocationException>(() => method.Invoke(null,
+            new object[] { receipt.RootElement, "0.0.123@1700000000.123456789" }));
+        Assert.IsInstanceOfType(error.InnerException, typeof(InvalidOperationException));
+    }
     private static BridgeTransactionStatus Map(string? status) => (BridgeTransactionStatus)typeof(HashgraphOASIS)
         .GetMethod("MapReceiptStatus", BindingFlags.NonPublic | BindingFlags.Static)!
         .Invoke(null, new object?[] { status })!;
