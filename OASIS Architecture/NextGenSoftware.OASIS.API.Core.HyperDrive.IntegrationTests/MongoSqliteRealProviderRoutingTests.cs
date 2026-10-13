@@ -206,6 +206,23 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 (await freshMongo.DeActivateProviderAsync()).IsError.Should().BeFalse();
             }
             const string failureApp = "oasis-v2-owned-failure";
+            foreach (var selector in new[] { "email", "username", "key" })
+            {
+                var selectorAvatar = new Avatar { Id = Guid.NewGuid(), Username = "mongo-selector-" + selector, Email = selector + "@mongo-selector.local",
+                    AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
+                var savedSelector = await mongo.SaveAvatarAsync(selectorAvatar);
+                savedSelector.IsError.Should().BeFalse(savedSelector.Message);
+                (await mongo.SaveAvatarDetailAsync(new AvatarDetail { Id = selectorAvatar.Id, Username = "independent-" + selector, Karma = 123 })).IsError.Should().BeFalse();
+                var localKey = savedSelector.Result.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS];
+                var selectorDeleted = selector == "email"
+                    ? (synchronous ? mongo.DeleteAvatarByEmail(selectorAvatar.Email, true) : await mongo.DeleteAvatarByEmailAsync(selectorAvatar.Email, true))
+                    : selector == "username"
+                        ? (synchronous ? mongo.DeleteAvatarByUsername(selectorAvatar.Username, true) : await mongo.DeleteAvatarByUsernameAsync(selectorAvatar.Username, true))
+                        : (synchronous ? mongo.DeleteAvatar(localKey, true) : await mongo.DeleteAvatarAsync(localKey, true));
+                selectorDeleted.IsError.Should().BeFalse(selectorDeleted.Message);
+                selectorDeleted.Result.Should().BeTrue();
+                (await mongo.LoadAvatarDetailAsync(selectorAvatar.Id)).Result.DeletedDate.Should().NotBe(DateTime.MinValue);
+            }
             var softAvatar = new Avatar { Id = Guid.NewGuid(), Username = "mongo-soft-avatar", Email = "mongo-soft@test.local",
                 AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
             (await mongo.SaveAvatarAsync(softAvatar)).IsError.Should().BeFalse();
