@@ -53,11 +53,14 @@ public sealed class RealProviderRoutingTests : IDisposable
         manager.RegisterProvider(sqlite);
         manager.SetAndReplaceAutoReplicationListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.LocalFileOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
         var detail = new AvatarDetail { Id = Guid.NewGuid(), Username = "owned-detail", Email = "detail@test.local", Karma = 345, XP = 123 };
+        detail.Stats.HP.Current = 37;
+        detail.Stats.Mana.Current = 42;
+        detail.Stats.Stamina.Current = 53;
         var request = new StorageOperationRequest { Operation = "SaveAvatarDetail", Payload = detail, PreferredProvider = ProviderType.LocalFileOASIS };
         var router = new OASISHyperDrive(manager);
         foreach (var updating in new[] { false, true })
         {
-            if (updating) { detail.Karma = 456; detail.XP = 234; }
+            if (updating) { detail.Karma = 456; detail.XP = 234; detail.Stats.HP.Current = 38; detail.Stats.Mana.Current = 43; detail.Stats.Stamina.Current = 54; }
             var result = synchronous ? router.RouteRequest<IAvatarDetail>(request) : await router.RouteRequestAsync<IAvatarDetail>(request);
             result.IsError.Should().BeFalse(result.Message);
             result.IsWarning.Should().BeFalse(string.Join("; ", manager.LastReplicationDiagnostic.Attempts.Select(attempt => attempt.Message)));
@@ -67,8 +70,17 @@ public sealed class RealProviderRoutingTests : IDisposable
                 loaded.Result.Should().NotBeNull();
                 loaded.Result.Karma.Should().Be(detail.Karma);
                 loaded.Result.XP.Should().Be(detail.XP);
+                loaded.Result.Stats.HP.Current.Should().Be(detail.Stats.HP.Current);
+                loaded.Result.Stats.Mana.Current.Should().Be(detail.Stats.Mana.Current);
+                loaded.Result.Stats.Stamina.Current.Should().Be(detail.Stats.Stamina.Current);
             }
         }
+        using var freshSqlite = new SQLLiteDBOASIS($"Data Source={SqlitePath};Pooling=False");
+        (await freshSqlite.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var persisted = await freshSqlite.LoadAvatarDetailAsync(detail.Id);
+        persisted.Result.Stats.HP.Current.Should().Be(38);
+        persisted.Result.Stats.Mana.Current.Should().Be(43);
+        persisted.Result.Stats.Stamina.Current.Should().Be(54);
     }
 
     [Theory]
