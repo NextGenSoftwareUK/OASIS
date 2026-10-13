@@ -14,6 +14,7 @@ public class TronPermissionRpcTests
     [InlineData("call")] [InlineData("deploy")] [InlineData("missing-address")] [InlineData("readback-unavailable")]
     [InlineData("nft-mint")] [InlineData("nft-send")] [InlineData("token-send")] [InlineData("approve")]
     [InlineData("escrow-lock")] [InlineData("escrow-unlock")]
+    [InlineData("nft-send-provider")]
     public async Task RotatedContractSignerAndConfirmedDeploymentReadbackPreserveOneSubmission(string mode)
     {
         var genesis=new string('a',64);var block=ByteString.CopyFrom(Convert.FromHexString(genesis));
@@ -67,7 +68,18 @@ public class TronPermissionRpcTests
         try{
             var port=server.Ports.Single().BoundPort;await using var runtime=new TronSdkRuntime(new Uri($"http://127.0.0.1:{port}"),new Uri($"http://127.0.0.1:{port}"),genesis);
             using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            if(mode is "call" or "nft-mint" or "nft-send" or "token-send" or "approve" or "escrow-lock" or "escrow-unlock"){
+            if(mode == "nft-send-provider"){
+                var provider = new TRONOASIS(nativeTransfers:runtime.NativeTransfers);
+                // Controlled SDK/RPC operation fixture, not real chain activation evidence.
+                typeof(TRONOASIS).GetProperty("IsProviderActivated")!.SetValue(provider,true);
+                var response = await provider.SendNFTAsync(new Core.Objects.NFT.Requests.SendWeb3NFTRequest {
+                    TokenAddress=contract,TokenId="1",FromWalletAddress=owner,ToWalletAddress=contract,
+                    OwnerPrivateKey=key,Amount=1 });
+                Assert.False(response.IsError,response.Message);
+                Assert.Equal(Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),response.Result.TransactionResult);
+                Assert.Equal(response.Result.TransactionResult,response.Result.SendNFTTransactionResult);
+            }
+            else if(mode is "call" or "nft-mint" or "nft-send" or "token-send" or "approve" or "escrow-lock" or "escrow-unlock"){
                 var result=await (mode switch {
                     "nft-mint"=>runtime.NativeTransfers.MintNftAsync(owner,owner,contract,System.Numerics.BigInteger.One,"https://example.invalid/metadata",key,"",deadline.Token),
                     "nft-send"=>runtime.NativeTransfers.SendNftAsync(owner,contract,contract,System.Numerics.BigInteger.One,key,"",deadline.Token),

@@ -177,7 +177,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 }
                 var hash = await ExecuteRuntimeAsync(client => client.SendNftAsync(transaction.FromWalletAddress,
                     transaction.ToWalletAddress, transaction.TokenAddress, tokenId, transaction.OwnerPrivateKey, transaction.MemoText));
-                response.Result = new Web3NFTTransactionResponse { TransactionResult = hash };
+                response.Result = new Web3NFTTransactionResponse { TransactionResult = hash, SendNFTTransactionResult = hash };
                 response.Message = "TRC721 safe transfer confirmed by solidified contract receipt.";
             }
             catch (Exception ex)
