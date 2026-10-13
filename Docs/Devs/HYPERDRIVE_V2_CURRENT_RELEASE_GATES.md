@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+SQLite audit checkpoint: repository mappings now persist/read CreatedByAvatarId, ModifiedByAvatarId, DeletedByAvatarId, DimensionLevel and SubDimensionLevel using existing columns. Null historical audit IDs represent Guid.Empty; invalid non-null IDs are not silently replaced. Sync/async public save plus fresh-provider readback tested. Full suite24/24 passed (`TestResults/SQLiteCurrent/sqlite-audit-current.trx`). Remaining scalar/classification/rich graph mappings, preservation semantics, historical versions and full V2 routing still require work.
+
 SQLite parent failure checkpoint: four actual missing-table failure checks cover GUID/key sync/async selectors, requiring IsError=true, IsLoaded=false, original Exception and no Result. The remaining string-sync handler now preserves its original exception. Full suite22/22 passed (`TestResults/SQLiteCurrent/sqlite-parent-failures-current.trx`); public parent wrappers inspected and forward type/version/options to the repository. This does not prove recursive child hydration or V2 live routing.
 
 SQLite parent checkpoint: GUID selectors now match ParentHolonId instead of the parent's own Id; string selectors resolve only the parent's local SQLite key rather than ignoring the key. Both honor type and current/explicit version, with asynchronous materialization in async methods. Real suite18/18 passed (`TestResults/SQLiteCurrent/sqlite-parent-current.trx`). Misreported success in three parent-query exception handlers corrected. Recursive child hydration/save, history and full mappings remain open.

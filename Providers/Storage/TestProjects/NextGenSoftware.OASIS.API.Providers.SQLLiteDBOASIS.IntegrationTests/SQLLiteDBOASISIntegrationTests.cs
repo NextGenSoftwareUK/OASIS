@@ -41,6 +41,31 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task AuditIdentityAndDimensionFieldsSurviveDatabaseReopen(bool synchronous)
+    {
+        var original = new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = Guid.NewGuid(), ModifiedByAvatarId = Guid.NewGuid(), DeletedByAvatarId = Guid.NewGuid(),
+            DimensionLevel = Enum.GetValues<DimensionLevel>().Last(), SubDimensionLevel = Enum.GetValues<SubDimensionLevel>().Last() };
+        using (var provider = new SQLLiteDBOASIS(TestConnectionString))
+        {
+            (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+            var saved = synchronous ? provider.SaveHolon(original, saveChildren:false) : await provider.SaveHolonAsync(original, saveChildren:false);
+            saved.IsError.Should().BeFalse(saved.Message);
+            saved.Result.CreatedByAvatarId.Should().Be(original.CreatedByAvatarId);
+        }
+        using var reopened = new SQLLiteDBOASIS(TestConnectionString);
+        (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var result = await reopened.LoadHolonAsync(original.Id, loadChildren:false);
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.CreatedByAvatarId.Should().Be(original.CreatedByAvatarId);
+        result.Result.ModifiedByAvatarId.Should().Be(original.ModifiedByAvatarId);
+        result.Result.DeletedByAvatarId.Should().Be(original.DeletedByAvatarId);
+        result.Result.DimensionLevel.Should().Be(original.DimensionLevel);
+        result.Result.SubDimensionLevel.Should().Be(original.SubDimensionLevel);
+    }
+
+    [Theory]
     [InlineData(true, true)]
     [InlineData(true, false)]
     [InlineData(false, true)]
