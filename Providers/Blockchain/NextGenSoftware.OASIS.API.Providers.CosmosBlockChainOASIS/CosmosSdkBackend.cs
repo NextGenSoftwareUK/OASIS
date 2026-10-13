@@ -211,7 +211,7 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
             }
             throw;
         }
-        catch (Exception ex) when (isMutation && (ex is IOException || ex is System.Text.DecoderFallbackException))
+        catch (Exception ex) when (!preparationObserved && isMutation && (ex is IOException || ex is System.Text.DecoderFallbackException))
         { throw new CosmosNativeMutationReconciliationException("Cosmos SDK process I/O failed; native outcome is not established.", preparationServer?.PreparedTransactionId, null, ex); }
         finally
         {

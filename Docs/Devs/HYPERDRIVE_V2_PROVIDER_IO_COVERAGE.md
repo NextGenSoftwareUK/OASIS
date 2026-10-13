@@ -5,6 +5,16 @@
 
 ## Current provider status — not full certification
 
+### Cosmos typed mint owner using the existing contract path — 2026-10-13
+
+Cosmos `MintNFTAsync(request, UsageExecutionHandle, clientRequestId, cancellationToken)` now creates the existing native preparation server with the actual signing address/configured chain. Mint overloads share one core. `ExecuteAssetAsync` and contract execution share one contract core which selects the explicitly requested prepared transport, rather than adding a second asset implementation or a failure fallback. Original signed evidence uses the existing `NativePreparationPersistence`/official verifier and Mongo outbox. Standard non-admitted calls remain unchanged; endpoint/fee admission is not enabled here.
+
+The paired owner test now runs Sui and Cosmos through the same retained replica runner and one fixed disposable fixture database/journal sequentially. Current actual Mongo initialization **1/1**, owner cases **2/2** passed in `TestResults/SubscriptionUsageCurrent/sui-mint-owner-real-mongo-current.trx` (historical filename retained). It verifies reopened original attempt evidence and duplicate rejection; authorities/SDKs are controlled, not real chain/signature proof. Reused installed dependencies with `--no-restore`; the Sui integration project references the existing Cosmos provider for the shared test, without another environment. Both successful cases removed only their owned disposable database/journal; port27029 is closed afterwards.
+
+Cosmos's SDK client had the same persistence-IOException classification issue as Sui: an observed owner failure was wrapped as transport outcome-unknown. The catch now preserves observed preparation errors, with a `reject-io` controlled process regression added. Native process I/O failures still require reconciliation. Full unit evidence is recorded when terminal; real chain mint/escrow, crash restart, command intent, immutable valuation and production resolver/host remain open.
+
+Full Cosmos unit suite passed **119/119**, no skips, 2m9s (`TestResults/CosmosRuntime/cosmos-full-typed-mint-owner-current.trx`). Afterwards the controlled verifier fixture was restricted to explicit `mode=valid` rather than unconditional verification; the final paired real-Mongo cases passed and final rebuilt Cosmos preparation/mint affected tests passed **10/10** (`cosmos-current-owner-fixture-regressions.trx`). The full119 precedes that fixture-only restriction. Counts overlap; no all-endpoint/live certification follows.
+
 ### Sui typed mint owner and real Mongo persistence — 2026-10-12
 
 Added `MintNFTAsync(request, UsageExecutionHandle execution, string clientRequestId, CancellationToken)` using the existing `CreateNativePreparationServer`/`NativePreparationPersistence`, not a second ledger. All mint overloads share one mint core; the prepared-server factory receives the actual selected signing creator and configured chain. The existing execution owner validates and atomically records original signed evidence before the SDK acknowledgement. Valuation, receipts, final outcome and settlement remain host responsibilities; no endpoint registration/sponsorship was enabled.
