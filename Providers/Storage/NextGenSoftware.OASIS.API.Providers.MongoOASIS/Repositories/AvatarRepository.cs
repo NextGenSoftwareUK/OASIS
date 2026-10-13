@@ -1,4 +1,5 @@
 using System;
+using MongoDB.Bson;
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Linq;
@@ -549,6 +550,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 // Begin transaction
                 session.StartTransaction();
+                bool commitAttempted = false;
 
                 try
                 {
@@ -595,12 +597,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         await _dbContext.AvatarDetail.DeleteOneAsync(session, dataDetail);
                         result.Result = true;
                     }
-                    if (!result.IsError) await session.CommitTransactionAsync();
+                    if (!result.IsError)
+                    {
+                        commitAttempted = true;
+                        await session.CommitTransactionAsync();
+                    }
                 }
                 catch (Exception ex)
                 {
                     result.Result = false;
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
+                    Exception evidence = commitAttempted
+                        ? new MongoTransactionReconciliationException(session.ServerSession.Id.ToJson(), session.WrappedCoreSession.CurrentTransaction.TransactionNumber, ex)
+                        : ex;
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", evidence);
                 }
 
                 if (result.IsError && session.IsInTransaction)
@@ -619,6 +628,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 // Begin transaction
                 session.StartTransaction();
+                bool commitAttempted = false;
 
                 try
                 {
@@ -665,12 +675,19 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         _dbContext.AvatarDetail.DeleteOne(session, dataDetail);
                         result.Result = true;
                     }
-                    if (!result.IsError) session.CommitTransaction();
+                    if (!result.IsError)
+                    {
+                        commitAttempted = true;
+                        session.CommitTransaction();
+                    }
                 }
                 catch (Exception ex)
                 {
                     result.Result = false;
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", ex);
+                    Exception evidence = commitAttempted
+                        ? new MongoTransactionReconciliationException(session.ServerSession.Id.ToJson(), session.WrappedCoreSession.CurrentTransaction.TransactionNumber, ex)
+                        : ex;
+                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} An unknown error occured, error details: {ex}", evidence);
                 }
 
                 if (result.IsError && session.IsInTransaction)

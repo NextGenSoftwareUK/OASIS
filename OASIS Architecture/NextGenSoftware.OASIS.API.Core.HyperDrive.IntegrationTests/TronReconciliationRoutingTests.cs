@@ -13,6 +13,18 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 
 public class TronReconciliationRoutingTests
 {
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task MongoCommitEvidenceStopsV2CrossProviderReplay(bool asynchronous)
+    {
+        var cause = new IOException("controlled commit response loss");
+        var evidence = new API.Providers.MongoDBOASIS.MongoTransactionReconciliationException("original-session", 7, cause);
+        Assert.Same(cause, evidence.InnerException);
+        Assert.Equal("original-session:7", evidence.OriginalTransactionId);
+        await VerifyRouter(evidence, ProviderType.MongoDBOASIS, asynchronous, true);
+    }
+
     private sealed class ControlledBackend(Exception? failure) : IKeyValueBackend
     {
         public int Writes;
