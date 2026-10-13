@@ -41,6 +41,32 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(true, "username")]
+    [InlineData(false, "username")]
+    [InlineData(true, "email")]
+    [InlineData(false, "email")]
+    [InlineData(true, "list")]
+    [InlineData(false, "list")]
+    public async Task DetailSelectorFirstReadsHydrateStatsWithoutTrackingFixup(bool synchronous, string selector)
+    {
+        var detail = new AvatarDetail { Id = Guid.NewGuid(), Username = "selector-first", Email = "selector-first@test.local" };
+        detail.Stats.HP.Current = 37;
+        using (var provider = new SQLLiteDBOASIS(TestConnectionString))
+        {
+            (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+            (await provider.SaveAvatarDetailAsync(detail)).IsError.Should().BeFalse();
+        }
+        using var reopened = new SQLLiteDBOASIS(TestConnectionString);
+        (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
+        IAvatarDetail loaded;
+        if (selector == "username") loaded = (synchronous ? reopened.LoadAvatarDetailByUsername(detail.Username) : await reopened.LoadAvatarDetailByUsernameAsync(detail.Username)).Result;
+        else if (selector == "email") loaded = (synchronous ? reopened.LoadAvatarDetailByEmail(detail.Email) : await reopened.LoadAvatarDetailByEmailAsync(detail.Email)).Result;
+        else loaded = (synchronous ? reopened.LoadAllAvatarDetails() : await reopened.LoadAllAvatarDetailsAsync()).Result.Single();
+        loaded.Stats.Should().NotBeNull();
+        loaded.Stats.HP.Current.Should().Be(37);
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task CorruptUnrelatedDetailCannotPoisonIdentityLookup(bool synchronous)
