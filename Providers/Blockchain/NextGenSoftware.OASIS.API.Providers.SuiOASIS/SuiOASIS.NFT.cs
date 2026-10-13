@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
 using System.Text.Json;
+using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
@@ -111,18 +112,36 @@ public partial class SuiOASIS
         Func<JsonElement, CancellationToken, Task> persistPreparation, CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(persistPreparation);
-        return MintNFTCoreAsync(request, persistPreparation, cancellationToken);
+        return MintNFTCoreAsync(request, creator => new PreparedSubmissionServer(async (evidence, token) =>
+        {
+            if (evidence.GetProperty("chainId").GetString() != _sdkClient.ChainId
+                || evidence.GetProperty("sender").GetString() != creator)
+                throw new InvalidDataException("Prepared mint chain/sender does not match the configured chain and signing wallet.");
+            await VerifyOriginalSignedPreparationAsync(evidence, token);
+            await persistPreparation(evidence.Clone(), token);
+        }), cancellationToken);
+    }
+
+    /// <summary>Retains the mint's original signed attempt in the existing admitted execution outbox before submission.
+    /// Receipt measurement and settlement remain the execution host's responsibility.</summary>
+    public Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest request,
+        UsageExecutionHandle execution, string clientRequestId, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(execution);
+        ArgumentException.ThrowIfNullOrWhiteSpace(clientRequestId);
+        return MintNFTCoreAsync(request,
+            creator => CreateNativePreparationServer(execution, clientRequestId, _sdkClient.ChainId, creator), cancellationToken);
     }
 
     private async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTCoreAsync(IMintWeb3NFTRequest request,
-        Func<JsonElement, CancellationToken, Task> persistPreparation, CancellationToken cancellationToken)
+        Func<string, PreparedSubmissionServer> createPreparationServer, CancellationToken cancellationToken)
     {
         var result = new OASISResult<IWeb3NFTTransactionResponse>();
         try
         {
             ArgumentNullException.ThrowIfNull(request);
             cancellationToken.ThrowIfCancellationRequested();
-            if (persistPreparation != null && string.IsNullOrWhiteSpace(_sdkClient.ChainId))
+            if (createPreparationServer != null && string.IsNullOrWhiteSpace(_sdkClient.ChainId))
                 throw new InvalidOperationException("Prepared mint ownership requires the configured Sui chain identity.");
             var count = request.NumberToMint ?? 1;
             if (request.StoreNFTMetaDataOnChain == false)
@@ -168,14 +187,7 @@ public partial class SuiOASIS
                 record.Id = Guid.NewGuid();
                 records.Add(record);
             }
-            using var preparationServer = persistPreparation == null ? null : new PreparedSubmissionServer(async (evidence, token) =>
-            {
-                if (evidence.GetProperty("chainId").GetString() != _sdkClient.ChainId
-                    || evidence.GetProperty("sender").GetString() != creator)
-                    throw new InvalidDataException("Prepared mint chain/sender does not match the configured chain and signing wallet.");
-                await VerifyOriginalSignedPreparationAsync(evidence, token);
-                await persistPreparation(evidence.Clone(), token);
-            });
+            using var preparationServer = createPreparationServer?.Invoke(creator);
             var mintArguments = new
             {
                 packageAddress = metadata.CollectionPublicKey, privateKey = signingKey, recipient, count,

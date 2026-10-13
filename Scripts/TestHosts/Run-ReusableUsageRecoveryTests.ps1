@@ -1,4 +1,5 @@
 #Requires -Version 7.0
+param([switch]$SuiMintOwner)
 $ErrorActionPreference='Stop'
 $taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $taskRoot 'TestResults/SubscriptionUsageCurrent'
@@ -21,7 +22,12 @@ try{
     $project=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core/Tests/SubscriptionUsage/SubscriptionUsage.Tests.csproj'
     & dotnet test $project --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --filter FullyQualifiedName~OwnedReplicaInitializationTests --logger 'trx;LogFileName=owned-replica-init-current.trx' --results-directory $work -v:q
     if($LASTEXITCODE -ne 0){throw 'Owned replica initialization failed.'}
-    & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName!~OwnedReplicaInitializationTests' --logger 'trx;LogFileName=usage-real-replica-current.trx' --results-directory $work -v:q
+    if($SuiMintOwner){
+        $mintProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests.csproj'
+        & dotnet test $mintProject --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --filter FullyQualifiedName~PublicMintRetainsOriginalAttemptInReusableMongo --logger 'trx;LogFileName=sui-mint-owner-real-mongo-current.trx' --results-directory $work -v:q
+    }else{
+        & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName!~OwnedReplicaInitializationTests' --logger 'trx;LogFileName=usage-real-replica-current.trx' --results-directory $work -v:q
+    }
     if($LASTEXITCODE -ne 0){throw 'Usage recovery regression failed.'}
 }finally{
     try{
