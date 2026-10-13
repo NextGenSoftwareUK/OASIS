@@ -1,4 +1,4 @@
-param([ValidateSet('Healthy','Outage','Prepared')][string]$Mode = 'Healthy')
+param([ValidateSet('Healthy','Outage','Prepared','Fee')][string]$Mode = 'Healthy')
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
 $fixtureRoot = Join-Path $taskRoot 'TestResults/HyperDriveSui'
@@ -11,12 +11,12 @@ if ($LASTEXITCODE -ne 0) { throw 'Existing Sui ledger configuration missing; ref
 & wsl -d Ubuntu -u root -- pgrep -x sui *> $null
 if ($LASTEXITCODE -eq 0) { throw 'Existing Sui runtime is in use; refusing to take ownership.' }
 $project = Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
-if($Mode -eq 'Prepared'){$project=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests.csproj'}
+if($Mode -in @('Prepared','Fee')){$project=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests.csproj'}
 & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
 if ($LASTEXITCODE -ne 0) { throw 'Current V2 integration consumer build failed.' }
-$outputBridge=if($Mode -eq 'Prepared'){'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/bin/Debug/net10.0/SuiSdkBridge'}else{'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/bin/Debug/net10.0/SuiSdkBridge'}
+$outputBridge=if($Mode -in @('Prepared','Fee')){'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/bin/Debug/net10.0/SuiSdkBridge'}else{'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/bin/Debug/net10.0/SuiSdkBridge'}
 & (Join-Path $PSScriptRoot 'Use-ReusableHederaOutputDependencies.ps1') -Provider Sui -OutputBridge $outputBridge
-$names = @('OASIS_SUI_TEST_RPC','OASIS_SUI_TEST_DEPLOYMENT','OASIS_SUI_TEST_OWNED_PID','OASIS_SUI_TEST_STOP_SCRIPT','OASIS_HYPERDRIVE_TEST_ROOT','OASIS_SUI_SDK_BRIDGE')
+$names = @('OASIS_SUI_TEST_RPC','OASIS_SUI_TEST_DEPLOYMENT','OASIS_SUI_TEST_OWNED_PID','OASIS_SUI_TEST_STOP_SCRIPT','OASIS_HYPERDRIVE_TEST_ROOT','OASIS_SUI_SDK_BRIDGE','OASIS_SUI_SUCCESSFUL_FEE_RECEIPT')
 $prior = @{}
 foreach ($name in $names) { $prior[$name] = [Environment]::GetEnvironmentVariable($name,'Process') }
 $ownedPid = $null
@@ -58,7 +58,18 @@ try {
     $env:OASIS_SUI_TEST_OWNED_PID = $ownedPid
     $env:OASIS_SUI_TEST_STOP_SCRIPT = '/mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/stop-owned-sui-test-node.sh'
     $env:OASIS_HYPERDRIVE_TEST_ROOT = $fixtureRoot
-    if($Mode -eq 'Prepared'){
+    if($Mode -eq 'Fee'){
+        $reportPath=Join-Path $taskRoot 'TestResults/SuiCurrent/sui-prepared-ledger-current.trx'
+        [xml]$report=[IO.File]::ReadAllText($reportPath)
+        if($report.SelectSingleNode("//*[local-name()='ResultSummary']").outcome -ne 'Completed'){throw 'Prepared evidence run is not completed.'}
+        $output=$report.SelectSingleNode("//*[local-name()='UnitTestResult'][@outcome='Passed']//*[local-name()='StdOut']")
+        $match=[regex]::Match($output.InnerText,'Confirmed original prepared write=([1-9A-HJ-NP-Za-km-z]+);')
+        if(!$match.Success){throw 'No retained original prepared digest; do not create another transaction.'}
+        $env:OASIS_SUI_SUCCESSFUL_FEE_RECEIPT=$match.Groups[1].Value
+        $env:OASIS_SUI_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/bridge.mjs'
+        & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName~ExistingOriginalFeeReceiptBindsActualPayerAndExactComponents' --logger 'trx;LogFileName=sui-original-fee-current.trx' --results-directory (Join-Path $taskRoot 'TestResults/SuiCurrent') -v:q
+        if($LASTEXITCODE -ne 0){throw 'Original Sui fee verification failed; no transaction was created.'}
+    }elseif($Mode -eq 'Prepared'){
         $env:OASIS_SUI_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/bridge.mjs'
         & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -SuiPreparedLedger
     }else{
