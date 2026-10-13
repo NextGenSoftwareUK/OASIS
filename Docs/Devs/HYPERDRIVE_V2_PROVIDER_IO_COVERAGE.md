@@ -36,6 +36,14 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos output SDK dependency reuse verification — 2026-10-12
+
+- WEB4 Docker source already calls `Docker/package-provider-sdk-bridges.sh`, which installs pinned bridge dependencies and verifies them. Provider csproj file-copy declarations alone were not the whole Docker packaging workflow. Linux image execution remains unproven; no image build/download was requested or performed.
+- Reused existing `Scripts/TestHosts/Use-ReusableHederaOutputDependencies.ps1 -Provider Cosmos` for the existing unit-test `CosmosSdkBridge` output. It verified source/output manifest equality and linked the output's node_modules to the retained source installation, then bridge syntax/import/direct SDK pin verification passed. No reinstall, copied dependency tree or download.
+- With no source-path environment override, **3/3 focused real offline SDK/activation cases passed**, zero skips, `TestResults/CosmosRuntime/cosmos-output-sdk-current.trx`. This directly verifies Windows output bridge resolution via reused dependencies; it does not certify independent published/Linux artifacts, hosted routes, or all-provider packaging.
+- Original broader encryption/recovery/interface/live verification gates remain open; no deployment/merge.
+
+
 ### Cosmos complete corrected source regression — 2026-10-12
 
 - Fresh complete current Cosmos unit run **118/118 passed**, zero skips, 2m9s, `TestResults/CosmosRuntime/cosmos-full-source-current.trx`, with corrected activation fixture and explicitly retained source SDK path. Same test process awaited through intentional timeout; no restart/download/new environment/live node.
