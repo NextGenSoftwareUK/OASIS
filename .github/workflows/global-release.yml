@@ -12,6 +12,10 @@ on:
         description: Comma-separated already-completed package IDs, recorded in the immutable plan
         type: string
         default: ''
+      expected_excluded_nuget_count:
+        description: Required exact exclusion count; mismatches stop before packing or upload
+        type: number
+        default: 0
       nuget_packages:
         description: Release all first-party NuGet packages
         required: true
@@ -132,6 +136,7 @@ jobs:
           -NuGetPackages $${{ inputs.nuget_packages }}
           -NuGetPackageScope '${{ inputs.nuget_package_scope }}'
           -ExcludedPackageIds ('${{ inputs.excluded_nuget_ids }}'.Split(',', [StringSplitOptions]::RemoveEmptyEntries))
+          -ExpectedExcludedPackageCount ${{ inputs.expected_excluded_nuget_count }}
           -OASISRuntime $${{ inputs.oasis_runtime }}
           -STARRuntime $${{ inputs.star_runtime }}
           -EdgeRuntime $${{ inputs.edge_runtime }}
