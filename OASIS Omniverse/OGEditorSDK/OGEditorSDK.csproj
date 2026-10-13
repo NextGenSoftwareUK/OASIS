@@ -19,7 +19,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
     <RepositoryType>git</RepositoryType>
-    <RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-STAR-CMS-RVM</RepositoryUrl>
+    <RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
     <Copyright>Copyright © NextGen World Ltd 2024</Copyright>
     <PackageReleaseNotes>Initial release of OGEditorSDK — OASIS Omniverse editor plugin providing OGAsset catalog, map sidecar, STAR API client, entity conversion tables, and cross-game portal/quest binding for all OGEngine-compatible editors.</PackageReleaseNotes>
     <PackageReadmeFile>README.md</PackageReadmeFile>
