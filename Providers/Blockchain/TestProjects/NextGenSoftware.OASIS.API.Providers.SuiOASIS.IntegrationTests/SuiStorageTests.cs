@@ -15,6 +15,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests;
 public class SuiStorageTests
 {
     private SuiOASIS _provider = null!;
+    // Public local-fixture key, retained across runs; never use this key for user data.
+    private static byte[] LocalStorageKey() => System.Security.Cryptography.SHA256.HashData(
+        System.Text.Encoding.UTF8.GetBytes("oasis-sui-local-storage-fixture-v1"));
 
     private static string Required(string name) => Environment.GetEnvironmentVariable(name)
         ?? throw new InvalidOperationException($"Required real-chain test setting {name} is missing. No mock or skipped evidence is allowed.");
@@ -28,7 +31,7 @@ public class SuiStorageTests
         var root = deployment.RootElement;
         _provider = new SuiOASIS(rpc, "localnet", root.GetProperty("chainId").GetString()!,
             root.GetProperty("packageAddress").GetString()!, root.GetProperty("privateKey").GetString()!,
-            root.GetProperty("storageObjectId").GetString()!) { IsVersionControlEnabled = true };
+            root.GetProperty("storageObjectId").GetString()!,storageEncryptionKeyResolver:LocalStorageKey) { IsVersionControlEnabled = true };
         var activation = await _provider.ActivateProviderAsync();
         Assert.IsFalse(activation.IsError, activation.Message);
         Assert.IsTrue(activation.Result);
@@ -110,6 +113,32 @@ public class SuiStorageTests
             var loaded = await _provider.LoadHolonAsync(id, loadChildren: false);
             Assert.IsFalse(loaded.IsError, loaded.Message);
             Assert.AreEqual(holon.Description, loaded.Result.Description);
+            var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+            var encrypted=typeof(SuiOASIS).GetProperty("Backend",flags)!.GetValue(_provider)!;
+            var raw=(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.IKeyValueBackend)
+                encrypted.GetType().GetField("_inner",flags)!.GetValue(encrypted)!;
+            var physicalKeys=await raw.ListKeysAsync("oasis/private/v1/");
+            Assert.IsTrue(physicalKeys.Count>0,"Real ledger must contain private physical records.");
+            foreach(var physicalKey in physicalKeys)
+            {
+                Assert.IsFalse(physicalKey.Contains(id.ToString(),StringComparison.OrdinalIgnoreCase));
+                var ciphertext=await raw.GetAsync(physicalKey);
+                StringAssert.StartsWith(ciphertext,"oasis-aes256gcm-");
+                Assert.IsFalse(ciphertext.Contains(holon.Description,StringComparison.Ordinal));
+            }
+            using var deployment=System.Text.Json.JsonDocument.Parse(System.IO.File.ReadAllText(Required("OASIS_SUI_TEST_DEPLOYMENT")));
+            var settings=deployment.RootElement;
+            using(var reopened=new SuiOASIS(Required("OASIS_SUI_TEST_RPC"),"localnet",
+                settings.GetProperty("chainId").GetString()!,settings.GetProperty("packageAddress").GetString()!,
+                settings.GetProperty("privateKey").GetString()!,settings.GetProperty("storageObjectId").GetString()!,
+                storageEncryptionKeyResolver:LocalStorageKey))
+            {
+                var activation=await reopened.ActivateProviderAsync();
+                Assert.IsFalse(activation.IsError,activation.Message);
+                var persisted=await reopened.LoadHolonAsync(id,loadChildren:false);
+                Assert.IsFalse(persisted.IsError,persisted.Message);
+                Assert.AreEqual(holon.Description,persisted.Result.Description);
+            }
             Assert.AreEqual(id.ToString("N"), loaded.Result.MetaData["evidence"].ToString());
             var history = (List<Dictionary<string, object>>)loaded.Result.MetaData["history"];
             Assert.AreEqual(42L, history.Single()["amount"]); Assert.AreEqual(id.ToString(), history.Single()["avatarId"]);

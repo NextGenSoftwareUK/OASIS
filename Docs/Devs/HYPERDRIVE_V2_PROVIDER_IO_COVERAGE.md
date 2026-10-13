@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui real encrypted-ledger roundtrip — 2026-10-12
+
+- Updated the existing `SuiStorageTests` fixture with one retained, public local-only encryption key derived from the fixed fixture label `oasis-sui-local-storage-fixture-v1`, independent of its signing key. This key is strictly test data, not production configuration.
+- **1/1 live test passed**, zero skips: `HolonsPersistMetadataParentIndexesAndDeletion`, report `TestResults/SuiRuntime/sui-encrypted-holon-live-current.trx`. Actual retained Sui node/contract stored the holon, metadata and parent indexes; direct raw-backend inspection verified private physical keys and encrypted value envelopes without plaintext description or exposed holon ID in those keys. A second provider instance activated and decrypted the persisted holon with the same retained key. Finally the owned holon was deleted and parent membership absence verified.
+- Existing pinned runtime, network ledger, deployment fixture and SDK dependencies were reused; no download, deployment or ledger reset. The owned node was stopped after verification. This proves this encrypted-storage roundtrip, not the remaining avatar/version/interface matrix or real V2 failover/load-balancing/replication under the new encryption wiring.
+
+
 ### Sui mandatory encrypted-storage wiring — 2026-10-12
 
 - Sui private storage now uses `PersistedPrivateKeyValueBackend` around the existing `SuiStorageBackend`, retaining the same single SDK client for native operations. Private values and logical keys use the existing authenticated encrypted format and keyed physical index; there is no plaintext fallback or generated replacement key.
