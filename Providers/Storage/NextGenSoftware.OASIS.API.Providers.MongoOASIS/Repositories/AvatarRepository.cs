@@ -53,7 +53,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 if (avatar.HolonId == Guid.Empty)
                     avatar.HolonId = Guid.NewGuid();
 
-                avatar.CreatedProviderType = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
+                avatar.CreatedProviderType ??= new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
 
                 if (string.IsNullOrEmpty(avatar.Id)) avatar.Id = ObjectId.GenerateNewId().ToString();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
@@ -77,7 +77,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 if (avatar.HolonId == Guid.Empty)
                     avatar.HolonId = Guid.NewGuid();
 
-                avatar.CreatedProviderType = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
+                avatar.CreatedProviderType ??= new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
 
                 if (string.IsNullOrEmpty(avatar.Id)) avatar.Id = ObjectId.GenerateNewId().ToString();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
@@ -101,7 +101,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 if (avatar.HolonId == Guid.Empty)
                     avatar.HolonId = Guid.NewGuid();
 
-                avatar.CreatedProviderType = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
+                avatar.CreatedProviderType ??= new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
 
                 if (string.IsNullOrEmpty(avatar.Id)) avatar.Id = ObjectId.GenerateNewId().ToString();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
@@ -125,7 +125,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 if (avatar.HolonId == Guid.Empty)
                     avatar.HolonId = Guid.NewGuid();
 
-                avatar.CreatedProviderType = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
+                avatar.CreatedProviderType ??= new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
 
                 if (string.IsNullOrEmpty(avatar.Id)) avatar.Id = ObjectId.GenerateNewId().ToString();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;

@@ -365,14 +365,18 @@ public sealed class MongoSqliteRealProviderRoutingTests
                     { "configureFailPoint", "failCommand" }, { "mode", "alwaysOn" },
                     { "data", new BsonDocument { { "failCommands", new BsonArray { "update" } }, { "appName", failureApp }, { "errorCode", 2 } } }
                 });
-                var singleWriteAvatar = new Avatar { Id = Guid.NewGuid(), Username = "single-write-avatar", AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
+                var singleWriteAvatar = new Avatar { Id = Guid.NewGuid(), Username = "single-write-avatar", AvatarType = new EnumValue<AvatarType>(AvatarType.User),
+                    CreatedProviderType = new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) };
                 (synchronous ? failureMongo.SaveAvatar(singleWriteAvatar) : await failureMongo.SaveAvatarAsync(singleWriteAvatar)).IsError.Should().BeFalse();
-                var singleWriteDetail = new AvatarDetail { Id = singleWriteAvatar.Id, Username = singleWriteAvatar.Username, Karma = 123 };
+                var singleWriteDetail = new AvatarDetail { Id = singleWriteAvatar.Id, Username = singleWriteAvatar.Username, Karma = 123,
+                    CreatedProviderType = new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) };
                 (synchronous ? failureMongo.SaveAvatarDetail(singleWriteDetail) : await failureMongo.SaveAvatarDetailAsync(singleWriteDetail)).IsError.Should().BeFalse();
                 var storedAvatar = await client.GetDatabase(databaseName).GetCollection<API.Providers.MongoDBOASIS.Entities.Avatar>("Avatar").Find(x => x.HolonId == singleWriteAvatar.Id).FirstOrDefaultAsync();
                 var storedDetail = await client.GetDatabase(databaseName).GetCollection<API.Providers.MongoDBOASIS.Entities.AvatarDetail>("AvatarDetail").Find(x => x.HolonId == singleWriteAvatar.Id).FirstOrDefaultAsync();
                 storedAvatar.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS].Should().Be(storedAvatar.Id);
                 storedDetail.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS].Should().Be(storedDetail.Id);
+                storedAvatar.CreatedProviderType.Value.Should().Be(ProviderType.SQLLiteDBOASIS);
+                storedDetail.CreatedProviderType.Value.Should().Be(ProviderType.SQLLiteDBOASIS);
             }
             finally
             {
