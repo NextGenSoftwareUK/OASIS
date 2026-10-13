@@ -123,6 +123,8 @@ public sealed class TronNativeTransferClient
         Transaction.Types.Contract.Types.ContractType.TransferAssetContract => contract.Parameter.Unpack<TransferAssetContract>().OwnerAddress,
         Transaction.Types.Contract.Types.ContractType.VoteWitnessContract => contract.Parameter.Unpack<VoteWitnessContract>().OwnerAddress,
         Transaction.Types.Contract.Types.ContractType.FreezeBalanceContract => contract.Parameter.Unpack<FreezeBalanceContract>().OwnerAddress,
+        Transaction.Types.Contract.Types.ContractType.UnfreezeBalanceContract => contract.Parameter.Unpack<UnfreezeBalanceContract>().OwnerAddress,
+        Transaction.Types.Contract.Types.ContractType.WithdrawBalanceContract => contract.Parameter.Unpack<WithdrawBalanceContract>().OwnerAddress,
         Transaction.Types.Contract.Types.ContractType.TransferContract => contract.Parameter.Unpack<TransferContract>().OwnerAddress,
         Transaction.Types.Contract.Types.ContractType.AccountCreateContract => contract.Parameter.Unpack<AccountCreateContract>().OwnerAddress,
         Transaction.Types.Contract.Types.ContractType.AccountUpdateContract => contract.Parameter.Unpack<AccountUpdateContract>().OwnerAddress,
@@ -328,6 +330,8 @@ public sealed class TronNativeTransferClient
         var contract = transaction.RawData.Contract.Single();
         ByteString from, to; long amount;
         var amountUnit="SUN";decimal displayScale=1000000m;
+        var nonTransferAmount=false;
+        var amountBasis="requested value";
         switch (contract.Type)
         {
             case Transaction.Types.Contract.Types.ContractType.AccountCreateContract:
@@ -353,7 +357,22 @@ public sealed class TronNativeTransferClient
                 from = freeze.OwnerAddress;
                 to = freeze.ReceiverAddress.IsEmpty ? from : freeze.ReceiverAddress;
                 amount = freeze.FrozenBalance;
-                amountUnit = "SUN-STAKED/" + freeze.Resource; break;
+                amountUnit = "SUN-STAKED/" + freeze.Resource; nonTransferAmount=true; break;
+            case Transaction.Types.Contract.Types.ContractType.UnfreezeBalanceContract:
+                var unfreeze = contract.Parameter.Unpack<UnfreezeBalanceContract>();
+                if (!Enum.IsDefined(unfreeze.Resource))
+                    throw new InvalidOperationException("Invalid native unstaking resource.");
+                from = unfreeze.OwnerAddress;
+                to = unfreeze.ReceiverAddress.IsEmpty ? from : unfreeze.ReceiverAddress;
+                amount = receipt.UnfreezeAmount;
+                amountUnit = "SUN-UNFROZEN/" + unfreeze.Resource;
+                nonTransferAmount=true; amountBasis="receipt unstaked amount"; break;
+            case Transaction.Types.Contract.Types.ContractType.WithdrawBalanceContract:
+                var withdrawal = contract.Parameter.Unpack<WithdrawBalanceContract>();
+                from = withdrawal.OwnerAddress; to = from;
+                amount = receipt.WithdrawAmount;
+                amountUnit = "SUN-REWARD-WITHDRAWN";
+                nonTransferAmount=true; amountBasis="receipt withdrawn reward"; break;
             case Transaction.Types.Contract.Types.ContractType.AccountPermissionUpdateContract:
                 var permissions = contract.Parameter.Unpack<AccountPermissionUpdateContract>();
                 from = permissions.OwnerAddress; to = permissions.OwnerAddress; amount = 0; break;
@@ -385,11 +404,11 @@ public sealed class TronNativeTransferClient
                 && to.IsEmpty && execution != "Success" ? null : Address(to),
             // Resource delegation does not pay TRX to the resource receiver.
             // Preserve requested locked SUN in RawAmount, not the legacy transfer Amount.
-            Amount = contract.Type == Transaction.Types.Contract.Types.ContractType.FreezeBalanceContract
+            Amount = nonTransferAmount
                 ? 0d : (double)(amount / displayScale),
             CreatedDate = DateTimeOffset.FromUnixTimeMilliseconds(transaction.RawData.Timestamp).UtcDateTime,
             TransactionType = from.Equals(wallet) ? Core.Enums.TransactionType.Debit : Core.Enums.TransactionType.Credit,
-            Description = "TRON " + contract.Type + " (" + execution + "; amount is requested value): " + Convert.ToHexString(receipt.Id.Span).ToLowerInvariant()
+            Description = "TRON " + contract.Type + " (" + execution + "; amount is " + amountBasis + "): " + Convert.ToHexString(receipt.Id.Span).ToLowerInvariant()
         };
     }
 

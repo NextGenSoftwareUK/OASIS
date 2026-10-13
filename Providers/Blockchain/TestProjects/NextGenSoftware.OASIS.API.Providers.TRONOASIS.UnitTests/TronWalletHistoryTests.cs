@@ -11,6 +11,35 @@ public sealed class TronWalletHistoryTests
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
+    public void NativeUnstakeAndRewardWithdrawalPreserveReceiptUnitsWithoutInventingTransfers(bool reward)
+    {
+        var bytes=new byte[21];bytes[0]=0x41;bytes[20]=7;
+        var owner=ByteString.CopyFrom(bytes);
+        var contract=reward
+            ? new Transaction.Types.Contract { Type=Transaction.Types.Contract.Types.ContractType.WithdrawBalanceContract,
+                Parameter=Any.Pack(new WithdrawBalanceContract { OwnerAddress=owner }) }
+            : new Transaction.Types.Contract { Type=Transaction.Types.Contract.Types.ContractType.UnfreezeBalanceContract,
+                Parameter=Any.Pack(new UnfreezeBalanceContract { OwnerAddress=owner }) };
+        var transaction=new Transaction { RawData=new Transaction.Types.raw { Timestamp=1700000000000 } };
+        transaction.RawData.Contract.Add(contract);
+        var receipt=new TransactionInfo { Id=ByteString.CopyFrom(new byte[32]),
+            UnfreezeAmount=reward?0:9007199254740993L,WithdrawAmount=reward?9007199254740993L:0 };
+        var map=typeof(TronNativeTransferClient).GetMethod("MapWalletTransaction",BindingFlags.NonPublic|BindingFlags.Static)!;
+        var mapped=(NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses.IWalletTransaction)map.Invoke(null,new object[]{transaction,receipt,owner})!;
+        Assert.Equal("9007199254740993",mapped.RawAmount);
+        Assert.Equal(0d,mapped.Amount);
+        Assert.Equal(mapped.FromWalletAddress,mapped.ToWalletAddress);
+        Assert.StartsWith(reward?"SUN-REWARD-WITHDRAWN":"SUN-UNFROZEN/",mapped.AmountUnit);
+        Assert.Contains("receipt",mapped.Description);
+        Assert.Equal(owner,typeof(TronNativeTransferClient).GetMethod("OriginalOperationOwner",BindingFlags.NonPublic|BindingFlags.Static)!.Invoke(null,new object[]{contract}));
+        receipt.UnfreezeAmount=reward?0:-1;receipt.WithdrawAmount=reward?-1:0;
+        var error=Assert.Throws<TargetInvocationException>(()=>map.Invoke(null,new object[]{transaction,receipt,owner}));
+        Assert.IsType<InvalidOperationException>(error.InnerException);
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
     public void LegacyStakeHistoryPreservesLockedAmountAndResourceRecipient(bool delegated)
     {
         var bytes = new byte[21]; bytes[0] = 0x41; bytes[20] = 7;
