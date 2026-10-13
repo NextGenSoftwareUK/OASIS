@@ -43,6 +43,34 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task ExplicitMissingStatsReplacementRemovesOnlyOwnedRowAndAllowsRestoration(bool synchronous)
+    {
+        var detail = new AvatarDetail { Id = Guid.NewGuid(), Username = "optional-stats" };
+        var other = new AvatarDetail { Id = Guid.NewGuid(), Username = "other-stats" };
+        other.Stats.HP.Current = 27;
+        using (var provider = new SQLLiteDBOASIS(TestConnectionString))
+        {
+            (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+            (await provider.SaveAvatarDetailAsync(detail)).IsError.Should().BeFalse();
+            (await provider.SaveAvatarDetailAsync(other)).IsError.Should().BeFalse();
+            detail.Stats = null;
+            var saved = synchronous ? provider.SaveAvatarDetail(detail) : await provider.SaveAvatarDetailAsync(detail);
+            saved.IsError.Should().BeFalse(saved.Message);
+        }
+        using var reopened = new SQLLiteDBOASIS(TestConnectionString);
+        (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
+        (await reopened.LoadAvatarDetailAsync(detail.Id)).Result.Stats.Should().BeNull();
+        (await reopened.LoadAvatarDetailAsync(other.Id)).Result.Stats.HP.Current.Should().Be(27);
+        detail.Stats = new AvatarDetail().Stats;
+        detail.Stats.HP.Current = 39;
+        var restored = synchronous ? reopened.SaveAvatarDetail(detail) : await reopened.SaveAvatarDetailAsync(detail);
+        restored.IsError.Should().BeFalse(restored.Message);
+        (await reopened.LoadAvatarDetailAsync(detail.Id)).Result.Stats.HP.Current.Should().Be(39);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task AvatarDetailStatsSurviveFreshConnection(bool synchronous)
     {
         var detail = new AvatarDetail { Id = Guid.NewGuid(), Username = "stats-detail", Email = "stats@test.local", Karma = 456, XP = 234 };

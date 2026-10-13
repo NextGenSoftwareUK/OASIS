@@ -160,9 +160,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
             this.ModifiedByAvatarId=source.ModifiedByAvatarId.ToString();
             this.DeletedByAvatarId=source.DeletedByAvatarId.ToString();
 
-            this.Stats=new AvatarStatsModel(source.Stats);
-            this.Stats.Id=this.Id;
-            this.Stats.AvatarId=this.Id;
+            if (source.Stats != null)
+            {
+                this.Stats=new AvatarStatsModel(source.Stats);
+                this.Stats.Id=this.Id;
+                this.Stats.AvatarId=this.Id;
+            }
 
             this.Aura=new AvatarAuraModel(source.Aura);
             this.Aura.AvatarId=this.Id;
