@@ -43,6 +43,32 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task RejectedDetailUpdateDoesNotReplayStatsOrKarmaDuringLaterSave(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var detail = new AvatarDetail { Id = Guid.NewGuid(), Username = "rejected-detail", Karma = 100 };
+        detail.Stats.HP.Current = 31;
+        (await provider.SaveAvatarDetailAsync(detail)).IsError.Should().BeFalse();
+        using var control = new DataContext(TestConnectionString);
+        control.Database.ExecuteSqlRaw("CREATE TRIGGER reject_detail_update BEFORE UPDATE ON AvatarDetail BEGIN SELECT RAISE(ABORT, 'owned detail rejection'); END;");
+        detail.Karma = 999;
+        detail.Stats.HP.Current = 88;
+        var rejected = synchronous ? provider.SaveAvatarDetail(detail) : await provider.SaveAvatarDetailAsync(detail);
+        rejected.IsError.Should().BeTrue();
+        rejected.Exception.Should().NotBeNull();
+        control.Database.ExecuteSqlRaw("DROP TRIGGER reject_detail_update;");
+        (await provider.SaveHolonAsync(new Holon { Id = Guid.NewGuid() }, saveChildren:false)).IsError.Should().BeFalse();
+        using var reopened = new SQLLiteDBOASIS(TestConnectionString);
+        (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var loaded = await reopened.LoadAvatarDetailAsync(detail.Id);
+        loaded.Result.Karma.Should().Be(100);
+        loaded.Result.Stats.HP.Current.Should().Be(31);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task ExplicitMissingStatsReplacementRemovesOnlyOwnedRowAndAllowsRestoration(bool synchronous)
     {
         var detail = new AvatarDetail { Id = Guid.NewGuid(), Username = "optional-stats" };
