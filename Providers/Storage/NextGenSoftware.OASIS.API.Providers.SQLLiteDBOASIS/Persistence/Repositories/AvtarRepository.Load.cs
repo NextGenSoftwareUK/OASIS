@@ -61,8 +61,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                             OASISResult<AvatarDetailModel> avatarDetailResult = new();
                             avatarDetailResult.IsError = true;
-                            avatarDetailResult.Result = _dbContext.AvatarDetails
-                                .Where(p => p.Id == avatarResult.Result.Id).FirstOrDefault();
+                            avatarDetailResult.Result = await _dbContext.AvatarDetails
+                                .FirstOrDefaultAsync(p => p.Id == avatarResult.Result.Id);
                             if (avatarDetailResult.Result != null) avatarDetailResult.IsError = false;
                             if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
                             {
@@ -93,7 +93,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                     //FilterDefinition<AvatarDetail> dataDetail = Builders<AvatarDetail>.Filter.Where(x => x.HolonId == id);
                     //_dbContext.AvatarDetail.DeleteOne(dataDetail);
-                    var data = _dbContext.Avatars.Where(x => x.Id == id.ToString()).FirstOrDefault();
+                    var data = avatarResult.Result;
                     if (data != null)
                     {
                         _dbContext.Remove(data);
@@ -102,7 +102,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                         foreach (var detail in dataDetail)
                         {
                             deletionEntities.Add(detail);
-                            RemoveAvatarDetailDependents(detail, deletionEntities);
+                            await RemoveAvatarDetailDependentsAsync(detail, deletionEntities);
                         }
                         _dbContext.RemoveRange(dataDetail);
                         result.Result = true;
@@ -120,11 +120,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             if (result.IsError)
             {
                 result.Result = false;
-                dbContextTransaction.Rollback();
+                await dbContextTransaction.RollbackAsync();
                 DetachFailedAvatarDeletion(id.ToString(), deletionEntities);
             }
             else
-                dbContextTransaction.Commit();
+                await dbContextTransaction.CommitAsync();
 
             return result;
             }

@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### SQLite asynchronous deletion traversal — 2026-10-13
+
+Async GUID deletion now awaits detail identity lookup, dependent navigation loading/recursive traversal and transaction rollback/commit; removes redundant synchronous avatar lookup. Full72/72 real regression passes (`TestResults/SQLiteCurrent/sqlite-async-delete-current.trx`). Throughput/concurrency/cancellation and commit ambiguity remain unproven; original provider/interface/API gates unchanged. Existing environment reused, no downloads.
+
 ### Real Mongo selector lookup rejection — 2026-10-13
 
 Owned-server app-scoped find rejection checks all email/username/native-key deletion selectors sync/async: result error/false/original MongoCommandException, no avatar/detail mutation. Expanded real pair4/4 passes (`TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`). Transaction-stage selector rejection, uniqueness/custom keys, API attribution, full-provider interfaces and production recovery remain open. No additional downloads/environments.

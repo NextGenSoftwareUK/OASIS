@@ -156,6 +156,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
         }
 
+        private async Task RemoveAvatarDetailDependentsAsync(object entity, HashSet<object> deletionEntities)
+        {
+            var entry = _dbContext.Entry(entity);
+            foreach (var navigation in entry.Navigations.Where(n => n.Metadata is Microsoft.EntityFrameworkCore.Metadata.INavigation mapped && !mapped.IsOnDependent).ToList())
+            {
+                await navigation.LoadAsync();
+                if (navigation.CurrentValue == null) continue;
+                var children = navigation.Metadata.IsCollection
+                    ? ((System.Collections.IEnumerable)navigation.CurrentValue).Cast<object>().ToList()
+                    : new List<object> { navigation.CurrentValue };
+                foreach (var child in children)
+                {
+                    deletionEntities.Add(child);
+                    await RemoveAvatarDetailDependentsAsync(child, deletionEntities);
+                    _dbContext.Remove(child);
+                }
+            }
+        }
+
         private void DetachFailedAvatarDeletion(string id, HashSet<object> deletionEntities)
         {
             foreach (var entry in _dbContext.ChangeTracker.Entries().ToList())
