@@ -26,6 +26,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Provider runner owned-process cleanup — 2026-10-12
+
+Removed port-listener-wide killing from older four-provider runner. Retains exact Process objects returned by Start-Process, terminates only those live owned process trees with a bounded exit wait, reports cleanup errors and disposes handles. Requires PowerShell 7 for process-tree termination. Snapshots/restores modified environment values including previously leaked IPFS_PATH. Parser/diff checks passed. Extracted actual finally block executed with two owned harmless helper processes: tracked stopped, untracked preserved, prior nonempty environment value restored; helpers then stopped. Initial validation attempted disposed Process.Id, corrected by capturing ID before cleanup; absent-value equality test differed null/empty and is not claimed proven. Full runner/descendant/race/absent-env integration still unverified; no providers installed or run, no broad file cleanup or release merge.
+
 ### Provider runner reuse ordering corrected — 2026-10-12
 
 Hosted verification token unavailable in current process; no authenticated endpoint claim or configuration mutation. Audit found older four-provider runner downloaded missing Kubo archive before checking its retained executable. Corrected to inspect executable first, download/extract only when runtime is absent, verify installed pinned version and refuse automatic mismatched replacement. Added bounded dotnet workers/shared-compilation setting. PowerShell parser and diff checks passed; runner NOT executed, no install or test matrix claim. Current free C bytes 100,107,546,624. Existing port ownership/cleanup and archive lifecycle in this older runner still require review before invoking it; no broad cleanup or duplicate environment allocated.
