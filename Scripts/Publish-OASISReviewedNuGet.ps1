@@ -31,6 +31,7 @@ $packages = @(Get-ChildItem -LiteralPath $PackageDirectory -Filter '*.nupkg' -Fi
 if ($packages.Count -ne @($plan.packages).Count) { throw 'Packed package count differs from the reviewed plan.' }
 if ($Publish -and [string]::IsNullOrWhiteSpace($NuGetApiKey)) { throw 'NUGET_API_KEY is required.' }
 $pending = [Collections.Generic.List[string]]::new()
+$collisions = [Collections.Generic.List[string]]::new()
 $http = [Net.Http.HttpClient]::new()
 try {
     # Preflight the whole immutable set before pushing any package. NuGet repository
@@ -49,16 +50,22 @@ try {
             if ([int]$response.StatusCode -eq 404) { $pending.Add($matches[0].FullName); continue }
             $response.EnsureSuccessStatusCode() | Out-Null
             $remoteEntries = Get-PackageEntries ($response.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult())
-            if ($remoteEntries.Count -ne $localEntries.Count) { throw "Existing immutable package differs: $name" }
+            if ($remoteEntries.Count -ne $localEntries.Count) { $collisions.Add("$name (archive entry coverage)"); continue }
+            $differentEntries = [Collections.Generic.List[string]]::new()
             foreach ($entry in $localEntries.Keys) {
                 if (-not $remoteEntries.ContainsKey($entry) -or $remoteEntries[$entry] -ne $localEntries[$entry]) {
-                    throw "Existing immutable package differs: $name, entry $entry"
+                    $differentEntries.Add($entry)
                 }
             }
+            if ($differentEntries.Count) { $collisions.Add("$name (entries: $($differentEntries -join ', '))"); continue }
             Write-Host "Verified identical published package: $name"
         } finally { $response.Dispose() }
     }
 } finally { $http.Dispose() }
+if ($collisions.Count) {
+    foreach ($collision in $collisions) { Write-Host "Immutable content collision: $collision" }
+    throw "Preflight rejected $($collisions.Count) content collisions; no packages were pushed. Unpublished candidates: $($pending.Count)."
+}
 Write-Host "Preflight passed. Unpublished packages: $($pending.Count)"
 if ($Publish) {
     foreach ($path in $pending) {
