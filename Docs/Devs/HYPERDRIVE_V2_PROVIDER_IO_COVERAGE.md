@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### V2 async generic bulk result diagnostics — 2026-10-12
+
+- Core `9cb23c72cc7c451d60db470954f55eac4888438e` replaces incomplete manual result mapping in async generic bulk saves with the existing shared OASIS result-copy helper, retaining error/warning counts and diagnostics while mapping only the typed payload. No legacy path change.
+- Build passed; **16/16 focused save-entry negative cases passed**, zero skips, `TestResults/CoreCurrent/generic-bulk-diagnostics-current.trx`, now also asserting the preparation ErrorCount=1 survives all mappings. Full Core regression and partial-save provider-result/diagnostic matrices still require current verification.
+- Pushed Core and parent gitlink/manifest advanced together. Consumer/deployment and broader release gates remain open; no install/download/merge.
+
+
 ### Later-record V2 batch preparation failure verification — 2026-10-12
 
 - Bulk missing-key cases now use two records: an earlier record containing only exempt Status metadata can prepare, followed by a private record whose enabled CBC/GCM key is missing. Sync/async and generic/non-generic bulk entry points return structured errors with no provider save invocation, preserving tested Status/private values and inserting no ciphertext envelopes.

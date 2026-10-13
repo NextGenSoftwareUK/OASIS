@@ -3904,6 +3904,7 @@ public sealed class HyperDriveProviderExecutionTests
         var batch=new[]{earlier,holon};
         void Check<T>(OASISResult<T> result){
             result.IsError.Should().BeTrue();result.ErrorCode.Should().Be("HOLON_SAVE_PREPARATION_FAILED");
+            result.ErrorCount.Should().Be(1);
             result.Exception.Should().BeOfType<InvalidOperationException>();result.Result.Should().BeNull();
         }
         if(entry=="generic-bulk-async")Check(await manager.SaveHolonsAsync<Holon>(batch,actor,providerType:ProviderType.IPFSOASIS));
