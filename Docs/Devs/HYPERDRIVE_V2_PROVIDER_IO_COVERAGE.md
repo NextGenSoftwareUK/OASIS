@@ -5,6 +5,16 @@
 
 ## Current provider status — not full certification
 
+### Return to agreed priority: SQLite persistence/query gaps — 2026-10-13
+
+User explicitly questioned whether the agreed high-priority order was completed. It was not; work had stayed on the four remaining chains too long. Resume MongoDB/SQLite foundation first, then Ethereum/Solana, IPFS, clouds, L2s, Neo4j, remaining chains and protocol integrations, without removing the original Cosmos/Hedera/Sui/TRON requirements or clearing uncertain journals.
+
+SQLite source audit found concrete issues hidden by the prior three tests: sync GUID reads required literal version0, async reads ignored explicit version, list reads excluded nonzero current versions/ignored type, metadata query wrappers discarded type/version options, and repository entity mapping discarded holon type and all metadata. Fixed current-row version0 semantics and explicit-version filtering for GUID reads/lists; list type filtering; metadata option forwarding; and per-holon `MetaDataJson` serialization/deserialization plus type mapping. Metadata JSON must deserialize to an object, not silently disappear. SQLite still has a single current row per ID: this is **not historical version persistence**. The new scalar column requires a reviewed schema upgrade for any existing database; none was applied to user data or deployed. Fresh owned fixtures use EnsureCreated. Other entity mapping, provider-key selectors, parent/children, history and error propagation remain audit gates.
+
+New real SQLite regression failed first at current-version sync lookup (`sqlite-version-query-before-current.trx`), then exposed list and metadata mapping failures in retained intermediate reports. Final entire integration project **4/4** passed (`TestResults/SQLiteCurrent/sqlite-metadata-mapping-version-current.trx`), covering currentVersion3 read, rejecting mismatched explicitVersion2, list inclusion, metadata equality and type exclusion, plus prior avatar/reactivation/holon tests. Build0errors/41warnings. This is not full interface or V2 three-policy certification.
+
+Replaced abandoned GUID-named temp DBs in this fixture with one fixed `TestResults/SQLiteCurrent/integration-current.db`, exclusive environment lease, refusal to overwrite an existing DB, using/disposed providers, pooling disabled and exact owned DB/sidecar cleanup. Final DB absent. No new installs/downloads or unrelated Mongo service changes. Free disk96,369,496,064 bytes; disk recovery target remains unmet.
+
 ### Hedera admitted mint and separate delivery ownership — 2026-10-13
 
 Added a public typed `MintNFTAsync(request, UsageExecutionHandle, clientRequestId, cancellationToken)` overload sharing the existing HTS mint core. Mint and optional recipient transfer each use existing `ExecutePreparedNativeAsync`/signature verifier with the selected wallet's account/public key, original transaction IDs and distinct `:mint`/`:delivery` correlations. Correlation guards reserve suffix space within bounded attempt identifiers. Standard mint remains explicit; no new billing ledger, automatic replay, funded tests or sponsorship policy was enabled. Host receipt collection/settlement and public authenticated route integration remain incomplete.

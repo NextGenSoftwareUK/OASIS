@@ -9,16 +9,54 @@ using FluentAssertions;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 
-public class SQLLiteDBOASISIntegrationTests
+public class SQLLiteDBOASISIntegrationTests : IDisposable
 {
-    private readonly string _databasePath = Path.Combine(Path.GetTempPath(), $"oasis-sqlite-integration-{Guid.NewGuid():N}.db");
-    private string TestConnectionString => $"Data Source={_databasePath}";
+    private readonly string _databasePath;
+    private readonly FileStream _lease;
+    private string TestConnectionString => $"Data Source={_databasePath};Pooling=False";
+
+    public SQLLiteDBOASISIntegrationTests()
+    {
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root != null && !File.Exists(Path.Combine(root.FullName,"Scripts/TestHosts/Run-ReusableUsageRecoveryTests.ps1"))) root = root.Parent;
+        if (root == null) throw new InvalidOperationException("Existing task checkout required.");
+        var directory = Path.Combine(root.FullName,"TestResults/SQLiteCurrent");
+        Directory.CreateDirectory(directory);
+        _databasePath = Path.Combine(directory,"integration-current.db");
+        _lease = new FileStream(Path.Combine(directory,"environment.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+        if (File.Exists(_databasePath)) { _lease.Dispose(); throw new InvalidOperationException("Existing fixture DB requires inspection; refusing overwrite."); }
+    }
+
+    public void Dispose()
+    {
+        try
+        {
+            foreach (var file in new[] { _databasePath, _databasePath + "-wal", _databasePath + "-shm" })
+                if (File.Exists(file)) File.Delete(file);
+        }
+        finally { _lease.Dispose(); }
+    }
+
+    [Fact]
+    public async Task LatestAndExplicitVersionMetadataQueriesRespectCurrentVersionAndType()
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var holon = new Holon { Id = Guid.NewGuid(), Version = 3, HolonType = HolonType.Quest,
+            MetaData = new Dictionary<string,object> { ["Email"] = "query@example.invalid" } };
+        (await provider.SaveHolonAsync(holon,saveChildren:false)).IsError.Should().BeFalse();
+        provider.LoadHolon(holon.Id,loadChildren:false).Result.Should().NotBeNull();
+        (await provider.LoadHolonAsync(holon.Id,loadChildren:false,version:2)).Result.Should().BeNull();
+        (await provider.LoadAllHolonsAsync(loadChildren:false)).Result.Should().ContainSingle();
+        (await provider.LoadHolonsByMetaDataAsync("Email","query@example.invalid",type:HolonType.Quest,loadChildren:false,version:3)).Result.Should().ContainSingle();
+        (await provider.LoadHolonsByMetaDataAsync("Email","query@example.invalid",type:HolonType.Avatar,loadChildren:false,version:3)).Result.Should().BeEmpty();
+    }
 
     [Fact]
     public async Task SQLLiteDBOASIS_Should_Initialize_Successfully()
     {
         // Arrange & Act
-        var provider = new SQLLiteDBOASIS(TestConnectionString);
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
         var activation = await provider.ActivateProviderAsync();
         activation.IsError.Should().BeFalse(activation.Message);
         
@@ -32,7 +70,7 @@ public class SQLLiteDBOASISIntegrationTests
     public async Task SQLLiteDBOASIS_Should_Support_Avatar_Integration()
     {
         // Arrange
-        var provider = new SQLLiteDBOASIS(TestConnectionString);
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
         var activation = await provider.ActivateProviderAsync();
         activation.IsError.Should().BeFalse(activation.Message);
         
@@ -71,7 +109,7 @@ public class SQLLiteDBOASISIntegrationTests
     public async Task SQLLiteDBOASIS_Should_Support_Holon_Integration()
     {
         // Arrange
-        var provider = new SQLLiteDBOASIS(TestConnectionString);
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
         var activation = await provider.ActivateProviderAsync();
         activation.IsError.Should().BeFalse(activation.Message);
         
