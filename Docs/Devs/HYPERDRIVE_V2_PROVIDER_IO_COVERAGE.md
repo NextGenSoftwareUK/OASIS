@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Null derived-holon metadata V2 preparation correction — 2026-10-12
+
+- Core `8650408495ab646a302e3cad12e1409ed0c3918e` initializes null metadata at V2 single/bulk preparation before existing attributed extraction. Shared legacy extraction initializes too late; legacy remains unchanged/documented. Batch input is materialized before initialization/preparation; null records still fail through the structured boundary.
+- Full Core **469/469 passed**, zero skips, `TestResults/CoreCurrent/core-null-custom-metadata-current.trx`; four additional null-metadata single/bulk cases prove attributed properties are extracted/encrypted as configured before controlled provider writes. Child traversal/sync/custom override/live provider combinations remain open.
+- Build passed; Core pushed and parent manifest/gitlink advanced together. Current consumer refresh and original broader release gates remain open; no install/download/deployment/merge.
+
+
 ### Extracted custom-property DNA encryption verification — 2026-10-12
 
 - Expanded actual V2 generic single/bulk save tests to encryption-disabled and DNA GCM-enabled cases. Controlled provider sees attributed QuestDialogue extracted into metadata when disabled, or only encrypted envelope with correct decrypted dialogue when enabled. Plaintext dialogue is absent from encrypted payload; exempt Status remains Pending/queryable.
