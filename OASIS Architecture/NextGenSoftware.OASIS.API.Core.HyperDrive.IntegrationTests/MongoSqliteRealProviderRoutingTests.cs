@@ -1,5 +1,7 @@
 using FluentAssertions;
 using MongoDB.Driver;
+using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -8,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context;
 using NextGenSoftware.Utilities;
 using Xunit;
 
@@ -71,6 +74,26 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 loaded.Result.Version.Should().Be(3);
                 loaded.Result.MetaData["Email"].ToString().Should().Be("priority@test.local");
             }
+            var balanceManager = new ProviderManager(null,dna) { IsAutoLoadBalanceEnabled = true };
+            balanceManager.RegisterProvider(mongo);
+            balanceManager.RegisterProvider(sqlite);
+            balanceManager.SetAndReplaceAutoLoadBalanceListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
+            var timer = Stopwatch.StartNew();
+            (await mongo.LoadHolonAsync(holon.Id,loadChildren:false)).IsError.Should().BeFalse();
+            timer.Stop();
+            var mongoMs = Math.Max(timer.Elapsed.TotalMilliseconds,0.001);
+            timer.Restart();
+            (await sqlite.LoadHolonAsync(holon.Id,loadChildren:false)).IsError.Should().BeFalse();
+            timer.Stop();
+            var sqliteMs = Math.Max(timer.Elapsed.TotalMilliseconds,0.001);
+            balanceManager.PerformanceMonitor.RecordRequest(ProviderType.MongoDBOASIS,true,mongoMs);
+            balanceManager.PerformanceMonitor.RecordRequest(ProviderType.SQLLiteDBOASIS,true,sqliteMs);
+            var balancedRouter = new OASISHyperDrive(balanceManager);
+            var read = new StorageOperationRequest { Operation = "LoadHolon", HolonId = holon.Id, LoadChildren = false };
+            var balanced = synchronous ? balancedRouter.RouteRequest<IHolon>(read,LoadBalancingStrategy.Performance) : await balancedRouter.RouteRequestAsync<IHolon>(read,LoadBalancingStrategy.Performance);
+            balanced.IsError.Should().BeFalse(balanced.Message);
+            balanced.Result.Id.Should().Be(holon.Id);
+            balanceManager.PerformanceMonitor.GetMetrics(mongoMs <= sqliteMs ? ProviderType.MongoDBOASIS : ProviderType.SQLLiteDBOASIS).TotalRequests.Should().BeGreaterThan(1);
             var delete = new StorageOperationRequest { Operation = "DeleteHolon", HolonId = holon.Id, SoftDelete = false, PreferredProvider = request.PreferredProvider };
             var deleted = synchronous ? router.RouteRequest<IHolon>(delete) : await router.RouteRequestAsync<IHolon>(delete);
             deleted.IsError.Should().BeFalse(deleted.Message);
@@ -78,6 +101,17 @@ public sealed class MongoSqliteRealProviderRoutingTests
             (await mongo.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Should().BeNull();
             (await sqlite.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Should().BeNull();
             manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            using (var control = new DataContext($"Data Source={dbPath};Pooling=False")) control.Database.ExecuteSqlRaw("DROP TABLE Holon;");
+            manager.IsAutoReplicationEnabled = false;
+            manager.IsAutoFailOverEnabled = true;
+            manager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS), new EnumValue<ProviderType>(ProviderType.MongoDBOASIS) }).IsError.Should().BeFalse();
+            manager.SetAndActivateCurrentStorageProvider(sqlite).IsError.Should().BeFalse();
+            var fallbackHolon = new Holon { Id = Guid.NewGuid(), Name = "real-mongo-fallback" };
+            var fallbackRequest = new StorageOperationRequest { Operation = "SaveHolon", Payload = fallbackHolon, SaveChildren = false };
+            var fallback = synchronous ? router.RouteRequest<IHolon>(fallbackRequest) : await router.RouteRequestAsync<IHolon>(fallbackRequest);
+            fallback.IsError.Should().BeFalse(fallback.Message);
+            (await mongo.LoadHolonAsync(fallbackHolon.Id,loadChildren:false)).Result.Name.Should().Be(fallbackHolon.Name);
+            manager.LastFailoverDiagnostic.SelectedProvider.Should().Be(ProviderType.MongoDBOASIS);
             await mongo.DeActivateProviderAsync();
         }
         finally
