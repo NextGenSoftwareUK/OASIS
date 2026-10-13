@@ -37,6 +37,31 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         finally { _lease.Dispose(); }
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task GuidDeletionReturnsDeletedRecordAndPersistsBeforeCompletion(bool synchronous)
+    {
+        var id = Guid.NewGuid();
+        using (var provider = new SQLLiteDBOASIS(TestConnectionString))
+        {
+            (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+            (await provider.SaveHolonAsync(new Holon { Id = id, IsActive = true }, saveChildren:false)).IsError.Should().BeFalse();
+            var deleted = synchronous ? provider.DeleteHolon(id) : await provider.DeleteHolonAsync(id);
+            deleted.IsError.Should().BeFalse(deleted.Message);
+            deleted.IsDeleted.Should().BeTrue();
+            deleted.DeletedCount.Should().Be(1);
+            deleted.Result.Id.Should().Be(id);
+            deleted.Result.IsActive.Should().BeFalse();
+            deleted.Result.DeletedDate.Should().NotBe(default(DateTime));
+        }
+        using var reopened = new SQLLiteDBOASIS(TestConnectionString);
+        (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var loaded = await reopened.LoadHolonAsync(id, loadChildren:false);
+        loaded.Result.IsActive.Should().BeFalse();
+        loaded.Result.DeletedDate.Should().NotBe(default(DateTime));
+    }
+
     [Fact]
     public async Task LatestAndExplicitVersionMetadataQueriesRespectCurrentVersionAndType()
     {

@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+SQLite delete checkpoint (2026-10-13): GUID synchronous deletion now completes SaveChanges before returning; GUID soft deletes persist DeletedDate and return the deleted record. Provider-key deletes now report IsDeleted/DeletedCount rather than IsSaved. Real SQLite integration suite12/12 passed, including sync/async GUID delete and reopen persistence. Build0 errors/41 warnings. Failed-delete tracker recovery, hard-delete coverage and the other SQLite gates below remain open; this is not provider certification.
+
 | Area | Current evidence | Remaining gate |
 | --- | --- | --- |
 | Mongo/SQLite priority foundation | Historical Mongo43/narrow V2 stores; SQLite metadata/version/key isolation and owned tracked-write recovery; real integration10 passed | SQLite schema upgrade/backfill/history/parent/children/concurrency/full mappings+avatars; current Mongo implementation/API/routing audit and complete real matrix |
