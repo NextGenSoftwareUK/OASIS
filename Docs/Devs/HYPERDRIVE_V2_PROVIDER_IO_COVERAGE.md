@@ -26,6 +26,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Provider runner absent environment restoration verified — 2026-10-12
+
+Fixed Windows null restoration explicitly: originally absent process variable is removed through Env provider, nonempty prior value is restored. Added reusable `Scripts/TestHosts/verify-provider-matrix-environment-cleanup.ps1`; extracts exactly one actual runner finally block (no copied implementation), executes absent/nonempty cases with no provider processes, checks Environment.GetEnvironmentVariables presence rather than ambiguous null/empty equality, restores its probe afterward. Executed PASS and diff check clean. Supersedes earlier unverified absent-value limitation. No installs/downloads/provider runs or merges; full matrix process-tree/race integration remains separate.
+
 ### Provider runner owned-process cleanup — 2026-10-12
 
 Removed port-listener-wide killing from older four-provider runner. Retains exact Process objects returned by Start-Process, terminates only those live owned process trees with a bounded exit wait, reports cleanup errors and disposes handles. Requires PowerShell 7 for process-tree termination. Snapshots/restores modified environment values including previously leaked IPFS_PATH. Parser/diff checks passed. Extracted actual finally block executed with two owned harmless helper processes: tracked stopped, untracked preserved, prior nonempty environment value restored; helpers then stopped. Initial validation attempted disposed Process.Id, corrected by capturing ID before cleanup; absent-value equality test differed null/empty and is not claimed proven. Full runner/descendant/race/absent-env integration still unverified; no providers installed or run, no broad file cleanup or release merge.
