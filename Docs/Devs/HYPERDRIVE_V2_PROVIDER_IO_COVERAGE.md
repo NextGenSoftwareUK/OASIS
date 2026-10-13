@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Latest paired-provider refresh — 2026-10-13
+
+At5edd564ed rebuilt current integration assembly: actual Mongo/SQLite expanded4/4 and SQLite/LocalFile24/24 passed, zero skips. Reports `TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`, `TestResults/HyperDriveSqliteCurrent/sqlite-localfile-latest-current.trx`; direct SQLite72/72 remains current, wider Mongo42 predates newest selector edits. Disposable fixtures absent and owned Mongo27029 stopped; free disk93.09GB decimal. No installs/new environments. Full interface/API/provider completion and production recovery remain open; counts overlap.
+
 ### SQLite asynchronous deletion traversal — 2026-10-13
 
 Async GUID deletion now awaits detail identity lookup, dependent navigation loading/recursive traversal and transaction rollback/commit; removes redundant synchronous avatar lookup. Full72/72 real regression passes (`TestResults/SQLiteCurrent/sqlite-async-delete-current.trx`). Throughput/concurrency/cancellation and commit ambiguity remain unproven; original provider/interface/API gates unchanged. Existing environment reused, no downloads.

@@ -1,6 +1,6 @@
 # HyperDrive V2 current release gates
 
-Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation checklist, not a replacement for the original all-provider scope or the detailed evidence log. **Not release-ready; do not merge yet.**
+Updated 2026-10-13, inspected parent `5edd564ed`. This is a current navigation checklist, not a replacement for the original all-provider scope or the detailed evidence log. **Not release-ready; do not merge yet.**
 
 ## Authoritative state
 
@@ -8,9 +8,11 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 - Core pin: `e196295c0e40934cd7ddf3bca5f03b7d5a6457ae`; ONODE Core pin: `f9c985d0faff66b3b4525ebd9b4becba1f564f93`. Full Core 477 tests passed previously. Current WEB4 build and 147 tests passed after attributed-property/null-metadata fixes; deployed verification and other consumer refresh remain required.
 - TRON `TestResults/HyperDriveTron/pending-native-outcome.json` exists and must be preserved. Original transaction outcome is unresolved; NotFound is not non-submission proof.
 - Cosmos/Sui replication ownership journals are absent after verified cleanup. Do not delete new pending journals blindly.
-- Free space observed 91.79 GiB. Requested disk recovery is not achieved. No broad cleanup of unrelated services/data is authorized by this checklist.
+- Free space observed 93.09 GB decimal (86.70 GiB). Requested disk recovery is not achieved. No broad cleanup of unrelated services/data is authorized by this checklist.
 
 ## Evidence versus completion
+
+Latest paired-provider regression (2026-10-13,5edd564ed): rebuilt current test assembly; real Mongo/SQLite expanded4/4 and SQLite/LocalFile24/24 passed, zero skips. Reports `TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx` and `TestResults/HyperDriveSqliteCurrent/sqlite-localfile-latest-current.trx`. Fixed disposable owned.db/owned-data absent; owned27029 listener stopped. SQLite latest direct suite72/72 from preceding change; Mongo wider42 fromab620e2da predates selector consolidation. No installs/downloads/new environments. Counts overlap and do not certify every interface/API or remaining providers.
 
 SQLite async deletion ordering checkpoint (2026-10-13): soft-detail lookup, recursively loaded principal-to-dependent graph, rollback and commit now await EF async operations. Async hard deletion reuses the already-resolved avatar instead of a second synchronous lookup. Exact scoped deletion entity set retained. Full SQLite72/72 passed (`sqlite-async-delete-current.trx`), including rejected-write/lookup/selector/dependent preservation. This is functional real-storage regression, not throughput/deadlock/concurrency/cancellation proof; newest V2 refresh, transaction ambiguity and original all-provider gates remain open. No dependencies/runtime downloads.
 
@@ -170,7 +172,7 @@ SQLite delete checkpoint (2026-10-13): GUID synchronous deletion now completes S
 
 | Area | Current evidence | Remaining gate |
 | --- | --- | --- |
-| Mongo/SQLite priority foundation | Current real Mongo transaction42; SQLite integration40; real SQLite/LocalFile V2 class20 including sync/async policy checks, holon lifecycle, avatar updates and detail karma/XP/stats replication | SQLite schema upgrade/backfill/history/recursive children/concurrency/full nested mappings; Mongo full interfaces/API/real V2 pairing and complete matrix; live multi-member elections |
+| Mongo/SQLite priority foundation | Latest direct SQLite72; latest real Mongo/SQLite expanded4 and SQLite/LocalFile24; wider Mongo transaction42 before selector consolidation. Includes selected actual failover/replication/measured load balancing, populated persistence, deletion/rollback, metadata/version and commit replay fence checks | Complete operation/interface/API matrix; schema/history/rich mapping/concurrency/uniqueness; production commit recovery/durable ownership and live multi-member elections; manager encryption/scale/hosted compatibility |
 | Cosmos | Actual retained-chain encrypted query test covers all golden exemption keys plus AppRegion; typed mint owner/Mongo proof; full119 and affected subsets passed; historical V2 live subsets | Typed/combined query parity across manager+provider, live owned mint/escrow/crash recovery, host/valuation/resolver, complete interfaces/API/failure matrix and published Linux |
 | Sui | Actual retained-chain equality queries cover golden metadata keys+AppRegion; typed mint owner/Mongo proof; current affected subsets and earlier full97; historical V2 live subsets | Typed/compound/manager query parity, deployed host/receipt/valuation, crash recovery/live NFT ownership; complete custody/options/routing/API |
 | TRON | 294 unit tests passed; read-only actual retained-node inspection preserves revision/fence; selected real read distribution/closed-transport failover passed | Original uncertain mutation reconciliation, current mutation/replication, all response classifications/options/API |
