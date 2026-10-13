@@ -58,6 +58,16 @@ public sealed class TronRealProviderRoutingTests
         var tron=new TRONOASIS(rpcEndpoint:"http://127.0.0.1:9090",nativeTransfers:runtime.NativeTransfers,storageBackend:storage);
         var activated=await tron.ActivateProviderAsync();activated.IsError.Should().BeFalse(activated.Message);
         try{
+            using var recoveryIntent = System.Text.Json.JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(root,"pending-native-outcome.json")));
+            var originalId = recoveryIntent.RootElement.GetProperty("transactionId").GetString()!;
+            using var receiptDeadline = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+            var originalStatus = await tron.GetTransactionStatusAsync(originalId, receiptDeadline.Token);
+            originalStatus.IsError.Should().BeFalse(originalStatus.Message);
+            originalStatus.Result.Should().Be(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.NotFound,
+                "changed original evidence requires explicit reconciliation before the mutation fence can be removed");
+            var originalFee = await tron.GetNativeFeeReceiptAsync(originalId, receiptDeadline.Token);
+            originalFee.IsError.Should().BeTrue("missing original receipt must never become a zero-fee success");
+            Console.WriteLine("Original retained transaction: NotFound; fee receipt unavailable; unknown-submission fence retained, no rebroadcast.");
             var id=Guid.Parse("b531a581-5627-451c-9de5-95c198646c20");
             var avatar=await tron.LoadAvatarAsync(id);var detail=await tron.LoadAvatarDetailAsync(id);
             avatar.Exception.Should().BeNull();detail.Exception.Should().BeNull();
