@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+SQLite parent checkpoint: GUID selectors now match ParentHolonId instead of the parent's own Id; string selectors resolve only the parent's local SQLite key rather than ignoring the key. Both honor type and current/explicit version, with asynchronous materialization in async methods. Real suite18/18 passed (`TestResults/SQLiteCurrent/sqlite-parent-current.trx`). Misreported success in three parent-query exception handlers corrected. Recursive child hydration/save, history and full mappings remain open.
+
 SQLite failed-delete checkpoint: all four GUID/provider-key sync/async delete paths preserve the original exception and detach only the owned failed entity. Real SQLite trigger-rejection tests prove a later save does not silently replay a rejected hard delete, then successful hard deletion removes the record. Full suite16/16 passed (`TestResults/SQLiteCurrent/sqlite-delete-recovery-current.trx`). Initial four new checks failed due to the fixture using Holons instead of the actual Holon table; corrected fixture and reran. Soft-delete rejection, concurrency and other full-provider gates remain open.
 
 SQLite delete checkpoint (2026-10-13): GUID synchronous deletion now completes SaveChanges before returning; GUID soft deletes persist DeletedDate and return the deleted record. Provider-key deletes now report IsDeleted/DeletedCount rather than IsSaved. Real SQLite integration suite12/12 passed, including sync/async GUID delete and reopen persistence. Build0 errors/41 warnings. Failed-delete tracker recovery, hard-delete coverage and the other SQLite gates below remain open; this is not provider certification.
