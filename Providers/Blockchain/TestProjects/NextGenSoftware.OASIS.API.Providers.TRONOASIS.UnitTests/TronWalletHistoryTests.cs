@@ -27,7 +27,16 @@ public sealed class TronWalletHistoryTests
         Assert.Equal("FreezeBalanceContract", mapped.NativeOperation);
         Assert.Equal("9007199254740993", mapped.RawAmount);
         Assert.StartsWith("SUN-STAKED/", mapped.AmountUnit);
+        Assert.Equal(0d, mapped.Amount);
         Assert.Equal(!delegated, mapped.FromWalletAddress == mapped.ToWalletAddress);
+        if (delegated)
+        {
+            var recipientView = (NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses.IWalletTransaction)method.Invoke(null,
+                new object[] { transaction, receipt, recipient })!;
+            Assert.Equal(0d, recipientView.Amount);
+            Assert.Equal(mapped.RawAmount, recipientView.RawAmount);
+            Assert.Equal(mapped.AmountUnit, recipientView.AmountUnit);
+        }
         freeze.FrozenBalance = -1;
         transaction.RawData.Contract[0].Parameter = Any.Pack(freeze);
         var error = Assert.Throws<TargetInvocationException>(() => method.Invoke(null, new object[] { transaction, receipt, owner }));
