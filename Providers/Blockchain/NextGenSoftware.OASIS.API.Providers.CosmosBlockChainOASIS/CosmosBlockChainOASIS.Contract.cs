@@ -124,8 +124,8 @@ public partial class CosmosBlockChainOASIS
         var result = new OASISResult<(string ContractAddress, string TransactionHash)>();
         try
         {
-            if (codeId <= 0 || message == null || string.IsNullOrWhiteSpace(label))
-                throw new ArgumentException("Positive code ID, instantiate message and label are required.");
+            if (codeId <= 0 || codeId > 9007199254740991L || message == null || string.IsNullOrWhiteSpace(label))
+                throw new ArgumentException("Positive SDK-safe exact code ID, instantiate message and label are required.");
             var created = await _sdkBackend.InvokeAsync("instantiate", new { codeId, message, label }, token);
             var address = created.GetProperty("contractAddress").GetString();
             var hash = created.GetProperty("transactionHash").GetString();
