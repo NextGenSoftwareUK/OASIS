@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Sui fee evidence binds explicit configured genesis chain — 2026-10-12
+
+Sui's C# fee reader now requires an explicit configured chain ID and matches returned chainIdentifier exactly, rather than accepting any nonempty value. Existing SDK chain check remains; C# boundary also protects alternate process replies. Shared SDK client exposes its configured ID internally, without a second transport/configuration owner. Controlled capability cases **3/3 passed**, zero skips (`sui-fee-chain-current.trx`): exact match, foreign chain and absent configured chain. Matching charged-failure receipt preserves success=false and exact nonzero units; rejected evidence remains undefined and provider inactive.
+
+Live existing-original public fee-reader test **1/1 passed**, zero skips (`TestResults/SuiCurrent/sui-fee-live-current.trx`), reading digest `3JbbZBaVdMS1rvhoYqEPew3byP2xs9NgXT1fCZtVjKMz` with exact configured chain/payer/component arithmetic. No transaction submitted. Reused retained Sui runtime/ledger; exactly owned PID 229002 stopped, original handle terminal. Existing startup warnings persisted. Build zero errors/two restore pruning warnings. Complete 78-case suite still needs rerun after this change; earlier 75-case report predates it. No install, funded operation, merge or deployment. Recovery/settlement and other gates remain open.
+
 ### Current WEB4 host build and native fee capability regression — 2026-10-12
 
 Normal WEB4 project-reference build passed, zero errors/2287 source warnings, 80 seconds. Complete WEB4 unit suite **145/145 passed**, zero skips (`TestResults/Web4Current/web4-unit-current.trx`). Four new capability tests invoke each actual provider through `IOASISNativeFeeReceiptProvider` with missing original identity: error, undefined receipt and no provider activation. No SDK process/network/funded operation required by those cases. Manifest/seven Dockerfiles/gitlink validator passed.
