@@ -26,6 +26,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera standalone NFT delivery response parity — 2026-10-12
+
+SendNFTAsync already receives identity-bound consensus success from SDK boundary, but omitted SendNFTTransactionResult, Web3NFT.SendNFTTransactionHash and confirmed recipient. Reused existing RecordHederaNftDelivery (mint-then-send's projection owner) instead of duplicating field assignments. Controlled actual public sync/async send entry tests verify all three fields, retained primary hash and asset locator. Complete HederaNftSendValidationTests **7/7 passed**, zero skips (`hedera-send-projection-current.trx`), preserving signer/identity/quantity preflight rejection. Provider built first zero errors. No new funded queries, SDK install, ledger submission or merge. This is response-projection proof, not funded NFT transfer/current ownership mirror readback or live V2 certification.
+
 ### Cosmos NFT recipient readback invariant — 2026-10-12
 
 SendNFTAsync now verifies current on-chain readback owner equals the requested recipient before reporting delivery success. Mismatch uses the existing post-commit reconciliation wrapper with original hash, confirmed execution and explicit ownership cause, not another transfer. Controlled matching/mismatched public-entry tests added; rebuilt dependency first, complete CosmosNftSignerTests **42/42 passed**, zero skips (`cosmos-nft-postcommit-current.trx`). Exact Cosmos address identity comparison preserves existing canonical contract/request semantics; not a new address parser. No live delivery, installs, sponsorship or release merge; remaining live/interfaces/recovery/deployed gates stay open.

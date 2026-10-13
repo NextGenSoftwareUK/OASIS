@@ -98,6 +98,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                         TransactionResult = transactionResult.GetProperty("transactionId").GetString(),
                         Web3NFT = new Web3NFT { NFTTokenAddress = address, CollectionPublicKey = asset.TokenId }
                     };
+                    RecordHederaNftDelivery(result.Result, result.Result.TransactionResult, transation.ToWalletAddress);
                     result.IsError = false;
                     result.Message = "HTS NFT transfer confirmed by consensus receipt.";
                 }
