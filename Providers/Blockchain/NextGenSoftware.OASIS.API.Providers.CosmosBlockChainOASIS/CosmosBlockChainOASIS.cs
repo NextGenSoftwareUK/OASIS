@@ -58,14 +58,20 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
         /// <param name="rpcEndpoint">Cosmos RPC endpoint URL</param>
         /// <param name="chainId">Cosmos chain ID</param>
         /// <param name="privateKey">Private key for signing transactions</param>
-        public CosmosBlockChainOASIS(string rpcEndpoint = "https://cosmos-rpc.polkachu.com", string chainId = "cosmoshub-4", string privateKey = "", string contractAddress = "", string addressPrefix = "cosmos", string gasPrice = "0.025uatom", string nativeDenom = "uatom", int nativeDecimals = 6)
-            : this(new CosmosSdkBackend(rpcEndpoint, chainId, privateKey, contractAddress, addressPrefix, gasPrice),privateKey,contractAddress,nativeDenom,nativeDecimals)
+        public CosmosBlockChainOASIS(string rpcEndpoint = "https://cosmos-rpc.polkachu.com", string chainId = "cosmoshub-4", string privateKey = "", string contractAddress = "", string addressPrefix = "cosmos", string gasPrice = "0.025uatom", string nativeDenom = "uatom", int nativeDecimals = 6, Func<byte[]> storageEncryptionKeyResolver = null)
+            : this(new CosmosSdkBackend(rpcEndpoint, chainId, privateKey, contractAddress, addressPrefix, gasPrice),privateKey,contractAddress,nativeDenom,nativeDecimals,storageEncryptionKeyResolver)
         { }
 
         private readonly CosmosSdkBackend _sdkBackend;
-        private CosmosBlockChainOASIS(CosmosSdkBackend sdk,string privateKey,string contractAddress,string nativeDenom,int nativeDecimals)
-            : base(sdk)
+        private CosmosBlockChainOASIS(CosmosSdkBackend sdk,string privateKey,string contractAddress,string nativeDenom,int nativeDecimals,Func<byte[]> keyResolver)
+            : this(sdk,new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend(sdk,
+                keyResolver ?? (()=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend.ResolveEnvironmentKey("OASIS_COSMOS_STORAGE_ENCRYPTION_KEY"))),privateKey,contractAddress,nativeDenom,nativeDecimals)
+        { }
+        private readonly NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend _privateStorage;
+        private CosmosBlockChainOASIS(CosmosSdkBackend sdk,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend storage,string privateKey,string contractAddress,string nativeDenom,int nativeDecimals)
+            : base(storage)
         {
+            _privateStorage=storage;
             _sdkBackend=sdk;
             this.ProviderName = "CosmosBlockChainOASIS";
             this.ProviderDescription = "Cosmos Blockchain Provider - Inter-blockchain communication protocol";

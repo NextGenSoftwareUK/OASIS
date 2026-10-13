@@ -15,7 +15,9 @@ public class CosmosPreparationTests
         var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
         var storage=typeof(CosmosBlockChainOASIS).GetProperty("Backend",flags)!.GetValue(provider);
         var native=typeof(CosmosBlockChainOASIS).GetField("_sdkBackend",flags)!.GetValue(provider);
-        Assert.AreSame(storage,native,"Native invocation must reuse the configured storage SDK transport.");
+        Assert.IsInstanceOfType<NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend>(storage);
+        var inner=storage!.GetType().GetField("_inner",flags)!.GetValue(storage);
+        Assert.AreSame(inner,native,"Encrypted storage must reuse the configured native SDK transport.");
     }
     [TestMethod]
     public async Task StorageActivationInvokesOnlyReadOnlyProbe()
@@ -69,7 +71,7 @@ public class CosmosPreparationTests
         Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","nft-signer.mjs"));
         try{
             using var provider=new CosmosBlockChainOASIS("http://127.0.0.1:1");
-            var backend=typeof(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase).GetProperty("Backend",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance)!.GetValue(provider)!;
+            var backend=typeof(CosmosBlockChainOASIS).GetField("_sdkBackend",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance)!.GetValue(provider)!;
             var calls=0;var failure=new InvalidOperationException("controlled parent rejection");
             using var server=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer((_,_)=>{calls++;return mode=="reject"?Task.FromException(failure):Task.CompletedTask;});
             using var cancellation=new CancellationTokenSource();if(mode=="prepared-hold")cancellation.CancelAfter(1000);

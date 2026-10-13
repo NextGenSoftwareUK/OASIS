@@ -46,7 +46,7 @@ public class CosmosProcessBoundaryTests
 
     private static Task<JsonElement> Invoke(CosmosBlockChainOASIS provider, string operation, object args, CancellationToken token)
     {
-        var backend = typeof(KeyValueStorageProviderBase).GetProperty("Backend", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(provider)!;
+        var backend = typeof(CosmosBlockChainOASIS).GetField("_sdkBackend", BindingFlags.Instance | BindingFlags.NonPublic)!.GetValue(provider)!;
         return (Task<JsonElement>)backend.GetType().GetMethod("InvokeAsync", BindingFlags.Instance | BindingFlags.NonPublic)!
             .Invoke(backend, new object[] { operation, args, token })!;
     }
