@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera post-mint processing/delivery retains both identities — 2026-10-12
+
+Mint flow now records its confirmed identity after receipt validation and creates the delivery identity before invoking that separate SDK transfer. Any later response projection, metadata processing or delivery failure is wrapped in `HederaNftPostMintReconciliationException`, preserving confirmed mint ID, optional requested delivery ID and original cause/evidence. The Core marker exposes delivery ID when present, otherwise mint ID; neither implies delivery success. Pre-mint failures remain unchanged. This avoids mislabelling mint ID as approval ID or losing the already-confirmed mint when delivery fails.
+
+Focused actual shipping-validator/evidence-helper tests **13/13 passed**, zero skips (`hedera-mint-delivery-current.trx`): prior receipt/delivery response cases plus pre-mint ordinary failure, confirmed-mint/no-delivery failure and confirmed-mint/requested-delivery failure. Build zero errors/two existing warnings. Full provider regression, complete SDK/process mint→delivery failure branch, concrete V2 marker propagation and funded consensus still required. No HBAR queried/spent, install, ledger reset, merge or deployment.
+
 ### Hedera mint receipt/serial errors retain original retry fence — 2026-10-12
 
 `ApplyHederaMintReceipt` now wraps receipt identity/status/shape and serial validation failures in existing `HederaNativeMutationReconciliationException`, retaining requested original mint ID, mutation ID, validation stage and cause. NativeStatus is SUCCESS only after exact receipt identity/status validation; missing/foreign/failed receipts do not invent success. Validated receipt identity remains in response even if serial validation fails.
