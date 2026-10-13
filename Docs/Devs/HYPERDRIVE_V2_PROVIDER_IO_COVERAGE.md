@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### SQLite failed soft-delete result and rollback — 2026-10-13
+
+Four new real sync/async missing-detail/SQL-update-trigger-rejection cases verify failed deletion cannot persist during a later unrelated save. Rejected write exposed contradictory IsError=true/boolResult=true; rollback now returns Result=false. Full70/70 passed (`TestResults/SQLiteCurrent/sqlite-avatar-soft-rollback-current.trx`), checking original exception and unchanged persisted deletion timestamps. Commit ambiguity, concurrency, activity/read filtering/audit semantics and original provider certification gates remain open. No new environment/download.
+
 ### Soft deletion identity and current Mongo regressions — 2026-10-13
 
 Real pair4/4 and real single-node Mongo transactions42/42 refreshed atf8b849978. SQLite sync/async soft deletion failed2/2 when detail username differs; lookup now uses shared Id, and any error-result rollback clears scoped pending changes. Full66/66 passes (`TestResults/SQLiteCurrent/sqlite-avatar-soft-delete-current.trx`) with persisted avatar/detail deletion timestamps and unchanged karma. Missing-detail/rejected soft-write rollback still needs direct tests; activity/read filtering/audit mapping and original full-provider gates remain open. Existing environment reused, no downloads.
