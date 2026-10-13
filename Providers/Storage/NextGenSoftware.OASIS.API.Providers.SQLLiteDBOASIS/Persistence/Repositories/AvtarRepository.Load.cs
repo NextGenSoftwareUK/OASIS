@@ -275,7 +275,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     .FirstOrDefault(p => p.Username == username && p.Password == password && (version == 0 || p.Version == version));
                 return new OASISResult<IAvatar>
                 {
-                    IsLoaded = true,
+                    IsLoaded = avatarEntities != null,
                     IsError = false,
                     Message = "Avatar Loaded Successfully",
                     Result = avatarEntities
@@ -324,11 +324,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var avatarEntity = _dbContext.Avatars
-                    .ToList()
-                    .Where(p => p.Username == username && (version == 0 || p.Version == version))
-                    .Select(GetAvatarFromEntity)
-                    .FirstOrDefault();
+                var row = await _dbContext.Avatars.FirstOrDefaultAsync(p => p.Username == username && p.Password == password && (version == 0 || p.Version == version));
+                var avatarEntity = row == null ? null : GetAvatarFromEntity(row);
                 if (avatarEntity == null)
                     return new OASISResult<IAvatar>
                     {
