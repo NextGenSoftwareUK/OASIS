@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Concrete Hedera post-mint evidence stops V2 alternate writes — 2026-10-12
+
+Added controlled storage-base/V2 router composition **4/4 passed**, zero skips (`hedera-postmint-routing-current.trx`), sync/async with/without requested delivery identity. Actual shipping post-mint helper creates evidence; real storage base converts its exception to a result; real V2 router retains the same exception and both IDs, with exactly one primary write attempt and zero alternate writes. Uses existing Hedera test project/transitive references: no new dependency, restore or environment needed. Corrected missing namespace import and nullable test annotations before final passing run.
+
+Providers/backends are explicitly controlled in-memory fixtures; this is not actual ledger failure, full wallet-resolved mint entry flow, funded V2 storage or hosted API proof. Existing funded and all-provider gates remain open. No HBAR, installs, ledger reset, merge or deployment.
+
 ### Hedera non-funded regression and delivery process evidence — 2026-10-12
 
 Current integration project non-funded selection **255/255 passed**, zero skips, 134 seconds (`hedera-nonfunded-current.trx`), excluding funded `HederaTestnet*` and original public charged-failure lookup. The ActualProcessTimeout test was included (the unused RealProcessDeadline exclusion matched no such test); its real two-minute child deadline passed. Existing retained source SDK configured; no dependency restore or HBAR-consuming query. This report predates the two newly added test methods' rebuilt binary, not the production mint fixes.
