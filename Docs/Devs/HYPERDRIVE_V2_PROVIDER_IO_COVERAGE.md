@@ -5,6 +5,14 @@
 
 ## Current provider status — not full certification
 
+### Current consumer refresh and off-chain JSON contract — 2026-10-12
+
+On parent `688c18bb2`, Core pin `e196295c0e40934cd7ddf3bca5f03b7d5a6457ae`, reused installed dependencies and build outputs: WEB4 `dotnet build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false` succeeded with 0 errors/253 warnings. Current WEB4 unit suite passed 147/147, report `TestResults/Web4Current/web4-current-core-refresh.trx`. Core DLL SHA256 in Core build, WEB4 output and test output matches `BCCAF5174BF4A84AAF76E3B95948B327BD10A30375CE582D1A264D729BC3C811`. This closes the specific local WEB4 refresh gate, not Linux/hosted routes or other consumers. No dependency download or new environment was needed; free disk before build was 98,298,966,016 bytes.
+
+Further off-chain contract evidence: `NFTManager.Bridge.cs:CreateMetaDataJson` routes OASISCosmWasm/SuiObject to existing `NFTManager.Bridge2.cs:CreateERC721Json`. That produces presentation JSON (`title`, `description`, `image`, `thumbnail`, `attributes`, `price`, `discount`, `memo`), not serialized `Web3NFT`. It omits several fields carried by current provider on-chain envelopes, including royalty/sale dates/tags and provider identity. Thus provider readback cannot deserialize the external JSON as Web3NFT or infer its on-chain locator from it. The existing manager owns URI preparation before mint; provider storage needs an explicit identity/URI projection and field-preservation contract before lifting the current false-mode rejection. URI fetching must not introduce unauthenticated arbitrary requests/SSRF. No rejection was removed, private metadata published, or sponsorship enabled by this audit.
+
+Expanded encryption comparison documents case-sensitive exemptions, reserved-marker trust, replay/rotation limitations and proposed profile ownership. That proposal remains documentation, not implemented unified policy.
+
 ### Adoption/value priority review — 2026-10-12
 
 User requested popularity-led prioritisation beyond current Cosmos/Hedera/Sui/TRON gap work. Recommended product delivery order (not a universal popularity ranking): (1) MongoDB + SQLite reliable storage foundation; (2) Ethereum + Solana; (3) IPFS; (4) AWS DynamoDB + Azure Cosmos DB/Azure Storage + Google Firestore; (5) Arbitrum + Polygon, with existing Base worth considering alongside EVM rollups; (6) Neo4j; (7) finish Sui/TRON/Cosmos/Hedera; (8) SOLID and ActivityPub protocol-specific integration. Complete approved privacy work as a security prerequisite, not another indefinite expansion of lower-priority provider work.

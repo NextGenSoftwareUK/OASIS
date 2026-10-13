@@ -98,6 +98,48 @@ Neither method should hash wallet keys or full records using BCrypt. Neither gua
 
 ## How to merge sensibly
 
+### Concrete lookup example
+
+For a private holon with ID `123`, the application asks for its logical record key (illustratively `holon/123`; not a literal provider key contract). Storage sees only a keyed address and an authenticated ciphertext. Knowing `123` alone is insufficient to compute the address without the index key. The authorized backend computes it without scanning. An existing logical email index can likewise be addressed by its HMAC; its index value is encrypted too.
+
+By contrast, a query such as “all quests in this park with Status=Active” cannot be evaluated against those encrypted values by a native database/chain query engine. The current private backend enumerates/decrypts/filters. The selective metadata system keeps `Status` and configured query keys readable, allowing the relevant provider query implementation to use them. The two approaches solve different query contracts.
+
+The built-in exemption set uses ordinary `HashSet<string>` matching: spelling and casing matter. Adding a key to `AdditionalQueryableKeys` does not create an index or implement a provider query; it only exempts that metadata entry from manager encryption. Similarly, the reserved `__oasis_enc__` marker means “already encrypted” to the current manager. Application code must not treat arbitrary caller-supplied reserved metadata as trusted proof of encryption.
+
+### Proposed single-policy design (not implemented)
+
+| Profile | Intended use | Cleartext projection | Protected payload |
+| --- | --- | --- | --- |
+| Password | Authentication | Necessary account lookup fields, subject to separate record policy | BCrypt verifier, optional existing wrappers |
+| Provider credential | Wallet/signing secrets | Non-secret credential reference | Reversible secret encryption; never BCrypt the secret |
+| Queryable private database | Mongo/SQL-style indexed data | Explicitly approved IDs/query fields | Sensitive metadata/fields with authenticated encryption |
+| Private public-ledger record | Private records on publicly readable storage | Physical HMAC address and unavoidable chain transport information | Entire serialized record plus logical key/index values |
+| Explicitly public object | Public NFT/object data | Reviewed public fields only | Any associated private data stored separately under a private profile |
+
+One policy owner should select the profile, validate keys and classify fields; managers and providers should consume that decision rather than invent competing rules. Reuse the current exemption mechanism for the queryable profile, but do not automatically copy its exempt fields into the public-ledger projection. A searchable blind index could later support selected equality queries, with separate domain keys, normalization rules and a documented leakage budget. Range/geospatial/full-text queries require a different reviewed design, not merely an HMAC for every field.
+
+A safe implementation sequence is: define profile/configuration contracts; map every save/load entry point (including direct provider calls); keep existing password compatibility; centralize authenticated-envelope/key resolution; test metadata exemptions and lookup parity; then integrate provider profiles. Enforce mandatory private-ledger policy even when a per-save metadata override disables selective encryption. Metadata overrides currently affect the manager stage, not the independent mandatory provider envelope.
+
+### Security and operational trade-offs to retain
+
+- Whole-record encryption protects plaintext from the storage operator/public observer, not from an authorized application holding its key. API authentication/authorization is still required.
+- GCM detects changed ciphertext and wrong physical addresses, but does not by itself reject replay of an older valid record at the same address. Trusted version/concurrency rules and replay protection need separate enforcement.
+- The storage envelope contains a format version, not a complete key-ID/rotation protocol. Keys must be backed up independently; silent regeneration makes old data unreadable. Rotation of a whole-record key also changes HMAC addresses and requires an explicit, recoverable rewrite of records and indexes.
+- Replication must decrypt through the source provider and re-encrypt through the destination provider's policy/key; copying ciphertext across unrelated keys is not a portable record transfer. Selected V2 roundtrips are evidence, not proof of every route.
+- Nested manager metadata encryption and provider whole-record encryption can require two distinct keys to read a record. It can be intentional, but otherwise adds failure modes, size and CPU without fixing queryability. Do not remove existing layers until policy ownership and compatibility are verified.
+- The existing “quantum” helper and the new envelope both use symmetric AES-GCM. Neither is a post-quantum key exchange, and stacking algorithms is not a substitute for key management or authenticated encryption.
+
+### Source map for further implementation
+
+Paths below are repository-relative, not new APIs:
+
+- `OASIS Architecture/NextGenSoftware.OASIS.API.DNA/Default/OASIS_DNA.json`: existing security settings and provider storage-key references.
+- `OASIS Architecture/NextGenSoftware.OASIS.API.Core/Helpers/PasswordEncryptionHelper.cs`: BCrypt/CBC/GCM formats and validation.
+- `OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/HolonManager/HolonManager-Private.Helpers.cs`: `_systemMetaKeys`, manager metadata preparation and decryption.
+- `Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/EncryptedKeyValueBackend.cs`: value envelope, 12-byte nonce, 16-byte authentication tag, associated data and 4 MiB decompression limit. This class alone leaves keys visible.
+- `Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/PrivateKeyValueBackend.cs`: HMAC addresses and encrypted logical-key binding; supplies the key privacy missing from the value-only class.
+- `Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/PersistedPrivateKeyValueBackend.cs`: lazy, separately persisted key resolution and lifecycle.
+
 Unify the policy, not blindly the ciphertext layouts:
 
 - Keep the existing password profile and verification format.
