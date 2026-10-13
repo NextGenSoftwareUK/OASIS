@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
 
@@ -46,9 +47,10 @@ public partial class CosmosBlockChainOASIS
         return key.GetProperty("address").GetString();
     }
 
-    private async Task<string> ExecuteAssetAsync(object message, string signingKey, string fromWalletAddress = null, string contractAddress = null)
+    private async Task<string> ExecuteAssetAsync(object message, string signingKey, string fromWalletAddress = null, string contractAddress = null,
+        PreparedSubmissionServer preparationServer = null, CancellationToken token = default)
     {
-        var committed = await ExecuteContractAsync(contractAddress ?? _contractAddress, new { asset = new { message } }, signingKey, fromWalletAddress);
+        var committed = await ExecuteContractCoreAsync(contractAddress ?? _contractAddress, new { asset = new { message } }, signingKey, fromWalletAddress, token, preparationServer);
         if (committed.IsError) throw committed.Exception ?? new InvalidOperationException(committed.Message);
         return committed.Result.TransactionResult;
     }
@@ -74,8 +76,12 @@ public partial class CosmosBlockChainOASIS
         return result;
     }
 
-    public async Task<OASISResult<ITransactionResponse>> ExecuteContractAsync(string contractAddress, object message,
+    public Task<OASISResult<ITransactionResponse>> ExecuteContractAsync(string contractAddress, object message,
         string signingKey = null, string fromWalletAddress = null, CancellationToken token = default)
+        => ExecuteContractCoreAsync(contractAddress, message, signingKey, fromWalletAddress, token, null);
+
+    private async Task<OASISResult<ITransactionResponse>> ExecuteContractCoreAsync(string contractAddress, object message,
+        string signingKey, string fromWalletAddress, CancellationToken token, PreparedSubmissionServer preparationServer)
     {
         var result = new OASISResult<ITransactionResponse>();
         try
@@ -83,8 +89,10 @@ public partial class CosmosBlockChainOASIS
             if (string.IsNullOrWhiteSpace(contractAddress) || message == null)
                 throw new ArgumentException("Contract address and execute message are required.");
             var key = signingKey ?? await SigningKeyAsync(Guid.Empty);
-            var committed = await _sdkBackend.InvokeAsync("execute",
-                new { targetContractAddress = contractAddress, message, privateKey = key, fromWalletAddress }, token);
+            var arguments = new { targetContractAddress = contractAddress, message, privateKey = key, fromWalletAddress };
+            var committed = preparationServer == null
+                ? await _sdkBackend.InvokeAsync("execute", arguments, token)
+                : await _sdkBackend.InvokePreparedAsync("execute", arguments, preparationServer, token);
             var hash = committed.GetProperty("transactionHash").GetString();
             if (string.IsNullOrWhiteSpace(hash)) throw new InvalidOperationException("SDK returned no committed contract transaction hash.");
             result.Result = new TransactionResponse { TransactionResult = hash };

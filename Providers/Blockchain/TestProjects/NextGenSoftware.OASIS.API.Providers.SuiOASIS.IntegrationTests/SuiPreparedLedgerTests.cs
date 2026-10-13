@@ -7,8 +7,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests;
 [TestClass,DoNotParallelize]
 public class SuiPreparedLedgerTests
 {
-    [TestMethod]
-    public async Task PublicMintRetainsOriginalAttemptInReusableMongo()
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task PublicMintRetainsOriginalAttemptInReusableMongo(bool cosmos)
     {
         // Real durable outbox, controlled SDK/authority: no chain or fee claim.
         const string connection = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -19,7 +21,8 @@ public class SuiPreparedLedgerTests
         var journal = Path.Combine(directory!.FullName, "TestResults/SubscriptionUsageCurrent/sui-mint-owner-pending.json");
         const string database = "usage_sui_mint_owner_fixture";
         using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
-        var previous = Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE");
+        var bridgeVariable = cosmos ? "OASIS_COSMOS_SDK_BRIDGE" : "OASIS_SUI_SDK_BRIDGE";
+        var previous = Environment.GetEnvironmentVariable(bridgeVariable);
         var complete = false;
         using var journalFile = new FileStream(journal, FileMode.CreateNew, FileAccess.Write, FileShare.Read);
         var mongo = new MongoDB.Driver.MongoClient(connection);
@@ -41,17 +44,21 @@ public class SuiPreparedLedgerTests
             await JsonSerializer.SerializeAsync(journalFile, new { database, operationId = execution.OperationId,
                 recovery = "Controlled SDK evidence only. Preserve and inspect this outbox; never use these fixture bytes on a real chain." }, cancellationToken: deadline.Token);
             journalFile.Flush(true);
-            Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE", Path.Combine(directory.FullName,
-                "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests/Fixtures/unlock-readback-failure.mjs"));
+            Environment.SetEnvironmentVariable(bridgeVariable, Path.Combine(directory.FullName, cosmos
+                ? "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests/Fixtures/nft-signer.mjs"
+                : "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests/Fixtures/unlock-readback-failure.mjs"));
             using var provider = new SuiOASIS("http://127.0.0.1:1", "localnet", "fixture-chain", privateKey: "test-only-secret");
-            var request = new Core.Objects.NFT.Requests.MintWeb3NFTRequest { Title = "identity/valid", NumberToMint = 2 };
-            var minted = await provider.MintNFTAsync(request, execution, "mint", deadline.Token);
+            using var cosmosProvider = new CosmosBlockChainOASIS.CosmosBlockChainOASIS("http://127.0.0.1:1", "fixture-chain", "test-only-explicit", "fixture-contract");
+            var request = new Core.Objects.NFT.Requests.MintWeb3NFTRequest { Title = "identity/valid", NumberToMint = cosmos ? 1 : 2,
+                Price = 12.5m, Discount = 2m, RoyaltyPercentage = 7, MemoText = "mint memo" };
+            var minted = cosmos ? await cosmosProvider.MintNFTAsync(request, execution, "mint", deadline.Token)
+                : await provider.MintNFTAsync(request, execution, "mint", deadline.Token);
             Assert.IsFalse(minted.IsError, minted.Message);
             var reopened = new MongoUsageOutboxStore(connection, database);
             var retained = await reopened.GetAsync(execution.OperationId, deadline.Token);
             Assert.AreEqual(1, retained.ProviderAttempts.Count);
             var attempt = retained.ProviderAttempts.Single();
-            Assert.AreEqual("SuiOASIS", attempt.Provider);
+            Assert.AreEqual(cosmos ? "CosmosBlockChainOASIS" : "SuiOASIS", attempt.Provider);
             Assert.AreEqual("mint", attempt.ClientRequestId);
             Assert.AreEqual(minted.Result.TransactionResult, attempt.ProviderRequestId);
             Assert.AreEqual("fixture-chain", attempt.NativePreparation.ChainId);
@@ -59,7 +66,8 @@ public class SuiPreparedLedgerTests
             Assert.AreEqual("AQID", attempt.NativePreparation.SignedTransactionBase64);
             Assert.IsNull(attempt.AcknowledgedAtUtc);
             Assert.IsNull(retained.Settlement);
-            var duplicate = await provider.MintNFTAsync(request, execution, "mint", deadline.Token);
+            var duplicate = cosmos ? await cosmosProvider.MintNFTAsync(request, execution, "mint", deadline.Token)
+                : await provider.MintNFTAsync(request, execution, "mint", deadline.Token);
             Assert.IsTrue(duplicate.IsError, "Same owned attempt must not be submitted again.");
             Assert.IsInstanceOfType<UsageProtocolException>(duplicate.Exception);
             Assert.AreEqual(1, (await reopened.GetAsync(execution.OperationId, deadline.Token)).ProviderAttempts.Count);
@@ -68,7 +76,7 @@ public class SuiPreparedLedgerTests
         }
         finally
         {
-            Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE", previous);
+            Environment.SetEnvironmentVariable(bridgeVariable, previous);
             journalFile.Dispose();
             if (complete) File.Delete(journal);
         }

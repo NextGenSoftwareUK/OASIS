@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Threading;
+using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
@@ -71,12 +73,27 @@ public partial class CosmosBlockChainOASIS
     public OASISResult<IWeb3NFTTransactionResponse> MintNFT(IMintWeb3NFTRequest request)
         => MintNFTAsync(request).GetAwaiter().GetResult();
 
-    public async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest request)
+    public Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest request)
+        => MintNFTCoreAsync(request, null, null, CancellationToken.None);
+
+    /// <summary>Persists the original signed mint in the existing admitted execution outbox before broadcast.
+    /// Receipt measurement and settlement remain execution-host responsibilities.</summary>
+    public Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest request,
+        UsageExecutionHandle execution, string clientRequestId, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(execution);
+        ArgumentException.ThrowIfNullOrWhiteSpace(clientRequestId);
+        return MintNFTCoreAsync(request, execution, clientRequestId, cancellationToken);
+    }
+
+    private async Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTCoreAsync(IMintWeb3NFTRequest request,
+        UsageExecutionHandle execution, string clientRequestId, CancellationToken cancellationToken)
     {
         var result = new OASISResult<IWeb3NFTTransactionResponse>();
         try
         {
             if (request == null) throw new ArgumentNullException(nameof(request));
+            cancellationToken.ThrowIfCancellationRequested();
             if (request.StoreNFTMetaDataOnChain == false)
                 throw new ArgumentException("This CosmWasm NFT ABI stores metadata on-chain; off-chain-only metadata is not implemented and must not be silently published.");
             if (request.NumberToMint.HasValue && request.NumberToMint != 1)
@@ -116,10 +133,12 @@ public partial class CosmosBlockChainOASIS
                 OnChainProvider = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.CosmosBlockChainOASIS),
                 StoreNFTMetaDataOnChain = true
             };
+            using var preparationServer = execution == null ? null
+                : CreateNativePreparationServer(execution, clientRequestId, _sdkBackend.ChainId, signer);
             var hash = await ExecuteAssetAsync(new { nft_mint = new
             {
                 token_id = id.ToString("N"), recipient, metadata_json = OasisJson.Serialize(nft)
-            } }, key, signer, contract);
+            } }, key, signer, contract, preparationServer, cancellationToken);
             nft.MintTransactionHash = hash;
             result.Result = new Web3NFTTransactionResponse { TransactionResult = hash, Web3NFT = nft };
         }
