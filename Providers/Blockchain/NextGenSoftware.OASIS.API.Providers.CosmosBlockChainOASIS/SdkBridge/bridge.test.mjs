@@ -8,6 +8,16 @@ import { invoke as invokeTrusted } from './bridge.mjs';
 import { CosmWasmClient, SigningCosmWasmClient } from '@cosmjs/cosmwasm';
 import { createHash } from 'node:crypto';
 
+test('instantiate rejects inexact code IDs before opening any network client',async()=>{
+ const original=SigningCosmWasmClient.connectWithSigner;let opened=0;
+ SigningCosmWasmClient.connectWithSigner=async()=>{opened++;throw new Error('Must not connect');};
+ try{
+  for(const codeId of [0,-1,1.5,Number.MAX_SAFE_INTEGER+1,'2',null])
+   await assert.rejects(invokeTrusted({operation:'instantiate',codeId}),/SDK-safe exact/);
+  assert.equal(opened,0);
+ }finally{SigningCosmWasmClient.connectWithSigner=original;}
+});
+
 test('actual status entry rejects substituted indexed bytes and closes read-only client', async () => {
  const original=CosmWasmClient.connect;
  const bytes=new Uint8Array([1,2,3]);
