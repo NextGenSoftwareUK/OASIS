@@ -56,12 +56,17 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         detail.Stats.HP.Current = 37;
         (await provider.SaveAvatarDetailAsync(detail)).IsError.Should().BeFalse();
         using var control = new DataContext(TestConnectionString);
+        control.Set<NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.ProviderPublicKeyModel>().Add(
+            new NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.ProviderPublicKeyModel(ProviderType.MongoDBOASIS, "owned-public-key") { OwnerId = avatar.Id.ToString() });
+        control.SaveChanges();
         control.Database.ExecuteSqlRaw("CREATE TRIGGER reject_avatar_delete BEFORE DELETE ON Avatar BEGIN SELECT RAISE(ABORT, 'owned avatar deletion rejection'); END;");
         var rejected = synchronous ? provider.DeleteAvatar(avatar.Id, false) : await provider.DeleteAvatarAsync(avatar.Id, false);
         rejected.IsError.Should().BeTrue();
         rejected.Exception.Should().NotBeNull();
         control.Database.ExecuteSqlRaw("DROP TRIGGER reject_avatar_delete;");
         (await provider.SaveHolonAsync(new Holon { Id = Guid.NewGuid(), Name = "unrelated-after-rejected-delete" })).IsError.Should().BeFalse();
+        control.Set<NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.ProviderPublicKeyModel>().AsNoTracking()
+            .Count(k => k.OwnerId == avatar.Id.ToString()).Should().Be(1);
         using var reopened = new SQLLiteDBOASIS(TestConnectionString);
         (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
         (await reopened.LoadAvatarAsync(avatar.Id)).Result.Should().NotBeNull();
@@ -75,6 +80,8 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         accepted.Result.Should().BeTrue();
         (await reopened.LoadAvatarAsync(avatar.Id)).Result.Should().BeNull();
         (await reopened.LoadAvatarDetailAsync(avatar.Id)).Result.Should().BeNull();
+        control.Set<NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.ProviderPublicKeyModel>().AsNoTracking()
+            .Count(k => k.OwnerId == avatar.Id.ToString()).Should().Be(0);
     }
 
     [Theory]
