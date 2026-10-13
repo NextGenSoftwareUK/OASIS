@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+Avatar corruption isolation checkpoint: GUID sync/async and synchronous username/email selectors now filter SQL row before metadata/key-map materialization. Actual corrupt unrelated avatar metadata leaves valid Id/username/email lookup working; direct corrupt read remains an error. Full48/48 passed (`TestResults/SQLiteCurrent/sqlite-avatar-corruption-isolation-current.trx`). Async GUID now uses FirstOrDefaultAsync; remaining list/credential/detail paths and exception retention are separate gates.
+
 SQLite corruption-isolated GUID reads: sync/async select target Id/version in SQL before deserializing instead of mapping unrelated rows; async performs actual FirstOrDefaultAsync. Real deliberately corrupt unrelated metadata cannot poison valid lookup, while direct corrupt lookup remains an error. Full46/46 passed (`TestResults/SQLiteCurrent/sqlite-guid-corruption-isolation-current.trx`). Other selector/filter-before-mapping paths and exception retention still require review; no corrupt data repaired/deleted silently.
 
 Avatar metadata preservation checkpoint: SQLite avatar save/read mapper now uses per-avatar MetaDataJson. Bidirectional sync/async V2 initial/update replication verifies origin-game through Id/username/email reads; real class24/24 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-avatar-metadata-current.trx`). New column needs existing-schema upgrade; full typed/encrypted metadata/search/API consistency remains open.
