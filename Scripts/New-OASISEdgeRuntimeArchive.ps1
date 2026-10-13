@@ -22,6 +22,11 @@ foreach ($name in @('Runtime','Editor','package.json','README.md','LICENSE','LIC
     $path = Join-Path $source $name
     if (Test-Path -LiteralPath $path) { Copy-Item -LiteralPath $path -Destination $public -Recurse }
 }
+# Documentation maintenance uses the reviewed README from the publishing source;
+# validated binaries and importer metadata remain unchanged from the source tarball.
+$reviewedReadme = Join-Path $PSScriptRoot '../UnityPackages/com.nextgensoftware.oasis.edge/README.md'
+if (-not (Test-Path -LiteralPath $reviewedReadme)) { throw 'Reviewed Unity distribution README is missing.' }
+Copy-Item -LiteralPath $reviewedReadme -Destination (Join-Path $public 'README.md') -Force
 $unwanted = @(Get-ChildItem -LiteralPath $public -Recurse -File | Where-Object {
     $_.Extension -in @('.trx','.log','.nupkg') -or $_.Name -match 'acceptance-report|sbom|SHA256SUMS|provenance'
 })
