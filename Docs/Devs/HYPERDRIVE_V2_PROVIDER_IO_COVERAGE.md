@@ -26,6 +26,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON staking transfer projection corrected; complete regression — 2026-10-12
+
+Audit found staking metadata used a nonzero legacy Amount, which could make delegated resource rights appear to pay TRX to the receiver. Corrected single mapper: FreezeBalanceContract legacy transfer Amount is zero; RawAmount and SUN-STAKED/<resource> retain exact requested locked quantity. Tests assert owner and delegated-recipient views both have zero transferred amount and identical native locked metadata. This supersedes the earlier checkpoint's statement that staking legacy Amount retains SUN-to-TRX scaling. Direction enum still has only Credit/Debit; consumers must use NativeOperation/AmountUnit for resource semantics, not infer spendable balances from it.
+
+Provider rebuilt without restore; current **complete TRON suite 279/279 passed**, zero skipped/failed (`tron-current.trx`), including witness and staking additions. Controlled regression evidence, not live resource execution or original uncertain transaction resolution. Existing dependencies reused; no ledger writes, installations, deployment or merge.
+
 ### Original TRON provider status and fee reconciliation guard — 2026-10-12
 
 Expanded existing live read-only fixture to parse retained original transaction ID from pending-native-outcome.json and query the actual provider status and fee interfaces. Current original db05ea6d3067038a56dfc75b64d2c46c32824282e8242335ce007d1e34a415bb returns NotFound without status error; fee receipt returns error, not fabricated zero-fee success. Test explicitly fails if original status changes so terminal reconciliation is reviewed before mutation. NotFound is NOT proof of non-submission; original unknown fence remains unchanged.
