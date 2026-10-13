@@ -26,6 +26,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Current Hedera strictly non-testnet regression — 2026-10-12
+
+Current selected Hedera integration project **270/270 passed**, zero skips/failures (`TestResults/HederaCurrent/hedera-nonfunded-current.trx`), two minutes seven seconds including actual process deadline. Explicit filter `FullyQualifiedName!~Testnet&FullyQualifiedName!~OriginalChargedFailure` excludes testnet-named cases (including readonly mirror cases) and original charged-failure query. Uses retained source bridge and current dependency output after standalone delivery projection change; no restore or SDK installation. Terminal original session exit zero. Counts differ from earlier 269 due added send tests and stricter exclusion; do not sum or call excluded tests passed. Funded NFT/storage/V2 tests remain deferred/unproven; no ledger submission, deployment or merge.
+
 ### Retained real SDK packaging verifier execution — 2026-10-12
 
 Executed current Docker/verify-provider-sdk-bridge.mjs against existing source Cosmos, Hedera and Sui SdkBridge directories. All three passed syntax/import resolution/direct manifest-lock-installed pin checks; Cosmos additionally passed reviewed SDK patch --check. Source project inspection confirms CopyToOutput/CopyToPublish declarations for bridge manifests and shared prepared-submission companion (and Cosmos SDK patch). Existing source runtime/dependencies reused; no npm ci, download, image build or ledger access. Free C bytes 100,113,108,992 after checks. This proves Windows retained source SDK installation, not published Linux tree/image or authenticated hosted API; those gates remain open and no merge occurred.
