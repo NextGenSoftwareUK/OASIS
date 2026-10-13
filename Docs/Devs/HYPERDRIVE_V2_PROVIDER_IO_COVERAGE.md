@@ -24,6 +24,14 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Current live Cosmos V2 routing — 2026-10-12
+
+Current reports independently re-read: healthy `cosmos-v2-combined-current.trx` **1/1 passed**, outage `cosmos-v2-failover-current.trx` **2/2 passed**, zero failures/nonexecuted cases. Healthy fixture explicitly uses Gold eligibility, verifies replicated owned records/deletion/index absence, measured selection, Free-plan Cosmos exclusion across five policies, and six alternating synchronous/asynchronous round-robin reads with three actual requests to each provider. Outage cases exercise disposed real transport and stopping the retained actual node, not a mocked provider failure.
+
+Added fixed CreateNew `replication-pending.json` intent fence before healthy mutation; unknown/error retains intent. It contains owned chain/contract/record identifiers, not credentials or pre-broadcast signed evidence. Success deletes it only after verified cleanup. Current intent is absent; retained container inspection reports no wasmd process. Existing runtime/ledger/SDK reused without installation or reset.
+
+Failure-path fixture cleanup still deactivates providers before attempted avatar cleanup; successful run did not exercise that branch. Correcting and verifying this ordering remains work. Parent-process recovery, remaining asset/native/interface options, private ledger storage, native billing and deployed authenticated routes remain unproven. No release merge or sponsored spending enabled.
+
 ### Current live Cosmos generic ABI and original fee proof — 2026-10-12
 
 Protected generic ABI fixture with fixed `generic-pending.jsonl`: CreateNew fences unknown previous runs; flushes owned chain/contract/key intent before mutation and original write/cleanup IDs after return; errors retain journal, success deletes it only after confirmed cleanup and absent-key readback. This is an intent/result fence, NOT pre-broadcast signed evidence or parent-host automatic recovery. Asset fixtures now require retained loopback chain and do not unnecessarily fund the recipient for this generic test; other token/NFT fixtures still need equivalent durable protection before broad reruns.
