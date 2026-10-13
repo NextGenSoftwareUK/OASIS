@@ -1073,7 +1073,9 @@ public sealed class TronNativeTransferClient
         {
             // Protocol DUP_TRANSACTION_ERROR=5 and NOT_ENOUGH_EFFECTIVE_CONNECTION=11
             // do not establish non-submission: the node may already retain the transaction.
-            if((int)broadcast.Code is 5 or 11)
+            // Execution/generic/unknown errors and contradictory false+SUCCESS replies
+            // likewise provide no authoritative proof that replacement is safe.
+            if((int)broadcast.Code is 0 or 3 or 5 or 11 or 20 || !Enum.IsDefined(broadcast.Code))
                 throw new TronBroadcastOutcomeUnknownException(transactionId,_genesisBlockId,
                     signed.RawData.Timestamp,signed.RawData.Expiration,new InvalidOperationException($"TRON broadcast requires original reconciliation: {broadcast.Code}"));
             throw new InvalidOperationException($"TRON rejected broadcast {transactionId}: {broadcast?.Code} {broadcast?.Message.ToStringUtf8()}");
