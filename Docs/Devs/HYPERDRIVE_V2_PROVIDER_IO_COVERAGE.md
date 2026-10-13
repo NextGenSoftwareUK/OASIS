@@ -5,6 +5,14 @@
 
 ## Current provider status — not full certification
 
+### Adoption/value priority review — 2026-10-12
+
+User requested popularity-led prioritisation beyond current Cosmos/Hedera/Sui/TRON gap work. Recommended product delivery order (not a universal popularity ranking): (1) MongoDB + SQLite reliable storage foundation; (2) Ethereum + Solana; (3) IPFS; (4) AWS DynamoDB + Azure Cosmos DB/Azure Storage + Google Firestore; (5) Arbitrum + Polygon, with existing Base worth considering alongside EVM rollups; (6) Neo4j; (7) finish Sui/TRON/Cosmos/Hedera; (8) SOLID and ActivityPub protocol-specific integration. Complete approved privacy work as a security prerequisite, not another indefinite expansion of lower-priority provider work.
+
+Recorded narrower evidence: Mongo43 replica-set cases, SQLite3, IPFS1, Ethereum3 local Ganache; Solana1 local official-validator storage case; Polygon2/Arbitrum2 local EVM cases; Neo4j5 local database cases; Azure Cosmos2 official-emulator cases, AWS2 DynamoDB Local cases, Google2 Firestore emulator cases. These historical counts are not fresh current/full interface/real public cloud/current hosted V2 certification. Separate Azure Storage and SOLID full capability/live evidence need source audit; no verified completion claimed. ActivityPub is social federation, not generic avatar/holon storage, and needs its own authenticated federation tests.
+
+External context: https://defillama.com/chains currently shows Ethereum, Base, Solana, TRON and Arbitrum among high-TVL chains; TRON also has substantial stablecoin/activity metrics. TVL/addresses are not developer adoption or NFT usage; current four-provider focus was unfinished technical gaps, not popularity ordering. ActivityPub protocol: https://www.w3.org/TR/activitypub/ . Per-provider real failover/replication/load-balancing and relevant operations remain gates regardless of popularity. No provider displaced from completion scope or marked complete.
+
 Newest complete local regression checkpoints: Cosmos **116/116**, TRON **285/285**, Sui **81/81**; strictly non-testnet Hedera selection **270/270**. All zero failures/skips in their explicit scopes, not a sum or provider/live/hosted certification. Detailed current checkpoints below supersede older summary counts.
 
 Current Cosmos full-suite refresh at `b5892a2c9`: **102/102 passed**, zero skipped/failed, against retained source SDK after the probe fix (details below). This supersedes the earlier pre-probe-fix limitation for that C# suite; no deployed packaging or full live asset certification follows.
