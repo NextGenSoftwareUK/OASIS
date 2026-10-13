@@ -36,6 +36,14 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Current WEB4 consumer rebuild after encrypted-provider changes — 2026-10-12
+
+- Rebuilt current ONODE Core then WEB4 with retained dependencies (`--no-restore`, bounded workers, `BuildProjectReferences=false` after previously rebuilt provider/BootLoader dependencies). Both succeeded with zero errors; existing warnings were 152 and 253 respectively. No new SDK/runtime/dependency download or duplicate environment.
+- Current full WEB4 unit suite **145/145 passed**, zero skips, report `TestResults/Web4Current/web4-encrypted-consumers-current.trx`. This recompiles API consumers against the changed Cosmos/Sui constructor signatures and current ONODE NFT reconciliation pin. It is controlled unit coverage, not every authenticated route against real providers.
+- `python Scripts/validate_railway_dependency_manifest.py --require-gitlinks` passed: manifest, seven Dockerfiles and committed parent gitlinks agree. No manifest/pin changes were needed. No hosted deployment or merge occurred.
+- Remaining release gates include real authenticated WEB4 endpoint matrices, Linux/published SDK packaging, production native usage-recovery registration and settlement, funded Hedera contract/interface tests, TRON original-outcome reconciliation, full provider operation/options/failure matrices, and broader prioritized provider verification. Green consumer tests do not close those gaps.
+
+
 ### Cosmos encrypted V2 routing and registration build — 2026-10-12
 
 - Updated both existing real-provider routing fixtures to the retained local-only encryption key; recovery journal now records its fixed key label alongside chain/contract and exact owned IDs. No replacement signing identity or encryption key generation.
