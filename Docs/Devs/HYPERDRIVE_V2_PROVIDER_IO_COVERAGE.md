@@ -26,6 +26,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Provider runner reuse ordering corrected — 2026-10-12
+
+Hosted verification token unavailable in current process; no authenticated endpoint claim or configuration mutation. Audit found older four-provider runner downloaded missing Kubo archive before checking its retained executable. Corrected to inspect executable first, download/extract only when runtime is absent, verify installed pinned version and refuse automatic mismatched replacement. Added bounded dotnet workers/shared-compilation setting. PowerShell parser and diff checks passed; runner NOT executed, no install or test matrix claim. Current free C bytes 100,107,546,624. Existing port ownership/cleanup and archive lifecycle in this older runner still require review before invoking it; no broad cleanup or duplicate environment allocated.
+
 ### Current complete TRON suite and uint256 send boundary — 2026-10-12
 
 Added public send preflight rejection of 2^256 before activation/signing and existing-parser preservation of maximum 2^256-1 exactly. Current complete TRON suite **285/285 passed**, zero skips/failures (`tron-current.trx`), covering latest standalone delivery response, conflicting selectors and native history additions. Reused current provider output from successful dependency build; no source changes to dependency since that build. No live ledger execution/install/merge; original uncertain transaction and live mutation replication remain fenced, and hosted interfaces/private recovery/native billing gates remain unproven.
