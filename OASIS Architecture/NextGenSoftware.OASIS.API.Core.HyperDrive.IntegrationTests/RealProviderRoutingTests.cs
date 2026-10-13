@@ -119,6 +119,8 @@ public sealed class RealProviderRoutingTests : IDisposable
         manager.RegisterProvider(sqlite);
         manager.SetAndReplaceAutoReplicationListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.LocalFileOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
         var avatar = new Avatar { Id = Guid.NewGuid(), Username = "owned-v2-avatar", Email = "owned-v2@test.local", FirstName = "Owned", LastName = "Fixture", AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
+        avatar.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS] = "owned-sqlite-avatar-key";
+        avatar.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = "owned-mongo-avatar-key";
         var request = new StorageOperationRequest { Operation = "SaveAvatar", Payload = avatar, PreferredProvider = sqlitePrimary ? ProviderType.SQLLiteDBOASIS : ProviderType.LocalFileOASIS };
         var router = new OASISHyperDrive(manager);
         var result = synchronous ? router.RouteRequest<IAvatar>(request) : await router.RouteRequestAsync<IAvatar>(request);
@@ -131,8 +133,12 @@ public sealed class RealProviderRoutingTests : IDisposable
             loaded.Result.Id.Should().Be(avatar.Id);
             loaded.Result.Username.Should().Be(avatar.Username);
             loaded.Result.Email.Should().Be(avatar.Email);
+            loaded.Result.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS].Should().Be("owned-sqlite-avatar-key");
+            loaded.Result.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS].Should().Be("owned-mongo-avatar-key");
         }
         avatar.FirstName = "Updated";
+        (await sqlite.LoadAvatarByProviderKeyAsync("owned-sqlite-avatar-key")).Result.Id.Should().Be(avatar.Id);
+        (await sqlite.LoadAvatarByProviderKeyAsync("owned-mongo-avatar-key")).Result.Should().BeNull();
         avatar.Email = "updated-owned-v2@test.local";
         var updated = synchronous ? router.RouteRequest<IAvatar>(request) : await router.RouteRequestAsync<IAvatar>(request);
         updated.IsError.Should().BeFalse(updated.Message);

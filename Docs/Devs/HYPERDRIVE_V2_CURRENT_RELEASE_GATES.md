@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+Real V2 avatar key-map checkpoint: bidirectional sync/async avatar replication preserves custom SQLite and foreign Mongo keys in both stores; SQLite local-key lookup resolves public avatar Id and foreign-key lookup stays absent. Full class24/24 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-avatar-keys-current.trx`). This checks real key-map retention; Mongo as participating provider and full key-selector/update/recovery matrix remain open.
+
 SQLite duplicate avatar-key recovery verified: sync/async same-local-key save rejected with original exception; duplicate public Id stays absent, incumbent key/identity stays unchanged, later valid save/read succeeds in same context. Full44/44 passed (`TestResults/SQLiteCurrent/sqlite-avatar-key-rejection-current.trx`). This proves uniqueness/recovery in fresh schema, not upgrade/backfill or concurrency races.
 
 SQLite avatar provider-key checkpoint: local key now persisted/indexed independently with full provider map JSON; sync/async selectors match only local key/current or explicit version instead of any foreign key value. Real suite44/44 passed (`TestResults/SQLiteCurrent/sqlite-avatar-provider-key-current.trx`), preserving foreign map while refusing foreign selector and wrong version. Unique index/schema/backfill upgrade requires review; existing-data conversion not performed. Duplicate-key recovery/replication key-map/full selector coverage remain gates.
