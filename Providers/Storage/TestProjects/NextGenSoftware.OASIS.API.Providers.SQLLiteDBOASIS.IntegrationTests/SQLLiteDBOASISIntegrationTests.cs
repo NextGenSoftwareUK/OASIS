@@ -45,7 +45,7 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [InlineData(false)]
     public async Task AvatarDetailStatsSurviveFreshConnection(bool synchronous)
     {
-        var detail = new AvatarDetail { Id = Guid.NewGuid(), Username = "stats-detail", Karma = 456, XP = 234 };
+        var detail = new AvatarDetail { Id = Guid.NewGuid(), Username = "stats-detail", Email = "stats@test.local", Karma = 456, XP = 234 };
         detail.Stats.HP.Current = 37;
         detail.Stats.Mana.Current = 42;
         detail.Stats.Stamina.Current = 53;
@@ -54,6 +54,9 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
             (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
             var saved = synchronous ? provider.SaveAvatarDetail(detail) : await provider.SaveAvatarDetailAsync(detail);
             saved.IsError.Should().BeFalse(saved.Message);
+            detail.Stats.HP.Current = 38;
+            var updated = synchronous ? provider.SaveAvatarDetail(detail) : await provider.SaveAvatarDetailAsync(detail);
+            updated.IsError.Should().BeFalse(updated.Message);
         }
         using var reopened = new SQLLiteDBOASIS(TestConnectionString);
         (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
@@ -61,9 +64,11 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         loaded.IsError.Should().BeFalse(loaded.Message);
         loaded.Result.Karma.Should().Be(456);
         loaded.Result.XP.Should().Be(234);
-        loaded.Result.Stats.HP.Current.Should().Be(37);
+        loaded.Result.Stats.HP.Current.Should().Be(38);
         loaded.Result.Stats.Mana.Current.Should().Be(42);
         loaded.Result.Stats.Stamina.Current.Should().Be(53);
+        (await reopened.LoadAvatarDetailByUsernameAsync(detail.Username)).Result.Stats.HP.Current.Should().Be(38);
+        reopened.LoadAvatarDetailByEmail(detail.Email).Result.Stats.Mana.Current.Should().Be(42);
     }
 
     [Theory]
