@@ -339,7 +339,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error in UpdateAsync method in AvatarRepository updating Avatar. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in UpdateAsync method in AvatarRepository updating Avatar. Reason: {ex}", ex);
             }
 
             return result;
@@ -362,7 +362,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error in UpdateAsync method in AvatarRepository updating Avatar. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in UpdateAsync method in AvatarRepository updating Avatar. Reason: {ex}", ex);
             }
 
             return result;
@@ -522,7 +522,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error in Update method in AvatarRepository updating Avatar. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in Update method in AvatarRepository updating Avatar. Reason: {ex}", ex);
             }
 
             return result;
@@ -545,7 +545,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error in Update method in AvatarRepository updating Avatar. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error in Update method in AvatarRepository updating Avatar. Reason: {ex}", ex);
             }
 
             return result;
