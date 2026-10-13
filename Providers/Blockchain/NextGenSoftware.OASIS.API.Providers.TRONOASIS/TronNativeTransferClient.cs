@@ -120,6 +120,7 @@ public sealed class TronNativeTransferClient
     }
 
     internal static ByteString OriginalOperationOwner(Transaction.Types.Contract contract) => contract.Type switch {
+        Transaction.Types.Contract.Types.ContractType.TransferAssetContract => contract.Parameter.Unpack<TransferAssetContract>().OwnerAddress,
         Transaction.Types.Contract.Types.ContractType.TransferContract => contract.Parameter.Unpack<TransferContract>().OwnerAddress,
         Transaction.Types.Contract.Types.ContractType.AccountCreateContract => contract.Parameter.Unpack<AccountCreateContract>().OwnerAddress,
         Transaction.Types.Contract.Types.ContractType.AccountUpdateContract => contract.Parameter.Unpack<AccountUpdateContract>().OwnerAddress,
@@ -324,6 +325,7 @@ public sealed class TronNativeTransferClient
     {
         var contract = transaction.RawData.Contract.Single();
         ByteString from, to; long amount;
+        var amountUnit="SUN";decimal displayScale=1000000m;
         switch (contract.Type)
         {
             case Transaction.Types.Contract.Types.ContractType.AccountCreateContract:
@@ -331,6 +333,12 @@ public sealed class TronNativeTransferClient
                 from = accountCreation.OwnerAddress; to = accountCreation.AccountAddress; amount = 0; break;
             case Transaction.Types.Contract.Types.ContractType.TransferContract:
                 var transfer = contract.Parameter.Unpack<TransferContract>(); from = transfer.OwnerAddress; to = transfer.ToAddress; amount = transfer.Amount; break;
+            case Transaction.Types.Contract.Types.ContractType.TransferAssetContract:
+                var asset=contract.Parameter.Unpack<TransferAssetContract>();
+                if(asset.AssetName.IsEmpty)throw new InvalidOperationException("TRC10 transfer has no original asset identifier.");
+                from=asset.OwnerAddress;to=asset.ToAddress;amount=asset.Amount;
+                // Preserve protocol identifier bytes (legacy names or IDs), not guessed text/precision.
+                amountUnit="TRC10-RAW/"+Convert.ToHexString(asset.AssetName.Span);displayScale=1m;break;
             case Transaction.Types.Contract.Types.ContractType.AccountUpdateContract:
                 var update = contract.Parameter.Unpack<AccountUpdateContract>(); from = update.OwnerAddress; to = update.OwnerAddress; amount = 0; break;
             case Transaction.Types.Contract.Types.ContractType.AccountPermissionUpdateContract:
@@ -357,12 +365,12 @@ public sealed class TronNativeTransferClient
         return new Core.Interfaces.Wallet.Response.WalletTransaction
         {
             NativeTransactionId = Convert.ToHexString(receipt.Id.Span).ToLowerInvariant(),
-            RawAmount = amount.ToString(System.Globalization.CultureInfo.InvariantCulture), AmountUnit = "SUN", NativeOperation = contract.Type.ToString(),
+            RawAmount = amount.ToString(System.Globalization.CultureInfo.InvariantCulture), AmountUnit = amountUnit, NativeOperation = contract.Type.ToString(),
             NativeExecutionResult = execution, NativeError = receipt.ResMessage.IsEmpty ? null : receipt.ResMessage.ToStringUtf8(),
             FromWalletAddress = Address(from),
             ToWalletAddress = contract.Type == Transaction.Types.Contract.Types.ContractType.CreateSmartContract
                 && to.IsEmpty && execution != "Success" ? null : Address(to),
-            Amount = (double)(amount / 1000000m),
+            Amount = (double)(amount / displayScale),
             CreatedDate = DateTimeOffset.FromUnixTimeMilliseconds(transaction.RawData.Timestamp).UtcDateTime,
             TransactionType = from.Equals(wallet) ? Core.Enums.TransactionType.Debit : Core.Enums.TransactionType.Credit,
             Description = "TRON " + contract.Type + " (" + execution + "; amount is requested value): " + Convert.ToHexString(receipt.Id.Span).ToLowerInvariant()
