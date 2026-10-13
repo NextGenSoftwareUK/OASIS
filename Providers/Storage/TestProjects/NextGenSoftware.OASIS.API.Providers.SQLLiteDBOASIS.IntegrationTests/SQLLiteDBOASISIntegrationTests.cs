@@ -53,6 +53,43 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Fact]
+    public async Task ProviderKeySelectorsReturnOnlyTheirOwnedRecordAndRejectDuplicateKeys()
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var first = new Holon { Id = Guid.NewGuid(), Version = 1 };
+        first.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS] = "first-local-key";
+        first.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = "foreign-provider-key";
+        var second = new Holon { Id = Guid.NewGuid(), Version = 2 };
+        second.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS] = "second-local-key";
+        (await provider.SaveHolonAsync(first,saveChildren:false)).IsError.Should().BeFalse();
+        (await provider.SaveHolonAsync(second,saveChildren:false)).IsError.Should().BeFalse();
+        provider.LoadHolon("second-local-key",loadChildren:false).Result.Id.Should().Be(second.Id);
+        (await provider.LoadHolonAsync("first-local-key",loadChildren:false)).Result.Id.Should().Be(first.Id);
+        (await provider.LoadHolonAsync("first-local-key",loadChildren:false,version:2)).Result.Should().BeNull();
+        (await provider.LoadHolonAsync("foreign-provider-key",loadChildren:false)).Result.Should().BeNull();
+        provider.LoadHolon("absent",loadChildren:false).Result.Should().BeNull();
+        var duplicate = new Holon { Id = Guid.NewGuid() };
+        duplicate.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS] = "first-local-key";
+        (await provider.SaveHolonAsync(duplicate,saveChildren:false)).IsError.Should().BeTrue();
+    }
+
+    [Fact]
+    public async Task ProviderKeyDeletionUsesOnlyTheLocalKey()
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var holon = new Holon { Id = Guid.NewGuid(), IsActive = true };
+        holon.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS] = "local-delete-key";
+        holon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = "foreign-delete-key";
+        (await provider.SaveHolonAsync(holon,saveChildren:false)).IsError.Should().BeFalse();
+        provider.DeleteHolon("foreign-delete-key").IsError.Should().BeTrue();
+        (await provider.LoadHolonAsync(holon.Id,loadChildren:false)).Result.IsActive.Should().BeTrue();
+        (await provider.DeleteHolonAsync("local-delete-key")).IsError.Should().BeFalse();
+        (await provider.LoadHolonAsync(holon.Id,loadChildren:false)).Result.IsActive.Should().BeFalse();
+    }
+
+    [Fact]
     public async Task SQLLiteDBOASIS_Should_Initialize_Successfully()
     {
         // Arrange & Act
