@@ -5,6 +5,7 @@ using System.Diagnostics;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 using NextGenSoftware.OASIS.API.DNA;
@@ -119,10 +120,17 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 }
             }
             var detail = new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Email = avatar.Email, Karma = 345, XP = 123 };
+            detail.Stats.HP.Current = 37;
+            detail.Stats.Mana.Current = 42;
+            detail.Stats.Stamina.Current = 53;
+            detail.MetaData["park-source"] = "priority-park";
+            var item = new InventoryItem { Id = Guid.NewGuid(), Name = "priority-seed", Quantity = 3 };
+            item.MetaData["quest-source"] = "priority-tree";
+            detail.Inventory.Add(item);
             var detailRequest = new StorageOperationRequest { Operation = "SaveAvatarDetail", Payload = detail, PreferredProvider = request.PreferredProvider };
             foreach (var updating in new[] { false, true })
             {
-                if (updating) { detail.Karma = 456; detail.XP = 234; }
+                if (updating) { detail.Karma = 456; detail.XP = 234; detail.Stats.HP.Current = 38; item.Quantity = 4; }
                 var saved = synchronous ? router.RouteRequest<IAvatarDetail>(detailRequest) : await router.RouteRequestAsync<IAvatarDetail>(detailRequest);
                 saved.IsError.Should().BeFalse(saved.Message);
                 saved.IsWarning.Should().BeFalse(string.Join("; ",manager.LastReplicationDiagnostic.Attempts.Select(x=>x.Message)));
@@ -131,6 +139,13 @@ public sealed class MongoSqliteRealProviderRoutingTests
                     loaded.IsError.Should().BeFalse(loaded.Message);
                     loaded.Result.Karma.Should().Be(detail.Karma);
                     loaded.Result.XP.Should().Be(detail.XP);
+                    loaded.Result.Stats.HP.Current.Should().Be(detail.Stats.HP.Current);
+                    loaded.Result.Stats.Mana.Current.Should().Be(42);
+                    loaded.Result.Stats.Stamina.Current.Should().Be(53);
+                    loaded.Result.MetaData["park-source"].ToString().Should().Be("priority-park");
+                    loaded.Result.Inventory.Single().Id.Should().Be(item.Id);
+                    loaded.Result.Inventory.Single().Quantity.Should().Be(item.Quantity);
+                    loaded.Result.Inventory.Single().MetaData["quest-source"].ToString().Should().Be("priority-tree");
                 }
             }
             using (var control = new DataContext($"Data Source={dbPath};Pooling=False")) control.Database.ExecuteSqlRaw("DROP TABLE Holon;");
