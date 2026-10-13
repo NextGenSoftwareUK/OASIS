@@ -60,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             OASISResult<AvatarDetailModel> avatarDetailResult = new();
                             avatarDetailResult.IsError = true;
                             avatarDetailResult.Result = _dbContext.AvatarDetails
-                                .Where(p => p.Username == avatarResult.Result.Username).FirstOrDefault();
+                                .Where(p => p.Id == avatarResult.Result.Id).FirstOrDefault();
                             if (avatarDetailResult.Result != null) avatarDetailResult.IsError = false;
                             if (!avatarDetailResult.IsError && avatarDetailResult.Result != null)
                             {
@@ -116,7 +116,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
 
             if (result.IsError)
+            {
                 dbContextTransaction.Rollback();
+                DetachFailedAvatarDeletion(id.ToString(), deletionEntities);
+            }
             else
                 dbContextTransaction.Commit();
 

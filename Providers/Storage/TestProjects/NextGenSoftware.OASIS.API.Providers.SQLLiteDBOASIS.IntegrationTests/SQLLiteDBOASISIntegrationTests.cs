@@ -41,6 +41,26 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task AvatarSoftDeletionMatchesDetailByIdentityAndPersists(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = "soft-delete",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+        (await provider.SaveAvatarDetailAsync(new AvatarDetail { Id = avatar.Id, Username = "independent-detail-name", Karma = 123 })).IsError.Should().BeFalse();
+        var deleted = synchronous ? provider.DeleteAvatar(avatar.Id, true) : await provider.DeleteAvatarAsync(avatar.Id, true);
+        deleted.IsError.Should().BeFalse(deleted.Message);
+        deleted.Result.Should().BeTrue();
+        using var control = new DataContext(TestConnectionString);
+        control.Avatars.Single(a => a.Id == avatar.Id.ToString()).DeletedDate.Should().NotBe(DateTime.MinValue);
+        control.AvatarDetails.Single(a => a.Id == avatar.Id.ToString()).DeletedDate.Should().NotBe(DateTime.MinValue);
+        control.AvatarDetails.Single(a => a.Id == avatar.Id.ToString()).Karma.Should().Be(123);
+    }
+
+    [Theory]
     [InlineData(true, "email")]
     [InlineData(false, "email")]
     [InlineData(true, "username")]
