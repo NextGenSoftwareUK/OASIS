@@ -36,6 +36,14 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Reusable Mongo environment location and old portable-runner audit — 2026-10-12
+
+- Checked expected `TestResults/HostedMongoRelease/runtime` and `TestResults/GeoHotSpotMatrix/portable-providers/runtime`: no retained mongod executable found there. Running Windows MongoDB service was not repurposed. This does not establish that no reusable runtime exists elsewhere; continue targeted inventory before any install.
+- `run_portable_provider_matrix.ps1` still allocates GUID run directories and extracts a new Neo4j runtime per run, appends config, and initializes fresh data. It also identifies cleanup processes by command-line substring/PID rather than retaining exact owned process handles. Do not execute it under the mandatory reuse policy until refactored and tested for retained runtimes, fixed data paths, idempotent configuration, ownership/terminal cleanup and environment restoration. This is an actual source gap, not a completed cleanup.
+- The hosted Mongo evidence runner already uses a fixed current-run folder/lease but is separate from the normal Windows service. Needed next: locate/reuse installed executables and a clearly owned test replica-set data directory, then run durable recovery tests there without creating repeated runtimes or touching unrelated databases. No install/download/process/service/data mutation occurred during inventory.
+- Production recovery and original provider release gates remain open; no merge/deployment.
+
+
 ### Sync/async attributed generic V2 preparation matrix — 2026-10-12
 
 - Expanded preparation tests to sixteen combinations: synchronous/asynchronous generic single/bulk saves, DNA GCM enabled/disabled, null/non-null input metadata. Controlled provider callbacks assert attributed dialogue extraction, encrypted envelope/decryptable value when enabled and retained exempt Status where supplied. All manager calls return success through configured V2.
