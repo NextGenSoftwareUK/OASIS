@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Real Mongo authoritative detail absence versus stale secondary — 2026-10-13
+
+New real fixture stores detail only in SQLite, absent in Mongo. Sync/async V2 with Mongo primary/failover enabled returns non-error/null rather than stale secondary karma999; SQLite direct read stays999. Expanded pair4/4 passes (`mongo-sqlite-v2-current.trx`). Hosted API/legacy consumer compatibility and all-selector/provider gates remain open. Existing environment reused.
+
 ### Mongo detail real-error and wider regression refresh — 2026-10-13
 
 Real app-scoped find rejection covers GUID/username/email detail reads sync/async, requiring error/null/original MongoCommandException. Pair4/4 passes; wider real transactions42/42 refreshed after98e3deb2a. Reports `TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`, `mongo-single-node-transactions-current.trx`. Hosted API/legacy absence compatibility, full interfaces/history and production recovery remain open. No new installations/environments.
