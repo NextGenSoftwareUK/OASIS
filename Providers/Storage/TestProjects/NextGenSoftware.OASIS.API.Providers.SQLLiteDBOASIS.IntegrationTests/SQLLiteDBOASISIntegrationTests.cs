@@ -43,6 +43,30 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task DetailVersionUpdatesRemainQueryableAsCurrentAndByExactVersion(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var detail = new AvatarDetail { Id = Guid.NewGuid(), Username = "versioned-detail", Email = "versioned-detail@test.local", Version = 3, Karma = 100 };
+        (await provider.SaveAvatarDetailAsync(detail)).IsError.Should().BeFalse();
+        detail.Version = 4;
+        detail.Karma = 200;
+        var updated = synchronous ? provider.SaveAvatarDetail(detail) : await provider.SaveAvatarDetailAsync(detail);
+        updated.IsError.Should().BeFalse(updated.Message);
+        foreach (var loaded in new[] { await provider.LoadAvatarDetailAsync(detail.Id), provider.LoadAvatarDetail(detail.Id,version:4),
+            await provider.LoadAvatarDetailByUsernameAsync(detail.Username), provider.LoadAvatarDetailByEmail(detail.Email) })
+        {
+            loaded.IsError.Should().BeFalse(loaded.Message);
+            loaded.Result.Version.Should().Be(4);
+            loaded.Result.Karma.Should().Be(200);
+        }
+        (await provider.LoadAvatarDetailAsync(detail.Id,version:3)).Result.Should().BeNull();
+        provider.LoadAvatarDetailByUsername(detail.Username,version:3).Result.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task RejectedDetailUpdateDoesNotReplayStatsOrKarmaDuringLaterSave(bool synchronous)
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
