@@ -206,6 +206,16 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 (await freshMongo.DeActivateProviderAsync()).IsError.Should().BeFalse();
             }
             const string failureApp = "oasis-v2-owned-failure";
+            foreach (var collectionName in new[] { "Avatar", "AvatarDetail" })
+            {
+                var collection = client.GetDatabase(databaseName).GetCollection<BsonDocument>(collectionName);
+                var existingRecord = await collection.Find(FilterDefinition<BsonDocument>.Empty).FirstOrDefaultAsync();
+                var duplicateRecord = existingRecord.DeepClone().AsBsonDocument;
+                duplicateRecord["_id"] = existingRecord["_id"].IsObjectId ? new BsonObjectId(ObjectId.GenerateNewId()) : new BsonString(ObjectId.GenerateNewId().ToString());
+                Func<Task> duplicateInsert = () => collection.InsertOneAsync(duplicateRecord);
+                var duplicateError = await duplicateInsert.Should().ThrowAsync<MongoWriteException>();
+                duplicateError.Which.WriteError.Category.Should().Be(ServerErrorCategory.DuplicateKey);
+            }
             var staleDetail = new AvatarDetail { Id = Guid.NewGuid(), Username = "secondary-only-detail", Karma = 999 };
             (await sqlite.SaveAvatarDetailAsync(staleDetail)).IsError.Should().BeFalse();
             var absenceManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true };
