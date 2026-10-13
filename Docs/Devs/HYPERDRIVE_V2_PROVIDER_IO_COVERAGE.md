@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Mongo avatar GUID/username/email version forwarding — 2026-10-13
+
+Real current3/exact3/mismatch2 tests failed4/4 because six sync/async GUID/username/email wrappers ignored version. Wrappers now filter public identity+version in Mongo via existing expression repository, retaining errors and async driver behavior. Real expanded4/4 passes (`mongo-sqlite-v2-current.trx`). Historical storage, token/detail/list versions and full interface/API/recovery remain open. No fresh environments/downloads.
+
 ### Mongo avatar key-read failures retain driver evidence — 2026-10-13
 
 Real owned-server app-scoped find rejection reproduced dropped exceptions4/4. Expression sync/async catches now retain original Mongo exception; async expression query awaits driver API. Expanded real pair4/4 passes error/null/original MongoCommandException plus earlier key/version/routing/deletion assertions (`mongo-sqlite-v2-current.trx`). Other selectors/lists, full interface/API and production recovery stay open. Existing runtime/environment reused.
