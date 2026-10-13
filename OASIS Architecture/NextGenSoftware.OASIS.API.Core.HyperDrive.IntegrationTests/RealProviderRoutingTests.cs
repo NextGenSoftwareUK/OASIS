@@ -39,6 +39,40 @@ public sealed class RealProviderRoutingTests : IDisposable
     private string FilesPath => Path.Combine(_root, "files");
 
     [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public async Task ReadPoliciesPreserveActiveProviderAndAuthoritativeAbsence(bool synchronous, bool primaryHasRecord)
+    {
+        Directory.CreateDirectory(_root);
+        var local = new LocalFileOASIS(storageDirectory: FilesPath);
+        using var sqlite = new SQLLiteDBOASIS($"Data Source={SqlitePath};Pooling=False");
+        (await local.ActivateProviderAsync()).IsError.Should().BeFalse();
+        (await sqlite.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var id = Guid.NewGuid();
+        (await sqlite.SaveHolonAsync(new Holon { Id = id, Name = "stale-secondary" }, saveChildren:false)).IsError.Should().BeFalse();
+        if (primaryHasRecord)
+            (await local.SaveHolonAsync(new Holon { Id = id, Name = "authoritative-primary" }, saveChildren:false)).IsError.Should().BeFalse();
+        var manager = CreateManager(autoFailover:true);
+        manager.RegisterProvider(local);
+        manager.RegisterProvider(sqlite);
+        var providers = new[] { new EnumValue<ProviderType>(ProviderType.LocalFileOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) };
+        manager.SetAndReplaceAutoFailOverListForProviders(providers).IsError.Should().BeFalse();
+        manager.SetAndReplaceAutoLoadBalanceListForProviders(providers).IsError.Should().BeFalse();
+        manager.IsAutoLoadBalanceEnabled = false;
+        manager.SetAndActivateCurrentStorageProvider(local).IsError.Should().BeFalse();
+        manager.PerformanceMonitor.RecordRequest(ProviderType.LocalFileOASIS, true, 100);
+        manager.PerformanceMonitor.RecordRequest(ProviderType.SQLLiteDBOASIS, true, 1);
+        var router = new OASISHyperDrive(manager);
+        var request = new StorageOperationRequest { Operation = "LoadHolon", HolonId = id, LoadChildren = false };
+        var result = synchronous ? router.RouteRequest<IHolon>(request, LoadBalancingStrategy.Performance) : await router.RouteRequestAsync<IHolon>(request, LoadBalancingStrategy.Performance);
+        result.IsError.Should().BeFalse(result.Message);
+        if (primaryHasRecord) result.Result.Name.Should().Be("authoritative-primary");
+        else result.Result.Should().BeNull("absence is not a provider failure and must not resurrect a stale replica");
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task DisabledPoliciesDoNotReplicateOrFailOverDespiteConfiguredLists(bool synchronous)
