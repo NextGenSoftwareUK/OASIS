@@ -48,8 +48,14 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
         (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
         var detail = new AvatarDetail { Id = Guid.NewGuid(), Username = "versioned-detail", Email = "versioned-detail@test.local", Version = 3, Karma = 100 };
+        var creator = Guid.NewGuid();
+        var created = new DateTime(2025,1,2,3,4,5,DateTimeKind.Utc);
+        detail.CreatedByAvatarId = creator;
+        detail.CreatedDate = created;
         (await provider.SaveAvatarDetailAsync(detail)).IsError.Should().BeFalse();
         detail.Version = 4;
+        detail.CreatedByAvatarId = Guid.Empty;
+        detail.CreatedDate = default;
         detail.Karma = 200;
         var updated = synchronous ? provider.SaveAvatarDetail(detail) : await provider.SaveAvatarDetailAsync(detail);
         updated.IsError.Should().BeFalse(updated.Message);
@@ -59,6 +65,8 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
             loaded.IsError.Should().BeFalse(loaded.Message);
             loaded.Result.Version.Should().Be(4);
             loaded.Result.Karma.Should().Be(200);
+            loaded.Result.CreatedByAvatarId.Should().Be(creator);
+            loaded.Result.CreatedDate.Should().Be(created);
         }
         (await provider.LoadAvatarDetailAsync(detail.Id,version:3)).Result.Should().BeNull();
         provider.LoadAvatarDetailByUsername(detail.Username,version:3).Result.Should().BeNull();
