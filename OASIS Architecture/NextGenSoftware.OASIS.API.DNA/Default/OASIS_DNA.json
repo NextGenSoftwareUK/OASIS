@@ -306,6 +306,7 @@
         "ConnectionString": ""
       },
       "CosmosBlockChainOASIS": {
+        "StorageEncryptionKeyEnvironmentVariable": "OASIS_COSMOS_STORAGE_ENCRYPTION_KEY",
         "RpcEndpoint": "https://cosmos-rpc.polkachu.com",
         "Network": "mainnet",
         "ChainId": "cosmoshub-4",
@@ -326,6 +327,7 @@
         "ConnectionString": ""
       },
       "SuiOASIS": {
+        "StorageEncryptionKeyEnvironmentVariable": "OASIS_SUI_STORAGE_ENCRYPTION_KEY",
         "RpcEndpoint": "https://fullnode.mainnet.sui.io:443",
         "Network": "mainnet",
         "ChainId": "mainnet",
