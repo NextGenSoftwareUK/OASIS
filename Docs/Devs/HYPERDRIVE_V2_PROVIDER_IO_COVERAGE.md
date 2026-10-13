@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Current original-chain regression refresh — 2026-10-13
+
+Rebuilt current Cosmos119/119, Sui97/97, TRON294/294 unit suites and retained-SDK Hedera non-funded283/283; zero skips. Reports under `TestResults/ProviderCurrent` and `TestResults/HederaCurrent`. No new installations or TRON uncertain submission replay. Existing Hedera mirror balance391606260tinybars (~3.916testHBAR), not consensus/signing verification; earlier funded-contract gate remains open and user top-up asked non-blockingly. These results do not prove live chain interfaces/options/HyperDrive policies/hosted APIs/recovery. Original scope retained.
+
 ### Mongo update rejection and WEB4 consumer refresh — 2026-10-13
 
 Real avatar/detail update rejection exposed dropped original exceptions4/4. All four update catches now preserve driver evidence; expanded real4/4 verifies unchanged stored FirstName/karma. WEB4 build0errors/253warnings and147/147 tests pass (`TestResults/Web4Current/web4-provider-refresh-current.trx`); provider/API/test Mongo DLL hashes match5FC96D4732382B030F882C16F193AC3A76C289AFD41B19ADEB1EA535085C5824. Current local consumer verification is not hosted current-code/full-route evidence. No merge/deploy/new environment/download; original provider/recovery scope remains open.
