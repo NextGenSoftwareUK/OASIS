@@ -104,7 +104,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     FromTokenAddress = "HBAR", OwnerPrivateKey = key, MemoText = memo
                 });
                 if (transfer.IsError || string.IsNullOrWhiteSpace(transfer.Result?.TransactionResult))
-                    throw new InvalidOperationException(transfer.Message ?? "Hedera bridge transfer did not establish consensus success.");
+                    throw transfer.Exception ?? new InvalidOperationException(transfer.Message ?? "Hedera bridge transfer did not establish consensus success.");
                 result.Result = new BridgeTransactionResponse
                 {
                     TransactionId = transfer.Result.TransactionResult, IsSuccessful = true,
@@ -269,7 +269,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     OwnerPrivateKey = key, MemoText = memo
                 });
                 if (transfer.IsError || string.IsNullOrWhiteSpace(transfer.Result?.TransactionResult))
-                    throw new InvalidOperationException(transfer.Message ?? "HTS NFT bridge transfer did not establish consensus success.");
+                    throw transfer.Exception ?? new InvalidOperationException(transfer.Message ?? "HTS NFT bridge transfer did not establish consensus success.");
                 result.Result = new BridgeTransactionResponse
                 {
                     TransactionId = transfer.Result.TransactionResult, IsSuccessful = true,
