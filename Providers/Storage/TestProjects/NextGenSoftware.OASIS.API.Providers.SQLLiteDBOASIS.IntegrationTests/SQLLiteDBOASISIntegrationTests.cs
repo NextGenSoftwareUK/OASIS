@@ -41,6 +41,29 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task AvatarCurrentVersionAndExplicitSelectorsRespectPersistedVersion(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = "versioned-avatar", Email = "versioned@test.local", Version = 3,
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        var saved = synchronous ? provider.SaveAvatar(avatar) : await provider.SaveAvatarAsync(avatar);
+        saved.IsError.Should().BeFalse(saved.Message);
+        saved.Result.Version.Should().Be(3);
+        foreach (var loaded in new[] { await provider.LoadAvatarAsync(avatar.Id), await provider.LoadAvatarByUsernameAsync(avatar.Username), await provider.LoadAvatarByEmailAsync(avatar.Email) })
+        {
+            loaded.IsError.Should().BeFalse(loaded.Message);
+            loaded.Result.Version.Should().Be(3);
+        }
+        (await provider.LoadAvatarAsync(avatar.Id, version:3)).Result.Version.Should().Be(3);
+        (await provider.LoadAvatarAsync(avatar.Id, version:2)).Result.Should().BeNull();
+        provider.LoadAvatarByUsername(avatar.Username, version:2).Result.Should().BeNull();
+        provider.LoadAvatarByEmail(avatar.Email, version:3).Result.Version.Should().Be(3);
+    }
+
+    [Theory]
     [InlineData(true, true)]
     [InlineData(true, false)]
     [InlineData(false, true)]
