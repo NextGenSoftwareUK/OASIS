@@ -320,7 +320,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
-                await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
+                var replaced = await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
+                if (!replaced.IsAcknowledged || replaced.MatchedCount != 1)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar update did not acknowledge exactly one matched identity.");
+                    return result;
+                }
                 result.Result = avatar;
             }
             catch (Exception ex)
@@ -498,7 +503,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
-                _dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
+                var replaced = _dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
+                if (!replaced.IsAcknowledged || replaced.MatchedCount != 1)
+                {
+                    OASISErrorHandling.HandleError(ref result, "Avatar update did not acknowledge exactly one matched identity.");
+                    return result;
+                }
                 result.Result = avatar;
             }
             catch (Exception ex)
