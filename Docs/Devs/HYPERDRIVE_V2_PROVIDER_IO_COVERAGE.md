@@ -26,6 +26,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos committed NFT transfer readback retry fence — 2026-10-12
+
+Production audit found SendNFTAsync threw an ordinary InvalidOperationException when post-transfer readback failed, despite retaining a committed transaction response. Replaced post-commit error classification with existing CosmosNativeMutationReconciliationException (INativeMutationReconciliationRequired), original committed hash, executionSucceeded=true and retained underlying cause. Covers readback error/absent result and subsequent metadata assignment failures; preflight remains ordinary failure. No alternate transfer or lookup fallback added.
+
+Provider build succeeded zero errors; complete CosmosNftSignerTests **40/40 passed**, zero skips (`cosmos-nft-postcommit-current.trx`), including actual provider entry with controlled SDK transfer success/readback failure, exact original hash/success flag/marker/cause. This is not new live transfer or complete current 102-case evidence; router-through-concrete-send proof and interrupted mint fixture preparation remain work. Existing environment reused; no installs, ledger mutation, sponsorship or merge.
+
 ### TRON staking transfer projection corrected; complete regression — 2026-10-12
 
 Audit found staking metadata used a nonzero legacy Amount, which could make delegated resource rights appear to pay TRX to the receiver. Corrected single mapper: FreezeBalanceContract legacy transfer Amount is zero; RawAmount and SUN-STAKED/<resource> retain exact requested locked quantity. Tests assert owner and delegated-recipient views both have zero transferred amount and identical native locked metadata. This supersedes the earlier checkpoint's statement that staking legacy Amount retains SUN-to-TRX scaling. Direction enum still has only Credit/Debit; consumers must use NativeOperation/AmountUnit for resource semantics, not infer spendable balances from it.
