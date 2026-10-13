@@ -43,6 +43,34 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task CorruptUnrelatedDetailCannotPoisonIdentityLookup(bool synchronous)
+    {
+        var bad = new AvatarDetail { Id = Guid.NewGuid(), Username = "corrupt-detail" };
+        var good = new AvatarDetail { Id = Guid.NewGuid(), Username = "valid-detail", Email = "valid-detail@test.local" };
+        using (var provider = new SQLLiteDBOASIS(TestConnectionString))
+        {
+            (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+            (await provider.SaveAvatarDetailAsync(bad)).IsError.Should().BeFalse();
+            (await provider.SaveAvatarDetailAsync(good)).IsError.Should().BeFalse();
+        }
+        using var control = new DataContext(TestConnectionString);
+        control.Database.ExecuteSqlInterpolated($"UPDATE AvatarDetail SET MetaDataJson = {'{'} WHERE Id = {bad.Id.ToString()}");
+        using var reopened = new SQLLiteDBOASIS(TestConnectionString);
+        (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var byId = synchronous ? reopened.LoadAvatarDetail(good.Id) : await reopened.LoadAvatarDetailAsync(good.Id);
+        var byName = synchronous ? reopened.LoadAvatarDetailByUsername(good.Username) : await reopened.LoadAvatarDetailByUsernameAsync(good.Username);
+        var byEmail = synchronous ? reopened.LoadAvatarDetailByEmail(good.Email) : await reopened.LoadAvatarDetailByEmailAsync(good.Email);
+        foreach (var loaded in new[] { byId, byName, byEmail })
+        {
+            loaded.IsError.Should().BeFalse(loaded.Message);
+            loaded.Result.Id.Should().Be(good.Id);
+        }
+        (await reopened.LoadAvatarDetailAsync(bad.Id)).IsError.Should().BeTrue();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task CorruptUnrelatedAvatarCannotPoisonIdentityLookup(bool synchronous)
     {
         var bad = new Avatar { Id = Guid.NewGuid(), Username = "corrupt-avatar", AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
