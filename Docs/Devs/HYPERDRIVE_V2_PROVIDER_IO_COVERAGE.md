@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### NFT option persistence versus enforcement audit — 2026-10-12
+
+- Cosmos `MintNFTAsync` validates provider/NFT-standard selection and numeric/date constraints, then copies price/discount/royalty/seller basis points/sale flags/dates into Web3NFT metadata serialized for `nft_mint`. These fields are persisted, not simply dropped. That C# path alone does not prove marketplace sale constraints or royalty enforcement by the contract/coordinator; those are separate semantics requiring contract and manager tests.
+- Sui lock reads NFT metadata before its mutation; unlock retains committed digest when separate readback fails. The read/metadata operations cannot be treated as proof of every mint request option, royalty behavior or coordinator authorization. No speculative rejection or alternative mint path was added based on this partial audit.
+- Required next option audit: trace each public request field through provider SDK, actual contract and NFTManager, classify persisted metadata versus enforced business rules, then implement/test necessary missing behavior. Existing rejection of off-chain-only mint metadata remains a functional gap rather than full support. No new runtime/funds/download/deployment/merge.
+
+
 ### Repeatable reusable-runner ownership refusal checks — 2026-10-12
 
 - Added `Test-ReusableUsageRecoveryOwnership.ps1`; **3/3 actual refusal scenarios passed**: occupied port with absent environment variables, occupied port with pre-existing values, and an exclusive lease held by another owner. Existing listener/lease retained; released runner lease can reopen; environment values restored exactly. Harness restores its own environment and stops only its own harmless listener in finally.
