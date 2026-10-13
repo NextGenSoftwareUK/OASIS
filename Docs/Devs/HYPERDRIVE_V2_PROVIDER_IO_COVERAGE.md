@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Current Cosmos full-suite refresh at `b5892a2c9`: **102/102 passed**, zero skipped/failed, against retained source SDK after the probe fix (details below). This supersedes the earlier pre-probe-fix limitation for that C# suite; no deployed packaging or full live asset certification follows.
+
 Latest recorded complete C# checkpoints (2026-10-12): **Sui 78/78; Cosmos 102/102; TRON 275/275**, zero failures/nonexecuted cases. These are revision-specific: Cosmos full suite predates the later SDK probe fix. Sui/Cosmos include actual two-minute process deadlines; Cosmos explicitly uses the retained source SDK installation, not published-output packaging proof. Current live Sui V2 healthy routing **1/1**, outage routing **2/2**, and activation/prepared-submission/lost-confirmed-reply checks **3/3** passed separately. Cosmos current live healthy **1/1** and outage **2/2** passed before the subsequent fixture-cleanup-only change. These scopes overlap; do not sum them or infer full-interface/hosted API certification. Other provider/shared/Core/SDK checkpoints are revision-specific evidence detailed below, not freshly rerun certifications.
 
 Earlier, not freshly rerun whole-branch checkpoints: Core 430/430, shared storage 87/87, TRON 199/199, Hedera selected C# 244/244 plus separate deadline 1/1 and later fee 14/14, WEB4 141/141, ONODE Core 244/244. Earlier retained-binary Sui live healthy routing 1/1 and outage routing 2/2 passed separately. These revision-specific results do not certify all later changes or missing live/deployed gates. Exact chronological scopes below apply.
@@ -23,6 +25,10 @@ Broader providers with narrower recorded real-runtime/SDK/API evidence: MongoDB,
 Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 244/244, Cosmos C# 56/56/SDK 29/29, Hedera non-funded 209/209; zero skips in the stated selections. Exact revisions and limitations are recorded below. Task branch contains Development reconciliation, but Development/master have not received this task's release merge. Hosted dev revision last checked was `77c65eaa80aa06fb767715322eb97d8d3844282f`, not this task code. User authorizes a safe Development merge/automatic Railway deployment; resolve regression/deployment gates before claiming release success. Native NFT models and mint actor/recipient/batch safety have changed; positive authenticated minting, durable subscription/fee integration, live Cosmos corrected assets/multi-send/bridge receipt, funded Hedera storage/NFT/V2, full interface/options/hosted API and broader provider gates remain open. Update this summary whenever coverage or remaining gates change; retain exact checkpoint reports below rather than silently promote narrow evidence to broader claims.
 
 ## Routing contract
+
+### Complete Cosmos regression refreshed after SDK probe fix — 2026-10-12
+
+Rebuilt/reran existing Cosmos UnitTests project with no restore, BuildProjectReferences=false, two workers and shared compilation disabled; explicit OASIS_COSMOS_SDK_BRIDGE uses retained source SDK. Terminal process exit zero; freshly parsed `TestResults/CosmosRuntime/cosmos-current.trx` confirms total/executed/passed 102, all failure/nonexecution counters zero. Duration two minutes eight seconds includes actual process deadline. No new runtime, dependency download or live ledger mutation. Free C space after run 100,098,007,040 bytes. This refresh covers C# regressions after the probe fix, not deployed Linux packaging, full live interfaces, native billing or parent-host recovery. No merge or sponsored spending enabled.
 
 ### Production recovery registration audit — 2026-10-12
 
