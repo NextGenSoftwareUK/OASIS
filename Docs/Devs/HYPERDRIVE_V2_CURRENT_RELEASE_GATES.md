@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+SQLite corruption-isolated GUID reads: sync/async select target Id/version in SQL before deserializing instead of mapping unrelated rows; async performs actual FirstOrDefaultAsync. Real deliberately corrupt unrelated metadata cannot poison valid lookup, while direct corrupt lookup remains an error. Full46/46 passed (`TestResults/SQLiteCurrent/sqlite-guid-corruption-isolation-current.trx`). Other selector/filter-before-mapping paths and exception retention still require review; no corrupt data repaired/deleted silently.
+
 Avatar metadata preservation checkpoint: SQLite avatar save/read mapper now uses per-avatar MetaDataJson. Bidirectional sync/async V2 initial/update replication verifies origin-game through Id/username/email reads; real class24/24 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-avatar-metadata-current.trx`). New column needs existing-schema upgrade; full typed/encrypted metadata/search/API consistency remains open.
 
 Real V2 avatar key-map checkpoint: bidirectional sync/async avatar replication preserves custom SQLite and foreign Mongo keys in both stores; SQLite local-key lookup resolves public avatar Id and foreign-key lookup stays absent. Full class24/24 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-avatar-keys-current.trx`). This checks real key-map retention; Mongo as participating provider and full key-selector/update/recovery matrix remain open.

@@ -43,6 +43,31 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task CorruptUnrelatedHolonCannotPoisonGuidLookup(bool synchronous)
+    {
+        var bad = new Holon { Id = Guid.NewGuid(), Name = "owned-corrupt" };
+        var good = new Holon { Id = Guid.NewGuid(), Name = "owned-valid" };
+        using (var provider = new SQLLiteDBOASIS(TestConnectionString))
+        {
+            (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+            (await provider.SaveHolonAsync(bad,saveChildren:false)).IsError.Should().BeFalse();
+            (await provider.SaveHolonAsync(good,saveChildren:false)).IsError.Should().BeFalse();
+        }
+        using var control = new DataContext(TestConnectionString);
+        control.Database.ExecuteSqlInterpolated($"UPDATE Holon SET MetaDataJson = {'{'} WHERE Id = {bad.Id.ToString()}");
+        using var reopened = new SQLLiteDBOASIS(TestConnectionString);
+        (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var loaded = synchronous ? reopened.LoadHolon(good.Id,loadChildren:false) : await reopened.LoadHolonAsync(good.Id,loadChildren:false);
+        loaded.IsError.Should().BeFalse(loaded.Message);
+        loaded.Result.Name.Should().Be(good.Name);
+        var corrupt = synchronous ? reopened.LoadHolon(bad.Id,loadChildren:false) : await reopened.LoadHolonAsync(bad.Id,loadChildren:false);
+        corrupt.IsError.Should().BeTrue();
+        corrupt.Result.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task AvatarProviderKeySelectorMatchesOnlyLocalKeyAndRetainsForeignMap(bool synchronous)
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
