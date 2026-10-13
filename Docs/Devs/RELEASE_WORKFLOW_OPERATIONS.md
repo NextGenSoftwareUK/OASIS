@@ -85,6 +85,10 @@ Artifact-only mode verifies successful `edge-runtime-validation / validate` and 
 
 ## Partial publication and reliability
 
+Set `nuget_plan_only=true`, `publish=false` and disable unrelated products to review the package plan without packing or uploading. Positive hosted run 38387409813 proved the 19-ID scope produces exactly 210 candidates; negative run 38383978301 proved a missing list fails before packing. This verifies exclusion transport/count, not source-aware automatic version selection for future unchanged packages.
+
+For an explicitly scoped run, pass `excluded_nuget_ids` and matching `expected_excluded_nuget_count` together. The planner validates exact unique count and source IDs, then freezes both into the pack plan. Use a fully formed argument, for example `-f "excluded_nuget_ids=$completedIdsCsv"`; review the logged plan before publication. A missing list with an expected nonzero count must fail before packing. Do not repeat completed run 38376265788: its 229 versions are now publicly indexed; see [the dated inventory](NUGET_PUBLISHED_2026-10-13.md).
+
 NuGet identities are immutable, including unlisted versions. Never use a blind whole-run retry, `--skip-duplicate`, or version bumps to hide an unexplained conflict. First establish the exact source, reviewed package plan, package identities and already-uploaded contents.
 
 Development now contains frozen-plan packing and `Publish-OASISReviewedNuGet.ps1` whole-set preflight. Packing validates the plan's source SHA, scope, project IDs/paths and versions. Preflight compares existing package ZIP entries by SHA-256, excluding only NuGet's signing entry; conflicting contents stop before any upload, identical published contents are not uploaded again. These changes still require checked promotion and end-to-end recovery verification. Complete historical partial-plan reconciliation is not yet implemented; do not treat this document as proof it is.
