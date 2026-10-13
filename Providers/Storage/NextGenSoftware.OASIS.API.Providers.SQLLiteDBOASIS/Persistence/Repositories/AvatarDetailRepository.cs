@@ -282,13 +282,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var avatarDetailEntities =
-                    _dbContext.AvatarDetails
-                        .Include(a => a.InventoryItems)
-                        .ToList()
-                    .Where(x => (version == 0 || x.Version == version))
-                        .Select(GetAvatarDetailFromEntity)
-                        .ToList();
+                var rows = await _dbContext.AvatarDetails
+                    .Include(a => a.InventoryItems)
+                    .Include(a => a.Stats)
+                    .Where(x => version == 0 || x.Version == version)
+                    .ToListAsync();
+                var avatarDetailEntities = rows.Select(GetAvatarDetailFromEntity).ToList();
                 return new OASISResult<IEnumerable<IAvatarDetail>>
                 {
                     IsLoaded = true,
