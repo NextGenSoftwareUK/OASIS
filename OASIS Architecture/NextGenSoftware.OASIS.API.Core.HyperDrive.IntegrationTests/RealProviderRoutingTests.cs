@@ -121,6 +121,7 @@ public sealed class RealProviderRoutingTests : IDisposable
         var avatar = new Avatar { Id = Guid.NewGuid(), Username = "owned-v2-avatar", Email = "owned-v2@test.local", FirstName = "Owned", LastName = "Fixture", AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
         avatar.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS] = "owned-sqlite-avatar-key";
         avatar.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = "owned-mongo-avatar-key";
+        avatar.MetaData["origin-game"] = "Our World";
         var request = new StorageOperationRequest { Operation = "SaveAvatar", Payload = avatar, PreferredProvider = sqlitePrimary ? ProviderType.SQLLiteDBOASIS : ProviderType.LocalFileOASIS };
         var router = new OASISHyperDrive(manager);
         var result = synchronous ? router.RouteRequest<IAvatar>(request) : await router.RouteRequestAsync<IAvatar>(request);
@@ -135,6 +136,7 @@ public sealed class RealProviderRoutingTests : IDisposable
             loaded.Result.Email.Should().Be(avatar.Email);
             loaded.Result.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS].Should().Be("owned-sqlite-avatar-key");
             loaded.Result.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS].Should().Be("owned-mongo-avatar-key");
+            loaded.Result.MetaData["origin-game"].ToString().Should().Be("Our World");
         }
         avatar.FirstName = "Updated";
         (await sqlite.LoadAvatarByProviderKeyAsync("owned-sqlite-avatar-key")).Result.Id.Should().Be(avatar.Id);
@@ -151,6 +153,7 @@ public sealed class RealProviderRoutingTests : IDisposable
             loaded.Result.Id.Should().Be(avatar.Id);
             loaded.Result.Email.Should().Be(avatar.Email);
             loaded.Result.FirstName.Should().Be("Updated");
+            loaded.Result.MetaData["origin-game"].ToString().Should().Be("Our World");
         }
     }
 

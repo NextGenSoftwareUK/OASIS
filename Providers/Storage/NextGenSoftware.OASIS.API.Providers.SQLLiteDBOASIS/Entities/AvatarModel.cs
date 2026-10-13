@@ -20,6 +20,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public string Id { get; set;}
         public string LocalProviderKey { get; set; }
         public string ProviderKeysJson { get; set; } = "{}";
+        public string MetaDataJson { get; set; } = "{}";
 
         public AvatarType AvatarType { get; set;}
         public HolonType HolonType { get; set;}

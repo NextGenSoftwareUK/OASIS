@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+Avatar metadata preservation checkpoint: SQLite avatar save/read mapper now uses per-avatar MetaDataJson. Bidirectional sync/async V2 initial/update replication verifies origin-game through Id/username/email reads; real class24/24 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-avatar-metadata-current.trx`). New column needs existing-schema upgrade; full typed/encrypted metadata/search/API consistency remains open.
+
 Real V2 avatar key-map checkpoint: bidirectional sync/async avatar replication preserves custom SQLite and foreign Mongo keys in both stores; SQLite local-key lookup resolves public avatar Id and foreign-key lookup stays absent. Full class24/24 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-avatar-keys-current.trx`). This checks real key-map retention; Mongo as participating provider and full key-selector/update/recovery matrix remain open.
 
 SQLite duplicate avatar-key recovery verified: sync/async same-local-key save rejected with original exception; duplicate public Id stays absent, incumbent key/identity stays unchanged, later valid save/read succeeds in same context. Full44/44 passed (`TestResults/SQLiteCurrent/sqlite-avatar-key-rejection-current.trx`). This proves uniqueness/recovery in fresh schema, not upgrade/backfill or concurrency races.
