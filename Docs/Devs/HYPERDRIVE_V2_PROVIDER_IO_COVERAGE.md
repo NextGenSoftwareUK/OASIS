@@ -28,6 +28,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Mint delivery evidence and approved private storage direction — 2026-10-12
+
+One-shot SendMintedNFTOnceAsync previously discarded thrown provider exception. Now preserves existing native reconciliation evidence exactly; missing response/ordinary thrown delivery error receives explicit unresolved-delivery marker with original cause, no invented transaction identity. Combined manager delivery tests **17/17 passed**, zero skips (`nft-delivery-evidence-current.trx`); current ONODE dependency build zero errors. Dependency f9c985d0faff66b3b4525ebd9b4becba1f564f93 pushed and parent pin/gitlink advanced together.
+
+User approved always encrypting private on-chain Sui/Cosmos records using separately persisted storage key, then confirmed no existing user provider data requiring migration. Implement encrypted versioned format fail-closed without plaintext fallback/key regeneration. Retained owned test fixtures/journals still exist and must be preserved/reconciled rather than interpreted as disposable user records. Encryption implementation remains next work, not completed by approval. No installs, ledger writes or merge.
+
 ### Standalone NFT missing-response replay fence — 2026-10-12
 
 Shared standalone-send result validator rejects absent response or success-shaped absent result/transaction identity as NFTDeliveryReconciliationException implementing existing Core marker, unknown original ID (not fabricated). Sync/async wait loops stop before another provider invocation. Ordinary error/preflight retry behavior not changed. Matrix **12/12 passed**, zero skips (`nft-standalone-reconciliation-current.trx`): six malformed cases each provider once, previous confirmed/metadata and native-evidence tests retained. Dependency build zero errors/152 existing warnings. ONODE Core 8df2bf738de05f0159e4e418fae9944c12957562 pushed; parent pin/gitlink advanced together. No install, ledger mutation or merge; original parent recovery/hosted routes and one-shot mint delivery evidence remain separate gates.

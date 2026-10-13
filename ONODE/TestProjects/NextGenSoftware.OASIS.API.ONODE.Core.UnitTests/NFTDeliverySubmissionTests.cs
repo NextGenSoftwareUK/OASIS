@@ -48,6 +48,9 @@ public sealed class NFTDeliverySubmissionTests
 
         Assert.True(actual.IsError);
         Assert.Contains("Reconcile before retrying", actual.Message);
+        Assert.True(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(actual.Exception));
+        Assert.IsType<NFTDeliveryReconciliationException>(actual.Exception);
+        if (throws) Assert.IsType<TimeoutException>(actual.Exception.InnerException);
         provider.Verify(x => x.SendNFTAsync(request), Times.Once);
         provider.VerifyNoOtherCalls();
     }
@@ -56,5 +59,23 @@ public sealed class NFTDeliverySubmissionTests
     {
         var method = typeof(NFTManager).GetMethod("SendMintedNFTOnceAsync", BindingFlags.Static | BindingFlags.NonPublic)!;
         return (Task<OASISResult<IWeb3NFTTransactionResponse>>)method.Invoke(null, new object[] { provider, request })!;
+    }
+
+    private sealed class OriginalEvidenceException : Exception, INativeMutationReconciliationRequired
+    {
+        public string OriginalTransactionId => "original-delivery";
+    }
+
+    [Fact]
+    public async Task ThrownOriginalEvidenceIsPreservedExactlyWithoutAnotherSubmission()
+    {
+        var request=new SendWeb3NFTRequest();
+        var evidence=new OriginalEvidenceException();
+        var provider=new Mock<IOASISNFTProvider>(MockBehavior.Strict);
+        provider.Setup(x=>x.SendNFTAsync(request)).ThrowsAsync(evidence);
+        var result=await Submit(provider.Object,request);
+        Assert.True(result.IsError);Assert.Same(evidence,result.Exception);
+        Assert.Equal("original-delivery",((INativeMutationReconciliationRequired)result.Exception).OriginalTransactionId);
+        provider.Verify(x=>x.SendNFTAsync(request),Times.Once());provider.VerifyNoOtherCalls();
     }
 }
