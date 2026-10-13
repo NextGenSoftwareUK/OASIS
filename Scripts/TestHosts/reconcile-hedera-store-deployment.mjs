@@ -1,4 +1,5 @@
 import fs from 'node:fs';import path from 'node:path';import {fileURLToPath,pathToFileURL} from 'node:url';
+import {saveDeploymentState} from './hedera-deployment-state.mjs';
 
 export function reconcileFailedCreation(state,response) {
   if(state.pending?.action!=='contractCreate')throw new Error('Only the retained contract-creation failure is supported by this reconciliation.');
@@ -23,6 +24,7 @@ async function main(){
  if(fs.lstatSync(statePath).isSymbolicLink())throw new Error('Refusing linked deployment evidence.');
  const leasePath=statePath+'.lock',lease=fs.openSync(leasePath,'wx');
  try {
+  if(fs.existsSync(statePath+'.next'))throw new Error('Retained staged deployment evidence requires review before reconciliation.');
   const state=JSON.parse(fs.readFileSync(statePath,'utf8'));
   const match=/^(0\.0\.[1-9][0-9]*)@([0-9]+)\.([0-9]{9})$/.exec(state.pending?.transactionId??'');
   if(!match||match[1]!==state.sender)throw new Error('No valid pending testnet identity to reconcile.');
@@ -30,7 +32,7 @@ async function main(){
   const response=await fetch('https://testnet.mirrornode.hedera.com/api/v1/transactions/'+id,{redirect:'error',signal:AbortSignal.timeout(20000)});
   if(!response.ok)throw new Error('Official mirror did not establish a receipt: HTTP '+response.status);
   const next=reconcileFailedCreation(state,await response.json());
-  fs.writeFileSync(statePath,JSON.stringify(next,null,2));
+  saveDeploymentState(statePath,next);
   console.log(JSON.stringify({reconciledTransaction:state.pending.transactionId,status:'INSUFFICIENT_TX_FEE',fileId:next.fileId,submittedNewTransaction:false}));
  } finally {fs.closeSync(lease);fs.unlinkSync(leasePath);}
 }

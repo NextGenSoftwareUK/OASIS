@@ -2,6 +2,7 @@ import fs from 'node:fs';import path from 'node:path';import {createRequire} fro
 import {execute} from '../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/SdkBridge/bridge.mjs';
 import {deploymentTransaction} from '../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/SdkBridge/deployment.mjs';
 import {estimatedTinybars,validateDeploymentBudget} from './hedera-deployment-fee.mjs';
+import {saveDeploymentState} from './hedera-deployment-state.mjs';
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const existing=createRequire(path.join(root,'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/package.json'));
 const solc=existing('solc');
@@ -25,10 +26,12 @@ fs.mkdirSync(path.dirname(statePath),{recursive:true});
 // Exclusive lease prevents overlapping runners sharing this fixed reusable deployment.
 const leasePath=statePath+'.lock',lease=fs.openSync(leasePath,'wx');
 try {
+ if(fs.existsSync(statePath+'.next'))throw new Error('Retained staged deployment evidence requires reconciliation before any query or mutation.');
+ if(fs.existsSync(statePath)&&fs.lstatSync(statePath).isSymbolicLink())throw new Error('Refusing linked deployment evidence.');
  let state=fs.existsSync(statePath)?JSON.parse(fs.readFileSync(statePath,'utf8')):{sender:request.sender,sourceHash,compiler:solc.version(),uploaded:0};
  if(state.sender!==request.sender||state.sourceHash!==sourceHash||state.compiler!==solc.version())throw new Error('Retained deployment identity/source/compiler differs; preserve and reconcile it.');
  if(state.pending)throw new Error('Unresolved deployment transaction '+state.pending.transactionId+'; reconcile before another mutation.');
- function save(){fs.writeFileSync(statePath,JSON.stringify(state,null,2));}
+ function save(){saveDeploymentState(statePath,state);}
  async function mutate(action,fields={}){
   const transactionId=TransactionId.generate(request.sender).toString();
   state.pending={action,transactionId,...fields};save();
