@@ -36,6 +36,14 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON corrected activation live verification — 2026-10-12
+
+- **1/1 live retained-node inspection passed**, zero skips, `TestResults/HyperDriveTron/tron-readonly-original-current.trx`. The fixture now compares the actual storage contract `revision()` before activation and after the healthy inspection phase, and hashes the original pending transaction fence before/after. Both are unchanged. Current activation validates actual contract ownership/private records without probe writes.
+- The same test verifies original local signing authority with actual SDK signatures and rejects a foreign signer without broadcasting; reads retained avatar/detail state; measures Performance selection and verifies six alternating sync/async RoundRobin reads split three each between TRON/LocalFile; verifies Free-policy exclusion across five strategies; and verifies sync/async failover after disposing the actual SDK runtime. This failover is closed-transport, not a newly repeated node-outage mutation test.
+- Original `db05ea6d3067038a56dfc75b64d2c46c32824282e8242335ce007d1e34a415bb` remains NotFound with unavailable fee receipt. That is not evidence of non-submission; preserve `pending-native-outcome.json`, do not rebroadcast or remove its fence. Mutation/replication verification remains blocked for that owned fixture pending explicit reconciliation; independent safe work remains available.
+- Existing `oasis-tron-tre` was resumed then paused after terminal test success. No install/download/new ledger/submission occurred. Broader production recovery, interface/options, all-provider distribution and API deployment gates remain open.
+
+
 ### TRON read-only activation correction — 2026-10-12
 
 - Removed paid write/delete probes from `TronStorageBackend.VerifyAsync`: it now checks the configured owner's canonical TRON address against the actual contract `owner()` constant call and validates revision-bound key enumeration. The private wrapper uses `VerifyReadOnlyAsync`, which validates/decrypts existing private records without generating probe records.
