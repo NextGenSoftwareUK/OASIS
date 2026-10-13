@@ -36,6 +36,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos mandatory encrypted-storage wiring — 2026-10-12
+
+Cosmos provider storage now uses PersistedPrivateKeyValueBackend around its existing CosmosSdkBackend; native/prepared SDK invocation retains same transport independently. Optional constructor storageEncryptionKeyResolver supplies an owned temporary 32-byte buffer; default resolves OASIS_COSMOS_STORAGE_ENCRYPTION_KEY as canonical base64 for exactly 32 bytes, separate from signing key. No generated default, plaintext fallback or key regeneration; missing key blocks storage activation before SDK probe. Dispose clears encryption state and SDK. Constructor signature changed, so consumers must rebuild before deployment.
+
+Shared and Cosmos dependencies built first, zero errors. Focused current provider tests **45/45 passed**, zero skips (`cosmos-private-wiring-current.trx`): missing key fails storage activation, encrypted composition owns same SDK, current NFT native/regression paths pass without storage key. SDK-process tests now inspect native SDK owner, not assume raw storage backend. Older whole-suite/live routing reports predate wiring; live fixtures/configuration need explicit retained test encryption key and fresh encrypted proofs. Sui wiring still next, rollout not complete. No install, ledger write or merge.
+
 ### Approved encryption foundation — 2026-10-12
 
 Added PersistedPrivateKeyValueBackend lazy mandatory composition over existing PrivateKeyValueBackend (AES-GCM values, HMAC logical indexes, existing versioned compressed envelope), owned temporary resolver buffer zeroing, no key generation/plaintext fallback. Added VerifyReadOnlyAsync to validate inner credentials and enumerate/decrypt existing encrypted records without encrypted probe writes; intended inner Cosmos/Sui verification is read-only. Existing default VerifyAsync behavior not changed for other providers.
