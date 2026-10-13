@@ -57,6 +57,23 @@ Source: `Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
 Cosmos/Sui now use mandatory private composition, with separately persisted 32-byte keys currently supplied through fixed environment settings or explicit constructor resolvers. TRON has its own mandatory private wrapper using the shared primitives. Hedera wiring is separately configured; its complete live contract coverage still requires funding. Do not assume all providers use this backend.
 
+Cosmos/Sui BootLoader registration now reads `StorageEncryptionKeyEnvironmentVariable` from each provider's DNA settings, captures that variable name when creating the provider, and resolves key bytes lazily through the existing private backend. The checked-in default JSON explicitly lists these names. This shares the secret-reference configuration pattern with TRON/Hedera but does not merge the metadata/password and whole-record encryption policies. Existing direct constructors retain their default references or explicit key resolvers.
+
+Example configuration references (not key material):
+
+```json
+{
+  "CosmosBlockChainOASIS": {
+    "StorageEncryptionKeyEnvironmentVariable": "OASIS_COSMOS_STORAGE_ENCRYPTION_KEY"
+  },
+  "SuiOASIS": {
+    "StorageEncryptionKeyEnvironmentVariable": "OASIS_SUI_STORAGE_ENCRYPTION_KEY"
+  }
+}
+```
+
+These are fields under `OASIS.StorageProviders`, not a complete DNA document. Configure each referenced variable securely as canonical base64 encoding of an independently persisted 32-byte storage key. Do not put secrets in documentation/source or substitute a signing key. Back up the key; do not regenerate it when reads fail. Railway's environment JSON/settings have not been changed by this work.
+
 The protection covers values passing through this backend, including logical indexes—not public native transactions, public NFTs/metadata, or other SDK operations outside it. Chain wallet addresses, transactions, record counts, sizes, timing, and repeated access to the same physical key remain observable. Compression and deterministic addresses leak structure; there is no ORAM, padding, or general searchable-encryption scheme here.
 
 ### Why IDs and metadata lookups still work

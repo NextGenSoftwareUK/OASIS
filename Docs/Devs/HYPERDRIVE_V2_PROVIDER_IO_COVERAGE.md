@@ -36,6 +36,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Default DNA and encryption comparison configuration update — 2026-10-12
+
+- Checked-in default DNA JSON now explicitly includes Cosmos/Sui `StorageEncryptionKeyEnvironmentVariable` values matching their typed defaults. JSON parse and exact references validated. No key material added, provider activation enabled, or deployed Railway JSON changed.
+- Encryption comparison updated with actual registration capture/lazy-resolution behavior and correctly scoped `OASIS.StorageProviders` reference examples, secret persistence/backup requirements, and distinction from full policy/format integration. Positive live custom-key registration and original broader release gates remain open.
+
+
 ### Actual registered key-reference lifetime tests — 2026-10-12
 
 - Two new tests invoke actual BootLoader registration for Cosmos/Sui in the existing restored WEB4 test project. Each registers with a missing custom key variable, changes DNA to a valid replacement variable, then activates the created provider: missing original key rejection remains, proving no redirection/fallback to replacement configuration. No SDK/network access is needed because mandatory key resolution fails first.
