@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Mongo real duplicate data activation refusal — 2026-10-13
+
+Wider real42/42 refreshed aftera5a5c4c37. Owned fixture deliberately removes each identity index and inserts publicId duplicate/different nativeId. Repeated activation fails/error/inactive with original Mongo exception, preserves both records; finally removes only injected record and healthy activation recreates index. Expanded4/4 passes (`mongo-sqlite-v2-current.trx`). No production audit/deduplication/migration; history/API/full-provider/recovery still open. Existing runtime/environment reused.
+
 ### Mongo failed activation remains inactive — 2026-10-13
 
 Real createIndexes rejection exposed stale activated flag/dropped exception4/4. Sync/async activation now clears flag and retains driver exception; expanded4/4 checks failure then explicit healthy reactivation. Report `mongo-sqlite-v2-current.trx`. Production duplicate/history/index audit, concurrency, wider regressions/consumer builds and original provider recovery gates remain open. Existing runtime reused.
