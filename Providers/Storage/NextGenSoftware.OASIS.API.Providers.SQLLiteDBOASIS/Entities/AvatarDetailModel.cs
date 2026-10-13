@@ -18,6 +18,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
 
         [Required, Key]
         public String Id{ set; get; }
+        public string MetaDataJson { get; set; } = "{}";
 
         public string Name { get; set; }
         public string Description { get; set; }
@@ -223,12 +224,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
                 this.KarmaAkashicRecords.Add(new KarmaAkashicRecordModel(record));
             }
 
-            foreach(KeyValuePair<string, object> item in source.MetaData){
-
-                MetaDataModel metaModel=new MetaDataModel(item.Key,item.Value);
-                metaModel.OwnerId=this.Id;
-                this.MetaData.Add(metaModel);
-            }
+            this.MetaDataJson = System.Text.Json.JsonSerializer.Serialize(source.MetaData ?? new Dictionary<string, object>());
 
             this.AvatarChakras.Add(new AvatarChakraModel(source.Chakras.Root));
             this.AvatarChakras.Add(new AvatarChakraModel(source.Chakras.Sacral));

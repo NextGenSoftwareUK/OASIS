@@ -105,6 +105,8 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     {
         var detail = new AvatarDetail { Id = Guid.NewGuid(), Username = "optional-stats" };
         var other = new AvatarDetail { Id = Guid.NewGuid(), Username = "other-stats" };
+        detail.MetaData["shared-key"] = "first-avatar";
+        other.MetaData["shared-key"] = "second-avatar";
         other.Stats.HP.Current = 27;
         using (var provider = new SQLLiteDBOASIS(TestConnectionString))
         {
@@ -121,6 +123,8 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
         (await reopened.LoadAvatarDetailAsync(detail.Id)).Result.Stats.Should().BeNull();
         (await reopened.LoadAvatarDetailAsync(other.Id)).Result.Stats.HP.Current.Should().Be(27);
+        (await reopened.LoadAvatarDetailAsync(detail.Id)).Result.MetaData["shared-key"].ToString().Should().Be("first-avatar");
+        (await reopened.LoadAvatarDetailAsync(other.Id)).Result.MetaData["shared-key"].ToString().Should().Be("second-avatar");
         detail.Stats = new AvatarDetail().Stats;
         detail.Stats.HP.Current = 39;
         var restored = synchronous ? reopened.SaveAvatarDetail(detail) : await reopened.SaveAvatarDetailAsync(detail);

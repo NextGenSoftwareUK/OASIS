@@ -330,6 +330,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.Town = avatarDetailEntity.Town;
                     existing.Username = avatarDetailEntity.Username;
                     existing.XP = avatarDetailEntity.XP;
+                    existing.MetaDataJson = System.Text.Json.JsonSerializer.Serialize(avatarDetailEntity.MetaData ?? new Dictionary<string,object>());
                     SetStats(existing, avatarDetailEntity);
                     existing.CreatedByAvatarId = avatarDetailEntity.CreatedByAvatarId.ToString();
                     existing.CreatedDate = avatarDetailEntity.CreatedDate;
@@ -415,6 +416,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.Town = AvatarDetailEntity.Town;
                     existing.Username = AvatarDetailEntity.Username;
                     existing.XP = AvatarDetailEntity.XP;
+                    existing.MetaDataJson = System.Text.Json.JsonSerializer.Serialize(AvatarDetailEntity.MetaData ?? new Dictionary<string,object>());
                     SetStats(existing, AvatarDetailEntity);
                     existing.CreatedByAvatarId = AvatarDetailEntity.CreatedByAvatarId.ToString();
                     existing.CreatedDate = AvatarDetailEntity.CreatedDate;
@@ -520,6 +522,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Town = avatarDetailEntity.Town,
                 Username = avatarDetailEntity.Username,
                 XP = avatarDetailEntity.XP,
+                MetaData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string,object>>(avatarDetailEntity.MetaDataJson)
+                    ?? throw new System.IO.InvalidDataException("Stored avatar detail metadata must be a JSON object."),
                 Stats = avatarDetailEntity.Stats?.GetAvatarStats(),
                 CreatedByAvatarId = Guid.Parse(avatarDetailEntity.CreatedByAvatarId),
                 CreatedDate = avatarDetailEntity.CreatedDate,

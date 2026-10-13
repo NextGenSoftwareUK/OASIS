@@ -56,6 +56,7 @@ public sealed class RealProviderRoutingTests : IDisposable
         manager.SetAndReplaceAutoReplicationListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.LocalFileOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
         var detail = new AvatarDetail { Id = Guid.NewGuid(), Username = "owned-detail", Email = "detail@test.local", Karma = 345, XP = 123 };
         detail.Stats.HP.Current = 37;
+        detail.MetaData["park-source"] = "owned-park";
         detail.Stats.Mana.Current = 42;
         detail.Stats.Stamina.Current = 53;
         var item = new InventoryItem { Id = Guid.NewGuid(), Name = "owned-seed", Quantity = 3 };
@@ -78,6 +79,7 @@ public sealed class RealProviderRoutingTests : IDisposable
                 loaded.Result.Should().NotBeNull();
                 loaded.Result.Karma.Should().Be(detail.Karma);
                 loaded.Result.XP.Should().Be(detail.XP);
+                loaded.Result.MetaData["park-source"].ToString().Should().Be("owned-park");
                 loaded.Result.Stats.HP.Current.Should().Be(detail.Stats.HP.Current);
                 loaded.Result.Stats.Mana.Current.Should().Be(detail.Stats.Mana.Current);
                 loaded.Result.Stats.Stamina.Current.Should().Be(detail.Stats.Stamina.Current);
@@ -91,6 +93,7 @@ public sealed class RealProviderRoutingTests : IDisposable
         (await freshSqlite.ActivateProviderAsync()).IsError.Should().BeFalse();
         var persisted = await freshSqlite.LoadAvatarDetailAsync(detail.Id);
         persisted.Result.Stats.HP.Current.Should().Be(38);
+        persisted.Result.MetaData["park-source"].ToString().Should().Be("owned-park");
         persisted.Result.Stats.Mana.Current.Should().Be(43);
         persisted.Result.Stats.Stamina.Current.Should().Be(54);
         persisted.Result.Inventory.Single().Id.Should().Be(item.Id);
