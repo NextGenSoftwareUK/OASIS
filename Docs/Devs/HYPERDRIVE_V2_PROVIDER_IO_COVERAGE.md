@@ -24,6 +24,14 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Interface audit and documentation-inventory claims corrected — 2026-10-12
+
+Source scan of the four current C# provider directories found no active NotImplementedException/TODO placeholders in the searched scope, but TRON wallet history explicitly rejects unhandled native protobuf contract types (`MapWalletTransaction`): six mapped types cover account create/update/permission update, native transfer and smart-contract call/create. TRC10/resource/governance history and multi-contract mapping require a relevance/capability audit; no full-history certification from the absence of placeholders. A commented-out old TRON LoadNFT stub is not shipping implementation evidence.
+
+Found `verify_registered_provider_runtime_coverage.ps1` claimed executable PASS from Markdown text alone. Corrected it to its actual responsibility: check that each registered provider has a documented coverage entry, report RECORDED/MISSING and explicitly state that no tests/live verification/release certification occurred. Historical filename retained; searched script/workflow/docs references found no downstream consumer of its former RuntimeEvidence property. Initial narrower text-marker matcher reported six entries missing despite their coverage rows; row-presence inventory now succeeds for **27 registered providers**, which is not a provider-test PASS. Real test report/runtime/route gates remain independent and open.
+
+No SDK install, live mutation, merge or deployment. This closes a misleading verification claim, not provider interface gaps.
+
 ### Hedera transfer caller preserves mirror configuration — 2026-10-12
 
 First non-funded regression after mirror binding had **268 passed / 1 failed / 269 total**: existing `HashgraphClient.SendTransactionAsync` delegates to canonical HashgraphOASIS but discarded its configured mirror URL, so local provider construction failed. Forwarded that existing endpoint with consensus network/nodes; testnet/local transfer fixtures now supply consistent explicit mirror configuration rather than the old contradictory mainnet literal. Focused transfer/mirror selection **13/13 passed**, zero skips (`hedera-mirror-transfer-current.trx`). This is compatibility wiring for the constructor invariant, not legacy wallet/key-derivation/parser feature completion. Final non-funded rerun **269/269 passed**, zero skips, 127 seconds (`hedera-nonfunded-current.trx`), including the actual two-minute process deadline, excluding funded Testnet classes and original public fee lookup. No funded consensus certification inferred. Manifest/gitlink validator passed; C: free 100,104,257,536 bytes.

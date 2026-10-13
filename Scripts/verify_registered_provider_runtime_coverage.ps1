@@ -24,26 +24,26 @@ function Get-CoveragePattern([string] $provider) {
     }
 }
 
+# Historical filename retained for callers. This checks documentation inventory,
+# not report contents, current binaries, SDK execution or live provider behavior.
 $results = foreach ($provider in $providers) {
     $label = Get-CoveragePattern $provider
     $escapedLabel = [regex]::Escape($label)
     $matchingRows = @($coverage | Where-Object { $_ -match "^\|\s*${escapedLabel}\s*\|" })
-    $hasRuntimePass = @($matchingRows | Where-Object {
-        $_ -match '\|\s*PASS(?:\s|\(|\|)' -or
-        $_ -match '\|\s*\d+/\d+\s+[^|]+\|?\s*$'
-    }).Count -gt 0
+    $hasCoverageEntry = $matchingRows.Count -gt 0
 
     [pscustomobject]@{
         Provider = $provider
-        RuntimeEvidence = if ($hasRuntimePass) { 'PASS' } else { 'MISSING' }
+        DocumentationEntry = if ($hasCoverageEntry) { 'RECORDED' } else { 'MISSING' }
     }
 }
 
 $results | Format-Table -AutoSize | Out-Host
-$missing = @($results | Where-Object RuntimeEvidence -ne 'PASS')
+$missing = @($results | Where-Object DocumentationEntry -ne 'RECORDED')
 if ($missing.Count -gt 0) {
     $names = $missing.Provider -join ', '
-    throw "Registered providers without executable PASS evidence: $names"
+    throw "Registered providers without a documented coverage entry: $names"
 }
 
-Write-Host "All $($providers.Count) registered storage providers have executable PASS evidence."
+Write-Host "All $($providers.Count) registered storage providers have documented coverage entries."
+Write-Host 'Documentation inventory only: no tests executed, live providers verified or release certification established.'
