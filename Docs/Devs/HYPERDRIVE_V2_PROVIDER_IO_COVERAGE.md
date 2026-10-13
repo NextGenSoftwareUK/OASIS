@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera bridge original-mutation marker tests — 2026-10-12
+
+- Added four controlled process-envelope cases entering actual native/NFT Deposit/Withdraw wrappers. Each returns error/null result and retains `INativeMutationReconciliationRequired` with a nonempty original transaction ID from the lower native operation. This verifies the wrapper no longer erases the marker; it does not independently prove ledger outcome, signed-byte binding or exact external receipt identity.
+- Current focused bridge suite **20/20 passed**, zero skips, `TestResults/HederaCurrent/hedera-bridge-original-current.trx`. Existing process fixture performs no SDK/network/signing/submission; test environment override is restored, and class marked nonparallel to avoid shared environment collisions. No testnet funds used.
+- Wider current regressions, funded live bridge/interface verification, production recovery, and original all-provider routing gates remain open. No install/download/deployment/merge.
+
+
 ### Hedera native/NFT bridge error preservation — 2026-10-12
 
 - Native and HTS NFT custodial bridge wrappers previously replaced failed transfer results with plain exceptions, losing original typed transaction uncertainty. Both now throw the existing transfer exception when present; missing exception/transaction evidence still returns an error. No retry or new transfer path added.
