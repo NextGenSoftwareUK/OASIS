@@ -28,6 +28,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Approved encryption foundation — 2026-10-12
+
+Added PersistedPrivateKeyValueBackend lazy mandatory composition over existing PrivateKeyValueBackend (AES-GCM values, HMAC logical indexes, existing versioned compressed envelope), owned temporary resolver buffer zeroing, no key generation/plaintext fallback. Added VerifyReadOnlyAsync to validate inner credentials and enumerate/decrypt existing encrypted records without encrypted probe writes; intended inner Cosmos/Sui verification is read-only. Existing default VerifyAsync behavior not changed for other providers.
+
+Shared build succeeded; complete shared suite **94/94 passed**, zero skips (`shared-current.trx`). Tests prove same-key reopen, no plaintext key/value in inner records, temporary buffer cleared, verification preserves exact stored ciphertext, wrong-key authentication failure preserves data, missing-key verification/write fails before records. Initial exact exception assertion expected base CryptographicException; actual AES-GCM subtype AuthenticationTagMismatchException confirmed and test corrected without weakening production behavior. Providers/configuration/live tests not wired yet—foundation is not completed encryption rollout. No install, ledger activity or merge.
+
 ### Mint delivery evidence and approved private storage direction — 2026-10-12
 
 One-shot SendMintedNFTOnceAsync previously discarded thrown provider exception. Now preserves existing native reconciliation evidence exactly; missing response/ordinary thrown delivery error receives explicit unresolved-delivery marker with original cause, no invented transaction identity. Combined manager delivery tests **17/17 passed**, zero skips (`nft-delivery-evidence-current.trx`); current ONODE dependency build zero errors. Dependency f9c985d0faff66b3b4525ebd9b4becba1f564f93 pushed and parent pin/gitlink advanced together.

@@ -107,6 +107,15 @@ public sealed class PrivateKeyValueBackend : IKeyValueBackend, IDisposable
             throw new InvalidDataException("Private storage probe deletion was not reflected by the service.");
     }
 
+    /// <summary>Validate transport and existing encrypted records without ledger writes or fee permission.</summary>
+    public async Task VerifyReadOnlyAsync(CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        ObjectDisposedException.ThrowIf(_disposed, this);
+        await _encrypted.VerifyAsync(cancellationToken);
+        await ListKeysAsync(string.Empty, cancellationToken);
+    }
+
     public void Dispose()
     {
         if (_disposed) return;
