@@ -13,6 +13,7 @@ internal sealed class SuiSdkClient : IDisposable
 {
     private readonly string _rpcEndpoint, _network, _chainId, _privateKey, _packageAddress, _storageObjectId, _currencyObjectId;
     private bool _disposed;
+    internal string ChainId => _chainId;
 
     internal SuiSdkClient(string rpcEndpoint, string network, string chainId, string privateKey,
         string packageAddress, string storageObjectId, string currencyObjectId)

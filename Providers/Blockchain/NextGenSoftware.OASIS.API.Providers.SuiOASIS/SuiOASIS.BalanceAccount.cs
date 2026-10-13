@@ -45,11 +45,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             try
             {
                 ArgumentException.ThrowIfNullOrWhiteSpace(transactionHash);
+                if(string.IsNullOrWhiteSpace(_sdkClient.ChainId))
+                    throw new InvalidOperationException("An explicit Sui genesis chain identifier is required for native fee evidence.");
                 var receipt = await InvokeSdkAsync("nativeFeeReceipt", new { transactionHash }, token);
                 if (receipt.GetProperty("transactionHash").GetString() != transactionHash
                     || receipt.GetProperty("currency").GetString() != "SUI" || receipt.GetProperty("unit").GetString() != "MIST"
                     || string.IsNullOrWhiteSpace(receipt.GetProperty("payer").GetString())
-                    || string.IsNullOrWhiteSpace(receipt.GetProperty("chainIdentifier").GetString()))
+                    || receipt.GetProperty("chainIdentifier").GetString()!=_sdkClient.ChainId)
                     throw new InvalidOperationException("Sui native fee receipt identity, payer or denomination does not match.");
                 _ = receipt.GetProperty("success").GetBoolean();
                 var units = receipt.GetProperty("netUnits").GetString();
