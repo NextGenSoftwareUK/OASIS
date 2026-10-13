@@ -33,6 +33,17 @@ switch(request.operation){
   const title=JSON.parse(request.metadata[0]).Title;
   if(title.startsWith('identity/')) {
    const mode=title.split('/')[1];
+   if(process.env.OASIS_NATIVE_PREPARATION_PIPE) {
+    const {pathToFileURL}=await import('node:url');
+    const {preparationClient}=await import(pathToFileURL(process.env.OASIS_NATIVE_PREPARATION_MODULE).href);
+    try {
+     await preparationClient(process.env.OASIS_NATIVE_PREPARATION_PIPE,5000)({transactionHash:'1'.repeat(32),
+      signedTransactionBase64:'AQID',signature:'controlled-fixture-signature',sender:'fixture-owner',
+      chainId:mode==='foreign-preparation-chain'?'foreign-chain':request.chainId,mode:mode==='invalid-signature'?'invalid':'valid'});
+    } catch {
+     process.stdout.write(JSON.stringify({ok:false,error:'controlled preparation rejection'}));process.exitCode=1;break;
+    }
+   }
    const ids=request.metadata.map(metadata=>JSON.parse(metadata).Id);
    const tokenIds=ids.map(id=>`identity:${mode}:${id}:${ids[0]}`);
    if(mode==='missing')tokenIds.pop();
