@@ -5,6 +5,22 @@ import { fileURLToPath } from "node:url";
 import { fromBech32 } from "@cosmjs/encoding";
 import { DirectSecp256k1Wallet } from "@cosmjs/proto-signing";
 import { invoke as invokeTrusted } from './bridge.mjs';
+import { CosmWasmClient, SigningCosmWasmClient } from '@cosmjs/cosmwasm';
+
+test('actual probe derives SDK signer but uses only readonly client and never prepares submission',async()=>{
+ const wallet=await DirectSecp256k1Wallet.fromKey(new Uint8Array(32).fill(7),'wasm');
+ const [{address}]=await wallet.getAccounts();
+ const originalRead=CosmWasmClient.connect,originalSigned=SigningCosmWasmClient.connectWithSigner;
+ let signed=0,prepared=0,closed=0;
+ CosmWasmClient.connect=async()=>({getChainId:async()=> 'fixture-chain',getContract:async()=>({address:'fixture-contract'}),queryContractSmart:async()=>({owner:address}),getHeight:async()=>42,disconnect:()=>{closed++;}});
+ SigningCosmWasmClient.connectWithSigner=async()=>{signed++;throw new Error('Probe must not open signing client');};
+ try{
+  const input={operation:'probe',rpcEndpoint:'http://127.0.0.1:1',chainId:'fixture-chain',contractAddress:'fixture-contract',addressPrefix:'wasm',privateKey:'07'.repeat(32)};
+  const result=await invokeTrusted(input,async()=>{prepared++;});assert.equal(result.config.owner,address);
+  await assert.rejects(invokeTrusted({...input,privateKey:'08'.repeat(32)}),/owner does not match/);
+  assert.equal(signed,0);assert.equal(prepared,0);assert.equal(closed,2);
+ }finally{CosmWasmClient.connect=originalRead;SigningCosmWasmClient.connectWithSigner=originalSigned;}
+});
 
 test('trusted entry point validates callback and does not prepare key recovery as a submission', async () => {
   await assert.rejects(invokeTrusted({operation:'generateKey'},true),/awaited callback/);
