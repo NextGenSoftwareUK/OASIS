@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos real encrypted-ledger roundtrip — 2026-10-12
+
+- Existing Cosmos storage fixture now supplies a retained public local-only encryption key derived from `oasis-cosmos-local-storage-fixture-v1`, independent of the signing identity. Never use that fixture key for production/user data.
+- **1/1 live test passed**, zero skips, 26 seconds: `HolonsPersistMetadataParentIndexesAndDeletion`, report `TestResults/CosmosRuntime/cosmos-encrypted-holon-live-current.trx`. Actual retained wasmd contract stored/read the holon and metadata; raw SDK backend inspection confirmed private physical keys and encrypted envelopes without the plaintext description/holon ID in inspected values/keys. A second provider instance activated with the same key and decrypted the existing record. Metadata filtering and parent indexing passed; finally deletion and parent-membership absence passed.
+- Reused the existing pinned node, ledger, contract and SDK. No install/download/new deployment/reset. Owned wasmd process stopped after terminal success; reusable container retained. Full encrypted avatar/version/interface coverage and current V2 Cosmos routing remain gates; historical plaintext-routing evidence does not certify the new wiring. Constructor consumers still need rebuild/deployment verification.
+
+
 ### TRON corrected activation live verification — 2026-10-12
 
 - **1/1 live retained-node inspection passed**, zero skips, `TestResults/HyperDriveTron/tron-readonly-original-current.trx`. The fixture now compares the actual storage contract `revision()` before activation and after the healthy inspection phase, and hashes the original pending transaction fence before/after. Both are unchanged. Current activation validates actual contract ownership/private records without probe writes.
