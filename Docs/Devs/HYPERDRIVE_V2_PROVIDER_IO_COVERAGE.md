@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON duplicate/P2P broadcast outcome classification — 2026-10-12
+
+- Official [java-tron Wallet source](https://github.com/tronprotocol/java-tron/blob/develop/framework/src/main/java/org/tron/core/Wallet.java) returns duplicate errors for cached transactions and can return NOT_ENOUGH_EFFECTIVE_CONNECTION after `pushTransaction`. Therefore those replies do not establish non-submission. Official [protocol enum](https://github.com/tronprotocol/java-tron/blob/develop/protocol/src/main/protos/api/api.proto) defines these codes as 5 and 11.
+- Native client now preserves original transaction/genesis/validity-window uncertainty for those two negative responses instead of an ordinary exception that could permit replacement failover. No rebroadcast/retry added. Other explicit negative response classifications still require their own source audit.
+- Build and existing full suite **288/288 passed**, zero skips, `TestResults/TronRuntime/tron-broadcast-classification-current.trx`. Specific injected duplicate/P2P-response cases are not yet included, so these green regressions do not directly prove the new branches. Those tests remain an immediate gate. No live fixture/node/funds were touched; broader production recovery/release gates remain open.
+
+
 ### TRON missing broadcast acknowledgement uncertainty — 2026-10-12
 
 - Audit found a null broadcast response classified as an ordinary rejection after submission. It now raises `TronBroadcastOutcomeUnknownException` retaining the exact signed transaction ID, genesis and validity window; a missing acknowledgement cannot establish non-submission or authorize a replacement. Explicit negative acknowledgements retain their existing rejection behavior pending broader code-specific classification audit.
