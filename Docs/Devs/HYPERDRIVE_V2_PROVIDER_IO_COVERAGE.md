@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Mongo deletion selectors share corrected transaction path — 2026-10-13
+
+Real Mongo transaction42/42 refreshed after GUID rewrite. Old selector soft deletion failed first email assertion in all4 real pair scenarios; expression/key sync/async methods now resolve persisted HolonId and delegate to GUID deletion, retaining errors and commit replay fence. Real expanded4/4 passes email/username/native local key with independent detail usernames. Report `TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`. Hard selector, missing/lookup failures/rollback, uniqueness, attribution/API and production recovery still require evidence. No new runtime/environment/download.
+
 ### Mongo identity-based soft deletion — 2026-10-13
 
 Real soft-delete fixture with independent detail username reproduced global AvatarManager initialization failure in4/4 pairing cases. GUID paths now use session-bound identity reads and writes, shared UTC timestamp, acknowledged match/delete counts, and retained session/abort failure evidence. Storage no longer reads global login state. Real expanded4/4 passed (`TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`). Authenticated deleting-user attribution and activity filtering still need end-to-end API verification; other selector paths and production commit recovery remain open. This does not certify all deletion interfaces or solve outstanding recovery.
