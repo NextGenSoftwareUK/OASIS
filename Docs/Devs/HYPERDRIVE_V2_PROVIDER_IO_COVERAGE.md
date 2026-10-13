@@ -24,6 +24,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON native asset history preserves raw denomination — 2026-10-12
+
+Added SDK protobuf `TransferAssetContract` wallet-history mapping and original-owner mapping. Exact requested integer quantity remains `RawAmount`; `AmountUnit` is `TRC10-RAW/<uppercase original asset-identifier bytes as hex>`, preserving legacy names or IDs without guessing text/precision. Legacy double Amount is an explicitly raw quantity approximation for that denomination, NOT divided by SUN's 10^6 scale; authoritative large quantities remain strings. Existing TRX/SUN behavior unchanged. Owner/payer mapping now recognises that native contract for original signed/fee evidence; no new submission API implied.
+
+Complete TRON suite **275/275 passed**, zero skips (`tron-current.trx`): successful/failed native asset quantities above JavaScript safe integer range, exact identifier/unit, and rejection of missing asset identity, negative quantity and unrelated wallet. Build zero errors/23 existing source/restore warnings. Controlled actual protobuf mapper tests—not real TRC10 history/fees, token decimal resolution or live contract execution. Remaining native resource/governance history, submission support, recovery/private-storage/deployed gates remain open. No installs, ledger mutation, merge or deployment.
+
 ### Interface audit and documentation-inventory claims corrected — 2026-10-12
 
 Source scan of the four current C# provider directories found no active NotImplementedException/TODO placeholders in the searched scope, but TRON wallet history explicitly rejects unhandled native protobuf contract types (`MapWalletTransaction`): six mapped types cover account create/update/permission update, native transfer and smart-contract call/create. TRC10/resource/governance history and multi-contract mapping require a relevance/capability audit; no full-history certification from the absence of placeholders. A commented-out old TRON LoadNFT stub is not shipping implementation evidence.
