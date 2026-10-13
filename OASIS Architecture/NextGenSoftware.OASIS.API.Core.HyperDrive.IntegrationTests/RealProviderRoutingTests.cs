@@ -39,6 +39,36 @@ public sealed class RealProviderRoutingTests : IDisposable
     private string FilesPath => Path.Combine(_root, "files");
 
     [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task AvatarReplicationPreservesIdentityInBothRealStores(bool synchronous)
+    {
+        Directory.CreateDirectory(_root);
+        var local = new LocalFileOASIS(storageDirectory: FilesPath);
+        using var sqlite = new SQLLiteDBOASIS($"Data Source={SqlitePath};Pooling=False");
+        (await local.ActivateProviderAsync()).IsError.Should().BeFalse();
+        (await sqlite.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var manager = CreateManager(autoReplication:true);
+        manager.RegisterProvider(local);
+        manager.RegisterProvider(sqlite);
+        manager.SetAndReplaceAutoReplicationListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.LocalFileOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = "owned-v2-avatar", Email = "owned-v2@test.local", FirstName = "Owned", LastName = "Fixture", AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
+        var request = new StorageOperationRequest { Operation = "SaveAvatar", Payload = avatar, PreferredProvider = ProviderType.LocalFileOASIS };
+        var router = new OASISHyperDrive(manager);
+        var result = synchronous ? router.RouteRequest<IAvatar>(request) : await router.RouteRequestAsync<IAvatar>(request);
+        result.IsError.Should().BeFalse(result.Message);
+        manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
+        manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+        foreach (var loaded in new[] { await local.LoadAvatarAsync(avatar.Id), await sqlite.LoadAvatarAsync(avatar.Id) })
+        {
+            loaded.IsError.Should().BeFalse(loaded.Message);
+            loaded.Result.Id.Should().Be(avatar.Id);
+            loaded.Result.Username.Should().Be(avatar.Username);
+            loaded.Result.Email.Should().Be(avatar.Email);
+        }
+    }
+
+    [Theory]
     [InlineData(true, true)]
     [InlineData(true, false)]
     [InlineData(false, true)]

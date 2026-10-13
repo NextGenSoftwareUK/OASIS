@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+Real V2 avatar checkpoint: public SaveAvatar through sync/async V2 replicates to actual LocalFile and SQLite; direct LoadAvatar by Id in both verifies public identity, username and email, diagnostics succeeded1/failed0. Full focused class18/18 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-avatar-current.trx`). Full avatar/detail fields, updates, other identity selectors and deletion remain distinct gates.
+
 Real V2 read-policy checkpoint: sync/async reads with configured lists and disabled load balancing retain active LocalFile despite secondary-favoring performance metrics. With failover enabled, authoritative primary absence does not return a stale SQLite replica. Four new cases/full class16/16 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-read-policies-current.trx`). These are real-store behavior assertions, not full read-selector consistency/latency strategy/API coverage.
 
 Real V2 disabled-policy checkpoint: with real providers and both lists configured, disabled replication leaves SQLite empty after successful LocalFile primary write; disabled failover leaves SQLite empty after actual primary I/O failure and returns error. Sync/async both checked; class12/12 passed (`TestResults/HyperDriveSqliteCurrent/sqlite-localfile-v2-disabled-current.trx`). This verifies these two flags, not disabled load balancing or complete configuration combinations.
@@ -52,7 +54,7 @@ SQLite delete checkpoint (2026-10-13): GUID synchronous deletion now completes S
 
 | Area | Current evidence | Remaining gate |
 | --- | --- | --- |
-| Mongo/SQLite priority foundation | Historical Mongo43/narrow V2 stores; SQLite metadata/version/key isolation and owned tracked-write recovery; real integration10 passed | SQLite schema upgrade/backfill/history/parent/children/concurrency/full mappings+avatars; current Mongo implementation/API/routing audit and complete real matrix |
+| Mongo/SQLite priority foundation | Current real Mongo transaction42; SQLite integration28; real SQLite/LocalFile V2 class18 including sync/async policy checks, holon lifecycle and initial avatar replication | SQLite schema upgrade/backfill/history/recursive children/concurrency/full mappings+avatars; Mongo full interfaces/API/real V2 pairing and complete matrix; live multi-member elections |
 | Cosmos | Actual retained-chain encrypted query test covers all golden exemption keys plus AppRegion; typed mint owner/Mongo proof; full119 and affected subsets passed; historical V2 live subsets | Typed/combined query parity across manager+provider, live owned mint/escrow/crash recovery, host/valuation/resolver, complete interfaces/API/failure matrix and published Linux |
 | Sui | Actual retained-chain equality queries cover golden metadata keys+AppRegion; typed mint owner/Mongo proof; current affected subsets and earlier full97; historical V2 live subsets | Typed/compound/manager query parity, deployed host/receipt/valuation, crash recovery/live NFT ownership; complete custody/options/routing/API |
 | TRON | 294 unit tests passed; read-only actual retained-node inspection preserves revision/fence; selected real read distribution/closed-transport failover passed | Original uncertain mutation reconciliation, current mutation/replication, all response classifications/options/API |
