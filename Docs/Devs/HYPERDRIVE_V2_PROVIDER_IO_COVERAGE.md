@@ -5,6 +5,14 @@
 
 ## Current provider status — not full certification
 
+### SQLite provider-key selector isolation — 2026-10-13
+
+Both repository string-key loaders ignored their requested key and selected the first literal-version row. Their catches also returned `IsError=false` on exceptions. Replaced this with exact local-provider-key selection and current/explicit version checks; async lookup uses actual EF async query, absence is not marked loaded, and exceptions are retained as errors. Key deletion now selects the same local key rather than any other provider's key value.
+
+Per-holon provider-key maps are persisted as JSON and restored. Absent local keys receive the record's generated/public GUID string at save; explicitly supplied blank local keys are rejected. A unique `LocalProviderKey` index prevents ambiguous records rather than choosing an arbitrary match. This adds scalar columns/index to the fresh schema; existing database upgrade/backfill remains a reviewed release gate, and no existing/user DB was modified. Historical versions, parent-key semantics, tracking after failed writes, richer graph/audit mapping and all avatar selectors remain open.
+
+Real SQLite integration project **6/6** passed (`TestResults/SQLiteCurrent/sqlite-provider-key-deletion-current.trx`): correct sync/async custom-key record, explicit-version mismatch, absent/foreign key exclusion, duplicate-key write rejection, foreign-key delete refusal and local soft-delete selection, plus prior current-version/type/metadata and basic cases. Provider build0errors/41warnings. The locked fixed fixture database is absent after cleanup; no new runtime/SDK or download. These are provider selector proofs, not complete V2 routing/API/interface certification.
+
 ### Return to agreed priority: SQLite persistence/query gaps — 2026-10-13
 
 User explicitly questioned whether the agreed high-priority order was completed. It was not; work had stayed on the four remaining chains too long. Resume MongoDB/SQLite foundation first, then Ethereum/Solana, IPFS, clouds, L2s, Neo4j, remaining chains and protocol integrations, without removing the original Cosmos/Hedera/Sui/TRON requirements or clearing uncertain journals.
