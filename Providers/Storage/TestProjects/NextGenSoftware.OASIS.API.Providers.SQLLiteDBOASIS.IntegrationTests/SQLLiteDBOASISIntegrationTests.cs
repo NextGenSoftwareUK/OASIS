@@ -52,10 +52,15 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         var created = new DateTime(2025,1,2,3,4,5,DateTimeKind.Utc);
         detail.CreatedByAvatarId = creator;
         detail.CreatedDate = created;
+        var originType = Enum.GetValues<OASISType>().First();
+        detail.CreatedProviderType = new NextGenSoftware.Utilities.EnumValue<ProviderType>(ProviderType.MongoDBOASIS);
+        detail.CreatedOASISType = new NextGenSoftware.Utilities.EnumValue<OASISType>(originType);
         (await provider.SaveAvatarDetailAsync(detail)).IsError.Should().BeFalse();
         detail.Version = 4;
         detail.CreatedByAvatarId = Guid.Empty;
         detail.CreatedDate = default;
+        detail.CreatedProviderType = null;
+        detail.CreatedOASISType = null;
         detail.Karma = 200;
         var updated = synchronous ? provider.SaveAvatarDetail(detail) : await provider.SaveAvatarDetailAsync(detail);
         updated.IsError.Should().BeFalse(updated.Message);
@@ -67,6 +72,8 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
             loaded.Result.Karma.Should().Be(200);
             loaded.Result.CreatedByAvatarId.Should().Be(creator);
             loaded.Result.CreatedDate.Should().Be(created);
+            loaded.Result.CreatedProviderType.Value.Should().Be(ProviderType.MongoDBOASIS);
+            loaded.Result.CreatedOASISType.Value.Should().Be(originType);
         }
         (await provider.LoadAvatarDetailAsync(detail.Id,version:3)).Result.Should().BeNull();
         provider.LoadAvatarDetailByUsername(detail.Username,version:3).Result.Should().BeNull();

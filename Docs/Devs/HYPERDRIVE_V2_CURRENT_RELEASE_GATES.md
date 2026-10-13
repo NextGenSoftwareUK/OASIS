@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+SQLite detail origin attribution checkpoint: read mapper now reconstructs nullable CreatedProviderType/CreatedOASISType. Sync/async version updates omit these fields and preserve original MongoDB attribution/OASIS type in direct identity reads. SQLite42/42 passed (`TestResults/SQLiteCurrent/sqlite-detail-origin-current.trx`). This closes focused classification read loss; full audit graph/history/provider-key/encryption/API coverage remains open.
+
 Detail creation audit checkpoint: sync/async updates no longer overwrite persisted CreatedByAvatarId/CreatedDate from incoming replacement fields. Version-update tests omit both and verify original creator/date across identity selectors; SQLite42/42 passed (`TestResults/SQLiteCurrent/sqlite-detail-creation-audit-current.trx`). Classification/complete nested audit mappings and hosted update semantics still require verification.
 
 Detail metadata isolation checkpoint: SQLite detail constructor/update/read now uses per-record MetaDataJson instead of globally property-keyed legacy metadata rows. Real bidirectional V2 class24/24 preserves park-source metadata across initial/update/fresh reads; SQLite42/42 verifies two avatars use the same metadata key with different values without collision (`sqlite-localfile-v2-detail-metadata-current.trx`, `sqlite-detail-metadata-isolation-current.trx`). New column/legacy-row backfill requires upgrade review; no user-data conversion performed. Invalid JSON fails visibly; complete typed/encrypted metadata/provider API coverage remains open.
