@@ -89,6 +89,58 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         (await provider.LoadHolonAsync(holon.Id,loadChildren:false)).Result.IsActive.Should().BeFalse();
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task TrackedUpdatesAndRejectedWritesDoNotPoisonLaterSaves(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var original = new Holon { Id = Guid.NewGuid(), Name = "first", Version = 1 };
+        original.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS] = "owned-key";
+        (await provider.SaveHolonAsync(original,saveChildren:false)).IsError.Should().BeFalse();
+        (await provider.LoadHolonAsync(original.Id,loadChildren:false)).Result.Name.Should().Be("first");
+        original.Name = "updated"; original.Version = 2;
+        var update = synchronous ? provider.SaveHolon(original,saveChildren:false) : await provider.SaveHolonAsync(original,saveChildren:false);
+        update.IsError.Should().BeFalse(update.Message);
+        var rejected = new Holon { Id = Guid.NewGuid() };
+        rejected.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS] = "owned-key";
+        var failure = synchronous ? provider.SaveHolon(rejected,saveChildren:false) : await provider.SaveHolonAsync(rejected,saveChildren:false);
+        failure.IsError.Should().BeTrue(); failure.Exception.Should().NotBeNull();
+        var next = new Holon { Id = Guid.NewGuid(), Name = "valid after failure" };
+        var saved = synchronous ? provider.SaveHolon(next,saveChildren:false) : await provider.SaveHolonAsync(next,saveChildren:false);
+        saved.IsError.Should().BeFalse(saved.Message);
+        (await provider.LoadHolonAsync(original.Id,loadChildren:false)).Result.Name.Should().Be("updated");
+        (await provider.LoadHolonAsync(rejected.Id,loadChildren:false)).Result.Should().BeNull();
+    }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public async Task RejectedBulkWriteRollsBackAndDoesNotPoisonLaterWrites(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var held = new Holon { Id = Guid.NewGuid() };
+        held.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS] = "held-key";
+        (await provider.SaveHolonAsync(held,saveChildren:false)).IsError.Should().BeFalse();
+        var valid = new Holon { Id = Guid.NewGuid() };
+        var conflicting = new Holon { Id = Guid.NewGuid() };
+        conflicting.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS] = "held-key";
+        var batch = new IHolon[] { valid, conflicting };
+        var rejected = synchronous ? provider.SaveHolons(batch,saveChildren:false) : await provider.SaveHolonsAsync(batch,saveChildren:false);
+        rejected.IsError.Should().BeTrue(); rejected.Exception.Should().NotBeNull();
+        (await provider.LoadHolonAsync(valid.Id,loadChildren:false)).Result.Should().BeNull();
+        (await provider.LoadHolonAsync(conflicting.Id,loadChildren:false)).Result.Should().BeNull();
+        var next = new IHolon[] { new Holon(), new Holon() };
+        var saved = synchronous ? provider.SaveHolons(next,saveChildren:false) : await provider.SaveHolonsAsync(next,saveChildren:false);
+        saved.IsError.Should().BeFalse(saved.Message);
+        saved.Result.Should().HaveCount(2);
+        saved.Result.Select(row => row.Id).Should().OnlyHaveUniqueItems().And.NotContain(Guid.Empty);
+        foreach (var row in saved.Result)
+            (await provider.LoadHolonAsync(row.Id,loadChildren:false)).Result.Id.Should().Be(row.Id);
+    }
+
     [Fact]
     public async Task SQLLiteDBOASIS_Should_Initialize_Successfully()
     {

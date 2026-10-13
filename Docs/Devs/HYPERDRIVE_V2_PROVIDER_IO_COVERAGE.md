@@ -5,6 +5,12 @@
 
 ## Current provider status — not full certification
 
+### SQLite tracked-update and rejected-write recovery — 2026-10-13
+
+Actual sync/async tests reproduced EF identity-tracking conflicts when updating a record already saved/read in the same provider, and exposed missing original save exceptions. Save now updates the owned tracked entity's scalar values rather than attaching a second instance. Rejected writes detach only involved Added/Modified holon entries, not the global tracker or unrelated record IDs. Sync/async single and bulk saves retain original exceptions; bulk input is materialized once before tracking and returns actual stored/generated IDs/key maps rather than unmodified caller input.
+
+Real SQLite regression before fix **0/2** is preserved in `TestResults/SQLiteCurrent/sqlite-tracking-before-current.trx`. Final entire integration suite **10/10** passed (`sqlite-single-bulk-recovery-current.trx`): tracked update, duplicate-key rejection, later valid write on the same connection, and sync/async rejected bulk atomicity/no partial rows with later successful generated-ID batch readback. Build0errors/41warnings. Fixed fixture DB absent after cleanup; dependencies and working path reused. This proves these constraint-failure cases, not every I/O/cancellation/concurrency failure or historical version support.
+
 ### SQLite provider-key selector isolation — 2026-10-13
 
 Both repository string-key loaders ignored their requested key and selected the first literal-version row. Their catches also returned `IsError=false` on exceptions. Replaced this with exact local-provider-key selection and current/explicit version checks; async lookup uses actual EF async query, absence is not marked loaded, and exceptions are retained as errors. Key deletion now selects the same local key rather than any other provider's key value.
