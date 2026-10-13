@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Newest complete local regression checkpoints: Cosmos **116/116**, TRON **285/285**, Sui **81/81**; strictly non-testnet Hedera selection **270/270**. All zero failures/skips in their explicit scopes, not a sum or provider/live/hosted certification. Detailed current checkpoints below supersede older summary counts.
+
 Current Cosmos full-suite refresh at `b5892a2c9`: **102/102 passed**, zero skipped/failed, against retained source SDK after the probe fix (details below). This supersedes the earlier pre-probe-fix limitation for that C# suite; no deployed packaging or full live asset certification follows.
 
 Latest recorded complete C# checkpoints (2026-10-12): **Sui 78/78; Cosmos 102/102; TRON 275/275**, zero failures/nonexecuted cases. These are revision-specific: Cosmos full suite predates the later SDK probe fix. Sui/Cosmos include actual two-minute process deadlines; Cosmos explicitly uses the retained source SDK installation, not published-output packaging proof. Current live Sui V2 healthy routing **1/1**, outage routing **2/2**, and activation/prepared-submission/lost-confirmed-reply checks **3/3** passed separately. Cosmos current live healthy **1/1** and outage **2/2** passed before the subsequent fixture-cleanup-only change. These scopes overlap; do not sum them or infer full-interface/hosted API certification. Other provider/shared/Core/SDK checkpoints are revision-specific evidence detailed below, not freshly rerun certifications.
@@ -25,6 +27,10 @@ Broader providers with narrower recorded real-runtime/SDK/API evidence: MongoDB,
 Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 244/244, Cosmos C# 56/56/SDK 29/29, Hedera non-funded 209/209; zero skips in the stated selections. Exact revisions and limitations are recorded below. Task branch contains Development reconciliation, but Development/master have not received this task's release merge. Hosted dev revision last checked was `77c65eaa80aa06fb767715322eb97d8d3844282f`, not this task code. User authorizes a safe Development merge/automatic Railway deployment; resolve regression/deployment gates before claiming release success. Native NFT models and mint actor/recipient/batch safety have changed; positive authenticated minting, durable subscription/fee integration, live Cosmos corrected assets/multi-send/bridge receipt, funded Hedera storage/NFT/V2, full interface/options/hosted API and broader provider gates remain open. Update this summary whenever coverage or remaining gates change; retain exact checkpoint reports below rather than silently promote narrow evidence to broader claims.
 
 ## Routing contract
+
+### Current complete Sui regression after recipient invariant — 2026-10-12
+
+Complete current Sui provider suite **81/81 passed**, zero skips/failures (`sui-current.trx`), two minutes ten seconds including actual process deadline; same session terminal exit zero. Uses retained source SDK and current dependency output after ownership/case comparison, no restore/install/new runtime/live ledger calls. Supersedes earlier 78-case complete checkpoint; narrower 48-case report overlaps. Asked user to choose mandatory separately keyed on-chain encryption versus private off-chain storage for Sui/Cosmos; no reply recorded at this checkpoint and no persisted-format/key migration assumed. Pricing remains unapproved. Those privacy/recovery/billing/live/deployed gates remain open; no merge.
 
 ### Cosmos exact fee boundary regression — 2026-10-12
 
