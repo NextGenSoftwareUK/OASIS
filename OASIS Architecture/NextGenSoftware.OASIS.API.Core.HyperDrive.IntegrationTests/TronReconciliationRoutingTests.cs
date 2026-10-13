@@ -86,4 +86,30 @@ public class TronReconciliationRoutingTests
             else{Assert.True(alternateBackend.Writes>0);Assert.Equal(holon.Id,result.Result.Id);}
         }finally{await first.DeActivateProviderAsync();await alternate.DeActivateProviderAsync();}
     }
+
+    [Theory]
+    [InlineData("executed",false)] [InlineData("executed",true)]
+    [InlineData("failed",false)] [InlineData("failed",true)]
+    [InlineData("unknown",false)] [InlineData("unknown",true)]
+    [InlineData("ordinary",false)] [InlineData("ordinary",true)]
+    public async Task ActualCosmosBurnEvidenceFencesReplayButPreflightFailureStillFailsOver(string mode,bool asynchronous)
+    {
+        var root=new DirectoryInfo(AppContext.BaseDirectory);
+        const string relative="Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests/Fixtures/nft-signer.mjs";
+        while(root!=null&&!File.Exists(Path.Combine(root.FullName,relative)))root=root.Parent;
+        Assert.NotNull(root);
+        var previous=Environment.GetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",Path.Combine(root.FullName,relative));
+        try{
+            using var provider=new API.Providers.CosmosBlockChainOASIS.CosmosBlockChainOASIS("http://127.0.0.1:1","fixture-chain","test-only-explicit","fixture-contract");
+            var burn=await provider.BurnNFTAsync(new API.Core.Objects.NFT.Requests.BurnWeb3NFTRequest{NFTTokenAddress="fixture-contract#native-evidence-"+mode,OwnerPrivateKey="test-only-explicit",OwnerPublicKey=null,OwnerSeedPhrase=null});
+            Assert.True(burn.IsError);Assert.NotNull(burn.Exception);
+            if(mode!="ordinary"){
+                var evidence=Assert.IsType<API.Providers.CosmosBlockChainOASIS.CosmosNativeMutationReconciliationException>(burn.Exception);
+                Assert.Equal(mode=="unknown"?null:new string('a',64),evidence.OriginalTransactionId);
+                Assert.Equal(mode=="executed"?(bool?)true:mode=="failed"?(bool?)false:null,evidence.ExecutionSucceeded);
+            }
+            await VerifyRouter(burn.Exception,ProviderType.CosmosBlockChainOASIS,asynchronous,mode!="ordinary");
+        }finally{Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",previous);}
+    }
 }
