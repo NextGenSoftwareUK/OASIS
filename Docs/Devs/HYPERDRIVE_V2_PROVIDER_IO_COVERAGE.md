@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### V2 bulk preparation boundary — 2026-10-12
+
+- Core `ca7b722a3b53089519e0643ac1164b7cbebc9d8e` materializes V2 bulk preparation inside one error boundary before provider execution. Sync/async non-generic bulk saves now return `HOLON_SAVE_PREPARATION_FAILED` with original exception on preparation failure. Legacy unchanged. This prevents provider writes on preparation failure, not transactional rollback of caller objects already prepared earlier in a multi-record batch.
+- Full Core suite **454/454 passed**, zero skips, `TestResults/CoreCurrent/core-v2-bulk-preparation-current.trx`; four additional missing CBC/GCM key cases exercise sync/async bulk saves and assert structured errors, metadata preservation for the tested record and no single/bulk provider writes. Mixed multi-record preparation, generic bulk and child traversal matrices remain required.
+- Core build passed; pushed revision and parent manifest/gitlink updated together. Wider integration/recovery/provider gates remain open; no merge/deployment/install.
+
+
 ### Synchronous generic V2 failover evidence — 2026-10-12
 
 - Current full Core suite **450/450 passed**, zero skips, `TestResults/CoreCurrent/core-generic-v2-failover-current.trx`. Two new tests enter actual `HolonManager.SaveHolon<Holon>` under configured V2: known availability failure calls the second provider exactly once and returns the saved typed holon; native uncertainty retains the exact original exception and never calls a second write. Both assert exactly one first-provider invocation.

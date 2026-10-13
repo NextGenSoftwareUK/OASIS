@@ -3883,6 +3883,8 @@ public sealed class HyperDriveProviderExecutionTests
     [InlineData(false,"sync")] [InlineData(true,"sync")]
     [InlineData(false,"generic-async")] [InlineData(true,"generic-async")]
     [InlineData(false,"generic-sync")] [InlineData(true,"generic-sync")]
+    [InlineData(false,"bulk-async")] [InlineData(true,"bulk-async")]
+    [InlineData(false,"bulk-sync")] [InlineData(true,"bulk-sync")]
     public async Task InvalidDnaEncryptionPreventsV2ProviderWritesAndPreservesMetadata(bool quantum,string entry)
     {
         var dna=CreateDna(HyperDriveModes.V2);
@@ -3900,14 +3902,16 @@ public sealed class HyperDriveProviderExecutionTests
             result.IsError.Should().BeTrue();result.ErrorCode.Should().Be("HOLON_SAVE_PREPARATION_FAILED");
             result.Exception.Should().BeOfType<InvalidOperationException>();result.Result.Should().BeNull();
         }
-        if(entry=="generic-async")Check(await manager.SaveHolonAsync<Holon>(holon,actor,providerType:ProviderType.IPFSOASIS));
+        if(entry=="bulk-async")Check(await manager.SaveHolonsAsync(new[]{holon},actor,providerType:ProviderType.IPFSOASIS));
+        else if(entry=="bulk-sync")Check(manager.SaveHolons(new[]{holon},actor,providerType:ProviderType.IPFSOASIS));
+        else if(entry=="generic-async")Check(await manager.SaveHolonAsync<Holon>(holon,actor,providerType:ProviderType.IPFSOASIS));
         else if(entry=="generic-sync")Check(manager.SaveHolon<Holon>(holon,actor,providerType:ProviderType.IPFSOASIS));
         else if(entry=="sync")Check(manager.SaveHolon(holon,actor,providerType:ProviderType.IPFSOASIS));
         else Check(await manager.SaveHolonAsync(holon,actor,providerType:ProviderType.IPFSOASIS));
         holon.MetaData.Should().ContainKey("private-secret").WhoseValue.Should().Be("preserve-me");
         holon.MetaData.Should().ContainKey("Status").WhoseValue.Should().Be("Pending");
         holon.MetaData.Should().NotContainKey("__oasis_enc__");
-        provider.Invocations.Should().NotContain(call=>call.Method.Name=="SaveHolonAsync" || call.Method.Name=="SaveHolon");
+        provider.Invocations.Should().NotContain(call=>call.Method.Name=="SaveHolonAsync" || call.Method.Name=="SaveHolon" || call.Method.Name=="SaveHolonsAsync" || call.Method.Name=="SaveHolons");
     }
 
     [Fact]
