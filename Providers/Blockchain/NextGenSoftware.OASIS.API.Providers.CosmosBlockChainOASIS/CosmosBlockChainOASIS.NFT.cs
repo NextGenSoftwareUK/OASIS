@@ -171,10 +171,20 @@ public partial class CosmosBlockChainOASIS
             var key = await SigningKeyAsync(Guid.Empty, request.OwnerPrivateKey, request.OwnerSeedPhrase, request.OwnerPublicKey);
             var hash = await TransferNftAsync(locator.Address, request.FromWalletAddress, request.ToWalletAddress, key);
             result.Result = new Web3NFTTransactionResponse { TransactionResult = hash, SendNFTTransactionResult = hash };
-            var loaded = await LoadOnChainNFTDataAsync(locator.Address);
-            if (loaded.IsError) throw new InvalidOperationException($"NFT transfer committed as {hash}, but readback failed: {loaded.Message}", loaded.Exception);
-            loaded.Result.SendNFTTransactionHash = hash;
-            result.Result.Web3NFT = loaded.Result;
+            try
+            {
+                var loaded = await LoadOnChainNFTDataAsync(locator.Address);
+                if (loaded.IsError || loaded.Result == null)
+                    throw new InvalidOperationException(loaded.Message ?? "Committed NFT readback returned no NFT.", loaded.Exception);
+                loaded.Result.SendNFTTransactionHash = hash;
+                result.Result.Web3NFT = loaded.Result;
+            }
+            catch (Exception readbackError)
+            {
+                throw new CosmosNativeMutationReconciliationException(
+                    $"NFT transfer committed as {hash}, but readback failed: {readbackError.Message}",
+                    hash, true, readbackError);
+            }
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
         return result;
