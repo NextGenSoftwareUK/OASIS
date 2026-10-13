@@ -9,18 +9,38 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 public class CosmosProcessBoundaryTests
 {
     [DataTestMethod]
-    [DataRow("upload")]
-    [DataRow("instantiate")]
-    public async Task DeploymentReplyMissingFieldsRetainsOriginalIdentityAndCannotEnableReplay(string operation)
+    [DataRow("upload", "missing")] [DataRow("upload", "zero")] [DataRow("upload", "negative")]
+    [DataRow("upload", "string")] [DataRow("upload", "null")] [DataRow("upload", "overflow")] [DataRow("upload", "fraction")]
+    [DataRow("instantiate", "missing")] [DataRow("instantiate", "blank")]
+    [DataRow("instantiate", "number")] [DataRow("instantiate", "null")]
+    public async Task DeploymentReplyMissingFieldsRetainsOriginalIdentityAndCannotEnableReplay(string operation, string mode)
     {
         await WithFixture(async provider => {
             var error = await Assert.ThrowsExceptionAsync<CosmosNativeMutationReconciliationException>(
-                () => Invoke(provider, operation, new { mode = "missing" }, CancellationToken.None));
+                () => Invoke(provider, operation, new { mode }, CancellationToken.None));
             Assert.AreEqual(new string('a', 64), error.OriginalTransactionId);
             Assert.IsNull(error.ExecutionSucceeded);
             Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(error));
             var valid = await Invoke(provider, operation, new { mode = "valid" }, CancellationToken.None);
             Assert.AreEqual(new string('a', 64), valid.GetProperty("transactionHash").GetString());
+        });
+    }
+
+    [TestMethod]
+    public async Task PublicDeploymentMethodsPreserveMissingResultReconciliationEvidence()
+    {
+        await WithFixture(async provider => {
+            var upload = await provider.UploadContractAsync(new byte[] { 1 });
+            var instantiate = await provider.InstantiateContractAsync(2, new { }, "controlled fixture");
+            Assert.IsTrue(upload.IsError); Assert.IsTrue(instantiate.IsError);
+            foreach (var failure in new[] { upload.Exception, instantiate.Exception })
+            {
+                Assert.IsInstanceOfType<CosmosNativeMutationReconciliationException>(failure);
+                var evidence = (CosmosNativeMutationReconciliationException)failure;
+                Assert.AreEqual(new string('a', 64), evidence.OriginalTransactionId);
+                Assert.IsNull(evidence.ExecutionSucceeded);
+                Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(evidence));
+            }
         });
     }
 

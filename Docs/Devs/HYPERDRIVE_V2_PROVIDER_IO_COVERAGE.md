@@ -26,6 +26,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos deployment malformed-value/public-entry regressions — 2026-10-12
+
+Expanded controlled process evidence to missing/zero/negative/string/null/overflow/fractional upload code IDs and missing/blank/numeric/null instantiate addresses. Each retains exact original hash, unknown execution outcome and reconciliation marker; valid replies remain accepted. Public UploadContractAsync/InstantiateContractAsync also preserve error type/hash/unknown outcome through OASISResult, rather than replacing the evidence with an ordinary parsing error. Focused **12/12 passed**, zero skips (`cosmos-deployment-reply-current.trx`), replacing earlier two-case report. No live deployment, checksum certification, installed dependencies, ledger mutation or merge.
+
 ### Cosmos malformed deployment replies retain original evidence — 2026-10-12
 
 SDK boundary now validates positive Int64 upload codeId and nonblank string instantiate contractAddress after validating original mutation hash. Missing/wrong fields produce existing reconciliation-required exception with exact hash and unknown outcome, preventing downstream ordinary parse errors from enabling repeat deployment. Authoritative validation lives at one boundary; no fallback parsing or resubmission. Controlled actual process tests **2/2 passed**, zero skips (`cosmos-deployment-reply-current.trx`): missing fields retain hash/marker/unknown outcome and valid replies remain accepted for both operations. Provider build zero errors. Does not prove live upload/instantiation, address checksum validation or production recovery. No installs, ledger writes, sponsorship or merge.
