@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Mongo failed activation remains inactive — 2026-10-13
+
+Real createIndexes rejection exposed stale activated flag/dropped exception4/4. Sync/async activation now clears flag and retains driver exception; expanded4/4 checks failure then explicit healthy reactivation. Report `mongo-sqlite-v2-current.trx`. Production duplicate/history/index audit, concurrency, wider regressions/consumer builds and original provider recovery gates remain open. Existing runtime reused.
+
 ### Mongo avatar/detail public identity indexes — 2026-10-13
 
 Activation verifies unique HolonId indexes on current Avatar/AvatarDetail collections. Real direct BSON duplicate inserts with different native _id fail DuplicateKey in both; expanded pair4/4 passed (`mongo-sqlite-v2-current.trx`). Existing duplicates cause activation failure; no records removed/migrated. Production duplicate/index audit and historical multi-version representation remain deployment gates; no history or concurrent-upsert completion claim. Validation runs on every activation to prevent bypass after partial initialization. Existing environment reused.

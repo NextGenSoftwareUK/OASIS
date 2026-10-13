@@ -118,7 +118,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             }
             catch (Exception ex) 
             {
-                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In MongoDBOASISProvider.ActivateProvider. Reason: {ex}");
+                IsProviderActivated = false;
+                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In MongoDBOASISProvider.ActivateProvider. Reason: {ex}", ex);
             }
             
             return result;
@@ -177,7 +178,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In MongoDBOASISProvider.ActivateProviderAsync. Reason: {ex}");
+                IsProviderActivated = false;
+                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In MongoDBOASISProvider.ActivateProviderAsync. Reason: {ex}", ex);
             }
 
             return result;
