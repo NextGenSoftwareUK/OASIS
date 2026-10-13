@@ -2,10 +2,29 @@ import { test } from "node:test";
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
-import { fromBech32 } from "@cosmjs/encoding";
+import { fromBech32, toBech32 } from "@cosmjs/encoding";
 import { DirectSecp256k1Wallet } from "@cosmjs/proto-signing";
 import { invoke as invokeTrusted } from './bridge.mjs';
 import { CosmWasmClient, SigningCosmWasmClient } from '@cosmjs/cosmwasm';
+
+test('actual instantiation entry applies default wallet prefix to returned address validation',async()=>{
+ const original=SigningCosmWasmClient.connectWithSigner;
+ let returnedPrefix='wasm',closed=0;
+ SigningCosmWasmClient.connectWithSigner=async()=>({
+  getChainId:async()=> 'fixture-chain',broadcastTx:async()=>{},signAndBroadcast:async()=>{},
+  instantiate:async()=>({transactionHash:'a'.repeat(64),height:42,
+   contractAddress:toBech32(returnedPrefix,new Uint8Array(32).fill(1))}),disconnect:()=>{closed++;}
+ });
+ try{
+  const input={operation:'instantiate',rpcEndpoint:'http://127.0.0.1:1',chainId:'fixture-chain',
+   privateKey:'07'.repeat(32),codeId:2,message:{},label:'controlled entry'};
+  await assert.rejects(invokeTrusted(input),error=>error.nativeMutation?.transactionHash==='a'.repeat(64)&&error.nativeMutation.executionSucceeded===true);
+  returnedPrefix='cosmos';const valid=await invokeTrusted(input);
+  assert.equal(fromBech32(valid.contractAddress,90).prefix,'cosmos');
+  returnedPrefix='wasm';const explicit=await invokeTrusted({...input,addressPrefix:'wasm'});
+  assert.equal(fromBech32(explicit.contractAddress,90).prefix,'wasm');assert.equal(closed,3);
+ }finally{SigningCosmWasmClient.connectWithSigner=original;}
+});
 
 test('actual probe derives SDK signer but uses only readonly client and never prepares submission',async()=>{
  const wallet=await DirectSecp256k1Wallet.fromKey(new Uint8Array(32).fill(7),'wasm');
