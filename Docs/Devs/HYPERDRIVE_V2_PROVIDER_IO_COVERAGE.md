@@ -5,6 +5,14 @@
 
 ## Current provider status — not full certification
 
+### Sui committed mint identity validation — 2026-10-12
+
+Production mint readback previously accepted an incomplete or duplicate token list and did not bind deserialized record IDs/creator to the original submitted batch. The provider now requires exact token count, distinct nonempty token addresses, the original recipient (including SDK-normalized equivalent hexadecimal address spellings), one-to-one membership of original record GUIDs, and the signing creator. Failures inside readback preserve the original committed digest through `SuiNativeMutationReconciliationException`; they do not submit another transaction. Controlled process fixtures cover valid batches, normalized short recipient, missing/duplicate tokens, foreign/duplicate metadata IDs, foreign creator and foreign recipient. Focused final tests passed 8/8 (`TestResults/SuiRuntime/sui-mint-normalized-identity-current.trx`). Before adding address normalization, the full suite passed 92/92 (`sui-full-mint-identity-current.trx`); these counts overlap and do not constitute live SDK proof. Current full rerun is recorded below when terminal.
+
+Live NFT rerun remains a gate: the existing `SuiNftTests.ProviderMintsBatchReadsMetadataTransfersAndBurnsRealObjects` mints/asserts before establishing its cleanup `try` and has no pre-submission durable ownership journal. A crash/unknown mint outcome can strand newly created objects. Do not blindly rerun that mutable fixture or call its historical pass current verification; add durable original-transaction ownership and reconciliation first. No node was started or ledger reset for this controlled test run.
+
+Final full Sui unit rerun passed **93/93**, no skips, report `TestResults/SuiRuntime/sui-full-normalized-mint-identity-current.trx`, 2m12s. Provider build succeeded. This is current controlled/unit evidence, not a fresh live mint/escrow result. Free disk after builds/tests: 98,297,692,160 bytes; reused existing outputs and no installations/downloads.
+
 ### Current consumer refresh and off-chain JSON contract — 2026-10-12
 
 On parent `688c18bb2`, Core pin `e196295c0e40934cd7ddf3bca5f03b7d5a6457ae`, reused installed dependencies and build outputs: WEB4 `dotnet build --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false` succeeded with 0 errors/253 warnings. Current WEB4 unit suite passed 147/147, report `TestResults/Web4Current/web4-current-core-refresh.trx`. Core DLL SHA256 in Core build, WEB4 output and test output matches `BCCAF5174BF4A84AAF76E3B95948B327BD10A30375CE582D1A264D729BC3C811`. This closes the specific local WEB4 refresh gate, not Linux/hosted routes or other consumers. No dependency download or new environment was needed; free disk before build was 98,298,966,016 bytes.

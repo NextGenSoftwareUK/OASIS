@@ -164,11 +164,22 @@ public partial class SuiOASIS
             };
             try
             {
-            foreach (var token in committed.GetProperty("tokenIds").EnumerateArray())
+            var tokenIds = committed.GetProperty("tokenIds").EnumerateArray().Select(token => token.GetString()).ToList();
+            if (tokenIds.Count != records.Count || tokenIds.Any(string.IsNullOrWhiteSpace)
+                || tokenIds.Distinct(StringComparer.Ordinal).Count() != tokenIds.Count)
+                throw new InvalidOperationException("Mint receipt must identify every requested NFT exactly once.");
+            if (!SameSuiAddress(committed.GetProperty("recipient").GetString(), recipient))
+                throw new InvalidOperationException("Mint receipt recipient does not match the requested recipient.");
+            var remainingIds = records.Select(record => record.Id).ToHashSet();
+            foreach (var tokenId in tokenIds)
             {
-                var value = await InvokeSdkAsync("nftGet", new { tokenId = token.GetString(), packageAddress = metadata.CollectionPublicKey });
+                var value = await InvokeSdkAsync("nftGet", new { tokenId, packageAddress = metadata.CollectionPublicKey });
                 var nft = OasisJson.Deserialize<Web3NFT>(value.GetProperty("metadata").GetString());
-                nft.NFTTokenAddress = token.GetString();
+                if (nft == null || !remainingIds.Remove(nft.Id))
+                    throw new InvalidOperationException("Mint readback identity is missing, foreign or duplicated.");
+                if (value.GetProperty("creator").GetString() != creator)
+                    throw new InvalidOperationException("Mint readback creator does not match the signing wallet.");
+                nft.NFTTokenAddress = tokenId;
                 nft.MintTransactionHash = hash;
                 var actualOwner = value.GetProperty("owner").GetProperty("AddressOwner").GetString();
                 if (actualOwner != committed.GetProperty("recipient").GetString())
@@ -191,6 +202,21 @@ public partial class SuiOASIS
 
     public OASISResult<IWeb3NFT> LoadOnChainNFTData(string address)
         => LoadOnChainNFTDataAsync(address).GetAwaiter().GetResult();
+
+    // The official SDK normalizes hexadecimal Sui addresses to 32 bytes in receipts.
+    // Syntax validation remains at the SDK boundary; compare equivalent address spellings here.
+    private static bool SameSuiAddress(string left, string right)
+    {
+        if (string.IsNullOrWhiteSpace(left) || string.IsNullOrWhiteSpace(right)) return false;
+        static string Canonical(string address)
+        {
+            if (address.StartsWith("0x", StringComparison.Ordinal) && address.Length > 2 && address.Length <= 66
+                && address.AsSpan(2).ToArray().All(Uri.IsHexDigit))
+                return "0x" + address.Substring(2).PadLeft(64, '0').ToLowerInvariant();
+            return address;
+        }
+        return StringComparer.Ordinal.Equals(Canonical(left), Canonical(right));
+    }
 
     public async Task<OASISResult<IWeb3NFT>> LoadOnChainNFTDataAsync(string nftTokenAddress)
     {
