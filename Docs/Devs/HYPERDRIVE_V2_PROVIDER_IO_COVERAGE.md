@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON duplicate/P2P original-evidence branch verification — 2026-10-12
+
+- Two new actual native-client controlled transport cases inject explicit negative protocol codes 5/11. Both assert one signing operation, one persisted preparation and one broadcast; typed unknown outcome retains the SHA-256 of exact signed raw bytes, original genesis, timestamp/expiry and persisted transaction ID. No replacement transaction or ledger submission occurs in the fixture.
+- Full current TRON suite **290/290 passed**, zero skips, `TestResults/TronRuntime/tron-duplicate-p2p-evidence-current.trx`. This directly exercises the two new classification branches, closing their focused test gap. It does not prove live duplicate/P2P network behavior or classify every remaining negative protocol code.
+- Original retained unknown-transaction fence untouched. No runtime/download/install/funds/deployment/merge; broader recovery and release gates remain open.
+
+
 ### TRON duplicate/P2P broadcast outcome classification — 2026-10-12
 
 - Official [java-tron Wallet source](https://github.com/tronprotocol/java-tron/blob/develop/framework/src/main/java/org/tron/core/Wallet.java) returns duplicate errors for cached transactions and can return NOT_ENOUGH_EFFECTIVE_CONNECTION after `pushTransaction`. Therefore those replies do not establish non-submission. Official [protocol enum](https://github.com/tronprotocol/java-tron/blob/develop/protocol/src/main/protos/api/api.proto) defines these codes as 5 and 11.
