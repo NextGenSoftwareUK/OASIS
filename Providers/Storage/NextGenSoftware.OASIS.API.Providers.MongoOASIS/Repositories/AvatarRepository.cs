@@ -696,7 +696,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             var result = new OASISResult<bool>();
             try
             {
-                var avatar = await _dbContext.Avatar.Find(x => x.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] == providerKey).FirstOrDefaultAsync();
+                var avatar = await _dbContext.Avatar.Find(x => x.Id == providerKey).FirstOrDefaultAsync();
                 if (avatar == null)
                 {
                     OASISErrorHandling.HandleError(ref result, "Avatar deletion selector matched no persisted identity.");
@@ -716,7 +716,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             var result = new OASISResult<bool>();
             try
             {
-                var avatar = _dbContext.Avatar.Find(x => x.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] == providerKey).FirstOrDefault();
+                var avatar = _dbContext.Avatar.Find(x => x.Id == providerKey).FirstOrDefault();
                 if (avatar == null)
                 {
                     OASISErrorHandling.HandleError(ref result, "Avatar deletion selector matched no persisted identity.");
