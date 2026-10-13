@@ -26,6 +26,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos default instantiation prefix invariant — 2026-10-12
+
+SDK already validates Bech32 checksum using official encoding; no second address parser added. Found omitted addressPrefix defaulted wallet derivation to cosmos but passed undefined into instantiation validation, allowing any prefix. Bridge now passes the same cosmos default. Actual bridge-entry controlled signing-client test rejects checksum-valid foreign wasm address when prefix omitted, retaining original confirmed hash evidence, accepts cosmos default and explicit wasm, and closes all three clients. Complete existing SDK suite **54/54 passed**, zero skips; no npm install/download. Initial test mistakes used top-level evidence properties and SDK's unsupported unbounded decode default; corrected test to canonical nativeMutation envelope and explicit 90-character Bech32 limit, no production validation weakened. Controlled transport, not live instantiation/deployed packaging. No ledger writes or merge.
+
 ### Cosmos deployment malformed-value/public-entry regressions — 2026-10-12
 
 Expanded controlled process evidence to missing/zero/negative/string/null/overflow/fractional upload code IDs and missing/blank/numeric/null instantiate addresses. Each retains exact original hash, unknown execution outcome and reconciliation marker; valid replies remain accepted. Public UploadContractAsync/InstantiateContractAsync also preserve error type/hash/unknown outcome through OASISResult, rather than replacing the evidence with an ordinary parsing error. Focused **12/12 passed**, zero skips (`cosmos-deployment-reply-current.trx`), replacing earlier two-case report. No live deployment, checksum certification, installed dependencies, ledger mutation or merge.
