@@ -110,6 +110,7 @@ jobs:
   plan:
     runs-on: windows-latest
     outputs:
+      nuget_count: ${{ steps.versions.outputs.nuget_count }}
       oasis_version: ${{ steps.versions.outputs.oasis_version }}
       star_version: ${{ steps.versions.outputs.star_version }}
       edge_version: ${{ steps.versions.outputs.edge_version }}
@@ -130,6 +131,8 @@ jobs:
           fetch-depth: 0
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Verify source-aware NuGet planning invariants
+        run: python -B Scripts/test_nuget_source_graph.py
       - name: Generate and validate release plan
         shell: pwsh
         env:
@@ -166,6 +169,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $plan = Get-Content artifacts/global-release/release-plan.json -Raw | ConvertFrom-Json
+          "nuget_count=$(@($plan.packages).Count)" >> $env:GITHUB_OUTPUT
           "oasis_version=$($plan.releaseVersions.oasisRuntime)" >> $env:GITHUB_OUTPUT
           $starVersion = '${{ inputs.star_existing_version }}'
           if ($starVersion) {
@@ -220,7 +224,7 @@ jobs:
             artifacts/global-release/release-notes/*.md
 
   nuget:
-    if: inputs.nuget_packages && !inputs.nuget_plan_only
+    if: inputs.nuget_packages && !inputs.nuget_plan_only && needs.plan.outputs.nuget_count != '0'
     needs: plan
     runs-on: windows-latest
     timeout-minutes: 240
