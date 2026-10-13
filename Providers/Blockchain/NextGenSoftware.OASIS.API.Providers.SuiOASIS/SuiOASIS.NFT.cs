@@ -144,8 +144,7 @@ public partial class SuiOASIS
             if (createPreparationServer != null && string.IsNullOrWhiteSpace(_sdkClient.ChainId))
                 throw new InvalidOperationException("Prepared mint ownership requires the configured Sui chain identity.");
             var count = request.NumberToMint ?? 1;
-            if (request.StoreNFTMetaDataOnChain == false)
-                throw new ArgumentException("This Sui NFT ABI stores metadata on-chain; off-chain-only metadata is not implemented and must not be silently published.");
+            NftMetadataProjection.Validate(request.StoreNFTMetaDataOnChain, request.JSONMetaDataURL);
             if (count < 1) throw new ArgumentException("Positive NFT mint count is required.");
             if (request.NFTStandardType.HasValue && request.NFTStandardType != Core.Enums.NFTStandardType.SuiObject)
                 throw new ArgumentException("Sui address-owned objects are not ERC721/ERC1155/SPL assets.");
@@ -176,7 +175,7 @@ public partial class SuiOASIS
                 SendToAvatarAfterMintingId = request.SendToAvatarAfterMintingId,
                 SendToAvatarAfterMintingUsername = request.SendToAvatarAfterMintingUsername,
                 CollectionPublicKey = string.IsNullOrWhiteSpace(request.CollectionPublicKey) ? _contractAddress : request.CollectionPublicKey,
-                SendToAddressAfterMinting = recipient, StoreNFTMetaDataOnChain = true,
+                SendToAddressAfterMinting = recipient, StoreNFTMetaDataOnChain = request.StoreNFTMetaDataOnChain != false,
                 OnChainProvider = new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.SuiOASIS),
                 NFTStandardType = new EnumValue<Core.Enums.NFTStandardType>(Core.Enums.NFTStandardType.SuiObject)
             };
@@ -191,7 +190,7 @@ public partial class SuiOASIS
             var mintArguments = new
             {
                 packageAddress = metadata.CollectionPublicKey, privateKey = signingKey, recipient, count,
-                metadata = records.Select(OasisJson.Serialize).ToArray()
+                metadata = records.Select(record => OasisJson.Serialize(NftMetadataProjection.ForOnChainStorage(record))).ToArray()
             };
             var committed = preparationServer == null
                 ? await InvokeSdkAsync("nftMint", mintArguments, cancellationToken)
@@ -220,6 +219,14 @@ public partial class SuiOASIS
                     throw new InvalidOperationException("Mint readback identity is missing, foreign or duplicated.");
                 if (value.GetProperty("creator").GetString() != creator)
                     throw new InvalidOperationException("Mint readback creator does not match the signing wallet.");
+                if (!metadata.StoreNFTMetaDataOnChain)
+                {
+                    if (nft.StoreNFTMetaDataOnChain || nft.JSONMetaDataURL != metadata.JSONMetaDataURL)
+                        throw new InvalidOperationException("Mint readback does not match the submitted off-chain URI projection.");
+                    // Return the original request data only after binding native identity and URI.
+                    // Standalone on-chain reads deliberately return just the stored projection.
+                    nft = records.Single(record => record.Id == nft.Id);
+                }
                 nft.NFTTokenAddress = tokenId;
                 nft.MintTransactionHash = hash;
                 var actualOwner = value.GetProperty("owner").GetProperty("AddressOwner").GetString();

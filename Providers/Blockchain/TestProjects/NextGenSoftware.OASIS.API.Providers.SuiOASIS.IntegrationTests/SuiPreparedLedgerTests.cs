@@ -7,10 +7,54 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests;
 [TestClass,DoNotParallelize]
 public class SuiPreparedLedgerTests
 {
+    [TestMethod]
+    public async Task ReconcileControlledMintOwnerFixture()
+    {
+        const string connection = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.AreEqual(connection, Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory != null && !File.Exists(Path.Combine(directory.FullName, "Scripts/TestHosts/Run-ReusableUsageRecoveryTests.ps1"))) directory = directory.Parent;
+        Assert.IsNotNull(directory);
+        var journal = Path.Combine(directory!.FullName, "TestResults/SubscriptionUsageCurrent/sui-mint-owner-pending.json");
+        using var claim = new FileStream(journal, FileMode.Open, FileAccess.Read, FileShare.None);
+        using var document = await JsonDocument.ParseAsync(claim);
+        var evidence = document.RootElement;
+        const string database = "usage_sui_mint_owner_fixture";
+        Assert.AreEqual(database, evidence.GetProperty("database").GetString());
+        Assert.AreEqual("Controlled SDK evidence only. Preserve and inspect this outbox; never use these fixture bytes on a real chain.", evidence.GetProperty("recovery").GetString());
+        var id = evidence.GetProperty("operationId").GetString()!;
+        Assert.IsTrue(Guid.TryParse(id, out _));
+        var mongo = new MongoDB.Driver.MongoClient(connection);
+        var collection = mongo.GetDatabase(database).GetCollection<UsageOutboxOperation>("subscription_usage_outbox_v1");
+        Assert.AreEqual(1L, await collection.CountDocumentsAsync(MongoDB.Driver.FilterDefinition<UsageOutboxOperation>.Empty));
+        var operation = await new MongoUsageOutboxStore(connection, database).GetAsync(id, default);
+        Assert.IsNotNull(operation);
+        Assert.IsNull(operation.Settlement);
+        Assert.AreEqual(1, operation.ProviderAttempts.Count);
+        var attempt = operation.ProviderAttempts.Single();
+        Assert.IsTrue(attempt.Provider == "SuiOASIS" || attempt.Provider == "CosmosBlockChainOASIS");
+        Assert.AreEqual(attempt.Provider == "SuiOASIS" ? new string('1',32) : new string('a',64), attempt.ProviderRequestId);
+        Assert.AreEqual("fixture-chain", attempt.NativePreparation.ChainId);
+        Assert.AreEqual("fixture-owner", attempt.NativePreparation.Sender);
+        Assert.AreEqual("AQID", attempt.NativePreparation.SignedTransactionBase64);
+        Assert.IsNull(attempt.AcknowledgedAtUtc);
+        var report = Path.Combine(directory.FullName, "TestResults/SubscriptionUsageCurrent/controlled-mint-owner-reconciled.json");
+        using (var archive = new FileStream(report, FileMode.Create, FileAccess.Write, FileShare.None))
+        {
+            await JsonSerializer.SerializeAsync(archive, new { operation.Id, operation.State, attempt.Provider,
+                attempt.ProviderRequestId, cleanup = "Verified controlled SDK fixture; no real chain submission or billing settlement." });
+            archive.Flush(true);
+        }
+        await mongo.DropDatabaseAsync(database);
+        claim.Dispose();
+        File.Delete(journal);
+    }
     [DataTestMethod]
-    [DataRow(false)]
-    [DataRow(true)]
-    public async Task PublicMintRetainsOriginalAttemptInReusableMongo(bool cosmos)
+    [DataRow(false, false)]
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    [DataRow(true, true)]
+    public async Task PublicMintRetainsOriginalAttemptInReusableMongo(bool cosmos, bool offChain)
     {
         // Real durable outbox, controlled SDK/authority: no chain or fee claim.
         const string connection = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
@@ -49,11 +93,21 @@ public class SuiPreparedLedgerTests
                 : "Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests/Fixtures/unlock-readback-failure.mjs"));
             using var provider = new SuiOASIS("http://127.0.0.1:1", "localnet", "fixture-chain", privateKey: "test-only-secret");
             using var cosmosProvider = new CosmosBlockChainOASIS.CosmosBlockChainOASIS("http://127.0.0.1:1", "fixture-chain", "test-only-explicit", "fixture-contract");
-            var request = new Core.Objects.NFT.Requests.MintWeb3NFTRequest { Title = "identity/valid", NumberToMint = cosmos ? 1 : 2,
-                Price = 12.5m, Discount = 2m, RoyaltyPercentage = 7, MemoText = "mint memo" };
+            var request = new Core.Objects.NFT.Requests.MintWeb3NFTRequest { Title = offChain ? "private-canary" : "identity/valid", NumberToMint = cosmos ? 1 : 2,
+                Price = 12.5m, Discount = 2m, RoyaltyPercentage = 7, MemoText = "mint memo",
+                StoreNFTMetaDataOnChain = !offChain, JSONMetaDataURL = offChain ? "https://metadata.example/nft.json" : null,
+                JSONMetaData = offChain ? "{\"private-canary\":true}" : null,
+                MetaData = new Dictionary<string,string> { ["Email"] = "private-canary" } };
             var minted = cosmos ? await cosmosProvider.MintNFTAsync(request, execution, "mint", deadline.Token)
                 : await provider.MintNFTAsync(request, execution, "mint", deadline.Token);
             Assert.IsFalse(minted.IsError, minted.Message);
+            Assert.AreEqual(!offChain, minted.Result.Web3NFT.StoreNFTMetaDataOnChain);
+            Assert.AreEqual(request.Title, minted.Result.Web3NFT.Title);
+            if (offChain)
+            {
+                Assert.AreEqual(request.JSONMetaDataURL, minted.Result.Web3NFT.JSONMetaDataURL);
+                Assert.AreEqual(request.JSONMetaData, minted.Result.Web3NFT.JSONMetaData);
+            }
             var reopened = new MongoUsageOutboxStore(connection, database);
             var retained = await reopened.GetAsync(execution.OperationId, deadline.Token);
             Assert.AreEqual(1, retained.ProviderAttempts.Count);
