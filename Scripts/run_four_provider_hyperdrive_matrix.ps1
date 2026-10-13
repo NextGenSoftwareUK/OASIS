@@ -111,6 +111,10 @@ finally {
         finally { $ownedProcess.Dispose() }
     }
     foreach ($name in $previousEnvironment.Keys) {
-        [Environment]::SetEnvironmentVariable($name, $previousEnvironment[$name], 'Process')
+        if ($null -eq $previousEnvironment[$name]) {
+            if (Test-Path -LiteralPath "Env:$name") { Remove-Item -LiteralPath "Env:$name" }
+        } else {
+            [Environment]::SetEnvironmentVariable($name, $previousEnvironment[$name], 'Process')
+        }
     }
 }
