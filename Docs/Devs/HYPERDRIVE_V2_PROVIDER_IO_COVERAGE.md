@@ -28,6 +28,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera reusable deployment journal replacement — 2026-10-12
+
+Found deployment/reconciliation helpers directly rewrote recovery JSON without flushing/atomic replacement. Shared saveDeploymentState now creates fixed same-directory .next exclusively, writes/flushes/closes then renames over destination. Linked destination is rejected; failed write/rename preserves staging for review. Both runners refuse leftover staging before ledger queries/mutations (after local compile/lease acquisition); no auto deletion/resubmission. Existing production deployment journal was NOT changed. This protects process-crash file replacement; no power-loss/directory-fsync claim or automatic parent-host recovery.
+
+Journal/reconciliation/budget helper tests **6/6 passed**, zero skips; syntax/diff checks passed. Proves complete replacement and stale staging preserves original intent; actual abrupt process termination and symlink race remain unverified. Tiny owned test fixture directories removed by test finally. No install, paid query, ledger submission or merge.
+
 ### Hedera funding gate and current free mirror reads — 2026-10-12
 
 Free public mirror GET for retained account 0.0.10993779 reports deleted=false, balance 391606260 tinybars (3.91606260 test HBAR), balance timestamp 1791758574.827904258. Not sufficient for previously estimated contract deployment; no new funding assumed and funded storage/NFT/V2 tests remain deferred. Queried no paid consensus SDK operation.
