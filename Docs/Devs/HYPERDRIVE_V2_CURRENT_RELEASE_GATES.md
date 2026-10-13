@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+Mongo runtime refusal checkpoint: `pwsh -NoProfile -File Scripts/TestHosts/Test-HostedMongoRuntimeRefusal.ps1` passed four real script-invocation checks: missing mongod/mongosh with absent/present prior environment. No probe files, downloads, service starts or environment mutations occurred. Environment restoration moved to outer finally so cleanup exceptions cannot bypass it. This is runner safety evidence, not live database/election/V2 verification.
+
 Mongo runner reuse checkpoint: hosted-election runner no longer downloads/extracts MongoDB7/mongosh. It requires existing executable paths, defaults mongod to installed8.3, bounds each cache/oplog, preserves prior process environment and refuses existing ledger paths. Cleanup targets only directories created by this invocation after owned processes terminate. PowerShell parsing and diff checks passed; runtime ownership/election tests still required. No shell found in targeted PATH/Program Files/retained hosted-runtime inventory; no download or live run performed. Historical43 results remain historical, not current certification.
 
 SQLite immutable creation checkpoint: updates preserve persisted CreatedByAvatarId alongside the already-preserved CreatedDate, both for tracked rows and newly reopened contexts. Four real sync/async tracked/reopen checks pass; full suite28/28 (`TestResults/SQLiteCurrent/sqlite-immutable-audit-current.trx`). This prevents omitted creator fields erasing existing creation attribution. Other audit/classification fields and complete replication semantics remain open.

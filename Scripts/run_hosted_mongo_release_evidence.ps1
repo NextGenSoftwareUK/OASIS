@@ -219,10 +219,12 @@ finally {
         }
         if (Test-Path -LiteralPath $ownedData) { Remove-Item -LiteralPath $ownedData -Recurse -Force }
     }
-    [Environment]::SetEnvironmentVariable('OASIS_MONGO_REPLICA_SET_CONNECTION', $priorConnection, 'Process')
-    [Environment]::SetEnvironmentVariable('OASIS_MONGO_PROCESS_KILL_COORDINATION_DIRECTORY', $priorCoordination, 'Process')
 }
 
 if ($failure) { throw $failure }
 }
-finally { $environmentLock.Dispose() }
+finally {
+    [Environment]::SetEnvironmentVariable('OASIS_MONGO_REPLICA_SET_CONNECTION', $priorConnection, 'Process')
+    [Environment]::SetEnvironmentVariable('OASIS_MONGO_PROCESS_KILL_COORDINATION_DIRECTORY', $priorCoordination, 'Process')
+    $environmentLock.Dispose()
+}
