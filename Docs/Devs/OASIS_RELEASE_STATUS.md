@@ -38,7 +38,7 @@ Latest OG profile run 38284824702 passed nine of ten platform/profile builds. Re
 | ONODE Manager | Done: public 1.0.1; prepare/tests/Windows/macOS/Linux/release jobs succeeded in run 38357132046. Nonempty installer/portable/AppImage and Velopack update assets verified; these .nupkg files are application updater bundles, not proof of NuGet.org publication | [Release 1.0.1](https://github.com/NextGenSoftwareUK/OASIS/releases/tag/onode-manager-v1.0.1) |
 | HyperDrive Client | Done: public non-draft, non-prerelease 1.1.0; run 38350627533 succeeded, four nonempty Windows x64/Linux x64/macOS x64/ARM64 binaries. Linux ARM64 not included | [Release 1.1.0](https://github.com/NextGenSoftwareUK/OASIS-HyperDrive-Client/releases/tag/v1.1.0) |
 | OurWorld | Outstanding; Unity Cloud configuration required; no published release found | — |
-| All first-party NuGet packages | Partially published: upload stopped on AbstractOASIS 2.0.2 HTTP 409 (version already exists); full registry reconciliation required before resuming | MCP 3.1.0 confirmed above |
+| All first-party NuGet packages | Bulk run 38376265788 succeeded: 229 pushes, all 229 exact versions publicly indexed. Scope correction: intended completed-ID exclusions arrived empty, so new versions were also created for those IDs. README/rendering audit and future planner guards remain | [Dated inventory: all 229 version links](NUGET_PUBLISHED_2026-10-13.md) |
 | MCP npm package | Done: 3.1.0; registry version, CLI entry point and published checksum verified | [npm 3.1.0](https://www.npmjs.com/package/@oasisomniverse/mcp-server/v/3.1.0) |
 
 ## Publication requirements
