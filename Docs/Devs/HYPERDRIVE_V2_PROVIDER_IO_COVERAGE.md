@@ -24,6 +24,14 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera non-funded regression and delivery process evidence — 2026-10-12
+
+Current integration project non-funded selection **255/255 passed**, zero skips, 134 seconds (`hedera-nonfunded-current.trx`), excluding funded `HederaTestnet*` and original public charged-failure lookup. The ActualProcessTimeout test was included (the unused RealProcessDeadline exclusion matched no such test); its real two-minute child deadline passed. Existing retained source SDK configured; no dependency restore or HBAR-consuming query. This report predates the two newly added test methods' rebuilt binary, not the production mint fixes.
+
+New focused delivery process composition **2/2 passed** (`hedera-delivery-process-current.trx`): actual Hedera C# child-process boundary receives controlled construction/readback delivery failures; post-mint shipping evidence helper retains confirmed mint plus requested delivery ID and exact original exception. Pre-submission delivery failure still fences replay of the confirmed mint; readback preserves nested native reconciliation evidence. This is a process fixture, not real SDK consensus or the complete wallet-resolved mint entry flow.
+
+An attempted concurrent rebuild of the same running test project failed on its DLL lock; waited for the original handle to finish, then rebuilt/retested in the same directory successfully. No duplicate environment or installs. Funded, full entry-flow and V2 concrete-Hedera propagation gates remain open; no merge/deployment.
+
 ### Hedera post-mint processing/delivery retains both identities — 2026-10-12
 
 Mint flow now records its confirmed identity after receipt validation and creates the delivery identity before invoking that separate SDK transfer. Any later response projection, metadata processing or delivery failure is wrapped in `HederaNftPostMintReconciliationException`, preserving confirmed mint ID, optional requested delivery ID and original cause/evidence. The Core marker exposes delivery ID when present, otherwise mint ID; neither implies delivery success. Pre-mint failures remain unchanged. This avoids mislabelling mint ID as approval ID or losing the already-confirmed mint when delivery fails.
