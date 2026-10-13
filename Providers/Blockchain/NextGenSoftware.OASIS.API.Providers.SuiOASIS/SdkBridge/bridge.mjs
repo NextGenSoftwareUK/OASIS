@@ -40,6 +40,14 @@ export function verifiedHistoryTransaction(tx, digest) {
   return tx;
 }
 
+export function transactionStatusReceipt(transaction, digest) {
+  if (typeof digest !== 'string' || !digest || transaction?.digest !== digest
+      || transaction.effects?.transactionDigest !== digest
+      || typeof transaction.status?.success !== 'boolean')
+    throw new Error('Sui transaction status lacks matching original digest, effects and explicit execution outcome');
+  return { transactionHash: transaction.digest, status: transaction.status, gasUsed: transaction.effects.gasUsed };
+}
+
 export function historyScanComplete(reason, coveredCheckpoint, targetCheckpoint) {
   // QueryEnd's ledger tip is the indexed tip, not necessarily the committed tip.
   if (reason === 3 || reason === 5) {
@@ -502,8 +510,7 @@ async function invokeCore(request) {
     if (!request.transactionHash) throw new Error('Transaction digest is required');
     const response = await client.getTransaction({ digest: request.transactionHash, include: { effects: true } });
     const transaction = response.Transaction ?? response.FailedTransaction;
-    if (!transaction?.digest || !transaction.effects) throw new Error('Sui returned no transaction effects');
-    return { transactionHash: transaction.digest, status: transaction.status, gasUsed: transaction.effects.gasUsed };
+    return transactionStatusReceipt(transaction, request.transactionHash);
   }
   if (request.operation === 'balance') {
     if (!isValidSuiAddress(request.walletAddress)) throw new Error('Valid Sui wallet address is required');

@@ -6,6 +6,23 @@ import { toBase58 } from '@mysten/sui/utils';
 import { verifyTransactionSignature } from '@mysten/sui/verify';
 import { SuiGrpcClient } from '@mysten/sui/grpc';
 import {verifyPreparedIdentity} from './bridge.mjs';
+import {transactionStatusReceipt} from './bridge.mjs';
+
+test('status receipt binds successful and failed execution to original effects digest',()=>{
+ for(const success of [true,false]){
+  const transaction={digest:'original',status:{success},effects:{transactionDigest:'original',gasUsed:{computationCost:'1'}}};
+  assert.deepEqual(transactionStatusReceipt(transaction,'original'),{
+   transactionHash:'original',status:{success},gasUsed:{computationCost:'1'}});
+ }
+});
+
+test('status receipt cannot accept foreign effects or missing execution evidence',()=>{
+ const valid={digest:'original',status:{success:true},effects:{transactionDigest:'original'}};
+ for(const change of [{digest:'foreign'},{effects:{transactionDigest:'foreign'}},{effects:{}},
+  {effects:undefined},{status:{}},{status:{success:'true'}}])
+  assert.throws(()=>transactionStatusReceipt({...valid,...change},'original'),/matching original digest/);
+ assert.throws(()=>transactionStatusReceipt(undefined,'original'),/matching original digest/);
+});
 
 function offlineTransaction(signer) {
   const tx = new Transaction();
