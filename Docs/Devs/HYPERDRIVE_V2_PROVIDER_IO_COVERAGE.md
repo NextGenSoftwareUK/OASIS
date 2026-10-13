@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Shared DNA helper fail-closed correction — 2026-10-12
+
+- Core commit `691cfcfa5e1e3dcf765cab5e3e751422b9b59cc6` rejects enabled missing/whitespace Rijndael or quantum keys during password/data encryption. Quantum wrapping rejects an enabled missing key. Data decryption requires configured layers/keys for present ciphertext prefixes and surfaces authentication/decryption errors instead of returning ciphertext; quantum unwrapping similarly surfaces missing-key/decryption failure. Password verification remains a boolean verification API.
+- Core build passed, zero errors; complete current Core unit suite **440/440 passed**, zero skips, `TestResults/CoreCurrent/core-dna-failclosed-current.trx`, including 10 DNA encryption cases (seven compatibility and three new negative cases). This is not end-to-end all-provider or live Mongo verification.
+- Core change pushed on its existing branch; parent gitlink and Railway manifest advanced together. Shared DNA/private-ledger policy integration, provider/manager consumer regressions and deployed behavior remain gates. No new environment/download, merge or deployment.
+
+
 ### Existing OASISDNA encryption architecture reconciliation — 2026-10-12
 
 - Existing DNA `Security.AvatarPassword`, `OASISProviderPrivateKeys`, and `HolonDataEncryption` are distinct settings. Password helper supports BCrypt hashes wrapped by AES-256-CBC (`r256:`) and AES-256-GCM (`qpq:`). Wallet/key paths use reversible Rijndael plus optional quantum wrapping. BCrypt cannot reversibly encrypt private records. The helper's quantum layer is symmetric AES-GCM, not a separate post-quantum public-key algorithm.
