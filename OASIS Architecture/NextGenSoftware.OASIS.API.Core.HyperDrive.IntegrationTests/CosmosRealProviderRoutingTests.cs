@@ -21,6 +21,38 @@ public sealed class CosmosRealProviderRoutingTests
     private static string Required(string name) => Environment.GetEnvironmentVariable(name)
         ?? throw new InvalidOperationException($"Real provider setting {name} is required; no skipped evidence.");
 
+    [Fact]
+    public async Task InspectPendingCosmosV2IntentWithoutMutations()
+    {
+        var root = Path.GetFullPath(Required("OASIS_HYPERDRIVE_TEST_ROOT"));
+        Path.GetFileName(root).Should().Be("HyperDriveCosmos");
+        using var lease = new FileStream(Path.Combine(root,"store.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+        using var intent = System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(root,"replication-pending.json")));
+        intent.RootElement.GetProperty("chain").GetString().Should().Be(Required("OASIS_COSMOS_TEST_CHAIN"));
+        intent.RootElement.GetProperty("contract").GetString().Should().Be(Required("OASIS_COSMOS_TEST_CONTRACT"));
+        intent.RootElement.GetProperty("encryptionKeyLabel").GetString().Should().Be("oasis-cosmos-local-storage-fixture-v1");
+        var avatarId = intent.RootElement.GetProperty("avatarId").GetGuid();
+        var holonId = intent.RootElement.GetProperty("holonId").GetGuid();
+        using var cosmos = new CosmosBlockChainOASIS(Required("OASIS_COSMOS_TEST_RPC"),Required("OASIS_COSMOS_TEST_CHAIN"),
+            Required("OASIS_COSMOS_TEST_KEY"),Required("OASIS_COSMOS_TEST_CONTRACT"),"wasm","0.025stake","stake",storageEncryptionKeyResolver:LocalStorageKey);
+        (await cosmos.ActivateProviderAsync()).IsError.Should().BeFalse();
+        try
+        {
+            var avatar = await cosmos.LoadAvatarAsync(avatarId);
+            var detail = await cosmos.LoadAvatarDetailAsync(avatarId);
+            var holon = await cosmos.LoadHolonAsync(holonId,loadChildren:false);
+            foreach (var state in new[] { (avatar.IsError,avatar.ErrorCode,avatar.Message), (detail.IsError,detail.ErrorCode,detail.Message), (holon.IsError,holon.ErrorCode,holon.Message) })
+                if (state.IsError) state.ErrorCode.Should().Be(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,state.Message);
+            await File.WriteAllTextAsync(Path.Combine(root,"cosmos-inspection-current.json"),System.Text.Json.JsonSerializer.Serialize(new {
+                chain = Required("OASIS_COSMOS_TEST_CHAIN"), contract = Required("OASIS_COSMOS_TEST_CONTRACT"), avatarId, holonId,
+                avatarPresent = avatar.Result != null, detailPresent = detail.Result != null, holonPresent = holon.Result != null,
+                avatarErrorCode = avatar.ErrorCode, detailErrorCode = detail.ErrorCode, holonErrorCode = holon.ErrorCode,
+                reconciliationComplete = false, explanation = "Read-only state evidence; absence is not original submission outcome proof." }));
+            Console.WriteLine($"Read-only pending Cosmos intent: avatarPresent={avatar.Result != null}; detailPresent={detail.Result != null}; holonPresent={holon.Result != null}. Intent retained; absence is not non-submission proof.");
+        }
+        finally { (await cosmos.DeActivateProviderAsync()).IsError.Should().BeFalse(); }
+    }
+
     [Theory]
     [InlineData(false)]
     [InlineData(true)]
@@ -99,6 +131,7 @@ public sealed class CosmosRealProviderRoutingTests
         var local = new LocalFileOASIS(storageDirectory: Path.Combine(root, "files"));
         var holon = new Holon { Id = Guid.NewGuid(), Name = "real-v2-cosmos-replication" };
         var deletedThroughRouter = false;
+        var holonSaved = false;
         var avatar = new Avatar { Id = Guid.NewGuid(), Username = "cosmos-v2-" + Guid.NewGuid().ToString("N"),
             Email = Guid.NewGuid().ToString("N") + "@example.invalid" };
         var detail = new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Email = avatar.Email };
@@ -126,7 +159,7 @@ public sealed class CosmosRealProviderRoutingTests
             var router = new OASISHyperDrive(manager);
             var savedAvatar = await router.RouteRequestAsync<IAvatar>(new StorageOperationRequest
                 { Operation = "SaveAvatar", Payload = avatar, PreferredProvider = ProviderType.LocalFileOASIS });
-            avatarSaved = !savedAvatar.IsError;
+            avatarSaved = !savedAvatar.IsError && !savedAvatar.IsWarning && manager.LastReplicationDiagnostic.SucceededCount == 1;
             savedAvatar.IsError.Should().BeFalse(savedAvatar.Message);
             savedAvatar.IsWarning.Should().BeFalse(savedAvatar.Message);
             manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
@@ -151,6 +184,7 @@ public sealed class CosmosRealProviderRoutingTests
             manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
 
             holon.Name = "real-v2-cosmos-replication-updated";
+            holonSaved = true;
             var updated = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
                 { Operation = "SaveHolon", Payload = holon, PreferredProvider = ProviderType.LocalFileOASIS });
             updated.IsError.Should().BeFalse(updated.Message);
@@ -234,7 +268,7 @@ public sealed class CosmosRealProviderRoutingTests
         {
             try
             {
-                if (!deletedThroughRouter)
+                if (!deletedThroughRouter && holonSaved)
                 {
                     var deleted = await cosmos.DeleteHolonAsync(holon.Id);
                     deleted.IsError.Should().BeFalse(deleted.Message);
