@@ -43,6 +43,32 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task AvatarDetailStatsSurviveFreshConnection(bool synchronous)
+    {
+        var detail = new AvatarDetail { Id = Guid.NewGuid(), Username = "stats-detail", Karma = 456, XP = 234 };
+        detail.Stats.HP.Current = 37;
+        detail.Stats.Mana.Current = 42;
+        detail.Stats.Stamina.Current = 53;
+        using (var provider = new SQLLiteDBOASIS(TestConnectionString))
+        {
+            (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+            var saved = synchronous ? provider.SaveAvatarDetail(detail) : await provider.SaveAvatarDetailAsync(detail);
+            saved.IsError.Should().BeFalse(saved.Message);
+        }
+        using var reopened = new SQLLiteDBOASIS(TestConnectionString);
+        (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var loaded = synchronous ? reopened.LoadAvatarDetail(detail.Id) : await reopened.LoadAvatarDetailAsync(detail.Id);
+        loaded.IsError.Should().BeFalse(loaded.Message);
+        loaded.Result.Karma.Should().Be(456);
+        loaded.Result.XP.Should().Be(234);
+        loaded.Result.Stats.HP.Current.Should().Be(37);
+        loaded.Result.Stats.Mana.Current.Should().Be(42);
+        loaded.Result.Stats.Stamina.Current.Should().Be(53);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task RejectedAvatarUpdateDoesNotLeakIntoLaterSave(bool synchronous)
     {
         using var context = new DataContext(TestConnectionString);
