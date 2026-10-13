@@ -39,9 +39,11 @@ public sealed class RealProviderRoutingTests : IDisposable
     private string FilesPath => Path.Combine(_root, "files");
 
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task AvatarDetailReplicationPreservesKarmaAndXpAcrossUpdates(bool synchronous)
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public async Task AvatarDetailReplicationPreservesKarmaAndXpAcrossUpdates(bool synchronous, bool sqlitePrimary)
     {
         Directory.CreateDirectory(_root);
         var local = new LocalFileOASIS(storageDirectory: FilesPath);
@@ -60,7 +62,7 @@ public sealed class RealProviderRoutingTests : IDisposable
         item.Properties = new Dictionary<string,object> { ["species"] = "oak" };
         item.MetaData["quest-source"] = "owned-tree";
         detail.Inventory.Add(item);
-        var request = new StorageOperationRequest { Operation = "SaveAvatarDetail", Payload = detail, PreferredProvider = ProviderType.LocalFileOASIS };
+        var request = new StorageOperationRequest { Operation = "SaveAvatarDetail", Payload = detail, PreferredProvider = sqlitePrimary ? ProviderType.SQLLiteDBOASIS : ProviderType.LocalFileOASIS };
         var router = new OASISHyperDrive(manager);
         foreach (var updating in new[] { false, true })
         {
@@ -98,9 +100,11 @@ public sealed class RealProviderRoutingTests : IDisposable
     }
 
     [Theory]
-    [InlineData(true)]
-    [InlineData(false)]
-    public async Task AvatarReplicationPreservesIdentityInBothRealStores(bool synchronous)
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public async Task AvatarReplicationPreservesIdentityInBothRealStores(bool synchronous, bool sqlitePrimary)
     {
         Directory.CreateDirectory(_root);
         var local = new LocalFileOASIS(storageDirectory: FilesPath);
@@ -112,7 +116,7 @@ public sealed class RealProviderRoutingTests : IDisposable
         manager.RegisterProvider(sqlite);
         manager.SetAndReplaceAutoReplicationListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.LocalFileOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
         var avatar = new Avatar { Id = Guid.NewGuid(), Username = "owned-v2-avatar", Email = "owned-v2@test.local", FirstName = "Owned", LastName = "Fixture", AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
-        var request = new StorageOperationRequest { Operation = "SaveAvatar", Payload = avatar, PreferredProvider = ProviderType.LocalFileOASIS };
+        var request = new StorageOperationRequest { Operation = "SaveAvatar", Payload = avatar, PreferredProvider = sqlitePrimary ? ProviderType.SQLLiteDBOASIS : ProviderType.LocalFileOASIS };
         var router = new OASISHyperDrive(manager);
         var result = synchronous ? router.RouteRequest<IAvatar>(request) : await router.RouteRequestAsync<IAvatar>(request);
         result.IsError.Should().BeFalse(result.Message);
