@@ -11,7 +11,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 {
-    public partial class HashgraphOASIS
+    public partial class HashgraphOASIS : Core.Interfaces.IOASISNativeFeeReceiptProvider
     {
         // Mirror reads neither activate charge-bearing storage nor require signing keys.
         public async Task<OASISResult<JsonElement>> GetNativeFeeReceiptAsync(string transactionId,

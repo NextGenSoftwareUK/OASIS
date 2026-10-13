@@ -36,7 +36,7 @@ using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
 {
-    public partial class SuiOASIS
+    public partial class SuiOASIS : Core.Interfaces.IOASISNativeFeeReceiptProvider
     {
         /// <summary>Read-only exact native gas evidence; not a quote, USD conversion or billing authorization.</summary>
         public async Task<OASISResult<JsonElement>> GetNativeFeeReceiptAsync(string transactionHash, CancellationToken token = default)
