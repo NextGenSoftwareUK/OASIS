@@ -77,6 +77,13 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 loaded.Result.MetaData["Email"].ToString().Should().Be("priority@test.local");
             }
             var balanceManager = new ProviderManager(null,dna) { IsAutoLoadBalanceEnabled = true };
+            foreach (var query in new[] {
+                synchronous ? mongo.LoadHolonsByMetaData("Email","priority@test.local",loadChildren:false) : await mongo.LoadHolonsByMetaDataAsync("Email","priority@test.local",loadChildren:false),
+                synchronous ? sqlite.LoadHolonsByMetaData("Email","priority@test.local",loadChildren:false) : await sqlite.LoadHolonsByMetaDataAsync("Email","priority@test.local",loadChildren:false) })
+            {
+                query.IsError.Should().BeFalse(query.Message);
+                query.Result.Select(x=>x.Id).Should().Equal(holon.Id);
+            }
             balanceManager.RegisterProvider(mongo);
             balanceManager.RegisterProvider(sqlite);
             balanceManager.SetAndReplaceAutoLoadBalanceListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
