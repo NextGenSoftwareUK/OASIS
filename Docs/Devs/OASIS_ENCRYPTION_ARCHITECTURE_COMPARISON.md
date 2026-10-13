@@ -76,6 +76,8 @@ These are fields under `OASIS.StorageProviders`, not a complete DNA document. Co
 
 The protection covers values passing through this backend, including logical indexes—not public native transactions, public NFTs/metadata, or other SDK operations outside it. Chain wallet addresses, transactions, record counts, sizes, timing, and repeated access to the same physical key remain observable. Compression and deterministic addresses leak structure; there is no ORAM, padding, or general searchable-encryption scheme here.
 
+Cosmos/Sui NFT minting now has a separate explicit public projection for `StoreNFTMetaDataOnChain=false`: native/OASIS identity, standard/provider/collection, public wallets/recipient and the existing supplied metadata URI. It does not publish request JSON, custom metadata, images or avatar IDs, and does not fetch external URLs. This is **not whole-record encryption** or unified privacy policy; the pointer itself is public and any externally hosted data has its own access/protection requirements. Existing metadata exemptions are not copied into the NFT public projection.
+
 ### Why IDs and metadata lookups still work
 
 An authorized application knows the logical ID and key, so it can compute the physical lookup address without storing the ID in plaintext. Exact logical index lookups work similarly. A chain observer cannot directly read the ID/email from that physical address without the secret index key, although equality/access patterns remain visible.

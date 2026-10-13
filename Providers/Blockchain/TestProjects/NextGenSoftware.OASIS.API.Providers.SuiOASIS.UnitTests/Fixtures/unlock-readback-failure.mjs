@@ -30,7 +30,8 @@ switch(request.operation){
  }
  case 'restoreKey':result={privateKey:request.privateKey,publicKey:'fixture-public',address:'fixture-owner'};break;
  case 'nftMint': {
-  const title=JSON.parse(request.metadata[0]).Title;
+  const firstMetadata=JSON.parse(request.metadata[0]);
+  const title=firstMetadata.Title??(firstMetadata.StoreNFTMetaDataOnChain===false?'identity/valid':'');
   if(title.startsWith('identity/')) {
    const mode=title.split('/')[1];
    if(process.env.OASIS_NATIVE_PREPARATION_PIPE) {
@@ -45,7 +46,9 @@ switch(request.operation){
     }
    }
    const ids=request.metadata.map(metadata=>JSON.parse(metadata).Id);
-   const tokenIds=ids.map(id=>`identity:${mode}:${id}:${ids[0]}`);
+   if(firstMetadata.StoreNFTMetaDataOnChain===false && request.metadata.some(value=>value.includes('private-canary')))
+    throw new Error('Off-chain request data was silently published.');
+   const tokenIds=ids.map((id,index)=>`identity:${mode}:${id}:${ids[0]}:${Buffer.from(request.metadata[index]).toString('base64url')}`);
    if(mode==='missing')tokenIds.pop();
    if(mode==='duplicate-token')tokenIds[1]=tokenIds[0];
    result={transactionHash:'1'.repeat(32),tokenIds,recipient:mode==='foreign-recipient'?'foreign-owner':mode==='short-recipient'?'0x'+'ab'.padStart(64,'0'):'fixture-owner'};
@@ -70,8 +73,10 @@ switch(request.operation){
   result={transactionHash:'1'.repeat(32)};break;
  case 'nftGet':
   if(request.tokenId.startsWith('identity:')) {
-   const [,mode,id,firstId]=request.tokenId.split(':');
-   result={metadata:JSON.stringify({Id:mode==='foreign-id'?'9daf56a1-a66d-4507-a5bc-a31de17e223a':mode==='duplicate-id'?firstId:id}),
+   const [,mode,id,firstId,original]=request.tokenId.split(':');
+   const metadata=JSON.parse(Buffer.from(original,'base64url').toString());
+   metadata.Id=mode==='foreign-id'?'9daf56a1-a66d-4507-a5bc-a31de17e223a':mode==='duplicate-id'?firstId:id;
+   result={metadata:JSON.stringify(metadata),
     creator:mode==='foreign-creator'?'foreign-creator':'fixture-owner',owner:{AddressOwner:mode==='short-recipient'?'0x'+'ab'.padStart(64,'0'):'fixture-owner'}};
   }
   else if(request.tokenId.startsWith('ownership-'))result={metadata:'{}',creator:'fixture-owner',

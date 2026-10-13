@@ -56,7 +56,10 @@ else if(request.operation==='execute'){
  }
  if(burn&&request.fromWalletAddress!=null)throw new Error('Public key must not be forwarded as a burn wallet address.');
  if(mint){const metadata=JSON.parse(mint.metadata_json);
-  if(metadata.Price!==12.5||metadata.Discount!==2||metadata.RoyaltyPercentage!==7||metadata.SellerFeeBasisPoints!==700||metadata.MemoText!=='mint memo')
+  if(metadata.StoreNFTMetaDataOnChain===false){
+   if(!metadata.JSONMetaDataURL || mint.metadata_json.includes('private-canary'))throw new Error('Off-chain data was silently published.');
+  }
+  else if(metadata.Price!==12.5||metadata.Discount!==2||metadata.RoyaltyPercentage!==7||metadata.SellerFeeBasisPoints!==700||metadata.MemoText!=='mint memo')
    throw new Error('Mint economic metadata was not serialized.');
   if(process.env.OASIS_NATIVE_PREPARATION_PIPE){
    const {pathToFileURL}=await import('node:url');
