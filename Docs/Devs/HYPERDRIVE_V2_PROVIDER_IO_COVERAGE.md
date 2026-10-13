@@ -24,6 +24,14 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Parent-host crash recovery production wiring audit — 2026-10-12
+
+Inspected actual `Web4UsageExecution`, `Web4UsageSettlementWorker` and `IUsageRecoveryResolver`, and searched ONODE/STAR ODK/OASIS Architecture source including ignored files (excluding bin/obj/.git). The only located resolver implementations are controlled `EvidenceResolver`/`PoisonResolver` tests. No production native-chain resolver implementation/registration was found in that inspected source. Worker handles interrupted leases by querying one registered resolver; absent evidence it marks indeterminate and keeps reconciliation required. `BeginAsync` does not resume an existing execution: it prevents duplicate execution. Therefore durable preparation and lost-child-reply tests do NOT prove production automatic recovery after parent-host death.
+
+Required implementation/verification sequence: read the retained signed attempt after a real host crash; independently verify configured chain/owner/original bytes; query ONLY its original ledger identity; keep missing/ambiguous outcomes indeterminate without rebroadcast; separately obtain authoritative fee evidence and approved pricing/settlement policy; register exactly one service-owned resolver; prove worker reopen/lease/concurrency/settlement acknowledgement with that resolver. Do not turn successful ledger status alone into an invented zero-cost settlement or release a reservation without fee/usage evidence. This audit changes the next gate from another lost-reply test to production resolver/fee ownership plus actual process-death testing.
+
+No source mutation, funded query, install, merge or deployment in this audit. Native WEB4 admission/fee settlement policy and private-storage migration choices remain unresolved; independent provider/interface work remains available. Hosted implementation outside inspected checkout not inferred absent/present.
+
 ### Actual Cosmos burn evidence through V2 routing — 2026-10-12
 
 Added eight controlled provider/process→storage-result→real V2 router cases using actual `BurnNFTAsync` responses: completed/failed/unknown native evidence stops alternate writes, while ordinary preflight error controls fail over successfully, sync/async. Exact original hash/outcome retained where established; unknown evidence does not invent identity. Combined cross-provider router class **34/34 passed**, zero skips (`TestResults/TronRuntime/native-reconciliation-routing.trx`), including prior TRON/Sui cases; selections overlap. Required request members were added to the harness before the passing build.
