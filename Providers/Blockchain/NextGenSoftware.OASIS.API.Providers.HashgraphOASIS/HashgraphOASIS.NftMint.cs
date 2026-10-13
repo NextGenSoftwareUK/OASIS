@@ -20,6 +20,8 @@ public partial class HashgraphOASIS
     private async Task<OASISResult<IWeb3NFTTransactionResponse>> MintHederaNftAsync(IMintWeb3NFTRequest request)
     {
         var result = new OASISResult<IWeb3NFTTransactionResponse>();
+        string confirmedMintId=null;
+        string requestedDeliveryId=null;
         try
         {
             ArgumentNullException.ThrowIfNull(request);
@@ -86,6 +88,7 @@ public partial class HashgraphOASIS
             result.Result = new Web3NFTTransactionResponse();
             var serials = ApplyHederaMintReceipt(result.Result, committed, requestedMintId, count);
             var mintId = result.Result.TransactionResult;
+            confirmedMintId=mintId;
             foreach (var serial in serials) ParseHederaNftAddress(tokenId + "/" + serial);
             var nft = new Web3NFT
             {
@@ -109,11 +112,12 @@ public partial class HashgraphOASIS
             var recipient = targets.FirstOrDefault();
             if (recipient != null && recipient != wallet.WalletAddress)
             {
+                requestedDeliveryId=HederaSdkClient.CreateTransactionId(wallet.WalletAddress);
                 var sent = await HederaSdkClient.InvokeAsync("nftTransfer", new
                 {
                     network = _hederaNetwork, nodes = _consensusNodes, sender = wallet.WalletAddress, recipient,
                     tokenId, serials, privateKey = wallet.PrivateKey, publicKey = wallet.PublicKey, keyType = "der", memo = request.MemoText,
-                    transactionId = HederaSdkClient.CreateTransactionId(wallet.WalletAddress)
+                    transactionId = requestedDeliveryId
                 });
                 if (sent.GetProperty("status").GetString() != "SUCCESS") throw new InvalidOperationException("Mint completed but recipient transfer has no successful receipt.");
                 RecordHederaNftDelivery(result.Result, sent.GetProperty("transactionId").GetString(), recipient);
@@ -122,10 +126,14 @@ public partial class HashgraphOASIS
         }
         catch (Exception ex)
         {
+            ex=RetainHederaPostMintEvidence(ex,confirmedMintId,requestedDeliveryId);
             OASISErrorHandling.HandleError(ref result, $"Hedera NFT mint failed: {ex.Message}", ex);
         }
         return result;
     }
+
+    private static Exception RetainHederaPostMintEvidence(Exception cause,string confirmedMintId,string requestedDeliveryId)
+        => confirmedMintId==null?cause:new HederaNftPostMintReconciliationException(confirmedMintId,requestedDeliveryId,cause);
 
     private static string[] ApplyHederaMintReceipt(IWeb3NFTTransactionResponse response,
         System.Text.Json.JsonElement receipt, string requestedId, int count)
