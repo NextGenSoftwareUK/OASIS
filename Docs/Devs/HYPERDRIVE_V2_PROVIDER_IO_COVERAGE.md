@@ -36,6 +36,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Manager invalid encryption write-prevention evidence — 2026-10-12
+
+- Current Core suite **442/442 passed**, zero skips, `TestResults/CoreCurrent/core-manager-encryption-current.trx`. Two new V2 HolonManager tests invoke actual save preparation with enabled CBC/GCM and missing keys, verifying no provider save invocation, no ciphertext envelope insertion, and preservation of the caller's private metadata and exempt Status value. Providers are controlled mocks; no live Mongo proof is implied.
+- These tests exposed an API-boundary gap: preparation throws `InvalidOperationException` directly rather than returning an `OASISResult` error. Tests explicitly characterize that current fail-closed behavior, not endorse it as the final public API contract. A manager-level preparation-error boundary for sync/async/generic/bulk V2 save paths remains required without changing legacy implementations. No plaintext write occurred; helper failure happens before metadata removal.
+
+
 ### Shared DNA helper fail-closed correction — 2026-10-12
 
 - Core commit `691cfcfa5e1e3dcf765cab5e3e751422b9b59cc6` rejects enabled missing/whitespace Rijndael or quantum keys during password/data encryption. Quantum wrapping rejects an enabled missing key. Data decryption requires configured layers/keys for present ciphertext prefixes and surfaces authentication/decryption errors instead of returning ciphertext; quantum unwrapping similarly surfaces missing-key/decryption failure. Password verification remains a boolean verification API.

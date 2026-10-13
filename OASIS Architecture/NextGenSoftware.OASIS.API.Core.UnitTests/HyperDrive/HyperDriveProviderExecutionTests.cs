@@ -3847,6 +3847,27 @@ public sealed class HyperDriveProviderExecutionTests
         result.Result.MetaData.Should().NotContainKey("__oasis_enc__");
     }
 
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task InvalidDnaEncryptionPreventsV2ProviderWritesAndPreservesMetadata(bool quantum)
+    {
+        var dna=CreateDna(HyperDriveModes.V2);
+        dna.OASIS.Security=new SecuritySettings { HolonDataEncryption=new EncryptionSettings {
+            Rijndael256EncryptionEnabled=!quantum,QuantumEncryptionEnabled=quantum } };
+        var providerManager=new ProviderManager(null,dna);
+        var provider=CreateActiveProvider(ProviderType.IPFSOASIS,"missing-encryption-key");
+        provider.Setup(value=>value.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        providerManager.RegisterProvider(provider.Object).Should().BeTrue();
+        providerManager.SetAndActivateCurrentStorageProvider(provider.Object).IsError.Should().BeFalse();
+        var holon=new Holon { Id=Guid.NewGuid(),MetaData=new Dictionary<string,object> { ["private-secret"]="preserve-me",["Status"]="Pending" } };
+        await Assert.ThrowsAsync<InvalidOperationException>(()=>new HolonManager(null,dna,providerManager).SaveHolonAsync(
+            holon,Guid.NewGuid(),providerType:ProviderType.IPFSOASIS));
+        holon.MetaData.Should().ContainKey("private-secret").WhoseValue.Should().Be("preserve-me");
+        holon.MetaData.Should().ContainKey("Status").WhoseValue.Should().Be("Pending");
+        holon.MetaData.Should().NotContainKey("__oasis_enc__");
+        provider.Invocations.Should().NotContain(call=>call.Method.Name=="SaveHolonAsync" || call.Method.Name=="SaveHolon");
+    }
+
     [Fact]
     public void HolonSearchUsesInjectedRuntimeAndForwardsRoutingOptions()
     {
