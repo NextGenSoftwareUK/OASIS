@@ -2,9 +2,28 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 
-[TestClass]
+[TestClass,DoNotParallelize]
 public class HederaNativeBridgeTests
 {
+    [DataTestMethod]
+    [DataRow(false,false)] [DataRow(false,true)] [DataRow(true,false)] [DataRow(true,true)]
+    public async Task BridgeFailureRetainsOriginalMutationIdentity(bool nft,bool deposit)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","hedera-process-boundary.mjs"));
+        try{
+            var provider=new HashgraphOASIS(network:"testnet",bridgePoolAccountId:"0.0.1002",bridgePoolSigningKey:()=>"controlled-bridge-key");
+            var result=nft
+                ?deposit?await provider.DepositNFTAsync("0.0.1234/7","7","0.0.1001")
+                    :await provider.WithdrawNFTAsync("0.0.1234/7","7","0.0.1001","controlled-bridge-key")
+                :deposit?await provider.DepositAsync(1m,"0.0.1001")
+                    :await provider.WithdrawAsync(1m,"0.0.1001","controlled-bridge-key");
+            Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);
+            Assert.IsInstanceOfType<Core.Interfaces.INativeMutationReconciliationRequired>(result.Exception);
+            var original=(Core.Interfaces.INativeMutationReconciliationRequired)result.Exception;
+            Assert.IsFalse(string.IsNullOrWhiteSpace(original.OriginalTransactionId));
+        }finally{Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",previous);}
+    }
     [DataTestMethod]
     [DataRow("bad", "1")]
     [DataRow("0.0.1234", "0")]
