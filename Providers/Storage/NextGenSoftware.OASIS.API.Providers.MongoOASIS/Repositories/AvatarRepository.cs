@@ -20,6 +20,22 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
     {
         private MongoDbContext _dbContext;
 
+        public void EnsurePublicIdentityIndexes()
+        {
+            _dbContext.Avatar.Indexes.CreateOne(new CreateIndexModel<Avatar>(
+                Builders<Avatar>.IndexKeys.Ascending(x => x.HolonId), new CreateIndexOptions { Unique = true, Name = "oasis_avatar_public_identity" }));
+            _dbContext.AvatarDetail.Indexes.CreateOne(new CreateIndexModel<AvatarDetail>(
+                Builders<AvatarDetail>.IndexKeys.Ascending(x => x.HolonId), new CreateIndexOptions { Unique = true, Name = "oasis_avatar_detail_public_identity" }));
+        }
+
+        public async Task EnsurePublicIdentityIndexesAsync()
+        {
+            await _dbContext.Avatar.Indexes.CreateOneAsync(new CreateIndexModel<Avatar>(
+                Builders<Avatar>.IndexKeys.Ascending(x => x.HolonId), new CreateIndexOptions { Unique = true, Name = "oasis_avatar_public_identity" }));
+            await _dbContext.AvatarDetail.Indexes.CreateOneAsync(new CreateIndexModel<AvatarDetail>(
+                Builders<AvatarDetail>.IndexKeys.Ascending(x => x.HolonId), new CreateIndexOptions { Unique = true, Name = "oasis_avatar_detail_public_identity" }));
+        }
+
         public AvatarRepository(MongoDbContext dbContext)
         {
             SerializerRegister.GetInstance().RegisterGuidBsonSerializer();

@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Mongo avatar/detail public identity indexes — 2026-10-13
+
+Activation verifies unique HolonId indexes on current Avatar/AvatarDetail collections. Real direct BSON duplicate inserts with different native _id fail DuplicateKey in both; expanded pair4/4 passed (`mongo-sqlite-v2-current.trx`). Existing duplicates cause activation failure; no records removed/migrated. Production duplicate/index audit and historical multi-version representation remain deployment gates; no history or concurrent-upsert completion claim. Validation runs on every activation to prevent bypass after partial initialization. Existing environment reused.
+
 ### Mongo token selector version forwarding — 2026-10-13
 
 Six verification/reset/refresh-token sync/async wrappers discarded version. Real pair initially failed4/4; wrappers now filter version through existing expression repository. Expanded4/4 passes owned-token current/exact3 and mismatch2 null (`mongo-sqlite-v2-current.trx`). Token expiration/revocation/security-policy and authenticated hosted APIs remain separate unverified gates. No fresh environment/download.

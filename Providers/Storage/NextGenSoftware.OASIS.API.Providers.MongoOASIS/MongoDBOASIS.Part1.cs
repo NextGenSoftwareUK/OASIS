@@ -112,6 +112,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     _searchRepository = new SearchRepository(Database);
                 }
 
+                _avatarRepository.EnsurePublicIdentityIndexes();
                 IsProviderActivated = true;
                 result.Result = true;
             }
@@ -170,6 +171,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     _searchRepository = new SearchRepository(Database);
                 }
 
+                await _avatarRepository.EnsurePublicIdentityIndexesAsync();
                 IsProviderActivated = true;
                 result.Result = true;
             }
