@@ -206,6 +206,19 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 (await freshMongo.DeActivateProviderAsync()).IsError.Should().BeFalse();
             }
             const string failureApp = "oasis-v2-owned-failure";
+            var staleDetail = new AvatarDetail { Id = Guid.NewGuid(), Username = "secondary-only-detail", Karma = 999 };
+            (await sqlite.SaveAvatarDetailAsync(staleDetail)).IsError.Should().BeFalse();
+            var absenceManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true };
+            absenceManager.RegisterProvider(mongo);
+            absenceManager.RegisterProvider(sqlite);
+            absenceManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
+            absenceManager.SetAndActivateCurrentStorageProvider(mongo).IsError.Should().BeFalse();
+            var absenceRouter = new OASISHyperDrive(absenceManager);
+            var absenceRequest = new StorageOperationRequest { Operation = "LoadAvatarDetail", AvatarId = staleDetail.Id, PreferredProvider = ProviderType.MongoDBOASIS };
+            var authoritativeAbsence = synchronous ? absenceRouter.RouteRequest<IAvatarDetail>(absenceRequest) : await absenceRouter.RouteRequestAsync<IAvatarDetail>(absenceRequest);
+            authoritativeAbsence.IsError.Should().BeFalse(authoritativeAbsence.Message);
+            authoritativeAbsence.Result.Should().BeNull();
+            (await sqlite.LoadAvatarDetailAsync(staleDetail.Id)).Result.Karma.Should().Be(999);
             foreach (var selector in new[] { "email", "username", "key" })
             {
                 var selectorAvatar = new Avatar { Id = Guid.NewGuid(), Version = 3, Username = "mongo-selector-" + selector, Email = selector + "@mongo-selector.local",
