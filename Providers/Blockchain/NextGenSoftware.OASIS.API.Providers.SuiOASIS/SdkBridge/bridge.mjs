@@ -197,19 +197,28 @@ export function publicationArtifacts(committed) {
   return { packageAddress: packageId, storageObjectId: storageId, currencyObjectId, coinType, registrationId };
 }
 
+export function verifiedCustodyChange(transaction, request) {
+  transactionStatusReceipt(transaction, request.transactionHash);
+  if (transaction.status.success !== true || !Array.isArray(transaction.effects.changedObjects))
+    throw new Error('Source transaction did not succeed on Sui');
+  const changes = transaction.effects.changedObjects.filter(item => item.objectId === normalizeSuiAddress(request.tokenId));
+  if (changes.length !== 1) throw new Error('Source receipt must uniquely identify the custody object change');
+  const change = changes[0];
+  if (change.outputOwner?.AddressOwner !== normalizeSuiAddress(request.custody)
+      || !change.inputOwner?.AddressOwner || change.inputOwner.AddressOwner === normalizeSuiAddress(request.custody)
+      || change.outputState !== 'ObjectWrite' || change.idOperation !== 'None')
+    throw new Error('Source digest does not prove this NFT entered custody');
+  return change;
+}
+
 async function custodyReceipt(client, request) {
   if (!isValidSuiAddress(request.tokenId) || !isValidSuiAddress(request.custody) || !request.transactionHash)
     throw new Error('NFT object ID, custody wallet and source digest are required');
   const response = await client.getTransaction({ digest: request.transactionHash, include: { effects: true } });
   const transaction = response.Transaction;
-  if (!transaction?.status.success || !transaction.effects) throw new Error('Source transaction did not succeed on Sui');
-  const change = transaction.effects.changedObjects.find(item => item.objectId === normalizeSuiAddress(request.tokenId));
-  if (change?.outputOwner?.AddressOwner !== normalizeSuiAddress(request.custody)
-      || !change.inputOwner?.AddressOwner || change.inputOwner.AddressOwner === normalizeSuiAddress(request.custody)
-      || change.outputState !== 'ObjectWrite' || change.idOperation !== 'None')
-    throw new Error('Source digest does not prove this NFT entered custody');
+  const change = verifiedCustodyChange(transaction, request);
   const { object } = await client.getObject({ objectId: request.tokenId });
-  if (object.version !== change.outputVersion || object.owner.AddressOwner !== normalizeSuiAddress(request.custody))
+  if (object.objectId !== normalizeSuiAddress(request.tokenId) || object.version !== change.outputVersion || object.owner.AddressOwner !== normalizeSuiAddress(request.custody))
     throw new Error('Custody receipt is stale or the NFT has already been released');
   return { objectId: object.objectId, version: object.version, digest: object.digest };
 }
