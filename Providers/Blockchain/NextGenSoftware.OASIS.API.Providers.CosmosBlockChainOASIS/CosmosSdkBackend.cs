@@ -15,6 +15,7 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
     private readonly string _rpcEndpoint, _chainId, _privateKey, _contractAddress;
     private readonly string _addressPrefix, _gasPrice, _nodeExecutable, _bridgePath;
     private bool _disposed;
+    private readonly AsyncLocal<Func<string, string, PreparedSubmissionServer>> _storagePreparation = new();
     internal string ChainId => _chainId;
 
     public CosmosSdkBackend(string rpcEndpoint, string chainId, string privateKey, string contractAddress,
@@ -41,10 +42,30 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
     }
 
     public async Task PutAsync(string key, string value, CancellationToken cancellationToken = default)
-        => await InvokeAsync("put", new { key, value }, cancellationToken);
+        => await InvokeStorageMutationAsync("put", key, new { key, value }, cancellationToken);
 
     public async Task DeleteAsync(string key, CancellationToken cancellationToken = default)
-        => await InvokeAsync("delete", new { key }, cancellationToken);
+        => await InvokeStorageMutationAsync("delete", key, new { key }, cancellationToken);
+
+    internal async Task<T> WithStoragePreparationAsync<T>(Func<Task<T>> operation,
+        Func<string, string, PreparedSubmissionServer> preparation)
+    {
+        ArgumentNullException.ThrowIfNull(operation);
+        ArgumentNullException.ThrowIfNull(preparation);
+        if (_storagePreparation.Value != null) throw new InvalidOperationException("Cosmos storage execution ownership cannot be nested.");
+        _storagePreparation.Value = preparation;
+        try { return await operation(); }
+        finally { _storagePreparation.Value = null; }
+    }
+
+    private async Task InvokeStorageMutationAsync(string operation, string key, object args, CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();
+        var owner = _storagePreparation.Value;
+        using var server = owner?.Invoke(operation, key);
+        if (owner != null && server == null) throw new InvalidOperationException("Storage owner returned no preparation gate.");
+        await InvokeCoreAsync(operation, args, token, server);
+    }
 
     public async Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken cancellationToken = default)
     {

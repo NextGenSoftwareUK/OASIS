@@ -8,6 +8,29 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class CosmosPreparationTests
 {
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task StorageScopeUsesExistingPreparationGateAndClearsOwnerAfterFailure(bool reject)
+    {
+        var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+        var type=typeof(CosmosBlockChainOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.CosmosSdkBackend")!;
+        using var backend=(IDisposable)Activator.CreateInstance(type,new object[]{"http://127.0.0.1:1","chain","key","contract","cosmos","0.025uatom","node",Path.Combine(AppContext.BaseDirectory,"Fixtures/nft-signer.mjs")})!;
+        var calls=0;var observed=new List<string>();var failure=new IOException("controlled storage owner persistence rejection");
+        Func<string,string,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer> owner=(operation,key)=>{
+            observed.Add(operation+":"+key);
+            return new((_,_)=>{calls++;return reject?Task.FromException(failure):Task.CompletedTask;});
+        };
+        var storage=(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.IKeyValueBackend)backend;
+        Func<Task<string>> action=async()=>{await storage.PutAsync("prepared-storage","encrypted fixture");await storage.DeleteAsync("prepared-storage");return "done";};
+        var scoped=(Task<string>)type.GetMethod("WithStoragePreparationAsync",flags)!.MakeGenericMethod(typeof(string))
+            .Invoke(backend,new object[]{action,owner})!;
+        if(reject)Assert.AreSame(failure,await Assert.ThrowsExceptionAsync<IOException>(()=>scoped));
+        else Assert.AreEqual("done",await scoped);
+        Assert.AreEqual(reject?1:2,calls);
+        CollectionAssert.AreEqual(reject?new[]{"put:prepared-storage"}:new[]{"put:prepared-storage","delete:prepared-storage"},observed);
+        await storage.PutAsync("ordinary","fixture");
+        Assert.AreEqual(reject?1:2,calls);
+    }
     [TestMethod]
     public void StorageAndNativeOperationsRetainOneSdkBackend()
     {
