@@ -107,6 +107,8 @@ public partial class SuiOASIS
         {
             ArgumentNullException.ThrowIfNull(request);
             var count = request.NumberToMint ?? 1;
+            if (request.StoreNFTMetaDataOnChain == false)
+                throw new ArgumentException("This Sui NFT ABI stores metadata on-chain; off-chain-only metadata is not implemented and must not be silently published.");
             if (count < 1) throw new ArgumentException("Positive NFT mint count is required.");
             if (request.NFTStandardType.HasValue && request.NFTStandardType != Core.Enums.NFTStandardType.SuiObject)
                 throw new ArgumentException("Sui address-owned objects are not ERC721/ERC1155/SPL assets.");
