@@ -432,9 +432,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
         public OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
         {
+            HolonModel holon = null;
             try
             {
-                var holon = _dbContext.Holons.FirstOrDefault(p => p.Id == id.ToString());
+                holon = _dbContext.Holons.FirstOrDefault(p => p.Id == id.ToString());
                 if (holon != null)
                 {
                     if (softDelete)
@@ -466,19 +467,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
+                if (holon != null) _dbContext.Entry(holon).State = EntityState.Detached;
                 return new OASISResult<IHolon>
                 {
                     IsError = true,
-                    Message = ex.ToString()
+                    Exception = ex,
+                    Message = ex.Message
                 };
             }
         }
 
         public async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true)
         {
+            HolonModel holon = null;
             try
             {
-                var holon = await _dbContext.Holons.Where(p => p.Id == id.ToString()).FirstOrDefaultAsync();
+                holon = await _dbContext.Holons.Where(p => p.Id == id.ToString()).FirstOrDefaultAsync();
                 if (holon != null)
                 {
                     if (softDelete)
@@ -511,19 +515,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
+                if (holon != null) _dbContext.Entry(holon).State = EntityState.Detached;
                 return new OASISResult<IHolon>
                 {
                     IsError = true,
-                    Message = ex.ToString()
+                    Exception = ex,
+                    Message = ex.Message
                 };
             }
         }
 
         public OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true)
         {
+            HolonModel holonEntity = null;
             try
             {
-                var holonEntity = _dbContext.Holons
+                holonEntity = _dbContext.Holons
                     .FirstOrDefault(p => p.LocalProviderKey == providerKey);
                 
                 if (holonEntity != null)
@@ -561,19 +568,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
+                if (holonEntity != null) _dbContext.Entry(holonEntity).State = EntityState.Detached;
                 return new OASISResult<IHolon>
                 {
                     IsError = true,
-                    Message = ex.ToString()
+                    Exception = ex,
+                    Message = ex.Message
                 };
             }
         }
 
         public async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
         {
+            HolonModel holonEntity = null;
             try
             {
-                var holonEntity = await _dbContext.Holons
+                holonEntity = await _dbContext.Holons
                     .FirstOrDefaultAsync(p => p.LocalProviderKey == providerKey);
                 
                 if (holonEntity != null)
@@ -611,10 +621,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
+                if (holonEntity != null) _dbContext.Entry(holonEntity).State = EntityState.Detached;
                 return new OASISResult<IHolon>
                 {
                     IsError = true,
-                    Message = ex.ToString()
+                    Exception = ex,
+                    Message = ex.Message
                 };
             }
         }

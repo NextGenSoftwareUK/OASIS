@@ -6,6 +6,9 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.Common;
 using Xunit;
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositories;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 
@@ -35,6 +38,33 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
                 if (File.Exists(file)) File.Delete(file);
         }
         finally { _lease.Dispose(); }
+    }
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public async Task RejectedHardDeleteRetainsErrorAndDoesNotLeakIntoLaterSave(bool synchronous, bool byKey)
+    {
+        using var context = new DataContext(TestConnectionString);
+        context.Database.EnsureCreated();
+        var repository = new HolonRepository(context);
+        var id = Guid.NewGuid();
+        repository.SaveHolon(new Holon { Id = id, IsActive = true }).IsError.Should().BeFalse();
+        context.Database.ExecuteSqlRaw("CREATE TRIGGER reject_delete BEFORE DELETE ON Holon BEGIN SELECT RAISE(ABORT, 'owned test rejection'); END;");
+        var rejected = byKey
+            ? (synchronous ? repository.DeleteHolon(id.ToString(), false) : await repository.DeleteHolonAsync(id.ToString(), false))
+            : (synchronous ? repository.DeleteHolon(id, false) : await repository.DeleteHolonAsync(id, false));
+        rejected.IsError.Should().BeTrue();
+        rejected.Exception.Should().NotBeNull();
+        rejected.IsDeleted.Should().BeFalse();
+        context.Database.ExecuteSqlRaw("DROP TRIGGER reject_delete;");
+        repository.SaveHolon(new Holon { Id = Guid.NewGuid() }).IsError.Should().BeFalse();
+        repository.LoadHolon(id, loadChildren:false).Result.Id.Should().Be(id);
+        var deleted = synchronous ? repository.DeleteHolon(id, false) : await repository.DeleteHolonAsync(id, false);
+        deleted.IsDeleted.Should().BeTrue();
+        repository.LoadHolon(id, loadChildren:false).Result.Should().BeNull();
     }
 
     [Theory]
