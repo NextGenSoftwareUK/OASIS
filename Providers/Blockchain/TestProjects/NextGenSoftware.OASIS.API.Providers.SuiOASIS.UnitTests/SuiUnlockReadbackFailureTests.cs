@@ -6,6 +6,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class SuiUnlockReadbackFailureTests
 {
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task NativeBridgeErrorsPreserveOriginalReconciliationIdentity(bool deposit)
+    {
+        await WithProcessFixture(async provider=>{
+            var result=deposit?await provider.DepositAsync(1m,"fixture-recipient")
+                :await provider.WithdrawAsync(1m,"fixture-sender","test-only-secret");
+            Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);
+            Assert.IsInstanceOfType<SuiNativeMutationReconciliationException>(result.Exception);
+            var original=(SuiNativeMutationReconciliationException)result.Exception;
+            Assert.AreEqual(new string('1',32),original.OriginalTransactionId);
+            Assert.AreEqual(true,original.ExecutionSucceeded);
+        });
+    }
     [TestMethod]
     public async Task OffChainOnlyMetadataCannotBeSilentlyPublished()
     {

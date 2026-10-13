@@ -35,7 +35,7 @@ public partial class SuiOASIS
             var custody = await BridgeWalletAsync();
             if (senderAccountAddress == custody) throw new ArgumentException("Withdrawal sender must differ from the custody wallet.");
             var committed = await SendSuiAsync(senderAccountAddress, custody, amount, senderPrivateKey);
-            if (committed.IsError) throw new InvalidOperationException(committed.Message);
+            if (committed.IsError) throw committed.Exception ?? new InvalidOperationException(committed.Message);
             return CommittedBridge(committed.Result.TransactionResult);
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
@@ -50,7 +50,7 @@ public partial class SuiOASIS
             var custody = await BridgeWalletAsync();
             if (receiverAccountAddress == custody) throw new ArgumentException("Deposit receiver must differ from the custody wallet.");
             var committed = await SendSuiAsync(custody, receiverAccountAddress, amount, _privateKey);
-            if (committed.IsError) throw new InvalidOperationException(committed.Message);
+            if (committed.IsError) throw committed.Exception ?? new InvalidOperationException(committed.Message);
             return CommittedBridge(committed.Result.TransactionResult);
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
