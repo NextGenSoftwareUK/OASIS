@@ -24,16 +24,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
         {
             _svc = new Mock<ISubscriptionService>();
             _cfg = new ConfigurationBuilder().Build();
-            _ctrl = new SubscriptionController(_cfg, _svc.Object);
+            var prices = new Mock<ISubscriptionPlanPriceReader>();
+            prices.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new SubscriptionPlanPrice(9m, "GBP", "month"));
+            _ctrl = new SubscriptionController(_cfg, _svc.Object, planCatalogue: new SubscriptionPlanCatalogue(prices.Object));
             SetUnauthenticated();
         }
 
         // ── GET /api/subscription/plans ──────────────────────────────────────
 
         [Fact]
-        public void GetPlans_Returns200WithAllPlanIds()
+        public async Task GetPlans_Returns200WithAllPlanIds()
         {
-            var result = _ctrl.GetPlans() as OkObjectResult;
+            var result = await _ctrl.GetPlans() as OkObjectResult;
 
             result.Should().NotBeNull();
             result!.StatusCode.Should().Be(200);
@@ -48,9 +51,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
         }
 
         [Fact]
-        public void GetPlans_IsErrorFalse()
+        public async Task GetPlans_IsErrorFalse()
         {
-            var result = _ctrl.GetPlans() as OkObjectResult;
+            var result = await _ctrl.GetPlans() as OkObjectResult;
             var json = System.Text.Json.JsonSerializer.Serialize(result!.Value);
             json.Should().Contain("false");
         }
@@ -362,10 +365,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
             _svc.VerifyNoOtherCalls();
         }
         [Theory]
-        [InlineData("invoice.paid", "price_bronze", "bronze")]
-        [InlineData("invoice.payment_succeeded", "price_bronze", "bronze")]
-        [InlineData("invoice.paid", "price_retired", null)]
-        public async Task SignedPaidInvoiceUsesHistoricalLinePriceInsteadOfCurrentPlan(string eventType, string invoicePrice, string expectedPlan)
+        [InlineData("invoice.paid", "price_bronze", "bronze", "usd", 12.34)]
+        [InlineData("invoice.payment_succeeded", "price_bronze", "bronze", "gbp", 12.34)]
+        [InlineData("invoice.paid", "price_retired", null, "jpy", 1234)]
+        public async Task SignedPaidInvoiceUsesHistoricalLinePriceInsteadOfCurrentPlan(string eventType, string invoicePrice, string expectedPlan, string currency, decimal expectedAmount)
         {
             string user = Guid.NewGuid().ToString();
             _svc.Setup(x => x.GetSubscriptionByStripeSubscriptionIdAsync("sub_current"))
@@ -382,10 +385,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
             var controller = new SubscriptionController(config, _svc.Object, billingRepository: billing.Object);
             long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             string body = System.Text.Json.JsonSerializer.Serialize(new {
-                id = "evt_invoice_paid", @object = "event", type = eventType, created = timestamp, api_version = "2025-02-24.acacia",
+                id = "evt_invoice_paid", @object = "event", type = eventType, created = timestamp, api_version = Stripe.StripeConfiguration.ApiVersion,
                 request = new { id = "req_paid_invoice", idempotency_key = (string)null },
                 data = new { @object = new { id = "in_actual", @object = "invoice", subscription = "sub_current", paid = true,
-                    status = "paid", currency = "usd", amount_paid = 1234, created = timestamp,
+                    status = "paid", currency, amount_paid = 1234, created = timestamp,
                     lines = new { @object = "list", data = new[] { new { id = "il_one", @object = "line_item", price = new { id = invoicePrice, @object = "price" } } } } } }
             });
             using var hmac = new System.Security.Cryptography.HMACSHA256(System.Text.Encoding.UTF8.GetBytes("whsec_test"));
@@ -396,7 +399,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
             controller.ControllerContext = new ControllerContext { HttpContext = context };
             (await controller.StripeWebhook()).Should().BeOfType<OkObjectResult>();
             captured.Should().NotBeNull(); captured.PlanId.Should().Be(expectedPlan);
-            captured.Amount.Should().Be(12.34m); captured.StripeInvoiceId.Should().Be("in_actual");
+            captured.Amount.Should().Be(expectedAmount); captured.Currency.Should().Be(currency.ToUpperInvariant()); captured.StripeInvoiceId.Should().Be("in_actual");
         }
         // ── Helpers ──────────────────────────────────────────────────────────
 

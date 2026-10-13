@@ -13,6 +13,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
     {
         public static bool IsService(string service) => service is "WEB5" or "WEB6" or "WEB7" or "WEB8" or "WEB9" or "WEB10";
 
+        public static string RequireSubscriber(HttpContext context, string requestedUserId = null)
+        {
+            var principal = context?.User;
+            string id = principal?.FindFirstValue(ClaimTypes.NameIdentifier) ?? principal?.FindFirstValue("sub") ?? principal?.FindFirstValue("id");
+            if (principal?.Identity?.IsAuthenticated != true || !Guid.TryParse(id, out var avatarId) || avatarId == Guid.Empty)
+                throw new UnauthorizedAccessException("An authenticated subscriber avatar is required.");
+            if (!string.IsNullOrWhiteSpace(requestedUserId) && (!Guid.TryParse(requestedUserId, out var requested) || requested != avatarId))
+                throw new UnauthorizedAccessException("A subscriber can only access their own billing records.");
+            return avatarId.ToString("D");
+        }
+
         public static string RequireService(HttpContext context, IConfiguration configuration, string expectedService = null)
         {
             var serviceHeaders = context.Request.Headers["X-OASIS-Service"];
