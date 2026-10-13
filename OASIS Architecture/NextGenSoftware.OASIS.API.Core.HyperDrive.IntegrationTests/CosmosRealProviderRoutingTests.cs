@@ -16,6 +16,8 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 
 public sealed class CosmosRealProviderRoutingTests
 {
+    private static byte[] LocalStorageKey()=>System.Security.Cryptography.SHA256.HashData(
+        System.Text.Encoding.UTF8.GetBytes("oasis-cosmos-local-storage-fixture-v1"));
     private static string Required(string name) => Environment.GetEnvironmentVariable(name)
         ?? throw new InvalidOperationException($"Real provider setting {name} is required; no skipped evidence.");
 
@@ -33,7 +35,7 @@ public sealed class CosmosRealProviderRoutingTests
         File.Exists(Path.Combine(root,"replication-pending.json")).Should().BeFalse("reconcile prior owned replication intent before outage tests");
         using var cosmos = new CosmosBlockChainOASIS(rpc, Required("OASIS_COSMOS_TEST_CHAIN"),
             Required("OASIS_COSMOS_TEST_KEY"), Required("OASIS_COSMOS_TEST_CONTRACT"),
-            "wasm", "0.025stake", "stake");
+            "wasm", "0.025stake", "stake",storageEncryptionKeyResolver:LocalStorageKey);
         var local = new LocalFileOASIS(storageDirectory: Path.Combine(root, "files"));
         var activated = await cosmos.ActivateProviderAsync();
         activated.IsError.Should().BeFalse(activated.Message);
@@ -93,7 +95,7 @@ public sealed class CosmosRealProviderRoutingTests
         using var lease = new FileStream(Path.Combine(root, "store.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
         using var cosmos = new CosmosBlockChainOASIS(rpc, Required("OASIS_COSMOS_TEST_CHAIN"),
             Required("OASIS_COSMOS_TEST_KEY"), Required("OASIS_COSMOS_TEST_CONTRACT"),
-            "wasm", "0.025stake", "stake");
+            "wasm", "0.025stake", "stake",storageEncryptionKeyResolver:LocalStorageKey);
         var local = new LocalFileOASIS(storageDirectory: Path.Combine(root, "files"));
         var holon = new Holon { Id = Guid.NewGuid(), Name = "real-v2-cosmos-replication" };
         var deletedThroughRouter = false;
@@ -117,7 +119,7 @@ public sealed class CosmosRealProviderRoutingTests
         var journalPath=Path.Combine(root,"replication-pending.json");
         using var journal=new FileStream(journalPath,FileMode.CreateNew,FileAccess.Write,FileShare.Read);
         await System.Text.Json.JsonSerializer.SerializeAsync(journal,new{chain=Required("OASIS_COSMOS_TEST_CHAIN"),contract=Required("OASIS_COSMOS_TEST_CONTRACT"),
-            holonId=holon.Id,avatarId=avatar.Id,avatar.Username,avatar.Email,recovery="Inspect exactly owned records; do not repeat an uncertain replication run."});
+            holonId=holon.Id,avatarId=avatar.Id,avatar.Username,avatar.Email,encryptionKeyLabel="oasis-cosmos-local-storage-fixture-v1",recovery="Inspect exactly owned records; do not repeat an uncertain replication run."});
         journal.Flush(true);var verifiedComplete=false;
         try
         {

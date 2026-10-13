@@ -36,6 +36,14 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos encrypted V2 routing and registration build — 2026-10-12
+
+- Updated both existing real-provider routing fixtures to the retained local-only encryption key; recovery journal now records its fixed key label alongside chain/contract and exact owned IDs. No replacement signing identity or encryption key generation.
+- **1/1 healthy live V2 test passed**, zero skips, 61 seconds, `TestResults/HyperDriveCosmos/cosmos-encrypted-v2-healthy-current.trx`: actual encrypted Cosmos/LocalFile avatar/detail/holon replication and readback, update/delete and identity projections, measured Performance selection, Free-policy exclusion across five strategies, and six alternating sync/async Gold RoundRobin reads split three per provider. Healthy ownership journal was removed only after verified completion and cleanup; no pending journal remains.
+- **2/2 live failover cases passed**, zero skips, `TestResults/HyperDriveCosmos/cosmos-encrypted-v2-outage-current.trx`: disposed transport and stopped owned wasmd node both selected LocalFile and persisted the requested holon. Owned node is terminal afterward. Existing pinned runtime/contract/ledger were reused without install/download/reset/deployment.
+- Rebuilt current OASISBootLoader successfully (zero errors), proving provider registration compiles against changed constructors. This is not a published-artifact or hosted API proof. Full encrypted interface/options/version coverage, production usage recovery, other provider matrices and WEB4 consumer/deployment verification remain open; no merge occurred.
+
+
 ### Cosmos real encrypted-ledger roundtrip — 2026-10-12
 
 - Existing Cosmos storage fixture now supplies a retained public local-only encryption key derived from `oasis-cosmos-local-storage-fixture-v1`, independent of the signing identity. Never use that fixture key for production/user data.
