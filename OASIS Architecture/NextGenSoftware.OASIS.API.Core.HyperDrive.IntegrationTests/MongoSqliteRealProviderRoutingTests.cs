@@ -359,6 +359,37 @@ public sealed class MongoSqliteRealProviderRoutingTests
             failManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
             failManager.SetAndActivateCurrentStorageProvider(failureMongo).IsError.Should().BeFalse();
             var admin = client.GetDatabase("admin");
+            foreach (var rejectDetailInsert in new[] { false, true })
+            {
+                var rejectedId = Guid.NewGuid();
+                try
+                {
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                        { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("times",1) },
+                        { "data", new BsonDocument { { "failCommands", new BsonArray { "insert" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                    });
+                    if (rejectDetailInsert)
+                    {
+                        var rejectedRecord = new AvatarDetail { Id = rejectedId, Username = "rejected-create-detail" };
+                        var rejectedInsert = synchronous ? failureMongo.SaveAvatarDetail(rejectedRecord) : await failureMongo.SaveAvatarDetailAsync(rejectedRecord);
+                        rejectedInsert.IsError.Should().BeTrue();
+                        rejectedInsert.Exception.Should().BeOfType<MongoCommandException>();
+                        (await mongo.LoadAvatarDetailAsync(rejectedId)).Result.Should().BeNull();
+                    }
+                    else
+                    {
+                        var rejectedRecord = new Avatar { Id = rejectedId, Username = "rejected-create-avatar", AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
+                        var rejectedInsert = synchronous ? failureMongo.SaveAvatar(rejectedRecord) : await failureMongo.SaveAvatarAsync(rejectedRecord);
+                        rejectedInsert.IsError.Should().BeTrue();
+                        rejectedInsert.Exception.Should().BeOfType<MongoCommandException>();
+                        (await mongo.LoadAvatarAsync(rejectedId)).Result.Should().BeNull();
+                    }
+                }
+                finally
+                {
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+                }
+            }
             try
             {
                 await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
