@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON ambiguous negative broadcast replies — 2026-10-12
+
+- Extended original-outcome preservation to execution error (3), generic error (20), unknown enum values and contradictory false+SUCCESS (0). None is treated as authoritative proof that a replacement transaction is safe. This conservative uncertainty classification does not assert those transactions committed; it requires original reconciliation. Remaining specific validation/resource response classifications still need independent audit.
+- Added injected 3/20/99 actual-client controlled transport cases verifying exact signed ID/genesis/validity window, persisted evidence and one broadcast. Full current TRON suite **293/293 passed**, zero skips, `TestResults/TronRuntime/tron-ambiguous-response-current.trx`; provider build passed. False+SUCCESS branch itself still needs a dedicated injected case.
+- No live original fence/node/funds/runtime/download/deployment/merge touched. Broader recovery/provider release gates remain open.
+
+
 ### Default DNA and encryption comparison configuration update — 2026-10-12
 
 - Checked-in default DNA JSON now explicitly includes Cosmos/Sui `StorageEncryptionKeyEnvironmentVariable` values matching their typed defaults. JSON parse and exact references validated. No key material added, provider activation enabled, or deployed Railway JSON changed.
