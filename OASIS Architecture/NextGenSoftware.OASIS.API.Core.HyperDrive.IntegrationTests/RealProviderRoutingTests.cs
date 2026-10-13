@@ -38,6 +38,34 @@ public sealed class RealProviderRoutingTests : IDisposable
     private string SqlitePath => Path.Combine(_root, "oasis.db");
     private string FilesPath => Path.Combine(_root, "files");
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task LocalFileDeletionPreservesUnreadableRecordAndReportsSuccessfulDeletion(bool synchronous)
+    {
+        Directory.CreateDirectory(_root);
+        var local = new LocalFileOASIS(storageDirectory: FilesPath);
+        (await local.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var id = Guid.NewGuid();
+        var path = Path.Combine(FilesPath, "Holons", $"{id}.json");
+        const string corrupt = "{invalid-owned-fixture";
+        await File.WriteAllTextAsync(path, corrupt);
+        var rejected = synchronous ? local.DeleteHolon(id) : await local.DeleteHolonAsync(id);
+        rejected.IsError.Should().BeTrue();
+        rejected.IsDeleted.Should().BeFalse();
+        rejected.DeletedCount.Should().Be(0);
+        (await File.ReadAllTextAsync(path)).Should().Be(corrupt);
+        var valid = new Holon { Id = Guid.NewGuid(), Name = "valid-delete" };
+        (await local.SaveHolonAsync(valid, saveChildren:false)).IsError.Should().BeFalse();
+        var deleted = synchronous ? local.DeleteHolon(valid.Id) : await local.DeleteHolonAsync(valid.Id);
+        deleted.IsError.Should().BeFalse(deleted.Message);
+        deleted.IsDeleted.Should().BeTrue();
+        deleted.DeletedCount.Should().Be(1);
+        deleted.IsSaved.Should().BeFalse();
+        deleted.Result.Id.Should().Be(valid.Id);
+        (await local.LoadHolonAsync(valid.Id)).Result.Should().BeNull();
+    }
+
     [Fact]
     public async Task AutoReplication_WritesMutationToBothRealStores()
     {
