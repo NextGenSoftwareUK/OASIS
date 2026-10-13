@@ -28,6 +28,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Hedera journal actual process-interruption proof — 2026-10-12
+
+Added owned child-process test of actual shared journal implementation: child intercepts rename only after normal write/fsync/close, reports reached boundary, parent kills exact child handle, then reopens original and staging files. Original complete intent preserved, flushed next intent readable, subsequent replacement rejected EEXIST. Helper suite **7/7 passed**, zero skips. Child terminal before tiny owned fixture directory removal. Supersedes prior missing abrupt-process proof for THIS journal boundary only; not full parent WEB4 crash, signed-before-broadcast evidence, settlement recovery, power-loss durability or live deployment. No SDK/funding/node activity or merge.
+
 ### Hedera reusable deployment journal replacement — 2026-10-12
 
 Found deployment/reconciliation helpers directly rewrote recovery JSON without flushing/atomic replacement. Shared saveDeploymentState now creates fixed same-directory .next exclusively, writes/flushes/closes then renames over destination. Linked destination is rejected; failed write/rename preserves staging for review. Both runners refuse leftover staging before ledger queries/mutations (after local compile/lease acquisition); no auto deletion/resubmission. Existing production deployment journal was NOT changed. This protects process-crash file replacement; no power-loss/directory-fsync claim or automatic parent-host recovery.
