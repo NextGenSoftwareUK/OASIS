@@ -3,9 +3,31 @@ using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 
 namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 
-[TestClass]
+[TestClass, DoNotParallelize]
 public class HederaNftSendValidationTests
 {
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task ConfirmedStandaloneSendProjectsDeliveryHashAndRecipient(bool asynchronous)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","hedera-process-boundary.mjs"));
+        try
+        {
+            var request=Valid(); request.OwnerPrivateKey="test-only-delivery-key";
+            var provider=new HashgraphOASIS();
+            var result=asynchronous?await provider.SendNFTAsync(request):provider.SendNFT(request);
+            Assert.IsFalse(result.IsError,result.Message);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(result.Result.TransactionResult));
+            Assert.AreEqual(result.Result.TransactionResult,result.Result.SendNFTTransactionResult);
+            Assert.AreEqual(result.Result.SendNFTTransactionResult,result.Result.Web3NFT.SendNFTTransactionHash);
+            Assert.AreEqual(request.ToWalletAddress,result.Result.Web3NFT.SendToAddressAfterMinting);
+            Assert.AreEqual(request.FromNFTTokenAddress,result.Result.Web3NFT.NFTTokenAddress);
+        }
+        finally { Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",previous); }
+    }
+
     [TestMethod]
     public async Task BothEntryPointsRequireSigner()
     {
