@@ -21,9 +21,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public string SanskritName { get; set; }
         public string Description { get; set; }
         public string WhatItControls { get; set; }
-        public YogaPoseType? YogaPose { get; set; } 
+        public YogaPoseType? YogaPose { get; set; }
         public string WhenItDevelops { get; set; }
-        public ElementType? Element { get; set; } 
+        public ElementType? Element { get; set; }
         public CrystalModel Crystal { get; set; }
         public int Level { get; set; }
         public int Progress { get; set; }
