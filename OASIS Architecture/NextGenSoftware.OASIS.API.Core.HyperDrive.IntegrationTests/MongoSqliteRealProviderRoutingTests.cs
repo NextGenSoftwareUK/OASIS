@@ -292,6 +292,28 @@ public sealed class MongoSqliteRealProviderRoutingTests
             failManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
             failManager.SetAndActivateCurrentStorageProvider(failureMongo).IsError.Should().BeFalse();
             var admin = client.GetDatabase("admin");
+            foreach (var detailSelector in new[] { "id", "username", "email" })
+            {
+                try
+                {
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                        { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("times",1) },
+                        { "data", new BsonDocument { { "failCommands", new BsonArray { "find" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                    });
+                    var detailFailure = detailSelector == "id"
+                        ? (synchronous ? failureMongo.LoadAvatarDetail(detail.Id) : await failureMongo.LoadAvatarDetailAsync(detail.Id))
+                        : detailSelector == "username"
+                            ? (synchronous ? failureMongo.LoadAvatarDetailByUsername(detail.Username) : await failureMongo.LoadAvatarDetailByUsernameAsync(detail.Username))
+                            : (synchronous ? failureMongo.LoadAvatarDetailByEmail(detail.Email) : await failureMongo.LoadAvatarDetailByEmailAsync(detail.Email));
+                    detailFailure.IsError.Should().BeTrue();
+                    detailFailure.Exception.Should().BeOfType<MongoCommandException>();
+                    detailFailure.Result.Should().BeNull();
+                }
+                finally
+                {
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+                }
+            }
             try
             {
                 await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
