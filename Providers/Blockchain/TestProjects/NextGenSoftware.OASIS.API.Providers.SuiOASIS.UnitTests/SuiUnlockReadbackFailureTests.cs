@@ -6,6 +6,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class SuiUnlockReadbackFailureTests
 {
+    [TestMethod]
+    public async Task OffChainOnlyMetadataCannotBeSilentlyPublished()
+    {
+        using var provider=new SuiOASIS();
+        var result=await provider.MintNFTAsync(new MintWeb3NFTRequest { StoreNFTMetaDataOnChain=false });
+        Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);
+        Assert.IsInstanceOfType<ArgumentException>(result.Exception);
+        StringAssert.Contains(result.Message,"must not be silently published");
+        Assert.IsFalse(provider.IsProviderActivated);
+    }
+
     [DataTestMethod]
     [DataRow("fixture-chain",false)] [DataRow("foreign-chain",true)] [DataRow("",true)]
     public async Task NativeFeeEvidenceRequiresConfiguredExactChain(string chain,bool rejected)

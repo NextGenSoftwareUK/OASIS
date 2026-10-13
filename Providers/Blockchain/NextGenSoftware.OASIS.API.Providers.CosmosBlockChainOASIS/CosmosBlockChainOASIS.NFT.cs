@@ -77,6 +77,8 @@ public partial class CosmosBlockChainOASIS
         try
         {
             if (request == null) throw new ArgumentNullException(nameof(request));
+            if (request.StoreNFTMetaDataOnChain == false)
+                throw new ArgumentException("This CosmWasm NFT ABI stores metadata on-chain; off-chain-only metadata is not implemented and must not be silently published.");
             if (request.NumberToMint.HasValue && request.NumberToMint != 1)
                 throw new ArgumentException("This NFT call mints one unique token; use separate calls for multiple tokens.");
             if (request.NFTStandardType.HasValue && request.NFTStandardType != Core.Enums.NFTStandardType.OASISCosmWasm)

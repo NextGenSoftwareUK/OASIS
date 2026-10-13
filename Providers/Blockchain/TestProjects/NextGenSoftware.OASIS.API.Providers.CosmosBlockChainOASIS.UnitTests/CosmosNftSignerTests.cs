@@ -6,6 +6,17 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class CosmosNftSignerTests
 {
+    [TestMethod]
+    public async Task OffChainOnlyMetadataCannotBeSilentlyPublished()
+    {
+        using var provider=new CosmosBlockChainOASIS();
+        var result=await provider.MintNFTAsync(new MintWeb3NFTRequest { StoreNFTMetaDataOnChain=false });
+        Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);
+        Assert.IsInstanceOfType<ArgumentException>(result.Exception);
+        StringAssert.Contains(result.Message,"must not be silently published");
+        Assert.IsFalse(provider.IsProviderActivated);
+    }
+
     [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]

@@ -28,6 +28,12 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Explicit off-chain NFT metadata request privacy fence — 2026-10-12
+
+Audit found Cosmos/Sui MintNFTAsync always serialized metadata on-chain even when StoreNFTMetaDataOnChain=false. Both now reject that explicitly unsupported choice before signing/SDK access, rather than publishing against the request. Current ABIs still require on-chain metadata; this fence is NOT off-chain functionality or full option support, which remains required work. Null/true behavior unchanged; no automatic storage-format migration or privacy decision assumed. RoyaltyPercentage is int? in the shared request, so suspected fractional truncation was not an active contract bug.
+
+Both current dependencies rebuilt successfully first; respective public-entry privacy tests **1/1 + 1/1 passed**, zero skips (`TestResults/MetadataPrivacy/*.trx`), no result/activation and explicit argument error. No SDK install, signing, ledger mutation, sponsorship or merge.
+
 ### Hedera journal actual process-interruption proof — 2026-10-12
 
 Added owned child-process test of actual shared journal implementation: child intercepts rename only after normal write/fsync/close, reports reached boundary, parent kills exact child handle, then reopens original and staging files. Original complete intent preserved, flushed next intent readable, subsequent replacement rejected EEXIST. Helper suite **7/7 passed**, zero skips. Child terminal before tiny owned fixture directory removal. Supersedes prior missing abrupt-process proof for THIS journal boundary only; not full parent WEB4 crash, signed-before-broadcast evidence, settlement recovery, power-loss durability or live deployment. No SDK/funding/node activity or merge.
