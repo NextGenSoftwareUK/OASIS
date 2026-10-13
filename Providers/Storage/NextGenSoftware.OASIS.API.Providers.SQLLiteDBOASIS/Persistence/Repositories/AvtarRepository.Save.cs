@@ -454,6 +454,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Id = avatar.Id.ToString(),
                 LocalProviderKey = keys[ProviderType.SQLLiteDBOASIS],
                 ProviderKeysJson = System.Text.Json.JsonSerializer.Serialize(keys),
+                MetaDataJson = System.Text.Json.JsonSerializer.Serialize(avatar.MetaData ?? new Dictionary<string,object>()),
                 Version = avatar.Version,
                 JwtToken = avatar.JwtToken,
                 LastName = avatar.LastName,
@@ -480,6 +481,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Email = avatar.Email,
                 FirstName = avatar.FirstName,
                 Id = Guid.Parse(avatar.Id),
+                MetaData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string,object>>(avatar.MetaDataJson)
+                    ?? throw new System.IO.InvalidDataException("Stored avatar metadata must be a JSON object."),
                 ProviderUniqueStorageKey = System.Text.Json.JsonSerializer.Deserialize<Dictionary<ProviderType,string>>(avatar.ProviderKeysJson)
                     ?? throw new System.IO.InvalidDataException("Stored avatar provider keys must be a JSON object."),
                 Version = avatar.Version,
