@@ -24,6 +24,14 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos runtime gate cleared; live probe context bug fixed — 2026-10-12
+
+Current execution policy accepted normal startup of the exact retained oasis-wasmd container/pinned image and existing /root/.wasmd ledger; no policy workaround, genesis reset, install or deployment. RPC independently reported oasis-cosmos-local, existing height 8792 and catching_up false. First live read-only activation test failed: probe was not a signed operation, so SDK wallet/sender context was null before owner verification. Fixed the actual context owner: derive the configured official wallet for probe, while retaining the read-only CosmWasmClient and no signing/preparation/broadcast path.
+
+Actual bridge-entry regression proves readonly client use, exact SDK-derived signer, foreign signer rejection, zero signing clients/preparation callbacks and both connections closed. Complete SDK suite **53/53 passed**, zero skips. Live `RetainedContractActivationChecksActualOwnerWithoutChangingBankBalance` **1/1 passed**, zero skips (`TestResults/CosmosRuntime/cosmos-activation-readonly-current.trx`): retained deployed contract owner succeeds, foreign key fails, exact nonzero stake balance unchanged before/after both probes. No transaction submitted. Stop helper verified retained container ID/image, stopped wasmd, original process handle terminal; wrapper/ledger remain reusable. Shutdown logged leveldb-closed messages; not a claim of pristine runtime logs.
+
+Prior Cosmos startup policy blocker is superseded by this current evidence. Corrected assets/history/custody/fees, live V2 after latest changes and durable parent recovery still require current runs. Earlier 102-case C# suite predates this SDK fix; no post-fix full-suite claim. No merge/deployment/spending enabled.
+
 ### TRON native asset history preserves raw denomination — 2026-10-12
 
 Added SDK protobuf `TransferAssetContract` wallet-history mapping and original-owner mapping. Exact requested integer quantity remains `RawAmount`; `AmountUnit` is `TRC10-RAW/<uppercase original asset-identifier bytes as hex>`, preserving legacy names or IDs without guessing text/precision. Legacy double Amount is an explicitly raw quantity approximation for that denomination, NOT divided by SUN's 10^6 scale; authoritative large quantities remain strings. Existing TRX/SUN behavior unchanged. Owner/payer mapping now recognises that native contract for original signed/fee evidence; no new submission API implied.

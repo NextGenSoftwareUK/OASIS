@@ -31,7 +31,7 @@ async function execute(input, persistPreparedSubmission) {
   }
   if (!input.rpcEndpoint) throw new Error("Cosmos rpcEndpoint is required");
   const isSigned = ["put", "delete", "execute", "transfer", "upload", "instantiate"].includes(input.operation);
-  const wallet = isSigned ? await walletFor(input) : null;
+  const wallet = isSigned || input.operation === 'probe' ? await walletFor(input) : null;
   const originalSigning = isSigned && persistPreparedSubmission ? captureCosmosDirectSigning(wallet) : null;
   const client = isSigned
     ? await SigningCosmWasmClient.connectWithSigner(input.rpcEndpoint, wallet, {
