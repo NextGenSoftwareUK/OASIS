@@ -222,22 +222,22 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         }
 
         public override OASISResult<IAvatar> LoadAvatarByVerificationToken(string verificationToken, int version = 0)
-            => DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.VerificationToken == verificationToken));
+            => DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.VerificationToken == verificationToken && (version == 0 || x.Version == version)));
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string verificationToken, int version = 0)
-            => DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.VerificationToken == verificationToken));
+            => DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.VerificationToken == verificationToken && (version == 0 || x.Version == version)));
 
         public override OASISResult<IAvatar> LoadAvatarByResetToken(string resetToken, int version = 0)
-            => DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.ResetToken == resetToken));
+            => DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.ResetToken == resetToken && (version == 0 || x.Version == version)));
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string resetToken, int version = 0)
-            => DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.ResetToken == resetToken));
+            => DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.ResetToken == resetToken && (version == 0 || x.Version == version)));
 
         public override OASISResult<IAvatar> LoadAvatarByRefreshToken(string refreshToken, int version = 0)
-            => DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.RefreshTokens.Any(r => r.Token == refreshToken)));
+            => DataHelper.ConvertMongoEntityToOASISAvatar(_avatarRepository.GetAvatar(x => x.RefreshTokens.Any(r => r.Token == refreshToken) && (version == 0 || x.Version == version)));
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string refreshToken, int version = 0)
-            => DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.RefreshTokens.Any(r => r.Token == refreshToken)));
+            => DataHelper.ConvertMongoEntityToOASISAvatar(await _avatarRepository.GetAvatarAsync(x => x.RefreshTokens.Any(r => r.Token == refreshToken) && (version == 0 || x.Version == version)));
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {

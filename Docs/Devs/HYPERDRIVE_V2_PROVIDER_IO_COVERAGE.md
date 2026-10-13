@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Mongo token selector version forwarding — 2026-10-13
+
+Six verification/reset/refresh-token sync/async wrappers discarded version. Real pair initially failed4/4; wrappers now filter version through existing expression repository. Expanded4/4 passes owned-token current/exact3 and mismatch2 null (`mongo-sqlite-v2-current.trx`). Token expiration/revocation/security-policy and authenticated hosted APIs remain separate unverified gates. No fresh environment/download.
+
 ### Mongo list real errors and signature regression — 2026-10-13
 
 Owned-server app-scoped find failures for avatar/detail lists sync/async preserve error/null/original MongoCommandException; expanded pair4/4 passes. Wider Mongo regression project rebuilt after repository signatures changed and42/42 passed. Reports `TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`, `mongo-single-node-transactions-current.trx`. Other consumers/deployed host, pagination/scale/history/full interfaces and production recovery remain gates. Existing environment reused.

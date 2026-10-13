@@ -223,11 +223,26 @@ public sealed class MongoSqliteRealProviderRoutingTests
             {
                 var selectorAvatar = new Avatar { Id = Guid.NewGuid(), Version = 3, Username = "mongo-selector-" + selector, Email = selector + "@mongo-selector.local",
                     AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
+                selectorAvatar.VerificationToken = "owned-verification-" + selector;
+                selectorAvatar.ResetToken = "owned-reset-" + selector;
+                selectorAvatar.RefreshTokens = new List<RefreshToken> { new RefreshToken { Token = "owned-refresh-" + selector } };
                 var savedSelector = await mongo.SaveAvatarAsync(selectorAvatar);
                 savedSelector.IsError.Should().BeFalse(savedSelector.Message);
                 var selectorDetail = new AvatarDetail { Id = selectorAvatar.Id, Version = 3, Username = "independent-" + selector, Email = "detail-" + selector + "@mongo-selector.local", Karma = 123 };
                 (await mongo.SaveAvatarDetailAsync(selectorDetail)).IsError.Should().BeFalse();
                 var localKey = savedSelector.Result.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS];
+                foreach (var tokenVersion in new[] { 0, 3, 2 })
+                {
+                    foreach (var tokenRead in new[] {
+                        synchronous ? mongo.LoadAvatarByVerificationToken(selectorAvatar.VerificationToken, tokenVersion) : await mongo.LoadAvatarByVerificationTokenAsync(selectorAvatar.VerificationToken, tokenVersion),
+                        synchronous ? mongo.LoadAvatarByResetToken(selectorAvatar.ResetToken, tokenVersion) : await mongo.LoadAvatarByResetTokenAsync(selectorAvatar.ResetToken, tokenVersion),
+                        synchronous ? mongo.LoadAvatarByRefreshToken("owned-refresh-" + selector, tokenVersion) : await mongo.LoadAvatarByRefreshTokenAsync("owned-refresh-" + selector, tokenVersion) })
+                    {
+                        tokenRead.IsError.Should().BeFalse(tokenRead.Message);
+                        if (tokenVersion == 2) tokenRead.Result.Should().BeNull();
+                        else tokenRead.Result.Id.Should().Be(selectorAvatar.Id);
+                    }
+                }
                 foreach (var listVersion in new[] { 0, 3, 2 })
                 {
                     var avatarList = synchronous ? mongo.LoadAllAvatars(listVersion) : await mongo.LoadAllAvatarsAsync(listVersion);
