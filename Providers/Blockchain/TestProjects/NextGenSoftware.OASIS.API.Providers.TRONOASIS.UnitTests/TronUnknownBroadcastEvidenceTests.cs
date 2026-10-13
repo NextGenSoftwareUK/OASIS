@@ -183,6 +183,7 @@ public class TronUnknownBroadcastEvidenceTests
     [InlineData(false,false,false,false,false,0)] [InlineData(true,false,false,false,false,0)] [InlineData(false,true,false,false,false,0)] [InlineData(false,false,true,false,false,0)]
     [InlineData(false,false,true,true,false,0)] [InlineData(false,false,true,false,true,0)]
     [InlineData(false,false,true,false,false,5)] [InlineData(false,false,true,false,false,11)]
+    [InlineData(false,false,true,false,false,3)] [InlineData(false,false,true,false,false,20)] [InlineData(false,false,true,false,false,99)]
     public async Task ActualClientSignsOnceAndPreservesOriginalEvidenceWhenBroadcastOrConfirmationIsInterrupted(bool broadcastAccepted,bool persistenceRejected,bool prepared,bool wrongSignature,bool nullAcknowledgement,int negativeResponseCode)
     {
         const string genesis = "0000000000000000c93baa76a4a508f798a96f59156d9eb17ecede8ec845df2f";
