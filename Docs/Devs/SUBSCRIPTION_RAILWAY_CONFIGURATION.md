@@ -15,6 +15,12 @@ The ledger creates dedicated collections in the same MongoDB instance. It does n
 
 WEB6 pricing is loaded from `Configuration/web6-model-catalogue.json`. No Railway price variable is required.
 
+Paid plan amounts and currencies are read from the existing Stripe prices. For example, if the configured Bronze price is GBP 9, OPORTAL must display GBP 9 and its paid invoice must remain GBP. AI provider usage is accounted for separately in USD; revenue from different currencies is never added together as USD.
+
+The Stripe webhook destination must use the API version supported by the deployed Stripe.net SDK. The current SDK is Stripe.net 47.0.0, using `2024-10-28.acacia`. Configure that version on the subscription webhook destination and enable `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_succeeded`, and `invoice.payment_failed`. An incompatible event schema is rejected visibly. Reuse `STRIPE_WEBHOOK_SECRET` for the matching destination's signing secret.
+
+On checkout return, OPORTAL confirms the authenticated session through `GET /api/subscription/checkout/session/{sessionId}`. A redirect alone never activates a paid plan. Activation requires a completed checkout, a paid/no-payment-required session, and the matching canonical subscription committed by its verified webhook.
+
 ## Add the required variables
 
 ### Step 1: generate six secrets
@@ -172,4 +178,4 @@ After development passes:
 | `SUBSCRIPTION_MIGRATION_APPROVAL_KEY` | Historical migration is unnecessary for this confirmed empty installation. |
 | `SUBSCRIPTION_ADMIN_AVATAR_IDS` | Existing authenticated Wizard administrators already qualify. |
 
-Telemetry is a separate optional operational feature. Its collector settings are not part of initial ledger activation.
+Telemetry is a separate optional operational feature. Leave `SUBSCRIPTION_TELEMETRY_ENABLED` absent or `false` during initial activation. If exporting metrics later, set it to `true` and configure a real `SUBSCRIPTION_OTLP_METRICS_ENDPOINT` (HTTP/protobuf, normally an HTTPS `/v1/metrics` destination) and any required `SUBSCRIPTION_OTLP_HEADERS`. A loopback address is appropriate only when a collector actually runs in that same container; do not add a dummy localhost endpoint to satisfy startup.
