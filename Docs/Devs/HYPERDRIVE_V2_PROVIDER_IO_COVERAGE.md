@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Registered private-key reference lifetime correction — 2026-10-12
+
+- Cosmos/Sui BootLoader resolvers now capture the configured storage-key environment variable name at provider registration instead of re-reading mutable global DNA at first storage activation. This preserves each created provider's configuration identity. Key bytes remain lazily resolved and cached by the private wrapper, not copied into DNA or derived from signing keys.
+- BootLoader build passed, zero errors. Actual registration/custom-variable/global-DNA-change behavior tests remain required; the existing BootLoader unit project has no restored assets, so no new restore/download was initiated just to run its structural tests. Existing DNA serialization tests do not substitute for those runtime tests.
+- No deployment/merge or production secret change; full original provider/encryption/recovery gates remain open.
+
+
 ### Cosmos/Sui DNA storage-key reference integration — 2026-10-12
 
 - Added `StorageEncryptionKeyEnvironmentVariable` to Cosmos/Sui provider DNA settings with existing default variable names. BootLoader registration passes a lazy resolver using those configured references to the existing mandatory private backend. Secret key material is not stored in this new setting; signing keys are not used as storage encryption keys. Explicit empty/invalid references do not fall back to another variable.

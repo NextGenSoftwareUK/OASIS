@@ -470,6 +470,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.CosmosBlockChainOASIS:
                         {
+                            var cosmosStorageKeyVariable=OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.StorageEncryptionKeyEnvironmentVariable;
                             var cosmosProvider = new CosmosBlockChainOASIS(
                                 OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.RpcEndpoint ?? "https://cosmos-rpc.polkachu.com",
                                 OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.ChainId ?? "cosmoshub-4",
@@ -480,7 +481,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.NativeDenom,
                                 OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.NativeDecimals,
                                 storageEncryptionKeyResolver: () => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend.ResolveEnvironmentKey(
-                                    OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.StorageEncryptionKeyEnvironmentVariable));
+                                    cosmosStorageKeyVariable));
                             cosmosProvider.OnStorageProviderError += CosmosBlockChainOASIS_StorageProviderError;
                             result.Result = cosmosProvider;
                         }
@@ -518,6 +519,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.SuiOASIS:
                         {
+                            var suiStorageKeyVariable=OASISDNA.OASIS.StorageProviders.SuiOASIS.StorageEncryptionKeyEnvironmentVariable;
                             var suiProvider = new SuiOASIS(
                                 OASISDNA.OASIS.StorageProviders.SuiOASIS.RpcEndpoint ?? "https://fullnode.mainnet.sui.io:443",
                                 OASISDNA.OASIS.StorageProviders.SuiOASIS.Network ?? "mainnet",
@@ -527,7 +529,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 OASISDNA.OASIS.StorageProviders.SuiOASIS.StorageObjectId ?? "",
                                 OASISDNA.OASIS.StorageProviders.SuiOASIS.CurrencyObjectId ?? "",
                                 storageEncryptionKeyResolver: () => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend.ResolveEnvironmentKey(
-                                    OASISDNA.OASIS.StorageProviders.SuiOASIS.StorageEncryptionKeyEnvironmentVariable));
+                                    suiStorageKeyVariable));
                             suiProvider.OnStorageProviderError += SuiOASIS_StorageProviderError;
                             result.Result = suiProvider;
                         }
