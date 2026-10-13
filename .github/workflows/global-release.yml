@@ -133,6 +133,15 @@ jobs:
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - name: Verify source-aware NuGet planning invariants
         run: python -B Scripts/test_nuget_source_graph.py
+      - name: Checkout pinned source-graph dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          . Docker/oasis-dependency-versions.env
+          git clone --no-checkout "$LIBRARIES_REPO" ../NextGenSoftware-Libraries
+          git -C ../NextGenSoftware-Libraries checkout --detach "$LIBRARIES_COMMIT"
+          git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
+          git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
       - name: Generate and validate release plan
         shell: pwsh
         env:

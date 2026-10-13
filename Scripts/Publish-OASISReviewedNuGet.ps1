@@ -57,6 +57,13 @@ try {
             if ($actualId -ne $planned.packageId -or $actualVersion -ne $planned.version) {
                 throw "Package manifest does not match reviewed identity: $name"
             }
+            if ($Publish) {
+                $repository = $metadata.SelectSingleNode("*[local-name()='repository']")
+                if (-not $repository -or $repository.GetAttribute('commit') -ne $plan.sourceCommit -or
+                    $repository.GetAttribute('url').TrimEnd('/') -ne 'https://github.com/NextGenSoftwareUK/OASIS') {
+                    throw "Package repository provenance does not match the reviewed parent source graph: $name"
+                }
+            }
         } finally { $identityArchive.Dispose(); $identityStream.Dispose() }
         $localEntries = Get-PackageEntries $localBytes
         $id = $planned.packageId.ToLowerInvariant()
