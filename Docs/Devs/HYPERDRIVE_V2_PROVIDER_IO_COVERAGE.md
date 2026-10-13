@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### TRON missing broadcast acknowledgement uncertainty — 2026-10-12
+
+- Audit found a null broadcast response classified as an ordinary rejection after submission. It now raises `TronBroadcastOutcomeUnknownException` retaining the exact signed transaction ID, genesis and validity window; a missing acknowledgement cannot establish non-submission or authorize a replacement. Explicit negative acknowledgements retain their existing rejection behavior pending broader code-specific classification audit.
+- Provider build passed; full current TRON suite **288/288 passed**, zero skips, `TestResults/TronRuntime/tron-null-ack-current.trx`. New actual-client controlled transport case signs/persists once, returns a null acknowledgement and checks original evidence/no second submission. No live node/ledger or unresolved fixture was touched.
+- Broader live/outcome reconciliation, production recovery and original provider release gates remain open; no install/download/funds/deployment/merge.
+
+
 ### Hedera bridge original-mutation marker tests — 2026-10-12
 
 - Added four controlled process-envelope cases entering actual native/NFT Deposit/Withdraw wrappers. Each returns error/null result and retains `INativeMutationReconciliationRequired` with a nonempty original transaction ID from the lower native operation. This verifies the wrapper no longer erases the marker; it does not independently prove ledger outcome, signed-byte binding or exact external receipt identity.

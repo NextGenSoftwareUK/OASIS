@@ -1066,7 +1066,10 @@ public sealed class TronNativeTransferClient
             throw new TronBroadcastOutcomeUnknownException(transactionId, _genesisBlockId,
                 signed.RawData.Timestamp, signed.RawData.Expiration, error);
         }
-        if (broadcast == null || !broadcast.Result)
+        if (broadcast == null)
+            throw new TronBroadcastOutcomeUnknownException(transactionId,_genesisBlockId,
+                signed.RawData.Timestamp,signed.RawData.Expiration,new InvalidOperationException("TRON returned no broadcast acknowledgement."));
+        if (!broadcast.Result)
             throw new InvalidOperationException($"TRON rejected broadcast {transactionId}: {broadcast?.Code} {broadcast?.Message.ToStringUtf8()}");
 
         using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);

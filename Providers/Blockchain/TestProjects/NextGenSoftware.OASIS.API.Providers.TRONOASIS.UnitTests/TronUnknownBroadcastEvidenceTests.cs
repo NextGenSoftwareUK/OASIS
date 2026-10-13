@@ -140,6 +140,7 @@ public class TronUnknownBroadcastEvidenceTests
         public int SignCount;
         public string? ReplacementSigningKey;
         public bool BroadcastAccepted;
+        public bool NullAcknowledgement;
         public Action? BeforeBroadcast;
         public Exception Interruption = new TimeoutException("controlled transport interruption");
         protected override object? Invoke(MethodInfo? method, object?[]? args)
@@ -154,7 +155,7 @@ public class TronUnknownBroadcastEvidenceTests
                 Signed = ((Transaction)args![0]!).Clone();
                 BeforeBroadcast?.Invoke();
                 BroadcastCount++;
-                return BroadcastAccepted ? Task.FromResult(new Return{Result=true}) : Task.FromException<Return>(Interruption);
+                return NullAcknowledgement?Task.FromResult<Return>(null!):BroadcastAccepted ? Task.FromResult(new Return{Result=true}) : Task.FromException<Return>(Interruption);
             }
             throw new InvalidOperationException("Unexpected SDK operation in controlled interruption test: " + method.Name);
         }
@@ -172,9 +173,9 @@ public class TronUnknownBroadcastEvidenceTests
         }
     }
     [Theory]
-    [InlineData(false,false,false,false)] [InlineData(true,false,false,false)] [InlineData(false,true,false,false)] [InlineData(false,false,true,false)]
-    [InlineData(false,false,true,true)]
-    public async Task ActualClientSignsOnceAndPreservesOriginalEvidenceWhenBroadcastOrConfirmationIsInterrupted(bool broadcastAccepted,bool persistenceRejected,bool prepared,bool wrongSignature)
+    [InlineData(false,false,false,false,false)] [InlineData(true,false,false,false,false)] [InlineData(false,true,false,false,false)] [InlineData(false,false,true,false,false)]
+    [InlineData(false,false,true,true,false)] [InlineData(false,false,true,false,true)]
+    public async Task ActualClientSignsOnceAndPreservesOriginalEvidenceWhenBroadcastOrConfirmationIsInterrupted(bool broadcastAccepted,bool persistenceRejected,bool prepared,bool wrongSignature,bool nullAcknowledgement)
     {
         const string genesis = "0000000000000000c93baa76a4a508f798a96f59156d9eb17ecede8ec845df2f";
         var service=ServerServiceDefinition.CreateBuilder()
@@ -193,6 +194,7 @@ public class TronUnknownBroadcastEvidenceTests
         controlled.Signer = signer;
         if(wrongSignature)controlled.ReplacementSigningKey=new string('0',63)+"2";
         controlled.BroadcastAccepted=broadcastAccepted;
+        controlled.NullAcknowledgement=nullAcknowledgement;
         if(broadcastAccepted){
             var confirmationWallet=DispatchProxy.Create<IWalletClient,InterruptedConfirmationWalletProxy>();
             var confirmationControl=(InterruptedConfirmationWalletProxy)(object)confirmationWallet;
@@ -248,7 +250,8 @@ public class TronUnknownBroadcastEvidenceTests
         Assert.Equal(now, evidence.TransactionTimestampMilliseconds);
         Assert.Equal(now + 60000, evidence.TransactionExpirationMilliseconds);
         Assert.Equal(genesis, evidence.ChainGenesisId);
-        Assert.Same(controlled.Interruption, evidence.InnerException);
+        if(nullAcknowledgement)Assert.Contains("no broadcast acknowledgement",evidence.InnerException!.Message);
+        else Assert.Same(controlled.Interruption, evidence.InnerException);
         } finally { await server.ShutdownAsync(); }
     }
 
