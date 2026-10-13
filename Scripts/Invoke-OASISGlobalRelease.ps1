@@ -569,6 +569,9 @@ $plan = [ordered]@{
 $plan | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $planPath
 Write-Host "Release plan: $planPath"
 Write-Host "NuGet packages: $($packagePlan.Count)"
+Write-Host ('Planned release versions: ' + ($releaseVersions | ConvertTo-Json -Compress))
+foreach ($decision in $versionDecisions) { Write-Host ('Version decision: ' + ($decision | ConvertTo-Json -Compress)) }
+foreach ($blocker in $planBlockers) { Write-Host "Release blocker: $blocker" }
 
 if ($Operation -eq 'Plan') { exit 0 }
 
