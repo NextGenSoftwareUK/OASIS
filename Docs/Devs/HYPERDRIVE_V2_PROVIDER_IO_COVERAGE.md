@@ -36,6 +36,15 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Existing OASISDNA encryption architecture reconciliation — 2026-10-12
+
+- Existing DNA `Security.AvatarPassword`, `OASISProviderPrivateKeys`, and `HolonDataEncryption` are distinct settings. Password helper supports BCrypt hashes wrapped by AES-256-CBC (`r256:`) and AES-256-GCM (`qpq:`). Wallet/key paths use reversible Rijndael plus optional quantum wrapping. BCrypt cannot reversibly encrypt private records. The helper's quantum layer is symmetric AES-GCM, not a separate post-quantum public-key algorithm.
+- HolonManager applies configured reversible encryption to non-exempt metadata before provider storage. Queryable system keys/additional configured keys remain exempt, and ordinary record fields are not all covered by that metadata envelope. This manager-level path is upstream of Mongo and other providers; direct provider calls do not thereby gain full-record encryption.
+- New Cosmos/Sui private backend envelopes are separate whole-record authenticated storage protection with keyed physical indexes. They currently do not reuse DNA encryption settings. Integration/reuse and configuration ownership remain an explicit open gate, not completed merely because isolated encryption/live routing tests pass. Do not remove mandatory private on-chain protection while resolving that architecture.
+- New existing-helper compatibility tests **7/7 passed**, zero skips, `TestResults/SharedPrivate/dna-encryption-compatibility-current.trx`: BCrypt-only/password wrapping combinations and each reversible CBC/GCM data combination. These do not prove end-to-end Mongo or deployed configuration.
+- Audit gap: enabled helper layers with missing keys can be silently skipped; `DecryptValue` and `UnwrapQuantumLayer` return original ciphertext on failures. Shared fail-closed semantics need implementation with manager/provider regression tests before claiming encryption complete. No shared production behavior was changed in this checkpoint.
+
+
 ### Persisted encryption configuration verification — 2026-10-12
 
 - Shared current suite **101/101 passed**, zero skips, `TestResults/SharedPrivate/shared-encryption-config-current.trx`. Seven new cases cover missing/empty/malformed, wrong-width, whitespace/noncanonical and valid environment keys used by Cosmos/Sui defaults. Validation neither generates/replaces configuration nor echoes rejected key text; valid decoded bytes exactly match the configured retained key. Test environment value is restored and decoded owned buffers cleared.
