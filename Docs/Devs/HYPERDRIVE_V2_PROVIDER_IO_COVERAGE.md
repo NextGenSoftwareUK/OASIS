@@ -36,6 +36,13 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos full-regression setup audit — 2026-10-12
+
+- Current provider rebuild passed. First complete unit run **115 passed / 3 failed / 118 total**, no skips, `TestResults/CosmosRuntime/cosmos-full-private-current.trx`: two real offline SDK cases used output bridge without installed source dependencies; missing-owner activation case reached mandatory missing-encryption-key rejection before its intended signer check.
+- Owner-activation fixture now supplies an explicit local test encryption key and continues asserting missing signing owner rejection; production validation is unchanged. With the retained source SDK bridge explicitly selected, all three failed cases **3/3 passed**, `TestResults/CosmosRuntime/cosmos-regression-setup-current.trx`. This combined evidence is not a fresh green full run; complete current rerun remains required. Output/published SDK dependency packaging remains a separate gate, not fixed by source-path selection.
+- No install/download/runtime/funds/deployment/merge. Preserve both reports; no false full-suite completion claim.
+
+
 ### Hedera broader non-funded regression after bridge fixes — 2026-10-12
 
 - Current integration-project non-funded selection **274/274 passed**, zero skips, 2m7s, `TestResults/HederaCurrent/hedera-nonfunded-bridge-current.trx`. Filter was `FullyQualifiedName!~Testnet&FullyQualifiedName!~OriginalChargedFailure`; it intentionally excludes deferred testnet/funded original-failure cases. Existing retained source SDK bridge/dependencies reused; waited on the same running process through timeout tests.

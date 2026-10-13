@@ -62,11 +62,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests
         [TestMethod]
         public void UnconfiguredOwnerActivationMustFailWithoutClaimingWritableStorage()
         {
+            using var provider=new CosmosBlockChainOASIS("http://127.0.0.1:1",storageEncryptionKeyResolver:()=>new byte[32]);
             // Arrange
             Assert.IsFalse(_provider.IsProviderActivated);
 
             // Act
-            var result = _provider.ActivateProvider();
+            var result = provider.ActivateProvider();
 
             // Assert
             Assert.IsTrue(result.IsError);
