@@ -41,6 +41,26 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public async Task ParentQueryDatabaseFailureMustNotReportSuccess(bool synchronous, bool byKey)
+    {
+        using var context = new DataContext(TestConnectionString);
+        context.Database.EnsureCreated();
+        var repository = new HolonRepository(context);
+        context.Database.ExecuteSqlRaw("DROP TABLE Holon;");
+        var result = byKey
+            ? (synchronous ? repository.LoadHolonsForParent("parent", loadChildren:false) : await repository.LoadHolonsForParentAsync("parent", loadChildren:false))
+            : (synchronous ? repository.LoadHolonsForParent(Guid.NewGuid(), loadChildren:false) : await repository.LoadHolonsForParentAsync(Guid.NewGuid(), loadChildren:false));
+        result.IsError.Should().BeTrue();
+        result.IsLoaded.Should().BeFalse();
+        result.Exception.Should().NotBeNull();
+        result.Result.Should().BeNull();
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task ParentSelectorsIsolateChildrenAndRespectTypeAndVersion(bool synchronous)
