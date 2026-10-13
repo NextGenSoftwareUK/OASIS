@@ -65,6 +65,7 @@ public class CosmosPreparationTests
     [DataTestMethod]
     [DataRow("prepared")] [DataRow("reject")] [DataRow("prepared-wrong")] [DataRow("prepared-hold")] [DataRow("valid")]
     [DataRow("prepared-foreign-error")] [DataRow("prepared-bad-utf8")] [DataRow("prepared-bad-json")]
+    [DataRow("reject-io")]
     public async Task PreparedProcessRequiresPersistenceAndRetainsOriginal(string mode)
     {
         var previous=Environment.GetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE");
@@ -72,11 +73,13 @@ public class CosmosPreparationTests
         try{
             using var provider=new CosmosBlockChainOASIS("http://127.0.0.1:1");
             var backend=typeof(CosmosBlockChainOASIS).GetField("_sdkBackend",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance)!.GetValue(provider)!;
-            var calls=0;var failure=new InvalidOperationException("controlled parent rejection");
-            using var server=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer((_,_)=>{calls++;return mode=="reject"?Task.FromException(failure):Task.CompletedTask;});
+            var calls=0;Exception failure=mode=="reject-io" ? new IOException("controlled parent persistence I/O failure") : new InvalidOperationException("controlled parent rejection");
+            var rejecting=mode=="reject"||mode=="reject-io";
+            using var server=new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer((_,_)=>{calls++;return rejecting?Task.FromException(failure):Task.CompletedTask;});
             using var cancellation=new CancellationTokenSource();if(mode=="prepared-hold")cancellation.CancelAfter(1000);
-            var operation=(Task<JsonElement>)backend.GetType().GetMethod("InvokePreparedAsync",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance)!.Invoke(backend,new object[]{"put",new{mode=mode=="reject"?"prepared":mode},server,cancellation.Token})!;
+            var operation=(Task<JsonElement>)backend.GetType().GetMethod("InvokePreparedAsync",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance)!.Invoke(backend,new object[]{"put",new{mode=rejecting?"prepared":mode},server,cancellation.Token})!;
             if(mode=="reject")Assert.AreSame(failure,await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>operation));
+            else if(mode=="reject-io")Assert.AreSame(failure,await Assert.ThrowsExceptionAsync<IOException>(()=>operation));
             else if(mode=="prepared-hold"){
                 var error=await Assert.ThrowsExceptionAsync<CosmosNativeMutationCanceledException>(()=>operation);Assert.AreEqual(new string('a',64),error.OriginalTransactionId);Assert.AreEqual(cancellation.Token,error.CancellationToken);
             }else if(mode=="prepared-wrong"||mode=="valid"||mode=="prepared-foreign-error"||mode=="prepared-bad-utf8"||mode=="prepared-bad-json"){

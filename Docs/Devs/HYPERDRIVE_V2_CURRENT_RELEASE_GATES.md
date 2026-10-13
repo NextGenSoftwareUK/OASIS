@@ -14,7 +14,7 @@ Updated 2026-10-12, inspected parent `688c18bb2`. This is a current navigation c
 
 | Area | Current evidence | Remaining gate |
 | --- | --- | --- |
-| Cosmos | 118 current unit tests passed; real encrypted holon roundtrip; selected real V2 replication/load-balancing and two failover cases passed | Full native/interface/options/API/live failure matrix and published Linux dependencies |
+| Cosmos | Typed mint owner reuses existing execution outbox; paired real-Mongo owner proof; full119 passed, final fixture restriction affected10 passed; historical encrypted/V2 live subsets passed | Live owned mint/escrow/crash recovery, production host/valuation/resolver, full native/interface/options/API failure matrix and published Linux dependencies |
 | Sui | Typed mint owner now reuses UsageExecutionHandle; real Mongo persistence/reopen/duplicate test 1 passed; current affected units12 passed (earlier full97); historical encrypted/V2 live subsets passed | Deployed host/receipt/valuation integration; crash-killed recovery and crash-safe live NFT fixture; full custody/options, routing strategies/distributions and hosted API |
 | TRON | 294 unit tests passed; read-only actual retained-node inspection preserves revision/fence; selected real read distribution/closed-transport failover passed | Original uncertain mutation reconciliation, current mutation/replication, all response classifications/options/API |
 | Hedera | 274 selected non-funded tests passed; four bridge-marker cases; prior public mirror evidence | Funded consensus contract/storage/NFT/escrow and real V2 verification; no funded tests were silently substituted |

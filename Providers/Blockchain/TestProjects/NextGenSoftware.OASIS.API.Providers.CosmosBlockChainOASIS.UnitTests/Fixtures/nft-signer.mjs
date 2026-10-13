@@ -36,6 +36,7 @@ else if(['upload','instantiate'].includes(request.operation)){
  if(Object.hasOwn(values,request.mode))result[field]=values[request.mode];
 }
 else if(request.operation==='restoreKey')result={publicKey:'fixture-public',address:'fixture-owner'};
+else if(request.operation==='verifyNativePreparation')result={verified:request.preparation.mode==='valid',transactionHash:request.preparation.transactionHash,sender:request.preparation.sender};
 else if(request.operation==='verifyNftCustodyReceipt'){
  if(request.contractAddress!=='fixture-contract'||request.tokenId!=='fixture-token'||request.custody!=='fixture-owner')
   error='Custody selectors were not forwarded';
@@ -56,7 +57,15 @@ else if(request.operation==='execute'){
  if(burn&&request.fromWalletAddress!=null)throw new Error('Public key must not be forwarded as a burn wallet address.');
  if(mint){const metadata=JSON.parse(mint.metadata_json);
   if(metadata.Price!==12.5||metadata.Discount!==2||metadata.RoyaltyPercentage!==7||metadata.SellerFeeBasisPoints!==700||metadata.MemoText!=='mint memo')
-   throw new Error('Mint economic metadata was not serialized.');}
+   throw new Error('Mint economic metadata was not serialized.');
+  if(process.env.OASIS_NATIVE_PREPARATION_PIPE){
+   const {pathToFileURL}=await import('node:url');
+   const {preparationClient}=await import(pathToFileURL(process.env.OASIS_NATIVE_PREPARATION_MODULE).href);
+   try{await preparationClient(process.env.OASIS_NATIVE_PREPARATION_PIPE,5000)({transactionHash:'a'.repeat(64),
+    signedTransactionBase64:'AQID',signDocBase64:'AQID',sender:'fixture-owner',chainId:request.chainId,mode:'valid'});}
+   catch{error='controlled preparation rejection';}
+  }
+ }
  if(request.privateKey!=='test-only-explicit')error='Explicit signer was not forwarded';
  else result={transactionHash:'a'.repeat(64)};
 }else if(request.operation==='query'){
