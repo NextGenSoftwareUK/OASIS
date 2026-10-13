@@ -193,6 +193,33 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
                 await failureMongo.DeActivateProviderAsync();
             }
+            (await failureMongo.ActivateProviderAsync()).IsError.Should().BeFalse();
+            var partialManager = new ProviderManager(null,dna) { IsAutoReplicationEnabled = true };
+            partialManager.RegisterProvider(failureMongo);
+            partialManager.RegisterProvider(sqlite);
+            partialManager.SetAndReplaceAutoReplicationListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS), new EnumValue<ProviderType>(ProviderType.MongoDBOASIS) }).IsError.Should().BeFalse();
+            var primaryOnly = new Holon { Id = Guid.NewGuid(), Name = "mongo-replica-rejected" };
+            try
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                    { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("times",1) },
+                    { "data", new BsonDocument { { "failCommands", new BsonArray { "insert" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                });
+                var partialRouter = new OASISHyperDrive(partialManager);
+                var partialRequest = new StorageOperationRequest { Operation = "SaveHolon", Payload = primaryOnly, SaveChildren = false, PreferredProvider = ProviderType.SQLLiteDBOASIS };
+                var partial = synchronous ? partialRouter.RouteRequest<IHolon>(partialRequest) : await partialRouter.RouteRequestAsync<IHolon>(partialRequest);
+                partial.IsError.Should().BeFalse(partial.Message);
+                partial.IsWarning.Should().BeTrue();
+                partialManager.LastReplicationDiagnostic.FailedCount.Should().Be(1);
+                partialManager.LastReplicationDiagnostic.SucceededCount.Should().Be(0);
+                (await sqlite.LoadHolonAsync(primaryOnly.Id,loadChildren:false)).Result.Name.Should().Be(primaryOnly.Name);
+                (await mongo.LoadHolonAsync(primaryOnly.Id,loadChildren:false)).Result.Should().BeNull();
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+                await failureMongo.DeActivateProviderAsync();
+            }
             using (var control = new DataContext($"Data Source={dbPath};Pooling=False")) control.Database.ExecuteSqlRaw("DROP TABLE Holon;");
             manager.IsAutoReplicationEnabled = false;
             manager.IsAutoFailOverEnabled = true;
