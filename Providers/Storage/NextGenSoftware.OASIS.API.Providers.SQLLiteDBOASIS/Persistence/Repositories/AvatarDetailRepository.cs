@@ -377,11 +377,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
+                DetachFailedDetailWrites(avatarDetailEntity.Id.ToString());
                 return new OASISResult<IAvatarDetail>
                 {
                     IsSaved = false,
                     IsError = true,
-                    Message = ex.ToString()
+                    Exception = ex,
+                    Message = ex.Message
                 };
             }
         }
@@ -460,12 +462,27 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
+                DetachFailedDetailWrites(AvatarDetailEntity.Id.ToString());
                 return new OASISResult<IAvatarDetail>
                 {
                     IsSaved = false,
                     IsError = true,
-                    Message = ex.ToString()
+                    Exception = ex,
+                    Message = ex.Message
                 };
+            }
+        }
+
+        private void DetachFailedDetailWrites(string id)
+        {
+            foreach (var entry in _dbContext.ChangeTracker.Entries().ToList())
+            {
+                var belongsToAvatar = entry.Entity is AvatarDetailModel detail && detail.Id == id;
+                var avatarKey = entry.Metadata.FindProperty("AvatarId");
+                if (avatarKey != null && avatarKey.ClrType == typeof(string))
+                    belongsToAvatar |= (string)entry.Property("AvatarId").CurrentValue == id;
+                if (belongsToAvatar && (entry.State == EntityState.Added || entry.State == EntityState.Modified || entry.State == EntityState.Deleted))
+                    entry.State = EntityState.Detached;
             }
         }
 
