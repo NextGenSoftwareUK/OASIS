@@ -43,6 +43,35 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task RejectedAvatarUpdateDoesNotLeakIntoLaterSave(bool synchronous)
+    {
+        using var context = new DataContext(TestConnectionString);
+        context.Database.EnsureCreated();
+        var repository = new AvatarRepository(context);
+        var original = new Avatar { Id = Guid.NewGuid(), Username = "held-avatar", FirstName = "original",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        repository.SaveAvatar(original).IsError.Should().BeFalse();
+        context.Database.ExecuteSqlRaw("CREATE TRIGGER reject_avatar_update BEFORE UPDATE ON Avatar BEGIN SELECT RAISE(ABORT, 'owned avatar rejection'); END;");
+        original.FirstName = "rejected";
+        var rejected = synchronous ? repository.SaveAvatar(original) : await repository.SaveAvatarAsync(original);
+        rejected.IsError.Should().BeTrue();
+        rejected.Exception.Should().NotBeNull();
+        rejected.IsSaved.Should().BeFalse();
+        context.Database.ExecuteSqlRaw("DROP TRIGGER reject_avatar_update;");
+        var next = new Avatar { Id = Guid.NewGuid(), Username = "next-avatar",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        var saved = synchronous ? repository.SaveAvatar(next) : await repository.SaveAvatarAsync(next);
+        saved.IsError.Should().BeFalse(saved.Message);
+        repository.LoadAvatar(original.Id).Result.FirstName.Should().Be("original");
+        repository.LoadAvatar(next.Id).Result.Id.Should().Be(next.Id);
+        var accepted = synchronous ? repository.SaveAvatar(original) : await repository.SaveAvatarAsync(original);
+        accepted.IsError.Should().BeFalse(accepted.Message);
+        repository.LoadAvatar(original.Id).Result.FirstName.Should().Be("rejected");
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task CredentialRepositorySelectorRequiresMatchingStoredCredentialAndVersion(bool synchronous)
     {
         using var context = new DataContext(TestConnectionString);
