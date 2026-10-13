@@ -157,6 +157,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     || !System.Text.RegularExpressions.Regex.IsMatch(transaction.TokenId, "\\A[0-9]+\\z")
                     || !System.Numerics.BigInteger.TryParse(transaction.TokenId, out var tokenId))
                     throw new ArgumentException("An explicit TRC721 contract and unsigned decimal token ID are required.");
+                var selectedAsset = TronNativeTransferClient.ParseNftAddress(transaction.TokenAddress + "/" + transaction.TokenId);
+                if (!string.IsNullOrWhiteSpace(transaction.FromNFTTokenAddress))
+                {
+                    var sourceAsset = TronNativeTransferClient.ParseNftAddress(transaction.FromNFTTokenAddress);
+                    if (!string.Equals(sourceAsset.Contract, selectedAsset.Contract, StringComparison.Ordinal)
+                        || sourceAsset.TokenId != selectedAsset.TokenId)
+                        throw new ArgumentException("TRC721 NFT asset identifiers must agree.");
+                }
                 if (string.IsNullOrWhiteSpace(transaction.FromWalletAddress) || string.IsNullOrWhiteSpace(transaction.ToWalletAddress)
                     || string.IsNullOrWhiteSpace(transaction.OwnerPrivateKey))
                     throw new ArgumentException("Sender, recipient and private signing key are required.");
