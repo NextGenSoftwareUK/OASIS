@@ -41,6 +41,42 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public async Task UpdatesPreserveCreationAuditForTrackedAndReopenedRecords(bool synchronous, bool reopen)
+    {
+        var id = Guid.NewGuid();
+        var creator = Guid.NewGuid();
+        var created = new DateTime(2025, 1, 2, 3, 4, 5, DateTimeKind.Utc);
+        using (var provider = new SQLLiteDBOASIS(TestConnectionString))
+        {
+            (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+            (await provider.SaveHolonAsync(new Holon { Id = id, CreatedByAvatarId = creator, CreatedDate = created }, saveChildren:false)).IsError.Should().BeFalse();
+            if (!reopen)
+            {
+                var replacement = new Holon { Id = id, Name = "updated" };
+                var result = synchronous ? provider.SaveHolon(replacement, saveChildren:false) : await provider.SaveHolonAsync(replacement, saveChildren:false);
+                result.IsError.Should().BeFalse(result.Message);
+                result.Result.CreatedByAvatarId.Should().Be(creator);
+            }
+        }
+        using var next = new SQLLiteDBOASIS(TestConnectionString);
+        (await next.ActivateProviderAsync()).IsError.Should().BeFalse();
+        if (reopen)
+        {
+            var replacement = new Holon { Id = id, Name = "updated" };
+            var result = synchronous ? next.SaveHolon(replacement, saveChildren:false) : await next.SaveHolonAsync(replacement, saveChildren:false);
+            result.IsError.Should().BeFalse(result.Message);
+        }
+        var loaded = await next.LoadHolonAsync(id, loadChildren:false);
+        loaded.Result.CreatedByAvatarId.Should().Be(creator);
+        loaded.Result.CreatedDate.Should().Be(created);
+        loaded.Result.Name.Should().Be("updated");
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task AuditIdentityAndDimensionFieldsSurviveDatabaseReopen(bool synchronous)

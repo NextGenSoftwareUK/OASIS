@@ -12,6 +12,8 @@ Updated 2026-10-13, inspected parent `beeb608a0`. This is a current navigation c
 
 ## Evidence versus completion
 
+SQLite immutable creation checkpoint: updates preserve persisted CreatedByAvatarId alongside the already-preserved CreatedDate, both for tracked rows and newly reopened contexts. Four real sync/async tracked/reopen checks pass; full suite28/28 (`TestResults/SQLiteCurrent/sqlite-immutable-audit-current.trx`). This prevents omitted creator fields erasing existing creation attribution. Other audit/classification fields and complete replication semantics remain open.
+
 SQLite audit checkpoint: repository mappings now persist/read CreatedByAvatarId, ModifiedByAvatarId, DeletedByAvatarId, DimensionLevel and SubDimensionLevel using existing columns. Null historical audit IDs represent Guid.Empty; invalid non-null IDs are not silently replaced. Sync/async public save plus fresh-provider readback tested. Full suite24/24 passed (`TestResults/SQLiteCurrent/sqlite-audit-current.trx`). Remaining scalar/classification/rich graph mappings, preservation semantics, historical versions and full V2 routing still require work.
 
 SQLite parent failure checkpoint: four actual missing-table failure checks cover GUID/key sync/async selectors, requiring IsError=true, IsLoaded=false, original Exception and no Result. The remaining string-sync handler now preserves its original exception. Full suite22/22 passed (`TestResults/SQLiteCurrent/sqlite-parent-failures-current.trx`); public parent wrappers inspected and forward type/version/options to the repository. This does not prove recursive child hydration or V2 live routing.
