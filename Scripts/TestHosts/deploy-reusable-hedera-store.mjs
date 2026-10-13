@@ -30,6 +30,10 @@ try {
  let state=fs.existsSync(statePath)?JSON.parse(fs.readFileSync(statePath,'utf8')):{sender:request.sender,sourceHash,compiler:solc.version(),uploaded:0};
  if(state.sender!==request.sender||state.sourceHash!==sourceHash||state.compiler!==solc.version())throw new Error('Retained deployment identity/source/compiler differs; preserve and reconcile it.');
  if(state.pending)throw new Error('Unresolved deployment transaction '+state.pending.transactionId+'; reconcile before another mutation.');
+ // Real consensus evidence showed charged_tx_fee can exceed setMaxTransactionFee
+ // for contract creation. Do not treat that SDK setting/estimate as an all-in
+ // spending bound or permit further funded creation on that broken assumption.
+ if(!state.contractId)throw new Error('New funded contract creation is fenced until an authoritative all-in gas/fee budget is implemented. Existing contract verification remains available.');
  function save(){saveDeploymentState(statePath,state);}
  async function mutate(action,fields={}){
   const transactionId=TransactionId.generate(request.sender).toString();

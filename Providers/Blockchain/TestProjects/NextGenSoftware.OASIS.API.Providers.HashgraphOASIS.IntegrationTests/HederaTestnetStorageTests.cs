@@ -17,6 +17,23 @@ public class HederaTestnetStorageTests
     }
 
     [TestMethod]
+    public async Task RetainedDeploymentHasExactNativeFeeReceiptWithoutSigningOrStorageActivation()
+    {
+        var transactionId = Required("OASIS_HEDERA_TEST_DEPLOYMENT_TRANSACTION_ID");
+        var expectedUnits = Required("OASIS_HEDERA_TEST_DEPLOYMENT_CHARGED_TINYBARS");
+        var provider = new HashgraphOASIS("https://testnet.mirrornode.hedera.com", "testnet", "296");
+        var receipt = await provider.GetNativeFeeReceiptAsync(transactionId);
+        Assert.IsFalse(receipt.IsError, receipt.Message);
+        Assert.AreEqual(transactionId, receipt.Result.GetProperty("transactionId").GetString());
+        Assert.AreEqual("0.0.10993779", receipt.Result.GetProperty("payer").GetString());
+        Assert.AreEqual("testnet", receipt.Result.GetProperty("network").GetString());
+        Assert.AreEqual("HBAR", receipt.Result.GetProperty("currency").GetString());
+        Assert.AreEqual("tinybar", receipt.Result.GetProperty("unit").GetString());
+        Assert.AreEqual(expectedUnits, receipt.Result.GetProperty("netUnits").GetString());
+        Assert.IsTrue(receipt.Result.GetProperty("success").GetBoolean());
+    }
+
+    [TestMethod]
     public async Task FundedTestnetEncryptedCrudSurvivesProviderRestartAndDeletesOwnedRecords()
     {
         var key = Required("OASIS_HEDERA_TEST_PRIVATE_KEY");
