@@ -7,6 +7,22 @@ import { verifyTransactionSignature } from '@mysten/sui/verify';
 import { SuiGrpcClient } from '@mysten/sui/grpc';
 import {verifyPreparedIdentity} from './bridge.mjs';
 import {transactionStatusReceipt} from './bridge.mjs';
+import {verifiedCustodyChange} from './bridge.mjs';
+
+test('custody evidence binds unique object transfer to exact original source effects',()=>{
+ const tokenId='0x'+'1'.repeat(64),custody='0x'+'2'.repeat(64),sender='0x'+'3'.repeat(64);
+ const change={objectId:tokenId,inputOwner:{AddressOwner:sender},outputOwner:{AddressOwner:custody},
+  outputState:'ObjectWrite',idOperation:'None',outputVersion:'7'};
+ const request={tokenId,custody,transactionHash:'original'};
+ const transaction={digest:'original',status:{success:true},effects:{transactionDigest:'original',changedObjects:[change]}};
+ assert.equal(verifiedCustodyChange(transaction,request),change);
+ for(const altered of [{digest:'foreign'},{status:{success:false}},
+  {effects:{...transaction.effects,transactionDigest:'foreign'}},
+  {effects:{...transaction.effects,changedObjects:[change,change]}},
+  {effects:{...transaction.effects,changedObjects:[]}},
+  {effects:{...transaction.effects,changedObjects:[{...change,inputOwner:{AddressOwner:custody}}]}}])
+  assert.throws(()=>verifiedCustodyChange({...transaction,...altered},request));
+});
 
 test('status receipt binds successful and failed execution to original effects digest',()=>{
  for(const success of [true,false]){
