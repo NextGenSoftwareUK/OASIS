@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Mongo hard and missing deletion selector verification — 2026-10-13
+
+Expanded real pair4/4 passes all three email/username/native-key selectors sync/async for soft deletion followed by permanent deletion and error/false on repeated deletion after absence. Direct avatar/detail native-store readback is absent. Report `TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`. These remain four expanded scenarios; storage-error/rejection/uniqueness/custom-key/API attribution and production recovery are separate gates. No runtime/download/environment duplication.
+
 ### Selector checkpoint correction and native key fix — 2026-10-13
 
 a8effc74d prematurely recorded4/4 while its actual result was0/4 at key selector. Fixed key lookup to native document Id (the stored Mongo provider key) instead of an unsupported enum-dictionary predicate. Latest rebuilt real suite is confirmed4/4 (`mongo-sqlite-v2-current.trx`). Earlier paragraph's green scope applies only after this correction. Custom/foreign key behavior, hard selector/failure matrix and original certification gates remain open.
