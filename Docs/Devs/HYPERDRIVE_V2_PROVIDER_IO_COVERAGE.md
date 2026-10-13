@@ -5,6 +5,10 @@
 
 ## Current provider status — not full certification
 
+### Selector checkpoint correction and native key fix — 2026-10-13
+
+a8effc74d prematurely recorded4/4 while its actual result was0/4 at key selector. Fixed key lookup to native document Id (the stored Mongo provider key) instead of an unsupported enum-dictionary predicate. Latest rebuilt real suite is confirmed4/4 (`mongo-sqlite-v2-current.trx`). Earlier paragraph's green scope applies only after this correction. Custom/foreign key behavior, hard selector/failure matrix and original certification gates remain open.
+
 ### Mongo deletion selectors share corrected transaction path — 2026-10-13
 
 Real Mongo transaction42/42 refreshed after GUID rewrite. Old selector soft deletion failed first email assertion in all4 real pair scenarios; expression/key sync/async methods now resolve persisted HolonId and delegate to GUID deletion, retaining errors and commit replay fence. Real expanded4/4 passes email/username/native local key with independent detail usernames. Report `TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx`. Hard selector, missing/lookup failures/rollback, uniqueness, attribution/API and production recovery still require evidence. No new runtime/environment/download.
