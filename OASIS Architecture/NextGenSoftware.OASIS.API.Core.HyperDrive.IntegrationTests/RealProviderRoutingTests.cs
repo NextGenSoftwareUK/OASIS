@@ -18,7 +18,23 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 
 public sealed class RealProviderRoutingTests : IDisposable
 {
-    private readonly string _root = Path.Combine(Path.GetTempPath(), "oasis-hyperdrive-real", Guid.NewGuid().ToString("N"));
+    private readonly string _root;
+    private readonly FileStream _lease;
+    public RealProviderRoutingTests()
+    {
+        var checkout = new DirectoryInfo(AppContext.BaseDirectory);
+        while (checkout != null && !File.Exists(Path.Combine(checkout.FullName, "Scripts/TestHosts/Run-ReusableUsageRecoveryTests.ps1"))) checkout = checkout.Parent;
+        if (checkout == null) throw new InvalidOperationException("Existing task checkout required.");
+        var environment = Path.Combine(checkout.FullName, "TestResults/HyperDriveSqliteCurrent");
+        Directory.CreateDirectory(environment);
+        _lease = new FileStream(Path.Combine(environment, "environment.lock"), FileMode.OpenOrCreate, FileAccess.ReadWrite, FileShare.None);
+        _root = Path.Combine(environment, "owned-data");
+        if (Directory.Exists(_root) || File.Exists(_root))
+        {
+            _lease.Dispose();
+            throw new InvalidOperationException("Existing routing fixture requires inspection; refusing overwrite or cleanup.");
+        }
+    }
     private string SqlitePath => Path.Combine(_root, "oasis.db");
     private string FilesPath => Path.Combine(_root, "files");
 
@@ -135,7 +151,11 @@ public sealed class RealProviderRoutingTests : IDisposable
 
     public void Dispose()
     {
-        if (Directory.Exists(_root))
-            Directory.Delete(_root, recursive: true);
+        try
+        {
+            // Exact fixed task-owned fixture, checked absent before acquiring ownership.
+            if (Directory.Exists(_root)) Directory.Delete(_root, recursive: true);
+        }
+        finally { _lease.Dispose(); }
     }
 }
