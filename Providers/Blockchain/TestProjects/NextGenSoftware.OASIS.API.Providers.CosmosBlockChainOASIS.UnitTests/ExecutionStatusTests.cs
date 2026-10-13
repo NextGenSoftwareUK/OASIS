@@ -34,6 +34,31 @@ public sealed class ExecutionStatusTests
         var error = Assert.ThrowsException<TargetInvocationException>(() => method.Invoke(null, new object[] { -1 }));
         Assert.IsInstanceOfType<ArgumentOutOfRangeException>(error.InnerException);
     }
+    [DataTestMethod]
+    [DataRow("2147483648")]
+    [DataRow("4294967295")]
+    public void FullUnsignedNativeCodeRangeReportsFailedExecution(string code)
+    {
+        var hash = new string('a', 64);
+        using var json = System.Text.Json.JsonDocument.Parse($"{{\"hash\":\"{hash}\",\"height\":42,\"code\":{code}}}");
+        var method = typeof(CosmosBlockChainOASIS).GetMethod("MapTransactionStatus", BindingFlags.NonPublic | BindingFlags.Static)!;
+        Assert.AreEqual(BridgeTransactionStatus.Failed, method.Invoke(null, new object[] { json.RootElement, hash }));
+    }
+
+    [DataTestMethod]
+    [DataRow("-1")]
+    [DataRow("4294967296")]
+    [DataRow("1.5")]
+    [DataRow("null")]
+    [DataRow("\"0\"")]
+    public void InvalidNativeCodeCannotEstablishExecution(string code)
+    {
+        var hash = new string('a', 64);
+        using var json = System.Text.Json.JsonDocument.Parse($"{{\"hash\":\"{hash}\",\"height\":42,\"code\":{code}}}");
+        var method = typeof(CosmosBlockChainOASIS).GetMethod("MapTransactionStatus", BindingFlags.NonPublic | BindingFlags.Static)!;
+        var error = Assert.ThrowsException<TargetInvocationException>(() => method.Invoke(null, new object[] { json.RootElement, hash }));
+        Assert.IsInstanceOfType<InvalidOperationException>(error.InnerException);
+    }
     [TestMethod]
     [DataRow(0, BridgeTransactionStatus.Completed)]
     [DataRow(1, BridgeTransactionStatus.Failed)]

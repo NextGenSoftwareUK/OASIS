@@ -268,7 +268,10 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                 || hash.ValueKind != JsonValueKind.String || !string.Equals(hash.GetString(), requestedHash, StringComparison.OrdinalIgnoreCase)
                 || !tx.TryGetProperty("height", out var height) || !height.TryGetInt64(out var blockHeight) || blockHeight <= 0)
                 throw new InvalidOperationException("Cosmos transaction status does not establish the requested hash and committed block height.");
-            return MapExecutionCode(tx.GetProperty("code").GetInt32());
+            if (!tx.TryGetProperty("code", out var code) || code.ValueKind != JsonValueKind.Number
+                || !code.TryGetUInt32(out var executionCode))
+                throw new InvalidOperationException("Cosmos transaction status requires an exact unsigned 32-bit execution code.");
+            return executionCode == 0 ? BridgeTransactionStatus.Completed : BridgeTransactionStatus.Failed;
         }
     }
 }
