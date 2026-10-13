@@ -62,6 +62,18 @@ class SourceGraphTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "reviewed parent"):
             resolve_baseline(item, {})
 
+    def test_receipt_stale_url_must_match_exact_published_project(self):
+        baseline = "b" * 40
+        item = {"root": str(Path.cwd()), "project": "Editor/X.csproj", "packageId": "Editor", "previousVersion": "1.0.1", "publishedRepository": {"commit": baseline, "url": "https://github.com/old/url"}}
+        receipt = {("editor", "1.0.1"): {"sourceCommit": baseline}}
+        def git(root, command, *args):
+            return 'https://github.com/NextGenSoftwareUK/OASIS' if command == 'remote' else '<Project><PackageId>Editor</PackageId><RepositoryUrl>https://github.com/old/url</RepositoryUrl></Project>'
+        with patch.object(Graph, "location", return_value=(Path.cwd(), baseline, "Editor/X.csproj")), patch.object(Graph, "git", side_effect=git):
+            self.assertEqual(baseline, resolve_baseline(item, receipt))
+            item["publishedRepository"]["url"] = "https://github.com/arbitrary/foreign"
+            with self.assertRaisesRegex(ValueError, "differs"):
+                resolve_baseline(item, receipt)
+
 
 if __name__ == "__main__":
     unittest.main()
