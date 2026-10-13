@@ -6,6 +6,17 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 public sealed class ExecutionStatusTests
 {
     [DataTestMethod]
+    [DataRow(9007199254740992L)]
+    [DataRow(long.MaxValue)]
+    public async Task InexactDeploymentCodeIdIsRejectedBeforeSdkLaunch(long codeId)
+    {
+        using var provider = new CosmosBlockChainOASIS("http://127.0.0.1:1");
+        var result = await provider.InstantiateContractAsync(codeId, new { }, "invalid code ID");
+        Assert.IsTrue(result.IsError);
+        Assert.IsInstanceOfType<ArgumentException>(result.Exception);
+        StringAssert.Contains(result.Message, "SDK-safe exact code ID");
+    }
+    [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]
     public void StatusRequiresRequestedHashAndCommittedHeight(bool failed)

@@ -22,6 +22,8 @@ async function walletFor(input) {
 }
 
 async function execute(input, persistPreparedSubmission) {
+  if (input.operation === 'instantiate' && (!Number.isSafeInteger(input.codeId) || input.codeId <= 0))
+    throw new Error('Positive SDK-safe exact Cosmos code ID required');
   if (input.operation === 'verifyNativePreparation') return verifyCosmosPreparedIdentity(input.preparation);
   if (input.operation === "generateKey" || input.operation === "restoreKey") {
     const wallet = input.operation === "generateKey"
