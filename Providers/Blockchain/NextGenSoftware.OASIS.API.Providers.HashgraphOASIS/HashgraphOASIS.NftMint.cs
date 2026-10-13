@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Threading;
+using System.Text.Json;
+using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
@@ -19,7 +22,29 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
 
 public partial class HashgraphOASIS
 {
-    private async Task<OASISResult<IWeb3NFTTransactionResponse>> MintHederaNftAsync(IMintWeb3NFTRequest request)
+    /// <summary>Retains mint and optional recipient delivery as separate original signed attempts.
+    /// The admitted execution host remains responsible for every receipt and settlement.</summary>
+    public Task<OASISResult<IWeb3NFTTransactionResponse>> MintNFTAsync(IMintWeb3NFTRequest request,
+        UsageExecutionHandle execution, string clientRequestId, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(execution);
+        ValidateMintOwnerCorrelation(clientRequestId);
+        return MintHederaNftAsync(request, execution, clientRequestId, cancellationToken);
+    }
+
+    private static void ValidateMintOwnerCorrelation(string clientRequestId)
+    {
+        if (string.IsNullOrWhiteSpace(clientRequestId) || clientRequestId.Length > 119 || clientRequestId.Any(char.IsControl))
+            throw new ArgumentException("Mint correlation must be printable and leave space for distinct mint/delivery stage suffixes.", nameof(clientRequestId));
+    }
+
+    private Task<JsonElement> InvokeOwnedNftMutationAsync(string action, object request, UsageExecutionHandle execution,
+        string clientRequestId, string sender, string publicKey, CancellationToken token)
+        => execution == null ? HederaSdkClient.InvokeAsync(action, request, token)
+            : ExecutePreparedNativeAsync(action, request, execution, clientRequestId, _hederaNetwork, sender, publicKey, token);
+
+    private async Task<OASISResult<IWeb3NFTTransactionResponse>> MintHederaNftAsync(IMintWeb3NFTRequest request,
+        UsageExecutionHandle execution = null, string clientRequestId = null, CancellationToken cancellationToken = default)
     {
         var result = new OASISResult<IWeb3NFTTransactionResponse>();
         string confirmedMintId=null;
@@ -27,6 +52,7 @@ public partial class HashgraphOASIS
         try
         {
             ArgumentNullException.ThrowIfNull(request);
+            cancellationToken.ThrowIfCancellationRequested();
             var tokenId = request.CollectionPublicKey;
             if (!System.Text.RegularExpressions.Regex.IsMatch(tokenId ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
                 throw new ArgumentException("CollectionPublicKey must identify an existing HTS NFT token.");
@@ -80,13 +106,13 @@ public partial class HashgraphOASIS
             if (walletResult.IsError || walletResult.Result == null) throw new InvalidOperationException("Minting wallet lookup failed.");
             var wallet = walletResult.Result;
             var requestedMintId = HederaSdkClient.CreateTransactionId(wallet.WalletAddress);
-            var committed = await HederaSdkClient.InvokeAsync("nftMint", new
+            var committed = await InvokeOwnedNftMutationAsync("nftMint", new
             {
                 network = _hederaNetwork, nodes = _consensusNodes, sender = wallet.WalletAddress, recipient = wallet.WalletAddress,
                 tokenId, metadata = Enumerable.Repeat(metadata, count).ToArray(), privateKey = wallet.PrivateKey,
                 publicKey = wallet.PublicKey, keyType = "der", memo = request.MemoText,
                 transactionId = requestedMintId
-            });
+            }, execution, clientRequestId + ":mint", wallet.WalletAddress, wallet.PublicKey, cancellationToken);
             result.Result = new Web3NFTTransactionResponse();
             var serials = ApplyHederaMintReceipt(result.Result, committed, requestedMintId, count);
             var mintId = result.Result.TransactionResult;
@@ -115,12 +141,12 @@ public partial class HashgraphOASIS
             if (recipient != null && recipient != wallet.WalletAddress)
             {
                 requestedDeliveryId=HederaSdkClient.CreateTransactionId(wallet.WalletAddress);
-                var sent = await HederaSdkClient.InvokeAsync("nftTransfer", new
+                var sent = await InvokeOwnedNftMutationAsync("nftTransfer", new
                 {
                     network = _hederaNetwork, nodes = _consensusNodes, sender = wallet.WalletAddress, recipient,
                     tokenId, serials, privateKey = wallet.PrivateKey, publicKey = wallet.PublicKey, keyType = "der", memo = request.MemoText,
                     transactionId = requestedDeliveryId
-                });
+                }, execution, clientRequestId + ":delivery", wallet.WalletAddress, wallet.PublicKey, cancellationToken);
                 if (sent.GetProperty("status").GetString() != "SUCCESS") throw new InvalidOperationException("Mint completed but recipient transfer has no successful receipt.");
                 RecordHederaNftDelivery(result.Result, sent.GetProperty("transactionId").GetString(), recipient);
             }

@@ -52,7 +52,8 @@ public class HederaPreparationTests
         start.ArgumentList.Add(rejectMutation?"reject":"accept");
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(20));
         using var child=Process.Start(start)??throw new InvalidOperationException("Cannot start retained SDK.");
-        const string connection="mongodb://127.0.0.1:27017/?serverSelectionTimeoutMS=3000";
+        const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"),"Use the retained owned replica runner, not the unrelated Mongo service.");
         var database="usage_hedera_escrow_test_"+Guid.NewGuid().ToString("N");var mongo=new MongoDB.Driver.MongoClient(connection);
         try{
             var output=child.StandardOutput.ReadToEndAsync(deadline.Token);var error=child.StandardError.ReadToEndAsync(deadline.Token);
