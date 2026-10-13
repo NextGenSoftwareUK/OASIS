@@ -123,7 +123,15 @@ public class CosmosNftSignerTests
                 FromWalletAddress = "fixture-owner", ToWalletAddress = "fixture-recipient", OwnerPrivateKey = "test-only-explicit", Amount = 1 });
             Assert.IsTrue(result.IsError);
             if (rejected) { Assert.IsNull(result.Result); StringAssert.Contains(result.Message, "consistent Cosmos NFT address"); }
-            else { Assert.AreEqual(new string('a',64), result.Result.TransactionResult); StringAssert.Contains(result.Message, "readback failed"); }
+            else {
+                Assert.AreEqual(new string('a',64), result.Result.TransactionResult); StringAssert.Contains(result.Message, "readback failed");
+                Assert.IsInstanceOfType<CosmosNativeMutationReconciliationException>(result.Exception);
+                var evidence = (CosmosNativeMutationReconciliationException)result.Exception;
+                Assert.AreEqual(new string('a',64), evidence.OriginalTransactionId);
+                Assert.AreEqual(true, evidence.ExecutionSucceeded);
+                Assert.IsNotNull(evidence.InnerException);
+                Assert.IsInstanceOfType<Core.Interfaces.INativeMutationReconciliationRequired>(evidence);
+            }
         }
         finally { Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE", previous); }
     }
