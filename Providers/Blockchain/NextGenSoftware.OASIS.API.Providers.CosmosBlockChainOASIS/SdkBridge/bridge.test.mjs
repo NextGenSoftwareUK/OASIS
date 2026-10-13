@@ -6,6 +6,26 @@ import { fromBech32, toBech32 } from "@cosmjs/encoding";
 import { DirectSecp256k1Wallet } from "@cosmjs/proto-signing";
 import { invoke as invokeTrusted } from './bridge.mjs';
 import { CosmWasmClient, SigningCosmWasmClient } from '@cosmjs/cosmwasm';
+import { createHash } from 'node:crypto';
+
+test('actual status entry rejects substituted indexed bytes and closes read-only client', async () => {
+ const original=CosmWasmClient.connect;
+ const bytes=new Uint8Array([1,2,3]);
+ const digest=createHash('sha256').update(bytes).digest('hex').toUpperCase();
+ let result={tx:bytes,hash:digest,height:42,code:0},closed=0,prepared=0,lookups=0;
+ CosmWasmClient.connect=async()=>({getChainId:async()=> 'fixture-chain',
+  getTx:async hash=>{lookups++;assert.equal(hash,digest);return result;},disconnect:()=>{closed++;}});
+ try{
+  const input={operation:'transactionStatus',rpcEndpoint:'http://127.0.0.1:1',chainId:'fixture-chain',transactionHash:digest};
+  const persist=async()=>{prepared++;};
+  assert.deepEqual(await invokeTrusted(input,persist),{hash:digest,height:42,code:0});
+  result={...result,tx:new Uint8Array([9])};
+  await assert.rejects(invokeTrusted(input,persist),/exact committed/);
+  result=null;assert.equal(await invokeTrusted(input,persist),null);
+  await assert.rejects(invokeTrusted({...input,transactionHash:'invalid'},persist),/Exact Cosmos/);
+  assert.equal(lookups,3);assert.equal(closed,4);assert.equal(prepared,0);
+ }finally{CosmWasmClient.connect=original;}
+});
 
 test('actual instantiation entry applies default wallet prefix to returned address validation',async()=>{
  const original=SigningCosmWasmClient.connectWithSigner;
