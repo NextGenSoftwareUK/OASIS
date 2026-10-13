@@ -176,6 +176,8 @@ public partial class CosmosBlockChainOASIS
                 var loaded = await LoadOnChainNFTDataAsync(locator.Address);
                 if (loaded.IsError || loaded.Result == null)
                     throw new InvalidOperationException(loaded.Message ?? "Committed NFT readback returned no NFT.", loaded.Exception);
+                if (!string.Equals(loaded.Result.SendToAddressAfterMinting, request.ToWalletAddress, StringComparison.Ordinal))
+                    throw new InvalidDataException("Post-transfer NFT ownership differs from the requested recipient.");
                 loaded.Result.SendNFTTransactionHash = hash;
                 result.Result.Web3NFT = loaded.Result;
             }

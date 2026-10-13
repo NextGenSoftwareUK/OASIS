@@ -26,6 +26,10 @@ Current unit checkpoints: Core 378/378, WEB4 138/138 (rebuilt host), ONODE Core 
 
 ## Routing contract
 
+### Cosmos NFT recipient readback invariant — 2026-10-12
+
+SendNFTAsync now verifies current on-chain readback owner equals the requested recipient before reporting delivery success. Mismatch uses the existing post-commit reconciliation wrapper with original hash, confirmed execution and explicit ownership cause, not another transfer. Controlled matching/mismatched public-entry tests added; rebuilt dependency first, complete CosmosNftSignerTests **42/42 passed**, zero skips (`cosmos-nft-postcommit-current.trx`). Exact Cosmos address identity comparison preserves existing canonical contract/request semantics; not a new address parser. No live delivery, installs, sponsorship or release merge; remaining live/interfaces/recovery/deployed gates stay open.
+
 ### Sui current comparison and readback regression verified — 2026-10-12
 
 Rebuilt current provider successfully before tests (explicit build-failure gate avoids stale DLL). Expanded recipient checks to full 32-byte hex addresses: matching lowercase, matching uppercase request/lowercase readback, foreign owner. Complete SuiUnlockReadbackFailureTests **48/48 passed**, zero skips/failures (`sui-readback-current.trx`), two minutes six seconds including actual deadline. Supersedes prior unrerun comparison limitation. Process handle terminal exit zero; no restart/reinstallation or live node mutation. This remains controlled process/provider regression, not full current suite or live hosted NFT delivery certification.

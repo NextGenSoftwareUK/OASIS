@@ -59,6 +59,12 @@ else if(request.operation==='execute'){
    throw new Error('Mint economic metadata was not serialized.');}
  if(request.privateKey!=='test-only-explicit')error='Explicit signer was not forwarded';
  else result={transactionHash:'a'.repeat(64)};
-}else if(request.operation==='query')error='forced separate NFT readback failure';
+}else if(request.operation==='query'){
+ const tokenId=request.message?.asset?.message?.nft?.token_id;
+ if(tokenId?.startsWith('ownership-'))result={token_id:tokenId,locked:false,
+  owner:tokenId==='ownership-matching'?'fixture-recipient':'fixture-owner',
+  metadata_json:JSON.stringify({NFTTokenAddress:'fixture-contract#'+tokenId})};
+ else error='forced separate NFT readback failure';
+}
 else error='Unexpected fixture operation';
 if(!handled)process.stdout.write(JSON.stringify(failureEnvelope??(error?{ok:false,error}:{ok:true,result})));if(error||failureEnvelope)process.exitCode=1;
