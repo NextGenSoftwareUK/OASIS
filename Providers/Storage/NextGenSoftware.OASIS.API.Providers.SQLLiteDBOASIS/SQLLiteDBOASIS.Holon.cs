@@ -136,6 +136,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var q = (firstGroup?.SearchQuery?.ToString() ?? string.Empty).ToLower();
                     // Basic in-memory search using available repo APIs
                     var holonLoad = await _holonRepository.LoadAllHolonsAsync();
+                    if(holonLoad.IsError){
+                        OASISErrorHandling.HandleError(ref result,"SQLite holon search failed: "+holonLoad.Message,holonLoad.Exception);
+                        return result;
+                    }
                     if (!holonLoad.IsError && holonLoad.Result != null)
                     {
                         holons.AddRange(holonLoad.Result.Where(h =>
@@ -143,6 +147,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     }
 
                     var avatarLoad = await _avatarRepository.LoadAllAvatarsAsync();
+                    if(avatarLoad.IsError){
+                        OASISErrorHandling.HandleError(ref result,"SQLite avatar search failed: "+avatarLoad.Message,avatarLoad.Exception);
+                        return result;
+                    }
                     if (!avatarLoad.IsError && avatarLoad.Result != null)
                     {
                         avatars.AddRange(avatarLoad.Result.Where(a =>
