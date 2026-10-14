@@ -10,6 +10,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS;
 
 public partial class SuiOASIS
 {
+    /// <summary>Own every physical put/delete, including encrypted storage index writes, in one admitted execution.</summary>
+    public Task<T> ExecutePreparedStorageAsync<T>(Func<Task<T>> operation,UsageExecutionHandle execution,
+        string clientRequestId,string expectedSender,CancellationToken token=default)
+    {
+        token.ThrowIfCancellationRequested();ArgumentNullException.ThrowIfNull(operation);ArgumentNullException.ThrowIfNull(execution);
+        if(string.IsNullOrWhiteSpace(clientRequestId)||clientRequestId.Length>110)
+            throw new ArgumentException("Storage correlation must leave room for bounded write sequence suffix.",nameof(clientRequestId));
+        ArgumentException.ThrowIfNullOrWhiteSpace(expectedSender);
+        if(string.IsNullOrWhiteSpace(_sdkClient.ChainId))throw new InvalidOperationException("Explicit Sui genesis required for prepared storage.");
+        var sequence=0;
+        return _sdkClient.WithStoragePreparationAsync(operation,()=>{
+            token.ThrowIfCancellationRequested();
+            return CreateNativePreparationServer(execution,clientRequestId+".storage."+Interlocked.Increment(ref sequence),_sdkClient.ChainId,expectedSender);
+        });
+    }
     /// <summary>Read-only original-attempt evidence for recovery; does not value, settle or resubmit it.</summary>
     public async Task<NextGenSoftware.OASIS.Common.OASISResult<JsonElement>> GetPreparedNativeFeeReceiptAsync(
         UsageProviderAttempt attempt,CancellationToken token=default)
