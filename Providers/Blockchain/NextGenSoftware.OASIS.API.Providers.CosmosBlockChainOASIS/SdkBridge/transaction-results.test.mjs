@@ -370,6 +370,7 @@ test('custody proof binds exact successful receipt, collection, token and pool',
   const tx = receipt([message]);
   expected.transactionHash = tx.hash;
   assert.equal(verifiedNftCustodyReceipt(tx, expected, registry), tx);
+  assert.equal(verifiedNftCustodyReceipt(tx, {...expected,transactionHash:tx.hash.toLowerCase()}, registry), tx);
   assert.throws(() => verifiedNftCustodyReceipt({...tx,hash:'AB'.repeat(32)}, {...expected,transactionHash:'AB'.repeat(32)}, registry));
   assert.throws(() => verifiedNftCustodyReceipt({...tx,tx:receipt([]).tx}, expected, registry));
   for (const field of ['contractAddress', 'tokenId', 'custody', 'transactionHash'])

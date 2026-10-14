@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Cosmos custody hash-case compatibility fix (2026-10-13): canonical native hash and accepted lowercase caller hash now compare equivalently in SDK/C# custody paths. No loosened byte identity/commit/success/unique transfer/object selectors. Offline60/60 and focused NFT signer44/44 pass, zero skips; bounded builds0errors. No live transfer/releases; unknown Cosmos journal untouched, complete native custody/API gates still open.
+
 Sui custody identity correction (2026-10-13): one exact validator now binds source transaction/effects to requested digest before accepting unique custody object change; current object ID also checked. Offline29/29 passes, packaging verifier passes; controlled foreign/duplicate/failed/self-custody cases rejected. No live asset mutation; complete custody/escrow/public API verification remains open.
 
 Sui original fee receipt actual1/1 (2026-10-13): Fee mode reuses digest retained by Passed prepared-live test, read-only actual SDK+provider native evidence confirms exact chain/digest/payer and MIST component arithmetic. First report-parser attempt stopped without query/submission, fixed explicit StdOut selection; both owned node lifecycles closed. Report `SuiCurrent/sui-original-fee-current.trx`,448ms, zero skips. No new mutation/environment; native fee evidence does not prove fiat valuation/authorization/settlement or complete recovery/API support.
