@@ -10,6 +10,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS;
 
 public partial class SuiOASIS
 {
+    /// <summary>Read-only original-attempt evidence for recovery; does not value, settle or resubmit it.</summary>
+    public async Task<NextGenSoftware.OASIS.Common.OASISResult<JsonElement>> GetPreparedNativeFeeReceiptAsync(
+        UsageProviderAttempt attempt,CancellationToken token=default)
+    {
+        var result=new NextGenSoftware.OASIS.Common.OASISResult<JsonElement>();
+        try{
+            ArgumentNullException.ThrowIfNull(attempt);
+            if(attempt.Provider!="SuiOASIS"||attempt.NativePreparation==null
+                ||string.IsNullOrWhiteSpace(attempt.ProviderRequestId)||string.IsNullOrWhiteSpace(_sdkClient.ChainId)
+                ||attempt.NativePreparation.ChainId!=_sdkClient.ChainId)
+                throw new InvalidDataException("Prepared Sui attempt must bind this provider, original digest and configured genesis.");
+            var preparation=attempt.NativePreparation;
+            await VerifyOriginalSignedPreparationAsync(JsonSerializer.SerializeToElement(new{
+                transactionHash=attempt.ProviderRequestId,chainId=preparation.ChainId,sender=preparation.Sender,
+                signedTransactionBase64=preparation.SignedTransactionBase64,signature=preparation.Signature}),token);
+            return await GetNativeFeeReceiptAsync(attempt.ProviderRequestId,token);
+        }catch(Exception failure){NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,failure.Message,failure);}
+        return result;
+    }
     /// <summary>Explicit admitted native invocation; caller must supply trusted operation/chain/signer context.</summary>
     public async Task<JsonElement> ExecutePreparedNativeAsync(string operation, object args, UsageExecutionHandle execution,
         string clientRequestId, string expectedChainId, string expectedSender, CancellationToken token = default)
