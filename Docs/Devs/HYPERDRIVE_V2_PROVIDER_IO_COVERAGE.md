@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-13 Core `c1a8cdd41f04f31e7a40eaf82b8def9fb4aa99aa`: preserves legitimate known-pre-execution recovery through existing canonical aggregation, exact settlement fingerprint and durable no-execution reason. Tampered zero-cost evidence rejected; valid rejection recovers to pending. This corrects the prior extra-receipt guard's rejection of canonical no-provider receipts without weakening provider-attempt integrity. Real owned Mongo suite79/79 plus initialization1/1 passes, no new environment/install.
+
 2026-10-13 recovery integrity fix: Core `d9bc458e446dd79dab005144a258e7b5671f6e13` rejects extra recovery receipts without persisted attempts. Owned Mongo protocol78/78 and initialization1/1 pass; negative regression asserts no settlement mutation. Same runtime/cache/environment, no installs. Core pushed and manifest/gitlink synchronized; full native recovery/valuation and live release certification remain incomplete.
 
 2026-10-13 recovery audit: current TRON unit binary300/300 passes, no skips, no restore/build/new environment. Inspected signer/genesis persistence and actual account-permission verification. Discovered Core recovery integrity asymmetry: `ResolveAsync` verifies every attempt has exactly one receipt but allows additional receipt rows without matching attempts, whereas `UsageCanonical.Aggregate` rejects those rows. Remains an explicit fix/test/dependency-pin gate; no claim that production recovery or sponsored fees are complete.
