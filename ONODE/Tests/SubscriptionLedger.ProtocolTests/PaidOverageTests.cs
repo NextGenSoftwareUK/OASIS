@@ -37,6 +37,13 @@ public sealed class PaidOverageMathTests
     public void AggregateUsdBillingRoundsOnceAtTheStripeCentBoundary(decimal amount,long expected)
         => Assert.Equal(expected,PaidOveragePricing.MinorUnits(amount));
     [Fact]
+    public void LegacyPreferenceWithoutAValidConsentIsNotPaidOverageAuthority()
+    {
+        Assert.False(PaidOveragePricing.HasConsent(new SubscriptionRecord{PlanId="bronze",PayAsYouGoEnabled=true}));
+        Assert.False(PaidOveragePricing.HasConsent(new SubscriptionRecord{PlanId="free",PayAsYouGoEnabled=true,StripeCustomerId="cus_fixture",StripeSubscriptionId="sub_fixture",
+            PaidOverageTermsVersion="v1",PaidOverageTermsSha256=new string('a',64),PaidOverageTermsAcceptedAtUtc=DateTime.UtcNow,MonthlyOverageLimitUsd=50}));
+    }
+    [Fact]
     public void FailedOveragePaymentDoesNotBlockZeroCostIncludedRequests()
     {
         var policy=new SubscriptionUsagePolicy {MonthlyRequestLimit=100,MonthlyBudgetUsd=1};

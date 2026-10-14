@@ -207,7 +207,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             string subscriberId=GetCurrentUserId();
             if (string.IsNullOrEmpty(subscriberId)) return Unauthorized(new { IsError=true, Message="User not authenticated." });
             var existing=await _subscriptionService.GetSubscriptionAsync(subscriberId);
-            if (!string.IsNullOrEmpty(existing?.StripeSubscriptionId) && existing.Status is not ("canceled" or "incomplete_expired"))
+            if (existing?.PlanId!="free" && !string.IsNullOrEmpty(existing?.StripeSubscriptionId) && existing.Status is not ("canceled" or "incomplete_expired"))
                 return await BillingPortalResult(existing, request.SuccessUrl);
 
             // Free/trial plan: provision immediately without Stripe
@@ -254,7 +254,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     Mode = "subscription",
                     SuccessUrl = CheckoutSuccessUrl(request.SuccessUrl ?? "https://oasisomniverse.one/checkout/success"),
                     CancelUrl = request.CancelUrl ?? "https://oasisomniverse.one/checkout/cancel",
-                    CustomerEmail = request.CustomerEmail,
+                    Customer = existing?.StripeCustomerId,
+                    CustomerEmail = string.IsNullOrEmpty(existing?.StripeCustomerId) ? request.CustomerEmail : null,
                     SubscriptionData = new Stripe.Checkout.SessionSubscriptionDataOptions { Metadata = new Dictionary<string, string> { { "avatar_id", avatarId }, { "plan_id", plan.Id } } },
                     Metadata = new Dictionary<string, string>
                     {
@@ -521,7 +522,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     if(string.IsNullOrWhiteSpace(record?.StripeSubscriptionId))return BadRequest(new {IsError=true,Message="An active paid Stripe subscription is required."});
                     prices.Rate(record.PlanId);
                     await _overageGateway.VerifyPaymentReadyAsync(record,HttpContext.RequestAborted);
-                    await _billingRepository.SetPaidOverageConsentAsync(userId,record.StripeSubscriptionId,prices.Version,request.MonthlyLimitUsd,HttpContext.RequestAborted);
+                    await _billingRepository.SetPaidOverageConsentAsync(userId,record.StripeSubscriptionId,prices.Version,request.PricingSha256,request.MonthlyLimitUsd,HttpContext.RequestAborted);
                 }
                 catch(OASISSub.SubscriptionUsageConflictException ex){return Conflict(new {IsError=true,ex.Message});}
                 catch(Exception ex) when(ex is InvalidOperationException || ex is StripeException || ex is ArgumentException)
@@ -601,7 +602,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     remaining = limit < 0 ? -1 : Math.Max(0, limit - usage.RequestCount),
                     overage = limit < 0 ? 0 : Math.Max(0, usage.RequestCount - limit)
                 },
-                payAsYouGoEnabled = record?.PayAsYouGoEnabled ?? false,
+                payAsYouGoEnabled = OASISSub.PaidOveragePricing.HasConsent(record),
                 payAsYouGoAvailable = record?.StripeSubscriptionId != null && record.Status is "active" or "trialing",
                 paidOverageTermsVersion = record?.PaidOverageTermsVersion,
                 monthlyOverageLimitUsd = record?.MonthlyOverageLimitUsd ?? 0,

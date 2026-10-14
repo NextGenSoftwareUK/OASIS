@@ -32,6 +32,11 @@ public sealed class PaidOveragePricing
     }
     public decimal Rate(string plan) => RequestRatesUsd.TryGetValue(plan ?? "",out var rate)
         ? rate : throw new InvalidOperationException("Paid overages are available only for the configured paid plans.");
+    public static bool HasAcceptedTerms(SubscriptionRecord subscriber) => subscriber!=null && subscriber.PlanId!="free" &&
+        !string.IsNullOrWhiteSpace(subscriber.StripeCustomerId) && !string.IsNullOrWhiteSpace(subscriber.StripeSubscriptionId) &&
+        !string.IsNullOrWhiteSpace(subscriber.PaidOverageTermsVersion) && subscriber.PaidOverageTermsSha256?.Length==64 &&
+        subscriber.PaidOverageTermsAcceptedAtUtc.HasValue && subscriber.MonthlyOverageLimitUsd>0;
+    public static bool HasConsent(SubscriptionRecord subscriber) => subscriber?.PayAsYouGoEnabled==true && HasAcceptedTerms(subscriber);
     public static decimal Excess(decimal amount, decimal included) => included<=0 ? 0 : Math.Max(0,amount-included);
     public static decimal RequestReservation(SubscriptionUsagePolicy policy,SubscriptionUsageAggregate usage,decimal rate)
         => policy.MonthlyRequestLimit>=0 && usage.MonthlyRequests>=policy.MonthlyRequestLimit ? rate : 0;
