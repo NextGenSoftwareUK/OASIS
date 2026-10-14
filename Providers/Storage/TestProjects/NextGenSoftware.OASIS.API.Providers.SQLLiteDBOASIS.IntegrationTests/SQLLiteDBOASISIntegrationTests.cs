@@ -820,6 +820,33 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(HolonType.Quest, 1)]
+    [InlineData(HolonType.Clan, 1)]
+    [InlineData(HolonType.All, 2)]
+    [InlineData(HolonType.Mission, 0)]
+    public async Task PublicTextSearchHonoursHolonTypeRestriction(HolonType requestedType, int expected)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        foreach (var type in new[] { HolonType.Quest, HolonType.Clan })
+        {
+            var saved = await provider.SaveHolonAsync(new Holon { Id = Guid.NewGuid(), HolonType = type, Name = "shared-type-needle" }, saveChildren:false);
+            saved.IsError.Should().BeFalse(saved.Message);
+        }
+        var result = await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+            SearchOnlyForCurrentAvatar = false, SearchGroups = new() {
+                new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup { SearchQuery = "shared-type-needle",
+                    SearchHolons = true, HolonType = requestedType, HolonSearchParams = new SearchHolonParams { Name = true } }
+            }
+        });
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.SearchResultHolons.Should().HaveCount(expected);
+        result.Result.SearchResultAvatars.Should().BeEmpty();
+        if (requestedType != HolonType.All && expected > 0)
+            result.Result.SearchResultHolons.Should().OnlyContain(h => h.HolonType == requestedType);
+    }
+
+    [Theory]
     [InlineData("id", true)]
     [InlineData("provider", true)]
     [InlineData("metadata", true)]

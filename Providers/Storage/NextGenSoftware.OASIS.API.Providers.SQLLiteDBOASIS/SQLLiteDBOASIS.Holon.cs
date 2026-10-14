@@ -222,7 +222,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                                 date.HolonSearchParams?.CreatedDate == true && CompareDate(h.CreatedDate, date) ||
                                 date.HolonSearchParams?.ModifiedDate == true && CompareDate(h.ModifiedDate, date) ||
                                 date.HolonSearchParams?.DeletedDate == true && CompareDate(h.DeletedDate, date)),
-                            ISearchTextGroup text => (!text.SearchAvatars || text.SearchHolons) && (MatchesIdentityAndMetadata(h, text,
+                            ISearchTextGroup text => (!text.SearchAvatars || text.SearchHolons) &&
+                                (text.HolonType == HolonType.All || text.HolonType == h.HolonType) && (MatchesIdentityAndMetadata(h, text,
                                 text.HolonSearchParams?.ProviderUniqueStorageKey == true || text.HolonSearchParams?.SearchAllFields == true,
                                 text.HolonSearchParams?.MetaData == true || text.HolonSearchParams?.SearchAllFields == true,
                                 text.HolonSearchParams?.MetaDataKey) || (text.HolonSearchParams == null
