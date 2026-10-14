@@ -290,7 +290,7 @@ public partial class CosmosBlockChainOASIS
                     throw new ArgumentException("Exact Cosmos source transaction hash required.");
                 var proof = await _sdkBackend.InvokeAsync("verifyNftCustodyReceipt", new {
                     transactionHash = sourceTransactionHash, contractAddress = locator.Contract, tokenId = locator.TokenId, custody = pool });
-                if (!proof.GetProperty("verified").GetBoolean() || proof.GetProperty("transactionHash").GetString() != sourceTransactionHash)
+                if (!proof.GetProperty("verified").GetBoolean() || !string.Equals(proof.GetProperty("transactionHash").GetString(), sourceTransactionHash, StringComparison.OrdinalIgnoreCase))
                     throw new InvalidOperationException("Cosmos source custody receipt identity was not verified.");
             }
             // Release the existing escrowed NFT. Cross-chain provenance is the bridge coordinator's responsibility.

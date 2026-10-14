@@ -198,7 +198,8 @@ export function cosmosIndexedTransactionStatus(tx, requestedHash) {
 }
 
 export function verifiedNftCustodyReceipt(tx, expected, registry) {
-  if (!tx || tx.hash !== expected.transactionHash || tx.code !== 0
+  if (!tx || !/^[0-9a-fA-F]{64}$/.test(expected.transactionHash ?? '')
+      || tx.hash !== expected.transactionHash.toUpperCase() || tx.code !== 0
       || !Number.isSafeInteger(tx.height) || tx.height <= 0
       || !(tx.tx instanceof Uint8Array)
       || createHash('sha256').update(tx.tx).digest('hex').toUpperCase() !== tx.hash)
