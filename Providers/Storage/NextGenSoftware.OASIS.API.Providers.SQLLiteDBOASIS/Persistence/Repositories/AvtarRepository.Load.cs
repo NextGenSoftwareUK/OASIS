@@ -141,7 +141,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             var result = new OASISResult<bool>();
             try
             {
-                var avatar = await _dbContext.Avatars.FirstOrDefaultAsync(a => a.Email == avatarEmail);
+                var avatar = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(a => a.Email == avatarEmail));
                 if (avatar == null)
                 {
                     OASISErrorHandling.HandleError(ref result, "Avatar deletion selector matched no persisted identity.");
@@ -152,6 +152,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, "Avatar deletion identity lookup failed.", ex);
+                if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
                 return result;
             }
         }
@@ -172,6 +173,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, "Avatar deletion identity lookup failed.", ex);
+                if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
                 return result;
             }
         }
