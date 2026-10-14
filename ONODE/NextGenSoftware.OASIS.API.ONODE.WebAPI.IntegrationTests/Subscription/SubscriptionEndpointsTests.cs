@@ -185,6 +185,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
         public Mock<ISubscriptionUsageRepository> UsageRepositoryMock { get; } = new();
         public Mock<ISubscriptionBillingRepository> BillingRepositoryMock { get; } = new();
         public Mock<ISubscriptionPlanPriceReader> PriceReaderMock { get; } = new();
+        public Mock<IPaidOverageStatementStore> OverageStoreMock { get; } = new();
+        public Mock<IPaidOverageGateway> OverageGatewayMock { get; } = new();
 
         public SubscriptionWebAppFactory()
         {
@@ -216,12 +218,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
                 services.RemoveAll<ISubscriptionBillingRepository>();
                 services.RemoveAll<ISubscriptionPlanPriceReader>();
                 services.RemoveAll<SubscriptionPlanCatalogue>();
+                services.RemoveAll<IPaidOverageStatementStore>();
+                services.RemoveAll<IPaidOverageGateway>();
                 services.RemoveAll<Microsoft.Extensions.Hosting.IHostedService>();
                 services.AddSingleton(SvcMock.Object);
                 services.AddSingleton(UsageRepositoryMock.Object);
                 services.AddSingleton(BillingRepositoryMock.Object);
                 services.AddSingleton(PriceReaderMock.Object);
                 services.AddSingleton(new SubscriptionPlanCatalogue(PriceReaderMock.Object));
+                services.AddSingleton(OverageStoreMock.Object);
+                services.AddSingleton(OverageGatewayMock.Object);
 
                 services.AddAuthentication(options =>
                     {
