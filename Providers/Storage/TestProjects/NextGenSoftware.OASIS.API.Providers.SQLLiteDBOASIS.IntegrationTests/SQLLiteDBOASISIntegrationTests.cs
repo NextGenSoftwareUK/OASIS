@@ -823,6 +823,42 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [InlineData("id", true)]
     [InlineData("provider", true)]
     [InlineData("metadata", true)]
+    [InlineData("metadata-disabled", false)]
+    public async Task PublicAvatarIdentityAndMetadataSearchSurvivesFreshConnection(string selection, bool expected)
+    {
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = "unrelated-avatar", Email = "unrelated@test.invalid",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User),
+            MetaData = new Dictionary<string,object> { ["Region"] = "avatar-owned-needle" } };
+        avatar.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS] = "avatar-provider-needle";
+        using (var provider = new SQLLiteDBOASIS(TestConnectionString))
+        {
+            (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+            var saved = await provider.SaveAvatarAsync(avatar);
+            saved.IsError.Should().BeFalse(saved.Message);
+        }
+        using var reopened = new SQLLiteDBOASIS(TestConnectionString);
+        (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var query = selection == "id" ? avatar.Id.ToString() : selection == "provider" ? "avatar-provider-needle" : "avatar-owned-needle";
+        var result = await reopened.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+            SearchOnlyForCurrentAvatar = false, SearchGroups = new() {
+                new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup {
+                    SearchQuery = query, SearchAvatars = true, SearchIds = selection == "id",
+                    AvatarSearchParams = new NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar.SearchAvatarParams {
+                        ProviderUniqueStorageKey = selection == "provider", MetaData = selection == "metadata" }
+                }
+            }
+        });
+        result.IsError.Should().BeFalse(result.Message);
+        if (expected) result.Result.SearchResultAvatars.Select(a => a.Id).Should().Equal(avatar.Id);
+        else result.Result.SearchResultAvatars.Should().BeEmpty();
+        result.Result.SearchResultHolons.Should().BeEmpty();
+        result.Result.NumberOfResults.Should().Be(expected ? 1 : 0);
+    }
+
+    [Theory]
+    [InlineData("id", true)]
+    [InlineData("provider", true)]
+    [InlineData("metadata", true)]
     [InlineData("metadata-wrong-key", false)]
     [InlineData("metadata-disabled", false)]
     public async Task PublicTextSearchHonoursIdentityProviderAndSelectedMetadata(string selection, bool expected)
