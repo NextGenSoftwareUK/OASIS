@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Sui actual retained token lifecycle1/1 (2026-10-13):8.36s, zero skips, compact token-live-current.tap. Existing registration metadata/supply checked; real mint/issuer restriction/transfer/escrow lock+unlock/locked spend rejection/holder burn+cleanup with original supply restored. Recipient/runtime/deployment reused; owned journal absent/node stopped. Not fresh registration or every C# interface/hosted route/recovery/fee-settlement proof; no merge.
+
 Sui token preparation fixture progress (2026-10-13): durable original signed journal before each mutation, failure aggregation/supply-restored cleanup; unknown outcome prevents any further NFT/token mutation. Existing recipient cache found, no secrets read to output. Syntax and offline29/29 pass; live token support NOT yet verified on current fixture/runner. No ledger writes/new runtime.
 
 Sui token fixture recovery-evidence protection (2026-10-13): removed automatic pre-run burn/unlock and recipient credential generation/replacement. Require existing chain-matched identity and actual key-derived address; reject nonzero prior spendable/escrow balances read-only. Syntax/diff checks pass, NOT live token proof; durable journal/unknown mutation/error attribution still open. No asset/environment changes.

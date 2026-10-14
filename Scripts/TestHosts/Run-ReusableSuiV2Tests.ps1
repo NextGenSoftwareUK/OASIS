@@ -1,4 +1,4 @@
-param([ValidateSet('Healthy','Outage','Prepared','Fee','NFT')][string]$Mode = 'Healthy')
+param([ValidateSet('Healthy','Outage','Prepared','Fee','NFT','Token')][string]$Mode = 'Healthy')
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
 $fixtureRoot = Join-Path $taskRoot 'TestResults/HyperDriveSui'
@@ -7,6 +7,7 @@ if (!(Test-Path -LiteralPath $deploymentPath)) { throw 'Retained protected Sui d
 if (Test-Path -LiteralPath (Join-Path $fixtureRoot 'encrypted-replication-pending.json')) { throw 'Pending Sui ownership intent requires reconciliation before another run.' }
 if (Test-Path -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/prepared-live-pending.json')) { throw 'Pending prepared Sui ownership requires reconciliation before another run.' }
 if (Test-Path -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/nft-live-pending.jsonl')) { throw 'Pending NFT ownership requires reconciliation before another run.' }
+if (Test-Path -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/token-live-pending.jsonl')) { throw 'Pending token ownership requires reconciliation before another run.' }
 & wsl -d Ubuntu -u root -- test -f /var/tmp/oasis-sui/network/network.yaml
 if ($LASTEXITCODE -ne 0) { throw 'Existing Sui ledger configuration missing; refusing genesis creation.' }
 & wsl -d Ubuntu -u root -- pgrep -x sui *> $null
@@ -17,7 +18,7 @@ if($Mode -in @('Prepared','Fee')){$project=Join-Path $taskRoot 'Providers/Blockc
 if ($LASTEXITCODE -ne 0) { throw 'Current V2 integration consumer build failed.' }
 $outputBridge=if($Mode -in @('Prepared','Fee')){'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/bin/Debug/net10.0/SuiSdkBridge'}else{'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/bin/Debug/net10.0/SuiSdkBridge'}
 & (Join-Path $PSScriptRoot 'Use-ReusableHederaOutputDependencies.ps1') -Provider Sui -OutputBridge $outputBridge
-$names = @('OASIS_SUI_TEST_RPC','OASIS_SUI_TEST_DEPLOYMENT','OASIS_SUI_TEST_OWNED_PID','OASIS_SUI_TEST_STOP_SCRIPT','OASIS_HYPERDRIVE_TEST_ROOT','OASIS_SUI_SDK_BRIDGE','OASIS_SUI_SUCCESSFUL_FEE_RECEIPT','OASIS_SUI_TEST_NFT_JOURNAL','OASIS_SUI_TEST_FAUCET')
+$names = @('OASIS_SUI_TEST_RPC','OASIS_SUI_TEST_DEPLOYMENT','OASIS_SUI_TEST_OWNED_PID','OASIS_SUI_TEST_STOP_SCRIPT','OASIS_HYPERDRIVE_TEST_ROOT','OASIS_SUI_SDK_BRIDGE','OASIS_SUI_SUCCESSFUL_FEE_RECEIPT','OASIS_SUI_TEST_NFT_JOURNAL','OASIS_SUI_TEST_FAUCET','OASIS_SUI_TEST_TOKEN_JOURNAL')
 $prior = @{}
 foreach ($name in $names) { $prior[$name] = [Environment]::GetEnvironmentVariable($name,'Process') }
 $ownedPid = $null
@@ -59,7 +60,12 @@ try {
     $env:OASIS_SUI_TEST_OWNED_PID = $ownedPid
     $env:OASIS_SUI_TEST_STOP_SCRIPT = '/mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/stop-owned-sui-test-node.sh'
     $env:OASIS_HYPERDRIVE_TEST_ROOT = $fixtureRoot
-    if($Mode -eq 'NFT'){
+    if($Mode -eq 'Token'){
+        $env:OASIS_SUI_TEST_FAUCET='http://127.0.0.1:9123'
+        $env:OASIS_SUI_TEST_TOKEN_JOURNAL=Join-Path $taskRoot 'TestResults/SuiCurrent/token-live-pending.jsonl'
+        & node --test --test-reporter=tap (Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/token-runtime.test.mjs') 2>&1 | Tee-Object -FilePath (Join-Path $taskRoot 'TestResults/SuiCurrent/token-live-current.tap')
+        if($LASTEXITCODE -ne 0){throw 'Real token fixture failed; preserve prior balances and any pending journal.'}
+    }elseif($Mode -eq 'NFT'){
         $env:OASIS_SUI_TEST_FAUCET='http://127.0.0.1:9123'
         $env:OASIS_SUI_TEST_NFT_JOURNAL=Join-Path $taskRoot 'TestResults/SuiCurrent/nft-live-pending.jsonl'
         & node --test --test-reporter=tap (Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/nft-runtime.test.mjs') 2>&1 | Tee-Object -FilePath (Join-Path $taskRoot 'TestResults/SuiCurrent/nft-live-current.tap')
