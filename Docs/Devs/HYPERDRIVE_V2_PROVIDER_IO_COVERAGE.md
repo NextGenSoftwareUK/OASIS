@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-13 Linux compatibility update: Hedera's package-defined five offline SDK test files pass102/102 (exit0) on retained Linux Node22.22.2 using existing dependencies. Cosmos's two offline SDK files pass60/60 after the test subprocess deadline was aligned with production's existing two-minute deadline; Windows also passes60/60. No installs, copies or native mutations. These results do not certify production Node24.19.0, published .NET IPC, hosted API admission/recovery or live V2 failover/load balancing/replication.
+
 **Updated:** 2026-10-13 (scope-specific evidence below; full completion unproven)
 **Branch:** `codex/hyperdrive-dual-mode-route-matrix`
 
