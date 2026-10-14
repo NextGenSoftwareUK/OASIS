@@ -1,4 +1,4 @@
-param([ValidateSet('Healthy','Outage','Prepared','Fee','NFT','Token')][string]$Mode = 'Healthy')
+param([ValidateSet('Healthy','Outage','Prepared','Fee','NFT','Token','Assets')][string]$Mode = 'Healthy')
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
 $fixtureRoot = Join-Path $taskRoot 'TestResults/HyperDriveSui'
@@ -60,7 +60,14 @@ try {
     $env:OASIS_SUI_TEST_OWNED_PID = $ownedPid
     $env:OASIS_SUI_TEST_STOP_SCRIPT = '/mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/stop-owned-sui-test-node.sh'
     $env:OASIS_HYPERDRIVE_TEST_ROOT = $fixtureRoot
-    if($Mode -eq 'Token'){
+    if($Mode -eq 'Assets'){
+        $env:OASIS_SUI_TEST_FAUCET='http://127.0.0.1:9123'
+        $env:OASIS_SUI_TEST_TOKEN_JOURNAL=Join-Path $taskRoot 'TestResults/SuiCurrent/token-live-pending.jsonl'
+        $env:OASIS_SUI_TEST_NFT_JOURNAL=Join-Path $taskRoot 'TestResults/SuiCurrent/nft-live-pending.jsonl'
+        $bridgeRoot=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge'
+        & node --test --test-concurrency=1 --test-reporter=tap (Join-Path $bridgeRoot 'nft-runtime.test.mjs') (Join-Path $bridgeRoot 'token-runtime.test.mjs') 2>&1 | Tee-Object -FilePath (Join-Path $taskRoot 'TestResults/SuiCurrent/assets-live-current.tap')
+        if($LASTEXITCODE -ne 0){throw 'Real asset fixtures failed; preserve ownership journals and do not replay.'}
+    }elseif($Mode -eq 'Token'){
         $env:OASIS_SUI_TEST_FAUCET='http://127.0.0.1:9123'
         $env:OASIS_SUI_TEST_TOKEN_JOURNAL=Join-Path $taskRoot 'TestResults/SuiCurrent/token-live-pending.jsonl'
         & node --test --test-reporter=tap (Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/token-runtime.test.mjs') 2>&1 | Tee-Object -FilePath (Join-Path $taskRoot 'TestResults/SuiCurrent/token-live-current.tap')
