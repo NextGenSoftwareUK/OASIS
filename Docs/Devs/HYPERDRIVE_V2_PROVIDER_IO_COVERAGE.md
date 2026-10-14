@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Sui token preparation fixture progress (2026-10-13): durable original signed journal before each mutation, failure aggregation/supply-restored cleanup; unknown outcome prevents any further NFT/token mutation. Existing recipient cache found, no secrets read to output. Syntax and offline29/29 pass; live token support NOT yet verified on current fixture/runner. No ledger writes/new runtime.
+
 Sui token fixture recovery-evidence protection (2026-10-13): removed automatic pre-run burn/unlock and recipient credential generation/replacement. Require existing chain-matched identity and actual key-derived address; reject nonzero prior spendable/escrow balances read-only. Syntax/diff checks pass, NOT live token proof; durable journal/unknown mutation/error attribution still open. No asset/environment changes.
 
 Sui actual source custody proof (2026-10-13): existing lifecycle fixture expanded; real transfer receipt yields exact current object reference, wrong pool rejected, proof stale/deleted after burn rejected. Expanded1/1 passes7.62s, zero skips, existing compact TAP; owned journal absent/node stopped, same pinned runtime/deployment. Closes this local SDK source-proof evidence, not every public C# route/release/crash/settlement requirement.
