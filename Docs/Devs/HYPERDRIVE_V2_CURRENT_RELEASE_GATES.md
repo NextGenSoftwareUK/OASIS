@@ -4,6 +4,8 @@ Updated 2026-10-13, inspected parent `07e0ae20c` and retained reports/journals. 
 
 ## Authoritative state
 
+Cosmos subprocess deadline follow-up (2026-10-13, parent `c984d6203`): repeated read-only import measurement was 17981ms under retained Linux Node22.22.2 versus 199ms on Windows. The test-only 10000ms deadline was inconsistent with `CosmosSdkBackend`'s existing two-minute process deadline; tests now use that same 120000ms bound, without changing production behavior or copying dependencies. Windows current SDK suite passes60/60. Linux rerun is pending; mounted-filesystem/runtime performance and exact Railway Node24.19.0 verification remain separate open gates.
+
 - Reuse `C:/Source/OASIS-hyperdrive-v2-gaps` and its existing branch. Do not create/rename `codex/` branches.
 - Core pin: `e196295c0e40934cd7ddf3bca5f03b7d5a6457ae`; ONODE Core pin: `f9c985d0faff66b3b4525ebd9b4becba1f564f93`. Full Core 477 tests passed previously. Current WEB4 build and 147 tests passed after attributed-property/null-metadata fixes; deployed verification and other consumer refresh remain required.
 - TRON `TestResults/HyperDriveTron/pending-native-outcome.json` exists and must be preserved. Original transaction outcome is unresolved; NotFound is not non-submission proof.
