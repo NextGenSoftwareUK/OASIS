@@ -132,16 +132,15 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 //holon.IsNewHolon = false;
                 holon.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.MongoDBOASIS);
 
+                PrepareNativeHolonIdentity(holon);
                 await _dbContext.Holon.InsertOneAsync(holon);
-                holon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = holon.Id;
-
-                await UpdateAsync(holon);
                 result.Result = holon;
             }
             catch (Exception ex)
             {
                 result.IsError = true;
                 result.Message = $"Error saving holon with id {holon.Id} and name {holon.Name} in AddAsync method in MongoDBOASIS Provider. Reason: {ex.ToString()}";
+                result.Exception = ex;
             }
 
             return result;
@@ -158,19 +157,27 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                 holon.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.MongoDBOASIS);
 
+                PrepareNativeHolonIdentity(holon);
                 _dbContext.Holon.InsertOne(holon);
-                holon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = holon.Id;
-
-                Update(holon);
                 result.Result = holon;
             }
             catch (Exception ex)
             {
                 result.IsError = true;
                 result.Message = $"Error saving holon with id {holon.Id} and name {holon.Name} in Add method in MongoDBOASIS Provider. Reason: {ex.ToString()}";
+                result.Exception = ex;
             }
 
             return result;
+        }
+
+        private static void PrepareNativeHolonIdentity(Holon holon)
+        {
+            if (string.IsNullOrEmpty(holon.Id)) holon.Id = ObjectId.GenerateNewId().ToString();
+            if (!ObjectId.TryParse(holon.Id, out _))
+                throw new ArgumentException("Mongo native holon ID must be an ObjectId.");
+            holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
+            holon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = holon.Id;
         }
 
         public async Task<Holon> GetHolonAsync(Guid id)
