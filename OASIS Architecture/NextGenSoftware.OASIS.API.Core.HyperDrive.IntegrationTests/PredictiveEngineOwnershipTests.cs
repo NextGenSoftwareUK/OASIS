@@ -43,6 +43,43 @@ public class PredictiveEngineOwnershipTests
     }
 
     [Fact]
+    public async Task ConcurrentFailureRecordingAndSnapshotReadsRetainAllOwnedEvents()
+    {
+        var engine = PredictiveFailoverEngine.ForProviderManager(new ProviderManager(null, null));
+        var workers = Enumerable.Range(0, 4).Select(worker => Task.Run(() =>
+        {
+            for (var index = 0; index < 200; index++)
+            {
+                engine.RecordFailureEvent(ProviderType.MongoDBOASIS,
+                    new FailureEvent { Timestamp = DateTime.UtcNow, Cause = $"{worker}:{index}" });
+                foreach (var events in engine.GetFailureHistory().Values)
+                    events.Clear();
+                engine.GetFailureModel(ProviderType.MongoDBOASIS).RiskFactors.Clear();
+            }
+        }));
+        await Task.WhenAll(workers).WaitAsync(TimeSpan.FromSeconds(30));
+        var retained = engine.GetFailureHistory()[ProviderType.MongoDBOASIS];
+        Assert.Equal(800, retained.Count);
+        Assert.Equal(800, retained.Select(item => item.Cause).Distinct().Count());
+        Assert.Equal(800, engine.GetFailureModel(ProviderType.MongoDBOASIS).HistoricalFailures.Count);
+    }
+
+    [Fact]
+    public void PreventiveActionSnapshotsDoNotExposeInternalRecords()
+    {
+        var engine = PredictiveFailoverEngine.ForProviderManager(new ProviderManager(null, null));
+        typeof(PredictiveFailoverEngine).GetMethod("RecordPreventiveAction", BindingFlags.NonPublic | BindingFlags.Instance)!
+            .Invoke(engine, new object[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS });
+        var snapshot = engine.GetPreventiveActions();
+        snapshot[0].Success = false;
+        snapshot[0].ToProvider = ProviderType.Default;
+        snapshot.Clear();
+        var fresh = Assert.Single(engine.GetPreventiveActions());
+        Assert.True(fresh.Success);
+        Assert.Equal(ProviderType.SQLLiteDBOASIS, fresh.ToProvider);
+    }
+
+    [Fact]
     public void NullManagerIsRejected()
     {
         Assert.Throws<ArgumentNullException>(() => PredictiveFailoverEngine.ForProviderManager(null!));
