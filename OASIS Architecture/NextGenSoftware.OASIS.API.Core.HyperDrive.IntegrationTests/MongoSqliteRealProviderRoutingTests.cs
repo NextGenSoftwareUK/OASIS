@@ -171,11 +171,12 @@ public sealed class MongoSqliteRealProviderRoutingTests
             (await mongo.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Should().BeNull();
             (await sqlite.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Should().BeNull();
             manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
-            var avatar = new Avatar { Id = Guid.NewGuid(), Username = "priority-avatar", Email = "priority-avatar@test.local", FirstName = "Initial", AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
+            var avatar = new Avatar { Id = Guid.NewGuid(), Username = "priority-avatar", Email = "priority-avatar@test.local", FirstName = "Initial",
+                IsActive = false, Verified = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc), AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
             var avatarRequest = new StorageOperationRequest { Operation = "SaveAvatar", Payload = avatar, PreferredProvider = request.PreferredProvider };
             foreach (var updating in new[] { false, true })
             {
-                if (updating) { avatar.FirstName = "Updated"; avatar.Email = "priority-updated@test.local"; }
+                if (updating) { avatar.FirstName = "Updated"; avatar.Email = "priority-updated@test.local"; avatar.IsActive = true; avatar.Verified = null; }
                 var saved = synchronous ? router.RouteRequest<IAvatar>(avatarRequest) : await router.RouteRequestAsync<IAvatar>(avatarRequest);
                 saved.IsError.Should().BeFalse(saved.Message);
                 saved.IsWarning.Should().BeFalse(string.Join("; ",manager.LastReplicationDiagnostic.Attempts.Select(x=>x.Message)));
@@ -186,6 +187,9 @@ public sealed class MongoSqliteRealProviderRoutingTests
                     loaded.Result.Id.Should().Be(avatar.Id);
                     loaded.Result.Email.Should().Be(avatar.Email);
                     loaded.Result.FirstName.Should().Be(avatar.FirstName);
+                    loaded.Result.IsActive.Should().Be(avatar.IsActive);
+                    loaded.Result.Verified.Should().Be(avatar.Verified);
+                    loaded.Result.IsVerified.Should().Be(avatar.IsVerified);
                 }
             }
             foreach (var searchProvider in new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS })
