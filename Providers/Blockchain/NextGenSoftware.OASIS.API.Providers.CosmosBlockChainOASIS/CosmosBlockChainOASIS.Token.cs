@@ -128,21 +128,43 @@ public partial class CosmosBlockChainOASIS
         var result = new OASISResult<decimal>();
         try
         {
-            if (string.IsNullOrWhiteSpace(symbol) || string.IsNullOrWhiteSpace(address))
-                throw new ArgumentException("Token identity and wallet address are required.");
-            var balance = await QueryAssetAsync(new { token_balance = new { symbol, address } });
-            result.Result = CustomTokenBalanceFromUnits(balance.GetString());
+            var balance = await GetCustomTokenBalanceUnitsAsync(symbol, address);
+            if (balance.IsError) throw balance.Exception ?? new InvalidOperationException(balance.Message);
+            result.Result = CustomTokenBalanceFromUnits(balance.Result);
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
         return result;
     }
 
-    internal static decimal CustomTokenBalanceFromUnits(string encoded)
+    /// <summary>Exact canonical Uint128 base units; no floating-point or decimal range conversion.</summary>
+    public async Task<OASISResult<string>> GetCustomTokenBalanceUnitsAsync(string symbol, string address)
+    {
+        var result = new OASISResult<string>();
+        try
+        {
+            if (string.IsNullOrWhiteSpace(symbol) || string.IsNullOrWhiteSpace(address))
+                throw new ArgumentException("Token identity and wallet address are required.");
+            var balance = await QueryAssetAsync(new { token_balance = new { symbol, address } });
+            var encoded = balance.GetString();
+            _ = ParseCustomTokenBalanceUnits(encoded);
+            result.Result = encoded;
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+        return result;
+    }
+
+    internal static BigInteger ParseCustomTokenBalanceUnits(string encoded)
     {
         if (!BigInteger.TryParse(encoded, NumberStyles.None, CultureInfo.InvariantCulture, out var units)
             || units.Sign < 0 || units >= (BigInteger.One << 128)
             || encoded != units.ToString(CultureInfo.InvariantCulture))
             throw new InvalidOperationException("Cosmos token balance requires canonical unsigned Uint128 units.");
+        return units;
+    }
+
+    internal static decimal CustomTokenBalanceFromUnits(string encoded)
+    {
+        var units = ParseCustomTokenBalanceUnits(encoded);
         var whole = BigInteger.DivRem(units, BigInteger.Pow(10, AssetDecimals), out var fraction);
         var value = (decimal)whole + (decimal)fraction / 100000000m;
         if (!units.IsZero && BigInteger.Parse(AssetUnits(value), CultureInfo.InvariantCulture) != units)
