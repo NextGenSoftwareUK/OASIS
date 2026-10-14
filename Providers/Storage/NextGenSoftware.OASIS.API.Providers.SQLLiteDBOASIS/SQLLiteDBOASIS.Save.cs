@@ -363,7 +363,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
 
                 // Export all holons via current repository API
-                var holons = await _holonRepository.LoadAllHolonsAsync();
+                var holons = await _holonRepository.LoadAllHolonsAsync(version: version);
+                if (holons.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading export data: {holons.Message}", holons.Exception);
+                    result.ErrorCode = holons.ErrorCode;
+                    return result;
+                }
                 result.Result = holons.Result;
                 result.IsError = false;
                 result.Message = $"Successfully exported {holons.Result?.Count() ?? 0} holons from SQLite";
