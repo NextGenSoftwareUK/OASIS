@@ -17,7 +17,7 @@ test('real NFT objects mint in quantity, transfer ownership, reject the old owne
   if(!journalPath)throw new Error('Explicit retained NFT ownership journal required; no mint without durable preparation');
   const journal=openSync(journalPath,'wx');
   const record=value=>{writeSync(journal,JSON.stringify(value)+'\n');fsyncSync(journal);};
-  let unknown=false,completed=false;
+  let unknown=false,completed=false,primaryError;
   async function ownedInvoke(request){
     try{
       const result=await invoke(request,async evidence=>record({stage:'prepared',operation:request.operation,evidence}));
@@ -63,7 +63,7 @@ test('real NFT objects mint in quantity, transfer ownership, reject the old owne
     await ownedInvoke({ ...base, operation: 'nftBurn', tokenId, privateKey: recipient.privateKey });
     remaining.delete(tokenId);
     await assert.rejects(invoke({ ...base, operation: 'nftGet', tokenId }), /not found|not exist|deleted/i);
-  } finally {
+  } catch(error){primaryError=error;throw error;} finally {
     try{
     if(!unknown)for (const tokenId of remaining) {
       if (locked.has(tokenId)) await ownedInvoke({ ...base, operation: 'nftUnlock', tokenId, privateKey: signers.get(tokenId) });
@@ -71,6 +71,9 @@ test('real NFT objects mint in quantity, transfer ownership, reject the old owne
       remaining.delete(tokenId);
     }
     completed=!unknown&&remaining.size===0;
+    }catch(cleanupError){
+      if(primaryError)throw new AggregateError([primaryError,cleanupError],'NFT fixture and owned cleanup both failed; journal retained');
+      throw cleanupError;
     }finally{closeSync(journal);if(completed)unlinkSync(journalPath);}
   }
 });
