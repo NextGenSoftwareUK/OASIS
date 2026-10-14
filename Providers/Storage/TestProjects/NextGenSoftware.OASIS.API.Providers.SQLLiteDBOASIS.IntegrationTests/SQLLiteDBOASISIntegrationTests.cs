@@ -1193,6 +1193,38 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task AvatarTokenSelectorsRespectVersionAndPreserveFailures(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var avatar = new Avatar { Id = Guid.NewGuid(), Version = 3, Username = "token-owned", Email = "tokens@test.invalid",
+            VerificationToken = "verification-owned", ResetToken = "reset-owned", RefreshToken = "refresh-owned",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+        async Task<OASISResult<IAvatar>[]> Read(int version) => new[] {
+            synchronous ? provider.LoadAvatarByVerificationToken(avatar.VerificationToken, version) : await provider.LoadAvatarByVerificationTokenAsync(avatar.VerificationToken, version),
+            synchronous ? provider.LoadAvatarByResetToken(avatar.ResetToken, version) : await provider.LoadAvatarByResetTokenAsync(avatar.ResetToken, version),
+            synchronous ? provider.LoadAvatarByRefreshToken(avatar.RefreshToken, version) : await provider.LoadAvatarByRefreshTokenAsync(avatar.RefreshToken, version)
+        };
+        foreach (var version in new[] { 0, 2, 3 })
+        foreach (var result in await Read(version)) {
+            result.IsError.Should().BeFalse(result.Message);
+            result.IsLoaded.Should().Be(version != 2);
+            if (version == 2) result.Result.Should().BeNull();
+            else result.Result.Id.Should().Be(avatar.Id);
+        }
+        using var context = new DataContext(TestConnectionString);
+        context.Database.ExecuteSqlRaw("DROP TABLE Avatar;");
+        foreach (var result in await Read(3)) {
+            result.IsError.Should().BeTrue();
+            result.IsLoaded.Should().BeFalse();
+            result.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task AvatarActiveAndDerivedVerificationStateSurviveFreshConnection(bool synchronous)
     {
         var avatar = new Avatar { Id = Guid.NewGuid(), Username = "owned-state-avatar", Email = "state@test.invalid",
