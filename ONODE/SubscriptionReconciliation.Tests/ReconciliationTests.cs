@@ -57,6 +57,21 @@ public sealed class ReconciliationTests
         }));
 
     [Fact]
+    public void OverageEvidenceUsesCustomerChargesAndTheExactLedgerScope()
+    {
+        using var json=JsonDocument.Parse(JsonSerializer.Serialize(new {id="in_overage",status="paid",currency="usd",customer="cus_test",subtotal=123,
+            metadata=new{oasis_avatar_id=Avatar,oasis_usage_month="2026-09",oasis_usage_cost_basis=StripeUsageEvidenceReader.PaidOverageCostBasis,oasis_ledger_scope="ledger-test"}}));
+        var receipt=StripeUsageEvidenceReader.ParseFinalizedInvoice(json.RootElement,"cus_test",Avatar,"2026-09","worker","ledger-test");
+        Assert.Equal(1.23m,receipt.AmountUsd);Assert.Equal(StripeUsageEvidenceReader.PaidOverageCostBasis,receipt.BillingCostBasis);
+        Assert.Throws<InvalidOperationException>(()=>StripeUsageEvidenceReader.ParseFinalizedInvoice(json.RootElement,"cus_test",Avatar,"2026-09","worker","different-ledger"));
+    }
+    [Fact]
+    public void SignedOverageCreditEvidenceMayBeNegativeWithoutPermittingNegativeProviderReceipts()
+    {
+        var receipt=new UsageExternalReceipt {Source="stripe",BillingCostBasis=StripeUsageEvidenceReader.PaidOverageCostBasis,ExternalId="in_credit",UserId=Avatar,Month="2026-09",AmountUsd=-.1m,EvidenceSha256=new string('a',64),Actor="test"};
+        receipt.Validate();receipt.BillingCostBasis=StripeUsageEvidenceReader.CostBasis;Assert.Throws<ArgumentException>(receipt.Validate);
+    }
+    [Fact]
     public void StripePaymentStatusDoesNotChangeImmutableAccountingEvidence()
     {
         using var open = Invoice("open"); using var paid = Invoice();
@@ -182,7 +197,7 @@ public sealed class ReconciliationTests
         string name = "usage_reconciliation_test_" + Guid.NewGuid().ToString("N");
         try
         {
-            var db = client.GetDatabase(name); var store = new MongoUsageReconciler(client, name, ClosedPeriod); await store.InitializeAsync(default);
+            var db = client.GetDatabase(name); var store = new MongoUsageReconciler(client, name, ClosedPeriod, StripeUsageInvoiceContract.PassThroughUsd); await store.InitializeAsync(default);
             string operationId = Guid.NewGuid().ToString("D");
             await db.GetCollection<BsonDocument>("subscription_usage_audit").InsertOneAsync(new BsonDocument
             {
@@ -275,6 +290,26 @@ public sealed class ReconciliationTests
     }
 
     [MongoFact]
+    public async Task CurrentMonthSupplierInvoicesArePendingUntilThePeriodCloses()
+    {
+        var client=new MongoClient(Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
+        string name="rcon_"+Guid.NewGuid().ToString("N");
+        try
+        {
+            var db=client.GetDatabase(name);var time=new TestTimeProvider(new DateTimeOffset(2026,9,22,12,0,0,TimeSpan.Zero));
+            var store=new MongoUsageReconciler(client,name,time);await store.InitializeAsync(default);await SeedPeriodAsync(db,1,0,0,.05m);
+            await db.GetCollection<BsonDocument>("subscription_usage_events").InsertOneAsync(new BsonDocument{{"OperationId",Guid.NewGuid().ToString("D")},{"UserId",Avatar},{"ConsumingService","WEB6"},{"Status","settled"},{"Outcome","succeeded"},
+                {"AuthorizedAtUtc",time.Now.UtcDateTime},{"ProviderReceiptsJson",JsonSerializer.Serialize(new[]{new {Provider="fixture-provider",ProviderRequestId="fixture-request",ActualCostUsd=.05m}})}});
+            var pending=await store.ReconcileAsync(Avatar,"2026-09",default);
+            Assert.True(pending.AwaitingProviderEvidence);Assert.False(pending.Balanced);Assert.False(pending.ActionRequired);
+            time.Now=new DateTimeOffset(2026,10,1,0,0,0,TimeSpan.Zero);
+            var closed=await store.ReconcileAsync(Avatar,"2026-09",default);
+            Assert.Contains(closed.Findings,x=>x.Code=="MISSING_PROVIDER_RECEIPT");Assert.True(closed.ActionRequired);
+        }
+        finally {if(!name.StartsWith("rcon_",StringComparison.Ordinal)||name.Length!=37)throw new InvalidOperationException("Unexpected owned test database");await client.DropDatabaseAsync(name);}
+    }
+
+    [MongoFact]
     public async Task ActiveLeaseIsPendingUntilPersistedExpiryAndMissingExpiryIsActionable()
     {
         var client = new MongoClient(Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -314,7 +349,7 @@ public sealed class ReconciliationTests
         {
             var db = client.GetDatabase(name);
             var time = new TestTimeProvider(new DateTimeOffset(2026, 9, 30, 23, 59, 59, TimeSpan.Zero));
-            var store = new MongoUsageReconciler(client, name, time); await store.InitializeAsync(default);
+            var store = new MongoUsageReconciler(client, name, time, StripeUsageInvoiceContract.PassThroughUsd); await store.InitializeAsync(default);
             await SeedPeriodAsync(db, 1, 0, 0m, 0.05m);
             var pending = await store.ReconcileAsync(Avatar, "2026-09", default);
             Assert.True(pending.AwaitingPeriodClose); Assert.False(pending.Balanced); Assert.False(pending.ActionRequired);
@@ -326,6 +361,22 @@ public sealed class ReconciliationTests
             await store.RecordReceiptAsync(new UsageExternalReceipt { Source="stripe", UserId=Avatar, Month="2026-09", ExternalId="in_period",
                 AmountUsd=0.05m, EvidenceSha256=new string('b',64), Actor="stripe-worker" }, default);
             Assert.True((await store.ReconcileAsync(Avatar, "2026-09", default)).Balanced);
+        }
+        finally { await client.DropDatabaseAsync(name); }
+    }
+
+    [MongoFact]
+    public async Task IncludedPlanUsageDoesNotRequireAnExtraStripeCostInvoice()
+    {
+        var client = new MongoClient(Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
+        string name = "usage_reconciliation_test_" + Guid.NewGuid().ToString("N");
+        try
+        {
+            var db=client.GetDatabase(name);var store=new MongoUsageReconciler(client,name,ClosedPeriod);
+            await store.InitializeAsync(default);await SeedPeriodAsync(db,1,0,0m,0.05m);
+            var report=await store.ReconcileAsync(Avatar,"2026-09",default);
+            Assert.False(report.RequiresStripeUsageInvoice);Assert.True(report.StripeEvidenceComplete);
+            Assert.Empty(report.Findings);Assert.True(report.Balanced);
         }
         finally { await client.DropDatabaseAsync(name); }
     }
