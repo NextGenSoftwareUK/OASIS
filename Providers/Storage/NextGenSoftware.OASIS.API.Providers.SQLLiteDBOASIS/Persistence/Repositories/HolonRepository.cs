@@ -50,6 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
+                    Exception = ex,
                     Message = ex.ToString()
                 };
             }
@@ -83,6 +84,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
+                    Exception = ex,
                     Message = ex.ToString()
                 };
             }
