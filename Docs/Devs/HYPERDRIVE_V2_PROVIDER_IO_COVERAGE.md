@@ -1,5 +1,11 @@
 # HyperDrive V2 provider-I/O coverage
 
+## Current priority-store evidence — 2026-10-14
+
+See HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md for chronological implementation/failure evidence. Current SQLite direct suite272/272 (18s) and rebuilt real Mongo/SQLite V2 matrix4/4 plus initializer1/1 (12s), zero skips. Concrete work since earlier entries includes separate avatar-owned SQLite wallet persistence, credential-marker retention through avatar replication, transactional owner-aware wallet batches, import/export error/version/owner fixes, Mongo transactional import with controlled insert/update rollback and rejected-commit replay fencing, stable V2 import materialization/IDs, graph traversal/depth and read freshness. Four matrix cases are broad selected scenarios, NOT four providers or all API routes. Real successful-commit/lost-reply reconciliation, Mongo ordinary graph atomicity/embedded bounds, complete SQLite fields/history/scalability/concurrency, hosted authenticated routes and other provider release gates remain unverified. No provider is newly declared fully complete by this refresh.
+
+Human priority order still governs: MongoDB/SQLite, Ethereum/Solana, IPFS, AWS/Azure/GoogleCloud/CosmosDB, Polygon/Arbitrum, Neo4j, remaining chains, SOLID/ActivityPub. Original smaller-chain goal remains required but must not displace these priorities. Reuse retained environments/runtimes/downloads; no new environment was allocated for this verification.
+
 2026-10-13 production recovery gap revalidated: current inspected ONODE/Core sources have only test `IUsageRecoveryResolver` implementations; consumer registration allowsWEB5-WEB10, notWEB4 authority. Native adapters are read-only evidence boundaries, not production recovery/valuation/authorization. Hedera public mirror snapshot69513926tinybars remains unchanged; no sufficient funded-operation evidence. Free faucet top-up requested; no paid funds/install/deployment alteration.
 
 2026-10-13 Hedera prepared fee adapter controlled integration: actual SDK signature, public C# boundary, exact requested mirror route, payer and123tinybar mapping verified; substituted key yields0 HTTP requests. Focused2/2 passes. Mirror handler intentionally controlled; does not establish live signed transaction acceptance/fee or production USD settlement. Existing source bridge/runtime reused.
