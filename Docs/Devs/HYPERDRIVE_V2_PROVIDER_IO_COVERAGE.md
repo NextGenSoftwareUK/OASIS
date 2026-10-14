@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Cosmos real signed preparation+owned outbox1/1 (2026-10-13): migrated ambient27017/random DB to guarded fixed owned27029 database, success-only cleanup/preserve failure. Reusable runner init1/1 then real official SDK signed/C# verification/outbox duplicate rejection1/1 pass. No native submission. Current full suite must run with owned Mongo context, not old standalone assumptions; unknown live intent remains fenced.
+
 Hedera read-only status8/8 refresh (2026-10-13): actual original testnet failed creation remains classified InsufficientFundsForFee; remaining controlled mirror cases pass, no skips. Different HashgraphClient mirror/HashgraphOASIS consensus types intentionally retain separate responsibilities. Mirror account still69513926tinybars, timestamp1791929835.256443131, not consensus budget proof. No funded call/new identity; funded CRUD/fee bound gates remain open.
 
 Cosmos public raw-balance boundary regression (2026-10-13): actual provider/process plus controlled SDK fixture proves full-range string preservation, decimal overflow/rounding rejection and original query error retention. Focused45/45 passes, no skips; consumer build0errors. Not real-chain balance or hosted API completion; no native writes/new environment.
