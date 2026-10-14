@@ -957,6 +957,43 @@ public sealed class MongoSqliteRealProviderRoutingTests
             API.Providers.MongoDBOASIS.MongoTransactionReconciliationException commitEvidence = null;
             foreach (var softDelete in new[] { false, true })
             {
+                var failoverDetail = new AvatarDetail { Id = Guid.NewGuid(), Username = Guid.NewGuid().ToString(), Email = Guid.NewGuid() + "@detail-failover.invalid", Karma = 123 };
+                var saveFailoverDetail = new StorageOperationRequest { Operation = "SaveAvatarDetail", Payload = failoverDetail, PreferredProvider = request.PreferredProvider };
+                var saved = synchronous ? router.RouteRequest<IAvatarDetail>(saveFailoverDetail) : await router.RouteRequestAsync<IAvatarDetail>(saveFailoverDetail);
+                saved.IsError.Should().BeFalse(saved.Message);
+                saved.IsWarning.Should().BeFalse();
+                try
+                {
+                    var detailFailoverManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true };
+                    detailFailoverManager.RegisterProvider(failureMongo);
+                    detailFailoverManager.RegisterProvider(sqlite);
+                    detailFailoverManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                        { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("times",1) },
+                        { "data", new BsonDocument { { "failCommands", new BsonArray { softDelete ? "update" : "delete" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                    });
+                    var deleteFailoverDetail = new StorageOperationRequest { Operation = "DeleteAvatarDetail", AvatarId = failoverDetail.Id,
+                        SoftDelete = softDelete, PreferredProvider = ProviderType.MongoDBOASIS };
+                    var detailFailoverRouter = new OASISHyperDrive(detailFailoverManager);
+                    var recovered = synchronous ? detailFailoverRouter.RouteRequest<bool>(deleteFailoverDetail)
+                        : await detailFailoverRouter.RouteRequestAsync<bool>(deleteFailoverDetail);
+                    recovered.IsError.Should().BeFalse(recovered.Message);
+                    recovered.Result.Should().BeTrue();
+                    detailFailoverManager.LastFailoverDiagnostic.SelectedProvider.Should().Be(ProviderType.SQLLiteDBOASIS);
+                    var primary = (await mongo.LoadAvatarDetailAsync(failoverDetail.Id)).Result;
+                    primary.DeletedDate.Should().Be(DateTime.MinValue);
+                    primary.Karma.Should().Be(123);
+                    var secondary = (await sqlite.LoadAvatarDetailAsync(failoverDetail.Id)).Result;
+                    if (softDelete) { secondary.DeletedDate.Should().NotBe(DateTime.MinValue); secondary.IsActive.Should().BeFalse(); }
+                    else secondary.Should().BeNull();
+                }
+                finally
+                {
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+                }
+            }
+            foreach (var softDelete in new[] { false, true })
+            {
                 API.Providers.MongoDBOASIS.MongoTransactionReconciliationException detailCommitEvidence = null;
                 try
                 {
