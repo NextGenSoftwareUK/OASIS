@@ -1326,6 +1326,38 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         selected.Result.Karma.Should().Be(3);
     }
 
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public async Task AmbiguousUsernameEmailDeletionPreservesEveryAvatarAndDetail(bool synchronous, bool softDelete)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var ids = new[] { Guid.NewGuid(), Guid.NewGuid() };
+        foreach (var id in ids) {
+            (await provider.SaveAvatarAsync(new Avatar { Id = id, Username = "shared-delete-owned", Email = "shared-delete@test.invalid",
+                AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) })).IsError.Should().BeFalse();
+            (await provider.SaveAvatarDetailAsync(new AvatarDetail { Id = id, Username = "shared-delete-owned", Karma = 123 })).IsError.Should().BeFalse();
+        }
+        foreach (var result in new[] {
+            synchronous ? provider.DeleteAvatarByUsername("shared-delete-owned",softDelete) : await provider.DeleteAvatarByUsernameAsync("shared-delete-owned",softDelete),
+            synchronous ? provider.DeleteAvatarByEmail("shared-delete@test.invalid",softDelete) : await provider.DeleteAvatarByEmailAsync("shared-delete@test.invalid",softDelete)
+        }) {
+            result.IsError.Should().BeTrue();
+            result.Result.Should().BeFalse();
+            result.Exception.Should().BeOfType<StorageIdentityAmbiguousException>();
+            result.ErrorCode.Should().Be(OASISResultErrorCodes.AmbiguousIdentity);
+        }
+        foreach (var id in ids) {
+            (await provider.LoadAvatarAsync(id)).Result.DeletedDate.Should().Be(DateTime.MinValue);
+            var detail = (await provider.LoadAvatarDetailAsync(id)).Result;
+            detail.DeletedDate.Should().Be(DateTime.MinValue);
+            detail.Karma.Should().Be(123);
+        }
+    }
+
     [Fact]
     public async Task GenericAsyncUsernameLoaderFiltersBeforeMapping()
     {
