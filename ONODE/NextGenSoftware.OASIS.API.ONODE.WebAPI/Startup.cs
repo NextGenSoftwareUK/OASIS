@@ -402,6 +402,8 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddSingleton<Services.Subscription.ISubscriptionUsageRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.ISubscriptionBillingRepository>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
             services.AddSingleton<Services.Subscription.ISubscriptionService, Services.Subscription.SubscriptionService>();
+            Services.Subscription.LocalUsageAuthorityRegistration.AddLocalUsageAuthority(services,
+                (avatarId, token) => Controllers.SubscriptionController.GetCurrentKarmaAsync(avatarId.ToString("D"), token));
             bool subscriptionUsageEnabled = string.Equals(Configuration["SUBSCRIPTION_USAGE_ENABLED"], "true", StringComparison.OrdinalIgnoreCase);
             if (subscriptionUsageEnabled)
             {
