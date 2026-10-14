@@ -275,7 +275,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 ArgumentException.ThrowIfNullOrWhiteSpace(verificationToken);
                 var avatarEntity = await _dbContext.Avatars
-                    .FirstOrDefaultAsync(p => p.VerificationToken == verificationToken && (version == 0 || p.Version == version));
+                    .SingleOrDefaultAsync(p => p.VerificationToken == verificationToken && (version == 0 || p.Version == version));
                 if (avatarEntity != null)
                     return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
                 return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
@@ -292,7 +292,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 ArgumentException.ThrowIfNullOrWhiteSpace(verificationToken);
                 var avatarEntity = _dbContext.Avatars
-                    .FirstOrDefault(p => p.VerificationToken == verificationToken && (version == 0 || p.Version == version));
+                    .SingleOrDefault(p => p.VerificationToken == verificationToken && (version == 0 || p.Version == version));
                 if (avatarEntity != null)
                     return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
                 return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
@@ -309,7 +309,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 ArgumentException.ThrowIfNullOrWhiteSpace(resetToken);
                 var avatarEntity = await _dbContext.Avatars
-                    .FirstOrDefaultAsync(p => p.ResetToken == resetToken && (version == 0 || p.Version == version));
+                    .SingleOrDefaultAsync(p => p.ResetToken == resetToken && (version == 0 || p.Version == version));
                 if (avatarEntity != null)
                     return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
                 return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
@@ -326,7 +326,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 ArgumentException.ThrowIfNullOrWhiteSpace(resetToken);
                 var avatarEntity = _dbContext.Avatars
-                    .FirstOrDefault(p => p.ResetToken == resetToken && (version == 0 || p.Version == version));
+                    .SingleOrDefault(p => p.ResetToken == resetToken && (version == 0 || p.Version == version));
                 if (avatarEntity != null)
                     return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
                 return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
@@ -343,7 +343,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 ArgumentException.ThrowIfNullOrWhiteSpace(refreshToken);
                 var avatarEntity = await _dbContext.Avatars
-                    .FirstOrDefaultAsync(p => (p.RefreshToken == refreshToken || p.RefreshTokens.Any(t => t.Token == refreshToken)) && (version == 0 || p.Version == version));
+                    .SingleOrDefaultAsync(p => (p.RefreshToken == refreshToken || p.RefreshTokens.Any(t => t.Token == refreshToken)) && (version == 0 || p.Version == version));
                 if (avatarEntity != null)
                     return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
                 return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
@@ -360,7 +360,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 ArgumentException.ThrowIfNullOrWhiteSpace(refreshToken);
                 var avatarEntity = _dbContext.Avatars
-                    .FirstOrDefault(p => (p.RefreshToken == refreshToken || p.RefreshTokens.Any(t => t.Token == refreshToken)) && (version == 0 || p.Version == version));
+                    .SingleOrDefault(p => (p.RefreshToken == refreshToken || p.RefreshTokens.Any(t => t.Token == refreshToken)) && (version == 0 || p.Version == version));
                 if (avatarEntity != null)
                     return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
                 return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
