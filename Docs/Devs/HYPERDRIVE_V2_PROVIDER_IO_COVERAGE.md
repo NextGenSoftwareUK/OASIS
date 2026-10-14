@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Sui retained Linux compatibility31/31 (2026-10-13): reused existing NEAR LinuxNode22.22.2 binary and current shared SDK dependencies; verifier plus29SDK/2fixture offline tests pass. No installs/container builds/copies. Production pinsNode24.19.0; exact published .NET/IPC/image proof remains unverified. Terminal evidence only, no invented report artifact.
+
 Cosmos signed original-attempt recovery read support (2026-10-13): provider method binds persisted chain/provider/hash/signature via official SDK then native fee lookup. Negative six-case1/1 passes; positive native lookup unverified/current original replication hash absent. No guessed fee/valuation/settlement/replay; all corresponding gates remain open.
 
 Sui recovery identity rejection1/1 (2026-10-13): six wrong/missing/malformed persisted-attempt cases return errors, no usable receipt or synthetic absent/zero outcome. Actual public method/offline SDK boundary,464ms; no native mutation. Full recovery valuation/worker integration remains open.
