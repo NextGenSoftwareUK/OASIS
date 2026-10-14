@@ -94,6 +94,18 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 var importedRead = await mongo.LoadHolonAsync(importedHolon.Id,loadChildren:false);
                 importedRead.Result.ProviderUniqueStorageKey.Should().ContainKey(ProviderType.MongoDBOASIS);
                 ObjectId.TryParse(importedRead.Result.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS],out _).Should().BeTrue();
+                var storedImport = importedRead.Result;
+                var importReplacement = new Holon { Id = storedImport.Id, Name = "owned-import-replacement",
+                    CreatedDate = new DateTime(2000,1,1), CreatedByAvatarId = Guid.NewGuid() };
+                var replacementResult = synchronous ? mongo.Import(new[] { importReplacement }) : await mongo.ImportAsync(new[] { importReplacement });
+                replacementResult.IsError.Should().BeFalse(replacementResult.Message);
+                replacementResult.Result.Should().BeTrue();
+                var replacementRead = (await mongo.LoadHolonAsync(storedImport.Id,loadChildren:false)).Result;
+                replacementRead.Name.Should().Be(importReplacement.Name);
+                replacementRead.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS].Should().Be(storedImport.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS]);
+                replacementRead.CreatedDate.Should().Be(storedImport.CreatedDate);
+                replacementRead.CreatedByAvatarId.Should().Be(storedImport.CreatedByAvatarId);
+                replacementRead.CreatedProviderType.Value.Should().Be(storedImport.CreatedProviderType.Value);
             }
             // Seed the real engine's recommendation without fabricating a prediction model score.
             // The real stores below prove routing/replication, not WEB4 endpoint prediction generation.

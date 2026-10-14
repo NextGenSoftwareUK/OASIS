@@ -32,6 +32,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         if (matches.Count > 1) throw new StorageIdentityAmbiguousException();
                         var existing = matches.SingleOrDefault();
                         preserveAudit(holon, existing);
+                        if (existing == null && holon.CreatedProviderType == null)
+                            holon.CreatedProviderType = new NextGenSoftware.Utilities.EnumValue<NextGenSoftware.OASIS.API.Core.Enums.ProviderType>(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS);
                         PrepareNativeHolonIdentity(holon);
                         if (existing == null) await _dbContext.Holon.InsertOneAsync(session, holon);
                         else
