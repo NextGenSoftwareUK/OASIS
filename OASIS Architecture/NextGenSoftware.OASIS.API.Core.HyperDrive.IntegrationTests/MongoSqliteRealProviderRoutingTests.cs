@@ -266,7 +266,8 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 var secondaryType = ambiguousPrimary == ProviderType.MongoDBOASIS ? ProviderType.SQLLiteDBOASIS : ProviderType.MongoDBOASIS;
                 var token = "owned-asymmetric-" + ambiguousPrimary;
                 for (var index = 0; index < 2; index++) {
-                    var identity = new Avatar { Id = Guid.NewGuid(), Username = Guid.NewGuid().ToString(), Email = Guid.NewGuid() + "@integrity.invalid",
+                    var identity = new Avatar { Id = Guid.NewGuid(), Username = "owned-asymmetric-user-" + ambiguousPrimary,
+                        Email = ambiguousPrimary + "@integrity.invalid",
                         VerificationToken = token, ResetToken = token, RefreshTokens = new() { new RefreshToken { Token = token } },
                         AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
                     (await primaryStore.SaveAvatarAsync(identity)).IsError.Should().BeFalse();
@@ -277,10 +278,11 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 integrityManager.RegisterProvider(sqlite);
                 integrityManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ambiguousPrimary), new EnumValue<ProviderType>(secondaryType) }).IsError.Should().BeFalse();
                 var integrityRouter = new OASISHyperDrive(integrityManager);
-                foreach (var operation in new[] { "LoadAvatarByVerificationToken", "LoadAvatarByResetToken", "LoadAvatarByRefreshToken" }) {
+                foreach (var operation in new[] { "LoadAvatarByVerificationToken", "LoadAvatarByResetToken", "LoadAvatarByRefreshToken", "LoadAvatarByUsername", "LoadAvatarByEmail" }) {
                     var beforeSecondary = integrityManager.PerformanceMonitor.GetMetrics(secondaryType)?.TotalRequests ?? 0;
                     var integrityRequest = new StorageOperationRequest { Operation = operation, PreferredProvider = ambiguousPrimary,
-                        VerificationToken = token, ResetToken = token, RefreshToken = token };
+                        VerificationToken = token, ResetToken = token, RefreshToken = token,
+                        Username = "owned-asymmetric-user-" + ambiguousPrimary, Email = ambiguousPrimary + "@integrity.invalid" };
                     var rejected = synchronous ? integrityRouter.RouteRequest<IAvatar>(integrityRequest) : await integrityRouter.RouteRequestAsync<IAvatar>(integrityRequest);
                     rejected.IsError.Should().BeTrue();
                     rejected.Result.Should().BeNull();
