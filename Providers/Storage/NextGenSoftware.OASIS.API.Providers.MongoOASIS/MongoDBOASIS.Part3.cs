@@ -311,23 +311,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     }
                 }
 
-                var importedCount = 0;
                 if (holons == null) throw new ArgumentNullException(nameof(holons));
-                foreach (var holon in holons)
-                {
-                    var saveResult = await SaveHolonAsync(holon);
-                    if (saveResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}", saveResult.Exception);
-                        result.ErrorCode = saveResult.ErrorCode;
-                        return result;
-                    }
-                    importedCount++;
-                }
-
-                result.Result = true;
-                result.IsError = false;
-                result.Message = $"Successfully imported {importedCount} holons to MongoDB";
+                return await _holonRepository.ImportAtomicAsync(holons.Select(holon => DataHelper.ConvertOASISHolonToMongoEntity(holon)), PreserveCreationAuditFields);
             }
             catch (Exception ex)
             {
