@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-13 Hedera prepared fee adapter controlled integration: actual SDK signature, public C# boundary, exact requested mirror route, payer and123tinybar mapping verified; substituted key yields0 HTTP requests. Focused2/2 passes. Mirror handler intentionally controlled; does not establish live signed transaction acceptance/fee or production USD settlement. Existing source bridge/runtime reused.
+
 2026-10-13 Hedera original-attempt fee recovery adapter implemented by reusing official preparation verification and existing native mirror fee lookup. Requires caller's independently trusted public key (not inferred from attempt), configured network, provider and original signed transaction identity. Negative boundary1/1 passes with six invalid cases; no network/submission. Positive signed attempt integration and complete production resolver/fiat valuation remain open.
 
 2026-10-13 Cosmos reusable runner: fixed stopped-container precondition, resumed exact retained pinned container only and restored exited state. Read-only pending inspection1/1 passes;280 indexed owner transactions, no exact pending-key matches. Absence is not non-submission proof; intent retained and no replay. Podman stop used SIGKILL for idle wrapper after owned wasmd shutdown; reported, not treated as graceful container stop. No new environment/install.
