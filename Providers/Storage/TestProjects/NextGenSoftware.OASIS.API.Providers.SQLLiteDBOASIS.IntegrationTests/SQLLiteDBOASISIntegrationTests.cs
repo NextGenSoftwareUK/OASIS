@@ -1190,6 +1190,31 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         else ids.Should().NotContain(grandchild.Id);
     }
 
+    [Theory]
+    [InlineData(true, null)]
+    [InlineData(false, null)]
+    [InlineData(true, "")]
+    [InlineData(false, "")]
+    [InlineData(true, " ")]
+    [InlineData(false, " ")]
+    public async Task EmptyTokenSelectorsCannotReturnAnAvatarWithUnsetTokens(bool synchronous, string invalid)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        (await provider.SaveAvatarAsync(new Avatar { Id = Guid.NewGuid(), Username = "unset-tokens", Email = "unset@test.invalid",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) })).IsError.Should().BeFalse();
+        foreach (var result in new[] {
+            synchronous ? provider.LoadAvatarByVerificationToken(invalid) : await provider.LoadAvatarByVerificationTokenAsync(invalid),
+            synchronous ? provider.LoadAvatarByResetToken(invalid) : await provider.LoadAvatarByResetTokenAsync(invalid),
+            synchronous ? provider.LoadAvatarByRefreshToken(invalid) : await provider.LoadAvatarByRefreshTokenAsync(invalid)
+        }) {
+            result.IsError.Should().BeTrue();
+            result.IsLoaded.Should().BeFalse();
+            result.Result.Should().BeNull();
+            result.Exception.Should().BeAssignableTo<ArgumentException>();
+        }
+    }
+
     [Fact]
     public async Task GenericAsyncUsernameLoaderFiltersBeforeMapping()
     {
