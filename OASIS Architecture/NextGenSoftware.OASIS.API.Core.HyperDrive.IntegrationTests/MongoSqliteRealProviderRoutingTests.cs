@@ -835,6 +835,29 @@ public sealed class MongoSqliteRealProviderRoutingTests
             {
                 await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
             }
+            // Characterization of an OPEN release gate, not proof of safe graph writes:
+            // ordinary saves commit the parent before the child's rejected insert.
+            var partialGraphRoot = new Holon { Id = Guid.NewGuid(), Name = "owned-partial-graph-root" };
+            var partialGraphChild = new Holon { Id = Guid.NewGuid(), Name = "owned-partial-graph-child", ParentHolonId = partialGraphRoot.Id };
+            partialGraphRoot.Children = new List<IHolon> { partialGraphChild };
+            try
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                    { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("skip",1) },
+                    { "data", new BsonDocument { { "failCommands", new BsonArray { "insert" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                });
+                var partialGraph = synchronous
+                    ? failureMongo.SaveHolon(partialGraphRoot,saveChildren:true,saveChildrenOnProvider:true)
+                    : await failureMongo.SaveHolonAsync(partialGraphRoot,saveChildren:true,saveChildrenOnProvider:true);
+                partialGraph.IsError.Should().BeTrue();
+                partialGraph.Exception.Should().BeNull("the current graph wrapper loses the child's original native cause; this remains an open gate");
+                (await mongo.LoadHolonAsync(partialGraphRoot.Id,loadChildren:false)).Result.Should().NotBeNull("the current parent write is committed before child failure");
+                (await mongo.LoadHolonAsync(partialGraphChild.Id,loadChildren:false)).Result.Should().BeNull();
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+            }
             var rejectedInsertHolon = new Holon { Id = Guid.NewGuid(), Name = "owned-holon-insert-rejected" };
             try
             {
