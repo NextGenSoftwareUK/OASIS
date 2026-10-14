@@ -1,6 +1,6 @@
 # HyperDrive V2 current release gates
 
-Updated 2026-10-13, inspected parent `d742d531b` plus verification checkpoints below. This is a current navigation checklist, not a replacement for the original all-provider scope or the detailed evidence log. **Not release-ready; do not merge yet.**
+Updated 2026-10-13, inspected parent `07e0ae20c` and retained reports/journals. This is a current navigation checklist, not a replacement for the original all-provider scope or the detailed evidence log. **Not release-ready; do not merge yet.**
 
 ## Authoritative state
 
@@ -8,7 +8,20 @@ Updated 2026-10-13, inspected parent `d742d531b` plus verification checkpoints b
 - Core pin: `e196295c0e40934cd7ddf3bca5f03b7d5a6457ae`; ONODE Core pin: `f9c985d0faff66b3b4525ebd9b4becba1f564f93`. Full Core 477 tests passed previously. Current WEB4 build and 147 tests passed after attributed-property/null-metadata fixes; deployed verification and other consumer refresh remain required.
 - TRON `TestResults/HyperDriveTron/pending-native-outcome.json` exists and must be preserved. Original transaction outcome is unresolved; NotFound is not non-submission proof.
 - Cosmos replication ownership journal is present and unresolved; Sui journal was absent at last inspection. Do not delete pending journals blindly.
-- Last measured free space132.38GB decimal (123.29GiB), with concurrent cleanup active. See `WORKSPACE_CLEANUP_LEDGER.md` for exact removals, preservation commits and denied artifact removals;150GB target remains incomplete. No broad cleanup of unrelated services/data is authorized by this checklist.
+- Cleanup is finished per user confirmation. Latest observed free124095033344bytes (124.10GB decimal);150GB target remains incomplete. See `WORKSPACE_CLEANUP_LEDGER.md` for exact removals, preservation commits and denied artifact removals. Reuse existing caches/runtimes; whole-drive changes alone do not attribute ownership of growth. No broad cleanup of unrelated services/data is authorized by this checklist.
+
+## Required-gate snapshot (not certification)
+
+Retained TRX counters inspected directly on2026-10-13: zero failed/skipped in the listed reports. Report age/source scope still matters; do not sum overlapping suites or infer live coverage from unit counts.
+
+| Provider | Verified evidence | Required work still open |
+| --- | --- | --- |
+| Cosmos | Retained full C#132/132 predates latest custody-casing edit; focused NFT44/44 and SDK60/60 after it | Original replication journal exists/unresolved; hosted admission, ordinary storage ownership adoption, actual three-policy refresh, full interfaces/recovery |
+| Hedera | Retained nonfunded C#289/289 predates latest SDK identity edit; SDK102/102 after it; earlier exact deployment fee receipt | Funded encrypted CRUD and all three policies, authoritative all-in spending bound, production resolver/settlement, full interfaces/hosted API |
+| Sui | Real local healthy1/1 and outage2/2; real prepared normal/lost-reply2/2; original fee1/1; these precede latest custody edit, SDK29/29 after it | Live NFT custody/public interfaces, process-crash recovery/settlement, hosted API; local policy evidence is not every-route proof |
+| TRON | Current full unit300/300, actual SDK controlled-gRPC acknowledgement coverage | Original pending journal exists/unresolved; live mutations/three-policy refresh, full interfaces/hosted API/recovery |
+
+No provider row currently proves every required gate. Keep the goal active and do not merge on these subsets.
 
 ## Evidence versus completion
 
