@@ -964,9 +964,10 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 saved.IsWarning.Should().BeFalse();
                 try
                 {
-                    var detailFailoverManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true };
+                    var detailFailoverManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true, IsAutoReplicationEnabled = true };
                     detailFailoverManager.RegisterProvider(failureMongo);
                     detailFailoverManager.RegisterProvider(sqlite);
+                    detailFailoverManager.SetAndReplaceAutoReplicationListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
                     detailFailoverManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
                     await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
                         { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("times",1) },
@@ -979,10 +980,12 @@ public sealed class MongoSqliteRealProviderRoutingTests
                         : await detailFailoverRouter.RouteRequestAsync<bool>(deleteFailoverDetail);
                     recovered.IsError.Should().BeFalse(recovered.Message);
                     recovered.Result.Should().BeTrue();
+                    recovered.IsWarning.Should().BeFalse();
+                    detailFailoverManager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
                     detailFailoverManager.LastFailoverDiagnostic.SelectedProvider.Should().Be(ProviderType.SQLLiteDBOASIS);
                     var primary = (await mongo.LoadAvatarDetailAsync(failoverDetail.Id)).Result;
-                    primary.DeletedDate.Should().Be(DateTime.MinValue);
-                    primary.Karma.Should().Be(123);
+                    if (softDelete) { primary.DeletedDate.Should().NotBe(DateTime.MinValue); primary.Karma.Should().Be(123); }
+                    else primary.Should().BeNull();
                     var secondary = (await sqlite.LoadAvatarDetailAsync(failoverDetail.Id)).Result;
                     if (softDelete) { secondary.DeletedDate.Should().NotBe(DateTime.MinValue); secondary.IsActive.Should().BeFalse(); }
                     else secondary.Should().BeNull();
