@@ -273,6 +273,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                ArgumentException.ThrowIfNullOrWhiteSpace(verificationToken);
                 var avatarEntity = await _dbContext.Avatars
                     .FirstOrDefaultAsync(p => p.VerificationToken == verificationToken && (version == 0 || p.Version == version));
                 if (avatarEntity != null)
@@ -289,6 +290,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                ArgumentException.ThrowIfNullOrWhiteSpace(verificationToken);
                 var avatarEntity = _dbContext.Avatars
                     .FirstOrDefault(p => p.VerificationToken == verificationToken && (version == 0 || p.Version == version));
                 if (avatarEntity != null)
@@ -305,6 +307,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                ArgumentException.ThrowIfNullOrWhiteSpace(resetToken);
                 var avatarEntity = await _dbContext.Avatars
                     .FirstOrDefaultAsync(p => p.ResetToken == resetToken && (version == 0 || p.Version == version));
                 if (avatarEntity != null)
@@ -321,6 +324,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                ArgumentException.ThrowIfNullOrWhiteSpace(resetToken);
                 var avatarEntity = _dbContext.Avatars
                     .FirstOrDefault(p => p.ResetToken == resetToken && (version == 0 || p.Version == version));
                 if (avatarEntity != null)
@@ -337,6 +341,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                ArgumentException.ThrowIfNullOrWhiteSpace(refreshToken);
                 var avatarEntity = await _dbContext.Avatars
                     .FirstOrDefaultAsync(p => (p.RefreshToken == refreshToken || p.RefreshTokens.Any(t => t.Token == refreshToken)) && (version == 0 || p.Version == version));
                 if (avatarEntity != null)
@@ -353,6 +358,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                ArgumentException.ThrowIfNullOrWhiteSpace(refreshToken);
                 var avatarEntity = _dbContext.Avatars
                     .FirstOrDefault(p => (p.RefreshToken == refreshToken || p.RefreshTokens.Any(t => t.Token == refreshToken)) && (version == 0 || p.Version == version));
                 if (avatarEntity != null)
