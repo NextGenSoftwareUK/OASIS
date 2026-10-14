@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Sui recovery identity rejection1/1 (2026-10-13): six wrong/missing/malformed persisted-attempt cases return errors, no usable receipt or synthetic absent/zero outcome. Actual public method/offline SDK boundary,464ms; no native mutation. Full recovery valuation/worker integration remains open.
+
 Sui cryptographically bound original-attempt fee lookup (2026-10-13): verifies outbox provider/genesis/original signed identity before native receipt query; expanded real prepared2/2 passes14s on retained node+owned Mongo, no skips, cleanup successful. This is read-only evidence support for recovery, not concrete USD-valued IUsageRecoveryResolver/registration or final settlement. No guessed rates/sponsorship enabled.
 
 Sui current real asset2/2 refresh (2026-10-13): one retained node, sequentialNFT/token fixtures,14.14s, zero skips; journal-helper and recipient funding reuse changes exercised. Both owned journals absent/node stopped, compact assets-live-current.tap. Local SDK lifecycles not all public C# APIs/hosted recovery/settlement proof; no new runtime/environment/deployment.

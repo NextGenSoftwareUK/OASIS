@@ -9,6 +9,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 public class SuiRealPreparationTests
 {
     [TestMethod]
+    public async Task PreparedRecoveryRejectsForeignProviderChainAndMissingIdentityBeforeLookup()
+    {
+        using var provider=new SuiOASIS("http://127.0.0.1:1","localnet","fixture-chain");
+        foreach(var attempt in new UsageProviderAttempt?[]{null,
+            new(){Provider="CosmosBlockChainOASIS",ProviderRequestId="original",NativePreparation=new(){ChainId="fixture-chain"}},
+            new(){Provider="SuiOASIS",ProviderRequestId="original",NativePreparation=new(){ChainId="foreign-chain"}},
+            new(){Provider="SuiOASIS",ProviderRequestId="original"},
+            new(){Provider="SuiOASIS",NativePreparation=new(){ChainId="fixture-chain"}},
+            new(){Provider="SuiOASIS",ProviderRequestId="original",NativePreparation=new(){ChainId="fixture-chain",Sender="0x1",SignedTransactionBase64="AQID",Signature="invalid"}}}){
+            var result=await provider.GetPreparedNativeFeeReceiptAsync(attempt!);
+            Assert.IsTrue(result.IsError);Assert.IsNotNull(result.Exception);
+            Assert.AreEqual(System.Text.Json.JsonValueKind.Undefined,result.Result.ValueKind);
+        }
+    }
+    [TestMethod]
     public void StorageAndNativeOperationsRetainOneSdkClient()
     {
         using var provider=new SuiOASIS("http://127.0.0.1:1","localnet");
