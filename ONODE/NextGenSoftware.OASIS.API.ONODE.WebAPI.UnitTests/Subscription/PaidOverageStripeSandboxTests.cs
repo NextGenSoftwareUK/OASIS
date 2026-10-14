@@ -47,7 +47,7 @@ public sealed class PaidOverageStripeSandboxTests
             await ledger.ImportOpeningBalanceAsync("sandbox-test",new(){MigrationId=Guid.NewGuid().ToString("D"),ApprovedBy="sandbox-test",SourceDigest=inventory.SourceDigest,EvidenceSha256=new string('a',64),Signature=new string('b',64)},default);
             await mongo.GetDatabase(scope).GetCollection<SubscriptionRecord>("subscription_records").InsertOneAsync(new(){UserId=user,PlanId="silver",Status="active",
                 StripeCustomerId=customer,StripeSubscriptionId=subscription,StripeSubscriptionCreatedAtUtc=clock.GetUtcNow().UtcDateTime,CurrentPeriodEnd=now.AddMonths(1)});
-            await ledger.SetPaidOverageConsentAsync(user,subscription,prices.Version,2,default);
+            await ledger.SetPaidOverageConsentAsync(user,subscription,prices.Version,prices.PricingSha256,2,default);
             var op=new SubscriptionUsageEvent {OperationId=Guid.NewGuid().ToString("D"),UserId=user,ConsumingService="WEB6",Endpoint="POST /controlled-sandbox-usage-fixture",
                 MeterCategory="ai.tokens",RequestedUnits=10,ReservedCostUsd=.7m,RequestFingerprint=new string('a',64),Status="authorized",AuthorizedAtUtc=clock.GetUtcNow().UtcDateTime,ExpiresAtUtc=clock.GetUtcNow().UtcDateTime.AddMinutes(15)};
             await ledger.AuthorizeAsync(op,0,default);await ledger.StartAsync(new(){OperationId=op.OperationId,UserId=user,ConsumingService="WEB6"},default);

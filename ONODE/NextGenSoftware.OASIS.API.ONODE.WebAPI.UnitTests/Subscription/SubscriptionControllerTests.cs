@@ -476,7 +476,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
             var pricing=PaidOveragePricing.Load();
             (await controller.TogglePayAsYouGo(new(){Enabled=true,PricingVersion=pricing.Version,PricingSha256=pricing.PricingSha256,MonthlyLimitUsd=50})).Should().BeOfType<OkObjectResult>();
             gateway.Verify(g=>g.VerifyPaymentReadyAsync(record,It.IsAny<CancellationToken>()),Times.Once);
-            billing.Verify(b=>b.SetPaidOverageConsentAsync(user.ToString(),"sub_owned",pricing.Version,50,It.IsAny<CancellationToken>()),Times.Once);
+            billing.Verify(b=>b.SetPaidOverageConsentAsync(user.ToString(),"sub_owned",pricing.Version,pricing.PricingSha256,50,It.IsAny<CancellationToken>()),Times.Once);
         }
         [Fact]
         public async Task PaidOverageConsentRejectsChangedPricesBeforePaymentOrStorage()
@@ -486,6 +486,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
             var controller=new SubscriptionController(_cfg,_svc.Object,billingRepository:billing.Object,overageGateway:gateway.Object){ControllerContext=_ctrl.ControllerContext};
             (await controller.TogglePayAsYouGo(new(){Enabled=true,PricingVersion="old",PricingSha256="old",MonthlyLimitUsd=50})).Should().BeOfType<ConflictObjectResult>();
             billing.VerifyNoOtherCalls();gateway.VerifyNoOtherCalls();_svc.VerifyNoOtherCalls();
+        }
+        [Fact]
+        public async Task FreeSubscriberWithRetiredStripeIdentityIsAllowedToStartNewCheckout()
+        {
+            var user=Guid.NewGuid();SetAuthenticatedUser(user);
+            _svc.Setup(s=>s.GetSubscriptionAsync(user.ToString())).ReturnsAsync(new SubscriptionRecord{UserId=user.ToString(),PlanId="free",Status="active",StripeCustomerId="cus_retired",StripeSubscriptionId="sub_retired"});
+            var result=await _ctrl.CreateCheckoutSession(new(){PlanId="silver",SuccessUrl="https://portal.example"});
+            // The empty test key stops at Stripe setup, proving the retired subscription does not redirect into its portal.
+            result.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(500);
+            _portal.VerifyNoOtherCalls();
         }
         private void SetAuthenticatedUser(Guid userId)
         {
