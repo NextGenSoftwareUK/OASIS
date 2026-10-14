@@ -290,6 +290,26 @@ public sealed class ReconciliationTests
     }
 
     [MongoFact]
+    public async Task CurrentMonthSupplierInvoicesArePendingUntilThePeriodCloses()
+    {
+        var client=new MongoClient(Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
+        string name="rcon_"+Guid.NewGuid().ToString("N");
+        try
+        {
+            var db=client.GetDatabase(name);var time=new TestTimeProvider(new DateTimeOffset(2026,9,22,12,0,0,TimeSpan.Zero));
+            var store=new MongoUsageReconciler(client,name,time);await store.InitializeAsync(default);await SeedPeriodAsync(db,1,0,0,.05m);
+            await db.GetCollection<BsonDocument>("subscription_usage_events").InsertOneAsync(new BsonDocument{{"OperationId",Guid.NewGuid().ToString("D")},{"UserId",Avatar},{"ConsumingService","WEB6"},{"Status","settled"},{"Outcome","succeeded"},
+                {"AuthorizedAtUtc",time.Now.UtcDateTime},{"ProviderReceiptsJson",JsonSerializer.Serialize(new[]{new {Provider="fixture-provider",ProviderRequestId="fixture-request",ActualCostUsd=.05m}})}});
+            var pending=await store.ReconcileAsync(Avatar,"2026-09",default);
+            Assert.True(pending.AwaitingProviderEvidence);Assert.False(pending.Balanced);Assert.False(pending.ActionRequired);
+            time.Now=new DateTimeOffset(2026,10,1,0,0,0,TimeSpan.Zero);
+            var closed=await store.ReconcileAsync(Avatar,"2026-09",default);
+            Assert.Contains(closed.Findings,x=>x.Code=="MISSING_PROVIDER_RECEIPT");Assert.True(closed.ActionRequired);
+        }
+        finally {if(!name.StartsWith("rcon_",StringComparison.Ordinal)||name.Length!=37)throw new InvalidOperationException("Unexpected owned test database");await client.DropDatabaseAsync(name);}
+    }
+
+    [MongoFact]
     public async Task ActiveLeaseIsPendingUntilPersistedExpiryAndMissingExpiryIsActionable()
     {
         var client = new MongoClient(Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
