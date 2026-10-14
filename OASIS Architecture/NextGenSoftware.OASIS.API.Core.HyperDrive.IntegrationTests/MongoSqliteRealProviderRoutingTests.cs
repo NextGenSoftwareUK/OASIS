@@ -630,6 +630,60 @@ public sealed class MongoSqliteRealProviderRoutingTests
             failManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
             failManager.SetAndActivateCurrentStorageProvider(failureMongo).IsError.Should().BeFalse();
             var admin = client.GetDatabase("admin");
+            MongoTransactionReconciliationException importCommitEvidence = null;
+            var uncertainImport = new IHolon[] { new Holon { Id = Guid.NewGuid(), Name = "owned-import-commit-rejected" } };
+            try
+            {
+                var importCommitManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true, IsAutoReplicationEnabled = true };
+                importCommitManager.RegisterProvider(failureMongo);
+                importCommitManager.RegisterProvider(sqlite);
+                var importProviders = new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) };
+                importCommitManager.SetAndReplaceAutoFailOverListForProviders(importProviders).IsError.Should().BeFalse();
+                importCommitManager.SetAndReplaceAutoReplicationListForProviders(importProviders).IsError.Should().BeFalse();
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                    { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("times",1) },
+                    { "data", new BsonDocument { { "failCommands", new BsonArray { "commitTransaction" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                });
+                var commitRouter = new OASISHyperDrive(importCommitManager);
+                var commitRequest = new StorageOperationRequest { Operation = "Import", Payload = uncertainImport, PreferredProvider = ProviderType.MongoDBOASIS };
+                var rejectedCommitImport = synchronous ? commitRouter.RouteRequest<bool>(commitRequest) : await commitRouter.RouteRequestAsync<bool>(commitRequest);
+                rejectedCommitImport.IsError.Should().BeTrue();
+                rejectedCommitImport.Result.Should().BeFalse();
+                importCommitEvidence = rejectedCommitImport.Exception as MongoTransactionReconciliationException;
+                importCommitEvidence.Should().NotBeNull();
+                importCommitEvidence.InnerException.Should().BeOfType<MongoCommandException>();
+                importCommitEvidence.TransactionNumber.Should().BeGreaterThanOrEqualTo(0);
+                (importCommitManager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0).Should().Be(0);
+                foreach (var storage in new IOASISStorageProvider[] { mongo, sqlite })
+                    (await storage.LoadHolonAsync(uncertainImport[0].Id,loadChildren:false)).Result.Should().BeNull();
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+                if (importCommitEvidence != null)
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument("killSessions", new BsonArray { BsonDocument.Parse(importCommitEvidence.SessionId) }));
+            }
+            var rejectedImportBatch = new IHolon[] {
+                new Holon { Id = Guid.NewGuid(), Name = "owned-import-rollback-one" },
+                new Holon { Id = Guid.NewGuid(), Name = "owned-import-rollback-two" }
+            };
+            try
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                    { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("skip",1) },
+                    { "data", new BsonDocument { { "failCommands", new BsonArray { "insert" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                });
+                var rejectedImport = synchronous ? failureMongo.Import(rejectedImportBatch) : await failureMongo.ImportAsync(rejectedImportBatch);
+                rejectedImport.IsError.Should().BeTrue();
+                rejectedImport.Result.Should().BeFalse();
+                rejectedImport.Exception.Should().BeOfType<MongoCommandException>();
+                foreach (var rejectedHolon in rejectedImportBatch)
+                    (await mongo.LoadHolonAsync(rejectedHolon.Id,loadChildren:false)).Result.Should().BeNull();
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+            }
             var rejectedInsertHolon = new Holon { Id = Guid.NewGuid(), Name = "owned-holon-insert-rejected" };
             try
             {
