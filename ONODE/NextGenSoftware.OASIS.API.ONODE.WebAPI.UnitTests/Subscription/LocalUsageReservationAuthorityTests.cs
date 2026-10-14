@@ -9,6 +9,23 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 public class LocalUsageReservationAuthorityTests
 {
     [Fact]
+    public async Task RealSubscriptionServiceAdmitsLocalIdentityAndPreservesRepositoryDenial()
+    {
+        var id=Guid.NewGuid();var context=new DefaultHttpContext();
+        context.User=new ClaimsPrincipal(new ClaimsIdentity(new[]{new Claim(ClaimTypes.NameIdentifier,id.ToString("D"))},"test"));
+        var repository=new Mock<ISubscriptionUsageRepository>(MockBehavior.Strict);
+        repository.Setup(x=>x.AuthorizeAsync(It.Is<SubscriptionUsageEvent>(e=>e.UserId==id.ToString("D")&&e.ConsumingService=="WEB4"),42,It.IsAny<CancellationToken>()))
+            .ThrowsAsync(new SubscriptionUsageLimitException("CONTROLLED_QUOTA_DENIAL","Repository quota denied this reservation."));
+        var service=new SubscriptionService(Microsoft.Extensions.Logging.Abstractions.NullLogger<SubscriptionService>.Instance,
+            repository.Object,new Mock<ISubscriptionBillingRepository>(MockBehavior.Strict).Object);
+        var authority=new LocalUsageReservationAuthority(service,repository.Object,new HttpContextAccessor{HttpContext=context},(_,_)=>Task.FromResult(42));
+        var request=new UsageAuthorizationRequest{OperationId=Guid.NewGuid().ToString("D"),ConsumingService="WEB4",
+            Endpoint="POST /controlled-native-operation",MeterCategory="api.request",RequestedUnits=1,RequestFingerprint=new string('a',64)};
+        var decision=await authority.AuthorizeUsageAsync("authenticated-token",request);
+        Assert.False(decision.Allowed); Assert.Equal("CONTROLLED_QUOTA_DENIAL",decision.Code);Assert.Equal(429,decision.StatusCode);
+        repository.VerifyAll();
+    }
+    [Fact]
     public void RegisteredAuthorityIsSingletonAndDoesNotCaptureARequestScope()
     {
         var services=new ServiceCollection();services.AddHttpContextAccessor();

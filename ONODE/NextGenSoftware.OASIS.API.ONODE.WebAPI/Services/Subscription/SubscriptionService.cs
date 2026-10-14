@@ -43,8 +43,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 request.RequestFingerprint == null || !System.Text.RegularExpressions.Regex.IsMatch(request.RequestFingerprint, "^[a-f0-9]{64}$"))
                 return Denied(400, "INVALID_USAGE_AUTHORIZATION", "OperationId must be a UUID; service, endpoint, and meter category are required; reservation values cannot be negative.");
             string normalizedService = request.ConsumingService.Trim().ToUpperInvariant();
-            if (normalizedService is not ("WEB5" or "WEB6" or "WEB7" or "WEB8" or "WEB9" or "WEB10"))
-                return Denied(400, "INVALID_CONSUMING_SERVICE", "ConsumingService must be WEB5, WEB6, WEB7, WEB8, WEB9, or WEB10.");
+            if (!SubscriptionServiceIdentity.IsService(normalizedService))
+                return Denied(400, "INVALID_CONSUMING_SERVICE", "ConsumingService must be a supported WEB4-WEB10 ledger identity.");
 
             var now = DateTime.UtcNow;
             var usageEvent = new SubscriptionUsageEvent
