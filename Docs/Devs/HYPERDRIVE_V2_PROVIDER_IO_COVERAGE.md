@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Cosmos original failure cannot be reconstructed (2026-10-13): retained failed report only shows cleanup assertion, journal no native identity; not proof of safe retry. Future fixture aggregates operation+cleanup errors; consumer compiles0errors/9warnings, live failure-path test still fenced/unrun. Deactivation error attribution remains open; original journal untouched/no mutation.
+
 Cosmos admitted storage late-cancellation fix (2026-10-13): caller cancellation before a new physical gate now prevents SDK launch even if backend call supplies default token. Expanded real owned-outbox case1/1 passes with same attempt count/bytes and exact canceled token; no ledger operation. Does not cancel existing prepared/submitted native attempts or complete hosted recovery.
 
 Cosmos real signed preparation+owned outbox1/1 (2026-10-13): migrated ambient27017/random DB to guarded fixed owned27029 database, success-only cleanup/preserve failure. Reusable runner init1/1 then real official SDK signed/C# verification/outbox duplicate rejection1/1 pass. No native submission. Current full suite must run with owned Mongo context, not old standalone assumptions; unknown live intent remains fenced.

@@ -154,6 +154,7 @@ public sealed class CosmosRealProviderRoutingTests
         await System.Text.Json.JsonSerializer.SerializeAsync(journal,new{chain=Required("OASIS_COSMOS_TEST_CHAIN"),contract=Required("OASIS_COSMOS_TEST_CONTRACT"),
             holonId=holon.Id,avatarId=avatar.Id,avatar.Username,avatar.Email,encryptionKeyLabel="oasis-cosmos-local-storage-fixture-v1",recovery="Inspect exactly owned records; do not repeat an uncertain replication run."});
         journal.Flush(true);var verifiedComplete=false;
+        Exception? originalFailure=null;
         try
         {
             var router = new OASISHyperDrive(manager);
@@ -264,6 +265,7 @@ public sealed class CosmosRealProviderRoutingTests
             avatarSaved = false;
             verifiedComplete=true;
         }
+        catch(Exception failure){originalFailure=failure;throw;}
         finally
         {
             try
@@ -279,6 +281,11 @@ public sealed class CosmosRealProviderRoutingTests
                     (await cosmos.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsError.Should().BeFalse();
                     (await local.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsError.Should().BeFalse();
                 }
+            }
+            catch(Exception cleanupFailure)
+            {
+                if(originalFailure!=null)throw new AggregateException("Cosmos V2 operation and owned cleanup both failed; recovery intent retained.",originalFailure,cleanupFailure);
+                throw;
             }
             finally
             {
