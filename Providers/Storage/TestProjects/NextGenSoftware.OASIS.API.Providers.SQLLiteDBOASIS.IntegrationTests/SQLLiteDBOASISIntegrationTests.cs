@@ -676,6 +676,24 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(true,true,false)] [InlineData(false,true,false)]
+    [InlineData(true,false,false)] [InlineData(false,false,false)]
+    [InlineData(true,true,true)] [InlineData(false,true,true)]
+    [InlineData(true,false,true)] [InlineData(false,false,true)]
+    public async Task PublicAvatarIdentitySelectorsRetainAbsenceAndFailure(bool synchronous,bool email,bool brokenTable)
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        if(brokenTable){using var control=new DataContext(TestConnectionString);control.Database.ExecuteSqlRaw("DROP TABLE Avatar;");}
+        var result=email
+            ? (synchronous?provider.LoadAvatarByEmail("missing@example.invalid"):await provider.LoadAvatarByEmailAsync("missing@example.invalid"))
+            : (synchronous?provider.LoadAvatarByUsername("missing-owned-avatar"):await provider.LoadAvatarByUsernameAsync("missing-owned-avatar"));
+        result.Result.Should().BeNull();result.IsLoaded.Should().BeFalse();result.IsError.Should().Be(brokenTable);
+        if(brokenTable)result.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        else result.Exception.Should().BeNull();
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task ParentSelectorsIsolateChildrenAndRespectTypeAndVersion(bool synchronous)
