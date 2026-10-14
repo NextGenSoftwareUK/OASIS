@@ -66,11 +66,35 @@ public class HederaPreparationTests
             await provider.VerifyOriginalSignedPreparationAsync(JsonSerializer.SerializeToElement(new {
                 transactionHash=attempt.ProviderRequestId,chainId="testnet",sender="0.0.1001",
                 signedTransactionBase64=attempt.NativePreparation.SignedTransactionBase64 }),document.RootElement.GetProperty("publicKey").GetString()!,deadline.Token);
+            var mirror=new PreparedFeeMirror();
+            using var http=new HttpClient(mirror){BaseAddress=new Uri("https://testnet.mirrornode.hedera.com/api/v1/")};
+            var httpField=typeof(HashgraphOASIS).GetField("_httpClient",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance)!;
+            ((HttpClient)httpField.GetValue(provider)!).Dispose(); httpField.SetValue(provider,http);
             var result=await provider.GetPreparedNativeFeeReceiptAsync(attempt,document.RootElement.GetProperty("wrongKey").GetString()!,deadline.Token);
             Assert.IsTrue(result.IsError); Assert.IsNotNull(result.Exception);
             Assert.IsInstanceOfType<InvalidOperationException>(result.Exception);
             Assert.AreEqual(JsonValueKind.Undefined,result.Result.ValueKind);
+            Assert.AreEqual(0,mirror.Requests,"Rejected signer must not reach mirror lookup.");
+            var accepted=await provider.GetPreparedNativeFeeReceiptAsync(attempt,document.RootElement.GetProperty("publicKey").GetString()!,deadline.Token);
+            Assert.IsFalse(accepted.IsError,accepted.Message); Assert.AreEqual(1,mirror.Requests);
+            Assert.AreEqual(attempt.ProviderRequestId,accepted.Result.GetProperty("transactionId").GetString());
+            Assert.AreEqual("0.0.1001",accepted.Result.GetProperty("payer").GetString());
+            Assert.AreEqual("123",accepted.Result.GetProperty("netUnits").GetString());
         } finally { if(!child.HasExited){child.Kill(entireProcessTree:true);await child.WaitForExitAsync();} }
+    }
+    private sealed class PreparedFeeMirror:HttpMessageHandler
+    {
+        public int Requests {get;private set;}
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested(); Requests++;
+            Assert.AreEqual("/api/v1/transactions/0.0.1001-1700000000-000000001",request.RequestUri!.AbsolutePath);
+            return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK){Content=new StringContent("""
+                {"transactions":[{"transaction_id":"0.0.1001-1700000000-000000001","nonce":0,"scheduled":false,
+                "parent_consensus_timestamp":null,"name":"CRYPTOTRANSFER","result":"SUCCESS",
+                "consensus_timestamp":"1700000001.000000001","charged_tx_fee":123}]}
+                """)});
+        }
     }
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
