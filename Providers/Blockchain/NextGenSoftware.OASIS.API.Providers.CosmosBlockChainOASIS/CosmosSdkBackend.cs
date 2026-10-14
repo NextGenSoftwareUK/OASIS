@@ -15,18 +15,7 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
     private readonly string _rpcEndpoint, _chainId, _privateKey, _contractAddress;
     private readonly string _addressPrefix, _gasPrice, _nodeExecutable, _bridgePath;
     private bool _disposed;
-    private readonly AsyncLocal<StoragePreparationScope> _storagePreparation = new();
-    private sealed class StoragePreparationScope(Func<string, string, PreparedSubmissionServer> factory)
-    {
-        private int _closed;
-        public void Close() => Interlocked.Exchange(ref _closed, 1);
-        public PreparedSubmissionServer Create(string operation, string key)
-        {
-            if (Volatile.Read(ref _closed) != 0)
-                throw new InvalidOperationException("Cosmos storage execution owner has already completed.");
-            return factory(operation, key);
-        }
-    }
+    private readonly OwnedPreparationScope _storagePreparation = new();
     internal string ChainId => _chainId;
 
     public CosmosSdkBackend(string rpcEndpoint, string chainId, string privateKey, string contractAddress,
@@ -58,24 +47,14 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
     public async Task DeleteAsync(string key, CancellationToken cancellationToken = default)
         => await InvokeStorageMutationAsync("delete", key, new { key }, cancellationToken);
 
-    internal async Task<T> WithStoragePreparationAsync<T>(Func<Task<T>> operation,
+    internal Task<T> WithStoragePreparationAsync<T>(Func<Task<T>> operation,
         Func<string, string, PreparedSubmissionServer> preparation)
-    {
-        ArgumentNullException.ThrowIfNull(operation);
-        ArgumentNullException.ThrowIfNull(preparation);
-        if (_storagePreparation.Value != null) throw new InvalidOperationException("Cosmos storage execution ownership cannot be nested.");
-        var scope = new StoragePreparationScope(preparation);
-        _storagePreparation.Value = scope;
-        try { return await operation(); }
-        finally { scope.Close(); _storagePreparation.Value = null; }
-    }
+        => _storagePreparation.RunAsync(operation,preparation);
 
     private async Task InvokeStorageMutationAsync(string operation, string key, object args, CancellationToken token)
     {
         token.ThrowIfCancellationRequested();
-        var owner = _storagePreparation.Value;
-        using var server = owner?.Create(operation, key);
-        if (owner != null && server == null) throw new InvalidOperationException("Storage owner returned no preparation gate.");
+        using var server = _storagePreparation.CreateCurrent(operation,key);
         await InvokeCoreAsync(operation, args, token, server);
     }
 

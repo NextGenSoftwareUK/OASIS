@@ -8,22 +8,27 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 public sealed class OwnedPreparationScope
 {
     private readonly AsyncLocal<Owner> _current=new();
-    private sealed class Owner(Func<PreparedSubmissionServer> factory)
+    private sealed class Owner(Func<string,string,PreparedSubmissionServer> factory)
     {
         private int _closed;
         public void Close()=>Interlocked.Exchange(ref _closed,1);
-        public PreparedSubmissionServer Create()
+        public PreparedSubmissionServer Create(string operation,string key)
         {
             if(Volatile.Read(ref _closed)!=0)throw new InvalidOperationException("Native storage execution owner has already completed.");
-            return factory()??throw new InvalidOperationException("Native storage execution owner returned no preparation gate.");
+            return factory(operation,key)??throw new InvalidOperationException("Native storage execution owner returned no preparation gate.");
         }
     }
-    public async Task<T> RunAsync<T>(Func<Task<T>> operation,Func<PreparedSubmissionServer> factory)
+    public Task<T> RunAsync<T>(Func<Task<T>> operation,Func<PreparedSubmissionServer> factory)
+    {
+        ArgumentNullException.ThrowIfNull(factory);
+        return RunAsync(operation,(_,_)=>factory());
+    }
+    public async Task<T> RunAsync<T>(Func<Task<T>> operation,Func<string,string,PreparedSubmissionServer> factory)
     {
         ArgumentNullException.ThrowIfNull(operation);ArgumentNullException.ThrowIfNull(factory);
         if(_current.Value!=null)throw new InvalidOperationException("Native storage execution ownership cannot be nested.");
         var owner=new Owner(factory);_current.Value=owner;
         try{return await operation();}finally{owner.Close();_current.Value=null;}
     }
-    public PreparedSubmissionServer CreateCurrent()=>_current.Value?.Create();
+    public PreparedSubmissionServer CreateCurrent(string operation=null,string key=null)=>_current.Value?.Create(operation,key);
 }
