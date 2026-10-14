@@ -685,10 +685,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (HttpContext.Items.TryGetValue("Avatar", out var value) && value is IAvatar avatar && avatar.Id != authenticatedId) return null;
             return authenticatedId.ToString("D");
         }
-        private static async Task<int> GetCurrentKarmaAsync(string userId)
+        internal static async Task<int> GetCurrentKarmaAsync(string userId, System.Threading.CancellationToken cancellationToken = default)
         {
+            cancellationToken.ThrowIfCancellationRequested();
             if (!Guid.TryParse(userId, out var avatarId)) return 0;
             var result = await Program.AvatarManager.LoadAvatarDetailAsync(avatarId);
+            cancellationToken.ThrowIfCancellationRequested();
             if (result.IsError || result.Result == null)
                 throw new InvalidOperationException($"Unable to load authoritative karma for subscription usage: {result.Message}");
             return result.Result.Karma > int.MaxValue ? int.MaxValue : (int)Math.Max(0, result.Result.Karma);
