@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Threading;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
@@ -27,7 +28,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Controllers
             _mockService = new Mock<OASISSub.ISubscriptionService>();
             _mockConfig = new Mock<IConfiguration>();
 
-            _controller = new SubscriptionController(_mockConfig.Object, _mockService.Object);
+            var prices = new Mock<OASISSub.ISubscriptionPlanPriceReader>();
+            prices.Setup(p => p.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                  .ReturnsAsync(new OASISSub.SubscriptionPlanPrice(10m, "USD", "month"));
+            _controller = new SubscriptionController(_mockConfig.Object, _mockService.Object,
+                planCatalogue: new OASISSub.SubscriptionPlanCatalogue(prices.Object));
 
             // Wire up a fake authenticated context so GetCurrentUserId() returns a value
             var claims = new[] { new Claim(ClaimTypes.NameIdentifier, _testUserId) };
@@ -43,9 +48,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Controllers
         // ── GetPlans ──────────────────────────────────────────────────────────
 
         [Fact]
-        public void GetPlans_ShouldReturn200WithFivePlans()
+        public async Task GetPlans_ShouldReturn200WithFivePlans()
         {
-            var result = _controller.GetPlans() as OkObjectResult;
+            var result = await _controller.GetPlans() as OkObjectResult;
 
             result.Should().NotBeNull();
             result!.StatusCode.Should().Be(200);
@@ -59,9 +64,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Controllers
         }
 
         [Fact]
-        public void GetPlans_ShouldIncludeFreePlan()
+        public async Task GetPlans_ShouldIncludeFreePlan()
         {
-            var result = (_controller.GetPlans() as OkObjectResult)!.Value!;
+            var result = ((await _controller.GetPlans()) as OkObjectResult)!.Value!;
             var plans = result.GetType().GetProperty("Result")!.GetValue(result) as System.Collections.IEnumerable;
 
             bool hasFreePlan = false;
