@@ -432,19 +432,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var holons = new OASISResult<IEnumerable<IHolon>>();
                 if (allHolons.IsError)
                 {
-                    holons.IsError = true;
-                    holons.Message = allHolons.Message;
+                    return allHolons;
                 }
                 else
                 {
                     var filtered = allHolons.Result?.Where(h => h.MetaData != null && h.MetaData.ContainsKey(metaKey) && h.MetaData[metaKey]?.ToString() == metaValue) ?? Enumerable.Empty<IHolon>();
                     holons.Result = filtered;
                     holons.IsError = false;
-                }
-                if (holons.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata: {holons.Message}");
-                    return result;
                 }
 
                 result.Result = holons.Result;
@@ -484,8 +478,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var holons = new OASISResult<IEnumerable<IHolon>>();
                 if (allHolons.IsError)
                 {
-                    holons.IsError = true;
-                    holons.Message = allHolons.Message;
+                    return allHolons;
                 }
                 else
                 {
@@ -504,11 +497,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     }) ?? Enumerable.Empty<IHolon>();
                     holons.Result = filtered;
                     holons.IsError = false;
-                }
-                if (holons.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs: {holons.Message}");
-                    return result;
                 }
 
                 result.Result = holons.Result;
