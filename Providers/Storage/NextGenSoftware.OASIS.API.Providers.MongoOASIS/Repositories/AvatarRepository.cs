@@ -181,7 +181,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 var filter = Builders<Avatar>.Filter.Where(expression);
-                result.Result = _dbContext.Avatar.Find(filter).FirstOrDefault();
+                result.Result = _dbContext.Avatar.Find(filter).SingleOrDefault();
                 result.IsLoaded = result.Result != null;
             }
             catch (Exception ex)
@@ -199,7 +199,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 var filter = Builders<Avatar>.Filter.Where(expression);
-                result.Result = await _dbContext.Avatar.Find(filter).FirstOrDefaultAsync();
+                result.Result = await _dbContext.Avatar.Find(filter).SingleOrDefaultAsync();
                 result.IsLoaded = result.Result != null;
             }
             catch (Exception ex)

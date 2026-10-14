@@ -232,6 +232,28 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 invalidRead.Exception.Should().BeAssignableTo<ArgumentException>();
             }
             const string rotatedRefreshToken = "priority-rotated-refresh-owned";
+            foreach (var provider in new IOASISStorageProvider[] { mongo, sqlite })
+            {
+                foreach (var duplicateId in new[] { Guid.NewGuid(), Guid.NewGuid() })
+                {
+                    var duplicate = new Avatar { Id = duplicateId, Username = duplicateId.ToString(), Email = duplicateId + "@ambiguous.invalid",
+                        VerificationToken = "owned-ambiguous-verification", ResetToken = "owned-ambiguous-reset",
+                        RefreshTokens = new() { new RefreshToken { Token = "owned-ambiguous-refresh" } },
+                        AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
+                    var saved = synchronous ? provider.SaveAvatar(duplicate) : await provider.SaveAvatarAsync(duplicate);
+                    saved.IsError.Should().BeFalse(saved.Message);
+                }
+                foreach (var ambiguous in new[] {
+                    synchronous ? provider.LoadAvatarByVerificationToken("owned-ambiguous-verification") : await provider.LoadAvatarByVerificationTokenAsync("owned-ambiguous-verification"),
+                    synchronous ? provider.LoadAvatarByResetToken("owned-ambiguous-reset") : await provider.LoadAvatarByResetTokenAsync("owned-ambiguous-reset"),
+                    synchronous ? provider.LoadAvatarByRefreshToken("owned-ambiguous-refresh") : await provider.LoadAvatarByRefreshTokenAsync("owned-ambiguous-refresh")
+                }) {
+                    ambiguous.IsError.Should().BeTrue();
+                    ambiguous.IsLoaded.Should().BeFalse();
+                    ambiguous.Result.Should().BeNull();
+                    ambiguous.Exception.Should().BeOfType<InvalidOperationException>();
+                }
+            }
             avatar.RefreshTokens = new List<RefreshToken> { new RefreshToken { Id = 7, Token = rotatedRefreshToken,
                 CreatedByIp = "127.0.0.2", Expires = new DateTime(2027, 1, 1, 0, 0, 0, DateTimeKind.Utc) } };
             var rotatedSave = synchronous ? router.RouteRequest<IAvatar>(avatarRequest) : await router.RouteRequestAsync<IAvatar>(avatarRequest);
