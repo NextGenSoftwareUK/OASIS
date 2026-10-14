@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Sui live NFT fixture preparation/reuse work (2026-10-13): explicit CreateNew fsynced signed-evidence journal guards native mutations; mint moved into cleanup scope; unknown original outcome retained with no more mutation cleanup. Recipient fixed deterministic public local-only fixture instead of new per-run credentials. Syntax/diff checks and offline29/29 pass; live fixture remains unrun/current cleanup-error attribution still open. No asset minted or runtime installed; not full NFT/escrow/API certification.
+
 TRON acknowledgement contradiction fix (2026-10-13): true success flag plus error code becomes typed unresolved original broadcast, not success or safe replay. Actual SDK controlled-gRPC case retains hash with one broadcast and zero polls; full300/300 unit pass, no skips, bounded builds0errors/23provider and2consumer warnings. Pending live journal untouched; no live mutation, full native/API gates open.
 
 Hedera shared original-ID invariant fix (2026-10-13): signed transaction identity is checked regardless of optional preparation callback; formerly no-callback branch bypassed validation. Offline full SDK102/102 passes, no skips, added mismatch/no-callback regression. No alternate submission implementation/new environment/funded write. Durable ordinary-path ownership and native escrow verification remain open.
