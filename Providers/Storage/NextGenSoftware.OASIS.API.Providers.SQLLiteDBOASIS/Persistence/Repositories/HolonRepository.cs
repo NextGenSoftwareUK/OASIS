@@ -299,6 +299,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
+                    Exception = ex,
                     Message = ex.ToString()
                 };
             }
@@ -310,9 +311,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var holonEntities = _dbContext.Holons
+                var rows = await _dbContext.Holons
                     .Where(p => (version == 0 || p.Version == version) && (type == HolonType.All || p.HolonType == type))
-                    .ToList()
+                    .ToListAsync();
+                var holonEntities = rows
                     .Select(GetHolonFromEntity)
                     .ToList();
                 return new OASISResult<IEnumerable<IHolon>>
@@ -329,6 +331,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
+                    Exception = ex,
                     Message = ex.ToString()
                 };
             }

@@ -4,6 +4,8 @@ Updated 2026-10-13, inspected parent `07e0ae20c` and retained reports/journals. 
 
 ## Authoritative state
 
+Priority SQLite all-holon load integrity (2026-10-13): sync/async list failures now retain original SqliteException; async list uses actual awaited EF ToListAsync instead of synchronous DB query. Missing-table sync/async regressions added; full reusable integration76/76 passes, zero skips,10s; provider build succeeds. No installs/new environment. Complete higher-priority interface/field/history/API and V2 policy gates remain open; this is error/async query boundary evidence only.
+
 User priority direction (2026-10-13): higher-priority providers are not all finished. Resume MongoDB/SQLite foundation, Ethereum/Solana, IPFS, cloud providers (AWS/Azure/GoogleCloud/CosmosDB), Polygon/Arbitrum, Neo4j, then remaining chains/protocols. Retain every original Cosmos/Hedera/Sui/TRON requirement and uncertain journal. Goal UI text remains outdated because available goal tool edits status only; repository checklist carries latest user direction. Hedera funded tests deferred at user's request; no repeat top-up requests while that remains unchanged.
 
 Priority SQLite failure fix (2026-10-13): GUID sync/async `LoadHolon` now preserves original database exception instead of only its string. Missing-table regressions require SqliteException, error/not-loaded/null result. Full retained SQLite integration74/74 passes, zero skips,10s; provider build0errors. Fixed reusable fixture and report; no new runtime/environment. Does not certify full mapping/version/API/policy gates.
