@@ -17,6 +17,24 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task WalletLookupFailuresRetainNativeDatabaseCause(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        using var control = new DataContext(TestConnectionString);
+        control.Database.ExecuteSqlRaw("DROP TABLE Avatar;");
+        var saved = synchronous ? provider.SaveProviderWalletsForAvatarById(Guid.NewGuid(), new())
+            : await provider.SaveProviderWalletsForAvatarByIdAsync(Guid.NewGuid(), new());
+        saved.IsError.Should().BeTrue();
+        saved.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        var loaded = synchronous ? provider.LoadProviderWallets() : await provider.LoadProviderWalletsAsync();
+        loaded.IsError.Should().BeTrue();
+        loaded.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task WalletEntryPointsRetainNativeActivationFailure(bool synchronous)
     {
         using var provider = new SQLLiteDBOASIS($"Data Source={_databasePath};Mode=ReadOnly;Pooling=False");
