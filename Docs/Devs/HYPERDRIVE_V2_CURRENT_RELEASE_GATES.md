@@ -4,6 +4,8 @@ Updated 2026-10-13, inspected parent `07e0ae20c` and retained reports/journals. 
 
 ## Authoritative state
 
+Controlled scope close/factory overlap regression (2026-10-13): factory blocked by explicit release event, operation body returns, closure must stay incomplete during bounded100ms observation until factory release; tasks released/awaited in finally with5s bounds. Shared scope suite3/3 passes, no skips/network. This directly exercises closure waiting for gate creation, not draining an already-broadcast native operation; original broader provider/host/recovery gates remain open.
+
 Preparation scope atomic close/create (2026-10-13): shared owner now serializes closed-state check plus gate factory with closure; prior Volatile check allowed closure between check and factory. Added concurrent independent async-owner factory isolation regression; lifetime/nested/null/late-task suite2/2 passes, zero skips, shared build succeeds. This protects gate creation boundary, not cancellation/draining of previously created detached submissions; no broad claim of process-crash settlement or live policy completion. No network writes/downloads.
 
 Sui all-physical-attempt fee evidence (2026-10-13): retained live prepared fixture now verifies signed original fee recovery for every persisted attempt, including both writes in normal storage scope and its delete cleanup. Exact digest/configured genesis/payer/success/nonempty native units checked for each, not just final write. Full prepared4/4 passes, zero skips,31s; known cleanup and owned process stops complete. Same existing environment; no downloads. Native fees remain raw evidence, not USD valuation or production recovery settlement; encrypted record/index and replicated API ownership remain open.
