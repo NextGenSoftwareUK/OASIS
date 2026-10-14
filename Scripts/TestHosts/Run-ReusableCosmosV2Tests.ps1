@@ -9,15 +9,23 @@ $containerId = (& wsl -d Ubuntu -u root -- podman inspect oasis-wasmd --format '
 if ($LASTEXITCODE -ne 0 -or $containerId -ne '58a873de020d2f79ab11e7087361db25063c277a5b5a5c2cabba72263b35f8f3') { throw 'Retained Cosmos container identity mismatch.' }
 $image = (& wsl -d Ubuntu -u root -- podman inspect oasis-wasmd --format '{{.ImageName}}').Trim()
 if ($LASTEXITCODE -ne 0 -or $image -ne 'docker.io/cosmwasm/wasmd@sha256:3741178a4d747fd5cf281550ab4ac30d771163af1c543f9da503c411a1691773') { throw 'Retained Cosmos image mismatch.' }
+$containerState = (& wsl -d Ubuntu -u root -- podman inspect oasis-wasmd --format '{{.State.Status}}').Trim()
+if ($LASTEXITCODE -ne 0 -or $containerState -notin @('running','exited')) { throw 'Retained Cosmos container state requires inspection.' }
 & wsl -d Ubuntu -u root -- podman exec oasis-wasmd pgrep -x wasmd *> $null
 if ($LASTEXITCODE -eq 0) { throw 'Existing wasmd process is in use; refusing to take ownership.' }
 $names = @('OASIS_COSMOS_TEST_RPC','OASIS_COSMOS_TEST_CHAIN','OASIS_COSMOS_TEST_KEY','OASIS_COSMOS_TEST_CONTRACT','OASIS_COSMOS_TEST_STOP_SCRIPT','OASIS_HYPERDRIVE_TEST_ROOT')
 $prior = @{}
 foreach ($name in $names) { $prior[$name] = [Environment]::GetEnvironmentVariable($name,'Process') }
 $started = $false
+$containerStarted = $false
 try {
+    if ($containerState -eq 'exited') {
+        & wsl -d Ubuntu -u root -- podman start oasis-wasmd
+        if ($LASTEXITCODE -ne 0) { throw 'Existing Cosmos container resume failed; no replacement created.' }
+        $containerStarted = $true
+    }
     # The existing local development key stays in process memory and is never printed or persisted.
-    $signingKey = (& wsl -d Ubuntu -u root -- podman exec oasis-wasmd wasmd keys export owner --keyring-backend test --unarmored-hex --unsafe --yes 2>$null).Trim()
+    $signingKey = ((& wsl -d Ubuntu -u root -- podman exec oasis-wasmd wasmd keys export owner --keyring-backend test --unarmored-hex --unsafe --yes 2>$null) -join "`n").Trim()
     if ($LASTEXITCODE -ne 0 -or $signingKey -notmatch '^[0-9a-fA-F]{64}$') { throw 'Existing local Cosmos signing key unavailable.' }
     & wsl -d Ubuntu -u root -- podman exec -d oasis-wasmd wasmd start --home /root/.wasmd --rpc.laddr tcp://0.0.0.0:26657
     if ($LASTEXITCODE -ne 0) { throw 'Retained Cosmos node start failed.' }
@@ -54,5 +62,9 @@ finally {
     if ($started) {
         & wsl -d Ubuntu -u root -- bash /mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/stop-owned-cosmos-test-node.sh
         if ($LASTEXITCODE -ne 0) { throw 'Owned Cosmos node stop failed; inspect before any restart.' }
+    }
+    if ($containerStarted) {
+        & wsl -d Ubuntu -u root -- podman stop oasis-wasmd
+        if ($LASTEXITCODE -ne 0) { throw 'Owned Cosmos container stop failed; inspect before resuming.' }
     }
 }
