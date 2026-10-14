@@ -835,6 +835,54 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(true, false, true, 2, 0)]
+    [InlineData(false, true, true, 0, 2)]
+    [InlineData(true, true, false, 0, 0)]
+    public async Task PublicDateSearchHonoursTargetsAndUnionsSelectedFields(bool holons, bool avatars, bool fields, int expectedHolons, int expectedAvatars)
+    {
+        var pivot = new DateTime(2026, 1, 2, 12, 30, 0, DateTimeKind.Utc);
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        foreach (var matchCreated in new[] { true, false })
+        {
+            var created = matchCreated ? pivot : pivot.AddDays(1);
+            var modified = matchCreated ? pivot.AddDays(1) : pivot;
+            var savedHolon = await provider.SaveHolonAsync(new Holon { Id = Guid.NewGuid(), CreatedDate = created, ModifiedDate = modified }, saveChildren:false);
+            savedHolon.IsError.Should().BeFalse(savedHolon.Message);
+            var savedAvatar = await provider.SaveAvatarAsync(new Avatar { Id = Guid.NewGuid(), Username = "date-target-" + matchCreated,
+                Email = matchCreated + "@test.invalid", CreatedDate = created, ModifiedDate = modified,
+                AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) });
+            savedAvatar.IsError.Should().BeFalse(savedAvatar.Message);
+        }
+        var result = await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+            SearchOnlyForCurrentAvatar = false, SearchGroups = new() {
+                new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchDateGroup {
+                    Date = pivot, DateOperator = SearchOperatorType.EqualTo, SearchHolons = holons, SearchAvatars = avatars,
+                    HolonSearchParams = new SearchHolonParams { CreatedDate = fields, ModifiedDate = fields },
+                    AvatarSearchParams = new NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar.SearchAvatarParams { CreatedDate = fields, ModifiedDate = fields }
+                }
+            }
+        });
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.SearchResultHolons.Should().HaveCount(expectedHolons);
+        result.Result.SearchResultAvatars.Should().HaveCount(expectedAvatars);
+        result.Result.NumberOfResults.Should().Be(expectedHolons + expectedAvatars);
+    }
+
+    [Fact]
+    public async Task PublicSearchRejectsInvalidDateOperatorOnEmptyStorage()
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var result = await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+            SearchGroups = new() { new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchDateGroup { DateOperator = (SearchOperatorType)999 } }
+        });
+        result.IsError.Should().BeTrue();
+        result.Result.Should().BeNull();
+        result.Exception.Should().BeOfType<ArgumentException>();
+    }
+
+    [Theory]
     [InlineData(SearchOperatorType.LessThan, 1)]
     [InlineData(SearchOperatorType.LessThanOrEqualTo, 2)]
     [InlineData(SearchOperatorType.EqualTo, 1)]
