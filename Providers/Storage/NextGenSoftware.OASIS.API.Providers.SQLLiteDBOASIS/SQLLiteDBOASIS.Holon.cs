@@ -135,7 +135,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var firstGroup = searchParams.SearchGroups.First() as ISearchTextGroup;
                     var q = (firstGroup?.SearchQuery?.ToString() ?? string.Empty).ToLower();
                     // Basic in-memory search using available repo APIs
-                    var holonLoad = await _holonRepository.LoadAllHolonsAsync();
+                    var holonLoad = await _holonRepository.LoadAllHolonsAsync(loadChildren: loadChildren,
+                        recursive: recursive, maxChildDepth: maxChildDepth, continueOnError: continueOnError, version: version);
                     if(holonLoad.IsError){
                         OASISErrorHandling.HandleError(ref result,"SQLite holon search failed: "+holonLoad.Message,holonLoad.Exception);
                         return result;
@@ -146,7 +147,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                             (h.Name ?? string.Empty).ToLower().Contains(q) || (h.Description ?? string.Empty).ToLower().Contains(q)));
                     }
 
-                    var avatarLoad = await _avatarRepository.LoadAllAvatarsAsync();
+                    var avatarLoad = await _avatarRepository.LoadAllAvatarsAsync(version);
                     if(avatarLoad.IsError){
                         OASISErrorHandling.HandleError(ref result,"SQLite avatar search failed: "+avatarLoad.Message,avatarLoad.Exception);
                         return result;
@@ -163,7 +164,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 
                 result.Result = searchResults;
                 result.IsError = false;
-                result.Message = $"Search completed successfully in SQLite with full property mapping ({holons.Count} holons, {avatars.Count} avatars)";
+                result.Message = $"SQLite text search returned {holons.Count} holons and {avatars.Count} avatars";
             }
             catch (Exception ex)
             {

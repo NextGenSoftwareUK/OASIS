@@ -786,6 +786,38 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         loaded.Result.Should().BeNull();
     }
 
+    [Theory]
+    [InlineData(0, 2)]
+    [InlineData(3, 1)]
+    [InlineData(4, 1)]
+    [InlineData(2, 0)]
+    public async Task PublicTextSearchHonoursVersionForHolonsAndAvatars(int version, int expectedCount)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        foreach (var storedVersion in new[] { 3, 4 })
+        {
+            var holon = new Holon { Id = Guid.NewGuid(), Version = storedVersion, Name = "owned-version-search" };
+            var avatar = new Avatar { Id = Guid.NewGuid(), Version = storedVersion, Username = "owned-version-search-" + storedVersion,
+                Email = "owned-version-search-" + storedVersion + "@test.invalid",
+                AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+            (await provider.SaveHolonAsync(holon, saveChildren:false)).IsError.Should().BeFalse();
+            var savedAvatar = await provider.SaveAvatarAsync(avatar);
+            savedAvatar.IsError.Should().BeFalse(savedAvatar.Message);
+        }
+        var result = await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+            SearchGroups = new() { new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup { SearchQuery = "owned-version-search" } }
+        }, loadChildren:false, version:version);
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.SearchResultHolons.Should().HaveCount(expectedCount);
+        result.Result.SearchResultAvatars.Should().HaveCount(expectedCount);
+        if (version != 0 && expectedCount > 0)
+        {
+            result.Result.SearchResultHolons.Should().OnlyContain(h => h.Version == version);
+            result.Result.SearchResultAvatars.Should().OnlyContain(a => a.Version == version);
+        }
+    }
+
     [Fact]
     public async Task LatestAndExplicitVersionMetadataQueriesRespectCurrentVersionAndType()
     {
