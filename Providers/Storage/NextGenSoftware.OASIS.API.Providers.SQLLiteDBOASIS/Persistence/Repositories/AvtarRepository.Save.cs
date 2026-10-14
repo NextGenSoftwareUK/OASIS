@@ -22,11 +22,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var avatarEntity = _dbContext.Avatars
-                    .ToList()
-                    .Where(p => p.Email == avatarEmail && (version == 0 || p.Version == version))
-                    .Select(GetAvatarFromEntity)
-                    .FirstOrDefault();
+                var row = await _dbContext.Avatars.FirstOrDefaultAsync(p => p.Email == avatarEmail && (version == 0 || p.Version == version));
+                var avatarEntity = row == null ? null : GetAvatarFromEntity(row);
                 if (avatarEntity == null)
                     return new OASISResult<IAvatar>
                     {
@@ -49,6 +46,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
+                    Exception = ex,
                     Message = ex.ToString()
                 };
             }
@@ -58,11 +56,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var avatarEntity = _dbContext.Avatars
-                    .ToList()
-                    .Where(p => p.Username == avatarUsername && (version == 0 || p.Version == version))
-                    .Select(GetAvatarFromEntity)
-                    .FirstOrDefault();
+                var row = await _dbContext.Avatars.FirstOrDefaultAsync(p => p.Username == avatarUsername && (version == 0 || p.Version == version));
+                var avatarEntity = row == null ? null : GetAvatarFromEntity(row);
                 if (avatarEntity == null)
                     return new OASISResult<IAvatar>
                     {
@@ -85,6 +80,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
+                    Exception = ex,
                     Message = ex.ToString()
                 };
             }
@@ -152,6 +148,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
+                    Exception = ex,
                     Message = ex.ToString()
                 };
             }
@@ -188,6 +185,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
+                    Exception = ex,
                     Message = ex.ToString()
                 };
             }
@@ -227,6 +225,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
+                    Exception = ex,
                     Message = ex.ToString()
                 };
             }
@@ -266,6 +265,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
+                    Exception = ex,
                     Message = ex.ToString()
                 };
             }
