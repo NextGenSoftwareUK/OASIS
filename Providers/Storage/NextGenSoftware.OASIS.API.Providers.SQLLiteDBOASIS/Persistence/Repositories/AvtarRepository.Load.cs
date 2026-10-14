@@ -199,6 +199,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
@@ -228,6 +229,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
@@ -262,6 +264,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
@@ -291,6 +294,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
@@ -320,6 +324,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
@@ -329,7 +334,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var row = _dbContext.Avatars.FirstOrDefault(p => p.Username == avatarUsername && (version == 0 || p.Version == version));
+                var row = ReadUniqueAvatar(_dbContext.Avatars.Where(p => p.Username == avatarUsername && (version == 0 || p.Version == version)));
                 var avatarEntity = row == null ? null : GetAvatarFromEntity(row);
                 if (avatarEntity == null)
                     return new OASISResult<IAvatar>
@@ -354,6 +359,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
@@ -388,6 +394,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
