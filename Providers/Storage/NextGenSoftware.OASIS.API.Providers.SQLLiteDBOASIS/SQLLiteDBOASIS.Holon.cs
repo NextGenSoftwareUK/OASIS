@@ -132,12 +132,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 
                 if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
                 {
-                    var textGroups = searchParams.SearchGroups.Select(group => group as ISearchTextGroup
-                        ?? throw new NotSupportedException("SQLite search does not yet support this search group type.")).ToList();
-                    bool MatchesGroups(Func<ISearchTextGroup, bool> matches)
+                    var groups = searchParams.SearchGroups;
+                    foreach (var group in groups)
                     {
-                        var matched = matches(textGroups[0]);
-                        foreach (var group in textGroups.Skip(1))
+                        if (group is not ISearchTextGroup && group is not ISearchNumberGroup)
+                            throw new NotSupportedException("SQLite search does not yet support this search group type.");
+                        if (group is ISearchNumberGroup number && !Enum.IsDefined(typeof(SearchOperatorType), number.NumberOperator))
+                            throw new ArgumentException("Invalid numeric search operator.");
+                    }
+                    bool MatchesGroups(Func<ISearchGroupBase, bool> matches)
+                    {
+                        var matched = matches(groups[0]);
+                        foreach (var group in groups.Skip(1))
                         {
                             var next = matches(group);
                             matched = group.PreviousSearchGroupOperator switch {
@@ -150,6 +156,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     }
                     bool Contains(string value, ISearchTextGroup group) =>
                         (value ?? string.Empty).Contains(group.SearchQuery ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+                    bool Compare(int value, ISearchNumberGroup group) => group.NumberOperator switch {
+                        SearchOperatorType.LessThan => value < group.Number,
+                        SearchOperatorType.LessThanOrEqualTo => value <= group.Number,
+                        SearchOperatorType.EqualTo => value == group.Number,
+                        SearchOperatorType.NotEqualTo => value != group.Number,
+                        SearchOperatorType.GreaterThan => value > group.Number,
+                        SearchOperatorType.GreaterThanOrEqualTo => value >= group.Number,
+                        _ => throw new ArgumentException("Invalid numeric search operator.")
+                    };
                     // Basic in-memory search using available repo APIs
                     var holonLoad = await _holonRepository.LoadAllHolonsAsync(loadChildren: loadChildren,
                         recursive: recursive, maxChildDepth: maxChildDepth, continueOnError: continueOnError, version: version);
@@ -178,8 +193,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                             }
                             candidates = candidates.Where(h => descendants.Contains(h.Id)).ToList();
                         }
-                        holons.AddRange(candidates.Where(h => MatchesGroups(group =>
-                            Contains(h.Name, group) || Contains(h.Description, group))));
+                        holons.AddRange(candidates.Where(h => MatchesGroups(group => group switch {
+                            ISearchNumberGroup number => number.SearchHolons && number.HolonSearchParams?.Version == true && Compare(h.Version, number),
+                            ISearchTextGroup text => Contains(h.Name, text) || Contains(h.Description, text),
+                            _ => false
+                        })));
                     }
 
                     var avatarLoad = await _avatarRepository.LoadAllAvatarsAsync(version);
@@ -189,8 +207,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     }
                     if (!avatarLoad.IsError && avatarLoad.Result != null)
                     {
-                        avatars.AddRange(avatarLoad.Result.Where(a => MatchesGroups(group =>
-                            Contains(a.Name, group) || Contains(a.Username, group) || Contains(a.Email, group))));
+                        avatars.AddRange(avatarLoad.Result.Where(a => MatchesGroups(group => group switch {
+                            ISearchNumberGroup number => number.SearchAvatars && number.AvatarSearchParams?.Version == true && Compare(a.Version, number),
+                            ISearchTextGroup text => Contains(a.Name, text) || Contains(a.Username, text) || Contains(a.Email, text),
+                            _ => false
+                        })));
                     }
                 }
                 
