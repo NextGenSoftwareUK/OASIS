@@ -1235,7 +1235,8 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
             result.IsError.Should().BeTrue();
             result.IsLoaded.Should().BeFalse();
             result.Result.Should().BeNull();
-            result.Exception.Should().BeOfType<InvalidOperationException>();
+            result.Exception.Should().BeOfType<StorageIdentityAmbiguousException>();
+            result.ErrorCode.Should().Be(OASISResultErrorCodes.AmbiguousIdentity);
         }
     }
 
