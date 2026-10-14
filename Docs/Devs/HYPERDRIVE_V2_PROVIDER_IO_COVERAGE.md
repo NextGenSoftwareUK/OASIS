@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Sui actual source custody proof (2026-10-13): existing lifecycle fixture expanded; real transfer receipt yields exact current object reference, wrong pool rejected, proof stale/deleted after burn rejected. Expanded1/1 passes7.62s, zero skips, existing compact TAP; owned journal absent/node stopped, same pinned runtime/deployment. Closes this local SDK source-proof evidence, not every public C# route/release/crash/settlement requirement.
+
 Sui actual local NFT lifecycle1/1 (2026-10-13): retained runtime/deployment/faucet reused; native quantity2 mint, reads, escrow lock/foreign unlock rejection/unlock, ownership transfer/status, old-owner burn rejection, recipient burn and remaining-object cleanup passed7.45s, zero skips, fixed compact TAP. Preparation journal gone only after known successful cleanup; owned node stopped. Cleanup original/secondary failures now aggregate. This closes this official SDK local lifecycle case, not all C# public/API/custody-release/crash-settlement requirements. No fresh environment/runtime/deployment.
 
 Sui live NFT fixture preparation/reuse work (2026-10-13): explicit CreateNew fsynced signed-evidence journal guards native mutations; mint moved into cleanup scope; unknown original outcome retained with no more mutation cleanup. Recipient fixed deterministic public local-only fixture instead of new per-run credentials. Syntax/diff checks and offline29/29 pass; live fixture remains unrun/current cleanup-error attribution still open. No asset minted or runtime installed; not full NFT/escrow/API certification.
