@@ -177,7 +177,7 @@ public sealed class MongoSqliteRealProviderRoutingTests
             avatar.ResetToken = "priority-reset-owned";
             const string collectionRefreshToken = "priority-refresh-owned";
             avatar.RefreshToken = null;
-            avatar.RefreshTokens = new List<RefreshToken> { new RefreshToken { Token = collectionRefreshToken,
+            avatar.RefreshTokens = new List<RefreshToken> { new RefreshToken { Id = 7, Token = collectionRefreshToken,
                 CreatedByIp = "127.0.0.1", Expires = new DateTime(2026, 12, 31, 0, 0, 0, DateTimeKind.Utc) } };
             var avatarRequest = new StorageOperationRequest { Operation = "SaveAvatar", Payload = avatar, PreferredProvider = request.PreferredProvider };
             foreach (var updating in new[] { false, true })
@@ -199,6 +199,7 @@ public sealed class MongoSqliteRealProviderRoutingTests
                     loaded.Result.RefreshToken.Should().BeNull();
                     loaded.Result.RefreshTokens.Should().ContainSingle();
                     loaded.Result.RefreshTokens[0].Token.Should().Be(collectionRefreshToken);
+                    loaded.Result.RefreshTokens[0].Id.Should().Be(7);
                     loaded.Result.RefreshTokens[0].CreatedByIp.Should().Be("127.0.0.1");
                     loaded.Result.RefreshTokens[0].Expires.Should().Be(avatar.RefreshTokens[0].Expires);
                 }
