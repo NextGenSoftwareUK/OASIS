@@ -162,7 +162,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var holonEntities =
-                    _dbContext.Holons
+                    _dbContext.Holons.AsNoTracking()
                         .Where(p => p.ParentHolonId == id.ToString() && (version == 0 || p.Version == version) && (type == HolonType.All || p.HolonType == type))
                         .ToList()
                         .Select(GetHolonFromEntity)
@@ -198,7 +198,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var rows = await _dbContext.Holons
+                var rows = await _dbContext.Holons.AsNoTracking()
                     .Where(p => p.ParentHolonId == id.ToString() && (version == 0 || p.Version == version) && (type == HolonType.All || p.HolonType == type))
                     .ToListAsync();
                 var holonEntities = rows
@@ -235,8 +235,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var holonEntities = _dbContext.Holons
-                    .Where(p => _dbContext.Holons.Any(parent => parent.LocalProviderKey == providerKey && parent.Id == p.ParentHolonId)
+                var holonEntities = _dbContext.Holons.AsNoTracking()
+                    .Where(p => _dbContext.Holons.AsNoTracking().Any(parent => parent.LocalProviderKey == providerKey && parent.Id == p.ParentHolonId)
                         && (version == 0 || p.Version == version) && (type == HolonType.All || p.HolonType == type))
                     .ToList()
                     .Select(GetHolonFromEntity)
@@ -272,8 +272,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var rows = await _dbContext.Holons
-                    .Where(p => _dbContext.Holons.Any(parent => parent.LocalProviderKey == providerKey && parent.Id == p.ParentHolonId)
+                var rows = await _dbContext.Holons.AsNoTracking()
+                    .Where(p => _dbContext.Holons.AsNoTracking().Any(parent => parent.LocalProviderKey == providerKey && parent.Id == p.ParentHolonId)
                         && (version == 0 || p.Version == version) && (type == HolonType.All || p.HolonType == type))
                     .ToListAsync();
                 var holonEntities = rows.Select(GetHolonFromEntity).ToList();
@@ -308,7 +308,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var holonEntities = _dbContext.Holons
+                var holonEntities = _dbContext.Holons.AsNoTracking()
                     .Where(p => (version == 0 || p.Version == version) && (type == HolonType.All || p.HolonType == type))
                     .ToList()
                     .Select(GetHolonFromEntity)
@@ -344,7 +344,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var rows = await _dbContext.Holons
+                var rows = await _dbContext.Holons.AsNoTracking()
                     .Where(p => (version == 0 || p.Version == version) && (type == HolonType.All || p.HolonType == type))
                     .ToListAsync();
                 var holonEntities = rows
