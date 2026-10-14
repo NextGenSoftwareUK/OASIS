@@ -314,7 +314,7 @@ public sealed class ReconciliationTests
         {
             var db = client.GetDatabase(name);
             var time = new TestTimeProvider(new DateTimeOffset(2026, 9, 30, 23, 59, 59, TimeSpan.Zero));
-            var store = new MongoUsageReconciler(client, name, time); await store.InitializeAsync(default);
+            var store = new MongoUsageReconciler(client, name, time, StripeUsageInvoiceContract.PassThroughUsd); await store.InitializeAsync(default);
             await SeedPeriodAsync(db, 1, 0, 0m, 0.05m);
             var pending = await store.ReconcileAsync(Avatar, "2026-09", default);
             Assert.True(pending.AwaitingPeriodClose); Assert.False(pending.Balanced); Assert.False(pending.ActionRequired);
@@ -326,6 +326,22 @@ public sealed class ReconciliationTests
             await store.RecordReceiptAsync(new UsageExternalReceipt { Source="stripe", UserId=Avatar, Month="2026-09", ExternalId="in_period",
                 AmountUsd=0.05m, EvidenceSha256=new string('b',64), Actor="stripe-worker" }, default);
             Assert.True((await store.ReconcileAsync(Avatar, "2026-09", default)).Balanced);
+        }
+        finally { await client.DropDatabaseAsync(name); }
+    }
+
+    [MongoFact]
+    public async Task IncludedPlanUsageDoesNotRequireAnExtraStripeCostInvoice()
+    {
+        var client = new MongoClient(Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
+        string name = "usage_reconciliation_test_" + Guid.NewGuid().ToString("N");
+        try
+        {
+            var db=client.GetDatabase(name);var store=new MongoUsageReconciler(client,name,ClosedPeriod);
+            await store.InitializeAsync(default);await SeedPeriodAsync(db,1,0,0m,0.05m);
+            var report=await store.ReconcileAsync(Avatar,"2026-09",default);
+            Assert.False(report.RequiresStripeUsageInvoice);Assert.True(report.StripeEvidenceComplete);
+            Assert.Empty(report.Findings);Assert.True(report.Balanced);
         }
         finally { await client.DropDatabaseAsync(name); }
     }

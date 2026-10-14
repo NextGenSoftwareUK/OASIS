@@ -25,6 +25,8 @@ On checkout return, OPORTAL confirms the authenticated session through `GET /api
 
 The existing Stripe monthly price is the subscriber's bill. The usage ledger separately records included requests and USD provider costs; these measurements do **not** create extra Stripe per-request invoice charges.
 
+Reconciliation uses the included-plan billing contract by default. A closed period with USD provider costs does not require an additional USD Stripe usage invoice. Explicit pass-through reconciliation remains available to callers that actually have that billing contract; tagged usage invoices are checked when present. The report's `requiresStripeUsageInvoice` field makes this distinction visible. Provider evidence and ledger/audit checks remain required, and an open UTC month remains pending rather than being reported fully balanced.
+
 | API | Current accounting policy |
 |---|---|
 | WEB4 | Subscription, Stripe webhook, quota and ledger authority. Direct WEB4 business routes are not metered by the WEB5–WEB10 consumer adapters. |
