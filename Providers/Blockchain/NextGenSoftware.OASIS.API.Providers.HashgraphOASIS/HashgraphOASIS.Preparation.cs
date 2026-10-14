@@ -10,6 +10,27 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
 
 public partial class HashgraphOASIS
 {
+    /// <summary>Read-only original fee recovery. Public key must be independently authorized for the original payer.</summary>
+    public async Task<NextGenSoftware.OASIS.Common.OASISResult<JsonElement>> GetPreparedNativeFeeReceiptAsync(
+        UsageProviderAttempt attempt,string expectedPublicKey,CancellationToken token=default)
+    {
+        var result=new NextGenSoftware.OASIS.Common.OASISResult<JsonElement>();
+        try {
+            ArgumentNullException.ThrowIfNull(attempt);
+            ArgumentException.ThrowIfNullOrWhiteSpace(expectedPublicKey);
+            if(attempt.Provider!="HashgraphOASIS"||attempt.NativePreparation==null
+                ||string.IsNullOrWhiteSpace(attempt.ProviderRequestId)||attempt.NativePreparation.ChainId!=_hederaNetwork)
+                throw new InvalidDataException("Prepared Hedera attempt must bind this provider, original transaction ID and configured network.");
+            var preparation=attempt.NativePreparation;
+            preparation.ValidateAndMeasure();
+            await VerifyOriginalSignedPreparationAsync(JsonSerializer.SerializeToElement(new {
+                transactionHash=attempt.ProviderRequestId,chainId=preparation.ChainId,sender=preparation.Sender,
+                signedTransactionBase64=preparation.SignedTransactionBase64 }),expectedPublicKey,token);
+            return await GetNativeFeeReceiptAsync(attempt.ProviderRequestId,token);
+        } catch(Exception failure) { NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,failure.Message,failure); }
+        return result;
+    }
+
     /// <summary>Native preparation; caller supplies admission and independently trusted signer context.</summary>
     public async Task<JsonElement> ExecutePreparedNativeAsync(string action,object request,UsageExecutionHandle execution,
         string clientRequestId,string expectedNetwork,string expectedSender,string expectedPublicKey,CancellationToken token=default)

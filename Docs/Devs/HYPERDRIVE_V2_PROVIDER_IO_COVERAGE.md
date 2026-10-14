@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-13 Hedera original-attempt fee recovery adapter implemented by reusing official preparation verification and existing native mirror fee lookup. Requires caller's independently trusted public key (not inferred from attempt), configured network, provider and original signed transaction identity. Negative boundary1/1 passes with six invalid cases; no network/submission. Positive signed attempt integration and complete production resolver/fiat valuation remain open.
+
 2026-10-13 Cosmos reusable runner: fixed stopped-container precondition, resumed exact retained pinned container only and restored exited state. Read-only pending inspection1/1 passes;280 indexed owner transactions, no exact pending-key matches. Absence is not non-submission proof; intent retained and no replay. Podman stop used SIGKILL for idle wrapper after owned wasmd shutdown; reported, not treated as graceful container stop. No new environment/install.
 
 2026-10-13 current Core live Sui routing: Healthy1/1 and actual node-outage2/2 pass with Core `c1a8cdd41f04f31e7a40eaf82b8def9fb4aa99aa`. Existing runtime/ledger/SDK dependencies reused, no installation; current integration consumer rebuilt, owned node stopped, reports overwritten in fixed locations. Evidence covers local encrypted replication and routing strategies plus real transport failover—not hosted authorization, settled native fees or completion of Cosmos/Hedera/TRON policy gates.

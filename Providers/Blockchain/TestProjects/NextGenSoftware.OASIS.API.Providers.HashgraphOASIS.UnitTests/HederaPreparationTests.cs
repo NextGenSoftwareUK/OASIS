@@ -9,6 +9,22 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests;
 public class HederaPreparationTests
 {
     [TestMethod]
+    public async Task PreparedFeeRecoveryRejectsMissingOrForeignIdentityBeforeLookup()
+    {
+        var provider=new HashgraphOASIS(network:"testnet",chainId:"296");
+        foreach(var attempt in new UsageProviderAttempt?[] { null,new(),
+            new(){Provider="SuiOASIS",ProviderRequestId="original",NativePreparation=new(){ChainId="testnet"}},
+            new(){Provider="HashgraphOASIS",ProviderRequestId="original",NativePreparation=new(){ChainId="mainnet"}},
+            new(){Provider="HashgraphOASIS",NativePreparation=new(){ChainId="testnet"}} }) {
+            var result=await provider.GetPreparedNativeFeeReceiptAsync(attempt!,"independently-authorized-key");
+            Assert.IsTrue(result.IsError); Assert.IsNotNull(result.Exception);
+            Assert.AreEqual(JsonValueKind.Undefined,result.Result.ValueKind);
+        }
+        var missingKey=await provider.GetPreparedNativeFeeReceiptAsync(new(),"");
+        Assert.IsTrue(missingKey.IsError); Assert.IsNotNull(missingKey.Exception);
+    }
+
+    [TestMethod]
     public async Task StorageActivationCannotGeneratePutOrDeleteTransactions()
     {
         var previous=Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE");
