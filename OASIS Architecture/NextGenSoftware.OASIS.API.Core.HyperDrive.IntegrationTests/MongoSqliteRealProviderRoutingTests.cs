@@ -265,12 +265,14 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 var secondaryStore = ambiguousPrimary == ProviderType.MongoDBOASIS ? (IOASISStorageProvider)sqlite : mongo;
                 var secondaryType = ambiguousPrimary == ProviderType.MongoDBOASIS ? ProviderType.SQLLiteDBOASIS : ProviderType.MongoDBOASIS;
                 var token = "owned-asymmetric-" + ambiguousPrimary;
+                var integrityIds = new List<Guid>();
                 for (var index = 0; index < 2; index++) {
                     var identity = new Avatar { Id = Guid.NewGuid(), Username = "owned-asymmetric-user-" + ambiguousPrimary,
                         Email = ambiguousPrimary + "@integrity.invalid",
                         VerificationToken = token, ResetToken = token, RefreshTokens = new() { new RefreshToken { Token = token } },
                         AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
                     (await primaryStore.SaveAvatarAsync(identity)).IsError.Should().BeFalse();
+                    integrityIds.Add(identity.Id);
                     if (index == 0) (await secondaryStore.SaveAvatarAsync(identity)).IsError.Should().BeFalse();
                     var identityDetail = new AvatarDetail { Id = identity.Id, Username = identity.Username, Email = identity.Email, Karma = index + 1 };
                     (await primaryStore.SaveAvatarDetailAsync(identityDetail)).IsError.Should().BeFalse();
@@ -298,6 +300,7 @@ public sealed class MongoSqliteRealProviderRoutingTests
                     (integrityManager.PerformanceMonitor.GetMetrics(secondaryType)?.TotalRequests ?? 0).Should().Be(beforeSecondary);
                 }
                 foreach (var operation in new[] { "LoadAvatarDetailByUsername", "LoadAvatarDetailByEmail" }) {
+                    // Read-side integrity assertions below also remain valid after rejected deletes.
                     var beforeSecondary = integrityManager.PerformanceMonitor.GetMetrics(secondaryType)?.TotalRequests ?? 0;
                     var detailIntegrityRequest = new StorageOperationRequest { Operation = operation, PreferredProvider = ambiguousPrimary,
                         Username = "owned-asymmetric-user-" + ambiguousPrimary, Email = ambiguousPrimary + "@integrity.invalid" };
@@ -311,6 +314,28 @@ public sealed class MongoSqliteRealProviderRoutingTests
                     explicitRejected.ErrorCode.Should().Be(OASISResultErrorCodes.AmbiguousIdentity);
                     explicitRejected.Result.Should().BeNull();
                     (integrityManager.PerformanceMonitor.GetMetrics(secondaryType)?.TotalRequests ?? 0).Should().Be(beforeSecondary);
+                }
+                foreach (var operation in new[] { "DeleteAvatarByUsername", "DeleteAvatarByEmail" })
+                foreach (var softDelete in new[] { false, true }) {
+                    var beforeSecondary = integrityManager.PerformanceMonitor.GetMetrics(secondaryType)?.TotalRequests ?? 0;
+                    var rejectedDeleteRequest = new StorageOperationRequest { Operation = operation, PreferredProvider = ambiguousPrimary,
+                        Username = "owned-asymmetric-user-" + ambiguousPrimary, Email = ambiguousPrimary + "@integrity.invalid", SoftDelete = softDelete };
+                    var rejected = synchronous ? integrityRouter.RouteRequest<bool>(rejectedDeleteRequest)
+                        : await integrityRouter.RouteRequestAsync<bool>(rejectedDeleteRequest);
+                    rejected.IsError.Should().BeTrue();
+                    rejected.Result.Should().BeFalse();
+                    rejected.ErrorCode.Should().Be(OASISResultErrorCodes.AmbiguousIdentity);
+                    rejected.Exception.Should().BeOfType<StorageIdentityAmbiguousException>();
+                    var explicitRejected = await integrityRouter.FailoverRequestAsync<bool>(rejectedDeleteRequest);
+                    explicitRejected.ErrorCode.Should().Be(OASISResultErrorCodes.AmbiguousIdentity);
+                    explicitRejected.Result.Should().BeFalse();
+                    (integrityManager.PerformanceMonitor.GetMetrics(secondaryType)?.TotalRequests ?? 0).Should().Be(beforeSecondary);
+                    foreach (var id in integrityIds) {
+                        (await primaryStore.LoadAvatarAsync(id)).Result.DeletedDate.Should().Be(DateTime.MinValue);
+                        (await primaryStore.LoadAvatarDetailAsync(id)).Result.DeletedDate.Should().Be(DateTime.MinValue);
+                    }
+                    (await secondaryStore.LoadAvatarAsync(integrityIds[0])).Result.DeletedDate.Should().Be(DateTime.MinValue);
+                    (await secondaryStore.LoadAvatarDetailAsync(integrityIds[0])).Result.Karma.Should().Be(1);
                 }
             }
             rotatedSave.IsError.Should().BeFalse(rotatedSave.Message);
