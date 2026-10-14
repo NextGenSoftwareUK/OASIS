@@ -14,6 +14,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public long SettledUnits { get; set; }
         public decimal UsageCostUsd { get; set; }
         public decimal RevenueUsd { get; set; }
+        public IReadOnlyDictionary<string, decimal> RevenueByCurrency { get; set; }
         public decimal GrossMarginUsd => RevenueUsd - UsageCostUsd;
         public IReadOnlyDictionary<string, long> SubscriptionsByPlan { get; set; }
         public IReadOnlyDictionary<string, long> OperationsByProvider { get; set; }

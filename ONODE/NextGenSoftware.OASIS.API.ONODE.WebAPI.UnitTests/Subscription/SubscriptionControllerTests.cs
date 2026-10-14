@@ -19,21 +19,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
         private readonly Mock<ISubscriptionService> _svc;
         private readonly IConfiguration _cfg;
         private readonly SubscriptionController _ctrl;
+        private readonly Mock<ISubscriptionBillingPortal> _portal;
 
         public SubscriptionControllerTests()
         {
             _svc = new Mock<ISubscriptionService>();
+            _portal = new Mock<ISubscriptionBillingPortal>();
             _cfg = new ConfigurationBuilder().Build();
-            _ctrl = new SubscriptionController(_cfg, _svc.Object);
+            var prices = new Mock<ISubscriptionPlanPriceReader>();
+            prices.Setup(x => x.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new SubscriptionPlanPrice(9m, "GBP", "month"));
+            _ctrl = new SubscriptionController(_cfg, _svc.Object, planCatalogue: new SubscriptionPlanCatalogue(prices.Object),billingPortal:_portal.Object);
             SetUnauthenticated();
         }
 
         // ── GET /api/subscription/plans ──────────────────────────────────────
 
         [Fact]
-        public void GetPlans_Returns200WithAllPlanIds()
+        public async Task GetPlans_Returns200WithAllPlanIds()
         {
-            var result = _ctrl.GetPlans() as OkObjectResult;
+            var result = await _ctrl.GetPlans() as OkObjectResult;
 
             result.Should().NotBeNull();
             result!.StatusCode.Should().Be(200);
@@ -48,9 +53,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
         }
 
         [Fact]
-        public void GetPlans_IsErrorFalse()
+        public async Task GetPlans_IsErrorFalse()
         {
-            var result = _ctrl.GetPlans() as OkObjectResult;
+            var result = await _ctrl.GetPlans() as OkObjectResult;
             var json = System.Text.Json.JsonSerializer.Serialize(result!.Value);
             json.Should().Contain("false");
         }
@@ -130,6 +135,20 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
                 r.UserId == userId.ToString() &&
                 r.PlanId == "free" &&
                 r.Status == "active")), Times.Once);
+        }
+
+        [Theory]
+        [InlineData("free")][InlineData("silver")]
+        public async Task ExistingPaidSubscriberUsesOwnedBillingPortalInsteadOfAnotherCheckoutOrFreeOverwrite(string targetPlan)
+        {
+            var id=Guid.NewGuid();SetAuthenticatedUser(id);
+            var record=new SubscriptionRecord {UserId=id.ToString(),PlanId="bronze",Status="active",StripeCustomerId="cus_owned",StripeSubscriptionId="sub_owned"};
+            _svc.Setup(x=>x.GetSubscriptionAsync(id.ToString())).ReturnsAsync(record);
+            _portal.Setup(x=>x.CreateAsync(record,"https://dev.example/subscription",It.IsAny<CancellationToken>())).ReturnsAsync(new SubscriptionPortalSession("bps_owned","https://billing.stripe.com/test"));
+            var result=await _ctrl.CreateCheckoutSession(new SubscriptionController.CreateCheckoutSessionRequest {PlanId=targetPlan,SuccessUrl="https://dev.example/subscription"});
+            result.Should().BeOfType<OkObjectResult>();
+            _svc.Verify(x=>x.UpsertSubscriptionAsync(It.IsAny<SubscriptionRecord>()),Times.Never);
+            _portal.Verify(x=>x.CreateAsync(record,"https://dev.example/subscription",It.IsAny<CancellationToken>()),Times.Once);
         }
 
         [Fact]
@@ -236,16 +255,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
         }
 
         [Fact]
-        public async Task TogglePayAsYouGo_Enable_CallsServiceWithTrue()
+        public async Task TogglePayAsYouGo_Enable_RequiresExplicitPriceConsentAndCap()
         {
             var userId = Guid.NewGuid();
             SetAuthenticatedUser(userId);
-            _svc.Setup(s => s.SetPayAsYouGoAsync(userId.ToString(), true)).Returns(Task.CompletedTask);
-
-            var result = await _ctrl.TogglePayAsYouGo(new SubscriptionController.TogglePayAsYouGoRequest { Enabled = true }) as OkObjectResult;
+            var result = await _ctrl.TogglePayAsYouGo(new SubscriptionController.TogglePayAsYouGoRequest { Enabled = true }) as ObjectResult;
 
             result.Should().NotBeNull();
-            _svc.Verify(s => s.SetPayAsYouGoAsync(userId.ToString(), true), Times.Once);
+            result!.StatusCode.Should().Be(400);
+            _svc.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public async Task SubscriberCannotChangeServerWideHyperDrivePlan()
+        {
+            SetAuthenticatedUser(Guid.NewGuid());
+            var result = await _ctrl.UpdateHyperDriveConfig(new SubscriptionController.UpdateHyperDriveConfigRequest { PlanType = "enterprise" });
+            result.Result.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(403);
+            _svc.VerifyNoOtherCalls();
         }
 
         [Fact]
@@ -362,10 +389,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
             _svc.VerifyNoOtherCalls();
         }
         [Theory]
-        [InlineData("invoice.paid", "price_bronze", "bronze")]
-        [InlineData("invoice.payment_succeeded", "price_bronze", "bronze")]
-        [InlineData("invoice.paid", "price_retired", null)]
-        public async Task SignedPaidInvoiceUsesHistoricalLinePriceInsteadOfCurrentPlan(string eventType, string invoicePrice, string expectedPlan)
+        [InlineData("invoice.paid", "price_bronze", "bronze", "usd", 12.34, false)]
+        [InlineData("invoice.payment_succeeded", "price_bronze", "bronze", "gbp", 12.34, false)]
+        [InlineData("invoice.paid", "price_retired", null, "jpy", 1234, false)]
+        [InlineData("invoice.paid", "price_silver", "silver", "gbp", 12.34, true)]
+        public async Task SignedPaidInvoiceUsesHistoricalLinePriceInsteadOfCurrentPlan(string eventType, string invoicePrice, string expectedPlan, string currency, decimal expectedAmount, bool proration)
         {
             string user = Guid.NewGuid().ToString();
             _svc.Setup(x => x.GetSubscriptionByStripeSubscriptionIdAsync("sub_current"))
@@ -381,12 +409,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
             }).Build();
             var controller = new SubscriptionController(config, _svc.Object, billingRepository: billing.Object);
             long timestamp = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var invoiceLines=new List<object> {new {id="il_one",@object="line_item",amount=proration?2134:1234,price=new {id=invoicePrice,@object="price"}}};
+            if(proration)invoiceLines.Add(new {id="il_credit",@object="line_item",amount=-900,price=new {id="price_bronze",@object="price"}});
             string body = System.Text.Json.JsonSerializer.Serialize(new {
-                id = "evt_invoice_paid", @object = "event", type = eventType, created = timestamp, api_version = "2025-02-24.acacia",
+                id = "evt_invoice_paid", @object = "event", type = eventType, created = timestamp, api_version = Stripe.StripeConfiguration.ApiVersion,
                 request = new { id = "req_paid_invoice", idempotency_key = (string)null },
                 data = new { @object = new { id = "in_actual", @object = "invoice", subscription = "sub_current", paid = true,
-                    status = "paid", currency = "usd", amount_paid = 1234, created = timestamp,
-                    lines = new { @object = "list", data = new[] { new { id = "il_one", @object = "line_item", price = new { id = invoicePrice, @object = "price" } } } } } }
+                    status = "paid", currency, amount_paid = 1234, created = timestamp,
+                    lines = new { @object = "list", data = invoiceLines } } }
             });
             using var hmac = new System.Security.Cryptography.HMACSHA256(System.Text.Encoding.UTF8.GetBytes("whsec_test"));
             string signature = Convert.ToHexStringLower(hmac.ComputeHash(System.Text.Encoding.UTF8.GetBytes(timestamp + "." + body)));
@@ -396,7 +426,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
             controller.ControllerContext = new ControllerContext { HttpContext = context };
             (await controller.StripeWebhook()).Should().BeOfType<OkObjectResult>();
             captured.Should().NotBeNull(); captured.PlanId.Should().Be(expectedPlan);
-            captured.Amount.Should().Be(12.34m); captured.StripeInvoiceId.Should().Be("in_actual");
+            captured.Amount.Should().Be(expectedAmount); captured.Currency.Should().Be(currency.ToUpperInvariant()); captured.StripeInvoiceId.Should().Be("in_actual");
         }
         // ── Helpers ──────────────────────────────────────────────────────────
 
@@ -405,6 +435,68 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
             _ctrl.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext() };
         }
 
+        [Fact]
+        public async Task BillingPortal_UsesOnlyAuthenticatedSubscribersStoredCustomer()
+        {
+            var user=Guid.NewGuid(); SetAuthenticatedUser(user);
+            var owned=new SubscriptionRecord { UserId=user.ToString(),StripeCustomerId="cus_owned" };
+            _svc.Setup(s=>s.GetSubscriptionAsync(user.ToString())).ReturnsAsync(owned);
+            _portal.Setup(p=>p.CreateAsync(owned,"https://portal.example/subscription",It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new SubscriptionPortalSession("bps_test","https://billing.stripe.com/test"));
+            (await _ctrl.CreateBillingPortal(new() {ReturnUrl="https://portal.example/subscription"})).Should().BeOfType<OkObjectResult>();
+            _svc.Verify(s=>s.GetSubscriptionAsync(user.ToString()),Times.Once);
+            _portal.Verify(p=>p.CreateAsync(owned,"https://portal.example/subscription",It.IsAny<CancellationToken>()),Times.Once);
+        }
+        [Fact]
+        public async Task BillingPortal_RejectsSubscriberWithoutStripeAccount()
+        {
+            SetAuthenticatedUser(Guid.NewGuid());
+            (await _ctrl.CreateBillingPortal(new() {ReturnUrl="https://portal.example"})).Should().BeOfType<BadRequestObjectResult>();
+            _portal.VerifyNoOtherCalls();
+        }
+        [Theory]
+        [InlineData("javascript:alert(1)")]
+        [InlineData("/relative")]
+        public async Task BillingPortal_RejectsInvalidReturnUrl(string url)
+        {
+            var user=Guid.NewGuid(); SetAuthenticatedUser(user);
+            _svc.Setup(s=>s.GetSubscriptionAsync(user.ToString())).ReturnsAsync(new SubscriptionRecord {StripeCustomerId="cus_owned"});
+            (await _ctrl.CreateBillingPortal(new() {ReturnUrl=url})).Should().BeOfType<BadRequestObjectResult>();
+            _portal.VerifyNoOtherCalls();
+        }
+        [Fact]
+        public async Task PaidOverageConsentUsesOnlyTheOwnedVerifiedBillingAccount()
+        {
+            var user=Guid.NewGuid();SetAuthenticatedUser(user);
+            var record=new SubscriptionRecord{UserId=user.ToString(),PlanId="silver",Status="active",StripeCustomerId="cus_owned",StripeSubscriptionId="sub_owned"};
+            _svc.Setup(s=>s.GetSubscriptionAsync(user.ToString())).ReturnsAsync(record);
+            var billing=new Mock<ISubscriptionBillingRepository>();var gateway=new Mock<IPaidOverageGateway>();
+            gateway.Setup(g=>g.VerifyPaymentReadyAsync(record,It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+            var controller=new SubscriptionController(_cfg,_svc.Object,billingRepository:billing.Object,overageGateway:gateway.Object){ControllerContext=_ctrl.ControllerContext};
+            var pricing=PaidOveragePricing.Load();
+            (await controller.TogglePayAsYouGo(new(){Enabled=true,PricingVersion=pricing.Version,PricingSha256=pricing.PricingSha256,MonthlyLimitUsd=50})).Should().BeOfType<OkObjectResult>();
+            gateway.Verify(g=>g.VerifyPaymentReadyAsync(record,It.IsAny<CancellationToken>()),Times.Once);
+            billing.Verify(b=>b.SetPaidOverageConsentAsync(user.ToString(),"sub_owned",pricing.Version,pricing.PricingSha256,50,It.IsAny<CancellationToken>()),Times.Once);
+        }
+        [Fact]
+        public async Task PaidOverageConsentRejectsChangedPricesBeforePaymentOrStorage()
+        {
+            SetAuthenticatedUser(Guid.NewGuid());
+            var billing=new Mock<ISubscriptionBillingRepository>();var gateway=new Mock<IPaidOverageGateway>();
+            var controller=new SubscriptionController(_cfg,_svc.Object,billingRepository:billing.Object,overageGateway:gateway.Object){ControllerContext=_ctrl.ControllerContext};
+            (await controller.TogglePayAsYouGo(new(){Enabled=true,PricingVersion="old",PricingSha256="old",MonthlyLimitUsd=50})).Should().BeOfType<ConflictObjectResult>();
+            billing.VerifyNoOtherCalls();gateway.VerifyNoOtherCalls();_svc.VerifyNoOtherCalls();
+        }
+        [Fact]
+        public async Task FreeSubscriberWithRetiredStripeIdentityIsAllowedToStartNewCheckout()
+        {
+            var user=Guid.NewGuid();SetAuthenticatedUser(user);
+            _svc.Setup(s=>s.GetSubscriptionAsync(user.ToString())).ReturnsAsync(new SubscriptionRecord{UserId=user.ToString(),PlanId="free",Status="active",StripeCustomerId="cus_retired",StripeSubscriptionId="sub_retired"});
+            var result=await _ctrl.CreateCheckoutSession(new(){PlanId="silver",SuccessUrl="https://portal.example"});
+            // The empty test key stops at Stripe setup, proving the retired subscription does not redirect into its portal.
+            result.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(500);
+            _portal.VerifyNoOtherCalls();
+        }
         private void SetAuthenticatedUser(Guid userId)
         {
             var avatarMock = new Mock<IAvatar>();

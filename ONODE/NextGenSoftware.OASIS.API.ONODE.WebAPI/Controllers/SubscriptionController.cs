@@ -27,85 +27,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         private readonly OASISSub.ISubscriptionUsageRepository _usageRepository;
         private readonly OASISSub.ISubscriptionBillingRepository _billingRepository;
 
-        // Canonical plan definitions — single source of truth for the whole controller
-        private static readonly List<PlanDto> Plans = new()
-        {
-            new PlanDto
-            {
-                Id = "free",
-                Name = "Free",
-                PriceMonthly = 0m,
-                Currency = "USD",
-                Features = new[] { "1,000 API requests/month", "100 MB storage", "Community support" },
-                MaxRequestsPerMonth = 1000,
-                MaxStorageGB = 0,
-                SupportLevel = "Community"
-            },
-            new PlanDto
-            {
-                Id = "bronze",
-                Name = "Bronze",
-                PriceMonthly = 9m,
-                Currency = "USD",
-                Features = new[] { "10,000 API requests/month", "1 GB storage", "Community support", "Basic analytics" },
-                MaxRequestsPerMonth = 10_000,
-                MaxStorageGB = 1,
-                SupportLevel = "Community"
-            },
-            new PlanDto
-            {
-                Id = "silver",
-                Name = "Silver",
-                PriceMonthly = 29m,
-                Currency = "USD",
-                Features = new[] { "100,000 API requests/month", "10 GB storage", "Email support", "Priority processing", "Advanced analytics" },
-                MaxRequestsPerMonth = 100_000,
-                MaxStorageGB = 10,
-                SupportLevel = "Email"
-            },
-            new PlanDto
-            {
-                Id = "gold",
-                Name = "Gold",
-                PriceMonthly = 99m,
-                Currency = "USD",
-                Features = new[] { "1,000,000 API requests/month", "100 GB storage", "Priority support", "Advanced analytics", "Custom integrations", "SLA guarantee" },
-                MaxRequestsPerMonth = 1_000_000,
-                MaxStorageGB = 100,
-                SupportLevel = "Priority"
-            },
-            new PlanDto
-            {
-                Id = "enterprise",
-                Name = "Enterprise",
-                PriceMonthly = 0m,
-                Currency = "USD",
-                Features = new[] { "Unlimited API requests", "Unlimited storage", "Dedicated support", "SLA & SSO", "On-premise deployment", "Custom contracts" },
-                MaxRequestsPerMonth = -1,
-                MaxStorageGB = -1,
-                SupportLevel = "Dedicated",
-                IsContactSales = true
-            }
-        };
+        private readonly OASISSub.SubscriptionPlanCatalogue _planCatalogue;
+        private readonly OASISSub.ISubscriptionBillingPortal _billingPortal;
+        private readonly OASISSub.IPaidOverageStatementStore _overages;
+        private readonly OASISSub.IPaidOverageGateway _overageGateway;
+        private readonly OASISSub.PaidOverageBillingService _overageBilling;
+        private static System.Collections.Generic.IReadOnlyList<OASISSub.SubscriptionPlanDefinition> Plans => OASISSub.SubscriptionPlanCatalogue.Definitions;
 
-        private static readonly Dictionary<string, int> PlanRequestLimits = Plans
-            .Where(p => p.MaxRequestsPerMonth > 0)
-            .ToDictionary(p => p.Id, p => p.MaxRequestsPerMonth);
-
-        public SubscriptionController(IConfiguration configuration, OASISSub.ISubscriptionService subscriptionService, OASISSub.ISubscriptionUsageRepository usageRepository = null, OASISSub.ISubscriptionBillingRepository billingRepository = null)
+        public SubscriptionController(IConfiguration configuration, OASISSub.ISubscriptionService subscriptionService, OASISSub.ISubscriptionUsageRepository usageRepository = null, OASISSub.ISubscriptionBillingRepository billingRepository = null, OASISSub.SubscriptionPlanCatalogue planCatalogue = null, OASISSub.ISubscriptionBillingPortal billingPortal = null, OASISSub.IPaidOverageStatementStore overages=null,OASISSub.IPaidOverageGateway overageGateway=null,OASISSub.PaidOverageBillingService overageBilling=null)
         {
             _configuration = configuration;
             _subscriptionService = subscriptionService;
             _usageRepository = usageRepository;
             _billingRepository = billingRepository;
+            _planCatalogue = planCatalogue ?? new OASISSub.SubscriptionPlanCatalogue(new OASISSub.StripeSubscriptionPlanPriceReader(configuration));
+            _billingPortal = billingPortal ?? new OASISSub.StripeSubscriptionBillingPortal(configuration);
+            _overages=overages;_overageGateway=overageGateway;_overageBilling=overageBilling;
         }
 
         // ── Plans ────────────────────────────────────────────────────────────
 
         [HttpGet("plans")]
-        public ActionResult GetPlans()
+        public async Task<ActionResult> GetPlans()
         {
-            return Ok(new { Result = Plans, IsError = false, Message = "Plans loaded successfully" });
+            try
+            {
+                var plans = await _planCatalogue.GetAllAsync(HttpContext?.RequestAborted ?? default);
+                return Ok(new { Result = plans, IsError = false, Message = "Plans loaded successfully" });
+            }
+            catch (Exception ex) when (ex is StripeException || ex is InvalidOperationException)
+            {
+                return StatusCode(503, new { IsError = true, Message = "Subscription prices are unavailable: " + ex.Message });
+            }
         }
 
         /// <summary>The retired counter route never authorizes or records usage.</summary>
@@ -251,8 +204,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (plan.IsContactSales)
                 return BadRequest(new { IsError = true, Message = "Enterprise plan requires contacting sales." });
 
+            string subscriberId=GetCurrentUserId();
+            if (string.IsNullOrEmpty(subscriberId)) return Unauthorized(new { IsError=true, Message="User not authenticated." });
+            var existing=await _subscriptionService.GetSubscriptionAsync(subscriberId);
+            if (existing?.PlanId!="free" && !string.IsNullOrEmpty(existing?.StripeSubscriptionId) && existing.Status is not ("canceled" or "incomplete_expired"))
+                return await BillingPortalResult(existing, request.SuccessUrl);
+
             // Free/trial plan: provision immediately without Stripe
-            if (plan.PriceMonthly == 0m)
+            if (plan.Id == "free")
             {
                 var userId = GetCurrentUserId();
                 if (string.IsNullOrEmpty(userId))
@@ -262,6 +221,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 {
                     UserId = userId,
                     PlanId = plan.Id,
+                    StripeCustomerId = existing?.StripeCustomerId,
                     Status = "active",
                     CurrentPeriodStart = DateTime.UtcNow,
                     CurrentPeriodEnd = DateTime.UtcNow.AddYears(10)
@@ -292,9 +252,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                         new() { Price = priceId, Quantity = 1 }
                     },
                     Mode = "subscription",
-                    SuccessUrl = (request.SuccessUrl ?? "https://oasisomniverse.one/checkout/success") + "?subscribed=1",
+                    SuccessUrl = CheckoutSuccessUrl(request.SuccessUrl ?? "https://oasisomniverse.one/checkout/success"),
                     CancelUrl = request.CancelUrl ?? "https://oasisomniverse.one/checkout/cancel",
-                    CustomerEmail = request.CustomerEmail,
+                    Customer = existing?.StripeCustomerId,
+                    CustomerEmail = string.IsNullOrEmpty(existing?.StripeCustomerId) ? request.CustomerEmail : null,
                     SubscriptionData = new Stripe.Checkout.SessionSubscriptionDataOptions { Metadata = new Dictionary<string, string> { { "avatar_id", avatarId }, { "plan_id", plan.Id } } },
                     Metadata = new Dictionary<string, string>
                     {
@@ -303,7 +264,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     }
                 };
 
-                var service = new Stripe.Checkout.SessionService();
+                var service = new Stripe.Checkout.SessionService(StripeClient());
                 var session = await service.CreateAsync(options);
 
                 return Ok(new CreateCheckoutSessionResponse
@@ -318,6 +279,48 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 return StatusCode(500, new { IsError = true, Message = $"Error creating checkout session: {ex.Message}" });
             }
+        }
+
+        [Authorize]
+        [HttpPost("billing/portal")]
+        public async Task<ActionResult> CreateBillingPortal([FromBody] BillingPortalRequest request)
+        {
+            var userId=GetCurrentUserId();
+            if(string.IsNullOrEmpty(userId))return Unauthorized();
+            var record=await _subscriptionService.GetSubscriptionAsync(userId);
+            if(string.IsNullOrEmpty(record?.StripeCustomerId))return BadRequest(new {IsError=true,Message="No Stripe billing account is linked to this subscriber."});
+            return await BillingPortalResult(record,request?.ReturnUrl);
+        }
+        private async Task<ActionResult> BillingPortalResult(OASISSub.SubscriptionRecord record,string returnUrl)
+        {
+            if(!Uri.TryCreate(returnUrl,UriKind.Absolute,out var target) || (target.Scheme != Uri.UriSchemeHttps && target.Scheme != Uri.UriSchemeHttp))
+                return BadRequest(new {IsError=true,Message="An absolute HTTP or HTTPS return URL is required for Stripe billing management."});
+            try
+            {
+                var session=await _billingPortal.CreateAsync(record,returnUrl,HttpContext.RequestAborted);
+                return Ok(new {IsError=false,IsBillingPortal=true,SessionId=session.Id,SessionUrl=session.Url,Message="Manage the existing subscription in Stripe billing."});
+            }
+            catch(Exception ex) when(ex is StripeException || ex is InvalidOperationException)
+            {return StatusCode(503,new {IsError=true,Message=ex.Message});}
+        }
+
+        internal static string CheckoutSuccessUrl(string url) =>
+            url + (url.Contains('?') ? "&" : "?") + "subscribed=1&session_id={CHECKOUT_SESSION_ID}";
+
+        [Authorize]
+        [HttpGet("checkout/session/{sessionId}")]
+        public async Task<IActionResult> GetCheckoutSessionStatus(string sessionId)
+        {
+            string userId = GetCurrentUserId();
+            if (!Guid.TryParseExact(userId, "D", out _)) return Unauthorized();
+            if (string.IsNullOrWhiteSpace(sessionId) || !sessionId.StartsWith("cs_", StringComparison.Ordinal))
+                return BadRequest(new { IsError=true, Message="A Stripe checkout session ID is required." });
+            var session = await new Stripe.Checkout.SessionService(StripeClient()).GetAsync(sessionId, cancellationToken: HttpContext.RequestAborted);
+            if (session.Metadata?.GetValueOrDefault("avatar_id") != userId) return Forbid();
+            var record = await _subscriptionService.GetSubscriptionAsync(userId);
+            bool activated = session.Status == "complete" && (session.PaymentStatus is "paid" or "no_payment_required") &&
+                record != null && record.StripeSubscriptionId == session.SubscriptionId && (record.Status is "active" or "trialing");
+            return Ok(new { IsError=false, session.Status, session.PaymentStatus, SubscriptionStatus=record?.Status, Activated=activated });
         }
 
         // ── Stripe Webhooks ──────────────────────────────────────────────────
@@ -338,7 +341,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 return BadRequest("Missing Stripe-Signature header.");
 
             Event stripeEvent;
-            try { stripeEvent = EventUtility.ConstructEvent(body, signature, webhookSecret, throwOnApiVersionMismatch: false); }
+            try { stripeEvent = EventUtility.ConstructEvent(body, signature, webhookSecret, throwOnApiVersionMismatch: true); }
             catch (Exception ex) when (ex is StripeException || ex is JsonException || ex is ArgumentException)
             { return BadRequest(new { IsError = true, Code = "INVALID_STRIPE_WEBHOOK", ex.Message }); }
             try
@@ -370,6 +373,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 case "customer.subscription.updated":
                 case "customer.subscription.deleted":
                     var subscription = RequireStripeObject<Stripe.Subscription>(stripeEvent);
+                    var sourceScope=subscription.Metadata?.GetValueOrDefault("oasis_ledger_scope");
+                    if(!string.IsNullOrEmpty(sourceScope) && sourceScope!=OASISSub.SubscriptionMongoConfiguration.DatabaseName(_configuration))return "other_ledger_subscription";
                     subscriptionId = subscription.Id;
                     userId = subscription.Metadata?.GetValueOrDefault("avatar_id");
                     if (string.IsNullOrEmpty(userId))
@@ -379,12 +384,25 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 case "invoice.payment_succeeded":
                 case "invoice.payment_failed":
                     invoice = RequireStripeObject<Invoice>(stripeEvent);
-                    if (string.IsNullOrWhiteSpace(invoice.SubscriptionId)) return "non_subscription_invoice";
+                    if (string.IsNullOrWhiteSpace(invoice.SubscriptionId))
+                    {
+                        if(invoice.Metadata?.GetValueOrDefault("oasis_usage_cost_basis")!=OASISSub.StripePaidOverageGateway.CostBasis)return "non_subscription_invoice";
+                        if(invoice.Metadata?.GetValueOrDefault("oasis_ledger_scope")!=OASISSub.SubscriptionMongoConfiguration.DatabaseName(_configuration))return "other_ledger_overage_invoice";
+                        var statementId=invoice.Metadata.GetValueOrDefault("oasis_overage_statement_id");
+                        var statement=await _overages.GetStatementAsync(statementId,HttpContext.RequestAborted)
+                            ?? throw new InvalidOperationException("Signed overage invoice has no immutable statement; retry after billing persistence.");
+                        var canonicalInvoice=await _overageGateway.GetAsync(statement,invoice.Id,HttpContext.RequestAborted);
+                        string sourceHash=Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(rawBody)));
+                        await _overages.RecordInvoiceAsync(statement.Id,null,canonicalInvoice,stripeEvent.Id,sourceHash,HttpContext.RequestAborted);
+                        return "overage_invoice_applied";
+                    }
                     subscriptionId = invoice.SubscriptionId;
                     userId = (await _subscriptionService.GetSubscriptionByStripeSubscriptionIdAsync(subscriptionId))?.UserId;
                     if (string.IsNullOrEmpty(userId))
                     {
                         var invoiceSubscription = await new Stripe.SubscriptionService(StripeClient()).GetAsync(subscriptionId, cancellationToken: HttpContext.RequestAborted);
+                        var invoiceScope=invoiceSubscription.Metadata?.GetValueOrDefault("oasis_ledger_scope");
+                        if(!string.IsNullOrEmpty(invoiceScope) && invoiceScope!=OASISSub.SubscriptionMongoConfiguration.DatabaseName(_configuration))return "other_ledger_subscription_invoice";
                         userId = invoiceSubscription.Metadata?.GetValueOrDefault("avatar_id");
                     }
                     break;
@@ -395,11 +413,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             OASISSub.OrderRecord order = null;
             if (stripeEvent.Type is "invoice.paid" or "invoice.payment_succeeded")
             {
-                if (invoice.Status != "paid" || !invoice.Paid || invoice.Currency != "usd")
-                    throw new InvalidOperationException("This billing catalogue requires a paid USD invoice with an actual Stripe amount.");
-                var invoicedPlans = Plans.Where(plan => invoice.Lines?.Data?.Any(line => line.Price?.Id == GetStripePriceId(plan.Id) && !string.IsNullOrEmpty(line.Price?.Id)) == true).ToList();
-                order = new OASISSub.OrderRecord { UserId = userId, PlanId = invoicedPlans.Count == 1 ? invoicedPlans[0].Id : null, StripeInvoiceId = invoice.Id, Amount = invoice.AmountPaid / 100m,
-                    Currency = "USD", Status = "paid", Description = "Stripe subscription invoice", CreatedAt = invoice.Created };
+                if (invoice.Status != "paid" || !invoice.Paid || string.IsNullOrWhiteSpace(invoice.Currency))
+                    throw new InvalidOperationException("A paid invoice with its actual Stripe amount and currency is required.");
+                var invoicedPlans = Plans.Where(plan => invoice.Lines?.Data?.Any(line => line.Amount > 0 && line.Price?.Id == GetStripePriceId(plan.Id) && !string.IsNullOrEmpty(line.Price?.Id)) == true).ToList();
+                order = new OASISSub.OrderRecord { UserId = userId, PlanId = invoicedPlans.Count == 1 ? invoicedPlans[0].Id : null, StripeInvoiceId = invoice.Id, Amount = OASISSub.StripeAmount.FromMinorUnits(invoice.AmountPaid, invoice.Currency),
+                    Currency = invoice.Currency.ToUpperInvariant(), Status = "paid", Description = "Stripe subscription invoice", CreatedAt = invoice.Created };
             }
             string fingerprint = Convert.ToHexStringLower(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(rawBody)));
             bool applied = await _billingRepository.ApplyStripeEventAsync(stripeEvent.Id, fingerprint, userId, stripeEvent.Created, async ct =>
@@ -413,7 +431,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
                 return new OASISSub.SubscriptionRecord { UserId = userId, PlanId = matchingPlans[0].Id, Status = canonical.Status,
                     StripeCustomerId = canonical.CustomerId, StripeSubscriptionId = canonical.Id, StripeSubscriptionCreatedAtUtc = canonical.Created,
-                    CurrentPeriodStart = canonical.CurrentPeriodStart, CurrentPeriodEnd = canonical.CurrentPeriodEnd, CreatedAt = canonical.Created };
+                    CurrentPeriodStart = canonical.CurrentPeriodStart, CurrentPeriodEnd = canonical.CurrentPeriodEnd, CancelAtPeriodEnd=canonical.CancelAtPeriodEnd, CreatedAt = canonical.Created };
             }, order, HttpContext.RequestAborted);
             return applied ? "applied" : "already_applied";
         }
@@ -450,7 +468,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     record.PlanId,
                     PlanName = plan?.Name ?? record.PlanId,
                     record.Status,
-                    RenewsOn = record.CurrentPeriodEnd,
+                    RenewsOn = record.CancelAtPeriodEnd ? (DateTime?)null : record.CurrentPeriodEnd,
+                    EndsOn = record.CancelAtPeriodEnd ? record.CurrentPeriodEnd : (DateTime?)null,
+                    record.CancelAtPeriodEnd,
                     record.StripeCustomerId,
                     record.StripeSubscriptionId,
                     record.CurrentPeriodStart,
@@ -490,18 +510,70 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized(new { IsError = true, Message = "User not authenticated." });
 
-            await _subscriptionService.SetPayAsYouGoAsync(userId, request.Enabled);
+            if(request.Enabled)
+            {
+                if(string.IsNullOrWhiteSpace(request.PricingVersion) || string.IsNullOrWhiteSpace(request.PricingSha256) || request.MonthlyLimitUsd<0.50m || request.MonthlyLimitUsd>1000000m)
+                    return BadRequest(new {IsError=true,Code="OVERAGE_CONSENT_REQUIRED",Message="Review the published USD prices and choose a monthly spending cap before enabling paid overages."});
+                try
+                {
+                    var prices=OASISSub.PaidOveragePricing.Load();
+                    if(request.PricingVersion!=prices.Version || request.PricingSha256!=prices.PricingSha256)return Conflict(new {IsError=true,Code="OVERAGE_TERMS_CHANGED",Message="Review the current overage prices."});
+                    var record=await _subscriptionService.GetSubscriptionAsync(userId);
+                    if(string.IsNullOrWhiteSpace(record?.StripeSubscriptionId))return BadRequest(new {IsError=true,Message="An active paid Stripe subscription is required."});
+                    prices.Rate(record.PlanId);
+                    await _overageGateway.VerifyPaymentReadyAsync(record,HttpContext.RequestAborted);
+                    await _billingRepository.SetPaidOverageConsentAsync(userId,record.StripeSubscriptionId,prices.Version,request.PricingSha256,request.MonthlyLimitUsd,HttpContext.RequestAborted);
+                }
+                catch(OASISSub.SubscriptionUsageConflictException ex){return Conflict(new {IsError=true,ex.Message});}
+                catch(Exception ex) when(ex is InvalidOperationException || ex is StripeException || ex is ArgumentException)
+                {return BadRequest(new {IsError=true,ex.Message});}
+            }
+            else await _subscriptionService.SetPayAsYouGoAsync(userId,false);
 
             return Ok(new
             {
                 IsError = false,
                 Success = true,
                 PayAsYouGoEnabled = request.Enabled,
-                Message = request.Enabled
-                    ? "Pay-as-you-go enabled. Requests over your plan limit will be billed per-request."
-                    : "Pay-as-you-go disabled. Requests will stop at your plan limit."
+                Message = request.Enabled ? "USD paid overages enabled with the agreed spending cap." : "Paid overages disabled for future operations; existing authorized charges remain payable."
             });
         }
+
+        [Authorize]
+        [HttpGet("overages/statements")]
+        public async Task<ActionResult> GetOverageStatements()
+        {
+            var user=GetCurrentUserId();if(string.IsNullOrWhiteSpace(user))return Unauthorized();
+            return Ok(await _overages.GetStatementsAsync(user,100,HttpContext.RequestAborted));
+        }
+        [Authorize]
+        [HttpGet("overages/admin/statements")]
+        public async Task<ActionResult> GetOverageStatementsAdmin([FromQuery]string userId=null)
+        {
+            try {OASISSub.SubscriptionServiceIdentity.RequireAdministrator(HttpContext,_configuration);}
+            catch(UnauthorizedAccessException){return StatusCode(403);}
+            return Ok(await _overages.GetStatementsAsync(userId,100,HttpContext.RequestAborted));
+        }
+        [Authorize]
+        [HttpPost("overages/pay-now")]
+        public async Task<ActionResult> PayOveragesNow([FromBody]PayOveragesRequest request)
+        {
+            var user=GetCurrentUserId();if(string.IsNullOrWhiteSpace(user))return Unauthorized();
+            if(request==null || !Guid.TryParseExact(request.BillingRequestId,"D",out _))return BadRequest(new {IsError=true,Message="A unique billing request UUID is required."});
+            try
+            {
+                var statement=await _overages.PrepareAsync(user,request.Month ?? DateTime.UtcNow.ToString("yyyy-MM"),request.BillingRequestId,HttpContext.RequestAborted);
+                if(statement==null)return Ok(new {IsError=false,Message="There are no uninvoiced paid overages."});
+                return Ok(new {IsError=false,Statement=await _overageBilling.CollectAsync(statement,HttpContext.RequestAborted)});
+            }
+            catch(Exception ex) when(ex is ArgumentException || ex is FormatException || ex is OASISSub.SubscriptionUsageConflictException)
+            {return BadRequest(new {IsError=true,ex.Message});}
+            catch(Exception ex){return StatusCode(503,new {IsError=true,Message="Overage collection is pending. Do not repeat provider work. "+ex.Message});}
+        }
+        public sealed class PayOveragesRequest {public string BillingRequestId {get;set;} public string Month {get;set;}}
+
+        [HttpGet("overages/prices")]
+        public ActionResult GetPaidOveragePrices() => Ok(OASISSub.PaidOveragePricing.Load());
 
         // ── Usage ─────────────────────────────────────────────────────────────
 
@@ -519,6 +591,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             var planId = record?.PlanId ?? "free";
             var plan = Plans.FirstOrDefault(p => p.Id == planId);
             var limit = plan?.MaxRequestsPerMonth ?? 1000;
+            var ledger = _usageRepository == null ? null : await _usageRepository.GetAggregateForPeriodAsync(userId,new DateTime(now.Year,now.Month,1,0,0,0,DateTimeKind.Utc),HttpContext.RequestAborted);
 
             return Ok(new
             {
@@ -527,12 +600,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     requests = usage.RequestCount,
                     limit,
                     remaining = limit < 0 ? -1 : Math.Max(0, limit - usage.RequestCount),
-                    overage = Math.Max(0, usage.RequestCount - limit)
+                    overage = limit < 0 ? 0 : Math.Max(0, usage.RequestCount - limit)
                 },
-                payAsYouGoEnabled = record?.PayAsYouGoEnabled ?? false,
+                payAsYouGoEnabled = OASISSub.PaidOveragePricing.HasConsent(record),
+                payAsYouGoAvailable = record?.StripeSubscriptionId != null && record.Status is "active" or "trialing",
+                paidOverageTermsVersion = record?.PaidOverageTermsVersion,
+                monthlyOverageLimitUsd = record?.MonthlyOverageLimitUsd ?? 0,
+                overagePaymentBlocked = record?.OveragePaymentBlocked ?? false,
+                includedAiBudgetUsd = OASISSub.SubscriptionService.GetUsagePolicy(planId,0).MonthlyBudgetUsd,
                 overageCharges = new
                 {
-                    currentMonth = usage.OverageCount * OveragePriceFor(planId),
+                    currentMonth = ledger?.SettledOverageUsd ?? 0,
+                    reservedUsd = ledger?.ReservedOverageUsd ?? 0,
+                    isSupported = true,
                     currency = "USD"
                 },
                 subscription = new
@@ -555,6 +635,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (request == null)
                 return BadRequest(new OASISResult<bool> { IsError = true, Message = "Request body required." });
 
+            // This endpoint changes server-wide DNA, never a subscriber's purchased plan.
+            try { OASISSub.SubscriptionServiceIdentity.RequireAdministrator(HttpContext, _configuration); }
+            catch (UnauthorizedAccessException ex)
+            { return StatusCode(403, new OASISResult<bool> { IsError = true, Message = ex.Message }); }
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -694,15 +778,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             return result.Result.Karma > int.MaxValue ? int.MaxValue : (int)Math.Max(0, result.Result.Karma);
         }
 
-        private static decimal OveragePriceFor(string planId) => planId switch
-        {
-            "bronze" => 0.001m,
-            "silver" => 0.0005m,
-            "gold" => 0.0002m,
-            "enterprise" => 0.0001m,
-            _ => 0m
-        };
-
         private static HyperDriveLimits HyperDriveLimitsFor(string planType) => planType?.ToLower() switch
         {
             "bronze" or "basic" => new HyperDriveLimits { MaxReplications = 1000, MaxFailovers = 100, MaxStorageGB = 1, CostThreshold = 10, CostPerReplication = 0.01m, CostPerFailover = 0.05m, CostPerGB = 0.10m },
@@ -774,22 +849,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         // ── DTOs / inner types ───────────────────────────────────────────────
 
-        public class PlanDto
-        {
-            public string Id { get; set; }
-            public string Name { get; set; }
-            public decimal PriceMonthly { get; set; }
-            public decimal Price => PriceMonthly;   // portal reads p.Price
-            public decimal Amount => PriceMonthly;  // portal reads p.amount
-            public string Interval { get; set; } = "month";
-            public string Currency { get; set; }
-            public string[] Features { get; set; }
-            public bool IsContactSales { get; set; }
-            public int MaxRequestsPerMonth { get; set; }
-            public int MaxStorageGB { get; set; }
-            public string SupportLevel { get; set; }
-        }
-
         public class CreateCheckoutSessionRequest
         {
             [Required]
@@ -812,7 +871,11 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         public class TogglePayAsYouGoRequest
         {
             public bool Enabled { get; set; }
+            public string PricingVersion { get; set; }
+            public string PricingSha256 { get; set; }
+            public decimal MonthlyLimitUsd { get; set; }
         }
+        public sealed class BillingPortalRequest { public string ReturnUrl { get; set; } }
 
         public class UpdateHyperDriveConfigRequest
         {

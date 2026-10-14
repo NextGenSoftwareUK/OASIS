@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Encodings.Web;
 using System.Threading.Tasks;
+using System.Threading;
 using FluentAssertions;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Hosting;
@@ -183,6 +184,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
         public Mock<ISubscriptionService> SvcMock { get; } = new();
         public Mock<ISubscriptionUsageRepository> UsageRepositoryMock { get; } = new();
         public Mock<ISubscriptionBillingRepository> BillingRepositoryMock { get; } = new();
+        public Mock<ISubscriptionPlanPriceReader> PriceReaderMock { get; } = new();
+        public Mock<IPaidOverageStatementStore> OverageStoreMock { get; } = new();
+        public Mock<IPaidOverageGateway> OverageGatewayMock { get; } = new();
 
         public SubscriptionWebAppFactory()
         {
@@ -199,6 +203,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
                    .Returns(Task.CompletedTask);
             SvcMock.Setup(s => s.SetPayAsYouGoAsync(It.IsAny<string>(), It.IsAny<bool>()))
                    .Returns(Task.CompletedTask);
+            PriceReaderMock.Setup(p => p.GetAsync(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                           .ReturnsAsync(new SubscriptionPlanPrice(10m, "USD", "month"));
         }
 
         protected override void ConfigureWebHost(IWebHostBuilder builder)
@@ -210,10 +216,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.IntegrationTests.Subscription
                 services.RemoveAll<ISubscriptionService>();
                 services.RemoveAll<ISubscriptionUsageRepository>();
                 services.RemoveAll<ISubscriptionBillingRepository>();
+                services.RemoveAll<ISubscriptionPlanPriceReader>();
+                services.RemoveAll<SubscriptionPlanCatalogue>();
+                services.RemoveAll<IPaidOverageStatementStore>();
+                services.RemoveAll<IPaidOverageGateway>();
                 services.RemoveAll<Microsoft.Extensions.Hosting.IHostedService>();
                 services.AddSingleton(SvcMock.Object);
                 services.AddSingleton(UsageRepositoryMock.Object);
                 services.AddSingleton(BillingRepositoryMock.Object);
+                services.AddSingleton(PriceReaderMock.Object);
+                services.AddSingleton(new SubscriptionPlanCatalogue(PriceReaderMock.Object));
+                services.AddSingleton(OverageStoreMock.Object);
+                services.AddSingleton(OverageGatewayMock.Object);
 
                 services.AddAuthentication(options =>
                     {

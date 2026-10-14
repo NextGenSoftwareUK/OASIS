@@ -1,0 +1,11 @@
+{
+  "version": "oasis-paid-overages-2026-10-14-v1",
+  "currency": "USD",
+  "aiMargin": 0,
+  "requestRatesUsd": {
+    "bronze": 0.001,
+    "silver": 0.0005,
+    "gold": 0.0002,
+    "enterprise": 0.0001
+  }
+}

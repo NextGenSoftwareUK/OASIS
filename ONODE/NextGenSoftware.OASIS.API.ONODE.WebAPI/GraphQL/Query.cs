@@ -812,44 +812,38 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
         }
 
         // Subscription
-        public async Task<string> GetSubscriptionPlans([Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService)
+        public async Task<string> GetSubscriptionPlans([Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.SubscriptionPlanCatalogue catalogue)
         {
-            var plans = new[] {
-                new { id = "free", name = "Free", priceMonthly = 0 },
-                new { id = "bronze", name = "Bronze", priceMonthly = 9 },
-                new { id = "silver", name = "Silver", priceMonthly = 29 },
-                new { id = "gold", name = "Gold", priceMonthly = 99 }
-            };
-            return System.Text.Json.JsonSerializer.Serialize(plans);
+            return System.Text.Json.JsonSerializer.Serialize(await catalogue.GetAllAsync());
         }
 
-        public async Task<string> GetMySubscription(string userId, [Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService)
+        public async Task<string> GetMySubscription(string userId, [Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService, [Service] Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor)
         {
-            var r = await subscriptionService.GetSubscriptionAsync(userId);
+            var r = await subscriptionService.GetSubscriptionAsync(NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.SubscriptionServiceIdentity.RequireSubscriber(httpContextAccessor.HttpContext, userId));
             return System.Text.Json.JsonSerializer.Serialize(r);
         }
 
-        public async Task<string> GetMyOrders(string userId, [Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService)
+        public async Task<string> GetMyOrders(string userId, [Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService, [Service] Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor)
         {
-            var r = await subscriptionService.GetOrdersAsync(userId);
+            var r = await subscriptionService.GetOrdersAsync(NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.SubscriptionServiceIdentity.RequireSubscriber(httpContextAccessor.HttpContext, userId));
             return System.Text.Json.JsonSerializer.Serialize(r);
         }
 
-        public async Task<string> GetUsage(string userId, [Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService)
+        public async Task<string> GetUsage(string userId, [Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService, [Service] Microsoft.AspNetCore.Http.IHttpContextAccessor httpContextAccessor)
         {
             var now = DateTime.UtcNow;
-            var r = await subscriptionService.GetUsageAsync(userId, now.Year, now.Month);
+            var r = await subscriptionService.GetUsageAsync(NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.SubscriptionServiceIdentity.RequireSubscriber(httpContextAccessor.HttpContext, userId), now.Year, now.Month);
             return System.Text.Json.JsonSerializer.Serialize(r);
         }
 
         public Task<string> GetHyperDriveUsage(string userId, [Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService)
         {
-            return Task.FromResult("{}");
+            throw new NotSupportedException("HyperDrive usage is available through the authenticated REST subscription API.");
         }
 
         public Task<bool> CheckHyperDriveQuota(string userId, [Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService)
         {
-            return Task.FromResult(true);
+            throw new NotSupportedException("HyperDrive quota checks require an operation type through the authenticated REST subscription API.");
         }
     }
 
