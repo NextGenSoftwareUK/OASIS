@@ -133,6 +133,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
                 {
                     var groups = searchParams.SearchGroups;
+                    if (groups.Skip(1).Any(group => group == null || !Enum.IsDefined(typeof(SearchParamGroupOperator), group.PreviousSearchGroupOperator)))
+                        throw new ArgumentException("Invalid search group operator.");
                     foreach (var group in groups)
                     {
                         if (group is not ISearchTextGroup && group is not ISearchNumberGroup)
