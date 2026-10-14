@@ -8,6 +8,29 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 public class LocalUsageReservationAuthorityTests
 {
     [Fact]
+    public async Task DurableDeliveryUsesExactReservationWithoutHttpContext()
+    {
+        var user=Guid.NewGuid().ToString("D");var operation=Guid.NewGuid().ToString("D");
+        var service=new Mock<ISubscriptionService>(MockBehavior.Strict);
+        var repository=new Mock<ISubscriptionUsageRepository>(MockBehavior.Strict);
+        var start=new UsageStartRequest{UserId=user,OperationId=operation,ConsumingService="WEB4"};
+        var settlement=new UsageSettlementRequest{UserId=user,OperationId=operation,ConsumingService="WEB4"};
+        var started=new UsageStartResult{OperationId=operation,Started=true};
+        var settled=new UsageSettlementResult{OperationId=operation,Settled=true};
+        repository.Setup(x=>x.StartAsync(start,CancellationToken.None)).ReturnsAsync(started);
+        service.Setup(x=>x.SettleUsageAsync(user,settlement,CancellationToken.None)).ReturnsAsync(settled);
+        var authority=new LocalUsageReservationAuthority(service.Object,repository.Object,new HttpContextAccessor(),
+            (_,_)=>throw new InvalidOperationException("Background delivery must not reload avatar karma."));
+        Assert.Same(started,await authority.StartUsageAsync(start));
+        Assert.Same(settled,await authority.SettleUsageAsync(settlement));
+        repository.VerifyAll();service.VerifyAll();
+        using var canceled=new CancellationTokenSource();canceled.Cancel();
+        await Assert.ThrowsAsync<OperationCanceledException>(async()=>await authority.StartUsageAsync(start,canceled.Token));
+        await Assert.ThrowsAsync<OperationCanceledException>(async()=>await authority.SettleUsageAsync(settlement,canceled.Token));
+        repository.Verify(x=>x.StartAsync(It.IsAny<UsageStartRequest>(),It.IsAny<CancellationToken>()),Times.Once);
+        service.Verify(x=>x.SettleUsageAsync(It.IsAny<string>(),It.IsAny<UsageSettlementRequest>(),It.IsAny<CancellationToken>()),Times.Once);
+    }
+    [Fact]
     public async Task AdmissionUsesAuthenticatedAvatarAndAuthoritativeKarma()
     {
         var id=Guid.NewGuid();var context=new DefaultHttpContext();
