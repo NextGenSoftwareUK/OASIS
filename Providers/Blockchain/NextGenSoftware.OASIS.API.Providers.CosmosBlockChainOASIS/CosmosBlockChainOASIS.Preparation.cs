@@ -10,6 +10,24 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
 
 public partial class CosmosBlockChainOASIS
 {
+    /// <summary>Read only: verify persisted original signed identity before native fee recovery lookup.</summary>
+    public async Task<NextGenSoftware.OASIS.Common.OASISResult<JsonElement>> GetPreparedNativeFeeReceiptAsync(
+        UsageProviderAttempt attempt,CancellationToken token=default)
+    {
+        var result=new NextGenSoftware.OASIS.Common.OASISResult<JsonElement>();
+        try{
+            ArgumentNullException.ThrowIfNull(attempt);
+            if(attempt.Provider!="CosmosBlockChainOASIS"||attempt.NativePreparation==null
+                ||string.IsNullOrWhiteSpace(attempt.ProviderRequestId)||attempt.NativePreparation.ChainId!=_sdkBackend.ChainId)
+                throw new InvalidDataException("Prepared Cosmos attempt must bind this provider, original hash and configured chain.");
+            var preparation=attempt.NativePreparation;
+            await VerifyOriginalSignedPreparationAsync(JsonSerializer.SerializeToElement(new{
+                transactionHash=attempt.ProviderRequestId,chainId=preparation.ChainId,sender=preparation.Sender,
+                signedTransactionBase64=preparation.SignedTransactionBase64,signDocBase64=preparation.SignDocBase64}),token);
+            return await GetNativeFeeReceiptAsync(attempt.ProviderRequestId,token);
+        }catch(Exception failure){NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,failure.Message,failure);}
+        return result;
+    }
     /// <summary>Bind all storage writes in this admitted operation to the existing durable usage owner.
     /// Each native write has its own original signed identity; this does not settle fees or resolve prior attempts.</summary>
     public async Task<T> ExecutePreparedStorageAsync<T>(Func<Task<T>> operation, UsageExecutionHandle execution,
