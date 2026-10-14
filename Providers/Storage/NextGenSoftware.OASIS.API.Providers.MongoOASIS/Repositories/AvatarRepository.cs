@@ -565,7 +565,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             return result;
         }
 
-        public async Task<OASISResult<bool>> DeleteAsync(Guid id, bool softDelete = true)
+        public Task<OASISResult<bool>> DeleteAsync(Guid id, bool softDelete = true) => DeleteGraphAsync(id, softDelete, false);
+        public Task<OASISResult<bool>> DeleteDetailAsync(Guid id, bool softDelete = true) => DeleteGraphAsync(id, softDelete, true);
+
+        private async Task<OASISResult<bool>> DeleteGraphAsync(Guid id, bool softDelete, bool detailOnly)
         {
             var result = new OASISResult<bool>();
             try
@@ -575,32 +578,54 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 bool commitAttempted = false;
                 try
                 {
-                    var avatar = await _dbContext.Avatar.Find(session, x => x.HolonId == id).FirstOrDefaultAsync();
-                    if (avatar == null) throw new InvalidOperationException("Avatar deletion matched no persisted identity.");
-                    if (softDelete)
+                    if (detailOnly)
                     {
-                        if (avatar.DeletedDate != DateTime.MinValue)
-                            throw new InvalidOperationException("Avatar is already soft deleted.");
-                        var detail = await _dbContext.AvatarDetail.Find(session, x => x.HolonId == id).FirstOrDefaultAsync();
-                        if (detail == null) throw new InvalidOperationException("Avatar detail deletion matched no persisted identity.");
-                        var deletedDate = DateTime.UtcNow;
-                        avatar.DeletedDate = deletedDate;
-                        detail.DeletedDate = deletedDate;
-                        var avatarWrite = await _dbContext.Avatar.ReplaceOneAsync(session, x => x.HolonId == id, avatar);
-                        var detailWrite = await _dbContext.AvatarDetail.ReplaceOneAsync(session, x => x.HolonId == id, detail);
-                        if (!avatarWrite.IsAcknowledged || avatarWrite.MatchedCount != 1 || !detailWrite.IsAcknowledged || detailWrite.MatchedCount != 1)
-                            throw new InvalidOperationException("Soft deletion did not acknowledge both persisted identities.");
+                        var matches = await _dbContext.AvatarDetail.Find(session, x => x.HolonId == id).Limit(2).ToListAsync();
+                        if (matches.Count > 1) throw new StorageIdentityAmbiguousException();
+                        var detail = matches.SingleOrDefault() ?? throw new InvalidOperationException("Avatar detail deletion matched no persisted identity.");
+                        if (softDelete)
+                        {
+                            detail.IsActive = false;
+                            detail.DeletedDate = DateTime.UtcNow;
+                            var write = await _dbContext.AvatarDetail.ReplaceOneAsync(session, x => x.Id == detail.Id, detail);
+                            if (!write.IsAcknowledged || write.MatchedCount != 1) throw new InvalidOperationException("Detail soft deletion was not acknowledged.");
+                        }
+                        else
+                        {
+                            var write = await _dbContext.AvatarDetail.DeleteOneAsync(session, x => x.Id == detail.Id);
+                            if (!write.IsAcknowledged || write.DeletedCount != 1) throw new InvalidOperationException("Detail hard deletion was not acknowledged.");
+                        }
                     }
                     else
                     {
-                        var avatarWrite = await _dbContext.Avatar.DeleteOneAsync(session, x => x.HolonId == id);
-                        var detailWrite = await _dbContext.AvatarDetail.DeleteOneAsync(session, x => x.HolonId == id);
-                        if (!avatarWrite.IsAcknowledged || avatarWrite.DeletedCount != 1 || !detailWrite.IsAcknowledged)
-                            throw new InvalidOperationException("Permanent deletion was not acknowledged.");
+                        var avatar = await _dbContext.Avatar.Find(session, x => x.HolonId == id).FirstOrDefaultAsync();
+                        if (avatar == null) throw new InvalidOperationException("Avatar deletion matched no persisted identity.");
+                        if (softDelete)
+                        {
+                            if (avatar.DeletedDate != DateTime.MinValue)
+                                throw new InvalidOperationException("Avatar is already soft deleted.");
+                            var detail = await _dbContext.AvatarDetail.Find(session, x => x.HolonId == id).FirstOrDefaultAsync();
+                            if (detail == null) throw new InvalidOperationException("Avatar detail deletion matched no persisted identity.");
+                            var deletedDate = DateTime.UtcNow;
+                            avatar.DeletedDate = deletedDate;
+                            detail.DeletedDate = deletedDate;
+                            var avatarWrite = await _dbContext.Avatar.ReplaceOneAsync(session, x => x.HolonId == id, avatar);
+                            var detailWrite = await _dbContext.AvatarDetail.ReplaceOneAsync(session, x => x.HolonId == id, detail);
+                            if (!avatarWrite.IsAcknowledged || avatarWrite.MatchedCount != 1 || !detailWrite.IsAcknowledged || detailWrite.MatchedCount != 1)
+                                throw new InvalidOperationException("Soft deletion did not acknowledge both persisted identities.");
+                        }
+                        else
+                        {
+                            var avatarWrite = await _dbContext.Avatar.DeleteOneAsync(session, x => x.HolonId == id);
+                            var detailWrite = await _dbContext.AvatarDetail.DeleteOneAsync(session, x => x.HolonId == id);
+                            if (!avatarWrite.IsAcknowledged || avatarWrite.DeletedCount != 1 || !detailWrite.IsAcknowledged)
+                                throw new InvalidOperationException("Permanent deletion was not acknowledged.");
+                        }
                     }
                     commitAttempted = true;
                     await session.CommitTransactionAsync();
                     result.Result = true;
+                    result.IsDeleted = true;
                 }
                 catch (Exception ex)
                 {
@@ -608,6 +633,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         ? new MongoTransactionReconciliationException(session.ServerSession.Id.ToJson(), session.WrappedCoreSession.CurrentTransaction.TransactionNumber, ex)
                         : ex;
                     OASISErrorHandling.HandleError(ref result, "MongoDB avatar deletion failed.", evidence);
+                    if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
                     if (session.IsInTransaction) await session.AbortTransactionAsync();
                 }
             }
@@ -620,7 +646,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             return result;
         }
 
-        public OASISResult<bool> Delete(Guid id, bool softDelete = true)
+        public OASISResult<bool> Delete(Guid id, bool softDelete = true) => DeleteGraph(id, softDelete, false);
+        public OASISResult<bool> DeleteDetail(Guid id, bool softDelete = true) => DeleteGraph(id, softDelete, true);
+
+        private OASISResult<bool> DeleteGraph(Guid id, bool softDelete, bool detailOnly)
         {
             var result = new OASISResult<bool>();
             try
@@ -630,32 +659,54 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 bool commitAttempted = false;
                 try
                 {
-                    var avatar = _dbContext.Avatar.Find(session, x => x.HolonId == id).FirstOrDefault();
-                    if (avatar == null) throw new InvalidOperationException("Avatar deletion matched no persisted identity.");
-                    if (softDelete)
+                    if (detailOnly)
                     {
-                        if (avatar.DeletedDate != DateTime.MinValue)
-                            throw new InvalidOperationException("Avatar is already soft deleted.");
-                        var detail = _dbContext.AvatarDetail.Find(session, x => x.HolonId == id).FirstOrDefault();
-                        if (detail == null) throw new InvalidOperationException("Avatar detail deletion matched no persisted identity.");
-                        var deletedDate = DateTime.UtcNow;
-                        avatar.DeletedDate = deletedDate;
-                        detail.DeletedDate = deletedDate;
-                        var avatarWrite = _dbContext.Avatar.ReplaceOne(session, x => x.HolonId == id, avatar);
-                        var detailWrite = _dbContext.AvatarDetail.ReplaceOne(session, x => x.HolonId == id, detail);
-                        if (!avatarWrite.IsAcknowledged || avatarWrite.MatchedCount != 1 || !detailWrite.IsAcknowledged || detailWrite.MatchedCount != 1)
-                            throw new InvalidOperationException("Soft deletion did not acknowledge both persisted identities.");
+                        var matches = _dbContext.AvatarDetail.Find(session, x => x.HolonId == id).Limit(2).ToList();
+                        if (matches.Count > 1) throw new StorageIdentityAmbiguousException();
+                        var detail = matches.SingleOrDefault() ?? throw new InvalidOperationException("Avatar detail deletion matched no persisted identity.");
+                        if (softDelete)
+                        {
+                            detail.IsActive = false;
+                            detail.DeletedDate = DateTime.UtcNow;
+                            var write = _dbContext.AvatarDetail.ReplaceOne(session, x => x.Id == detail.Id, detail);
+                            if (!write.IsAcknowledged || write.MatchedCount != 1) throw new InvalidOperationException("Detail soft deletion was not acknowledged.");
+                        }
+                        else
+                        {
+                            var write = _dbContext.AvatarDetail.DeleteOne(session, x => x.Id == detail.Id);
+                            if (!write.IsAcknowledged || write.DeletedCount != 1) throw new InvalidOperationException("Detail hard deletion was not acknowledged.");
+                        }
                     }
                     else
                     {
-                        var avatarWrite = _dbContext.Avatar.DeleteOne(session, x => x.HolonId == id);
-                        var detailWrite = _dbContext.AvatarDetail.DeleteOne(session, x => x.HolonId == id);
-                        if (!avatarWrite.IsAcknowledged || avatarWrite.DeletedCount != 1 || !detailWrite.IsAcknowledged)
-                            throw new InvalidOperationException("Permanent deletion was not acknowledged.");
+                        var avatar = _dbContext.Avatar.Find(session, x => x.HolonId == id).FirstOrDefault();
+                        if (avatar == null) throw new InvalidOperationException("Avatar deletion matched no persisted identity.");
+                        if (softDelete)
+                        {
+                            if (avatar.DeletedDate != DateTime.MinValue)
+                                throw new InvalidOperationException("Avatar is already soft deleted.");
+                            var detail = _dbContext.AvatarDetail.Find(session, x => x.HolonId == id).FirstOrDefault();
+                            if (detail == null) throw new InvalidOperationException("Avatar detail deletion matched no persisted identity.");
+                            var deletedDate = DateTime.UtcNow;
+                            avatar.DeletedDate = deletedDate;
+                            detail.DeletedDate = deletedDate;
+                            var avatarWrite = _dbContext.Avatar.ReplaceOne(session, x => x.HolonId == id, avatar);
+                            var detailWrite = _dbContext.AvatarDetail.ReplaceOne(session, x => x.HolonId == id, detail);
+                            if (!avatarWrite.IsAcknowledged || avatarWrite.MatchedCount != 1 || !detailWrite.IsAcknowledged || detailWrite.MatchedCount != 1)
+                                throw new InvalidOperationException("Soft deletion did not acknowledge both persisted identities.");
+                        }
+                        else
+                        {
+                            var avatarWrite = _dbContext.Avatar.DeleteOne(session, x => x.HolonId == id);
+                            var detailWrite = _dbContext.AvatarDetail.DeleteOne(session, x => x.HolonId == id);
+                            if (!avatarWrite.IsAcknowledged || avatarWrite.DeletedCount != 1 || !detailWrite.IsAcknowledged)
+                                throw new InvalidOperationException("Permanent deletion was not acknowledged.");
+                        }
                     }
                     commitAttempted = true;
                     session.CommitTransaction();
                     result.Result = true;
+                    result.IsDeleted = true;
                 }
                 catch (Exception ex)
                 {
@@ -663,6 +714,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         ? new MongoTransactionReconciliationException(session.ServerSession.Id.ToJson(), session.WrappedCoreSession.CurrentTransaction.TransactionNumber, ex)
                         : ex;
                     OASISErrorHandling.HandleError(ref result, "MongoDB avatar deletion failed.", evidence);
+                    if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
                     if (session.IsInTransaction) session.AbortTransaction();
                 }
             }
