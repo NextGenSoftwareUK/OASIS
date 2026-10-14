@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var row = _dbContext.Holons.FirstOrDefault(p => p.Id == id.ToString() && (version == 0 || p.Version == version));
+                var row = _dbContext.Holons.AsNoTracking().FirstOrDefault(p => p.Id == id.ToString() && (version == 0 || p.Version == version));
                 var holonEntity = row == null ? null : GetHolonFromEntity(row);
                 if (holonEntity != null && loadChildren)
                     AttachLoadedChildren(holonEntity, _dbContext.Holons.AsNoTracking().Where(item => version == 0 || item.Version == version).ToList(), recursive, maxChildDepth);
@@ -63,7 +63,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var row = await _dbContext.Holons.FirstOrDefaultAsync(p => p.Id == id.ToString() && (version == 0 || p.Version == version));
+                var row = await _dbContext.Holons.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id.ToString() && (version == 0 || p.Version == version));
                 var holonEntity = row == null ? null : GetHolonFromEntity(row);
                 if (holonEntity != null && loadChildren)
                     AttachLoadedChildren(holonEntity, await _dbContext.Holons.AsNoTracking().Where(item => version == 0 || item.Version == version).ToListAsync(), recursive, maxChildDepth);
@@ -100,7 +100,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 ArgumentException.ThrowIfNullOrWhiteSpace(providerKey);
-                var holonEntities = _dbContext.Holons
+                var holonEntities = _dbContext.Holons.AsNoTracking()
                     .Where(p => p.LocalProviderKey == providerKey && (version == 0 || p.Version == version))
                     .ToList()
                     .Select(GetHolonFromEntity)
@@ -132,7 +132,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 ArgumentException.ThrowIfNullOrWhiteSpace(providerKey);
-                var stored = await _dbContext.Holons.SingleOrDefaultAsync(p => p.LocalProviderKey == providerKey && (version == 0 || p.Version == version));
+                var stored = await _dbContext.Holons.AsNoTracking().SingleOrDefaultAsync(p => p.LocalProviderKey == providerKey && (version == 0 || p.Version == version));
                 var holonEntity = stored == null ? null : GetHolonFromEntity(stored);
                 if (holonEntity != null && loadChildren)
                     AttachLoadedChildren(holonEntity, await _dbContext.Holons.AsNoTracking().Where(item => version == 0 || item.Version == version).ToListAsync(), recursive, maxChildDepth);

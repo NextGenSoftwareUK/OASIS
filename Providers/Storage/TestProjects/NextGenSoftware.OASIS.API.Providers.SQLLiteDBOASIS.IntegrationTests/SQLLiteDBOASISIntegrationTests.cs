@@ -15,6 +15,27 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 public class SQLLiteDBOASISIntegrationTests : IDisposable
 {
     [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task HolonRootReadsObserveIndependentCommittedUpdates(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var root = new Holon { Id = Guid.NewGuid(), Name = "before-external-update" };
+        (await provider.SaveHolonAsync(root,saveChildren:false)).IsError.Should().BeFalse();
+        using var control = new DataContext(TestConnectionString);
+        control.Holons.Single(row => row.Id == root.Id.ToString()).Name = "after-external-update";
+        control.SaveChanges();
+        foreach (var loaded in new[] {
+            synchronous ? provider.LoadHolon(root.Id,loadChildren:false) : await provider.LoadHolonAsync(root.Id,loadChildren:false),
+            synchronous ? provider.LoadHolon(root.Id.ToString(),loadChildren:false) : await provider.LoadHolonAsync(root.Id.ToString(),loadChildren:false) })
+        {
+            loaded.IsError.Should().BeFalse(loaded.Message);
+            loaded.Result.Name.Should().Be("after-external-update");
+        }
+    }
+
+    [Theory]
     [InlineData(true, "version")]
     [InlineData(false, "version")]
     [InlineData(true, "deleted")]
