@@ -8,6 +8,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Interfaces
 {
     public interface IAvatarDetailRepository
     {
+        OASISResult<bool> DeleteAvatarDetail(Guid id, bool softDelete = true);
+        Task<OASISResult<bool>> DeleteAvatarDetailAsync(Guid id, bool softDelete = true);
         OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0);
 
         OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0);
