@@ -819,6 +819,50 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         }
     }
 
+    [Fact]
+    public async Task PublicSearchDoesNotPretendUnsupportedGroupsSucceeded()
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var result = await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+            SearchOnlyForCurrentAvatar = false, SearchGroups = new() {
+                new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchNumberGroup()
+            }
+        });
+        result.IsError.Should().BeTrue();
+        result.Result.Should().BeNull();
+        result.Exception.Should().BeOfType<NotSupportedException>();
+    }
+
+    [Theory]
+    [InlineData(SearchParamGroupOperator.Or, 3)]
+    [InlineData(SearchParamGroupOperator.And, 1)]
+    public async Task PublicTextSearchCombinesGroupsAndReportsExactCount(SearchParamGroupOperator operation, int expected)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        foreach (var text in new[] { "alpha", "beta", "alpha-beta", "neither" })
+        {
+            var savedHolon = await provider.SaveHolonAsync(new Holon { Id = Guid.NewGuid(), Name = text }, saveChildren:false);
+            savedHolon.IsError.Should().BeFalse(savedHolon.Message);
+            var savedAvatar = await provider.SaveAvatarAsync(new Avatar { Id = Guid.NewGuid(), Username = text,
+                Email = text + "@test.invalid", AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) });
+            savedAvatar.IsError.Should().BeFalse(savedAvatar.Message);
+        }
+        var result = await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+            SearchOnlyForCurrentAvatar = false, SearchGroups = new() {
+                new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup { SearchQuery = "ALPHA" },
+                new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup { SearchQuery = "beta", PreviousSearchGroupOperator = operation }
+            }
+        }, loadChildren:false);
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.SearchResultHolons.Should().HaveCount(expected);
+        result.Result.SearchResultAvatars.Should().HaveCount(expected);
+        result.Result.NumberOfResults.Should().Be(expected * 2);
+        result.Result.SearchResultHolons.Select(h => h.Id).Should().OnlyHaveUniqueItems();
+        result.Result.SearchResultAvatars.Select(a => a.Id).Should().OnlyHaveUniqueItems();
+    }
+
     [Theory]
     [InlineData(false, 1)]
     [InlineData(true, 2)]
