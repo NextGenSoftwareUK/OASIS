@@ -69,7 +69,14 @@ try{
         & dotnet test $suiProject --no-build --no-restore --filter $suiFilter --logger $suiReport --results-directory (Join-Path $taskRoot 'TestResults/SuiCurrent') -v:q
     }elseif($MongoV2){
         $routingProject=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
+        $routingStarted=[DateTime]::UtcNow
         & dotnet test $routingProject --no-build --no-restore --filter 'FullyQualifiedName~IntegrationTests.MongoSqliteRealProviderRoutingTests.' --logger 'trx;LogFileName=mongo-sqlite-v2-current.trx' --results-directory $work -v:q
+        if($LASTEXITCODE -ne 0){throw 'Mongo/SQLite V2 routing verification failed.'}
+        $routingReport=Get-Item -LiteralPath (Join-Path $work 'mongo-sqlite-v2-current.trx') -ErrorAction Stop
+        if($routingReport.LastWriteTimeUtc -lt $routingStarted){throw 'Mongo/SQLite V2 report is stale; no verification claim permitted.'}
+        [xml]$routingEvidence=Get-Content -LiteralPath $routingReport.FullName
+        $routingCounters=$routingEvidence.SelectSingleNode("//*[local-name()='Counters']")
+        if(!$routingCounters -or [int]$routingCounters.total -ne 4 -or [int]$routingCounters.passed -ne 4){throw 'All four sync/async, Mongo/SQLite-primary matrix cases must actually execute and pass.'}
     }elseif($MongoProjection -or $MongoTransactions){
         $env:OASIS_MONGO_REPLICA_SET_CONNECTION=$env:SUBSCRIPTION_TEST_MONGODB_URI
         $mongoProject=Join-Path $taskRoot 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests.csproj'
