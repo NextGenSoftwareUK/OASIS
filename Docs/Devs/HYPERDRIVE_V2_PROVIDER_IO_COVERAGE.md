@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Cosmos public raw-balance boundary regression (2026-10-13): actual provider/process plus controlled SDK fixture proves full-range string preservation, decimal overflow/rounding rejection and original query error retention. Focused45/45 passes, no skips; consumer build0errors. Not real-chain balance or hosted API completion; no native writes/new environment.
+
 Cosmos exact raw custom token balance method (2026-10-13): GetCustomTokenBalanceUnitsAsync uses same native query/parser, decimal method delegates without parallel transport or precision loss. Uint128 maximum codec verified, decimal overflow explicit; focused20/20 pass and builds0errors. Hosted/raw schema and live max-range query proof still open; no mutation.
 
 Cosmos decimal balance truthfulness fix (2026-10-13): enforce canonical Uint128 source units and exact round-trip conversion instead of silent precision loss. Focused19/19 passes; builds0errors. Full Uint128 representation not provided by decimal signature; out-of-representable values remain errors, raw-unit/API contract work open. No ledger mutation/environment copy.

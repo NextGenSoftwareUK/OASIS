@@ -72,8 +72,13 @@ else if(request.operation==='execute'){
  if(request.privateKey!=='test-only-explicit')error='Explicit signer was not forwarded';
  else result={transactionHash:'a'.repeat(64)};
 }else if(request.operation==='query'){
+ const symbol=request.message?.asset?.message?.token_balance?.symbol;
  const tokenId=request.message?.asset?.message?.nft?.token_id;
- if(tokenId?.startsWith('ownership-'))result={token_id:tokenId,locked:false,
+ if(symbol==='balance-max')result='340282366920938463463374607431768211455';
+ else if(symbol==='balance-rounded')result='1000000000000000000000000000000000001';
+ else if(symbol==='balance-invalid')result='-1';
+ else if(symbol==='balance-error')error='controlled original balance query rejection';
+ else if(tokenId?.startsWith('ownership-'))result={token_id:tokenId,locked:false,
   owner:tokenId==='ownership-matching'?'fixture-recipient':'fixture-owner',
   metadata_json:JSON.stringify({NFTTokenAddress:'fixture-contract#'+tokenId})};
  else error='forced separate NFT readback failure';
