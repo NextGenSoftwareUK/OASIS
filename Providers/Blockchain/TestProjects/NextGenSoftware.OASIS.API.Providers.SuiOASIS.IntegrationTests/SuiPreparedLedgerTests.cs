@@ -24,6 +24,27 @@ public class SuiPreparedLedgerTests
         CollectionAssert.AreEqual(new[]{"write.storage.1","write.storage.2","cleanup.storage.1"},operation.ProviderAttempts.Select(x=>x.ClientRequestId).ToArray());
         Assert.IsTrue(operation.ProviderAttempts.All(x=>x.Provider=="SuiOASIS"&&!string.IsNullOrWhiteSpace(x.ProviderRequestId)));
         Assert.IsFalse(operation.ProviderAttempts.Any(x=>x.ClientRequestId.StartsWith("private-")));
+        if(Environment.GetEnvironmentVariable("OASIS_SUI_TEST_RPC") is string rpc){
+            Assert.IsTrue(new Uri(rpc).IsLoopback);
+            using var deployment=JsonDocument.Parse(File.ReadAllText(Environment.GetEnvironmentVariable("OASIS_SUI_TEST_DEPLOYMENT")!));
+            var settings=deployment.RootElement;
+            Assert.AreEqual(intent.RootElement.GetProperty("chainId").GetString(),settings.GetProperty("chainId").GetString());
+            using var provider=new SuiOASIS(rpc,"localnet",settings.GetProperty("chainId").GetString()!,settings.GetProperty("packageAddress").GetString()!,
+                settings.GetProperty("privateKey").GetString()!,settings.GetProperty("storageObjectId").GetString()!,
+                storageEncryptionKeyResolver:()=>System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes("oasis-sui-prepared-storage-fixture-v1")));
+            foreach(var attempt in operation.ProviderAttempts){
+                var fee=await provider.GetPreparedNativeFeeReceiptAsync(attempt);
+                Assert.IsFalse(fee.IsError,fee.Message);Assert.IsTrue(fee.Result.GetProperty("success").GetBoolean());
+                Assert.AreEqual(attempt.ProviderRequestId,fee.Result.GetProperty("transactionHash").GetString());
+            }
+            var sdk=typeof(SuiOASIS).GetMethod("InvokeSdkAsync",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance)!;
+            var raw=await (Task<JsonElement>)sdk.Invoke(provider,new object[]{"get",new{key=intent.RootElement.GetProperty("key").GetString()},CancellationToken.None})!;
+            Assert.AreEqual(JsonValueKind.Null,raw.ValueKind);
+            var privateRead=await provider.LoadHolonAsync(intent.RootElement.GetProperty("privateHolonId").GetGuid(),loadChildren:false);
+            Assert.IsNull(privateRead.Result);
+            Assert.IsTrue(!privateRead.IsError||privateRead.ErrorCode==NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,privateRead.Message);
+            Console.WriteLine("Original signed attempts all confirmed successful; raw fixture deleted and private holon absent. Journal retained.");
+        }
         Console.WriteLine(JsonSerializer.Serialize(new{operationId=operation.Id,attempts=operation.ProviderAttempts.Select(x=>new{x.ClientRequestId,x.ProviderRequestId}),
             reconciliationComplete=false,reason="Original identities only; chain terminal status/readback still required."}));
         CollectionAssert.AreEqual(original,File.ReadAllBytes(journal));
