@@ -31,7 +31,8 @@ test('real NFT objects mint in quantity, transfer ownership, reject the old owne
   // Public deterministic loopback-only fixture, reused; never a public-chain credential.
   const recipientKey=Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(8));
   const recipient={address:recipientKey.toSuiAddress(),privateKey:recipientKey.getSecretKey()};
-  await requestSuiFromFaucetV2({ host: faucet, recipient: recipient.address });
+  if(BigInt((await invoke({...base,operation:'balance',walletAddress:recipient.address})).balance)<100000000n)
+    await requestSuiFromFaucetV2({ host: faucet, recipient: recipient.address });
   const owner = await invoke({ operation: 'restoreKey', privateKey: base.privateKey });
   const metadata = JSON.stringify({ Title: 'Living oak 🌳', Description: 'Complete on-chain metadata', MetaData: { park: 'real local chain' } });
   const minted = await ownedInvoke({ ...base, operation: 'nftMint', count: 2, metadata: [metadata, metadata], recipient: owner.address });
