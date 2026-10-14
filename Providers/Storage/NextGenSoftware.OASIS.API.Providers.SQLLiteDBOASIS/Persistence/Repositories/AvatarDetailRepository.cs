@@ -14,7 +14,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositories
 {
-    public class AvatarDetailRepository : IAvatarDetailRepository
+    public partial class AvatarDetailRepository : IAvatarDetailRepository
     {
         private readonly DataContext _dbContext;
 
