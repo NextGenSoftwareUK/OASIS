@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Cosmos fixture failure attribution1/1 (2026-10-13): ordered operation+cleanup+both deactivation failures retained, all bounded cleanup steps attempted, error OASIS results checked. Controlled test passes70ms, build0errors/9warnings; no live recovery/mutation or original journal change. Missing original outcome remains unresolved.
+
 Cosmos original failure cannot be reconstructed (2026-10-13): retained failed report only shows cleanup assertion, journal no native identity; not proof of safe retry. Future fixture aggregates operation+cleanup errors; consumer compiles0errors/9warnings, live failure-path test still fenced/unrun. Deactivation error attribution remains open; original journal untouched/no mutation.
 
 Cosmos admitted storage late-cancellation fix (2026-10-13): caller cancellation before a new physical gate now prevents SDK launch even if backend call supplies default token. Expanded real owned-outbox case1/1 passes with same attempt count/bytes and exact canceled token; no ledger operation. Does not cancel existing prepared/submitted native attempts or complete hosted recovery.

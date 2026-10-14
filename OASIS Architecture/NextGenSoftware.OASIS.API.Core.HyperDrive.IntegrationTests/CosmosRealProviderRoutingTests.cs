@@ -16,6 +16,31 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 
 public sealed class CosmosRealProviderRoutingTests
 {
+    private static async Task FinishOwnedCleanupAsync(Exception? originalFailure,params Func<Task>[] steps)
+    {
+        var failures=new List<Exception>();
+        foreach(var step in steps){try{await step();}catch(Exception failure){failures.Add(failure);}}
+        if(failures.Count==0)return;
+        if(originalFailure!=null)failures.Insert(0,originalFailure);
+        if(failures.Count==1)System.Runtime.ExceptionServices.ExceptionDispatchInfo.Capture(failures[0]).Throw();
+        throw new AggregateException("Cosmos operation/owned cleanup failed; recovery intent retained.",failures);
+    }
+
+    [Fact]
+    public async Task CleanupPreservesOriginalAndEveryDeactivationFailure()
+    {
+        var original=new InvalidOperationException("original fixture operation");
+        var cleanup=new IOException("owned cleanup");
+        var first=new InvalidOperationException("first deactivation");
+        var second=new InvalidOperationException("second deactivation");
+        var attempted=0;
+        var failure=await Assert.ThrowsAsync<AggregateException>(()=>FinishOwnedCleanupAsync(original,
+            ()=>{attempted++;return Task.FromException(cleanup);},
+            ()=>{attempted++;return Task.FromException(first);},
+            ()=>{attempted++;return Task.FromException(second);}));
+        Assert.Equal(3,attempted);Assert.Equal(new Exception[]{original,cleanup,first,second},failure.InnerExceptions);
+        await FinishOwnedCleanupAsync(original,()=>Task.CompletedTask);
+    }
     private static byte[] LocalStorageKey()=>System.Security.Cryptography.SHA256.HashData(
         System.Text.Encoding.UTF8.GetBytes("oasis-cosmos-local-storage-fixture-v1"));
     private static string Required(string name) => Environment.GetEnvironmentVariable(name)
@@ -268,8 +293,7 @@ public sealed class CosmosRealProviderRoutingTests
         catch(Exception failure){originalFailure=failure;throw;}
         finally
         {
-            try
-            {
+            await FinishOwnedCleanupAsync(originalFailure,async()=>{
                 if (!deletedThroughRouter && holonSaved)
                 {
                     var deleted = await cosmos.DeleteHolonAsync(holon.Id);
@@ -281,17 +305,8 @@ public sealed class CosmosRealProviderRoutingTests
                     (await cosmos.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsError.Should().BeFalse();
                     (await local.DeleteAvatarAsync(avatar.Id, softDelete: false)).IsError.Should().BeFalse();
                 }
-            }
-            catch(Exception cleanupFailure)
-            {
-                if(originalFailure!=null)throw new AggregateException("Cosmos V2 operation and owned cleanup both failed; recovery intent retained.",originalFailure,cleanupFailure);
-                throw;
-            }
-            finally
-            {
-                try { await cosmos.DeActivateProviderAsync(); }
-                finally { await local.DeActivateProviderAsync(); }
-            }
+            },async()=>{var deactivated=await cosmos.DeActivateProviderAsync();deactivated.IsError.Should().BeFalse(deactivated.Message);},
+              async()=>{var deactivated=await local.DeActivateProviderAsync();deactivated.IsError.Should().BeFalse(deactivated.Message);});
             if(verifiedComplete){journal.Dispose();File.Delete(journalPath);}
             else Console.WriteLine("Retained owned Cosmos V2 recovery intent: "+journalPath);
         }
