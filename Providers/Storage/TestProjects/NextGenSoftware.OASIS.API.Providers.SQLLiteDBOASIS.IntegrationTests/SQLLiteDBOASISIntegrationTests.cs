@@ -23,10 +23,17 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
         var avatar = new Avatar { Id = Guid.NewGuid(), Username = "fresh-avatar", Email = "fresh-avatar@test.local", FirstName = "before",
             AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        avatar.VerificationToken = "before-verification";
+        avatar.ResetToken = "before-reset";
+        avatar.RefreshToken = "before-refresh";
         (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
         (await provider.SaveAvatarDetailAsync(new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Email = avatar.Email, Karma = 10 })).IsError.Should().BeFalse();
         using var control = new DataContext(TestConnectionString);
         control.Avatars.Single(row => row.Id == avatar.Id.ToString()).FirstName = "after";
+        var changedProfile = control.Avatars.Single(row => row.Id == avatar.Id.ToString());
+        changedProfile.VerificationToken = "after-verification";
+        changedProfile.ResetToken = "after-reset";
+        changedProfile.RefreshToken = "after-refresh";
         control.AvatarDetails.Single(row => row.Id == avatar.Id.ToString()).Karma = 99;
         control.SaveChanges();
         var profile = synchronous ? provider.LoadAvatar(avatar.Id) : await provider.LoadAvatarAsync(avatar.Id);
@@ -35,6 +42,25 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         var detail = synchronous ? provider.LoadAvatarDetail(avatar.Id) : await provider.LoadAvatarDetailAsync(avatar.Id);
         detail.IsError.Should().BeFalse(detail.Message);
         detail.Result.Karma.Should().Be(99);
+        foreach (var tokenResult in new[] {
+            synchronous ? provider.LoadAvatarByVerificationToken("after-verification") : await provider.LoadAvatarByVerificationTokenAsync("after-verification"),
+            synchronous ? provider.LoadAvatarByResetToken("after-reset") : await provider.LoadAvatarByResetTokenAsync("after-reset"),
+            synchronous ? provider.LoadAvatarByRefreshToken("after-refresh") : await provider.LoadAvatarByRefreshTokenAsync("after-refresh") })
+        {
+            tokenResult.IsError.Should().BeFalse(tokenResult.Message);
+            tokenResult.Result.FirstName.Should().Be("after");
+            tokenResult.Result.VerificationToken.Should().Be("after-verification");
+            tokenResult.Result.ResetToken.Should().Be("after-reset");
+            tokenResult.Result.RefreshToken.Should().Be("after-refresh");
+        }
+        foreach (var oldTokenResult in new[] {
+            synchronous ? provider.LoadAvatarByVerificationToken("before-verification") : await provider.LoadAvatarByVerificationTokenAsync("before-verification"),
+            synchronous ? provider.LoadAvatarByResetToken("before-reset") : await provider.LoadAvatarByResetTokenAsync("before-reset"),
+            synchronous ? provider.LoadAvatarByRefreshToken("before-refresh") : await provider.LoadAvatarByRefreshTokenAsync("before-refresh") })
+        {
+            oldTokenResult.IsError.Should().BeFalse(oldTokenResult.Message);
+            oldTokenResult.Result.Should().BeNull();
+        }
         foreach (var selected in new[] {
             synchronous ? provider.LoadAvatarByUsername(avatar.Username) : await provider.LoadAvatarByUsernameAsync(avatar.Username),
             synchronous ? provider.LoadAvatarByEmail(avatar.Email) : await provider.LoadAvatarByEmailAsync(avatar.Email) })
