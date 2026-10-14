@@ -9,6 +9,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
     public class DataContext : DbContext
     {
         public DbSet<AvatarModel> Avatars { get; set; }
+        public DbSet<AvatarWalletStore> AvatarWalletStores { get; set; }
         public DbSet<AvatarDetailModel> AvatarDetails { get; set; }
         public DbSet<HolonModel> Holons { get; set; }
 
@@ -48,6 +49,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<AvatarWalletStore>().HasOne<AvatarModel>().WithMany()
+                .HasForeignKey(wallet => wallet.AvatarId).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<AvatarModel>().HasMany(a => a.RefreshTokens).WithOne()
                 .HasForeignKey(t => t.AvatarId).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<AvatarModel>().Navigation(a => a.RefreshTokens).AutoInclude();
