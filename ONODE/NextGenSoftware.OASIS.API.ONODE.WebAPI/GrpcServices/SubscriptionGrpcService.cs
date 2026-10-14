@@ -57,12 +57,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GrpcServices
 
         public override Task<JsonResponse> GetHyperDriveUsage(SubByUserRequest request, ServerCallContext context)
         {
-            return Task.FromResult(new JsonResponse { Json = "{}" });
+            return Task.FromResult(new JsonResponse { IsError = true, Message = "HyperDrive usage is available through the authenticated REST subscription API." });
         }
 
         public override Task<JsonResponse> CheckHyperDriveQuota(CheckQuotaRequest request, ServerCallContext context)
         {
-            return Task.FromResult(new JsonResponse { Json = "true" });
+            return Task.FromResult(new JsonResponse { IsError = true, Message = "HyperDrive quota checks require the authenticated REST subscription API." });
         }
 
         public override Task<JsonResponse> CreateCheckoutSession(CreateCheckoutRequest request, ServerCallContext context)

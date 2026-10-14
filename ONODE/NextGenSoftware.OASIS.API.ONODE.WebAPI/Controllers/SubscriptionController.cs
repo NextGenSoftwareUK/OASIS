@@ -456,16 +456,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (string.IsNullOrEmpty(userId))
                 return Unauthorized(new { IsError = true, Message = "User not authenticated." });
 
+            if (request.Enabled)
+                return StatusCode(501, new { IsError = true, Code = "PAID_OVERAGES_UNAVAILABLE", Message = "Paid overages are not configured. Included quotas remain enforced; select a higher subscription plan." });
             await _subscriptionService.SetPayAsYouGoAsync(userId, request.Enabled);
 
             return Ok(new
             {
                 IsError = false,
                 Success = true,
-                PayAsYouGoEnabled = request.Enabled,
-                Message = request.Enabled
-                    ? "Pay-as-you-go enabled. Requests over your plan limit will be billed per-request."
-                    : "Pay-as-you-go disabled. Requests will stop at your plan limit."
+                PayAsYouGoEnabled = false,
+                Message = "Pay-as-you-go is disabled. Included quotas remain enforced."
             });
         }
 
@@ -495,10 +495,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     remaining = limit < 0 ? -1 : Math.Max(0, limit - usage.RequestCount),
                     overage = Math.Max(0, usage.RequestCount - limit)
                 },
-                payAsYouGoEnabled = record?.PayAsYouGoEnabled ?? false,
+                payAsYouGoEnabled = false,
+                payAsYouGoAvailable = false,
                 overageCharges = new
                 {
-                    currentMonth = usage.OverageCount * OveragePriceFor(planId),
+                    currentMonth = 0m,
+                    isSupported = false,
                     currency = "USD"
                 },
                 subscription = new
@@ -521,6 +523,10 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (request == null)
                 return BadRequest(new OASISResult<bool> { IsError = true, Message = "Request body required." });
 
+            // This endpoint changes server-wide DNA, never a subscriber's purchased plan.
+            try { OASISSub.SubscriptionServiceIdentity.RequireAdministrator(HttpContext, _configuration); }
+            catch (UnauthorizedAccessException ex)
+            { return StatusCode(403, new OASISResult<bool> { IsError = true, Message = ex.Message }); }
             try
             {
                 var dna = OASISDNAManager.OASISDNA.OASIS;
@@ -659,15 +665,6 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 throw new InvalidOperationException($"Unable to load authoritative karma for subscription usage: {result.Message}");
             return result.Result.Karma > int.MaxValue ? int.MaxValue : (int)Math.Max(0, result.Result.Karma);
         }
-
-        private static decimal OveragePriceFor(string planId) => planId switch
-        {
-            "bronze" => 0.001m,
-            "silver" => 0.0005m,
-            "gold" => 0.0002m,
-            "enterprise" => 0.0001m,
-            _ => 0m
-        };
 
         private static HyperDriveLimits HyperDriveLimitsFor(string planType) => planType?.ToLower() switch
         {
