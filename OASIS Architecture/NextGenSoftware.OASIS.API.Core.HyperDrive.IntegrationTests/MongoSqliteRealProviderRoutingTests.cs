@@ -907,6 +907,34 @@ public sealed class MongoSqliteRealProviderRoutingTests
             }
             var avatarDelete = new StorageOperationRequest { Operation = "DeleteAvatar", AvatarId = avatar.Id, SoftDelete = false, PreferredProvider = request.PreferredProvider };
             (await failureMongo.ActivateProviderAsync()).IsError.Should().BeFalse();
+            foreach (var softDelete in new[] { false, true })
+            {
+                try
+                {
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                        { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("times",1) },
+                        { "data", new BsonDocument { { "failCommands", new BsonArray { softDelete ? "update" : "delete" } },
+                            { "appName", failureApp }, { "errorCode", 2 } } }
+                    });
+                    IOASISStorageProvider failingStore = failureMongo;
+                    var rejectedDetail = synchronous ? failingStore.DeleteAvatarDetail(detail.Id, softDelete)
+                        : await failingStore.DeleteAvatarDetailAsync(detail.Id, softDelete);
+                    rejectedDetail.IsError.Should().BeTrue();
+                    rejectedDetail.Result.Should().BeFalse();
+                    rejectedDetail.Exception.Should().BeOfType<MongoCommandException>();
+                    (await mongo.LoadAvatarAsync(avatar.Id)).Result.DeletedDate.Should().Be(DateTime.MinValue);
+                    var retainedDetail = (await mongo.LoadAvatarDetailAsync(detail.Id)).Result;
+                    retainedDetail.DeletedDate.Should().Be(DateTime.MinValue);
+                    retainedDetail.Karma.Should().Be(456);
+                    retainedDetail.Inventory.Single().Name.Should().Be(item.Name);
+                    retainedDetail.Stats.HP.Current.Should().Be(detail.Stats.HP.Current);
+                }
+                finally
+                {
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+                }
+            }
+            (await failureMongo.ActivateProviderAsync()).IsError.Should().BeFalse();
             try
             {
                 await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
