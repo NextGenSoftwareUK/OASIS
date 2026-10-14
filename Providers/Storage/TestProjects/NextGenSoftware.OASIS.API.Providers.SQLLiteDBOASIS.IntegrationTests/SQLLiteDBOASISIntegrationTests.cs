@@ -835,6 +835,64 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(SearchParamGroupOperator.And, true, false, true, 1, 0)]
+    [InlineData(SearchParamGroupOperator.And, false, true, true, 0, 1)]
+    [InlineData(SearchParamGroupOperator.Or, true, false, true, 3, 2)]
+    [InlineData(SearchParamGroupOperator.Or, false, true, true, 2, 3)]
+    [InlineData(SearchParamGroupOperator.And, true, true, false, 0, 0)]
+    [InlineData(SearchParamGroupOperator.Or, true, true, false, 2, 2)]
+    public async Task PublicMixedSearchHonoursNumericTargetsAndFieldSelection(SearchParamGroupOperator operation,
+        bool searchHolons, bool searchAvatars, bool selectVersion, int expectedHolons, int expectedAvatars)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        foreach (var version in new[] { 2, 3, 4 })
+        {
+            var text = version == 3 ? "beta" : "alpha";
+            var savedHolon = await provider.SaveHolonAsync(new Holon { Id = Guid.NewGuid(), Version = version, Name = text }, saveChildren:false);
+            savedHolon.IsError.Should().BeFalse(savedHolon.Message);
+            var savedAvatar = await provider.SaveAvatarAsync(new Avatar { Id = Guid.NewGuid(), Version = version,
+                Username = text + version, Email = version + "@test.invalid",
+                AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) });
+            savedAvatar.IsError.Should().BeFalse(savedAvatar.Message);
+        }
+        var result = await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+            SearchOnlyForCurrentAvatar = false, SearchGroups = new() {
+                new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup { SearchQuery = "alpha" },
+                new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchNumberGroup {
+                    Number = 3, NumberOperator = SearchOperatorType.GreaterThanOrEqualTo, PreviousSearchGroupOperator = operation,
+                    SearchHolons = searchHolons, SearchAvatars = searchAvatars,
+                    HolonSearchParams = new SearchHolonParams { Version = selectVersion },
+                    AvatarSearchParams = new NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar.SearchAvatarParams { Version = selectVersion }
+                }
+            }
+        }, loadChildren:false);
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.SearchResultHolons.Should().HaveCount(expectedHolons);
+        result.Result.SearchResultAvatars.Should().HaveCount(expectedAvatars);
+        result.Result.NumberOfResults.Should().Be(expectedHolons + expectedAvatars);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task PublicSearchRejectsInvalidOperatorsEvenOnEmptyStorage(bool numeric)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var groups = new List<NextGenSoftware.OASIS.API.Core.Objects.Search.ISearchGroupBase>();
+        if (numeric) groups.Add(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchNumberGroup { NumberOperator = (SearchOperatorType)999 });
+        else {
+            groups.Add(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup { SearchQuery = "missing" });
+            groups.Add(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup { PreviousSearchGroupOperator = (SearchParamGroupOperator)999 });
+        }
+        var result = await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams { SearchGroups = groups });
+        result.IsError.Should().BeTrue();
+        result.Result.Should().BeNull();
+        result.Exception.Should().BeOfType<ArgumentException>();
+    }
+
+    [Theory]
     [InlineData(SearchOperatorType.LessThan, 1)]
     [InlineData(SearchOperatorType.LessThanOrEqualTo, 2)]
     [InlineData(SearchOperatorType.EqualTo, 1)]
