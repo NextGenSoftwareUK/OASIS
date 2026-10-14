@@ -613,6 +613,19 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(true)] [InlineData(false)]
+    public async Task GuidHolonLoadRetainsOriginalDatabaseFailure(bool synchronous)
+    {
+        using var context=new DataContext(TestConnectionString);context.Database.EnsureCreated();
+        var repository=new HolonRepository(context);context.Database.ExecuteSqlRaw("DROP TABLE Holon;");
+        var id=Guid.NewGuid();
+        var result=synchronous?repository.LoadHolon(id,loadChildren:false):await repository.LoadHolonAsync(id,loadChildren:false);
+        result.IsError.Should().BeTrue();result.IsLoaded.Should().BeFalse();result.Result.Should().BeNull();
+        result.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        result.Message.Should().Contain("no such table");
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task ParentSelectorsIsolateChildrenAndRespectTypeAndVersion(bool synchronous)
