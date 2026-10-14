@@ -6,6 +6,8 @@ using System.Diagnostics;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
@@ -135,6 +137,17 @@ public sealed class MongoSqliteRealProviderRoutingTests
             balanced.IsError.Should().BeFalse(balanced.Message);
             balanced.Result.Id.Should().Be(holon.Id);
             balanceManager.PerformanceMonitor.GetMetrics(mongoMs <= sqliteMs ? ProviderType.MongoDBOASIS : ProviderType.SQLLiteDBOASIS).TotalRequests.Should().BeGreaterThan(1);
+            foreach (var searchProvider in new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS })
+            {
+                var searchRequest = new StorageOperationRequest { Operation = "Search", LoadChildren = false, PreferredProvider = searchProvider,
+                    SearchParams = new SearchParams { SearchOnlyForCurrentAvatar = false,
+                        SearchGroups = new() { new SearchTextGroup { SearchQuery = "priority-updated", SearchHolons = true,
+                            HolonType = holon.HolonType, HolonSearchParams = new SearchHolonParams { Name = true } } } } };
+                var searched = synchronous ? balancedRouter.RouteRequest<ISearchResults>(searchRequest) : await balancedRouter.RouteRequestAsync<ISearchResults>(searchRequest);
+                searched.IsError.Should().BeFalse(searched.Message);
+                searched.Result.SearchResultHolons.Select(h => h.Id).Should().Equal(holon.Id);
+                searched.Result.SearchResultAvatars.Should().BeEmpty();
+            }
             var delete = new StorageOperationRequest { Operation = "DeleteHolon", HolonId = holon.Id, SoftDelete = false, PreferredProvider = request.PreferredProvider };
             var deleted = synchronous ? router.RouteRequest<IHolon>(delete) : await router.RouteRequestAsync<IHolon>(delete);
             deleted.IsError.Should().BeFalse(deleted.Message);
@@ -699,6 +712,14 @@ public sealed class MongoSqliteRealProviderRoutingTests
             var fallback = synchronous ? router.RouteRequest<IHolon>(fallbackRequest) : await router.RouteRequestAsync<IHolon>(fallbackRequest);
             fallback.IsError.Should().BeFalse(fallback.Message);
             (await mongo.LoadHolonAsync(fallbackHolon.Id,loadChildren:false)).Result.Name.Should().Be(fallbackHolon.Name);
+            manager.LastFailoverDiagnostic.SelectedProvider.Should().Be(ProviderType.MongoDBOASIS);
+            var searchFallbackRequest = new StorageOperationRequest { Operation = "Search", LoadChildren = false,
+                PreferredProvider = ProviderType.SQLLiteDBOASIS, SearchParams = new SearchParams { SearchOnlyForCurrentAvatar = false,
+                    SearchGroups = new() { new SearchTextGroup { SearchQuery = "real-mongo-fallback", SearchHolons = true,
+                        HolonType = fallbackHolon.HolonType, HolonSearchParams = new SearchHolonParams { Name = true } } } } };
+            var searchFallback = synchronous ? router.RouteRequest<ISearchResults>(searchFallbackRequest) : await router.RouteRequestAsync<ISearchResults>(searchFallbackRequest);
+            searchFallback.IsError.Should().BeFalse(searchFallback.Message);
+            searchFallback.Result.SearchResultHolons.Select(h => h.Id).Should().Equal(fallbackHolon.Id);
             manager.LastFailoverDiagnostic.SelectedProvider.Should().Be(ProviderType.MongoDBOASIS);
             await mongo.DeActivateProviderAsync();
         }
