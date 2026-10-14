@@ -630,6 +630,24 @@ public sealed class MongoSqliteRealProviderRoutingTests
             failManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
             failManager.SetAndActivateCurrentStorageProvider(failureMongo).IsError.Should().BeFalse();
             var admin = client.GetDatabase("admin");
+            var rejectedInsertHolon = new Holon { Id = Guid.NewGuid(), Name = "owned-holon-insert-rejected" };
+            try
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                    { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("times",1) },
+                    { "data", new BsonDocument { { "failCommands", new BsonArray { "insert" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                });
+                var rejectedInsert = synchronous ? failureMongo.SaveHolon(rejectedInsertHolon,saveChildren:false)
+                    : await failureMongo.SaveHolonAsync(rejectedInsertHolon,saveChildren:false);
+                rejectedInsert.IsError.Should().BeTrue();
+                rejectedInsert.Exception.Should().BeOfType<MongoCommandException>();
+                rejectedInsert.Result.Should().BeNull();
+                (await mongo.LoadHolonAsync(rejectedInsertHolon.Id,loadChildren:false)).Result.Should().BeNull();
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+            }
             var searchProbe = new Holon { Id = Guid.NewGuid(), Name = "owned-search-failure-probe" };
             var saveSearchProbe = new StorageOperationRequest { Operation = "SaveHolon", Payload = searchProbe, SaveChildren = false,
                 PreferredProvider = request.PreferredProvider };
