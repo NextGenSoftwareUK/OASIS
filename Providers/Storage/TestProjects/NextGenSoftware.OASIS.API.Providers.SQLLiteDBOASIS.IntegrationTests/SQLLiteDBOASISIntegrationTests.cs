@@ -647,6 +647,18 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
             SearchGroups=new(){new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup{SearchQuery="owned-test"}}});
         result.IsError.Should().BeTrue();result.Result.Should().BeNull();
         result.Message.Should().Contain("search failed");
+        result.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+    }
+
+    [Theory]
+    [InlineData(true)] [InlineData(false)]
+    public async Task AllAvatarLoadRetainsOriginalDatabaseFailure(bool synchronous)
+    {
+        using var context=new DataContext(TestConnectionString);context.Database.EnsureCreated();
+        var repository=new AvatarRepository(context);context.Database.ExecuteSqlRaw("DROP TABLE Avatar;");
+        var result=synchronous?repository.LoadAllAvatars():await repository.LoadAllAvatarsAsync();
+        result.IsError.Should().BeTrue();result.IsLoaded.Should().BeFalse();result.Result.Should().BeNull();
+        result.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
     }
 
     [Theory]
