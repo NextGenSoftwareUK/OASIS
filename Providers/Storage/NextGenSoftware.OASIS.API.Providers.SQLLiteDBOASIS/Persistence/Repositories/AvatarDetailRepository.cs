@@ -181,13 +181,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var avatarDetailEntity = _dbContext.AvatarDetails
+                var entity = await _dbContext.AvatarDetails
                     .Include(a => a.InventoryItems)
                     .Include(a => a.Stats)
-                    .ToList()
                     .Where(x => x.Username == avatarUsername && (version == 0 || x.Version == version))
-                    .Select(GetAvatarDetailFromEntity)
-                    .FirstOrDefault();
+                    .FirstOrDefaultAsync();
+                var avatarDetailEntity = entity == null ? null : GetAvatarDetailFromEntity(entity);
                 if (avatarDetailEntity == null)
                     return new OASISResult<IAvatarDetail>
                     {
@@ -219,13 +218,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var avatarDetailEntity = _dbContext.AvatarDetails
+                var entity = await _dbContext.AvatarDetails
                     .Include(a => a.InventoryItems)
                     .Include(a => a.Stats)
-                    .ToList()
                     .Where(x => x.Email == avatarEmail && (version == 0 || x.Version == version))
-                    .Select(GetAvatarDetailFromEntity)
-                    .FirstOrDefault();
+                    .FirstOrDefaultAsync();
+                var avatarDetailEntity = entity == null ? null : GetAvatarDetailFromEntity(entity);
                 if (avatarDetailEntity == null)
                     return new OASISResult<IAvatarDetail>
                     {
