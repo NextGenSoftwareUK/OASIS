@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var row = await _dbContext.Avatars.FirstOrDefaultAsync(p => p.Email == avatarEmail && (version == 0 || p.Version == version));
+                var row = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(p => p.Email == avatarEmail && (version == 0 || p.Version == version)));
                 var avatarEntity = row == null ? null : GetAvatarFromEntity(row);
                 if (avatarEntity == null)
                     return new OASISResult<IAvatar>
@@ -47,6 +47,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
@@ -56,7 +57,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var row = await _dbContext.Avatars.FirstOrDefaultAsync(p => p.Username == avatarUsername && (version == 0 || p.Version == version));
+                var row = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(p => p.Username == avatarUsername && (version == 0 || p.Version == version)));
                 var avatarEntity = row == null ? null : GetAvatarFromEntity(row);
                 if (avatarEntity == null)
                     return new OASISResult<IAvatar>
@@ -81,6 +82,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
@@ -115,6 +117,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
@@ -124,7 +127,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var row = _dbContext.Avatars.FirstOrDefault(p => p.Email == avatarEmail && (version == 0 || p.Version == version));
+                var row = ReadUniqueAvatar(_dbContext.Avatars.Where(p => p.Email == avatarEmail && (version == 0 || p.Version == version)));
                 var avatarEntity = row == null ? null : GetAvatarFromEntity(row);
                 if (avatarEntity == null)
                     return new OASISResult<IAvatar>
@@ -149,6 +152,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
@@ -158,8 +162,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var entity = await _dbContext.Avatars
-                    .FirstOrDefaultAsync(p => p.Username == username && (version == 0 || p.Version == version));
+                var entity = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(p => p.Username == username && (version == 0 || p.Version == version)));
                 var avatarEntity = entity == null ? null : GetAvatarFromEntity(entity);
                 if (avatarEntity == null)
                     return new OASISResult<IAvatar>
@@ -184,6 +187,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
@@ -224,6 +228,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
@@ -264,6 +269,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
@@ -394,6 +400,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsSaved = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
@@ -423,6 +430,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsSaved = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }

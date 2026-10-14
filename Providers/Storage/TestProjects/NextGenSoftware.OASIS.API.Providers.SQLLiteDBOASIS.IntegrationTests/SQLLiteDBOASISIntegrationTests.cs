@@ -1240,6 +1240,34 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         }
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task UsernameAndEmailAmbiguityUsesTerminalClassification(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        foreach (var version in new[] { 3, 4 })
+            (await provider.SaveAvatarAsync(new Avatar { Id = Guid.NewGuid(), Version = version, Username = "shared-owned-identity",
+                Email = "shared@test.invalid", AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) })).IsError.Should().BeFalse();
+        foreach (var result in new[] {
+            synchronous ? provider.LoadAvatarByUsername("shared-owned-identity") : await provider.LoadAvatarByUsernameAsync("shared-owned-identity"),
+            synchronous ? provider.LoadAvatarByEmail("shared@test.invalid") : await provider.LoadAvatarByEmailAsync("shared@test.invalid")
+        }) {
+            result.IsError.Should().BeTrue();
+            result.Result.Should().BeNull();
+            result.Exception.Should().BeOfType<StorageIdentityAmbiguousException>();
+            result.ErrorCode.Should().Be(OASISResultErrorCodes.AmbiguousIdentity);
+        }
+        foreach (var result in new[] {
+            synchronous ? provider.LoadAvatarByUsername("shared-owned-identity",3) : await provider.LoadAvatarByUsernameAsync("shared-owned-identity",3),
+            synchronous ? provider.LoadAvatarByEmail("shared@test.invalid",3) : await provider.LoadAvatarByEmailAsync("shared@test.invalid",3)
+        }) {
+            result.IsError.Should().BeFalse(result.Message);
+            result.Result.Version.Should().Be(3);
+        }
+    }
+
     [Fact]
     public async Task GenericAsyncUsernameLoaderFiltersBeforeMapping()
     {
