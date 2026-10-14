@@ -820,6 +820,40 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(false, 1)]
+    [InlineData(true, 2)]
+    public async Task PublicSearchHonoursParentScopeThroughNonMatchingAncestors(bool recursive, int expected)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var root = new Holon { Id = Guid.NewGuid(), Name = "owned-scope-match" };
+        var direct = new Holon { Id = Guid.NewGuid(), ParentHolonId = root.Id, Name = "owned-scope-match" };
+        var bridge = new Holon { Id = Guid.NewGuid(), ParentHolonId = root.Id, Name = "non-matching-bridge" };
+        var grandchild = new Holon { Id = Guid.NewGuid(), ParentHolonId = bridge.Id, Name = "owned-scope-match" };
+        // Deliberate cycle: the search root must never become its own descendant.
+        root.ParentHolonId = grandchild.Id;
+        var unrelated = new Holon { Id = Guid.NewGuid(), ParentHolonId = Guid.NewGuid(), Name = "owned-scope-match" };
+        var deleted = new Holon { Id = Guid.NewGuid(), ParentHolonId = root.Id, Name = "owned-scope-match", DeletedDate = DateTime.UtcNow };
+        var behindDeleted = new Holon { Id = Guid.NewGuid(), ParentHolonId = deleted.Id, Name = "owned-scope-match" };
+        foreach (var holon in new[] { root, direct, bridge, grandchild, unrelated, deleted, behindDeleted })
+        {
+            var saved = await provider.SaveHolonAsync(holon, saveChildren:false);
+            saved.IsError.Should().BeFalse(saved.Message);
+        }
+        var result = await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+            ParentId = root.Id, Recursive = recursive, SearchOnlyForCurrentAvatar = false,
+            SearchGroups = new() { new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup { SearchQuery = "owned-scope-match" } }
+        }, loadChildren:false);
+        result.IsError.Should().BeFalse(result.Message);
+        var ids = result.Result.SearchResultHolons.Select(h => h.Id).ToList();
+        ids.Should().HaveCount(expected);
+        ids.Should().Contain(direct.Id);
+        ids.Should().NotContain(new[] { root.Id, unrelated.Id, deleted.Id, behindDeleted.Id });
+        if (recursive) ids.Should().Contain(grandchild.Id);
+        else ids.Should().NotContain(grandchild.Id);
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task AvatarAuditFieldsSurviveSaveUpdateAndFreshConnection(bool synchronous)

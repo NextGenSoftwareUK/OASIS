@@ -143,7 +143,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     }
                     if (!holonLoad.IsError && holonLoad.Result != null)
                     {
-                        holons.AddRange(holonLoad.Result.Where(h =>
+                        var candidates = holonLoad.Result.Where(h => h.DeletedDate == DateTime.MinValue).ToList();
+                        if (searchParams.ParentId != Guid.Empty)
+                        {
+                            var descendants = new HashSet<Guid>();
+                            var visited = new HashSet<Guid> { searchParams.ParentId };
+                            var pending = new Queue<Guid>();
+                            pending.Enqueue(searchParams.ParentId);
+                            var byParent = candidates.ToLookup(h => h.ParentHolonId);
+                            while (pending.Count > 0)
+                            {
+                                foreach (var child in byParent[pending.Dequeue()])
+                                {
+                                    if (!visited.Add(child.Id)) continue;
+                                    descendants.Add(child.Id);
+                                    if (searchParams.Recursive) pending.Enqueue(child.Id);
+                                }
+                            }
+                            candidates = candidates.Where(h => descendants.Contains(h.Id)).ToList();
+                        }
+                        holons.AddRange(candidates.Where(h =>
                             (h.Name ?? string.Empty).ToLower().Contains(q) || (h.Description ?? string.Empty).ToLower().Contains(q)));
                     }
 
