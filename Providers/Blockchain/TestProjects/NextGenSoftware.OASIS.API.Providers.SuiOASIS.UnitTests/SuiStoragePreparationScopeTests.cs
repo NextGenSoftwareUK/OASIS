@@ -7,6 +7,27 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 public class SuiStoragePreparationScopeTests
 {
     [TestMethod]
+    public async Task ClosingOwnerWaitsForInProgressGateFactory()
+    {
+        var scope=new OwnedPreparationScope();
+        var factoryEntered=new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var bodyReturned=new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        using var release=new ManualResetEventSlim();Task? write=null;
+        var owner=Task.Run(()=>scope.RunAsync(async()=>{
+            write=Task.Run(()=>{using var gate=scope.CreateCurrent();Assert.IsNotNull(gate);});
+            await factoryEntered.Task.WaitAsync(TimeSpan.FromSeconds(5));bodyReturned.SetResult(true);return true;
+        },()=>{
+            factoryEntered.SetResult(true);
+            if(!release.Wait(TimeSpan.FromSeconds(5)))throw new TimeoutException("Controlled gate factory release missing.");
+            return new PreparedSubmissionServer((_,_)=>Task.CompletedTask);
+        }));
+        try{
+            await bodyReturned.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            Assert.AreNotSame(owner,await Task.WhenAny(owner,Task.Delay(100)),"Owner closure must not finish while its gate factory is in progress.");
+        }finally{release.Set();await owner.WaitAsync(TimeSpan.FromSeconds(5));if(write!=null)await write.WaitAsync(TimeSpan.FromSeconds(5));}
+        Assert.IsNull(scope.CreateCurrent());
+    }
+    [TestMethod]
     public async Task ConcurrentIndependentOwnersKeepSeparateFactories()
     {
         var scope=new OwnedPreparationScope();var ready=new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
