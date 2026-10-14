@@ -148,6 +148,22 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 searched.Result.SearchResultHolons.Select(h => h.Id).Should().Equal(holon.Id);
                 searched.Result.SearchResultAvatars.Should().BeEmpty();
             }
+            var searchCounts = new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS }
+                .ToDictionary(provider => provider, provider => balanceManager.PerformanceMonitor.GetMetrics(provider).TotalRequests);
+            var roundRobinSearch = new StorageOperationRequest { Operation = "Search", LoadChildren = false,
+                SearchParams = new SearchParams { SearchOnlyForCurrentAvatar = false,
+                    SearchGroups = new() { new SearchTextGroup { SearchQuery = "priority-updated", SearchHolons = true,
+                        HolonType = holon.HolonType, HolonSearchParams = new SearchHolonParams { Name = true } } } } };
+            for (var index = 0; index < 6; index++)
+            {
+                var searched = synchronous ? balancedRouter.RouteRequest<ISearchResults>(roundRobinSearch, LoadBalancingStrategy.RoundRobin)
+                    : await balancedRouter.RouteRequestAsync<ISearchResults>(roundRobinSearch, LoadBalancingStrategy.RoundRobin);
+                searched.IsError.Should().BeFalse(searched.Message);
+                searched.Result.SearchResultHolons.Select(h => h.Id).Should().Equal(holon.Id);
+            }
+            foreach (var provider in searchCounts.Keys)
+                balanceManager.PerformanceMonitor.GetMetrics(provider).TotalRequests.Should().Be(searchCounts[provider] + 3,
+                    "six real round-robin search requests must execute three times on each provider");
             var delete = new StorageOperationRequest { Operation = "DeleteHolon", HolonId = holon.Id, SoftDelete = false, PreferredProvider = request.PreferredProvider };
             var deleted = synchronous ? router.RouteRequest<IHolon>(delete) : await router.RouteRequestAsync<IHolon>(delete);
             deleted.IsError.Should().BeFalse(deleted.Message);
