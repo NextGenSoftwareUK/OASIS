@@ -80,6 +80,22 @@ public class PredictiveEngineOwnershipTests
     }
 
     [Fact]
+    public async Task RegistrationPublicationAndReturnedListsRemainIsolated()
+    {
+        var manager = new ProviderManager(null, null);
+        using var provider = new NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS("Data Source=:memory:");
+        var attempts = await Task.WhenAll(Enumerable.Range(0, 32).Select(_ => Task.Run(() => manager.RegisterProvider(provider))));
+        Assert.Single(attempts.Where(added => added));
+        var providers = manager.GetAllRegisteredProviders();
+        providers.Clear();
+        var types = manager.GetAllRegisteredProviderTypes();
+        types[0].Value = ProviderType.Default;
+        types.Clear();
+        Assert.Same(provider, Assert.Single(manager.GetAllRegisteredProviders()));
+        Assert.Equal(ProviderType.SQLLiteDBOASIS, Assert.Single(manager.GetAllRegisteredProviderTypes()).Value);
+    }
+
+    [Fact]
     public void NullManagerIsRejected()
     {
         Assert.Throws<ArgumentNullException>(() => PredictiveFailoverEngine.ForProviderManager(null!));
