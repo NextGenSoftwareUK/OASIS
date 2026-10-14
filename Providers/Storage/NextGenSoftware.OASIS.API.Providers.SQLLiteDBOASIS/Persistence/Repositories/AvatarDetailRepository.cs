@@ -34,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var avatarDetailEntity =
-                    _dbContext.AvatarDetails
+                    _dbContext.AvatarDetails.AsNoTracking()
                         .Include(a => a.InventoryItems)
                         .Include(a => a.Stats)
                         .Where(x => x.Id == id.ToString() && (version == 0 || x.Version == version))
@@ -149,7 +149,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var obj = await _dbContext.AvatarDetails
+                var obj = await _dbContext.AvatarDetails.AsNoTracking()
                     .Include(a => a.InventoryItems)
                     .Include(a => a.Stats)
                     .Where(x => x.Id == id.ToString() && (version == 0 || x.Version == version))
