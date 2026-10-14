@@ -694,6 +694,27 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(true,0,false)] [InlineData(false,0,false)] [InlineData(true,1,false)] [InlineData(false,1,false)]
+    [InlineData(true,2,false)] [InlineData(false,2,false)]
+    [InlineData(true,0,true)] [InlineData(false,0,true)] [InlineData(true,1,true)] [InlineData(false,1,true)]
+    [InlineData(true,2,true)] [InlineData(false,2,true)]
+    public async Task PublicAvatarDetailSelectorsRetainAbsenceAndFailure(bool synchronous,int selector,bool brokenTable)
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        if(brokenTable){using var control=new DataContext(TestConnectionString);control.Database.ExecuteSqlRaw("DROP TABLE AvatarDetail;");}
+        var id=Guid.NewGuid();
+        var result=selector switch {
+            0=>synchronous?provider.LoadAvatarDetail(id):await provider.LoadAvatarDetailAsync(id),
+            1=>synchronous?provider.LoadAvatarDetailByEmail("missing@example.invalid"):await provider.LoadAvatarDetailByEmailAsync("missing@example.invalid"),
+            _=>synchronous?provider.LoadAvatarDetailByUsername("missing-owned-avatar"):await provider.LoadAvatarDetailByUsernameAsync("missing-owned-avatar")
+        };
+        result.Result.Should().BeNull();result.IsLoaded.Should().BeFalse();result.IsError.Should().Be(brokenTable);
+        if(brokenTable)result.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        else result.Exception.Should().BeNull();
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task ParentSelectorsIsolateChildrenAndRespectTypeAndVersion(bool synchronous)
