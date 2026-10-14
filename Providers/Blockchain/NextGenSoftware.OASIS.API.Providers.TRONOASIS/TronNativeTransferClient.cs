@@ -1088,6 +1088,9 @@ public sealed class TronNativeTransferClient
         if (broadcast == null)
             throw new TronBroadcastOutcomeUnknownException(transactionId,_genesisBlockId,
                 signed.RawData.Timestamp,signed.RawData.Expiration,new InvalidOperationException("TRON returned no broadcast acknowledgement."));
+        if (broadcast.Result && (int)broadcast.Code != 0)
+            throw new TronBroadcastOutcomeUnknownException(transactionId,_genesisBlockId,
+                signed.RawData.Timestamp,signed.RawData.Expiration,new InvalidOperationException("TRON broadcast success flag contradicts its response code."));
         if (!broadcast.Result)
         {
             // Protocol DUP_TRANSACTION_ERROR=5 and NOT_ENOUGH_EFFECTIVE_CONNECTION=11
