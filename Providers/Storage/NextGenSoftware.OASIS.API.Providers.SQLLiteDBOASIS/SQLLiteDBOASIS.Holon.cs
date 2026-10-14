@@ -132,8 +132,24 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 
                 if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
                 {
-                    var firstGroup = searchParams.SearchGroups.First() as ISearchTextGroup;
-                    var q = (firstGroup?.SearchQuery?.ToString() ?? string.Empty).ToLower();
+                    var textGroups = searchParams.SearchGroups.Select(group => group as ISearchTextGroup
+                        ?? throw new NotSupportedException("SQLite search does not yet support this search group type.")).ToList();
+                    bool MatchesGroups(Func<ISearchTextGroup, bool> matches)
+                    {
+                        var matched = matches(textGroups[0]);
+                        foreach (var group in textGroups.Skip(1))
+                        {
+                            var next = matches(group);
+                            matched = group.PreviousSearchGroupOperator switch {
+                                SearchParamGroupOperator.And => matched && next,
+                                SearchParamGroupOperator.Or => matched || next,
+                                _ => throw new ArgumentException("Invalid search group operator.")
+                            };
+                        }
+                        return matched;
+                    }
+                    bool Contains(string value, ISearchTextGroup group) =>
+                        (value ?? string.Empty).Contains(group.SearchQuery ?? string.Empty, StringComparison.OrdinalIgnoreCase);
                     // Basic in-memory search using available repo APIs
                     var holonLoad = await _holonRepository.LoadAllHolonsAsync(loadChildren: loadChildren,
                         recursive: recursive, maxChildDepth: maxChildDepth, continueOnError: continueOnError, version: version);
@@ -162,8 +178,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                             }
                             candidates = candidates.Where(h => descendants.Contains(h.Id)).ToList();
                         }
-                        holons.AddRange(candidates.Where(h =>
-                            (h.Name ?? string.Empty).ToLower().Contains(q) || (h.Description ?? string.Empty).ToLower().Contains(q)));
+                        holons.AddRange(candidates.Where(h => MatchesGroups(group =>
+                            Contains(h.Name, group) || Contains(h.Description, group))));
                     }
 
                     var avatarLoad = await _avatarRepository.LoadAllAvatarsAsync(version);
@@ -173,8 +189,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     }
                     if (!avatarLoad.IsError && avatarLoad.Result != null)
                     {
-                        avatars.AddRange(avatarLoad.Result.Where(a =>
-                            (a.Name ?? string.Empty).ToLower().Contains(q) || (a.Username ?? string.Empty).ToLower().Contains(q) || (a.Email ?? string.Empty).ToLower().Contains(q)));
+                        avatars.AddRange(avatarLoad.Result.Where(a => MatchesGroups(group =>
+                            Contains(a.Name, group) || Contains(a.Username, group) || Contains(a.Email, group))));
                     }
                 }
                 
@@ -199,6 +215,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
 
                 searchResults.SearchResultHolons = holons;
                 searchResults.SearchResultAvatars = avatars;
+                searchResults.NumberOfResults = holons.Count + avatars.Count;
                 
                 result.Result = searchResults;
                 result.IsError = false;
