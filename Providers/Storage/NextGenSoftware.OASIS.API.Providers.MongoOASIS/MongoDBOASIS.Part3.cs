@@ -50,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             // Recursively save all child holons.
             foreach (IHolon holon in holons)
             {
-                OASISResult<IHolon> holonResult = SaveHolon(holon);
+                OASISResult<IHolon> holonResult = SaveHolon(holon, false, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
 
                 if (!holonResult.IsError && holonResult.Result != null)
                 {
@@ -109,7 +109,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             // Recursively save all child holons.
             foreach (IHolon holon in holons)
             {
-                OASISResult<IHolon> holonResult = await SaveHolonAsync(holon);
+                OASISResult<IHolon> holonResult = await SaveHolonAsync(holon, false, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
 
                 if (!holonResult.IsError && holonResult.Result != null)
                 {
@@ -312,7 +312,20 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 }
 
                 if (holons == null) throw new ArgumentNullException(nameof(holons));
-                return await _holonRepository.ImportAtomicAsync(holons.Select(holon => DataHelper.ConvertOASISHolonToMongoEntity(holon)), PreserveCreationAuditFields);
+                var importRoots = holons.ToList();
+                foreach (var importRoot in importRoots)
+                {
+                    var graphError = ValidateMongoChildGraph(importRoot);
+                    if (graphError != null)
+                    {
+                        result.IsError = true;
+                        result.ErrorCode = graphError.ErrorCode;
+                        result.Exception = graphError.Exception;
+                        result.Message = graphError.Message;
+                        return result;
+                    }
+                }
+                return await _holonRepository.ImportAtomicAsync(importRoots.Select(holon => DataHelper.ConvertOASISHolonToMongoEntity(holon)), PreserveCreationAuditFields);
             }
             catch (Exception ex)
             {
