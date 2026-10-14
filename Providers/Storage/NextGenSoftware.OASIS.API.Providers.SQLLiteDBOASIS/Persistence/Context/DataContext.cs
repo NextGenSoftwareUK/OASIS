@@ -48,6 +48,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            modelBuilder.Entity<AvatarModel>().HasMany(a => a.RefreshTokens).WithOne()
+                .HasForeignKey(t => t.AvatarId).OnDelete(DeleteBehavior.Cascade);
+            modelBuilder.Entity<AvatarModel>().Navigation(a => a.RefreshTokens).AutoInclude();
+            modelBuilder.Entity<RefreshTokenModel>().Property(t => t.Id).ValueGeneratedOnAdd();
             #region Child Entities Setting Up
 
              modelBuilder.Entity<AvatarDetailModel>()

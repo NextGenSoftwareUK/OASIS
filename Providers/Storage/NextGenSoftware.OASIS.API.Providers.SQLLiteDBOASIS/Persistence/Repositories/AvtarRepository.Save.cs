@@ -338,7 +338,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var avatarEntity = await _dbContext.Avatars
-                    .FirstOrDefaultAsync(p => p.RefreshToken == refreshToken && (version == 0 || p.Version == version));
+                    .FirstOrDefaultAsync(p => (p.RefreshToken == refreshToken || p.RefreshTokens.Any(t => t.Token == refreshToken)) && (version == 0 || p.Version == version));
                 if (avatarEntity != null)
                     return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
                 return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
@@ -354,7 +354,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var avatarEntity = _dbContext.Avatars
-                    .FirstOrDefault(p => p.RefreshToken == refreshToken && (version == 0 || p.Version == version));
+                    .FirstOrDefault(p => (p.RefreshToken == refreshToken || p.RefreshTokens.Any(t => t.Token == refreshToken)) && (version == 0 || p.Version == version));
                 if (avatarEntity != null)
                     return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
                 return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
@@ -382,7 +382,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
-                if (avatarEntity != null) _dbContext.Entry(avatarEntity).State = EntityState.Detached;
+                if (avatar != null) DetachFailedAvatarSave(avatar.Id.ToString());
                 return new OASISResult<IAvatar>
                 {
                     IsSaved = false,
@@ -411,7 +411,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
-                if (avatarEntity != null) _dbContext.Entry(avatarEntity).State = EntityState.Detached;
+                if (avatar != null) DetachFailedAvatarSave(avatar.Id.ToString());
                 return new OASISResult<IAvatar>
                 {
                     IsSaved = false,
@@ -420,6 +420,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     Message = ex.ToString()
                 };
             }
+        }
+
+        private void DetachFailedAvatarSave(string avatarId)
+        {
+            foreach (var entry in _dbContext.ChangeTracker.Entries().ToList())
+                if (entry.Entity is AvatarModel avatar && avatar.Id == avatarId ||
+                    entry.Entity is RefreshTokenModel token && token.AvatarId == avatarId)
+                    entry.State = EntityState.Detached;
         }
 
         private AvatarModel AddOrUpdateAvatar(AvatarModel incoming)
@@ -432,6 +440,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return incoming;
             }
             _dbContext.Entry(existing).CurrentValues.SetValues(incoming);
+            foreach (var token in existing.RefreshTokens.ToList())
+            {
+                var replacement = incoming.RefreshTokens.SingleOrDefault(t => t.Token == token.Token);
+                if (replacement == null) { _dbContext.Remove(token); existing.RefreshTokens.Remove(token); }
+                else
+                {
+                    replacement.Id = token.Id;
+                    _dbContext.Entry(token).CurrentValues.SetValues(replacement);
+                }
+            }
+            foreach (var token in incoming.RefreshTokens.Where(t => !existing.RefreshTokens.Any(old => old.Token == t.Token)))
+                existing.RefreshTokens.Add(token);
             return existing;
         }
 
@@ -452,6 +472,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Version = avatar.Version,
                 IsActive = avatar.IsActive,
                 IsVerified = avatar.IsVerified,
+                RefreshTokens = (avatar.RefreshTokens ?? new List<NextGenSoftware.OASIS.API.Core.Objects.RefreshToken>())
+                    .Select(token => new RefreshTokenModel(token) { AvatarId = avatar.Id.ToString() }).ToList(),
                 CreatedByAvatarId = avatar.CreatedByAvatarId.ToString(),
                 ModifiedByAvatarId = avatar.ModifiedByAvatarId.ToString(),
                 DeletedByAvatarId = avatar.DeletedByAvatarId.ToString(),
@@ -489,6 +511,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     ?? throw new System.IO.InvalidDataException("Stored avatar provider keys must be a JSON object."),
                 Version = avatar.Version,
                 IsActive = avatar.IsActive,
+                RefreshTokens = avatar.RefreshTokens.Select(token => token.GetRefreshToken()).ToList(),
                 CreatedByAvatarId = avatar.CreatedByAvatarId == null ? Guid.Empty : Guid.Parse(avatar.CreatedByAvatarId),
                 ModifiedByAvatarId = avatar.ModifiedByAvatarId == null ? Guid.Empty : Guid.Parse(avatar.ModifiedByAvatarId),
                 DeletedByAvatarId = avatar.DeletedByAvatarId == null ? Guid.Empty : Guid.Parse(avatar.DeletedByAvatarId),

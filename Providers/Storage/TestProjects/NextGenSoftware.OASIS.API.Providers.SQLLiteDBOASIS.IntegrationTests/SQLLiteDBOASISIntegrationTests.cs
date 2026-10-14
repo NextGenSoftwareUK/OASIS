@@ -1210,6 +1210,71 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task RejectedRefreshTokenGraphDoesNotLeakIntoNextAvatarSave(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        using var context = new DataContext(TestConnectionString);
+        context.Database.ExecuteSqlRaw("CREATE TRIGGER reject_owned_token BEFORE INSERT ON RefreshTokens BEGIN SELECT RAISE(ABORT, 'owned token rejection'); END;");
+        var failed = new Avatar { Id = Guid.NewGuid(), Username = "rejected-token-avatar", Email = "rejected@test.invalid",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User),
+            RefreshTokens = new() { new RefreshToken { Token = "rejected-owned-token" } } };
+        var rejected = synchronous ? provider.SaveAvatar(failed) : await provider.SaveAvatarAsync(failed);
+        rejected.IsError.Should().BeTrue();
+        rejected.IsSaved.Should().BeFalse();
+        rejected.Exception.Should().NotBeNull();
+        context.Database.ExecuteSqlRaw("DROP TRIGGER reject_owned_token;");
+        var good = new Avatar { Id = Guid.NewGuid(), Username = "next-token-avatar", Email = "next@test.invalid",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        var saved = synchronous ? provider.SaveAvatar(good) : await provider.SaveAvatarAsync(good);
+        saved.IsError.Should().BeFalse(saved.Message);
+        context.Avatars.AsNoTracking().Select(a => a.Id).Should().Equal(good.Id.ToString());
+        context.Set<NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.RefreshTokenModel>().Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task RefreshTokenCollectionsPersistRotateAndDeleteWithTheirAvatar(bool synchronous)
+    {
+        var avatar = new Avatar { Id = Guid.NewGuid(), Version = 3, Username = "collection-owned", Email = "collection@test.invalid",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User),
+            RefreshTokens = new() { new RefreshToken { Token = "collection-first", Expires = DateTime.UtcNow.AddDays(1) },
+                new RefreshToken { Token = "collection-second", CreatedByIp = "127.0.0.1" } } };
+        using (var provider = new SQLLiteDBOASIS(TestConnectionString)) {
+            (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+            var saved = synchronous ? provider.SaveAvatar(avatar) : await provider.SaveAvatarAsync(avatar);
+            saved.IsError.Should().BeFalse(saved.Message);
+        }
+        using (var provider = new SQLLiteDBOASIS(TestConnectionString)) {
+            (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+            var loaded = synchronous ? provider.LoadAvatarByRefreshToken("collection-first",3) : await provider.LoadAvatarByRefreshTokenAsync("collection-first",3);
+            loaded.IsError.Should().BeFalse(loaded.Message);
+            loaded.Result.Id.Should().Be(avatar.Id);
+            loaded.Result.RefreshTokens.Should().HaveCount(2);
+            loaded.Result.RefreshTokens.Select(t => t.Id).Should().OnlyHaveUniqueItems();
+            loaded.Result.RefreshTokens.RemoveAll(t => t.Token == "collection-first");
+            loaded.Result.RefreshTokens[0].RevokedByIp = "127.0.0.2";
+            loaded.Result.RefreshTokens.Add(new RefreshToken { Token = "collection-third" });
+            var saved = synchronous ? provider.SaveAvatar(loaded.Result) : await provider.SaveAvatarAsync(loaded.Result);
+            saved.IsError.Should().BeFalse(saved.Message);
+            saved.Result.RefreshTokens.Select(t => t.Token).Should().BeEquivalentTo("collection-second","collection-third");
+        }
+        using var reopened = new SQLLiteDBOASIS(TestConnectionString);
+        (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
+        (await reopened.LoadAvatarByRefreshTokenAsync("collection-first")).Result.Should().BeNull();
+        var rotated = await reopened.LoadAvatarByRefreshTokenAsync("collection-third",3);
+        rotated.Result.RefreshTokens.Single(t => t.Token == "collection-second").RevokedByIp.Should().Be("127.0.0.2");
+        (await reopened.LoadAvatarByRefreshTokenAsync("collection-third",2)).Result.Should().BeNull();
+        var deleted = synchronous ? reopened.DeleteAvatar(avatar.Id,false) : await reopened.DeleteAvatarAsync(avatar.Id,false);
+        deleted.IsError.Should().BeFalse(deleted.Message);
+        using var context = new DataContext(TestConnectionString);
+        context.Set<NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.RefreshTokenModel>().Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task AvatarTokenSelectorsRespectVersionAndPreserveFailures(bool synchronous)
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
