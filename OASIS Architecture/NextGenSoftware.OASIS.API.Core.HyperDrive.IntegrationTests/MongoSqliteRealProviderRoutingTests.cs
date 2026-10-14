@@ -317,7 +317,6 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 }
                 foreach (var operation in new[] { "DeleteAvatarByUsername", "DeleteAvatarByEmail", "DeleteAvatarDetailByUsername", "DeleteAvatarDetailByEmail" })
                 foreach (var softDelete in new[] { false, true }) {
-                    if (!softDelete && operation.StartsWith("DeleteAvatarDetail", StringComparison.Ordinal)) continue;
                     var beforeSecondary = integrityManager.PerformanceMonitor.GetMetrics(secondaryType)?.TotalRequests ?? 0;
                     var rejectedDeleteRequest = new StorageOperationRequest { Operation = operation, PreferredProvider = ambiguousPrimary,
                         Username = "owned-asymmetric-user-" + ambiguousPrimary, Email = ambiguousPrimary + "@integrity.invalid", SoftDelete = softDelete };
@@ -869,6 +868,42 @@ public sealed class MongoSqliteRealProviderRoutingTests
             {
                 await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
                 await failureMongo.DeActivateProviderAsync();
+            }
+            foreach (var operation in new[] { "DeleteAvatarDetail", "DeleteAvatarDetailByUsername", "DeleteAvatarDetailByEmail" })
+            foreach (var softDelete in new[] { false, true })
+            {
+                var standaloneAvatar = new Avatar { Id = Guid.NewGuid(), Username = Guid.NewGuid().ToString(), Email = Guid.NewGuid() + "@standalone.invalid",
+                    AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
+                var standaloneDetail = new AvatarDetail { Id = standaloneAvatar.Id, Username = standaloneAvatar.Username, Email = standaloneAvatar.Email, Karma = 123,
+                    Inventory = new List<IInventoryItem> { new InventoryItem { Id = Guid.NewGuid(), Name = "standalone-owned-seed", Quantity = 3 } } };
+                standaloneDetail.Stats.HP.Current = 37;
+                var saveIdentity = new StorageOperationRequest { Operation = "SaveAvatar", Payload = standaloneAvatar, PreferredProvider = request.PreferredProvider };
+                var savedIdentity = synchronous ? router.RouteRequest<IAvatar>(saveIdentity) : await router.RouteRequestAsync<IAvatar>(saveIdentity);
+                savedIdentity.IsError.Should().BeFalse(savedIdentity.Message);
+                savedIdentity.IsWarning.Should().BeFalse();
+                var saveDetail = new StorageOperationRequest { Operation = "SaveAvatarDetail", Payload = standaloneDetail, PreferredProvider = request.PreferredProvider };
+                var savedDetail = synchronous ? router.RouteRequest<IAvatarDetail>(saveDetail) : await router.RouteRequestAsync<IAvatarDetail>(saveDetail);
+                savedDetail.IsError.Should().BeFalse(savedDetail.Message);
+                savedDetail.IsWarning.Should().BeFalse();
+                var deleteDetail = new StorageOperationRequest { Operation = operation, AvatarId = standaloneAvatar.Id,
+                    Username = standaloneAvatar.Username, Email = standaloneAvatar.Email, SoftDelete = softDelete, PreferredProvider = request.PreferredProvider };
+                var deletedDetail = synchronous ? router.RouteRequest<bool>(deleteDetail) : await router.RouteRequestAsync<bool>(deleteDetail);
+                deletedDetail.IsError.Should().BeFalse(deletedDetail.Message);
+                deletedDetail.IsWarning.Should().BeFalse(string.Join("; ",manager.LastReplicationDiagnostic.Attempts.Select(x=>x.Message)));
+                deletedDetail.Result.Should().BeTrue();
+                manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+                foreach (var provider in new IOASISStorageProvider[] { mongo, sqlite }) {
+                    (await provider.LoadAvatarAsync(standaloneAvatar.Id)).Result.DeletedDate.Should().Be(DateTime.MinValue);
+                    var loaded = (await provider.LoadAvatarDetailAsync(standaloneAvatar.Id)).Result;
+                    if (!softDelete) loaded.Should().BeNull();
+                    else {
+                        loaded.IsActive.Should().BeFalse();
+                        loaded.DeletedDate.Should().NotBe(DateTime.MinValue);
+                        loaded.Inventory.Single().Name.Should().Be("standalone-owned-seed");
+                        loaded.Stats.HP.Current.Should().Be(37);
+                    }
+                    (await provider.LoadAvatarDetailAsync(detail.Id)).Result.Karma.Should().Be(456);
+                }
             }
             var avatarDelete = new StorageOperationRequest { Operation = "DeleteAvatar", AvatarId = avatar.Id, SoftDelete = false, PreferredProvider = request.PreferredProvider };
             (await failureMongo.ActivateProviderAsync()).IsError.Should().BeFalse();
