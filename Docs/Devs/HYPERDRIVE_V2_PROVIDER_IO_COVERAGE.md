@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Sui actual local NFT lifecycle1/1 (2026-10-13): retained runtime/deployment/faucet reused; native quantity2 mint, reads, escrow lock/foreign unlock rejection/unlock, ownership transfer/status, old-owner burn rejection, recipient burn and remaining-object cleanup passed7.45s, zero skips, fixed compact TAP. Preparation journal gone only after known successful cleanup; owned node stopped. Cleanup original/secondary failures now aggregate. This closes this official SDK local lifecycle case, not all C# public/API/custody-release/crash-settlement requirements. No fresh environment/runtime/deployment.
+
 Sui live NFT fixture preparation/reuse work (2026-10-13): explicit CreateNew fsynced signed-evidence journal guards native mutations; mint moved into cleanup scope; unknown original outcome retained with no more mutation cleanup. Recipient fixed deterministic public local-only fixture instead of new per-run credentials. Syntax/diff checks and offline29/29 pass; live fixture remains unrun/current cleanup-error attribution still open. No asset minted or runtime installed; not full NFT/escrow/API certification.
 
 TRON acknowledgement contradiction fix (2026-10-13): true success flag plus error code becomes typed unresolved original broadcast, not success or safe replay. Actual SDK controlled-gRPC case retains hash with one broadcast and zero polls; full300/300 unit pass, no skips, bounded builds0errors/23provider and2consumer warnings. Pending live journal untouched; no live mutation, full native/API gates open.
