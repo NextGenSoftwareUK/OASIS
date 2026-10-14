@@ -224,7 +224,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
 
                 // Fallback: load all and filter by CreatedByAvatarId
-                var allHolons = await _holonRepository.LoadAllHolonsAsync();
+                var allHolons = await _holonRepository.LoadAllHolonsAsync(version: version);
+                if (allHolons.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading export data: {allHolons.Message}", allHolons.Exception);
+                    result.ErrorCode = allHolons.ErrorCode;
+                    return result;
+                }
                 var filtered = allHolons.Result?.Where(h => h.CreatedByAvatarId == avatarId) ?? Enumerable.Empty<IHolon>();
                 result.Result = filtered;
                 result.IsError = false;
@@ -258,7 +264,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
 
                 // Fallback: load all and filter by CreatedByAvatarId (using CreatedByAvatar property)
-                var allHolons = await _holonRepository.LoadAllHolonsAsync();
+                var allHolons = await _holonRepository.LoadAllHolonsAsync(version: version);
+                if (allHolons.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading export data: {allHolons.Message}", allHolons.Exception);
+                    result.ErrorCode = allHolons.ErrorCode;
+                    return result;
+                }
                 var filtered = allHolons.Result?.Where(h => h.CreatedByAvatar != null && string.Equals(h.CreatedByAvatar.Username, avatarUsername, StringComparison.OrdinalIgnoreCase)) ?? Enumerable.Empty<IHolon>();
                 result.Result = filtered;
                 result.IsError = false;
@@ -292,7 +304,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
 
                 // Fallback: load all and filter by CreatedByAvatarId (using CreatedByAvatar property)
-                var allHolons = await _holonRepository.LoadAllHolonsAsync();
+                var allHolons = await _holonRepository.LoadAllHolonsAsync(version: version);
+                if (allHolons.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error loading export data: {allHolons.Message}", allHolons.Exception);
+                    result.ErrorCode = allHolons.ErrorCode;
+                    return result;
+                }
                 var filtered = allHolons.Result?.Where(h => h.CreatedByAvatar != null && string.Equals(h.CreatedByAvatar.Email, avatarEmailAddress, StringComparison.OrdinalIgnoreCase)) ?? Enumerable.Empty<IHolon>();
                 result.Result = filtered;
                 result.IsError = false;
