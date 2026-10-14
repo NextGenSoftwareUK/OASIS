@@ -680,7 +680,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             var result = new OASISResult<bool>();
             try
             {
-                var avatar = _dbContext.Avatar.Find(expression).FirstOrDefault();
+                var lookup = GetAvatar(expression);
+                if (lookup.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Avatar, bool>(lookup);
+                var avatar = lookup.Result;
                 if (avatar == null)
                 {
                     OASISErrorHandling.HandleError(ref result, "Avatar deletion selector matched no persisted identity.");
@@ -700,7 +702,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             var result = new OASISResult<bool>();
             try
             {
-                var avatar = await _dbContext.Avatar.Find(expression).FirstOrDefaultAsync();
+                var lookup = await GetAvatarAsync(expression);
+                if (lookup.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Avatar, bool>(lookup);
+                var avatar = lookup.Result;
                 if (avatar == null)
                 {
                     OASISErrorHandling.HandleError(ref result, "Avatar deletion selector matched no persisted identity.");
