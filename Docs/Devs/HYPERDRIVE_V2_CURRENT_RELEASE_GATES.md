@@ -4,6 +4,8 @@ Updated 2026-10-13, inspected parent `07e0ae20c` and retained reports/journals. 
 
 ## Authoritative state
 
+Priority SQLite avatar-list/search cause preservation (2026-10-13): avatar list sync/async now retains original SqliteException; async query filters version server-side and awaits ToListAsync instead of full synchronous table scan. Public search missing-Hol(on)/Avatar regressions now require original exception, plus direct avatar-list sync/async failures. Full reusable SQLite80/80 passes, zero skips,9s; provider build succeeds. Complete priority-provider API/options/routing/persistence gates still incomplete; no installs/new environment.
+
 Priority SQLite public search failure fix (2026-10-13): public SearchAsync previously ignored failed holon/avatar list reads and emitted successful empty results. It now returns explicit OASIS error immediately, forwarding underlying cause where available. Real owned missing-Hol(on)/Avatar table public regressions pass; full SQLite78/78, zero skips,7s; provider build succeeds. Test SQL table names are fixed theory literals, not external input. Same reusable fixture/runtime, no installs. Search filtering/options/complete interface and live V2/API gates remain unproven.
 
 Priority SQLite all-holon load integrity (2026-10-13): sync/async list failures now retain original SqliteException; async list uses actual awaited EF ToListAsync instead of synchronous DB query. Missing-table sync/async regressions added; full reusable integration76/76 passes, zero skips,10s; provider build succeeds. No installs/new environment. Complete higher-priority interface/field/history/API and V2 policy gates remain open; this is error/async query boundary evidence only.

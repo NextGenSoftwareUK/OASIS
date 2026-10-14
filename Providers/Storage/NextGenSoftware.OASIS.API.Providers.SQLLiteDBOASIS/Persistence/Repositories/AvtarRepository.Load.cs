@@ -268,9 +268,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var avatarEntities = _dbContext.Avatars
-                    .ToList()
-                    .Where(p => (version == 0 || p.Version == version))
+                var rows = await _dbContext.Avatars
+                    .Where(p => (version == 0 || p.Version == version)).ToListAsync();
+                var avatarEntities = rows
                     .Select(GetAvatarFromEntity)
                     .ToList();
                 return new OASISResult<IEnumerable<IAvatar>>
@@ -287,6 +287,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
+                    Exception = ex,
                     Message = ex.ToString()
                 };
             }
@@ -315,6 +316,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
+                    Exception = ex,
                     Message = ex.ToString()
                 };
             }
