@@ -290,6 +290,15 @@ public class SuiPreparedLedgerTests
             var cleanupHash=cleanup.GetProperty("transactionHash").GetString()!;
             var cleaned=await store.GetAsync(execution.OperationId,deadline.Token);Assert.AreEqual(expectedWrites+1,cleaned.ProviderAttempts.Count);
             Assert.AreEqual(cleanupHash,cleaned.ProviderAttempts[expectedWrites].ProviderRequestId);
+            foreach(var physicalAttempt in cleaned.ProviderAttempts){
+                var physicalFee=await provider.GetPreparedNativeFeeReceiptAsync(physicalAttempt,deadline.Token);
+                Assert.IsFalse(physicalFee.IsError,physicalFee.Message);
+                Assert.AreEqual(physicalAttempt.ProviderRequestId,physicalFee.Result.GetProperty("transactionHash").GetString());
+                Assert.AreEqual(settings.GetProperty("chainId").GetString(),physicalFee.Result.GetProperty("chainIdentifier").GetString());
+                Assert.AreEqual(settings.GetProperty("address").GetString(),physicalFee.Result.GetProperty("payer").GetString());
+                Assert.IsTrue(physicalFee.Result.GetProperty("success").GetBoolean());
+                Assert.IsFalse(string.IsNullOrWhiteSpace(physicalFee.Result.GetProperty("netUnits").GetString()));
+            }
             var cleanupStatus=await provider.GetTransactionStatusAsync(cleanupHash,deadline.Token);Assert.IsFalse(cleanupStatus.IsError,cleanupStatus.Message);
             Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,cleanupStatus.Result);
             var absent=await (Task<JsonElement>)sdk.Invoke(provider,new object[]{"get",new{key},deadline.Token})!;
