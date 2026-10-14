@@ -1193,6 +1193,43 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task AvatarActiveAndDerivedVerificationStateSurviveFreshConnection(bool synchronous)
+    {
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = "owned-state-avatar", Email = "state@test.invalid",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User), IsActive = false,
+            Verified = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc) };
+        using (var provider = new SQLLiteDBOASIS(TestConnectionString))
+        {
+            (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+            var saved = synchronous ? provider.SaveAvatar(avatar) : await provider.SaveAvatarAsync(avatar);
+            saved.IsError.Should().BeFalse(saved.Message);
+        }
+        using (var reopened = new SQLLiteDBOASIS(TestConnectionString))
+        {
+            (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
+            var loaded = synchronous ? reopened.LoadAvatar(avatar.Id) : await reopened.LoadAvatarAsync(avatar.Id);
+            loaded.IsError.Should().BeFalse(loaded.Message);
+            loaded.Result.IsActive.Should().BeFalse();
+            loaded.Result.IsVerified.Should().BeTrue();
+            loaded.Result.Verified.Should().Be(avatar.Verified);
+            loaded.Result.IsActive = true;
+            loaded.Result.Verified = null;
+            loaded.Result.PasswordReset = null;
+            var saved = synchronous ? reopened.SaveAvatar(loaded.Result) : await reopened.SaveAvatarAsync(loaded.Result);
+            saved.IsError.Should().BeFalse(saved.Message);
+        }
+        using var final = new SQLLiteDBOASIS(TestConnectionString);
+        (await final.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var updated = await final.LoadAvatarAsync(avatar.Id);
+        updated.Result.IsActive.Should().BeTrue();
+        updated.Result.IsVerified.Should().BeFalse();
+        using var context = new DataContext(TestConnectionString);
+        context.Avatars.AsNoTracking().Single(a => a.Id == avatar.Id.ToString()).IsVerified.Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task AvatarAuditFieldsSurviveSaveUpdateAndFreshConnection(bool synchronous)
     {
         var avatar = new Avatar { Id = Guid.NewGuid(), Username = "owned-audit-avatar", Email = "audit@test.invalid",
