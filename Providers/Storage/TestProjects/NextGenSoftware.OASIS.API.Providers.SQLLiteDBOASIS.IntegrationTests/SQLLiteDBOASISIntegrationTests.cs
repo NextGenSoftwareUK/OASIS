@@ -17,6 +17,26 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task AvatarExportsCannotReportMissingTableAsSuccessfulEmptyData(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        using var control = new DataContext(TestConnectionString);
+        control.Database.ExecuteSqlRaw("DROP TABLE Holon;");
+        foreach (var result in new[] {
+            synchronous ? provider.ExportAllDataForAvatarById(Guid.NewGuid()) : await provider.ExportAllDataForAvatarByIdAsync(Guid.NewGuid()),
+            synchronous ? provider.ExportAllDataForAvatarByUsername("owned") : await provider.ExportAllDataForAvatarByUsernameAsync("owned"),
+            synchronous ? provider.ExportAllDataForAvatarByEmail("owned@test.local") : await provider.ExportAllDataForAvatarByEmailAsync("owned@test.local") })
+        {
+            result.IsError.Should().BeTrue();
+            result.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+            result.Result.Should().BeNull();
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task WalletLookupFailuresRetainNativeDatabaseCause(bool synchronous)
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
