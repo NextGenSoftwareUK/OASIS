@@ -7,6 +7,23 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 public class SuiStoragePreparationScopeTests
 {
     [TestMethod]
+    public async Task ConcurrentIndependentOwnersKeepSeparateFactories()
+    {
+        var scope=new OwnedPreparationScope();var ready=new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
+        var arrived=0;var observed=new System.Collections.Concurrent.ConcurrentBag<string>();
+        Task Run(string owner)=>Task.Run(()=>scope.RunAsync(async()=>{
+            if(Interlocked.Increment(ref arrived)==2)ready.SetResult(true);
+            await ready.Task.WaitAsync(TimeSpan.FromSeconds(5));
+            using var gate=scope.CreateCurrent("put",owner);Assert.IsNotNull(gate);return true;
+        },(operation,key)=>{
+            Assert.AreEqual("put",operation);Assert.AreEqual(owner,key);observed.Add(owner);
+            return new PreparedSubmissionServer((_,_)=>Task.CompletedTask);
+        }));
+        await Task.WhenAll(Run("owner-a"),Run("owner-b"));
+        CollectionAssert.AreEquivalent(new[]{"owner-a","owner-b"},observed.ToArray());
+        Assert.IsNull(scope.CreateCurrent());
+    }
+    [TestMethod]
     public async Task OwnershipRejectsNestedAndInheritedLateWrites()
     {
         var scope=new OwnedPreparationScope();var released=new TaskCompletionSource<bool>(TaskCreationOptions.RunContinuationsAsynchronously);
