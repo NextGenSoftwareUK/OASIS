@@ -272,6 +272,9 @@ public sealed class MongoSqliteRealProviderRoutingTests
                         AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
                     (await primaryStore.SaveAvatarAsync(identity)).IsError.Should().BeFalse();
                     if (index == 0) (await secondaryStore.SaveAvatarAsync(identity)).IsError.Should().BeFalse();
+                    var identityDetail = new AvatarDetail { Id = identity.Id, Username = identity.Username, Email = identity.Email, Karma = index + 1 };
+                    (await primaryStore.SaveAvatarDetailAsync(identityDetail)).IsError.Should().BeFalse();
+                    if (index == 0) (await secondaryStore.SaveAvatarDetailAsync(identityDetail)).IsError.Should().BeFalse();
                 }
                 var integrityManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true };
                 integrityManager.RegisterProvider(mongo);
@@ -290,6 +293,21 @@ public sealed class MongoSqliteRealProviderRoutingTests
                     rejected.Exception.Should().BeOfType<StorageIdentityAmbiguousException>();
                     (integrityManager.PerformanceMonitor.GetMetrics(secondaryType)?.TotalRequests ?? 0).Should().Be(beforeSecondary);
                     var explicitRejected = await integrityRouter.FailoverRequestAsync<IAvatar>(integrityRequest);
+                    explicitRejected.ErrorCode.Should().Be(OASISResultErrorCodes.AmbiguousIdentity);
+                    explicitRejected.Result.Should().BeNull();
+                    (integrityManager.PerformanceMonitor.GetMetrics(secondaryType)?.TotalRequests ?? 0).Should().Be(beforeSecondary);
+                }
+                foreach (var operation in new[] { "LoadAvatarDetailByUsername", "LoadAvatarDetailByEmail" }) {
+                    var beforeSecondary = integrityManager.PerformanceMonitor.GetMetrics(secondaryType)?.TotalRequests ?? 0;
+                    var detailIntegrityRequest = new StorageOperationRequest { Operation = operation, PreferredProvider = ambiguousPrimary,
+                        Username = "owned-asymmetric-user-" + ambiguousPrimary, Email = ambiguousPrimary + "@integrity.invalid" };
+                    var rejected = synchronous ? integrityRouter.RouteRequest<IAvatarDetail>(detailIntegrityRequest)
+                        : await integrityRouter.RouteRequestAsync<IAvatarDetail>(detailIntegrityRequest);
+                    rejected.IsError.Should().BeTrue();
+                    rejected.Result.Should().BeNull();
+                    rejected.ErrorCode.Should().Be(OASISResultErrorCodes.AmbiguousIdentity);
+                    rejected.Exception.Should().BeOfType<StorageIdentityAmbiguousException>();
+                    var explicitRejected = await integrityRouter.FailoverRequestAsync<IAvatarDetail>(detailIntegrityRequest);
                     explicitRejected.ErrorCode.Should().Be(OASISResultErrorCodes.AmbiguousIdentity);
                     explicitRejected.Result.Should().BeNull();
                     (integrityManager.PerformanceMonitor.GetMetrics(secondaryType)?.TotalRequests ?? 0).Should().Be(beforeSecondary);

@@ -381,13 +381,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             var result = new OASISResult<AvatarDetail>();
             try
             {
-                result.Result = _dbContext.AvatarDetail.Find(expression).FirstOrDefault();
+                var matches = _dbContext.AvatarDetail.Find(expression).Limit(2).ToList();
+                if (matches.Count > 1) throw new StorageIdentityAmbiguousException();
+                result.Result = matches.SingleOrDefault();
                 result.IsLoaded = result.Result != null;
                 if (result.Result == null) result.Message = "Avatar detail not found";
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, "MongoDB avatar detail lookup failed.", ex);
+                if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
             }
             return result;
         }
@@ -397,13 +400,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             var result = new OASISResult<AvatarDetail>();
             try
             {
-                result.Result = await _dbContext.AvatarDetail.Find(expression).FirstOrDefaultAsync();
+                var matches = await _dbContext.AvatarDetail.Find(expression).Limit(2).ToListAsync();
+                if (matches.Count > 1) throw new StorageIdentityAmbiguousException();
+                result.Result = matches.SingleOrDefault();
                 result.IsLoaded = result.Result != null;
                 if (result.Result == null) result.Message = "Avatar detail not found";
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, "MongoDB avatar detail lookup failed.", ex);
+                if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
             }
             return result;
         }
