@@ -826,12 +826,47 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
         var result = await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
             SearchOnlyForCurrentAvatar = false, SearchGroups = new() {
-                new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchNumberGroup()
+                new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchGroupBase()
             }
         });
         result.IsError.Should().BeTrue();
         result.Result.Should().BeNull();
         result.Exception.Should().BeOfType<NotSupportedException>();
+    }
+
+    [Theory]
+    [InlineData(SearchOperatorType.LessThan, 1)]
+    [InlineData(SearchOperatorType.LessThanOrEqualTo, 2)]
+    [InlineData(SearchOperatorType.EqualTo, 1)]
+    [InlineData(SearchOperatorType.NotEqualTo, 2)]
+    [InlineData(SearchOperatorType.GreaterThan, 1)]
+    [InlineData(SearchOperatorType.GreaterThanOrEqualTo, 2)]
+    public async Task PublicNumericSearchHonoursEveryVersionComparison(SearchOperatorType operation, int expected)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        foreach (var version in new[] { 2, 3, 4 })
+        {
+            var holon = await provider.SaveHolonAsync(new Holon { Id = Guid.NewGuid(), Version = version }, saveChildren:false);
+            holon.IsError.Should().BeFalse(holon.Message);
+            var avatar = await provider.SaveAvatarAsync(new Avatar { Id = Guid.NewGuid(), Version = version,
+                Username = "owned-numeric-" + version, Email = version + "@test.invalid",
+                AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) });
+            avatar.IsError.Should().BeFalse(avatar.Message);
+        }
+        var result = await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+            SearchOnlyForCurrentAvatar = false, SearchGroups = new() {
+                new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchNumberGroup {
+                    Number = 3, NumberOperator = operation, SearchHolons = true, SearchAvatars = true,
+                    HolonSearchParams = new SearchHolonParams { Version = true },
+                    AvatarSearchParams = new NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar.SearchAvatarParams { Version = true }
+                }
+            }
+        }, loadChildren:false);
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.SearchResultHolons.Should().HaveCount(expected);
+        result.Result.SearchResultAvatars.Should().HaveCount(expected);
+        result.Result.NumberOfResults.Should().Be(expected * 2);
     }
 
     [Theory]
