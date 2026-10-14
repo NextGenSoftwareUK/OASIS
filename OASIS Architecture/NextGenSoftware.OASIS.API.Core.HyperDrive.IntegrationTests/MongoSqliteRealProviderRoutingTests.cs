@@ -642,6 +642,33 @@ public sealed class MongoSqliteRealProviderRoutingTests
             failManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
             failManager.SetAndActivateCurrentStorageProvider(failureMongo).IsError.Should().BeFalse();
             var admin = client.GetDatabase("admin");
+            var retainedImportRows = new List<IHolon>();
+            foreach (var importedHolon in importedHolons)
+                retainedImportRows.Add((await mongo.LoadHolonAsync(importedHolon.Id,loadChildren:false)).Result);
+            try
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                    { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("skip",1) },
+                    { "data", new BsonDocument { { "failCommands", new BsonArray { "update" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                });
+                var replacementBatch = retainedImportRows.Select(row => (IHolon)new Holon { Id = row.Id, Name = "rejected-import-update" }).ToList();
+                var rejectedReplacement = synchronous ? failureMongo.Import(replacementBatch) : await failureMongo.ImportAsync(replacementBatch);
+                rejectedReplacement.IsError.Should().BeTrue();
+                rejectedReplacement.Result.Should().BeFalse();
+                rejectedReplacement.Exception.Should().BeOfType<MongoCommandException>();
+                foreach (var retainedImport in retainedImportRows)
+                {
+                    var retainedRead = (await mongo.LoadHolonAsync(retainedImport.Id,loadChildren:false)).Result;
+                    retainedRead.Name.Should().Be(retainedImport.Name);
+                    retainedRead.CreatedDate.Should().Be(retainedImport.CreatedDate);
+                    retainedRead.CreatedByAvatarId.Should().Be(retainedImport.CreatedByAvatarId);
+                    retainedRead.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS].Should().Be(retainedImport.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS]);
+                }
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+            }
             MongoTransactionReconciliationException importCommitEvidence = null;
             var uncertainImport = new IHolon[] { new Holon { Id = Guid.NewGuid(), Name = "owned-import-commit-rejected" } };
             try
