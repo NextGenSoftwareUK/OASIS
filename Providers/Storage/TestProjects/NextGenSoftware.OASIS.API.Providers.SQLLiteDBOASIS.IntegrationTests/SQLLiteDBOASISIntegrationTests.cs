@@ -1215,6 +1215,30 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         }
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task AmbiguousTokenSelectorsDoNotChooseTheFirstAvatar(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        foreach (var index in new[] { 1, 2 })
+            (await provider.SaveAvatarAsync(new Avatar { Id = Guid.NewGuid(), Username = "ambiguous-" + index,
+                Email = index + "@ambiguous.invalid", VerificationToken = "same-verification", ResetToken = "same-reset",
+                RefreshTokens = new() { new RefreshToken { Token = "same-refresh" } },
+                AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) })).IsError.Should().BeFalse();
+        foreach (var result in new[] {
+            synchronous ? provider.LoadAvatarByVerificationToken("same-verification") : await provider.LoadAvatarByVerificationTokenAsync("same-verification"),
+            synchronous ? provider.LoadAvatarByResetToken("same-reset") : await provider.LoadAvatarByResetTokenAsync("same-reset"),
+            synchronous ? provider.LoadAvatarByRefreshToken("same-refresh") : await provider.LoadAvatarByRefreshTokenAsync("same-refresh")
+        }) {
+            result.IsError.Should().BeTrue();
+            result.IsLoaded.Should().BeFalse();
+            result.Result.Should().BeNull();
+            result.Exception.Should().BeOfType<InvalidOperationException>();
+        }
+    }
+
     [Fact]
     public async Task GenericAsyncUsernameLoaderFiltersBeforeMapping()
     {
