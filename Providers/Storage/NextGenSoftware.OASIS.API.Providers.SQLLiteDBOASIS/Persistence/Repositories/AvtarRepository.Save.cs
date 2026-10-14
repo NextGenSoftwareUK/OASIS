@@ -442,8 +442,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             return rows.SingleOrDefault();
         }
 
-        private AvatarModel ReadUniqueAvatar(IQueryable<AvatarModel> query) => RequireUniqueAvatar(query.Take(2).ToList());
-        private async Task<AvatarModel> ReadUniqueAvatarAsync(IQueryable<AvatarModel> query) => RequireUniqueAvatar(await query.Take(2).ToListAsync());
+        private AvatarModel ReadUniqueAvatar(IQueryable<AvatarModel> query) => RequireUniqueAvatar(query.AsNoTracking().Take(2).ToList());
+        private async Task<AvatarModel> ReadUniqueAvatarAsync(IQueryable<AvatarModel> query) => RequireUniqueAvatar(await query.AsNoTracking().Take(2).ToListAsync());
 
         private void DetachFailedAvatarSave(string avatarId)
         {
