@@ -51,6 +51,7 @@ public sealed class UsageReconciliationFinding
 
 public sealed class UsageReconciliationReport
 {
+    public bool RequiresStripeUsageInvoice { get; set; }
     [BsonId] public string Id { get; set; } = Guid.NewGuid().ToString("D");
     public string UserId { get; set; }
     public string Month { get; set; }
