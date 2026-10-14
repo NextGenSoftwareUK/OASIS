@@ -17,6 +17,29 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task AvatarAndDetailReadsObserveIndependentlyCommittedUpdates(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = "fresh-avatar", Email = "fresh-avatar@test.local", FirstName = "before",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+        (await provider.SaveAvatarDetailAsync(new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Email = avatar.Email, Karma = 10 })).IsError.Should().BeFalse();
+        using var control = new DataContext(TestConnectionString);
+        control.Avatars.Single(row => row.Id == avatar.Id.ToString()).FirstName = "after";
+        control.AvatarDetails.Single(row => row.Id == avatar.Id.ToString()).Karma = 99;
+        control.SaveChanges();
+        var profile = synchronous ? provider.LoadAvatar(avatar.Id) : await provider.LoadAvatarAsync(avatar.Id);
+        profile.IsError.Should().BeFalse(profile.Message);
+        profile.Result.FirstName.Should().Be("after");
+        var detail = synchronous ? provider.LoadAvatarDetail(avatar.Id) : await provider.LoadAvatarDetailAsync(avatar.Id);
+        detail.IsError.Should().BeFalse(detail.Message);
+        detail.Result.Karma.Should().Be(99);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task HolonRootReadsObserveIndependentCommittedUpdates(bool synchronous)
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
