@@ -23,6 +23,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             _dbContext = dbContext;
         }
 
+        private IAvatarDetail MapUniqueAvatarDetail(List<AvatarDetailModel> rows)
+        {
+            if (rows.Count > 1) throw new StorageIdentityAmbiguousException();
+            return rows.Count == 0 ? null : GetAvatarDetailFromEntity(rows[0]);
+        }
+
         public OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
         {
             try
@@ -57,6 +63,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
@@ -66,14 +73,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var avatarDetailEntity =
-                    _dbContext.AvatarDetails
+                var rows = _dbContext.AvatarDetails
                         .Include(a => a.InventoryItems)
                         .Include(a => a.Stats)
                         .Where(x => x.Email == avatarEmail && (version == 0 || x.Version == version))
-                        .ToList()
-                        .Select(GetAvatarDetailFromEntity)
-                        .FirstOrDefault();
+                        .Take(2).ToList();
+                var avatarDetailEntity = MapUniqueAvatarDetail(rows);
                 if (avatarDetailEntity == null)
                     return new OASISResult<IAvatarDetail>
                     {
@@ -96,6 +101,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
@@ -105,14 +111,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var avatarDetailEntity =
-                    _dbContext.AvatarDetails
+                var rows = _dbContext.AvatarDetails
                         .Include(a => a.InventoryItems)
                         .Include(a => a.Stats)
                         .Where(x => x.Username == avatarUsername && (version == 0 || x.Version == version))
-                        .ToList()
-                        .Select(GetAvatarDetailFromEntity)
-                        .FirstOrDefault();
+                        .Take(2).ToList();
+                var avatarDetailEntity = MapUniqueAvatarDetail(rows);
                 if (avatarDetailEntity == null)
                     return new OASISResult<IAvatarDetail>
                     {
@@ -135,6 +139,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
@@ -171,6 +176,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
@@ -181,12 +187,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var entity = await _dbContext.AvatarDetails
+                var rows = await _dbContext.AvatarDetails
                     .Include(a => a.InventoryItems)
                     .Include(a => a.Stats)
                     .Where(x => x.Username == avatarUsername && (version == 0 || x.Version == version))
-                    .FirstOrDefaultAsync();
-                var avatarDetailEntity = entity == null ? null : GetAvatarDetailFromEntity(entity);
+                    .Take(2).ToListAsync();
+                var avatarDetailEntity = MapUniqueAvatarDetail(rows);
                 if (avatarDetailEntity == null)
                     return new OASISResult<IAvatarDetail>
                     {
@@ -209,6 +215,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
@@ -218,12 +225,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var entity = await _dbContext.AvatarDetails
+                var rows = await _dbContext.AvatarDetails
                     .Include(a => a.InventoryItems)
                     .Include(a => a.Stats)
                     .Where(x => x.Email == avatarEmail && (version == 0 || x.Version == version))
-                    .FirstOrDefaultAsync();
-                var avatarDetailEntity = entity == null ? null : GetAvatarDetailFromEntity(entity);
+                    .Take(2).ToListAsync();
+                var avatarDetailEntity = MapUniqueAvatarDetail(rows);
                 if (avatarDetailEntity == null)
                     return new OASISResult<IAvatarDetail>
                     {
@@ -246,6 +253,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
@@ -278,6 +286,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
@@ -308,6 +317,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     IsLoaded = false,
                     IsError = true,
                     Exception = ex,
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null,
                     Message = ex.ToString()
                 };
             }
