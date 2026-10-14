@@ -37,6 +37,41 @@ public class HederaPreparationTests
             await (Task)type.GetMethod("VerifyAsync")!.Invoke(backend,new object[]{deadline.Token})!;
         }finally{Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",previous);}
     }
+    [TestMethod]
+    public async Task PreparedFeeRecoveryRejectsSubstitutedKeyOnActualSdkSignedTransaction()
+    {
+        var bridge=Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE")??Path.Combine(AppContext.BaseDirectory,"HederaSdkBridge","bridge.mjs");
+        var start=new ProcessStartInfo("node"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,
+            RedirectStandardError=true,WorkingDirectory=Path.GetDirectoryName(bridge)};
+        start.ArgumentList.Add("--input-type=module"); start.ArgumentList.Add("-e");
+        start.ArgumentList.Add("""
+            import {PrivateKey,TransferTransaction,AccountId,TransactionId} from '@hiero-ledger/sdk';
+            const key=PrivateKey.generateECDSA(),wrong=PrivateKey.generateECDSA();
+            const tx=new TransferTransaction().setTransactionId(TransactionId.fromString('0.0.1001@1700000000.000000001'))
+              .setNodeAccountIds([AccountId.fromString('0.0.3')]).addHbarTransfer('0.0.1001',-1).addHbarTransfer('0.0.1002',1).freeze();
+            const signed=await tx.sign(key);
+            console.log(JSON.stringify({signed:Buffer.from(signed.toBytes()).toString('base64'),publicKey:key.publicKey.toStringDer(),wrongKey:wrong.publicKey.toStringDer()}));
+            """);
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        using var child=Process.Start(start)??throw new InvalidOperationException("Retained SDK process unavailable.");
+        try {
+            var output=child.StandardOutput.ReadToEndAsync(deadline.Token);
+            var error=child.StandardError.ReadToEndAsync(deadline.Token);
+            await child.WaitForExitAsync(deadline.Token);
+            Assert.AreEqual(0,child.ExitCode,await error);
+            using var document=JsonDocument.Parse(await output);
+            var provider=new HashgraphOASIS(network:"testnet",chainId:"296");
+            var attempt=new UsageProviderAttempt { Provider="HashgraphOASIS",ProviderRequestId="0.0.1001@1700000000.000000001",
+                NativePreparation=new(){ChainId="testnet",Sender="0.0.1001",SignedTransactionBase64=document.RootElement.GetProperty("signed").GetString()!} };
+            await provider.VerifyOriginalSignedPreparationAsync(JsonSerializer.SerializeToElement(new {
+                transactionHash=attempt.ProviderRequestId,chainId="testnet",sender="0.0.1001",
+                signedTransactionBase64=attempt.NativePreparation.SignedTransactionBase64 }),document.RootElement.GetProperty("publicKey").GetString()!,deadline.Token);
+            var result=await provider.GetPreparedNativeFeeReceiptAsync(attempt,document.RootElement.GetProperty("wrongKey").GetString()!,deadline.Token);
+            Assert.IsTrue(result.IsError); Assert.IsNotNull(result.Exception);
+            Assert.IsInstanceOfType<InvalidOperationException>(result.Exception);
+            Assert.AreEqual(JsonValueKind.Undefined,result.Result.ValueKind);
+        } finally { if(!child.HasExited){child.Kill(entireProcessTree:true);await child.WaitForExitAsync();} }
+    }
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     [DataRow(false,true)] [DataRow(true,true)]
