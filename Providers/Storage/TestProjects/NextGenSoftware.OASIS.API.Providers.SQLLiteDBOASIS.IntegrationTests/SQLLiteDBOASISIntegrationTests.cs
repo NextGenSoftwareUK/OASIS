@@ -1207,6 +1207,30 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         (await repository.LoadAvatarAsync(avatar.Username, 3)).Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
     }
 
+    [Fact]
+    public async Task RefreshTokenLogicalIdsMayRepeatAcrossAvatarsWithoutStorageCollisions()
+    {
+        var avatars = new[] { Guid.NewGuid(), Guid.NewGuid() };
+        using (var provider = new SQLLiteDBOASIS(TestConnectionString)) {
+            (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+            foreach (var id in avatars) {
+                var saved = await provider.SaveAvatarAsync(new Avatar { Id = id, Username = id.ToString(), Email = id + "@test.invalid",
+                    AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User),
+                    RefreshTokens = new() { new RefreshToken { Id = 7, Token = "owned-cross-token-" + id } } });
+                saved.IsError.Should().BeFalse(saved.Message);
+            }
+        }
+        using var reopened = new SQLLiteDBOASIS(TestConnectionString);
+        (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
+        foreach (var id in avatars) {
+            var loaded = await reopened.LoadAvatarByRefreshTokenAsync("owned-cross-token-" + id);
+            loaded.Result.Id.Should().Be(id);
+            loaded.Result.RefreshTokens.Single().Id.Should().Be(7);
+        }
+        using var context = new DataContext(TestConnectionString);
+        context.Set<NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.RefreshTokenModel>().Select(t => t.StorageId).Should().OnlyHaveUniqueItems();
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
@@ -1239,8 +1263,8 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     {
         var avatar = new Avatar { Id = Guid.NewGuid(), Version = 3, Username = "collection-owned", Email = "collection@test.invalid",
             AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User),
-            RefreshTokens = new() { new RefreshToken { Token = "collection-first", Expires = DateTime.UtcNow.AddDays(1) },
-                new RefreshToken { Token = "collection-second", CreatedByIp = "127.0.0.1" } } };
+            RefreshTokens = new() { new RefreshToken { Id = 1, Token = "collection-first", Expires = DateTime.UtcNow.AddDays(1) },
+                new RefreshToken { Id = 2, Token = "collection-second", CreatedByIp = "127.0.0.1" } } };
         using (var provider = new SQLLiteDBOASIS(TestConnectionString)) {
             (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
             var saved = synchronous ? provider.SaveAvatar(avatar) : await provider.SaveAvatarAsync(avatar);
@@ -1255,7 +1279,7 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
             loaded.Result.RefreshTokens.Select(t => t.Id).Should().OnlyHaveUniqueItems();
             loaded.Result.RefreshTokens.RemoveAll(t => t.Token == "collection-first");
             loaded.Result.RefreshTokens[0].RevokedByIp = "127.0.0.2";
-            loaded.Result.RefreshTokens.Add(new RefreshToken { Token = "collection-third" });
+            loaded.Result.RefreshTokens.Add(new RefreshToken { Id = 3, Token = "collection-third" });
             var saved = synchronous ? provider.SaveAvatar(loaded.Result) : await provider.SaveAvatarAsync(loaded.Result);
             saved.IsError.Should().BeFalse(saved.Message);
             saved.Result.RefreshTokens.Select(t => t.Token).Should().BeEquivalentTo("collection-second","collection-third");
