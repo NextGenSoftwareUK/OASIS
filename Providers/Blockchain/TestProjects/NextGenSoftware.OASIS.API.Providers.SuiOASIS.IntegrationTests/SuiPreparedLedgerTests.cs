@@ -233,7 +233,12 @@ public class SuiPreparedLedgerTests
                 .BeginAsync("test-only",user,key,new string('a',64),"POST /local-test",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1},deadline.Token);
             var sdk=typeof(SuiOASIS).GetMethod("InvokeSdkAsync",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
             Task<JsonElement> Mutate(string operation,object args,string correlation)=>storageScope
-                ? provider.ExecutePreparedStorageAsync(()=> (Task<JsonElement>)sdk.Invoke(provider,new object[]{operation,args,deadline.Token})!,execution,correlation,
+                ? provider.ExecutePreparedStorageAsync(async()=>{
+                    var response=await (Task<JsonElement>)sdk.Invoke(provider,new object[]{operation,args,deadline.Token})!;
+                    if(operation=="put"&&correlation=="write"&&!loseConfirmedReply)
+                        response=await (Task<JsonElement>)sdk.Invoke(provider,new object[]{operation,args,deadline.Token})!;
+                    return response;
+                },execution,correlation,
                     settings.GetProperty("address").GetString()!,deadline.Token)
                 : provider.ExecutePreparedNativeAsync(operation,args,execution,correlation,settings.GetProperty("chainId").GetString()!,settings.GetProperty("address").GetString()!,deadline.Token);
             await JsonSerializer.SerializeAsync(journalFile,new{database,key,storageScope,operationId=execution.OperationId,chainId=settings.GetProperty("chainId").GetString(),
@@ -257,9 +262,13 @@ public class SuiPreparedLedgerTests
                 var response=await Mutate("put",new{key,value="owned prepared live fixture"},"write");
                 hash=response.GetProperty("transactionHash").GetString()!;
             }
-            var stored=await store.GetAsync(execution.OperationId,deadline.Token);Assert.AreEqual(1,stored.ProviderAttempts.Count);
-            var attempt=stored.ProviderAttempts[0];Assert.AreEqual(hash,attempt.ProviderRequestId);
-            Assert.AreEqual(storageScope?"write.storage.1":"write",attempt.ClientRequestId);
+            var stored=await store.GetAsync(execution.OperationId,deadline.Token);
+            var expectedWrites=storageScope&&!loseConfirmedReply?2:1;
+            Assert.AreEqual(expectedWrites,stored.ProviderAttempts.Count);
+            for(var index=0;index<expectedWrites;index++)
+                Assert.AreEqual(storageScope?"write.storage."+(index+1):"write",stored.ProviderAttempts[index].ClientRequestId);
+            if(expectedWrites==2)Assert.AreNotEqual(stored.ProviderAttempts[0].ProviderRequestId,stored.ProviderAttempts[1].ProviderRequestId);
+            var attempt=stored.ProviderAttempts[expectedWrites-1];Assert.AreEqual(hash,attempt.ProviderRequestId);
             Assert.IsFalse(string.IsNullOrWhiteSpace(attempt.NativePreparation.SignedTransactionBase64));
             Assert.IsFalse(string.IsNullOrWhiteSpace(attempt.NativePreparation.Signature));
             Assert.IsNull(attempt.AcknowledgedAtUtc,"Preparation alone must not claim ledger settlement.");
@@ -274,13 +283,13 @@ public class SuiPreparedLedgerTests
             var conflict=await Assert.ThrowsExceptionAsync<UsageProtocolException>(()=>Mutate("put",new{key,value="must never be submitted"},"write"));
             Assert.AreEqual("PROVIDER_ATTEMPT_ALREADY_STARTED",conflict.Code);
             var afterDuplicate=await store.GetAsync(execution.OperationId,deadline.Token);
-            Assert.AreEqual(1,afterDuplicate.ProviderAttempts.Count);Assert.AreEqual(stored.NativePreparationBytes,afterDuplicate.NativePreparationBytes);
+            Assert.AreEqual(expectedWrites,afterDuplicate.ProviderAttempts.Count);Assert.AreEqual(stored.NativePreparationBytes,afterDuplicate.NativePreparationBytes);
             var unchanged=await (Task<JsonElement>)sdk.Invoke(provider,new object[]{"get",new{key},deadline.Token})!;
             Assert.AreEqual("owned prepared live fixture",unchanged.GetString());
             var cleanup=await Mutate("delete",new{key},"cleanup");
             var cleanupHash=cleanup.GetProperty("transactionHash").GetString()!;
-            var cleaned=await store.GetAsync(execution.OperationId,deadline.Token);Assert.AreEqual(2,cleaned.ProviderAttempts.Count);
-            Assert.AreEqual(cleanupHash,cleaned.ProviderAttempts[1].ProviderRequestId);
+            var cleaned=await store.GetAsync(execution.OperationId,deadline.Token);Assert.AreEqual(expectedWrites+1,cleaned.ProviderAttempts.Count);
+            Assert.AreEqual(cleanupHash,cleaned.ProviderAttempts[expectedWrites].ProviderRequestId);
             var cleanupStatus=await provider.GetTransactionStatusAsync(cleanupHash,deadline.Token);Assert.IsFalse(cleanupStatus.IsError,cleanupStatus.Message);
             Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,cleanupStatus.Result);
             var absent=await (Task<JsonElement>)sdk.Invoke(provider,new object[]{"get",new{key},deadline.Token})!;
