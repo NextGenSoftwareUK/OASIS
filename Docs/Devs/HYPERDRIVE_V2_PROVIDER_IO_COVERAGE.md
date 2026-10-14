@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-13 Sui native fee boundary: reject noncanonical/out-of-u64 checkpoints and nonpositive/inexact timestamps before returning charged-fee evidence. Negative cases extend the existing receipt test;31/31 offline bridge/helper tests pass on Windows and retained Linux. Recovery worker inspection confirms it consumes `IUsageRecoveryResolver` settlement evidence, but no production native valuation/resolver registration has been proven; exact fees must not be fabricated as zero USD.
+
 2026-10-13 Linux compatibility update: Hedera's package-defined five offline SDK test files pass102/102 (exit0) on retained Linux Node22.22.2 using existing dependencies. Cosmos's two offline SDK files pass60/60 after the test subprocess deadline was aligned with production's existing two-minute deadline; Windows also passes60/60. No installs, copies or native mutations. These results do not certify production Node24.19.0, published .NET IPC, hosted API admission/recovery or live V2 failover/load balancing/replication.
 
 **Updated:** 2026-10-13 (scope-specific evidence below; full completion unproven)
