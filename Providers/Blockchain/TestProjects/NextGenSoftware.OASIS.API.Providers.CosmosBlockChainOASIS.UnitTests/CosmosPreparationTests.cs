@@ -252,6 +252,19 @@ public class CosmosPreparationTests
             Assert.AreEqual(1,afterRejection.ProviderAttempts.Count);
             Assert.AreEqual(stored.NativePreparationBytes,afterRejection.NativePreparationBytes);
             Assert.IsFalse(provider.IsProviderActivated);
+            using(var cancelledOwner=new CancellationTokenSource()){
+                var backend=(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.IKeyValueBackend)typeof(CosmosBlockChainOASIS)
+                    .GetField("_sdkBackend",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance)!.GetValue(provider)!;
+                var canceled=await Assert.ThrowsExceptionAsync<OperationCanceledException>(()=>provider.ExecutePreparedStorageAsync(async()=>{
+                    cancelledOwner.Cancel();
+                    await backend.PutAsync("never-submit-after-owner-cancellation","fixture");
+                    return "must not complete";
+                },execution,"canceled-storage",signed.RootElement.GetProperty("sender").GetString()!,cancelledOwner.Token));
+                Assert.AreEqual(cancelledOwner.Token,canceled.CancellationToken);
+                var afterCancellation=await store.GetAsync(execution.OperationId,deadline.Token);
+                Assert.AreEqual(1,afterCancellation.ProviderAttempts.Count);
+                Assert.AreEqual(stored.NativePreparationBytes,afterCancellation.NativePreparationBytes);
+            }
             passed=true;
         }finally{
             try{if(!child.HasExited){child.Kill(entireProcessTree:true);await child.WaitForExitAsync();}}
