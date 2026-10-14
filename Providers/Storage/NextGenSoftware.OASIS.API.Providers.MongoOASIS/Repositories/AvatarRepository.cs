@@ -181,12 +181,15 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 var filter = Builders<Avatar>.Filter.Where(expression);
-                result.Result = _dbContext.Avatar.Find(filter).SingleOrDefault();
+                var matches = _dbContext.Avatar.Find(filter).Limit(2).ToList();
+                if (matches.Count > 1) throw new StorageIdentityAmbiguousException();
+                result.Result = matches.SingleOrDefault();
                 result.IsLoaded = result.Result != null;
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error in GetAvatar method in AvatarRepository loading Avatar. Reason: {ex}", ex);
+                if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
             }
 
             return result;
@@ -199,12 +202,15 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             try
             {
                 var filter = Builders<Avatar>.Filter.Where(expression);
-                result.Result = await _dbContext.Avatar.Find(filter).SingleOrDefaultAsync();
+                var matches = await _dbContext.Avatar.Find(filter).Limit(2).ToListAsync();
+                if (matches.Count > 1) throw new StorageIdentityAmbiguousException();
+                result.Result = matches.SingleOrDefault();
                 result.IsLoaded = result.Result != null;
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error in GetAvatarAsync method in AvatarRepository loading Avatar. Reason: {ex}", ex);
+                if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
             }
 
             return result;

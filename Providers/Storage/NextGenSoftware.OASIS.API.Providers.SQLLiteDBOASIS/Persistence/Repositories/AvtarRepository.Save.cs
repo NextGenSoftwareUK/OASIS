@@ -274,15 +274,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 ArgumentException.ThrowIfNullOrWhiteSpace(verificationToken);
-                var avatarEntity = await _dbContext.Avatars
-                    .SingleOrDefaultAsync(p => p.VerificationToken == verificationToken && (version == 0 || p.Version == version));
+                var avatarEntity = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(p => p.VerificationToken == verificationToken && (version == 0 || p.Version == version)));
                 if (avatarEntity != null)
                     return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
                 return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
             }
             catch (Exception ex)
             {
-                return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Exception = ex, Message = ex.ToString() };
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Exception = ex, Message = ex.ToString(),
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null };
             }
         }
 
@@ -291,15 +291,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 ArgumentException.ThrowIfNullOrWhiteSpace(verificationToken);
-                var avatarEntity = _dbContext.Avatars
-                    .SingleOrDefault(p => p.VerificationToken == verificationToken && (version == 0 || p.Version == version));
+                var avatarEntity = ReadUniqueAvatar(_dbContext.Avatars.Where(p => p.VerificationToken == verificationToken && (version == 0 || p.Version == version)));
                 if (avatarEntity != null)
                     return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
                 return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
             }
             catch (Exception ex)
             {
-                return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Exception = ex, Message = ex.ToString() };
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Exception = ex, Message = ex.ToString(),
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null };
             }
         }
 
@@ -308,15 +308,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 ArgumentException.ThrowIfNullOrWhiteSpace(resetToken);
-                var avatarEntity = await _dbContext.Avatars
-                    .SingleOrDefaultAsync(p => p.ResetToken == resetToken && (version == 0 || p.Version == version));
+                var avatarEntity = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(p => p.ResetToken == resetToken && (version == 0 || p.Version == version)));
                 if (avatarEntity != null)
                     return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
                 return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
             }
             catch (Exception ex)
             {
-                return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Exception = ex, Message = ex.ToString() };
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Exception = ex, Message = ex.ToString(),
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null };
             }
         }
 
@@ -325,15 +325,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 ArgumentException.ThrowIfNullOrWhiteSpace(resetToken);
-                var avatarEntity = _dbContext.Avatars
-                    .SingleOrDefault(p => p.ResetToken == resetToken && (version == 0 || p.Version == version));
+                var avatarEntity = ReadUniqueAvatar(_dbContext.Avatars.Where(p => p.ResetToken == resetToken && (version == 0 || p.Version == version)));
                 if (avatarEntity != null)
                     return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
                 return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
             }
             catch (Exception ex)
             {
-                return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Exception = ex, Message = ex.ToString() };
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Exception = ex, Message = ex.ToString(),
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null };
             }
         }
 
@@ -342,15 +342,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 ArgumentException.ThrowIfNullOrWhiteSpace(refreshToken);
-                var avatarEntity = await _dbContext.Avatars
-                    .SingleOrDefaultAsync(p => (p.RefreshToken == refreshToken || p.RefreshTokens.Any(t => t.Token == refreshToken)) && (version == 0 || p.Version == version));
+                var avatarEntity = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(p => (p.RefreshToken == refreshToken || p.RefreshTokens.Any(t => t.Token == refreshToken)) && (version == 0 || p.Version == version)));
                 if (avatarEntity != null)
                     return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
                 return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
             }
             catch (Exception ex)
             {
-                return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Exception = ex, Message = ex.ToString() };
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Exception = ex, Message = ex.ToString(),
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null };
             }
         }
 
@@ -359,15 +359,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 ArgumentException.ThrowIfNullOrWhiteSpace(refreshToken);
-                var avatarEntity = _dbContext.Avatars
-                    .SingleOrDefault(p => (p.RefreshToken == refreshToken || p.RefreshTokens.Any(t => t.Token == refreshToken)) && (version == 0 || p.Version == version));
+                var avatarEntity = ReadUniqueAvatar(_dbContext.Avatars.Where(p => (p.RefreshToken == refreshToken || p.RefreshTokens.Any(t => t.Token == refreshToken)) && (version == 0 || p.Version == version)));
                 if (avatarEntity != null)
                     return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
                 return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
             }
             catch (Exception ex)
             {
-                return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Exception = ex, Message = ex.ToString() };
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Exception = ex, Message = ex.ToString(),
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null };
             }
         }
 
@@ -427,6 +427,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 };
             }
         }
+
+        private static AvatarModel RequireUniqueAvatar(List<AvatarModel> rows)
+        {
+            if (rows.Count > 1) throw new StorageIdentityAmbiguousException();
+            return rows.SingleOrDefault();
+        }
+
+        private AvatarModel ReadUniqueAvatar(IQueryable<AvatarModel> query) => RequireUniqueAvatar(query.Take(2).ToList());
+        private async Task<AvatarModel> ReadUniqueAvatarAsync(IQueryable<AvatarModel> query) => RequireUniqueAvatar(await query.Take(2).ToListAsync());
 
         private void DetachFailedAvatarSave(string avatarId)
         {

@@ -17,6 +17,7 @@ using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context;
 using NextGenSoftware.Utilities;
 using Xunit;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 
@@ -251,12 +252,47 @@ public sealed class MongoSqliteRealProviderRoutingTests
                     ambiguous.IsError.Should().BeTrue();
                     ambiguous.IsLoaded.Should().BeFalse();
                     ambiguous.Result.Should().BeNull();
-                    ambiguous.Exception.Should().BeOfType<InvalidOperationException>();
+                    ambiguous.Exception.Should().BeOfType<StorageIdentityAmbiguousException>();
+                    ambiguous.ErrorCode.Should().Be(OASISResultErrorCodes.AmbiguousIdentity);
                 }
             }
             avatar.RefreshTokens = new List<RefreshToken> { new RefreshToken { Id = 7, Token = rotatedRefreshToken,
                 CreatedByIp = "127.0.0.2", Expires = new DateTime(2027, 1, 1, 0, 0, 0, DateTimeKind.Utc) } };
             var rotatedSave = synchronous ? router.RouteRequest<IAvatar>(avatarRequest) : await router.RouteRequestAsync<IAvatar>(avatarRequest);
+            foreach (var ambiguousPrimary in new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS })
+            {
+                var primaryStore = ambiguousPrimary == ProviderType.MongoDBOASIS ? (IOASISStorageProvider)mongo : sqlite;
+                var secondaryStore = ambiguousPrimary == ProviderType.MongoDBOASIS ? (IOASISStorageProvider)sqlite : mongo;
+                var secondaryType = ambiguousPrimary == ProviderType.MongoDBOASIS ? ProviderType.SQLLiteDBOASIS : ProviderType.MongoDBOASIS;
+                var token = "owned-asymmetric-" + ambiguousPrimary;
+                for (var index = 0; index < 2; index++) {
+                    var identity = new Avatar { Id = Guid.NewGuid(), Username = Guid.NewGuid().ToString(), Email = Guid.NewGuid() + "@integrity.invalid",
+                        VerificationToken = token, ResetToken = token, RefreshTokens = new() { new RefreshToken { Token = token } },
+                        AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
+                    (await primaryStore.SaveAvatarAsync(identity)).IsError.Should().BeFalse();
+                    if (index == 0) (await secondaryStore.SaveAvatarAsync(identity)).IsError.Should().BeFalse();
+                }
+                var integrityManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true };
+                integrityManager.RegisterProvider(mongo);
+                integrityManager.RegisterProvider(sqlite);
+                integrityManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ambiguousPrimary), new EnumValue<ProviderType>(secondaryType) }).IsError.Should().BeFalse();
+                var integrityRouter = new OASISHyperDrive(integrityManager);
+                foreach (var operation in new[] { "LoadAvatarByVerificationToken", "LoadAvatarByResetToken", "LoadAvatarByRefreshToken" }) {
+                    var beforeSecondary = integrityManager.PerformanceMonitor.GetMetrics(secondaryType)?.TotalRequests ?? 0;
+                    var integrityRequest = new StorageOperationRequest { Operation = operation, PreferredProvider = ambiguousPrimary,
+                        VerificationToken = token, ResetToken = token, RefreshToken = token };
+                    var rejected = synchronous ? integrityRouter.RouteRequest<IAvatar>(integrityRequest) : await integrityRouter.RouteRequestAsync<IAvatar>(integrityRequest);
+                    rejected.IsError.Should().BeTrue();
+                    rejected.Result.Should().BeNull();
+                    rejected.ErrorCode.Should().Be(OASISResultErrorCodes.AmbiguousIdentity);
+                    rejected.Exception.Should().BeOfType<StorageIdentityAmbiguousException>();
+                    (integrityManager.PerformanceMonitor.GetMetrics(secondaryType)?.TotalRequests ?? 0).Should().Be(beforeSecondary);
+                    var explicitRejected = await integrityRouter.FailoverRequestAsync<IAvatar>(integrityRequest);
+                    explicitRejected.ErrorCode.Should().Be(OASISResultErrorCodes.AmbiguousIdentity);
+                    explicitRejected.Result.Should().BeNull();
+                    (integrityManager.PerformanceMonitor.GetMetrics(secondaryType)?.TotalRequests ?? 0).Should().Be(beforeSecondary);
+                }
+            }
             rotatedSave.IsError.Should().BeFalse(rotatedSave.Message);
             rotatedSave.IsWarning.Should().BeFalse();
             manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
