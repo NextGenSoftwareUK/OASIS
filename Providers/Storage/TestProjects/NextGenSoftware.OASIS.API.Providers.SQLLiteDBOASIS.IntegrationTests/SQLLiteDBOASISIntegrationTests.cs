@@ -1190,6 +1190,23 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         else ids.Should().NotContain(grandchild.Id);
     }
 
+    [Fact]
+    public async Task GenericAsyncUsernameLoaderFiltersBeforeMapping()
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var avatar = new Avatar { Id = Guid.NewGuid(), Version = 3, Username = "generic-owned", Email = "generic@test.invalid",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+        using var context = new DataContext(TestConnectionString);
+        var repository = new AvatarRepository(context);
+        (await repository.LoadAvatarAsync(avatar.Username, 3)).Result.Id.Should().Be(avatar.Id);
+        (await repository.LoadAvatarAsync(avatar.Username, 2)).Result.Should().BeNull();
+        (await repository.LoadAvatarAsync("absent-owned", 3)).IsLoaded.Should().BeFalse();
+        context.Database.ExecuteSqlRaw("DROP TABLE Avatar;");
+        (await repository.LoadAvatarAsync(avatar.Username, 3)).Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]

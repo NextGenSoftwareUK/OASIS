@@ -158,11 +158,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var avatarEntity = _dbContext.Avatars
-                    .ToList()
-                    .Where(p => p.Username == username && (version == 0 || p.Version == version))
-                    .Select(GetAvatarFromEntity)
-                    .FirstOrDefault();
+                var entity = await _dbContext.Avatars
+                    .FirstOrDefaultAsync(p => p.Username == username && (version == 0 || p.Version == version));
+                var avatarEntity = entity == null ? null : GetAvatarFromEntity(entity);
                 if (avatarEntity == null)
                     return new OASISResult<IAvatar>
                     {
