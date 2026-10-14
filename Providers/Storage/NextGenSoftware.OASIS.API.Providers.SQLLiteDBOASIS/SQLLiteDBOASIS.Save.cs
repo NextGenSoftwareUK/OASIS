@@ -271,7 +271,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     result.ErrorCode = allHolons.ErrorCode;
                     return result;
                 }
-                var filtered = allHolons.Result?.Where(h => h.CreatedByAvatar != null && string.Equals(h.CreatedByAvatar.Username, avatarUsername, StringComparison.OrdinalIgnoreCase)) ?? Enumerable.Empty<IHolon>();
+                var owner = await _avatarRepository.LoadAvatarByUsernameAsync(avatarUsername);
+                if (owner.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error resolving export owner: {owner.Message}", owner.Exception);
+                    result.ErrorCode = owner.ErrorCode;
+                    return result;
+                }
+                var filtered = owner.Result == null ? Enumerable.Empty<IHolon>()
+                    : allHolons.Result?.Where(h => h.CreatedByAvatarId == owner.Result.Id) ?? Enumerable.Empty<IHolon>();
                 result.Result = filtered;
                 result.IsError = false;
                 result.Message = $"Successfully exported {result.Result.Count()} holons for avatar {avatarUsername} from SQLite";
@@ -311,7 +319,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     result.ErrorCode = allHolons.ErrorCode;
                     return result;
                 }
-                var filtered = allHolons.Result?.Where(h => h.CreatedByAvatar != null && string.Equals(h.CreatedByAvatar.Email, avatarEmailAddress, StringComparison.OrdinalIgnoreCase)) ?? Enumerable.Empty<IHolon>();
+                var owner = await _avatarRepository.LoadAvatarByEmailAsync(avatarEmailAddress);
+                if (owner.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result, $"Error resolving export owner: {owner.Message}", owner.Exception);
+                    result.ErrorCode = owner.ErrorCode;
+                    return result;
+                }
+                var filtered = owner.Result == null ? Enumerable.Empty<IHolon>()
+                    : allHolons.Result?.Where(h => h.CreatedByAvatarId == owner.Result.Id) ?? Enumerable.Empty<IHolon>();
                 result.Result = filtered;
                 result.IsError = false;
                 result.Message = $"Successfully exported {result.Result.Count()} holons for avatar {avatarEmailAddress} from SQLite";
