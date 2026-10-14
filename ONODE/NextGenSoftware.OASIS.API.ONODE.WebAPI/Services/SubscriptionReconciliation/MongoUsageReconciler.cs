@@ -169,7 +169,8 @@ public sealed class MongoUsageReconciler
                             if (matched.Count == 0)
                             {
                                 providerComplete = false;
-                                Add(result, "MISSING_PROVIDER_RECEIPT", operationId + ":" + requestId, "Provider cost remains independently unverified.");
+                                if(result.AwaitingPeriodClose)result.AwaitingProviderEvidence=true;
+                                else Add(result, "MISSING_PROVIDER_RECEIPT", operationId + ":" + requestId, "Provider cost remains independently unverified.");
                             }
                             else if (matched.Count != 1 || matched[0].UserId != userId || matched[0].Month != month ||
                                 matched[0].ConsumingService != operation["ConsumingService"].AsString ||

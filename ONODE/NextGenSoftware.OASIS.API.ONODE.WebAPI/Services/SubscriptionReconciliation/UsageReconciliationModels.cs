@@ -60,6 +60,7 @@ public sealed class UsageReconciliationReport
     public bool ProviderEvidenceComplete { get; set; }
     public bool StripeEvidenceComplete { get; set; }
     public bool AwaitingPeriodClose { get; set; }
+    public bool AwaitingProviderEvidence { get; set; }
     public int UnsettledOperations { get; set; }
     public List<UsageReconciliationFinding> Findings { get; set; } = new();
     public bool ActionRequired => Findings.Count > 0;
