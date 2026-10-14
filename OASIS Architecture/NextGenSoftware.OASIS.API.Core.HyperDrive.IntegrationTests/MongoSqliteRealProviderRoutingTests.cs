@@ -645,6 +645,15 @@ public sealed class MongoSqliteRealProviderRoutingTests
             var retainedImportRows = new List<IHolon>();
             foreach (var importedHolon in importedHolons)
                 retainedImportRows.Add((await mongo.LoadHolonAsync(importedHolon.Id,loadChildren:false)).Result);
+            var duplicateImport = new IHolon[] {
+                new Holon { Id = retainedImportRows[0].Id, Name = "invalid-duplicate-one" },
+                new Holon { Id = retainedImportRows[0].Id, Name = "invalid-duplicate-two" }
+            };
+            var duplicateImportResult = synchronous ? failureMongo.Import(duplicateImport) : await failureMongo.ImportAsync(duplicateImport);
+            duplicateImportResult.IsError.Should().BeTrue();
+            duplicateImportResult.Result.Should().BeFalse();
+            duplicateImportResult.Exception.Should().BeOfType<ArgumentException>();
+            (await mongo.LoadHolonAsync(retainedImportRows[0].Id,loadChildren:false)).Result.Name.Should().Be(retainedImportRows[0].Name);
             try
             {
                 await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
