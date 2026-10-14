@@ -51,10 +51,15 @@ Collections are in the existing ledger database: `subscription_overage_statement
 
 ## Verification evidence
 
-- 24 pricing and transactional ledger cases passed against the existing Mongo instance using disposable, isolated databases. They cover concurrent caps, expiry, opt-out, price changes, failed payments, replay, cumulative rounding and audited corrections. Those databases were removed afterward.
+- 25 pricing and transactional ledger cases passed against the existing Mongo instance using disposable, isolated databases. They cover concurrent caps, expiry, opt-out, price changes, failed payments, replay, cumulative rounding and audited corrections. Those databases were removed afterward.
 - The real Stripe sandbox gateway collected USD 0.60 once: `in_1UQJ4uD2t0mRpwzcVjAKBRj8`.
 - It issued a USD 0.10 credit: `in_1UQJ54D2t0mRpwzcKdFCkkjc`. The owned test credit balance was restored to its initial state after verification.
 - This gateway test used controlled usage fixtures in an isolated ledger scope; it does not claim a real vendor cost of USD 0.70. Actual hosted WEB6 provider measurement was verified separately with an immutable catalogue and a successful settlement.
 - Hosted monthly checkout, Bronze-to-Silver upgrade, one GBP 19.94 proration invoice, period-end cancellation, portal end-date display and renewal restoration all passed for the same Stripe subscription.
+- Hosted WEB6 streaming also passed with operation `6185c1c7-1233-f388-6d1a-c1ce00dd3254`: HTTP 200 SSE, 205 prompt tokens, 5 completion tokens, USD 0.00005925, and a succeeded/settled ledger event under `web6-model-catalogue-2026-10-14-launch-v3`. An identical retry returned 409.
+- A real signup verification email arrived in a controlled inbox. Its development link verified the account through hosted WEB4, normal OPORTAL source login passed, and an invalid verification token displayed an error. The portal page now rejects application errors inside HTTP 200 responses.
+- The owned sandbox subscription's future renewal was disabled after testing. It remains active until its current period ends; the immutable test history is retained.
 
-The protected Vercel development deployment remains a separate hosting acceptance check until the connector can access the OASIS team.
+The protected Vercel development deployment remains a separate hosting acceptance check until the connector can access the OASIS team. Portal browser checks above served the reviewed source locally against deployed APIs. Three unresolved operations on the owned historical test subscriber retain their reservations pending authoritative supplier evidence; they are not silently zeroed or billed as guessed usage. Missing invoices for the still-open UTC month are pending supplier evidence, not a completed reconciliation.
+
+See [the development acceptance checklist](SUBSCRIPTION_DEVELOPMENT_ACCEPTANCE.md) for the completed checks and remaining steps.
