@@ -1,0 +1,29 @@
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+
+/// <summary>Async-flow ownership whose closed state is also visible to inherited detached tasks.</summary>
+public sealed class OwnedPreparationScope
+{
+    private readonly AsyncLocal<Owner> _current=new();
+    private sealed class Owner(Func<PreparedSubmissionServer> factory)
+    {
+        private int _closed;
+        public void Close()=>Interlocked.Exchange(ref _closed,1);
+        public PreparedSubmissionServer Create()
+        {
+            if(Volatile.Read(ref _closed)!=0)throw new InvalidOperationException("Native storage execution owner has already completed.");
+            return factory()??throw new InvalidOperationException("Native storage execution owner returned no preparation gate.");
+        }
+    }
+    public async Task<T> RunAsync<T>(Func<Task<T>> operation,Func<PreparedSubmissionServer> factory)
+    {
+        ArgumentNullException.ThrowIfNull(operation);ArgumentNullException.ThrowIfNull(factory);
+        if(_current.Value!=null)throw new InvalidOperationException("Native storage execution ownership cannot be nested.");
+        var owner=new Owner(factory);_current.Value=owner;
+        try{return await operation();}finally{owner.Close();_current.Value=null;}
+    }
+    public PreparedSubmissionServer CreateCurrent()=>_current.Value?.Create();
+}
