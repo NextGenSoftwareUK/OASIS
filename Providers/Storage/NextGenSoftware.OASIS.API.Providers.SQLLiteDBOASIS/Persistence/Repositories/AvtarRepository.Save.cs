@@ -446,7 +446,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 if (replacement == null) { _dbContext.Remove(token); existing.RefreshTokens.Remove(token); }
                 else
                 {
-                    replacement.Id = token.Id;
+                    replacement.StorageId = token.StorageId;
                     _dbContext.Entry(token).CurrentValues.SetValues(replacement);
                 }
             }
