@@ -4,6 +4,8 @@ Updated 2026-10-13, inspected parent `07e0ae20c` and retained reports/journals. 
 
 ## Authoritative state
 
+Cosmos Linux rerun completed (2026-10-13): current60-case SDK suite passes60/60, exit0, on retained Linux Node22.22.2 after aligning subprocess deadline with the production two-minute bound. Windows also passes60/60. No installation, dependency copy or native mutation occurred. This supersedes the compatibility failure below only for this offline suite; production Node24.19.0, published .NET IPC, live policy and hosted API gates remain open.
+
 Cosmos subprocess deadline follow-up (2026-10-13, parent `c984d6203`): repeated read-only import measurement was 17981ms under retained Linux Node22.22.2 versus 199ms on Windows. The test-only 10000ms deadline was inconsistent with `CosmosSdkBackend`'s existing two-minute process deadline; tests now use that same 120000ms bound, without changing production behavior or copying dependencies. Windows current SDK suite passes60/60. Linux rerun is pending; mounted-filesystem/runtime performance and exact Railway Node24.19.0 verification remain separate open gates.
 
 - Reuse `C:/Source/OASIS-hyperdrive-v2-gaps` and its existing branch. Do not create/rename `codex/` branches.
