@@ -4,6 +4,8 @@ Updated 2026-10-13, inspected parent `07e0ae20c` and retained reports/journals. 
 
 ## Authoritative state
 
+Sui fee evidence validation (2026-10-13, parent `a40cf0f5c`): native fee parsing now requires canonical unsigned-u64 checkpoint and positive safe-integer timestamp, matching the checkpointed history contract instead of only rejecting nulls. Added malformed/overflow checkpoint and timestamp negative cases; current bridge29 plus fixture-helper2 tests pass31/31 on Windows and retained Linux Node22.22.2. Production recovery resolver and trusted native-to-USD valuation remain absent; this boundary fix does not claim their completion.
+
 Hedera Linux SDK compatibility (2026-10-13, inspected parent `d6e815681`): all five package-defined offline test files (`bridge`, `file`, `storage`, `escrow`, `deployment`) pass102/102, exit0, using retained Linux Node22.22.2 against existing mounted source/dependencies. No download, installation, copied environment or funded operation. Exact production Node24.19.0, published .NET IPC, funded CRUD/assets, three live V2 policies, hosted admission and recovery settlement remain open.
 
 Cosmos Linux rerun completed (2026-10-13): current60-case SDK suite passes60/60, exit0, on retained Linux Node22.22.2 after aligning subprocess deadline with the production two-minute bound. Windows also passes60/60. No installation, dependency copy or native mutation occurred. This supersedes the compatibility failure below only for this offline suite; production Node24.19.0, published .NET IPC, live policy and hosted API gates remain open.

@@ -62,7 +62,10 @@ export function historyScanComplete(reason, coveredCheckpoint, targetCheckpoint)
 
 export function nativeFeeReceipt(tx, digest) {
   if (!tx || tx.digest !== digest || typeof tx.status?.success !== 'boolean'
-      || tx.effects?.transactionDigest !== digest || tx.checkpoint == null || tx.timestampMs == null
+      || tx.effects?.transactionDigest !== digest
+      || typeof tx.checkpoint !== 'string' || !/^(?:0|[1-9][0-9]*)$/.test(tx.checkpoint)
+      || BigInt(tx.checkpoint) > 18446744073709551615n
+      || !Number.isSafeInteger(tx.timestampMs) || tx.timestampMs <= 0
       || !isValidSuiAddress(tx.transaction?.gasData?.owner))
     throw new Error('Sui fee receipt lacks original transaction, outcome, effects or actual gas payer');
   const gas = tx.effects.gasUsed;
