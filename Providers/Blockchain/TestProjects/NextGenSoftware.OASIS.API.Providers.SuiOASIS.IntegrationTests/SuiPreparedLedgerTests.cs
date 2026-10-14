@@ -8,6 +8,27 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests;
 public class SuiPreparedLedgerTests
 {
     [TestMethod]
+    public async Task InspectRetainedPreparedAttemptsWithoutMutation()
+    {
+        const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
+        var directory=new DirectoryInfo(AppContext.BaseDirectory);
+        while(directory!=null&&!File.Exists(Path.Combine(directory.FullName,"Scripts/TestHosts/start-sui-test-network.sh")))directory=directory.Parent;
+        Assert.IsNotNull(directory);
+        var journal=Path.Combine(directory!.FullName,"TestResults/SuiCurrent/prepared-live-pending.json");
+        var original=File.ReadAllBytes(journal);using var intent=JsonDocument.Parse(original);
+        Assert.AreEqual("usage_sui_live_prepared",intent.RootElement.GetProperty("database").GetString());
+        var store=new MongoUsageOutboxStore(connection,"usage_sui_live_prepared");
+        var operation=await store.GetAsync(intent.RootElement.GetProperty("operationId").GetString()!,CancellationToken.None);
+        Assert.IsNotNull(operation);Assert.AreEqual(3,operation.ProviderAttempts.Count);
+        CollectionAssert.AreEqual(new[]{"write.storage.1","write.storage.2","cleanup.storage.1"},operation.ProviderAttempts.Select(x=>x.ClientRequestId).ToArray());
+        Assert.IsTrue(operation.ProviderAttempts.All(x=>x.Provider=="SuiOASIS"&&!string.IsNullOrWhiteSpace(x.ProviderRequestId)));
+        Assert.IsFalse(operation.ProviderAttempts.Any(x=>x.ClientRequestId.StartsWith("private-")));
+        Console.WriteLine(JsonSerializer.Serialize(new{operationId=operation.Id,attempts=operation.ProviderAttempts.Select(x=>new{x.ClientRequestId,x.ProviderRequestId}),
+            reconciliationComplete=false,reason="Original identities only; chain terminal status/readback still required."}));
+        CollectionAssert.AreEqual(original,File.ReadAllBytes(journal));
+    }
+    [TestMethod]
     public async Task ReconcileControlledMintOwnerFixture()
     {
         const string connection = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
