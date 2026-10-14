@@ -36,7 +36,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
+                        result.ErrorCode = activateResult.ErrorCode;
                         return result;
                     }
                 }
@@ -45,7 +46,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var avatarResult = await _avatarRepository.LoadAvatarByUsernameAsync(username);
                 if (avatarResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}", avatarResult.Exception);
+                    result.ErrorCode = avatarResult.ErrorCode;
                     return result;
                 }
 
@@ -100,7 +102,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
+                        result.ErrorCode = activateResult.ErrorCode;
                         return result;
                     }
                 }
@@ -109,7 +112,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var avatarResult = await _avatarRepository.LoadAvatarByEmailAsync(email);
                 if (avatarResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}", avatarResult.Exception);
+                    result.ErrorCode = avatarResult.ErrorCode;
                     return result;
                 }
 

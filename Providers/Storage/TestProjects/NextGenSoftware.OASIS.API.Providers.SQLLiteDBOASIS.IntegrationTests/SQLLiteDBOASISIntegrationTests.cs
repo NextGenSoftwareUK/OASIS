@@ -15,6 +15,35 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 public class SQLLiteDBOASISIntegrationTests : IDisposable
 {
     [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public async Task WalletSelectorsPreserveTerminalIdentityAmbiguity(bool synchronous, bool username)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        foreach (var version in new[] { 3, 4 })
+            (await provider.SaveAvatarAsync(new Avatar { Id = Guid.NewGuid(), Username = "wallet-collision",
+                Email = "wallet-collision@test.local", Version = version,
+                AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) })).IsError.Should().BeFalse();
+        var saved = username
+            ? synchronous ? provider.SaveProviderWalletsForAvatarByUsername("wallet-collision", new()) : await provider.SaveProviderWalletsForAvatarByUsernameAsync("wallet-collision", new())
+            : synchronous ? provider.SaveProviderWalletsForAvatarByEmail("wallet-collision@test.local", new()) : await provider.SaveProviderWalletsForAvatarByEmailAsync("wallet-collision@test.local", new());
+        saved.IsError.Should().BeTrue();
+        saved.ErrorCode.Should().Be(OASISResultErrorCodes.AmbiguousIdentity);
+        saved.Exception.Should().BeOfType<StorageIdentityAmbiguousException>();
+        var loaded = username
+            ? synchronous ? provider.LoadProviderWalletsForAvatarByUsername("wallet-collision") : await provider.LoadProviderWalletsForAvatarByUsernameAsync("wallet-collision")
+            : synchronous ? provider.LoadProviderWalletsForAvatarByEmail("wallet-collision@test.local") : await provider.LoadProviderWalletsForAvatarByEmailAsync("wallet-collision@test.local");
+        loaded.IsError.Should().BeTrue();
+        loaded.ErrorCode.Should().Be(OASISResultErrorCodes.AmbiguousIdentity);
+        loaded.Exception.Should().BeOfType<StorageIdentityAmbiguousException>();
+        using var control = new DataContext(TestConnectionString);
+        control.AvatarWalletStores.Should().BeEmpty();
+    }
+
+    [Theory]
     [InlineData("not-json")]
     [InlineData("[]")]
     [InlineData("{\"SolanaOASIS\":null}")]
