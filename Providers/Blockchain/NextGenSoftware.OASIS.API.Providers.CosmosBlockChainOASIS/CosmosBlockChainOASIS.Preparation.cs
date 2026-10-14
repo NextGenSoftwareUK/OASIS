@@ -22,9 +22,11 @@ public partial class CosmosBlockChainOASIS
             throw new ArgumentException("Bounded storage client request identity required.", nameof(clientRequestId));
         if (string.IsNullOrWhiteSpace(expectedSender)) throw new ArgumentException("Expected storage signer required.", nameof(expectedSender));
         var sequence = 0;
-        return await _sdkBackend.WithStoragePreparationAsync(operation, (_, _) =>
-            CreateNativePreparationServer(execution, clientRequestId + ".storage." + Interlocked.Increment(ref sequence),
-                _sdkBackend.ChainId, expectedSender));
+        return await _sdkBackend.WithStoragePreparationAsync(operation, (_, _) => {
+            token.ThrowIfCancellationRequested();
+            return CreateNativePreparationServer(execution, clientRequestId + ".storage." + Interlocked.Increment(ref sequence),
+                _sdkBackend.ChainId, expectedSender);
+        });
     }
 
     /// <summary>Explicit prepared native invocation; caller supplies admitted execution and trusted chain/signer context.</summary>

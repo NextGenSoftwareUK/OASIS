@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Cosmos admitted storage late-cancellation fix (2026-10-13): caller cancellation before a new physical gate now prevents SDK launch even if backend call supplies default token. Expanded real owned-outbox case1/1 passes with same attempt count/bytes and exact canceled token; no ledger operation. Does not cancel existing prepared/submitted native attempts or complete hosted recovery.
+
 Cosmos real signed preparation+owned outbox1/1 (2026-10-13): migrated ambient27017/random DB to guarded fixed owned27029 database, success-only cleanup/preserve failure. Reusable runner init1/1 then real official SDK signed/C# verification/outbox duplicate rejection1/1 pass. No native submission. Current full suite must run with owned Mongo context, not old standalone assumptions; unknown live intent remains fenced.
 
 Hedera read-only status8/8 refresh (2026-10-13): actual original testnet failed creation remains classified InsufficientFundsForFee; remaining controlled mirror cases pass, no skips. Different HashgraphClient mirror/HashgraphOASIS consensus types intentionally retain separate responsibilities. Mirror account still69513926tinybars, timestamp1791929835.256443131, not consensus budget proof. No funded call/new identity; funded CRUD/fee bound gates remain open.
