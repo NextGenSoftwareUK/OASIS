@@ -71,6 +71,23 @@ public sealed class MongoSqliteRealProviderRoutingTests
             (await mongo.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Name.Should().Be(holon.Name);
             (await sqlite.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Name.Should().Be(holon.Name);
             manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            var importedHolons = new IHolon[] {
+                new Holon { Id = Guid.NewGuid(), Name = "owned-v2-import-one" },
+                new Holon { Id = Guid.NewGuid(), Name = "owned-v2-import-two" }
+            };
+            var importRequest = new StorageOperationRequest { Operation = "Import", Payload = importedHolons,
+                PreferredProvider = request.PreferredProvider };
+            var imported = synchronous ? router.RouteRequest<bool>(importRequest) : await router.RouteRequestAsync<bool>(importRequest);
+            imported.IsError.Should().BeFalse(imported.Message);
+            imported.Result.Should().BeTrue();
+            imported.IsWarning.Should().BeFalse(imported.Message);
+            manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            foreach (var importedHolon in importedHolons)
+            foreach (var importRead in new[] { await mongo.LoadHolonAsync(importedHolon.Id,loadChildren:false), await sqlite.LoadHolonAsync(importedHolon.Id,loadChildren:false) })
+            {
+                importRead.IsError.Should().BeFalse(importRead.Message);
+                importRead.Result.Name.Should().Be(importedHolon.Name);
+            }
             // Seed the real engine's recommendation without fabricating a prediction model score.
             // The real stores below prove routing/replication, not WEB4 endpoint prediction generation.
             var engine = PredictiveFailoverEngine.ForProviderManager(manager);

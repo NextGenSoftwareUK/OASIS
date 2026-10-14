@@ -312,30 +312,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 }
 
                 var importedCount = 0;
+                if (holons == null) throw new ArgumentNullException(nameof(holons));
                 foreach (var holon in holons)
                 {
-                    var holonEntity = new Holon
-                    {
-                        Id = holon.Id.ToString(),
-                        Name = holon.Name,
-                        Description = holon.Description,
-                        HolonType = holon.HolonType,
-                        CreatedByAvatarId = holon.CreatedByAvatarId.ToString(),
-                        CreatedDate = holon.CreatedDate,
-                        ModifiedDate = holon.ModifiedDate,
-                        Version = holon.Version,
-                        IsActive = holon.IsActive,
-                        ParentHolonId = holon.ParentHolonId,
-                        ParentHolon = holon.ParentHolon,
-                        Children = holon.Children,
-                        MetaData = holon.MetaData,
-                        PreviousVersionId = holon.PreviousVersionId
-                    };
-                    
-                    var saveResult = await _holonRepository.AddAsync(holonEntity);
+                    var saveResult = await SaveHolonAsync(holon);
                     if (saveResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}", saveResult.Exception);
+                        result.ErrorCode = saveResult.ErrorCode;
                         return result;
                     }
                     importedCount++;
