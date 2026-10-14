@@ -219,6 +219,18 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 else loaded.Result.Id.Should().Be(avatar.Id);
                 manager.PerformanceMonitor.GetMetrics(tokenProvider).TotalRequests.Should().Be(beforeTokenRead + 1);
             }
+            foreach (var invalid in new[] { null, "", " " })
+            foreach (var provider in new IOASISStorageProvider[] { mongo, sqlite })
+            foreach (var invalidRead in new[] {
+                synchronous ? provider.LoadAvatarByVerificationToken(invalid) : await provider.LoadAvatarByVerificationTokenAsync(invalid),
+                synchronous ? provider.LoadAvatarByResetToken(invalid) : await provider.LoadAvatarByResetTokenAsync(invalid),
+                synchronous ? provider.LoadAvatarByRefreshToken(invalid) : await provider.LoadAvatarByRefreshTokenAsync(invalid)
+            }) {
+                invalidRead.IsError.Should().BeTrue();
+                invalidRead.IsLoaded.Should().BeFalse();
+                invalidRead.Result.Should().BeNull();
+                invalidRead.Exception.Should().BeAssignableTo<ArgumentException>();
+            }
             const string rotatedRefreshToken = "priority-rotated-refresh-owned";
             avatar.RefreshTokens = new List<RefreshToken> { new RefreshToken { Id = 7, Token = rotatedRefreshToken,
                 CreatedByIp = "127.0.0.2", Expires = new DateTime(2027, 1, 1, 0, 0, 0, DateTimeKind.Utc) } };
