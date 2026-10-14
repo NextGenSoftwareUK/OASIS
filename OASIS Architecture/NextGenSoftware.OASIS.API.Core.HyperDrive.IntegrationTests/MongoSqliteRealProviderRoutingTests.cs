@@ -995,6 +995,37 @@ public sealed class MongoSqliteRealProviderRoutingTests
             foreach (var softDelete in new[] { false, true })
             {
                 API.Providers.MongoDBOASIS.MongoTransactionReconciliationException detailCommitEvidence = null;
+                var sqliteFailoverDetail = new AvatarDetail { Id = Guid.NewGuid(), Username = Guid.NewGuid().ToString(), Karma = 123 };
+                var saveSqliteFailoverDetail = new StorageOperationRequest { Operation = "SaveAvatarDetail", Payload = sqliteFailoverDetail, PreferredProvider = request.PreferredProvider };
+                var savedSqliteProbe = synchronous ? router.RouteRequest<IAvatarDetail>(saveSqliteFailoverDetail) : await router.RouteRequestAsync<IAvatarDetail>(saveSqliteFailoverDetail);
+                savedSqliteProbe.IsError.Should().BeFalse(savedSqliteProbe.Message);
+                savedSqliteProbe.IsWarning.Should().BeFalse();
+                using (var control = new DataContext($"Data Source={dbPath};Pooling=False"))
+                {
+                    if (softDelete) control.Database.ExecuteSqlRaw("CREATE TRIGGER reject_owned_v2_detail BEFORE UPDATE ON AvatarDetail BEGIN SELECT RAISE(ABORT, 'owned V2 detail rejection'); END;");
+                    else control.Database.ExecuteSqlRaw("CREATE TRIGGER reject_owned_v2_detail BEFORE DELETE ON AvatarDetail BEGIN SELECT RAISE(ABORT, 'owned V2 detail rejection'); END;");
+                    try
+                    {
+                        var reverseManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true };
+                        reverseManager.RegisterProvider(sqlite);
+                        reverseManager.RegisterProvider(mongo);
+                        reverseManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS), new EnumValue<ProviderType>(ProviderType.MongoDBOASIS) }).IsError.Should().BeFalse();
+                        var reverseRequest = new StorageOperationRequest { Operation = "DeleteAvatarDetail", AvatarId = sqliteFailoverDetail.Id,
+                            SoftDelete = softDelete, PreferredProvider = ProviderType.SQLLiteDBOASIS };
+                        var reverseRouter = new OASISHyperDrive(reverseManager);
+                        var recovered = synchronous ? reverseRouter.RouteRequest<bool>(reverseRequest) : await reverseRouter.RouteRequestAsync<bool>(reverseRequest);
+                        recovered.IsError.Should().BeFalse(recovered.Message);
+                        recovered.Result.Should().BeTrue();
+                        reverseManager.LastFailoverDiagnostic.SelectedProvider.Should().Be(ProviderType.MongoDBOASIS);
+                        var retained = (await sqlite.LoadAvatarDetailAsync(sqliteFailoverDetail.Id)).Result;
+                        retained.DeletedDate.Should().Be(DateTime.MinValue);
+                        retained.Karma.Should().Be(123);
+                        var changed = (await mongo.LoadAvatarDetailAsync(sqliteFailoverDetail.Id)).Result;
+                        if (softDelete) { changed.DeletedDate.Should().NotBe(DateTime.MinValue); changed.IsActive.Should().BeFalse(); }
+                        else changed.Should().BeNull();
+                    }
+                    finally { control.Database.ExecuteSqlRaw("DROP TRIGGER reject_owned_v2_detail;"); }
+                }
                 try
                 {
                     var detailCommitManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true };
