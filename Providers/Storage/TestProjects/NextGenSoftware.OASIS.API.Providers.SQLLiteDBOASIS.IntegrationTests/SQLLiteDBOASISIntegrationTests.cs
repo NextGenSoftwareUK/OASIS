@@ -22,6 +22,9 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
         (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
         var root = new Holon { Id = Guid.NewGuid(), Name = "before-external-update" };
+        var parent = new Holon { Id = Guid.NewGuid(), Name = "freshness-parent" };
+        (await provider.SaveHolonAsync(parent,saveChildren:false)).IsError.Should().BeFalse();
+        root.ParentHolonId = parent.Id;
         (await provider.SaveHolonAsync(root,saveChildren:false)).IsError.Should().BeFalse();
         using var control = new DataContext(TestConnectionString);
         control.Holons.Single(row => row.Id == root.Id.ToString()).Name = "after-external-update";
@@ -32,6 +35,14 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         {
             loaded.IsError.Should().BeFalse(loaded.Message);
             loaded.Result.Name.Should().Be("after-external-update");
+        }
+        foreach (var queried in new[] {
+            synchronous ? provider.LoadHolonsForParent(parent.Id,loadChildren:false) : await provider.LoadHolonsForParentAsync(parent.Id,loadChildren:false),
+            synchronous ? provider.LoadHolonsForParent(parent.Id.ToString(),loadChildren:false) : await provider.LoadHolonsForParentAsync(parent.Id.ToString(),loadChildren:false),
+            synchronous ? provider.LoadAllHolons(loadChildren:false) : await provider.LoadAllHolonsAsync(loadChildren:false) })
+        {
+            queried.IsError.Should().BeFalse(queried.Message);
+            queried.Result.Single(item => item.Id == root.Id).Name.Should().Be("after-external-update");
         }
     }
 
