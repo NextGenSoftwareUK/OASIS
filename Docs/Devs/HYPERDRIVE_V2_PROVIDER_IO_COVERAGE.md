@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Sui journal persistence failure boundary (2026-10-13): one shared fixture helper prevents result-write disk errors from discarding already-prepared native ownership. Two failure-injection tests+29SDK pass; NFT/token syntax checks pass, no live refresh yet. Prebroadcast rejection never submits; post-preparation ownership failure fences further work and retains original/journal errors. Production outbox/recovery gates not certified by fixture helper.
+
 Cosmos current full135/135 (2026-10-13): owned reusable Mongo environment, zero skips,2m12s, fixed cosmos-full-owned-current.trx. Current exact DLL hash05691FEC233704860E0F7B2E6CCB60F8179CB5544819F406388F843A78A27528 in provider/consumer. Real signed/outbox case runs againstowned27029, no ambient27017/new ledger/copies. Original native intents remain; actual live provider-policy/hosted/recovery gates still open.
 
 Cosmos fixture failure attribution1/1 (2026-10-13): ordered operation+cleanup+both deactivation failures retained, all bounded cleanup steps attempted, error OASIS results checked. Controlled test passes70ms, build0errors/9warnings; no live recovery/mutation or original journal change. Missing original outcome remains unresolved.
