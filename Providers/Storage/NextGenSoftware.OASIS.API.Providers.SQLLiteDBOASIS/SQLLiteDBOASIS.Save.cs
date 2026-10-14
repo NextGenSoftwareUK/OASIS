@@ -61,10 +61,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     avatar.ProviderWallets = providerWallets;
 
                     // Save updated avatar
-                    var saveResult = await _avatarRepository.SaveAvatarAsync(avatar);
+                    var saveResult = await StoreLocalWalletsAsync(avatar.Id, providerWallets);
                     if (saveResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Error saving avatar: {saveResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Error saving local wallets: {saveResult.Message}", saveResult.Exception);
+                        result.ErrorCode = saveResult.ErrorCode;
                         return result;
                     }
 
@@ -124,10 +125,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     avatar.ProviderWallets = providerWallets;
 
                     // Save updated avatar
-                    var saveResult = await _avatarRepository.SaveAvatarAsync(avatar);
+                    var saveResult = await StoreLocalWalletsAsync(avatar.Id, providerWallets);
                     if (saveResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Error saving avatar: {saveResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Error saving local wallets: {saveResult.Message}", saveResult.Exception);
+                        result.ErrorCode = saveResult.ErrorCode;
                         return result;
                     }
 

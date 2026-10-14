@@ -329,9 +329,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 // Aggregate wallets from all avatars
                 foreach (var avatar in allAvatarsResult.Result ?? Enumerable.Empty<IAvatar>())
                 {
-                    if (avatar.ProviderWallets != null)
+                    var localWallets = await ReadLocalWalletsAsync(avatar.Id);
+                    if (localWallets != null)
                     {
-                        foreach (var kvp in avatar.ProviderWallets)
+                        foreach (var kvp in localWallets)
                         {
                             if (!wallets.ContainsKey(kvp.Key))
                             {
@@ -379,45 +380,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     return result;
                 }
 
-                // Save provider wallets for all avatars that have these wallets
-                // Load all avatars and update their provider wallets
-                var allAvatarsResult = await _avatarRepository.LoadAllAvatarsAsync();
-                if (allAvatarsResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {allAvatarsResult.Message}");
-                    return result;
-                }
-
-                int updatedCount = 0;
-                foreach (var avatar in allAvatarsResult.Result ?? Enumerable.Empty<IAvatar>())
-                {
-                    if (avatar.ProviderWallets != null)
-                    {
-                        // Update provider wallets for this avatar
-                        foreach (var providerType in providerWallets.Keys)
-                        {
-                            if (avatar.ProviderWallets.ContainsKey(providerType))
-                            {
-                                avatar.ProviderWallets[providerType] = providerWallets[providerType];
-                            }
-                            else
-                            {
-                                avatar.ProviderWallets.Add(providerType, providerWallets[providerType]);
-                            }
-                        }
-
-                        // Save the updated avatar
-                        var saveResult = await _avatarRepository.SaveAvatarAsync(avatar);
-                        if (!saveResult.IsError)
-                        {
-                            updatedCount++;
-                        }
-                    }
-                }
-
-                result.Result = true;
-                result.IsError = false;
-                result.Message = $"Successfully saved provider wallets for {updatedCount} avatars in SQLite";
+                return await StoreOwnedWalletBatchAsync(providerWallets);
             }
             catch (Exception ex)
             {
@@ -454,12 +417,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     return result;
                 }
 
-                var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
-                if (avatarResult.Result?.ProviderWallets != null)
-                {
-                    foreach (var grp in avatarResult.Result.ProviderWallets.GroupBy(w => w.Key))
-                        providerWallets[grp.Key] = grp.SelectMany(g => g.Value).ToList();
-                }
+                var providerWallets = avatarResult.Result == null
+                    ? new Dictionary<ProviderType, List<IProviderWallet>>()
+                    : await ReadLocalWalletsAsync(avatarResult.Result.Id);
 
                 result.Result = providerWallets;
                 result.IsError = false;
@@ -500,12 +460,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     return result;
                 }
 
-                var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
-                if (avatarResult.Result?.ProviderWallets != null)
-                {
-                    foreach (var grp in avatarResult.Result.ProviderWallets.GroupBy(w => w.Key))
-                        providerWallets[grp.Key] = grp.SelectMany(g => g.Value).ToList();
-                }
+                var providerWallets = avatarResult.Result == null
+                    ? new Dictionary<ProviderType, List<IProviderWallet>>()
+                    : await ReadLocalWalletsAsync(avatarResult.Result.Id);
 
                 result.Result = providerWallets;
                 result.IsError = false;
@@ -546,12 +503,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     return result;
                 }
 
-                var providerWallets = new Dictionary<ProviderType, List<IProviderWallet>>();
-                if (avatarResult.Result?.ProviderWallets != null)
-                {
-                    foreach (var grp in avatarResult.Result.ProviderWallets.GroupBy(w => w.Key))
-                        providerWallets[grp.Key] = grp.SelectMany(g => g.Value).ToList();
-                }
+                var providerWallets = avatarResult.Result == null
+                    ? new Dictionary<ProviderType, List<IProviderWallet>>()
+                    : await ReadLocalWalletsAsync(avatarResult.Result.Id);
 
                 result.Result = providerWallets;
                 result.IsError = false;
@@ -604,10 +558,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     avatar.ProviderWallets = providerWallets;
 
                     // Save updated avatar
-                    var saveResult = await _avatarRepository.SaveAvatarAsync(avatar);
+                    var saveResult = await StoreLocalWalletsAsync(avatar.Id, providerWallets);
                     if (saveResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Error saving avatar: {saveResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Error saving local wallets: {saveResult.Message}", saveResult.Exception);
+                        result.ErrorCode = saveResult.ErrorCode;
                         return result;
                     }
 
