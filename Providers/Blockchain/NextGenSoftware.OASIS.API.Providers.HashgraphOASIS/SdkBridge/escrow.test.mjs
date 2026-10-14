@@ -5,6 +5,16 @@ import { escrowAbi, escrowTransaction, escrowApprovalTransaction, tokenEscrowTra
 import { keccak256 } from 'ethers';
 import { execute } from './bridge.mjs';
 import { PrivateKey } from '@hiero-ledger/sdk';
+import {persistSignedSubmission} from './native-preparation.mjs';
+
+test('original signed identity is enforced even without a persistence callback',async()=>{
+ const signed={transactionId:{toString:()=> 'original'},toBytes:()=>{assert.fail('No persistence callback needs no byte serialization');}};
+ await assert.rejects(persistSignedSubmission(signed,{transactionId:'foreign'}),/original identity mismatch/);
+ await persistSignedSubmission(signed,{transactionId:'original'});
+ let called=0;
+ await assert.rejects(persistSignedSubmission(signed,{transactionId:'foreign'},async()=>{called++;}),/original identity mismatch/);
+ assert.equal(called,0);
+});
 const request = {sender:'0.0.1001',contractId:'0.0.2001',tokenId:'0.0.3001',serial:'9007199254740993',
  gas:400000,maxFeeTinybars:'100000000',runtimeCodeHash:'0x'+'11'.repeat(32),transactionId:'0.0.1001@1700000000.000000001',
  approvalTransactionId:'0.0.1001@1700000000.000000002'};
