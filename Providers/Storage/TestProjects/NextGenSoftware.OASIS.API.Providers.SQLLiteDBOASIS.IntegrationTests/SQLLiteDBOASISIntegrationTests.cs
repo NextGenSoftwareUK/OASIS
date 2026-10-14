@@ -15,6 +15,183 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 public class SQLLiteDBOASISIntegrationTests : IDisposable
 {
     [Theory]
+    [InlineData(true, "version")]
+    [InlineData(false, "version")]
+    [InlineData(true, "deleted")]
+    [InlineData(false, "deleted")]
+    [InlineData(true, "cycle")]
+    [InlineData(false, "cycle")]
+    public async Task PersistedGraphFilteringAndCyclesAreExplicit(bool synchronous, string condition)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var root = new Holon { Id = Guid.NewGuid(), Version = 3 };
+        var child = new Holon { Id = Guid.NewGuid(), ParentHolonId = root.Id, Version = condition == "version" ? 4 : 3 };
+        var grandchild = new Holon { Id = Guid.NewGuid(), ParentHolonId = child.Id, Version = 3 };
+        root.Children = new List<IHolon> { child };
+        child.Children = new List<IHolon> { grandchild };
+        (await provider.SaveHolonAsync(root,saveChildren:true,recursive:true)).IsError.Should().BeFalse();
+        using var control = new DataContext(TestConnectionString);
+        if (condition == "deleted") control.Holons.Single(row => row.Id == child.Id.ToString()).DeletedDate = DateTime.UtcNow;
+        if (condition == "cycle") control.Holons.Single(row => row.Id == root.Id.ToString()).ParentHolonId = child.Id.ToString();
+        control.SaveChanges();
+        var read = synchronous ? provider.LoadHolon(root.Id,loadChildren:true,recursive:true,version:condition == "version" ? 3 : 0)
+            : await provider.LoadHolonAsync(root.Id,loadChildren:true,recursive:true,version:condition == "version" ? 3 : 0);
+        if (condition == "cycle")
+        {
+            read.IsError.Should().BeTrue();
+            read.Exception.Should().BeOfType<InvalidOperationException>();
+            read.Result.Should().BeNull();
+        }
+        else
+        {
+            read.IsError.Should().BeFalse(read.Message);
+            read.Result.Children.Should().BeEmpty("excluded children cannot bridge to grandchildren");
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task BulkGraphSaveReturnsRequestedRootsNotFlattenedDescendants(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var root = new Holon { Id = Guid.NewGuid() };
+        var child = new Holon { Id = Guid.NewGuid(), ParentHolonId = root.Id };
+        root.Children = new List<IHolon> { child };
+        var saved = synchronous ? provider.SaveHolons(new[] { root },saveChildren:true,recursive:true)
+            : await provider.SaveHolonsAsync(new[] { root },saveChildren:true,recursive:true);
+        saved.IsError.Should().BeFalse(saved.Message);
+        saved.Result.Should().ContainSingle().Which.Id.Should().Be(root.Id);
+        using var control = new DataContext(TestConnectionString);
+        control.Holons.Count().Should().Be(2);
+    }
+
+    [Theory]
+    [InlineData("cycle")]
+    [InlineData("parent")]
+    [InlineData("null")]
+    [InlineData("duplicate")]
+    public async Task InvalidGraphIsRejectedBeforeWrites(string invalid)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var root = new Holon { Id = Guid.NewGuid() };
+        var child = new Holon { Id = Guid.NewGuid(), ParentHolonId = invalid == "parent" ? Guid.NewGuid() : root.Id };
+        root.Children = new List<IHolon> { invalid == "null" ? null : child };
+        if (invalid == "cycle") child.Children = new List<IHolon> { root };
+        if (invalid == "duplicate") root.Children.Add(child);
+        var saved = await provider.SaveHolonAsync(root,saveChildren:true,recursive:true);
+        saved.IsError.Should().BeTrue();
+        saved.Exception.Should().BeOfType<ArgumentException>();
+        using var control = new DataContext(TestConnectionString);
+        control.Holons.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task RejectedGraphSaveDoesNotLeaveOrReplayPartialRows(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var parent = new Holon { Id = Guid.NewGuid(), Name = "graph-rejection-parent" };
+        var child = new Holon { Id = Guid.NewGuid(), Name = "graph-rejection-child", ParentHolonId = parent.Id };
+        var grandchild = new Holon { Id = Guid.NewGuid(), Name = "graph-rejection-grandchild", ParentHolonId = child.Id };
+        parent.Children = new List<IHolon> { child };
+        child.Children = new List<IHolon> { grandchild };
+        using var control = new DataContext(TestConnectionString);
+        control.Database.ExecuteSqlRaw("CREATE TRIGGER reject_graph BEFORE INSERT ON Holon WHEN NEW.Name = 'graph-rejection-grandchild' BEGIN SELECT RAISE(ABORT,'owned graph rejection'); END;");
+        var saved = synchronous ? provider.SaveHolon(parent,saveChildren:true,recursive:true) : await provider.SaveHolonAsync(parent,saveChildren:true,recursive:true);
+        saved.IsError.Should().BeTrue();
+        saved.Exception.Should().BeOfType<DbUpdateException>();
+        control.Holons.Should().BeEmpty();
+        control.Database.ExecuteSqlRaw("DROP TRIGGER reject_graph;");
+        var unrelated = new Holon { Id = Guid.NewGuid(), Name = "unrelated-graph-check" };
+        (await provider.SaveHolonAsync(unrelated,saveChildren:false)).IsError.Should().BeFalse();
+        control.Holons.Select(row => row.Id).Should().Equal(unrelated.Id.ToString());
+    }
+
+    [Theory]
+    [InlineData(true, false, true, 0, 1)]
+    [InlineData(false, false, true, 0, 1)]
+    [InlineData(true, true, false, 0, 2)]
+    [InlineData(false, true, false, 0, 2)]
+    [InlineData(true, true, true, 1, 2)]
+    [InlineData(false, true, true, 1, 2)]
+    [InlineData(true, true, true, 2, 3)]
+    [InlineData(false, true, true, 2, 3)]
+    public async Task GraphSaveAndGuidLoadHonorChildAndDepthFlags(bool synchronous, bool children, bool recursive, int depth, int expectedRows)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var parent = new Holon { Id = Guid.NewGuid(), Name = "depth-parent" };
+        var child = new Holon { Id = Guid.NewGuid(), Name = "depth-child", ParentHolonId = parent.Id };
+        var grandchild = new Holon { Id = Guid.NewGuid(), Name = "depth-grandchild", ParentHolonId = child.Id };
+        parent.Children = new List<IHolon> { child };
+        child.Children = new List<IHolon> { grandchild };
+        var saved = synchronous ? provider.SaveHolon(parent,children,recursive,depth) : await provider.SaveHolonAsync(parent,children,recursive,depth);
+        saved.IsError.Should().BeFalse(saved.Message);
+        using var control = new DataContext(TestConnectionString);
+        control.Holons.Count().Should().Be(expectedRows);
+        var withoutChildren = synchronous ? provider.LoadHolon(parent.Id,loadChildren:false) : await provider.LoadHolonAsync(parent.Id,loadChildren:false);
+        withoutChildren.Result.Children.Should().BeEmpty();
+        var oneLevel = synchronous ? provider.LoadHolon(parent.Id,loadChildren:true,recursive:false)
+            : await provider.LoadHolonAsync(parent.Id,loadChildren:true,recursive:false);
+        oneLevel.Result.Children.Count().Should().Be(expectedRows > 1 ? 1 : 0);
+        if (expectedRows > 1) oneLevel.Result.Children.Single().Children.Should().BeEmpty();
+        var bounded = synchronous ? provider.LoadHolon(parent.Id,loadChildren:true,recursive:true,maxChildDepth:1)
+            : await provider.LoadHolonAsync(parent.Id,loadChildren:true,recursive:true,maxChildDepth:1);
+        if (expectedRows > 1) bounded.Result.Children.Single().Children.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task RecursiveHolonSaveAndLoadMustPersistChildGraph(bool synchronous)
+    {
+        var parent = new Holon { Id = Guid.NewGuid(), Name = "owned-graph-parent" };
+        var child = new Holon { Id = Guid.NewGuid(), Name = "owned-graph-child", ParentHolonId = parent.Id };
+        var grandchild = new Holon { Id = Guid.NewGuid(), Name = "owned-graph-grandchild", ParentHolonId = child.Id };
+        child.Children = new List<IHolon> { grandchild };
+        parent.Children = new List<IHolon> { child };
+        using (var provider = new SQLLiteDBOASIS(TestConnectionString))
+        {
+            (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+            var saved = synchronous ? provider.SaveHolon(parent,saveChildren:true,recursive:true)
+                : await provider.SaveHolonAsync(parent,saveChildren:true,recursive:true);
+            saved.IsError.Should().BeFalse(saved.Message);
+        }
+        using var reopened = new SQLLiteDBOASIS(TestConnectionString);
+        (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var loaded = synchronous ? reopened.LoadHolon(parent.Id,loadChildren:true,recursive:true)
+            : await reopened.LoadHolonAsync(parent.Id,loadChildren:true,recursive:true);
+        loaded.IsError.Should().BeFalse(loaded.Message);
+        loaded.Result.Children.Should().ContainSingle().Which.Id.Should().Be(child.Id);
+        loaded.Result.Children.Single().Children.Should().ContainSingle().Which.Id.Should().Be(grandchild.Id);
+        var keyed = synchronous ? reopened.LoadHolon(parent.Id.ToString(),loadChildren:true,recursive:true)
+            : await reopened.LoadHolonAsync(parent.Id.ToString(),loadChildren:true,recursive:true);
+        keyed.IsError.Should().BeFalse(keyed.Message);
+        keyed.Result.Children.Should().ContainSingle().Which.Id.Should().Be(child.Id);
+        keyed.Result.Children.Single().Children.Should().ContainSingle().Which.Id.Should().Be(grandchild.Id);
+        foreach (var parents in new[] {
+            synchronous ? reopened.LoadHolonsForParent(parent.Id) : await reopened.LoadHolonsForParentAsync(parent.Id),
+            synchronous ? reopened.LoadHolonsForParent(parent.Id.ToString()) : await reopened.LoadHolonsForParentAsync(parent.Id.ToString()) })
+        {
+            parents.IsError.Should().BeFalse(parents.Message);
+            parents.Result.Should().ContainSingle().Which.Id.Should().Be(child.Id);
+            parents.Result.Single().Children.Should().ContainSingle().Which.Id.Should().Be(grandchild.Id);
+        }
+        var allGraph = synchronous ? reopened.LoadAllHolons() : await reopened.LoadAllHolonsAsync();
+        allGraph.IsError.Should().BeFalse(allGraph.Message);
+        allGraph.Result.Count().Should().Be(3);
+        allGraph.Result.Single(item => item.Id == parent.Id).Children.Single().Children.Single().Id.Should().Be(grandchild.Id);
+        using var control = new DataContext(TestConnectionString);
+        control.Holons.Count().Should().Be(3);
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task MetadataLookupPreservesNativeReadFailures(bool synchronous)
