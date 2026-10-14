@@ -835,6 +835,43 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(SearchOperatorType.LessThan, 1)]
+    [InlineData(SearchOperatorType.LessThanOrEqualTo, 2)]
+    [InlineData(SearchOperatorType.EqualTo, 1)]
+    [InlineData(SearchOperatorType.NotEqualTo, 2)]
+    [InlineData(SearchOperatorType.GreaterThan, 1)]
+    [InlineData(SearchOperatorType.GreaterThanOrEqualTo, 2)]
+    public async Task PublicDateSearchHonoursEveryComparisonAndSelectedAuditField(SearchOperatorType operation, int expected)
+    {
+        var pivot = new DateTime(2026, 1, 2, 12, 30, 0, DateTimeKind.Utc);
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        foreach (var offset in new[] { -1, 0, 1 })
+        {
+            var savedHolon = await provider.SaveHolonAsync(new Holon { Id = Guid.NewGuid(), CreatedDate = pivot.AddDays(offset),
+                ModifiedDate = pivot.AddYears(1) }, saveChildren:false);
+            savedHolon.IsError.Should().BeFalse(savedHolon.Message);
+            var savedAvatar = await provider.SaveAvatarAsync(new Avatar { Id = Guid.NewGuid(), Username = "date-" + offset,
+                Email = offset + "@test.invalid", CreatedDate = pivot.AddYears(1), ModifiedDate = pivot.AddDays(offset),
+                AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) });
+            savedAvatar.IsError.Should().BeFalse(savedAvatar.Message);
+        }
+        var result = await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+            SearchOnlyForCurrentAvatar = false, SearchGroups = new() {
+                new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchDateGroup {
+                    Date = pivot, DateOperator = operation, SearchHolons = true, SearchAvatars = true,
+                    HolonSearchParams = new SearchHolonParams { CreatedDate = true },
+                    AvatarSearchParams = new NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar.SearchAvatarParams { ModifiedDate = true }
+                }
+            }
+        }, loadChildren:false);
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.SearchResultHolons.Should().HaveCount(expected);
+        result.Result.SearchResultAvatars.Should().HaveCount(expected);
+        result.Result.NumberOfResults.Should().Be(expected * 2);
+    }
+
+    [Theory]
     [InlineData(SearchParamGroupOperator.And, true, false, true, 1, 0)]
     [InlineData(SearchParamGroupOperator.And, false, true, true, 0, 1)]
     [InlineData(SearchParamGroupOperator.Or, true, false, true, 3, 2)]
