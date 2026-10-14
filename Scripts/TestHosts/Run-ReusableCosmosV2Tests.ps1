@@ -18,6 +18,7 @@ $prior = @{}
 foreach ($name in $names) { $prior[$name] = [Environment]::GetEnvironmentVariable($name,'Process') }
 $started = $false
 $containerStarted = $false
+$failures = [Collections.Generic.List[Exception]]::new()
 try {
     if ($containerState -eq 'exited') {
         & wsl -d Ubuntu -u root -- podman start oasis-wasmd
@@ -56,15 +57,22 @@ try {
         if ($LASTEXITCODE -ne 0) { throw 'Read-only Cosmos native transaction inspection failed; pending intent preserved.' }
     }
 }
+catch { $failures.Add($_.Exception) }
 finally {
     $signingKey = $null
     foreach ($name in $names) { [Environment]::SetEnvironmentVariable($name,$prior[$name],'Process') }
     if ($started) {
-        & wsl -d Ubuntu -u root -- bash /mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/stop-owned-cosmos-test-node.sh
-        if ($LASTEXITCODE -ne 0) { throw 'Owned Cosmos node stop failed; inspect before any restart.' }
+        try {
+            & wsl -d Ubuntu -u root -- bash /mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/stop-owned-cosmos-test-node.sh
+            if ($LASTEXITCODE -ne 0) { throw 'Owned Cosmos node stop failed; inspect before any restart.' }
+        } catch { $failures.Add($_.Exception) }
     }
     if ($containerStarted) {
-        & wsl -d Ubuntu -u root -- podman stop oasis-wasmd
-        if ($LASTEXITCODE -ne 0) { throw 'Owned Cosmos container stop failed; inspect before resuming.' }
+        try {
+            & wsl -d Ubuntu -u root -- podman stop oasis-wasmd
+            if ($LASTEXITCODE -ne 0) { throw 'Owned Cosmos container stop failed; inspect before resuming.' }
+        } catch { $failures.Add($_.Exception) }
     }
 }
+if ($failures.Count -eq 1) { [Runtime.ExceptionServices.ExceptionDispatchInfo]::Capture($failures[0]).Throw() }
+if ($failures.Count -gt 1) { throw [AggregateException]::new('Cosmos verification and owned cleanup failures; original failure is first.', $failures) }
