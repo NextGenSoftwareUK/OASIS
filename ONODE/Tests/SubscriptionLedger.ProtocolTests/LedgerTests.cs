@@ -74,7 +74,7 @@ public sealed class MongoLedgerTests : IAsyncLifetime
     }
 
     [Theory]
-    [InlineData("WEB5")][InlineData("WEB6")][InlineData("WEB7")][InlineData("WEB8")][InlineData("WEB9")][InlineData("WEB10")]
+    [InlineData("WEB4")][InlineData("WEB5")][InlineData("WEB6")][InlineData("WEB7")][InlineData("WEB8")][InlineData("WEB9")][InlineData("WEB10")]
     public async Task EveryServiceUsesSameLedgerProtocol(string service)
     {
         var op = Reservation(service: service);
