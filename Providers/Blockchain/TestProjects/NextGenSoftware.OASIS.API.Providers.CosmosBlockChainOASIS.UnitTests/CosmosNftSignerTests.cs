@@ -7,6 +7,26 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 public class CosmosNftSignerTests
 {
     [TestMethod]
+    public async Task PublicRawBalancePreservesFullRangeAndDecimalQueryErrorsThroughProcess()
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures/nft-signer.mjs"));
+        try{
+            using var provider=new CosmosBlockChainOASIS("http://127.0.0.1:1",contractAddress:"fixture-contract");
+            var raw=await provider.GetCustomTokenBalanceUnitsAsync("balance-max","fixture-owner");
+            Assert.IsFalse(raw.IsError,raw.Message);Assert.AreEqual("340282366920938463463374607431768211455",raw.Result);
+            var maximum=await provider.GetCustomTokenBalanceAsync("balance-max","fixture-owner");
+            Assert.IsTrue(maximum.IsError);Assert.IsInstanceOfType<OverflowException>(maximum.Exception);
+            var rounded=await provider.GetCustomTokenBalanceAsync("balance-rounded","fixture-owner");
+            Assert.IsTrue(rounded.IsError);StringAssert.Contains(rounded.Message,"represented exactly");
+            var invalid=await provider.GetCustomTokenBalanceUnitsAsync("balance-invalid","fixture-owner");
+            Assert.IsTrue(invalid.IsError);Assert.IsInstanceOfType<InvalidOperationException>(invalid.Exception);
+            var error=await provider.GetCustomTokenBalanceAsync("balance-error","fixture-owner");
+            Assert.IsTrue(error.IsError);Assert.IsInstanceOfType<InvalidOperationException>(error.Exception);
+            StringAssert.Contains(error.Message,"controlled original balance query rejection");
+        }finally{Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",previous);}
+    }
+    [TestMethod]
     public async Task MissingPersistedEncryptionKeyFailsBeforeStorageActivation()
     {
         using var provider=new CosmosBlockChainOASIS(storageEncryptionKeyResolver:()=>null!);
