@@ -18,7 +18,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public string PlanId { get; set; }
         public string Status { get; set; } // active, cancelled, past_due, trialing, free
         public bool PayAsYouGoEnabled { get; set; }
+        public string PaidOverageTermsVersion { get; set; }
+        public string PaidOverageTermsSha256 { get; set; }
+        public DateTime? PaidOverageTermsAcceptedAtUtc { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal MonthlyOverageLimitUsd { get; set; }
         public bool CancelAtPeriodEnd { get; set; }
+        public bool OveragePaymentBlocked { get; set; }
         public DateTime? CurrentPeriodStart { get; set; }
         public DateTime? CurrentPeriodEnd { get; set; }
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
@@ -45,6 +50,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public string Description { get; set; }
         [BsonRepresentation(BsonType.Decimal128)] public decimal Amount { get; set; }
         public string Currency { get; set; } = "USD";
+        [BsonRepresentation(BsonType.Decimal128)] public decimal? BilledAmount { get; set; }
         public string Status { get; set; } = "paid"; // paid, open, void, uncollectible
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     }

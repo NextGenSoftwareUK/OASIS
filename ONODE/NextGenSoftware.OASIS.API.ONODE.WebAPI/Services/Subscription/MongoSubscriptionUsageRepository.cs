@@ -21,7 +21,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
     /// Driver retries cover labelled transaction conflicts/ambiguous commits. Duplicate-key
     /// creation races are retried at most three times against a fresh snapshot; all other errors propagate.
     /// </summary>
-    public sealed partial class MongoSubscriptionUsageRepository : ISubscriptionUsageRepository
+    public sealed partial class MongoSubscriptionUsageRepository : ISubscriptionUsageRepository, IPaidOverageStatementStore
     {
         private readonly IMongoClient _client;
         private readonly IMongoDatabase _database;
@@ -32,6 +32,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         private readonly TimeProvider _time;
         private readonly ISubscriptionUsagePolicyProvider _policyProvider;
         private readonly bool _initializeEmptyLedger;
+        private readonly PaidOveragePricing _overagePricing;
         private static readonly TransactionOptions TransactionOptions = new(
             readConcern: ReadConcern.Snapshot, readPreference: ReadPreference.Primary, writeConcern: WriteConcern.WMajority.With(journal: true));
 
@@ -41,12 +42,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             initializeEmptyLedger: SubscriptionMongoConfiguration.InitializeEmptyLedger(configuration)) { }
 
         public MongoSubscriptionUsageRepository(IMongoClient client, string databaseName, TimeProvider time,
-            ISubscriptionUsagePolicyProvider policyProvider = null, bool initializeEmptyLedger = false)
+            ISubscriptionUsagePolicyProvider policyProvider = null, bool initializeEmptyLedger = false, PaidOveragePricing overagePricing = null)
         {
             _client = client ?? throw new ArgumentNullException(nameof(client));
             _time = time ?? throw new ArgumentNullException(nameof(time));
             _policyProvider = policyProvider ?? new SubscriptionUsagePolicyProvider();
             _initializeEmptyLedger = initializeEmptyLedger;
+            _overagePricing = overagePricing;
             var database = client.GetDatabase(databaseName);
             _database = database;
             InitializeBillingIndexes();
@@ -101,11 +103,27 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 subscription.AuthorizationVersion = checked(subscription.AuthorizationVersion + 1);
                 await Subscriptions.ReplaceOneAsync(session, x => x.UserId == usageEvent.UserId, subscription, cancellationToken: ct);
                 var aggregate = await LoadAggregateAsync(session, usageEvent.UserId, usageEvent.AuthorizedAtUtc, ct);
-                SubscriptionUsagePolicyEvaluator.EnsureAuthorized(policy, aggregate, usageEvent.MeterCategory == "ai.tokens" ? usageEvent.RequestedUnits : 0, usageEvent.ReservedCostUsd);
+                if (subscription.PayAsYouGoEnabled && !subscription.OveragePaymentBlocked)
+                {
+                    var pricing = _overagePricing ?? PaidOveragePricing.Load();
+                    if(subscription.PaidOverageTermsVersion != pricing.Version || subscription.PaidOverageTermsSha256 != pricing.PricingSha256 || !subscription.PaidOverageTermsAcceptedAtUtc.HasValue ||
+                        subscription.MonthlyOverageLimitUsd <= 0 || string.IsNullOrWhiteSpace(subscription.StripeCustomerId) ||
+                        string.IsNullOrWhiteSpace(subscription.StripeSubscriptionId))
+                        throw new SubscriptionUsageLimitException("OVERAGE_TERMS_REQUIRED", "Accept the published overage terms and a USD spending cap before additional usage.", 402);
+                    usageEvent.PaidOveragePricingVersion=pricing.Version;
+                    usageEvent.ReservedRequestOverageUsd=PaidOveragePricing.RequestReservation(policy,aggregate,pricing.Rate(subscription.PlanId));
+                    // Full provider exposure covers settlement order and plan changes. Only actual excess is billed.
+                    usageEvent.ReservedOverageUsd=checked(usageEvent.ReservedRequestOverageUsd+usageEvent.ReservedCostUsd);
+                    if(checked(aggregate.SettledOverageUsd+aggregate.ReservedOverageUsd+usageEvent.ReservedOverageUsd)>subscription.MonthlyOverageLimitUsd)
+                        throw new SubscriptionUsageLimitException("OVERAGE_SPENDING_CAP_EXCEEDED", "This reservation would exceed the agreed USD monthly overage spending cap.", 402);
+                }
+                else
+                    SubscriptionUsagePolicyEvaluator.EnsureAuthorized(policy, aggregate, usageEvent.MeterCategory == "ai.tokens" ? usageEvent.RequestedUnits : 0, usageEvent.ReservedCostUsd);
                 var entry = Audit(usageEvent, "authorized", usageEvent.AuthorizedAtUtc, usageEvent.ConsumingService);
                 entry.RequestsDelta = 1;
                 entry.ReservedUnitsDelta = usageEvent.MeterCategory == "ai.tokens" ? usageEvent.RequestedUnits : 0;
                 entry.ReservedCostDeltaUsd = usageEvent.ReservedCostUsd;
+                entry.ReservedOverageDeltaUsd = usageEvent.ReservedOverageUsd;
                 entry.PayloadJson = JsonSerializer.Serialize(usageEvent);
                 await _events.InsertOneAsync(session, UsageEventDocument.From(usageEvent), cancellationToken: ct);
                 await ApplyDeltaAsync(session, usageEvent, entry, ct);
@@ -142,6 +160,16 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 // Token meters reserve and settle tokens; request meters count Units separately.
                 entry.SettledUnitsDelta = checked(request.PromptTokens + request.CompletionTokens);
                 entry.SettledCostDeltaUsd = request.ActualCostUsd.Value;
+                entry.ReservedOverageDeltaUsd = -operation.ReservedOverageUsd;
+                if(operation.PaidOveragePricingVersion != null)
+                {
+                    var before=await LoadAggregateAsync(session,userId,operation.AuthorizedAtUtc,ct);
+                    operation.SettledRequestOverageUsd=request.Outcome=="succeeded" ? operation.ReservedRequestOverageUsd : 0;
+                    // Customer exposure cannot exceed what was reserved; any provider overrun remains the platform's cost.
+                    operation.SettledAiOverageUsd=Math.Min(PaidOveragePricing.AiSettlement(operation.AuthorizationPolicy,before,request.ActualCostUsd.Value),
+                        Math.Max(0,operation.ReservedOverageUsd-operation.SettledRequestOverageUsd));
+                    entry.SettledOverageDeltaUsd=checked(operation.SettledRequestOverageUsd+operation.SettledAiOverageUsd);
+                }
                 if (entry.SettledCostDeltaUsd > operation.ReservedCostUsd || (operation.MeterCategory == "ai.tokens" && entry.SettledUnitsDelta > operation.RequestedUnits))
                     SubscriptionLedgerMetrics.ReservationOverruns.Add(1, new KeyValuePair<string, object>("service", request.ConsumingService));
                 entry.PayloadJson = JsonSerializer.Serialize(request);
@@ -281,6 +309,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 entry.SettledUnitsDelta = correction.UnitsDelta;
                 entry.SettledCostDeltaUsd = correction.CostDeltaUsd;
                 entry.PayloadJson = payload;
+                await ApplyOverageCorrectionAsync(session,operation,entry,ct);
                 // Write-conflicts on shared buckets also serialize concurrent corrections to the same operation.
                 await ApplyDeltaAsync(session, operation, entry, ct);
                 await _audit.InsertOneAsync(session, entry, cancellationToken: ct);
@@ -316,6 +345,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 entry.RequestsDelta = -1;
                 entry.ReservedUnitsDelta = operation.MeterCategory == "ai.tokens" ? -operation.RequestedUnits : 0;
                 entry.ReservedCostDeltaUsd = -operation.ReservedCostUsd;
+                entry.ReservedOverageDeltaUsd = -operation.ReservedOverageUsd;
                 await ApplyDeltaAsync(session, operation, entry, ct);
             }            entry.PayloadJson = JsonSerializer.Serialize(new { operation.OperationId, operation.ExpiresAtUtc });
             await _events.ReplaceOneAsync(session, x => x.OperationId == operation.OperationId, operation, cancellationToken: ct);
@@ -327,12 +357,15 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
             foreach (var type in new[] { "month", "day" })
             {
                 var bucket = await LoadBucketAsync(session, operation.UserId, operation.AuthorizedAtUtc, type, ct);
+                if(type=="month" && delta.Kind=="settled")operation.SettledSequence=++bucket.SettlementSequence;
                 bucket.Requests = checked(bucket.Requests + delta.RequestsDelta);
                 bucket.ReservedUnits = checked(bucket.ReservedUnits + delta.ReservedUnitsDelta);
                 bucket.SettledUnits = checked(bucket.SettledUnits + delta.SettledUnitsDelta);
                 bucket.ReservedCostUsd = checked(bucket.ReservedCostUsd + delta.ReservedCostDeltaUsd);
                 bucket.SettledCostUsd = checked(bucket.SettledCostUsd + delta.SettledCostDeltaUsd);
-                if (bucket.Requests < 0 || bucket.ReservedUnits < 0 || bucket.SettledUnits < 0 || bucket.ReservedCostUsd < 0 || bucket.SettledCostUsd < 0)
+                bucket.ReservedOverageUsd = checked(bucket.ReservedOverageUsd + delta.ReservedOverageDeltaUsd);
+                bucket.SettledOverageUsd = checked(bucket.SettledOverageUsd + delta.SettledOverageDeltaUsd);
+                if (bucket.Requests < 0 || bucket.ReservedUnits < 0 || bucket.SettledUnits < 0 || bucket.ReservedCostUsd < 0 || bucket.SettledCostUsd < 0 || bucket.ReservedOverageUsd < 0 || bucket.SettledOverageUsd < 0)
                     throw new InvalidOperationException("Usage bucket invariant violated. Reconcile ledger before accepting further writes.");
                 bucket.UpdatedAtUtc = delta.OccurredAtUtc;
                 await _buckets.ReplaceOneAsync(session, x => x.Id == bucket.Id, bucket, new ReplaceOptions { IsUpsert = true }, ct);
@@ -347,6 +380,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 Id = month.Id, UserId = userId, Month = month.Period, Day = day.Period,
                 MonthlyRequests = month.Requests, DailyCalls = day.Requests, DailyTokens = day.SettledUnits,
                 ReservedUnits = day.ReservedUnits, ReservedCostUsd = month.ReservedCostUsd, SettledCostUsd = month.SettledCostUsd,
+                ReservedOverageUsd = month.ReservedOverageUsd, SettledOverageUsd = month.SettledOverageUsd,
                 UpdatedAtUtc = month.UpdatedAtUtc > day.UpdatedAtUtc ? month.UpdatedAtUtc : day.UpdatedAtUtc
             };
         }
