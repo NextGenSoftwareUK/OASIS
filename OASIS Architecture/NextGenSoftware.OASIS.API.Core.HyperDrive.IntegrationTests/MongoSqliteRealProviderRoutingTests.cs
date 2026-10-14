@@ -188,6 +188,19 @@ public sealed class MongoSqliteRealProviderRoutingTests
                     loaded.Result.FirstName.Should().Be(avatar.FirstName);
                 }
             }
+            foreach (var searchProvider in new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS })
+            {
+                var emailSearch = new StorageOperationRequest { Operation = "Search", LoadChildren = false, PreferredProvider = searchProvider,
+                    SearchParams = new SearchParams { SearchOnlyForCurrentAvatar = false,
+                        SearchGroups = new() { new SearchTextGroup { SearchQuery = avatar.Email.ToUpperInvariant(), SearchAvatars = true,
+                            AvatarSearchParams = new NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar.SearchAvatarParams { Email = true } } } } };
+                var beforeSearch = manager.PerformanceMonitor.GetMetrics(searchProvider).TotalRequests;
+                var searched = synchronous ? router.RouteRequest<ISearchResults>(emailSearch) : await router.RouteRequestAsync<ISearchResults>(emailSearch);
+                searched.IsError.Should().BeFalse(searched.Message);
+                searched.Result.SearchResultAvatars.Select(a => a.Id).Should().Equal(avatar.Id);
+                searched.Result.SearchResultHolons.Should().BeEmpty();
+                manager.PerformanceMonitor.GetMetrics(searchProvider).TotalRequests.Should().Be(beforeSearch + 1);
+            }
             var detail = new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Email = avatar.Email, Karma = 345, XP = 123 };
             detail.Stats.HP.Current = 37;
             detail.Stats.Mana.Current = 42;
