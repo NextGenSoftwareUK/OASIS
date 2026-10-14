@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Cosmos exact raw custom token balance method (2026-10-13): GetCustomTokenBalanceUnitsAsync uses same native query/parser, decimal method delegates without parallel transport or precision loss. Uint128 maximum codec verified, decimal overflow explicit; focused20/20 pass and builds0errors. Hosted/raw schema and live max-range query proof still open; no mutation.
+
 Cosmos decimal balance truthfulness fix (2026-10-13): enforce canonical Uint128 source units and exact round-trip conversion instead of silent precision loss. Focused19/19 passes; builds0errors. Full Uint128 representation not provided by decimal signature; out-of-representable values remain errors, raw-unit/API contract work open. No ledger mutation/environment copy.
 
 Current hosted provenance audit (2026-10-13): existing Railway CLI confirms WEB4 prod/staging onmaster9f58e31b16c2faa36dd93357dc94288bc5606ca5, devDevelopment1445737ba7820c7584cc3c6f9f1b14441c3fc118, allSUCCESS. These are not current taska9ed131a6 provider fixes. No configuration/promotion/deployment changes, no JWT available in current process and no protected endpoint proof claimed. October7 branch staging evidence historical, not current. Full hosted release gate remains open.

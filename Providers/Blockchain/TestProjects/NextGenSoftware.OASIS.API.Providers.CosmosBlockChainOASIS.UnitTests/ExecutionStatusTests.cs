@@ -6,6 +6,16 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 public sealed class ExecutionStatusTests
 {
     [TestMethod]
+    public void RawCustomBalanceSupportsFullUint128RangeWithoutDecimalConversion()
+    {
+        const string maximum="340282366920938463463374607431768211455";
+        var method=typeof(CosmosBlockChainOASIS).GetMethod("ParseCustomTokenBalanceUnits",BindingFlags.NonPublic|BindingFlags.Static)!;
+        Assert.AreEqual(System.Numerics.BigInteger.Parse(maximum),method.Invoke(null,new object[]{maximum}));
+        var decimalMethod=typeof(CosmosBlockChainOASIS).GetMethod("CustomTokenBalanceFromUnits",BindingFlags.NonPublic|BindingFlags.Static)!;
+        var failure=Assert.ThrowsException<TargetInvocationException>(()=>decimalMethod.Invoke(null,new object[]{maximum}));
+        Assert.IsInstanceOfType<OverflowException>(failure.InnerException);
+    }
+    [TestMethod]
     public void CustomBalanceRequiresCanonicalUnitsAndExactDecimalRepresentation()
     {
         var method=typeof(CosmosBlockChainOASIS).GetMethod("CustomTokenBalanceFromUnits",BindingFlags.NonPublic|BindingFlags.Static)!;
