@@ -184,10 +184,14 @@ public class CosmosPreparationTests
             """);
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(15));
         using var child=Process.Start(start) ?? throw new InvalidOperationException("Cannot start retained Cosmos signing SDK.");
-        const string connection="mongodb://127.0.0.1:27017/?serverSelectionTimeoutMS=3000";
-        var database="usage_cosmos_signed_test_"+Guid.NewGuid().ToString("N");
+        const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"),"Owned reusable Mongo required; never use ambient27017.");
+        const string database="usage_cosmos_signed_test";
         var mongo=new MongoDB.Driver.MongoClient(connection);
+        var passed=false;
         try{
+            using(var databases=await mongo.ListDatabaseNamesAsync(cancellationToken:deadline.Token))
+                Assert.IsFalse((await MongoDB.Driver.IAsyncCursorExtensions.ToListAsync(databases,deadline.Token)).Contains(database),"Prior signed outbox requires inspection; do not overwrite/delete it.");
             var store=new MongoUsageOutboxStore(connection,database);await store.InitializeAsync(deadline.Token);
             var user=Guid.NewGuid().ToString("D");using var http=new HttpClient(new OfflineAuthority(user));
             var authority=new Web4SubscriptionAuthorizationClient(http,"https://offline-authority.test","WEB6","test-only-key");
@@ -248,9 +252,10 @@ public class CosmosPreparationTests
             Assert.AreEqual(1,afterRejection.ProviderAttempts.Count);
             Assert.AreEqual(stored.NativePreparationBytes,afterRejection.NativePreparationBytes);
             Assert.IsFalse(provider.IsProviderActivated);
+            passed=true;
         }finally{
             try{if(!child.HasExited){child.Kill(entireProcessTree:true);await child.WaitForExitAsync();}}
-            finally{await mongo.DropDatabaseAsync(database);}
+            finally{if(passed)await mongo.DropDatabaseAsync(database);}
         }
     }
     [TestMethod]
