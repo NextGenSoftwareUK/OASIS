@@ -14,6 +14,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 
 public class SQLLiteDBOASISIntegrationTests : IDisposable
 {
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task ActivationFailureRetainsNativeCauseAndSearchDoesNotHideIt(bool asynchronous)
+    {
+        using var provider = new SQLLiteDBOASIS($"Data Source={_databasePath};Mode=ReadOnly;Pooling=False");
+        var activated = asynchronous ? await provider.ActivateProviderAsync() : provider.ActivateProvider();
+        activated.IsError.Should().BeTrue();
+        activated.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        provider.IsProviderActivated.Should().BeFalse();
+        var searched = await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams());
+        searched.IsError.Should().BeTrue();
+        searched.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        File.Exists(_databasePath).Should().BeFalse();
+    }
+
     private readonly string _databasePath;
     private readonly FileStream _lease;
     private string TestConnectionString => $"Data Source={_databasePath};Pooling=False";

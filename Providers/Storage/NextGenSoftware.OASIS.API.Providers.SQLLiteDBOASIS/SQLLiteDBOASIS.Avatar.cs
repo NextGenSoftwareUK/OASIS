@@ -38,7 +38,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             }
             catch (Exception e)
             {
-                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In SQLLiteDBOASIS Provider in ActivateProviderAsync. Reason: {e}");
+                IsProviderActivated = false;
+                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In SQLLiteDBOASIS Provider in ActivateProviderAsync. Reason: {e}", e);
             }
 
             return result;
@@ -60,7 +61,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             }
             catch (Exception e)
             {
-                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In SQLLiteDBOASIS Provider in ActivateProvider. Reason: {e}");
+                IsProviderActivated = false;
+                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In SQLLiteDBOASIS Provider in ActivateProvider. Reason: {e}", e);
             }
 
             return result;
