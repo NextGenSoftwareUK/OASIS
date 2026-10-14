@@ -182,7 +182,7 @@ public sealed class ReconciliationTests
         string name = "usage_reconciliation_test_" + Guid.NewGuid().ToString("N");
         try
         {
-            var db = client.GetDatabase(name); var store = new MongoUsageReconciler(client, name, ClosedPeriod); await store.InitializeAsync(default);
+            var db = client.GetDatabase(name); var store = new MongoUsageReconciler(client, name, ClosedPeriod, StripeUsageInvoiceContract.PassThroughUsd); await store.InitializeAsync(default);
             string operationId = Guid.NewGuid().ToString("D");
             await db.GetCollection<BsonDocument>("subscription_usage_audit").InsertOneAsync(new BsonDocument
             {

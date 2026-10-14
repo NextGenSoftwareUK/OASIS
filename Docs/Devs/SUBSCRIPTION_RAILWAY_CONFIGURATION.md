@@ -223,3 +223,13 @@ After development passes:
 | `SUBSCRIPTION_ADMIN_AVATAR_IDS` | Existing authenticated Wizard administrators already qualify. |
 
 Telemetry is a separate optional operational feature. Leave `SUBSCRIPTION_TELEMETRY_ENABLED` absent or `false` during initial activation. If exporting metrics later, set it to `true` and configure a real `SUBSCRIPTION_OTLP_METRICS_ENDPOINT` (HTTP/protobuf, normally an HTTPS `/v1/metrics` destination) and any required `SUBSCRIPTION_OTLP_HEADERS`. A loopback address is appropriate only when a collector actually runs in that same container; do not add a dummy localhost endpoint to satisfy startup.
+
+## Manage an existing subscription in Stripe
+
+1. In Stripe's development **test mode**, configure one active customer portal with metadata `oasis_application=oasis-subscriptions`. Enable invoice history, payment-method updates, cancellation at the end of the billing period, and Bronze/Silver/Gold plan changes using the existing DNA price IDs. Development portal configuration `bpc_1UQHMID2t0mRpwzcfrzfp6C3` has these features enabled; plan changes invoice prorations immediately.
+2. In OPORTAL, open **My Subscriptions → Manage billing**. WEB4's authenticated `POST /api/subscription/billing/portal` creates a session for the logged-in subscriber's stored Stripe customer. No new Railway variable or customer ID input is needed.
+3. Change Bronze to Silver in the Stripe test portal. Confirm the signed subscription webhook updates WEB4, the proration invoice appears once in Orders, and the original Stripe subscription remains the only active subscription. Selecting a plan while already subscribed also opens billing management rather than creating a second subscription.
+4. Cancel at period end. Confirm My Subscriptions shows the end date and access remains available through that date. Undo cancellation and confirm renewal is restored.
+5. Before production promotion, configure the corresponding live-mode Stripe customer portal and repeat the approved release checks with production settings.
+
+Paid overages are a separate launch requirement. Their rates, billing currency and AI margin require agreement; the existing monthly Stripe plans use GBP while provider catalogue costs use USD. The existing backend rejects enabling unconfigured overages. Do not treat old displayed per-request amounts as a working billing contract.
