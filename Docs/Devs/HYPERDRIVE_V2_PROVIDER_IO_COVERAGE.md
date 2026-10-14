@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Cosmos Linux SDK run failed (2026-10-13): four subprocess cases hit fixed10second limit on retainedNode22.22.2; independent import-only measured18.471s from mountedNTFS source/deps before network/operation. Retained suite's Linux compatibility NOT green. No timeout relaxation/install/copy; native filesystem/performance and exactNode24 published proof remain open. Other platform passes not substitutes.
+
 Sui retained Linux compatibility31/31 (2026-10-13): reused existing NEAR LinuxNode22.22.2 binary and current shared SDK dependencies; verifier plus29SDK/2fixture offline tests pass. No installs/container builds/copies. Production pinsNode24.19.0; exact published .NET/IPC/image proof remains unverified. Terminal evidence only, no invented report artifact.
 
 Cosmos signed original-attempt recovery read support (2026-10-13): provider method binds persisted chain/provider/hash/signature via official SDK then native fee lookup. Negative six-case1/1 passes; positive native lookup unverified/current original replication hash absent. No guessed fee/valuation/settlement/replay; all corresponding gates remain open.
