@@ -17,6 +17,27 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task MetadataLookupPreservesNativeReadFailures(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        using var control = new DataContext(TestConnectionString);
+        control.Database.ExecuteSqlRaw("DROP TABLE Holon;");
+        var pairs = new Dictionary<string,string> { ["public-key"] = "value" };
+        foreach (var result in new[] {
+            synchronous ? provider.LoadHolonsByMetaData("public-key","value") : await provider.LoadHolonsByMetaDataAsync("public-key","value"),
+            synchronous ? provider.LoadHolonsByMetaData(pairs,MetaKeyValuePairMatchMode.All) : await provider.LoadHolonsByMetaDataAsync(pairs,MetaKeyValuePairMatchMode.All),
+            synchronous ? provider.LoadHolonsByMetaData(pairs,MetaKeyValuePairMatchMode.Any) : await provider.LoadHolonsByMetaDataAsync(pairs,MetaKeyValuePairMatchMode.Any) })
+        {
+            result.IsError.Should().BeTrue();
+            result.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+            result.Result.Should().BeNull();
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task RejectedImportRollsBackWholeBatchWithoutLaterReplay(bool synchronous)
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
