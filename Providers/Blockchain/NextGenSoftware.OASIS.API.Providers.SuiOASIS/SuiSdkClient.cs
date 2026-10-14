@@ -14,6 +14,9 @@ internal sealed class SuiSdkClient : IDisposable
     private readonly string _rpcEndpoint, _network, _chainId, _privateKey, _packageAddress, _storageObjectId, _currencyObjectId;
     private bool _disposed;
     internal string ChainId => _chainId;
+    private readonly OwnedPreparationScope _storagePreparation=new();
+    internal Task<T> WithStoragePreparationAsync<T>(Func<Task<T>> operation,Func<PreparedSubmissionServer> factory)
+        => _storagePreparation.RunAsync(operation,factory);
 
     internal SuiSdkClient(string rpcEndpoint, string network, string chainId, string privateKey,
         string packageAddress, string storageObjectId, string currencyObjectId)
@@ -31,8 +34,12 @@ internal sealed class SuiSdkClient : IDisposable
         _currencyObjectId = currencyObjectId;
     }
 
-    internal Task<JsonElement> InvokeAsync(string operation, object args = null, CancellationToken cancellationToken = default)
-        => InvokeCoreAsync(operation, args, cancellationToken, null);
+    internal async Task<JsonElement> InvokeAsync(string operation, object args = null, CancellationToken cancellationToken = default)
+    {
+        cancellationToken.ThrowIfCancellationRequested();
+        using var server=operation is "put" or "delete" ? _storagePreparation.CreateCurrent() : null;
+        return await InvokeCoreAsync(operation,args,cancellationToken,server);
+    }
 
     internal Task<JsonElement> InvokePreparedAsync(string operation, object args, PreparedSubmissionServer server, CancellationToken cancellationToken)
         => InvokeCoreAsync(operation, args, cancellationToken, server ?? throw new ArgumentNullException(nameof(server)));
