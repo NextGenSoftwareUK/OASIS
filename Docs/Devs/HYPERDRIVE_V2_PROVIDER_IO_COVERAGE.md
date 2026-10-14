@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Sui token fixture recovery-evidence protection (2026-10-13): removed automatic pre-run burn/unlock and recipient credential generation/replacement. Require existing chain-matched identity and actual key-derived address; reject nonzero prior spendable/escrow balances read-only. Syntax/diff checks pass, NOT live token proof; durable journal/unknown mutation/error attribution still open. No asset/environment changes.
+
 Sui actual source custody proof (2026-10-13): existing lifecycle fixture expanded; real transfer receipt yields exact current object reference, wrong pool rejected, proof stale/deleted after burn rejected. Expanded1/1 passes7.62s, zero skips, existing compact TAP; owned journal absent/node stopped, same pinned runtime/deployment. Closes this local SDK source-proof evidence, not every public C# route/release/crash/settlement requirement.
 
 Sui actual local NFT lifecycle1/1 (2026-10-13): retained runtime/deployment/faucet reused; native quantity2 mint, reads, escrow lock/foreign unlock rejection/unlock, ownership transfer/status, old-owner burn rejection, recipient burn and remaining-object cleanup passed7.45s, zero skips, fixed compact TAP. Preparation journal gone only after known successful cleanup; owned node stopped. Cleanup original/secondary failures now aggregate. This closes this official SDK local lifecycle case, not all C# public/API/custody-release/crash-settlement requirements. No fresh environment/runtime/deployment.
