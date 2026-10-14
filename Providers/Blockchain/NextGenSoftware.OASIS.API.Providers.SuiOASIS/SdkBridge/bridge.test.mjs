@@ -307,6 +307,10 @@ test('fee receipts retain exact charged failure, payer and signed rebate without
   assert.throws(() => nativeFeeReceipt(tx, 'other'));
   assert.throws(() => nativeFeeReceipt({ ...tx, transaction: { gasData: { owner: null } } }, 'original'));
   assert.throws(() => nativeFeeReceipt({ ...tx, checkpoint: null }, 'original'));
+  for (const checkpoint of [undefined, '-1', '01', '1.5', '18446744073709551616', 42])
+    assert.throws(() => nativeFeeReceipt({ ...tx, checkpoint }, 'original'));
+  for (const timestampMs of [undefined, null, 0, -1, 1.5, Number.MAX_SAFE_INTEGER + 1, '1'])
+    assert.throws(() => nativeFeeReceipt({ ...tx, timestampMs }, 'original'));
   for (const value of ['-1', '01', '1.5', '18446744073709551616', 7])
     assert.throws(() => nativeFeeReceipt({ ...tx, effects: { ...tx.effects, gasUsed: { ...gasUsed, storageCost: value } } }, 'original'));
 });
