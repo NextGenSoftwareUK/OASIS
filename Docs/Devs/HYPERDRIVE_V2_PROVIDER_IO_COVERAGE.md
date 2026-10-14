@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+TRON acknowledgement contradiction fix (2026-10-13): true success flag plus error code becomes typed unresolved original broadcast, not success or safe replay. Actual SDK controlled-gRPC case retains hash with one broadcast and zero polls; full300/300 unit pass, no skips, bounded builds0errors/23provider and2consumer warnings. Pending live journal untouched; no live mutation, full native/API gates open.
+
 Hedera shared original-ID invariant fix (2026-10-13): signed transaction identity is checked regardless of optional preparation callback; formerly no-callback branch bypassed validation. Offline full SDK102/102 passes, no skips, added mismatch/no-callback regression. No alternate submission implementation/new environment/funded write. Durable ordinary-path ownership and native escrow verification remain open.
 
 Cosmos custody hash-case compatibility fix (2026-10-13): canonical native hash and accepted lowercase caller hash now compare equivalently in SDK/C# custody paths. No loosened byte identity/commit/success/unique transfer/object selectors. Offline60/60 and focused NFT signer44/44 pass, zero skips; bounded builds0errors. No live transfer/releases; unknown Cosmos journal untouched, complete native custody/API gates still open.

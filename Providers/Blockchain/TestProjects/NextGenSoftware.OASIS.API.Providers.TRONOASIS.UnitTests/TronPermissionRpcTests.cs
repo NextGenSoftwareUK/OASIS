@@ -52,6 +52,7 @@ public class TronPermissionRpcTests
     [InlineData("nft-mint")] [InlineData("nft-send")] [InlineData("token-send")] [InlineData("approve")]
     [InlineData("escrow-lock")] [InlineData("escrow-unlock")]
     [InlineData("nft-send-provider")]
+    [InlineData("contradictory-broadcast")]
     public async Task RotatedContractSignerAndConfirmedDeploymentReadbackPreserveOneSubmission(string mode)
     {
         var genesis=new string('a',64);var block=ByteString.CopyFrom(Convert.FromHexString(genesis));
@@ -93,7 +94,12 @@ public class TronPermissionRpcTests
                 broadcasts++;id=ByteString.CopyFrom(SHA256.HashData(request.RawData.ToByteArray()));
                 submitted.Add(id);
                 TronPreparationVerifier.VerifyWithAccountAuthority(Convert.ToBase64String(request.ToByteArray()),Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),authority.Address.ToByteArray(),100000000,authority);
-                return Task.FromResult(new Return{Result=true});
+                var acknowledgement=new Return{Result=true};
+                if(mode=="contradictory-broadcast"){
+                    var code=typeof(Return).GetProperty(nameof(Return.Code))!;
+                    code.SetValue(acknowledgement,System.Enum.ToObject(code.PropertyType,5));
+                }
+                return Task.FromResult(acknowledgement);
             })
             .AddMethod(Rpc(WalletSolidity.Descriptor.FullName,"GetTransactionInfoById",BytesMessage.Parser,TransactionInfo.Parser),(BytesMessage request,ServerCallContext context)=>{
                 receiptReads++;Assert.Equal(id,request.Value);
@@ -105,7 +111,12 @@ public class TronPermissionRpcTests
         try{
             var port=server.Ports.Single().BoundPort;await using var runtime=new TronSdkRuntime(new Uri($"http://127.0.0.1:{port}"),new Uri($"http://127.0.0.1:{port}"),genesis);
             using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            if(mode == "nft-send-provider"){
+            if(mode=="contradictory-broadcast"){
+                var failure=await Assert.ThrowsAsync<TronBroadcastOutcomeUnknownException>(()=>runtime.NativeTransfers.ExecuteSignedContractAsync(owner,contract,new byte[]{1,2,3,4},key,deadline.Token));
+                Assert.Equal(Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),failure.OriginalTransactionId);
+                Assert.True(Core.Helpers.NativeMutationReconciliation.IsRequired(failure));
+                Assert.Equal(0,receiptReads);
+            }else if(mode == "nft-send-provider"){
                 var provider = new TRONOASIS(nativeTransfers:runtime.NativeTransfers);
                 // Controlled SDK/RPC operation fixture, not real chain activation evidence.
                 typeof(TRONOASIS).GetProperty("IsProviderActivated")!.SetValue(provider,true);
