@@ -48,7 +48,7 @@ Authorize requires a validated user bearer token plus `X-OASIS-Service` and `X-O
 
 Start/settle authenticate the owning service and compare the payload owner with the reservation. They work after the original user token expires; outboxes do not store bearer tokens. Unbound global API keys cannot authorize billable work.
 
-Administration requires an authenticated `oasis.subscription.admin=true` claim **and** membership in `SUBSCRIPTION_ADMIN_AVATAR_IDS`. Subscriber and service credentials cannot administer accounting.
+An authenticated avatar whose stored OASIS role is Wizard can administer accounting. A delegated administrator instead requires an authenticated `oasis.subscription.admin=true` claim **and** membership in `SUBSCRIPTION_ADMIN_AVATAR_IDS`. Subscriber and service credentials cannot administer accounting. Temporary verification delegation was removed after the development checks.
 
 ## Idempotency and concurrency
 

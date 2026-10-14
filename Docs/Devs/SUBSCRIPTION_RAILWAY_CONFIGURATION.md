@@ -13,7 +13,57 @@ The ledger creates dedicated collections in the same MongoDB instance. It does n
 | WEB4 ledger and billing | `oasis_subscription_accounting` |
 | WEB5-WEB10 outboxes | `oasis_web5_subscription_outbox` through `oasis_web10_subscription_outbox` |
 
-WEB6 pricing is loaded from `Configuration/web6-model-catalogue.json`. No Railway price variable is required.
+WEB6 pricing is loaded from `Configuration/web6-model-catalogue.json` inside the deployed application. The source file is **`WEB6/NextGenSoftware.OASIS.Web6.Core/Configuration/web6-model-catalogue.json`**, locally `C:\Source\OASIS\WEB6\NextGenSoftware.OASIS.Web6.Core\Configuration\web6-model-catalogue.json`. [Open the JSON in the WEB6 repository](https://github.com/NextGenSoftwareUK/OASIS-WEB6/blob/Development/NextGenSoftware.OASIS.Web6.Core/Configuration/web6-model-catalogue.json). No Railway price variable is required.
+
+Paid plan amounts and currencies are read from the existing Stripe prices. For example, if the configured Bronze price is GBP 9, OPORTAL must display GBP 9 and its paid invoice must remain GBP. AI provider usage is accounted for separately in USD; revenue from different currencies is never added together as USD.
+
+The Stripe webhook destination must use the API version supported by the deployed Stripe.net SDK. The current SDK is Stripe.net 47.0.0, using `2024-10-28.acacia`. Configure that version on the subscription webhook destination and enable `checkout.session.completed`, `customer.subscription.created`, `customer.subscription.updated`, `customer.subscription.deleted`, `invoice.paid`, `invoice.payment_succeeded`, and `invoice.payment_failed`. An incompatible event schema is rejected visibly. Reuse `STRIPE_WEBHOOK_SECRET` for the matching destination's signing secret.
+
+On checkout return, OPORTAL confirms the authenticated session through `GET /api/subscription/checkout/session/{sessionId}`. A redirect alone never activates a paid plan. Activation requires a completed checkout, a paid/no-payment-required session, and the matching canonical subscription committed by its verified webhook.
+
+## What an endpoint costs
+
+The existing Stripe monthly price funds included usage. Extra USD charges require an active paid subscriber to opt in to the published overage prices and a spending cap. Provider measurement alone does not activate extra billing. [Paid overage prices and steps](SUBSCRIPTION_PAID_OVERAGES.md) explain the separate USD invoice contract.
+
+Reconciliation uses the included-plan billing contract by default. A closed period with USD provider costs does not require an additional USD Stripe usage invoice. Explicit pass-through reconciliation remains available to callers that actually have that billing contract; tagged usage invoices are checked when present. When opted-in customer overages occur, their charge totals must match standalone USD invoices; the invoice must not charge all included provider costs again. The report's `requiresStripeUsageInvoice` field makes this distinction visible. Provider evidence and ledger/audit checks remain required, and an open UTC month remains pending rather than being reported fully balanced.
+
+| API | Current accounting policy |
+|---|---|
+| WEB4 | Subscription, Stripe webhook, quota and ledger authority. Direct WEB4 business routes are not metered by the WEB5–WEB10 consumer adapters. |
+| WEB5 | One included request per covered business operation; USD provider cost is zero under `web5-included-request-v1`. |
+| WEB6 | One authorized operation; supported AI operations settle actual measured tokens/units using their immutable model catalogue version. Other business operations use the included-request policy. |
+| WEB7–WEB10 | One included request per covered business operation; USD provider cost is zero under the corresponding `webN-included-request-v1` policy. |
+
+Public identity routes, health, discovery and specified control operations are exempt. Administrator catalogue operations require administrator authorization, not a customer subscription. An operation ID prevents repeated execution; repeat calls with new IDs are separate operations.
+
+For token models, cost is `(input tokens × input USD/million + output tokens × output USD/million) / 1,000,000`. The JSON stores `inputPer1kUSD` and `outputPer1kUSD`; the per-million values are derived from those fields. Examples from the bootstrap catalogue:
+
+| Provider/model | Minimum plan | Input USD/million | Output USD/million |
+|---|---|---:|---:|
+| OpenAI / `gpt-4o-mini` | Bronze | 0.15 | 0.60 |
+| OpenServ / `gpt-5.4-mini` | Bronze | 1.00 | 6.00 |
+| OpenServ / `gpt-5.4-nano` | Bronze | 0.25 | 1.60 |
+| Ollama / `llama3.3` | Free | 0 | 0 |
+
+These are configured contractual rates, not a promise that an unconfigured provider is available. Model availability and supported receipt adapters are checked before execution. OpenServ requires a system/developer message. For a minimal request, use `tools: []`, `useFAHRN: false`, `useHolonicBraid: false`, `injectAvatarContext: false`, and a small `maxTokens`; otherwise reservation includes generated tools and possible enrichment.
+
+## Defaults and limits
+
+WEB4 reads the canonical paid plan from its Stripe-backed subscription record. A plan value in an AI request cannot unlock a higher model tier. The current base policy in `SubscriptionUsagePolicyProvider.cs` is:
+
+| Plan | Existing Stripe price | Requests/month | Calls/day | Tokens/day | USD usage budget/month |
+|---|---:|---:|---:|---:|---:|
+| Free | 0 | 1,000 | 20 | 50,000 | 1 |
+| Bronze | GBP 9 | 10,000 | 100 | 250,000 | 10 |
+| Silver | GBP 29 | 100,000 | 500 | 1,000,000 | 50 |
+| Gold | GBP 99 | 1,000,000 | 2,000 | 5,000,000 | 250 |
+| Enterprise | Contact Sales | Unlimited | Unlimited | Unlimited | Unlimited |
+
+Daily limits apply in addition to the monthly limit, across the consuming APIs. Authoritative karma multiplies the daily call allowance: 500→1.5×, 1,000→2×, 5,000→3×, 20,000→5×, 100,000→10×. Resets use UTC calendar days/months. An AI reservation also reserves an input/output/fan-out bound before provider work; the final cost uses measured usage, not the reservation estimate.
+
+The existing fixed monthly plans and included quotas are the default. Optional paid overages use reviewed external JSON request rates and WEB6 catalogue costs with no AI margin. Enabling them requires price-version/fingerprint consent, a default payment method and a monthly USD cap; missing consent returns `400 OVERAGE_CONSENT_REQUIRED`. USD overages are collected separately from GBP monthly plans. Server-wide HyperDrive configuration changes require an administrator; they cannot change a subscriber's purchased plan. Legacy GraphQL/gRPC HyperDrive stubs return explicit unsupported errors instead of empty usage or unconditional quota approval.
+
+The JSON is the bootstrap catalogue. Administrator publication saves a new immutable version and the previous bootstrap document in Holon settings, activates the new version, and reloads that published version after restart. Existing operations keep their original version. Use a new version name and a publication reason; never edit an already published version.
 
 ## Add the required variables
 
@@ -172,4 +222,14 @@ After development passes:
 | `SUBSCRIPTION_MIGRATION_APPROVAL_KEY` | Historical migration is unnecessary for this confirmed empty installation. |
 | `SUBSCRIPTION_ADMIN_AVATAR_IDS` | Existing authenticated Wizard administrators already qualify. |
 
-Telemetry is a separate optional operational feature. Its collector settings are not part of initial ledger activation.
+Telemetry is a separate optional operational feature. Leave `SUBSCRIPTION_TELEMETRY_ENABLED` absent or `false` during initial activation. If exporting metrics later, set it to `true` and configure a real `SUBSCRIPTION_OTLP_METRICS_ENDPOINT` (HTTP/protobuf, normally an HTTPS `/v1/metrics` destination) and any required `SUBSCRIPTION_OTLP_HEADERS`. A loopback address is appropriate only when a collector actually runs in that same container; do not add a dummy localhost endpoint to satisfy startup.
+
+## Manage an existing subscription in Stripe
+
+1. In Stripe's development **test mode**, configure one active customer portal with metadata `oasis_application=oasis-subscriptions`. Enable invoice history, payment-method updates, cancellation at the end of the billing period, and Bronze/Silver/Gold plan changes using the existing DNA price IDs. Development portal configuration `bpc_1UQHMID2t0mRpwzcfrzfp6C3` has these features enabled; plan changes invoice prorations immediately.
+2. In OPORTAL, open **My Subscriptions → Manage billing**. WEB4's authenticated `POST /api/subscription/billing/portal` creates a session for the logged-in subscriber's stored Stripe customer. No new Railway variable or customer ID input is needed.
+3. Change Bronze to Silver in the Stripe test portal. Confirm the signed subscription webhook updates WEB4, the proration invoice appears once in Orders, and the original Stripe subscription remains the only active subscription. Selecting a plan while already subscribed also opens billing management rather than creating a second subscription.
+4. Cancel at period end. Confirm My Subscriptions shows the end date and access remains available through that date. Undo cancellation and confirm renewal is restored.
+5. Before production promotion, configure the corresponding live-mode Stripe customer portal and repeat the approved release checks with production settings.
+
+Paid overage rates are agreed in USD: Bronze 0.001, Silver 0.0005, Gold 0.0002 and Enterprise 0.0001 per extra successful request, with WEB6 AI excess at catalogue cost and no margin. Follow [the paid overage runbook](SUBSCRIPTION_PAID_OVERAGES.md) to verify consent, caps, USD collection, signed webhooks and administrator statements.

@@ -6,6 +6,10 @@ on:
         description: Original run containing the reviewed plan and packed packages
         required: true
         type: string
+      validate_provenance:
+        description: Require every archive to record the reviewed parent source graph
+        type: boolean
+        default: false
 permissions:
   actions: read
   contents: read
@@ -29,7 +33,7 @@ jobs:
       - name: Compare original immutable packages with registry without publishing
         shell: pwsh
         run: |
-          ./Scripts/Publish-OASISReviewedNuGet.ps1 -PlanPath artifacts/original-plan/release-plan.json -PackageDirectory artifacts/original-packages -ReportPath artifacts/recovery/reconciliation.json
+          ./Scripts/Publish-OASISReviewedNuGet.ps1 -PlanPath artifacts/original-plan/release-plan.json -PackageDirectory artifacts/original-packages -ReportPath artifacts/recovery/reconciliation.json -ValidateProvenance:$${{ inputs.validate_provenance }}
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
       - uses: actions/upload-artifact@v7
         if: always()
