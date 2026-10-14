@@ -88,6 +88,13 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 importRead.IsError.Should().BeFalse(importRead.Message);
                 importRead.Result.Name.Should().Be(importedHolon.Name);
             }
+            foreach (var importedHolon in importedHolons)
+            {
+                // Fresh native provider readback must carry the key published by the initial insert.
+                var importedRead = await mongo.LoadHolonAsync(importedHolon.Id,loadChildren:false);
+                importedRead.Result.ProviderUniqueStorageKey.Should().ContainKey(ProviderType.MongoDBOASIS);
+                ObjectId.TryParse(importedRead.Result.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS],out _).Should().BeTrue();
+            }
             // Seed the real engine's recommendation without fabricating a prediction model score.
             // The real stores below prove routing/replication, not WEB4 endpoint prediction generation.
             var engine = PredictiveFailoverEngine.ForProviderManager(manager);
