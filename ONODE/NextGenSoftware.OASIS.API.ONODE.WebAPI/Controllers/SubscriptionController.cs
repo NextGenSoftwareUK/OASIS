@@ -28,15 +28,17 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         private readonly OASISSub.ISubscriptionBillingRepository _billingRepository;
 
         private readonly OASISSub.SubscriptionPlanCatalogue _planCatalogue;
+        private readonly OASISSub.ISubscriptionBillingPortal _billingPortal;
         private static System.Collections.Generic.IReadOnlyList<OASISSub.SubscriptionPlanDefinition> Plans => OASISSub.SubscriptionPlanCatalogue.Definitions;
 
-        public SubscriptionController(IConfiguration configuration, OASISSub.ISubscriptionService subscriptionService, OASISSub.ISubscriptionUsageRepository usageRepository = null, OASISSub.ISubscriptionBillingRepository billingRepository = null, OASISSub.SubscriptionPlanCatalogue planCatalogue = null)
+        public SubscriptionController(IConfiguration configuration, OASISSub.ISubscriptionService subscriptionService, OASISSub.ISubscriptionUsageRepository usageRepository = null, OASISSub.ISubscriptionBillingRepository billingRepository = null, OASISSub.SubscriptionPlanCatalogue planCatalogue = null, OASISSub.ISubscriptionBillingPortal billingPortal = null)
         {
             _configuration = configuration;
             _subscriptionService = subscriptionService;
             _usageRepository = usageRepository;
             _billingRepository = billingRepository;
             _planCatalogue = planCatalogue ?? new OASISSub.SubscriptionPlanCatalogue(new OASISSub.StripeSubscriptionPlanPriceReader(configuration));
+            _billingPortal = billingPortal ?? new OASISSub.StripeSubscriptionBillingPortal(configuration);
         }
 
         // ── Plans ────────────────────────────────────────────────────────────
@@ -198,6 +200,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             if (plan.IsContactSales)
                 return BadRequest(new { IsError = true, Message = "Enterprise plan requires contacting sales." });
 
+            string subscriberId=GetCurrentUserId();
+            if (string.IsNullOrEmpty(subscriberId)) return Unauthorized(new { IsError=true, Message="User not authenticated." });
+            var existing=await _subscriptionService.GetSubscriptionAsync(subscriberId);
+            if (!string.IsNullOrEmpty(existing?.StripeSubscriptionId) && existing.Status is not ("canceled" or "incomplete_expired"))
+                return await BillingPortalResult(existing, request.SuccessUrl);
+
             // Free/trial plan: provision immediately without Stripe
             if (plan.Id == "free")
             {
@@ -209,6 +217,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                 {
                     UserId = userId,
                     PlanId = plan.Id,
+                    StripeCustomerId = existing?.StripeCustomerId,
                     Status = "active",
                     CurrentPeriodStart = DateTime.UtcNow,
                     CurrentPeriodEnd = DateTime.UtcNow.AddYears(10)
@@ -265,6 +274,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 return StatusCode(500, new { IsError = true, Message = $"Error creating checkout session: {ex.Message}" });
             }
+        }
+
+        [Authorize]
+        [HttpPost("billing/portal")]
+        public async Task<ActionResult> CreateBillingPortal([FromBody] BillingPortalRequest request)
+        {
+            var userId=GetCurrentUserId();
+            if(string.IsNullOrEmpty(userId))return Unauthorized();
+            var record=await _subscriptionService.GetSubscriptionAsync(userId);
+            if(string.IsNullOrEmpty(record?.StripeCustomerId))return BadRequest(new {IsError=true,Message="No Stripe billing account is linked to this subscriber."});
+            return await BillingPortalResult(record,request?.ReturnUrl);
+        }
+        private async Task<ActionResult> BillingPortalResult(OASISSub.SubscriptionRecord record,string returnUrl)
+        {
+            if(!Uri.TryCreate(returnUrl,UriKind.Absolute,out var target) || (target.Scheme != Uri.UriSchemeHttps && target.Scheme != Uri.UriSchemeHttp))
+                return BadRequest(new {IsError=true,Message="An absolute HTTP or HTTPS return URL is required for Stripe billing management."});
+            try
+            {
+                var session=await _billingPortal.CreateAsync(record,returnUrl,HttpContext.RequestAborted);
+                return Ok(new {IsError=false,IsBillingPortal=true,SessionId=session.Id,SessionUrl=session.Url,Message="Manage the existing subscription in Stripe billing."});
+            }
+            catch(Exception ex) when(ex is StripeException || ex is InvalidOperationException)
+            {return StatusCode(503,new {IsError=true,Message=ex.Message});}
         }
 
         internal static string CheckoutSuccessUrl(string url) =>
@@ -363,7 +395,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 if (invoice.Status != "paid" || !invoice.Paid || string.IsNullOrWhiteSpace(invoice.Currency))
                     throw new InvalidOperationException("A paid invoice with its actual Stripe amount and currency is required.");
-                var invoicedPlans = Plans.Where(plan => invoice.Lines?.Data?.Any(line => line.Price?.Id == GetStripePriceId(plan.Id) && !string.IsNullOrEmpty(line.Price?.Id)) == true).ToList();
+                var invoicedPlans = Plans.Where(plan => invoice.Lines?.Data?.Any(line => line.Amount > 0 && line.Price?.Id == GetStripePriceId(plan.Id) && !string.IsNullOrEmpty(line.Price?.Id)) == true).ToList();
                 order = new OASISSub.OrderRecord { UserId = userId, PlanId = invoicedPlans.Count == 1 ? invoicedPlans[0].Id : null, StripeInvoiceId = invoice.Id, Amount = OASISSub.StripeAmount.FromMinorUnits(invoice.AmountPaid, invoice.Currency),
                     Currency = invoice.Currency.ToUpperInvariant(), Status = "paid", Description = "Stripe subscription invoice", CreatedAt = invoice.Created };
             }
@@ -379,7 +411,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
                 return new OASISSub.SubscriptionRecord { UserId = userId, PlanId = matchingPlans[0].Id, Status = canonical.Status,
                     StripeCustomerId = canonical.CustomerId, StripeSubscriptionId = canonical.Id, StripeSubscriptionCreatedAtUtc = canonical.Created,
-                    CurrentPeriodStart = canonical.CurrentPeriodStart, CurrentPeriodEnd = canonical.CurrentPeriodEnd, CreatedAt = canonical.Created };
+                    CurrentPeriodStart = canonical.CurrentPeriodStart, CurrentPeriodEnd = canonical.CurrentPeriodEnd, CancelAtPeriodEnd=canonical.CancelAtPeriodEnd, CreatedAt = canonical.Created };
             }, order, HttpContext.RequestAborted);
             return applied ? "applied" : "already_applied";
         }
@@ -416,7 +448,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
                     record.PlanId,
                     PlanName = plan?.Name ?? record.PlanId,
                     record.Status,
-                    RenewsOn = record.CurrentPeriodEnd,
+                    RenewsOn = record.CancelAtPeriodEnd ? (DateTime?)null : record.CurrentPeriodEnd,
+                    EndsOn = record.CancelAtPeriodEnd ? record.CurrentPeriodEnd : (DateTime?)null,
+                    record.CancelAtPeriodEnd,
                     record.StripeCustomerId,
                     record.StripeSubscriptionId,
                     record.CurrentPeriodStart,
@@ -760,6 +794,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
         {
             public bool Enabled { get; set; }
         }
+        public sealed class BillingPortalRequest { public string ReturnUrl { get; set; } }
 
         public class UpdateHyperDriveConfigRequest
         {
