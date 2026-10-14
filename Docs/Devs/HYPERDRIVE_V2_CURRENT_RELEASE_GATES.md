@@ -4,6 +4,8 @@ Updated 2026-10-13, inspected parent `07e0ae20c` and retained reports/journals. 
 
 ## Authoritative state
 
+Sui updated-parser real receipt verification (2026-10-13, parent `b4a4841ed`): `Run-ReusableSuiV2Tests.ps1 -Mode Fee` passed1/1, zero skips, using the original digest from the retained prepared-ledger report and current source bridge. This confirms the stricter checkpoint/time boundary accepts actual gRPC chain data. Same existing ledger/runtime; no new transaction. Runner completed owned-node shutdown, independently confirmed no `sui` PID afterward. Fixed TRX overwritten rather than accumulating reports. Free C:110.06GiB observed; no runtime/dependency downloads. Fiat valuation and recovery settlement remain unimplemented.
+
 Sui fee evidence validation (2026-10-13, parent `a40cf0f5c`): native fee parsing now requires canonical unsigned-u64 checkpoint and positive safe-integer timestamp, matching the checkpointed history contract instead of only rejecting nulls. Added malformed/overflow checkpoint and timestamp negative cases; current bridge29 plus fixture-helper2 tests pass31/31 on Windows and retained Linux Node22.22.2. Production recovery resolver and trusted native-to-USD valuation remain absent; this boundary fix does not claim their completion.
 
 Hedera Linux SDK compatibility (2026-10-13, inspected parent `d6e815681`): all five package-defined offline test files (`bridge`, `file`, `storage`, `escrow`, `deployment`) pass102/102, exit0, using retained Linux Node22.22.2 against existing mounted source/dependencies. No download, installation, copied environment or funded operation. Exact production Node24.19.0, published .NET IPC, funded CRUD/assets, three live V2 policies, hosted admission and recovery settlement remain open.
