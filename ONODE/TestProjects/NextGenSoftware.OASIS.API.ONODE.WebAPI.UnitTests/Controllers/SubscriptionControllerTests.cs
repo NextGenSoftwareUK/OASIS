@@ -159,16 +159,26 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Controllers
         // ── TogglePayAsYouGo ──────────────────────────────────────────────────
 
         [Fact]
-        public async Task TogglePayAsYouGo_Enable_ShouldCallServiceAndReturn200()
+        public async Task TogglePayAsYouGo_Enable_ShouldRejectUnavailablePaidOveragesWithoutChangingService()
         {
             _mockService.Setup(s => s.SetPayAsYouGoAsync(_testUserId, true)).Returns(Task.CompletedTask);
             var request = new TogglePayAsYouGoRequest { Enabled = true };
 
-            var result = await _controller.TogglePayAsYouGo(request) as OkObjectResult;
+            var result = await _controller.TogglePayAsYouGo(request) as ObjectResult;
 
             result.Should().NotBeNull();
+            result!.StatusCode.Should().Be(501);
+            _mockService.Verify(s => s.SetPayAsYouGoAsync(It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+        }
+
+        [Fact]
+        public async Task TogglePayAsYouGo_Disable_ShouldCallServiceAndReturn200()
+        {
+            _mockService.Setup(s => s.SetPayAsYouGoAsync(_testUserId, false)).Returns(Task.CompletedTask);
+            var result = await _controller.TogglePayAsYouGo(new TogglePayAsYouGoRequest { Enabled = false }) as OkObjectResult;
+            result.Should().NotBeNull();
             result!.StatusCode.Should().Be(200);
-            _mockService.Verify(s => s.SetPayAsYouGoAsync(_testUserId, true), Times.Once);
+            _mockService.Verify(s => s.SetPayAsYouGoAsync(_testUserId, false), Times.Once);
         }
 
         [Fact]
