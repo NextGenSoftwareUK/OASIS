@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Hedera shared original-ID invariant fix (2026-10-13): signed transaction identity is checked regardless of optional preparation callback; formerly no-callback branch bypassed validation. Offline full SDK102/102 passes, no skips, added mismatch/no-callback regression. No alternate submission implementation/new environment/funded write. Durable ordinary-path ownership and native escrow verification remain open.
+
 Cosmos custody hash-case compatibility fix (2026-10-13): canonical native hash and accepted lowercase caller hash now compare equivalently in SDK/C# custody paths. No loosened byte identity/commit/success/unique transfer/object selectors. Offline60/60 and focused NFT signer44/44 pass, zero skips; bounded builds0errors. No live transfer/releases; unknown Cosmos journal untouched, complete native custody/API gates still open.
 
 Sui custody identity correction (2026-10-13): one exact validator now binds source transaction/effects to requested digest before accepting unique custody object change; current object ID also checked. Offline29/29 passes, packaging verifier passes; controlled foreign/duplicate/failed/self-custody cases rejected. No live asset mutation; complete custody/escrow/public API verification remains open.
