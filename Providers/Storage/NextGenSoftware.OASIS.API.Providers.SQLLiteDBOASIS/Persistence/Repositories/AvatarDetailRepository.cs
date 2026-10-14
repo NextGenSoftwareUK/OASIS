@@ -73,7 +73,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var rows = _dbContext.AvatarDetails
+                var rows = _dbContext.AvatarDetails.AsNoTracking()
                         .Include(a => a.InventoryItems)
                         .Include(a => a.Stats)
                         .Where(x => x.Email == avatarEmail && (version == 0 || x.Version == version))
@@ -111,7 +111,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var rows = _dbContext.AvatarDetails
+                var rows = _dbContext.AvatarDetails.AsNoTracking()
                         .Include(a => a.InventoryItems)
                         .Include(a => a.Stats)
                         .Where(x => x.Username == avatarUsername && (version == 0 || x.Version == version))
@@ -187,7 +187,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var rows = await _dbContext.AvatarDetails
+                var rows = await _dbContext.AvatarDetails.AsNoTracking()
                     .Include(a => a.InventoryItems)
                     .Include(a => a.Stats)
                     .Where(x => x.Username == avatarUsername && (version == 0 || x.Version == version))
@@ -225,7 +225,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var rows = await _dbContext.AvatarDetails
+                var rows = await _dbContext.AvatarDetails.AsNoTracking()
                     .Include(a => a.InventoryItems)
                     .Include(a => a.Stats)
                     .Where(x => x.Email == avatarEmail && (version == 0 || x.Version == version))
