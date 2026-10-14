@@ -159,7 +159,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Controllers
         // ── TogglePayAsYouGo ──────────────────────────────────────────────────
 
         [Fact]
-        public async Task TogglePayAsYouGo_Enable_ShouldRejectUnavailablePaidOveragesWithoutChangingService()
+        public async Task TogglePayAsYouGo_EnableWithoutPricingConsent_ShouldRejectWithoutChangingService()
         {
             _mockService.Setup(s => s.SetPayAsYouGoAsync(_testUserId, true)).Returns(Task.CompletedTask);
             var request = new TogglePayAsYouGoRequest { Enabled = true };
@@ -167,7 +167,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Controllers
             var result = await _controller.TogglePayAsYouGo(request) as ObjectResult;
 
             result.Should().NotBeNull();
-            result!.StatusCode.Should().Be(501);
+            result!.StatusCode.Should().Be(400);
+            result.Value!.GetType().GetProperty("Code")!.GetValue(result.Value).Should().Be("OVERAGE_CONSENT_REQUIRED");
             _mockService.Verify(s => s.SetPayAsYouGoAsync(It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
         }
 
