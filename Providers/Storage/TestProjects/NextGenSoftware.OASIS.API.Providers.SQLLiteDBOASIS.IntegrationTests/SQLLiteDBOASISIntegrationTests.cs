@@ -819,6 +819,36 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         }
     }
 
+    [Theory]
+    [InlineData("id", true)]
+    [InlineData("provider", true)]
+    [InlineData("metadata", true)]
+    [InlineData("metadata-wrong-key", false)]
+    [InlineData("metadata-disabled", false)]
+    public async Task PublicTextSearchHonoursIdentityProviderAndSelectedMetadata(string selection, bool expected)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var holon = new Holon { Id = Guid.NewGuid(), Name = "unrelated-name",
+            MetaData = new Dictionary<string,object> { ["Region"] = "owned-needle" } };
+        holon.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS] = "owned-provider-needle";
+        var saved = await provider.SaveHolonAsync(holon, saveChildren:false);
+        saved.IsError.Should().BeFalse(saved.Message);
+        var query = selection == "id" ? holon.Id.ToString() : selection == "provider" ? "owned-provider-needle" : "owned-needle";
+        var result = await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+            SearchOnlyForCurrentAvatar = false, SearchGroups = new() {
+                new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup { SearchQuery = query, SearchHolons = true,
+                    SearchIds = selection == "id", SearchProviderKeys = selection == "provider",
+                    HolonSearchParams = new SearchHolonParams { MetaData = selection.StartsWith("metadata") && selection != "metadata-disabled",
+                        MetaDataKey = selection == "metadata-wrong-key" ? "Missing" : "Region" } }
+            }
+        });
+        result.IsError.Should().BeFalse(result.Message);
+        if (expected) result.Result.SearchResultHolons.Select(h => h.Id).Should().Equal(holon.Id);
+        else result.Result.SearchResultHolons.Should().BeEmpty();
+        result.Result.SearchResultAvatars.Should().BeEmpty();
+    }
+
     [Fact]
     public async Task PublicTextSearchDoesNotMatchUnselectedFieldsOrTargets()
     {
