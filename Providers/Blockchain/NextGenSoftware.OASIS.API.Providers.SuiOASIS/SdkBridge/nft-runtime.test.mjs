@@ -19,6 +19,7 @@ test('real NFT objects mint in quantity, transfer ownership, reject the old owne
   const record=value=>{writeSync(journal,JSON.stringify(value)+'\n');fsyncSync(journal);};
   let unknown=false,completed=false,primaryError;
   async function ownedInvoke(request){
+    if(unknown)throw new Error('Original NFT outcome requires reconciliation before any further mutation');
     try{
       const result=await invoke(request,async evidence=>record({stage:'prepared',operation:request.operation,evidence}));
       record({stage:'returned',operation:request.operation,transactionHash:result.transactionHash??null,tokenIds:result.tokenIds??null});
