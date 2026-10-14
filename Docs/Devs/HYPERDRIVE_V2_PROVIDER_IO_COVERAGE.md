@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Sui current C# full98/98 (2026-10-13): no skips,2m15s after token balance boundary change; fixed current TRX, matching provider/consumer hash38C0C8E8A7FAE8193DD1E2A6C23FB78B02584D27C76171B16C45BAEC59152CE3. Deployment manifest/seven Dockerfiles/gitlinks validator passes separately; neither check certifies live hosted artifacts/all APIs or recovery settlement. No new restore/environment/native write.
+
 Sui token-balance boundary fix (2026-10-13): canonical u64 parsing replaces permissive decimal parser; exact maximum/zero/one unit verified plus nine invalid representations rejected. Focused2/2 passes; current builds0errors. Not current full suite/live API proof; no native mutation or duplicate environment.
 
 Sui actual retained token lifecycle1/1 (2026-10-13):8.36s, zero skips, compact token-live-current.tap. Existing registration metadata/supply checked; real mint/issuer restriction/transfer/escrow lock+unlock/locked spend rejection/holder burn+cleanup with original supply restored. Recipient/runtime/deployment reused; owned journal absent/node stopped. Not fresh registration or every C# interface/hosted route/recovery/fee-settlement proof; no merge.
