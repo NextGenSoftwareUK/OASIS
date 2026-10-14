@@ -173,10 +173,14 @@ public sealed class MongoSqliteRealProviderRoutingTests
             manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
             var avatar = new Avatar { Id = Guid.NewGuid(), Username = "priority-avatar", Email = "priority-avatar@test.local", FirstName = "Initial",
                 IsActive = false, Verified = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc), AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
+            avatar.VerificationToken = "priority-verification-owned";
+            avatar.ResetToken = "priority-reset-owned";
+            avatar.RefreshToken = "priority-refresh-owned";
+            avatar.RefreshTokens = new List<RefreshToken> { new RefreshToken { Token = avatar.RefreshToken } };
             var avatarRequest = new StorageOperationRequest { Operation = "SaveAvatar", Payload = avatar, PreferredProvider = request.PreferredProvider };
             foreach (var updating in new[] { false, true })
             {
-                if (updating) { avatar.FirstName = "Updated"; avatar.Email = "priority-updated@test.local"; avatar.IsActive = true; avatar.Verified = null; }
+                if (updating) { avatar.FirstName = "Updated"; avatar.Email = "priority-updated@test.local"; avatar.IsActive = true; avatar.Verified = null; avatar.Version = 3; }
                 var saved = synchronous ? router.RouteRequest<IAvatar>(avatarRequest) : await router.RouteRequestAsync<IAvatar>(avatarRequest);
                 saved.IsError.Should().BeFalse(saved.Message);
                 saved.IsWarning.Should().BeFalse(string.Join("; ",manager.LastReplicationDiagnostic.Attempts.Select(x=>x.Message)));
@@ -191,6 +195,21 @@ public sealed class MongoSqliteRealProviderRoutingTests
                     loaded.Result.Verified.Should().Be(avatar.Verified);
                     loaded.Result.IsVerified.Should().Be(avatar.IsVerified);
                 }
+            }
+            foreach (var tokenProvider in new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS })
+            foreach (var operation in new[] { "LoadAvatarByVerificationToken", "LoadAvatarByResetToken", "LoadAvatarByRefreshToken" })
+            foreach (var requestedVersion in new[] { 0, 2, 3 })
+            {
+                var tokenRequest = new StorageOperationRequest { Operation = operation, PreferredProvider = tokenProvider, Version = requestedVersion,
+                    VerificationToken = avatar.VerificationToken, ResetToken = avatar.ResetToken, RefreshToken = avatar.RefreshToken };
+                var beforeTokenRead = manager.PerformanceMonitor.GetMetrics(tokenProvider).TotalRequests;
+                var loaded = synchronous ? router.RouteRequest<IAvatar>(tokenRequest) : await router.RouteRequestAsync<IAvatar>(tokenRequest);
+                loaded.IsError.Should().BeFalse(loaded.Message);
+                loaded.IsLoaded.Should().Be(requestedVersion != 2, "{0} on {1}, version {2}, result {3}, message {4}",
+                    operation, tokenProvider, requestedVersion, loaded.Result?.Id, loaded.Message);
+                if (requestedVersion == 2) loaded.Result.Should().BeNull();
+                else loaded.Result.Id.Should().Be(avatar.Id);
+                manager.PerformanceMonitor.GetMetrics(tokenProvider).TotalRequests.Should().Be(beforeTokenRead + 1);
             }
             foreach (var searchProvider in new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS })
             {

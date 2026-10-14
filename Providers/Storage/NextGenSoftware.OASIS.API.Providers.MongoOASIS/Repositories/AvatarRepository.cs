@@ -182,6 +182,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 var filter = Builders<Avatar>.Filter.Where(expression);
                 result.Result = _dbContext.Avatar.Find(filter).FirstOrDefault();
+                result.IsLoaded = result.Result != null;
             }
             catch (Exception ex)
             {
@@ -199,6 +200,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 var filter = Builders<Avatar>.Filter.Where(expression);
                 result.Result = await _dbContext.Avatar.Find(filter).FirstOrDefaultAsync();
+                result.IsLoaded = result.Result != null;
             }
             catch (Exception ex)
             {
