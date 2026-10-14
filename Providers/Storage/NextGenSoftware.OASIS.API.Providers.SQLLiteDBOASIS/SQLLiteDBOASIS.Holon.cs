@@ -321,7 +321,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var allAvatarsResult = await _avatarRepository.LoadAllAvatarsAsync();
                 if (allAvatarsResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {allAvatarsResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {allAvatarsResult.Message}", allAvatarsResult.Exception);
+                    result.ErrorCode = allAvatarsResult.ErrorCode;
                     return result;
                 }
 
@@ -551,7 +552,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var avatarResult = await _avatarRepository.LoadAvatarAsync(id);
                 if (avatarResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {avatarResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar: {avatarResult.Message}", avatarResult.Exception);
+                    result.ErrorCode = avatarResult.ErrorCode;
                     return result;
                 }
 
