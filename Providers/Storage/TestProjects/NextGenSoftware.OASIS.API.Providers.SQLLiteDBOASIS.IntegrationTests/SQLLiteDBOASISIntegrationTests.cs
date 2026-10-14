@@ -15,6 +15,278 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 public class SQLLiteDBOASISIntegrationTests : IDisposable
 {
     [Theory]
+    [InlineData("not-json")]
+    [InlineData("[]")]
+    [InlineData("{\"SolanaOASIS\":null}")]
+    [InlineData("{\"SolanaOASIS\":[null]}")]
+    [InlineData("{\"UnknownProvider\":[]}")]
+    [InlineData("{\"SolanaOASIS\":[{}]}")]
+    public async Task CorruptStoredWalletPayloadCannotBecomeSuccessfulEmptyRead(string payload)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = "corrupt-wallet-owner",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+        using var control = new DataContext(TestConnectionString);
+        control.AvatarWalletStores.Add(new NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarWalletStore
+            { AvatarId = avatar.Id.ToString(), WalletsJson = payload });
+        control.SaveChanges();
+        var loaded = await provider.LoadProviderWalletsForAvatarByIdAsync(avatar.Id);
+        loaded.IsError.Should().BeTrue();
+        loaded.Exception.Should().BeAssignableTo<Newtonsoft.Json.JsonException>();
+        loaded.Result.Should().BeNull();
+        control.AvatarWalletStores.Single().WalletsJson.Should().Be(payload);
+    }
+
+    [Theory]
+    [InlineData("owner")]
+    [InlineData("identity")]
+    [InlineData("duplicate")]
+    [InlineData("provider")]
+    public async Task InvalidExplicitWalletIdentityIsRejectedBeforeStorage(string invalid)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = "identity-wallet-owner",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+        var wallet = new ProviderWallet { AvatarId = invalid == "owner" ? Guid.NewGuid() : avatar.Id,
+            WalletId = invalid == "identity" ? Guid.Empty : Guid.NewGuid(),
+            ProviderType = invalid == "provider" ? ProviderType.MongoDBOASIS : ProviderType.SolanaOASIS };
+        var list = new List<IProviderWallet> { wallet };
+        if (invalid == "duplicate") list.Add(wallet);
+        var rejected = await provider.SaveProviderWalletsForAvatarByIdAsync(avatar.Id,
+            new() { [ProviderType.SolanaOASIS] = list });
+        rejected.IsError.Should().BeTrue();
+        rejected.Result.Should().BeFalse();
+        rejected.Exception.Should().BeOfType<ArgumentException>();
+        using var control = new DataContext(TestConnectionString);
+        control.AvatarWalletStores.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public async Task InvalidBatchOwnerCannotPartiallyOverwriteValidOwner(bool synchronous, bool emptyOwner)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = "valid-batch-owner",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+        IProviderWallet Wallet(Guid owner, string address) => new ProviderWallet
+            { WalletId = Guid.NewGuid(), AvatarId = owner, WalletAddress = address, ProviderType = ProviderType.SolanaOASIS };
+        (await provider.SaveProviderWalletsForAvatarByIdAsync(avatar.Id, new()
+            { [ProviderType.SolanaOASIS] = new() { Wallet(avatar.Id, "original") } })).IsError.Should().BeFalse();
+        var invalidOwner = emptyOwner ? Guid.Empty : Guid.NewGuid();
+        var batch = new Dictionary<ProviderType, List<IProviderWallet>>
+            { [ProviderType.SolanaOASIS] = new() { Wallet(avatar.Id, "rejected"), Wallet(invalidOwner, "invalid") } };
+        var rejected = synchronous ? provider.SaveProviderWallets(batch) : await provider.SaveProviderWalletsAsync(batch);
+        rejected.IsError.Should().BeTrue();
+        rejected.Result.Should().BeFalse();
+        rejected.Exception.Should().BeOfType<ArgumentException>();
+        avatar.FirstName = "unrelated-success";
+        (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+        (await provider.LoadProviderWalletsForAvatarByIdAsync(avatar.Id)).Result[ProviderType.SolanaOASIS]
+            .Should().ContainSingle().Which.WalletAddress.Should().Be("original");
+        using var control = new DataContext(TestConnectionString);
+        control.AvatarWalletStores.Count().Should().Be(1);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task WalletBatchSecondOwnerRejectionRollsBackAllOwners(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var avatars = Enumerable.Range(0, 2).Select(index => new Avatar
+        {
+            Id = Guid.NewGuid(), Username = "batch-rollback-" + index,
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User)
+        }).ToArray();
+        Dictionary<ProviderType, List<IProviderWallet>> Wallets(Avatar avatar, string address) => new()
+        {
+            [ProviderType.SolanaOASIS] = new() { new ProviderWallet { WalletId = Guid.NewGuid(), AvatarId = avatar.Id, WalletAddress = address, ProviderType = ProviderType.SolanaOASIS } }
+        };
+        foreach (var avatar in avatars)
+        {
+            (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+            (await provider.SaveProviderWalletsForAvatarByIdAsync(avatar.Id, Wallets(avatar, "original"))).IsError.Should().BeFalse();
+        }
+        using var control = new DataContext(TestConnectionString);
+        // IDs are generated GUIDs; parameter-free trigger targets only this owned test row.
+        control.Database.ExecuteSqlRaw($"CREATE TRIGGER reject_second_wallet BEFORE UPDATE ON AvatarWalletStore WHEN NEW.AvatarId = '{avatars[1].Id}' BEGIN SELECT RAISE(ABORT,'owned second wallet rejection'); END;");
+        var batch = new Dictionary<ProviderType, List<IProviderWallet>>
+        {
+            [ProviderType.SolanaOASIS] = avatars.SelectMany(avatar => Wallets(avatar, "rejected")[ProviderType.SolanaOASIS]).ToList()
+        };
+        var rejected = synchronous ? provider.SaveProviderWallets(batch) : await provider.SaveProviderWalletsAsync(batch);
+        rejected.IsError.Should().BeTrue();
+        rejected.Result.Should().BeFalse();
+        rejected.Exception.Should().BeOfType<DbUpdateException>().Which.InnerException.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        control.Database.ExecuteSqlRaw("DROP TRIGGER reject_second_wallet;");
+        avatars[0].FirstName = "unrelated-success";
+        (await provider.SaveAvatarAsync(avatars[0])).IsError.Should().BeFalse();
+        foreach (var avatar in avatars)
+            (await provider.LoadProviderWalletsForAvatarByIdAsync(avatar.Id)).Result[ProviderType.SolanaOASIS]
+                .Should().ContainSingle().Which.WalletAddress.Should().Be("original");
+    }
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public async Task AvatarDeletionOwnsOnlyItsLocalWalletStore(bool synchronous, bool softDelete)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var ids = new[] { Guid.NewGuid(), Guid.NewGuid() };
+        foreach (var id in ids)
+        {
+            var avatar = new Avatar { Id = id, Username = id.ToString(), AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+            (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+            (await provider.SaveAvatarDetailAsync(new AvatarDetail { Id = id, Username = avatar.Username })).IsError.Should().BeFalse();
+            (await provider.SaveProviderWalletsForAvatarByIdAsync(id, new()
+            {
+                [ProviderType.SolanaOASIS] = new() { new ProviderWallet { WalletId = Guid.NewGuid(), AvatarId = id, WalletAddress = id.ToString(), ProviderType = ProviderType.SolanaOASIS } }
+            })).IsError.Should().BeFalse();
+        }
+        var batch = new Dictionary<ProviderType, List<IProviderWallet>>
+        {
+            [ProviderType.SolanaOASIS] = ids.Select(id => (IProviderWallet)new ProviderWallet
+            {
+                WalletId = Guid.NewGuid(), AvatarId = id, WalletAddress = "batch-" + id, ProviderType = ProviderType.SolanaOASIS
+            }).ToList()
+        };
+        var batchSaved = synchronous ? provider.SaveProviderWallets(batch) : await provider.SaveProviderWalletsAsync(batch);
+        batchSaved.IsError.Should().BeFalse(batchSaved.Message);
+        foreach (var id in ids)
+            (await provider.LoadProviderWalletsForAvatarByIdAsync(id)).Result[ProviderType.SolanaOASIS]
+                .Should().ContainSingle().Which.WalletAddress.Should().Be("batch-" + id);
+        var deleted = synchronous ? provider.DeleteAvatar(ids[0], softDelete) : await provider.DeleteAvatarAsync(ids[0], softDelete);
+        deleted.IsError.Should().BeFalse(deleted.Message);
+        deleted.Result.Should().BeTrue();
+        using var control = new DataContext(TestConnectionString);
+        control.AvatarWalletStores.Count(row => row.AvatarId == ids[0].ToString()).Should().Be(softDelete ? 1 : 0);
+        control.AvatarWalletStores.Count(row => row.AvatarId == ids[1].ToString()).Should().Be(1);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task RejectedWalletMutationDoesNotReplayDuringUnrelatedSave(bool existing)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = "wallet-rejection", AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+        Dictionary<ProviderType, List<IProviderWallet>> Wallets(string address) => new()
+        {
+            [ProviderType.SolanaOASIS] = new() { new ProviderWallet { WalletId = Guid.NewGuid(), AvatarId = avatar.Id, WalletAddress = address, ProviderType = ProviderType.SolanaOASIS } }
+        };
+        if (existing)
+            (await provider.SaveProviderWalletsForAvatarByIdAsync(avatar.Id, Wallets("original"))).IsError.Should().BeFalse();
+        using var control = new DataContext(TestConnectionString);
+        control.Database.ExecuteSqlRaw(existing
+            ? "CREATE TRIGGER reject_wallet BEFORE UPDATE ON AvatarWalletStore BEGIN SELECT RAISE(ABORT,'owned wallet rejection'); END;"
+            : "CREATE TRIGGER reject_wallet BEFORE INSERT ON AvatarWalletStore BEGIN SELECT RAISE(ABORT,'owned wallet rejection'); END;");
+        var rejected = await provider.SaveProviderWalletsForAvatarByIdAsync(avatar.Id, Wallets("rejected"));
+        rejected.IsError.Should().BeTrue();
+        rejected.Result.Should().BeFalse();
+        rejected.Exception.Should().BeOfType<DbUpdateException>().Which.InnerException.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        control.Database.ExecuteSqlRaw("DROP TRIGGER reject_wallet;");
+        avatar.FirstName = "unrelated-success";
+        (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+        var readback = await provider.LoadProviderWalletsForAvatarByIdAsync(avatar.Id);
+        readback.IsError.Should().BeFalse();
+        if (existing) readback.Result[ProviderType.SolanaOASIS].Should().ContainSingle().Which.WalletAddress.Should().Be("original");
+        else readback.Result.Should().BeEmpty();
+    }
+
+    [Theory]
+    [InlineData("id")]
+    [InlineData("username")]
+    [InlineData("email")]
+    public async Task ProviderWalletSaveMustSurviveFreshConnectionReadback(string selector)
+    {
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = "owned-wallet-avatar", Email = "owned-wallet@test.local",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        var wallet = new ProviderWallet { WalletId = Guid.NewGuid(), AvatarId = avatar.Id,
+            ProviderType = ProviderType.SolanaOASIS, WalletAddress = "public-test-address", PublicKey = "public-test-key",
+            PrivateKey = "opaque-test-ciphertext-not-a-key", SecretRecoveryPhrase = "opaque-test-ciphertext-not-a-phrase",
+            Balance = 12.5, IsDefaultWallet = true, WalletAddressSegwitP2SH = "public-secondary-address" };
+        wallet.Name = "owned-wallet-name";
+        wallet.Description = "owned-wallet-description";
+        wallet.CreatedByAvatarId = avatar.Id;
+        wallet.CreatedDate = new DateTime(2026, 10, 14, 1, 2, 3, DateTimeKind.Utc);
+        wallet.Version = 7;
+        wallet.MetaData["public-test-label"] = "retained";
+        var transaction = new NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response.WalletTransaction
+        {
+            TransactionId = Guid.NewGuid(), NativeTransactionId = "test-native-receipt",
+            RawAmount = "12345678901234567890", AmountUnit = "lamport", Amount = 12.5,
+            Description = "retained-history", CreatedDate = DateTime.UtcNow
+        };
+        wallet.Transactions = new() { transaction };
+        using (var provider = new SQLLiteDBOASIS(TestConnectionString))
+        {
+            (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+            (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+            var wallets = new Dictionary<ProviderType, List<IProviderWallet>> { [ProviderType.SolanaOASIS] = new() { wallet } };
+            var saved = selector switch
+            {
+                "id" => await provider.SaveProviderWalletsForAvatarByIdAsync(avatar.Id, wallets),
+                "username" => await provider.SaveProviderWalletsForAvatarByUsernameAsync(avatar.Username, wallets),
+                "email" => await provider.SaveProviderWalletsForAvatarByEmailAsync(avatar.Email, wallets),
+                _ => throw new ArgumentException(nameof(selector))
+            };
+            saved.IsError.Should().BeFalse(saved.Message);
+            saved.Result.Should().BeTrue();
+            // Public avatar replication/update does not own local credential records.
+            avatar.ProviderWallets = new();
+            avatar.FirstName = "public-updated";
+            (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+        }
+        using var reopened = new SQLLiteDBOASIS(TestConnectionString);
+        (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var loaded = await reopened.LoadProviderWalletsForAvatarByIdAsync(avatar.Id);
+        loaded.IsError.Should().BeFalse(loaded.Message);
+        loaded.Result.Should().ContainKey(ProviderType.SolanaOASIS);
+        var persistedWallet = loaded.Result[ProviderType.SolanaOASIS].Should().ContainSingle().Subject;
+        persistedWallet.WalletId.Should().Be(wallet.WalletId);
+        persistedWallet.AvatarId.Should().Be(avatar.Id);
+        persistedWallet.PrivateKey.Should().Be(wallet.PrivateKey);
+        persistedWallet.SecretRecoveryPhrase.Should().Be(wallet.SecretRecoveryPhrase);
+        persistedWallet.WalletAddress.Should().Be(wallet.WalletAddress);
+        persistedWallet.PublicKey.Should().Be(wallet.PublicKey);
+        persistedWallet.Balance.Should().Be(wallet.Balance);
+        persistedWallet.IsDefaultWallet.Should().BeTrue();
+        persistedWallet.WalletAddressSegwitP2SH.Should().Be(wallet.WalletAddressSegwitP2SH);
+        persistedWallet.Name.Should().Be(wallet.Name);
+        persistedWallet.Description.Should().Be(wallet.Description);
+        persistedWallet.CreatedByAvatarId.Should().Be(avatar.Id);
+        persistedWallet.CreatedDate.Should().Be(wallet.CreatedDate);
+        persistedWallet.Version.Should().Be(7);
+        persistedWallet.MetaData["public-test-label"].ToString().Should().Be("retained");
+        var persistedTransaction = persistedWallet.Transactions.Should().ContainSingle().Subject;
+        persistedTransaction.TransactionId.Should().Be(transaction.TransactionId);
+        persistedTransaction.NativeTransactionId.Should().Be(transaction.NativeTransactionId);
+        persistedTransaction.RawAmount.Should().Be(transaction.RawAmount);
+        persistedTransaction.AmountUnit.Should().Be(transaction.AmountUnit);
+        persistedTransaction.CreatedDate.Should().Be(transaction.CreatedDate);
+        var aggregate = await reopened.LoadProviderWalletsAsync();
+        aggregate.IsError.Should().BeFalse(aggregate.Message);
+        aggregate.Result[ProviderType.SolanaOASIS].Should().ContainSingle().Which.WalletId.Should().Be(wallet.WalletId);
+        (await reopened.SaveProviderWalletsForAvatarByIdAsync(avatar.Id, new())).IsError.Should().BeFalse();
+        (await reopened.LoadProviderWalletsForAvatarByIdAsync(avatar.Id)).Result.Should().BeEmpty();
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task ActivationFailureRetainsNativeCauseAndSearchDoesNotHideIt(bool asynchronous)

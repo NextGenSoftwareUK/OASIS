@@ -203,6 +203,26 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 var saved = synchronous ? router.RouteRequest<IAvatar>(avatarRequest) : await router.RouteRequestAsync<IAvatar>(avatarRequest);
                 saved.IsError.Should().BeFalse(saved.Message);
                 saved.IsWarning.Should().BeFalse(string.Join("; ",manager.LastReplicationDiagnostic.Attempts.Select(x=>x.Message)));
+                if (!updating)
+                {
+                    var localWallet = new ProviderWallet { WalletId = Guid.NewGuid(), AvatarId = avatar.Id,
+                        ProviderType = ProviderType.SolanaOASIS, PublicKey = "owned-public-wallet",
+                        PrivateKey = "opaque-owned-test-ciphertext", SecretRecoveryPhrase = "opaque-owned-test-recovery" };
+                    var storedWallet = await sqlite.SaveProviderWalletsForAvatarByIdAsync(avatar.Id, new()
+                    {
+                        [ProviderType.SolanaOASIS] = new() { localWallet }
+                    });
+                    storedWallet.IsError.Should().BeFalse(storedWallet.Message);
+                }
+                else
+                {
+                    var retainedWallets = await sqlite.LoadProviderWalletsForAvatarByIdAsync(avatar.Id);
+                    retainedWallets.IsError.Should().BeFalse(retainedWallets.Message);
+                    var retainedWallet = retainedWallets.Result[ProviderType.SolanaOASIS].Should().ContainSingle().Subject;
+                    retainedWallet.PrivateKey.Should().Be("opaque-owned-test-ciphertext");
+                    retainedWallet.SecretRecoveryPhrase.Should().Be("opaque-owned-test-recovery");
+                    avatar.ProviderWallets.Should().BeEmpty("public replicated avatar does not own local wallet credentials");
+                }
                 foreach (var loaded in new[] { await mongo.LoadAvatarAsync(avatar.Id), await sqlite.LoadAvatarAsync(avatar.Id),
                     await mongo.LoadAvatarByUsernameAsync(avatar.Username), await sqlite.LoadAvatarByEmailAsync(avatar.Email) })
                 {
