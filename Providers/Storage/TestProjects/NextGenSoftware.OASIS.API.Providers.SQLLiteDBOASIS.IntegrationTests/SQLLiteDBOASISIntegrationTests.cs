@@ -637,6 +637,19 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData("Holon")] [InlineData("Avatar")]
+    public async Task PublicSearchMustNotHideDatabaseFailure(string table)
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        using(var control=new DataContext(TestConnectionString))control.Database.ExecuteSqlRaw("DROP TABLE "+table+";");
+        var result=await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams{
+            SearchGroups=new(){new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup{SearchQuery="owned-test"}}});
+        result.IsError.Should().BeTrue();result.Result.Should().BeNull();
+        result.Message.Should().Contain("search failed");
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task ParentSelectorsIsolateChildrenAndRespectTypeAndVersion(bool synchronous)
