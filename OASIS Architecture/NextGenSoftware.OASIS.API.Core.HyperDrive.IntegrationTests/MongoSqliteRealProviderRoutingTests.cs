@@ -65,6 +65,19 @@ public sealed class MongoSqliteRealProviderRoutingTests
             var holon = new Holon { Id = Guid.NewGuid(), Name = "priority-replication" };
             var request = new StorageOperationRequest { Operation = "SaveHolon", Payload = holon, SaveChildren = false, PreferredProvider = mongoPrimary ? ProviderType.MongoDBOASIS : ProviderType.SQLLiteDBOASIS };
             var router = new OASISHyperDrive(manager);
+            var invalidPayloadManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true, IsAutoReplicationEnabled = true };
+            invalidPayloadManager.RegisterProvider(mongo);
+            invalidPayloadManager.RegisterProvider(sqlite);
+            var invalidProviders = new[] { new EnumValue<ProviderType>(request.PreferredProvider),
+                new EnumValue<ProviderType>(mongoPrimary ? ProviderType.SQLLiteDBOASIS : ProviderType.MongoDBOASIS) };
+            invalidPayloadManager.SetAndReplaceAutoFailOverListForProviders(invalidProviders).IsError.Should().BeFalse();
+            invalidPayloadManager.SetAndReplaceAutoReplicationListForProviders(invalidProviders).IsError.Should().BeFalse();
+            var invalidRouter = new OASISHyperDrive(invalidPayloadManager);
+            var invalidImport = new StorageOperationRequest { Operation = "Import", Payload = "invalid import payload", PreferredProvider = request.PreferredProvider };
+            var invalidImportResult = synchronous ? invalidRouter.RouteRequest<bool>(invalidImport) : await invalidRouter.RouteRequestAsync<bool>(invalidImport);
+            invalidImportResult.IsError.Should().BeTrue();
+            invalidImportResult.ErrorCode.Should().Be("HYPERDRIVE_PAYLOAD_INVALID");
+            (invalidPayloadManager.PerformanceMonitor.GetMetrics(invalidProviders[1].Value)?.TotalRequests ?? 0).Should().Be(0);
             var result = synchronous ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
             result.IsError.Should().BeFalse(result.Message);
             result.IsWarning.Should().BeFalse(string.Join("; ",manager.LastReplicationDiagnostic.Attempts.Select(x=>x.Message)));
