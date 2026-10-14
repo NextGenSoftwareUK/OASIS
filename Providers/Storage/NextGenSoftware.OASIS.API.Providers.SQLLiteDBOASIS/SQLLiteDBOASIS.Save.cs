@@ -181,21 +181,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     }
                 }
 
-                var importedCount = 0;
-                foreach (var holon in holons)
+                if (holons == null) throw new ArgumentNullException(nameof(holons));
+                var entries = holons.ToList();
+                var saveResult = await _holonRepository.SaveHolonsAsync(entries);
+                if (saveResult.IsError)
                 {
-                    var saveResult = await _holonRepository.SaveHolonAsync(holon);
-                    if (saveResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}");
-                        return result;
-                    }
-                    importedCount++;
+                    OASISErrorHandling.HandleError(ref result, $"Error importing holons: {saveResult.Message}", saveResult.Exception);
+                    result.ErrorCode = saveResult.ErrorCode;
+                    return result;
                 }
 
                 result.Result = true;
                 result.IsError = false;
-                result.Message = $"Successfully imported {importedCount} holons to SQLite";
+                result.Message = $"Successfully imported {entries.Count} holons to SQLite";
             }
             catch (Exception ex)
             {

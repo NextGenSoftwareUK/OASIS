@@ -17,6 +17,31 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task RejectedImportRollsBackWholeBatchWithoutLaterReplay(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var first = new Holon { Id = Guid.NewGuid(), Name = "import-first" };
+        var second = new Holon { Id = Guid.NewGuid(), Name = "import-second" };
+        using var control = new DataContext(TestConnectionString);
+        control.Database.ExecuteSqlRaw("CREATE TRIGGER reject_import BEFORE INSERT ON Holon WHEN NEW.Name = 'import-second' BEGIN SELECT RAISE(ABORT,'owned import rejection'); END;");
+        var rejected = synchronous ? provider.Import(new[] { first, second }) : await provider.ImportAsync(new[] { first, second });
+        rejected.IsError.Should().BeTrue();
+        rejected.Result.Should().BeFalse();
+        rejected.Exception.Should().BeOfType<DbUpdateException>().Which.InnerException.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        control.Database.ExecuteSqlRaw("DROP TRIGGER reject_import;");
+        var unrelated = new Holon { Id = Guid.NewGuid(), Name = "unrelated-import-check" };
+        (await provider.SaveHolonAsync(unrelated,saveChildren:false)).IsError.Should().BeFalse();
+        control.Holons.Select(row => row.Id).Should().Equal(unrelated.Id.ToString());
+        var successful = synchronous ? provider.Import(new[] { first, second }) : await provider.ImportAsync(new[] { first, second });
+        successful.IsError.Should().BeFalse(successful.Message);
+        successful.Result.Should().BeTrue();
+        control.Holons.Count().Should().Be(3);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task AvatarExportsResolveStoredOwnerAndHonorHolonVersion(bool synchronous)
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
