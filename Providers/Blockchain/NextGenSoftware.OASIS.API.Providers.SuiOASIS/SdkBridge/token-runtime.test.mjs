@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { requestSuiFromFaucetV2 } from '@mysten/sui/faucet';
 import { invoke } from './bridge.mjs';
 
@@ -15,12 +15,12 @@ test('standard Sui coin registration, issuer mint, transfer, escrow lock/unlock 
   const base = { ...JSON.parse(readFileSync(deploymentPath, 'utf8')), rpcEndpoint, network: 'localnet' };
   const issuer = await invoke({ operation: 'restoreKey', privateKey: base.privateKey });
   const walletPath = `${deploymentPath}.token-wallet.json`;
-  let cached = existsSync(walletPath) ? JSON.parse(readFileSync(walletPath, 'utf8')) : null;
-  if (!cached || cached.chainId !== base.chainId) {
-    cached = { chainId: base.chainId, wallet: await invoke({ operation: 'generateKey' }) };
-    writeFileSync(walletPath, JSON.stringify(cached), { mode: 0o600 });
-  }
+  if(!existsSync(walletPath))throw new Error('Retained token recipient identity required; do not silently provision another wallet');
+  const cached=JSON.parse(readFileSync(walletPath,'utf8'));
+  if(cached.chainId!==base.chainId)throw new Error('Retained token recipient belongs to another genesis; preserve it for inspection');
   const recipient = cached.wallet;
+  const restoredRecipient=await invoke({operation:'restoreKey',privateKey:recipient.privateKey});
+  assert.equal(restoredRecipient.address,recipient.address,'Retained recipient credential must match its recorded identity');
   if (BigInt((await invoke({ ...base, operation: 'balance', walletAddress: recipient.address })).balance) < 100000000n)
     await requestSuiFromFaucetV2({ host: faucet, recipient: recipient.address });
   const owned = { ...base, privateKey: recipient.privateKey, walletAddress: recipient.address };
@@ -28,14 +28,11 @@ test('standard Sui coin registration, issuer mint, transfer, escrow lock/unlock 
     const amountUnits = await invoke({ ...wallet, operation: 'tokenBalance' });
     await invoke({ ...wallet, operation: 'tokenBurn', amountUnits });
   }
-  // The fixture issuer is synthetic and exclusively owned by this local test deployment.
-  // Remove its leftovers from an interrupted prior run before measuring this run's supply delta.
-  if (BigInt(await invoke({ ...base, operation: 'tokenBalance', walletAddress: issuer.address })) > 0n)
-    await burnBalance({ ...base, walletAddress: issuer.address });
-  if (BigInt(await invoke({ ...owned, operation: 'tokenLockedBalance' })) > 0n)
-    await invoke({ ...owned, operation: 'tokenUnlock' });
-  if (BigInt(await invoke({ ...owned, operation: 'tokenBalance' })) > 0n)
-    await burnBalance(owned);
+  // Old balances are recovery evidence, not permission to issue cleanup mutations.
+  for(const wallet of [{...base,walletAddress:issuer.address},owned]){
+    assert.equal(await invoke({...wallet,operation:'tokenBalance'}),'0','Prior token balance requires explicit reconciliation');
+    assert.equal(await invoke({...wallet,operation:'tokenLockedBalance'}),'0','Prior escrow balance requires explicit reconciliation');
+  }
   const initial = BigInt((await invoke({ ...base, operation: 'tokenProbe' })).treasury.supply);
   const metadata = await invoke({ ...base, operation: 'tokenMetadata' });
   assert.equal(metadata.symbol, 'OASIS');
