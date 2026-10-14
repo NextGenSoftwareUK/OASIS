@@ -1301,6 +1301,31 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         wrong.IsLoaded.Should().BeFalse();
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task AvatarDetailUsernameEmailAmbiguityIsClassifiedBeforeMapping(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        foreach (var version in new[] { 3, 4 })
+            (await provider.SaveAvatarDetailAsync(new AvatarDetail { Id = Guid.NewGuid(), Version = version,
+                Username = "shared-owned-detail", Email = "shared-detail@test.invalid", Karma = version })).IsError.Should().BeFalse();
+        foreach (var result in new[] {
+            synchronous ? provider.LoadAvatarDetailByUsername("shared-owned-detail") : await provider.LoadAvatarDetailByUsernameAsync("shared-owned-detail"),
+            synchronous ? provider.LoadAvatarDetailByEmail("shared-detail@test.invalid") : await provider.LoadAvatarDetailByEmailAsync("shared-detail@test.invalid")
+        }) {
+            result.IsError.Should().BeTrue();
+            result.Result.Should().BeNull();
+            result.ErrorCode.Should().Be(OASISResultErrorCodes.AmbiguousIdentity);
+            result.Exception.Should().BeOfType<StorageIdentityAmbiguousException>();
+        }
+        var selected = synchronous ? provider.LoadAvatarDetailByUsername("shared-owned-detail",3)
+            : await provider.LoadAvatarDetailByUsernameAsync("shared-owned-detail",3);
+        selected.IsError.Should().BeFalse(selected.Message);
+        selected.Result.Karma.Should().Be(3);
+    }
+
     [Fact]
     public async Task GenericAsyncUsernameLoaderFiltersBeforeMapping()
     {
