@@ -820,6 +820,28 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Fact]
+    public async Task PublicTextSearchDoesNotMatchUnselectedFieldsOrTargets()
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var selected = new Avatar { Id = Guid.NewGuid(), Username = "other", Email = "needle@test.invalid",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        var excluded = new Avatar { Id = Guid.NewGuid(), Username = "needle", Email = "other@test.invalid",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        foreach (var avatar in new[] { selected, excluded }) (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+        (await provider.SaveHolonAsync(new Holon { Id = Guid.NewGuid(), Name = "needle" }, saveChildren:false)).IsError.Should().BeFalse();
+        var result = await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+            SearchOnlyForCurrentAvatar = false, SearchGroups = new() {
+                new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup { SearchQuery = "needle", SearchAvatars = true,
+                    AvatarSearchParams = new NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar.SearchAvatarParams { Email = true } }
+            }
+        });
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.SearchResultAvatars.Select(a => a.Id).Should().Equal(selected.Id);
+        result.Result.SearchResultHolons.Should().BeEmpty();
+    }
+
+    [Fact]
     public async Task PublicSearchDoesNotPretendUnsupportedGroupsSucceeded()
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
