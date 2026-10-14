@@ -137,10 +137,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                         throw new ArgumentException("Invalid search group operator.");
                     foreach (var group in groups)
                     {
-                        if (group is not ISearchTextGroup && group is not ISearchNumberGroup)
+                        if (group is not ISearchTextGroup && group is not ISearchNumberGroup && group is not ISearchDateGroup)
                             throw new NotSupportedException("SQLite search does not yet support this search group type.");
                         if (group is ISearchNumberGroup number && !Enum.IsDefined(typeof(SearchOperatorType), number.NumberOperator))
                             throw new ArgumentException("Invalid numeric search operator.");
+                        if (group is ISearchDateGroup date && !Enum.IsDefined(typeof(SearchOperatorType), date.DateOperator))
+                            throw new ArgumentException("Invalid date search operator.");
                     }
                     bool MatchesGroups(Func<ISearchGroupBase, bool> matches)
                     {
@@ -166,6 +168,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                         SearchOperatorType.GreaterThan => value > group.Number,
                         SearchOperatorType.GreaterThanOrEqualTo => value >= group.Number,
                         _ => throw new ArgumentException("Invalid numeric search operator.")
+                    };
+                    bool CompareDate(DateTime value, ISearchDateGroup group) => group.DateOperator switch {
+                        SearchOperatorType.LessThan => value < group.Date,
+                        SearchOperatorType.LessThanOrEqualTo => value <= group.Date,
+                        SearchOperatorType.EqualTo => value == group.Date,
+                        SearchOperatorType.NotEqualTo => value != group.Date,
+                        SearchOperatorType.GreaterThan => value > group.Date,
+                        SearchOperatorType.GreaterThanOrEqualTo => value >= group.Date,
+                        _ => throw new ArgumentException("Invalid date search operator.")
                     };
                     // Basic in-memory search using available repo APIs
                     var holonLoad = await _holonRepository.LoadAllHolonsAsync(loadChildren: loadChildren,
@@ -197,6 +208,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                         }
                         holons.AddRange(candidates.Where(h => MatchesGroups(group => group switch {
                             ISearchNumberGroup number => number.SearchHolons && number.HolonSearchParams?.Version == true && Compare(h.Version, number),
+                            ISearchDateGroup date => date.SearchHolons && (
+                                date.HolonSearchParams?.CreatedDate == true && CompareDate(h.CreatedDate, date) ||
+                                date.HolonSearchParams?.ModifiedDate == true && CompareDate(h.ModifiedDate, date) ||
+                                date.HolonSearchParams?.DeletedDate == true && CompareDate(h.DeletedDate, date)),
                             ISearchTextGroup text => Contains(h.Name, text) || Contains(h.Description, text),
                             _ => false
                         })));
@@ -211,6 +226,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     {
                         avatars.AddRange(avatarLoad.Result.Where(a => MatchesGroups(group => group switch {
                             ISearchNumberGroup number => number.SearchAvatars && number.AvatarSearchParams?.Version == true && Compare(a.Version, number),
+                            ISearchDateGroup date => date.SearchAvatars && (
+                                date.AvatarSearchParams?.CreatedDate == true && CompareDate(a.CreatedDate, date) ||
+                                date.AvatarSearchParams?.ModifiedDate == true && CompareDate(a.ModifiedDate, date) ||
+                                date.AvatarSearchParams?.DeletedDate == true && CompareDate(a.DeletedDate, date)),
                             ISearchTextGroup text => Contains(a.Name, text) || Contains(a.Username, text) || Contains(a.Email, text),
                             _ => false
                         })));
