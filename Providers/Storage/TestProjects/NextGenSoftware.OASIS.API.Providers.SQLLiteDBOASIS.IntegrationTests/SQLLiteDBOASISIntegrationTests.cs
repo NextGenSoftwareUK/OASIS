@@ -131,6 +131,13 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         loaded.IsError.Should().BeTrue();
         loaded.ErrorCode.Should().Be(OASISResultErrorCodes.AmbiguousIdentity);
         loaded.Exception.Should().BeOfType<StorageIdentityAmbiguousException>();
+        var exported = username
+            ? synchronous ? provider.ExportAllDataForAvatarByUsername("wallet-collision") : await provider.ExportAllDataForAvatarByUsernameAsync("wallet-collision")
+            : synchronous ? provider.ExportAllDataForAvatarByEmail("wallet-collision@test.local") : await provider.ExportAllDataForAvatarByEmailAsync("wallet-collision@test.local");
+        exported.IsError.Should().BeTrue();
+        exported.ErrorCode.Should().Be(OASISResultErrorCodes.AmbiguousIdentity);
+        exported.Exception.Should().BeOfType<StorageIdentityAmbiguousException>();
+        exported.Result.Should().BeNull();
         using var control = new DataContext(TestConnectionString);
         control.AvatarWalletStores.Should().BeEmpty();
     }
@@ -420,6 +427,17 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         var searched = await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams());
         searched.IsError.Should().BeTrue();
         searched.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        var imported = asynchronous ? await provider.ImportAsync(Array.Empty<IHolon>()) : provider.Import(Array.Empty<IHolon>());
+        imported.IsError.Should().BeTrue();
+        imported.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        foreach (var exported in new[] {
+            asynchronous ? await provider.ExportAllDataForAvatarByIdAsync(Guid.NewGuid()) : provider.ExportAllDataForAvatarById(Guid.NewGuid()),
+            asynchronous ? await provider.ExportAllDataForAvatarByUsernameAsync("owned") : provider.ExportAllDataForAvatarByUsername("owned"),
+            asynchronous ? await provider.ExportAllDataForAvatarByEmailAsync("owned@test.local") : provider.ExportAllDataForAvatarByEmail("owned@test.local") })
+        {
+            exported.IsError.Should().BeTrue();
+            exported.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        }
         File.Exists(_databasePath).Should().BeFalse();
     }
 
