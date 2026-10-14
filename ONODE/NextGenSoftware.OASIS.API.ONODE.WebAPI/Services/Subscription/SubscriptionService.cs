@@ -20,7 +20,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public Task<SubscriptionRecord> GetSubscriptionByStripeCustomerIdAsync(string stripeCustomerId) => _billing.FindSubscriptionAsync(stripeCustomerId, true);
         public Task<SubscriptionRecord> GetSubscriptionByStripeSubscriptionIdAsync(string stripeSubscriptionId) => _billing.FindSubscriptionAsync(stripeSubscriptionId, false);
         public Task UpsertSubscriptionAsync(SubscriptionRecord record) => _billing.SaveSubscriptionAsync(record);
-        public Task SetPayAsYouGoAsync(string userId, bool enabled) => _billing.SetPayAsYouGoAsync(userId, enabled);
+        public Task SetPayAsYouGoAsync(string userId, bool enabled) => enabled
+            ? throw new NotSupportedException("Paid overages are not configured. Included quotas remain enforced; select a higher subscription plan.")
+            : _billing.SetPayAsYouGoAsync(userId, false);
         public Task<List<OrderRecord>> GetOrdersAsync(string userId) => _billing.GetOrdersAsync(userId);
         public Task AddOrderAsync(OrderRecord order) => _billing.AddOrderAsync(order);
         private Task<SubscriptionRecord> LoadSubscriptionAsync(Guid avatarId) => _billing.GetSubscriptionAsync(avatarId.ToString("D"));

@@ -838,12 +838,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
 
         public Task<string> GetHyperDriveUsage(string userId, [Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService)
         {
-            return Task.FromResult("{}");
+            throw new NotSupportedException("HyperDrive usage is available through the authenticated REST subscription API.");
         }
 
         public Task<bool> CheckHyperDriveQuota(string userId, [Service] NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription.ISubscriptionService subscriptionService)
         {
-            return Task.FromResult(true);
+            throw new NotSupportedException("HyperDrive quota checks require an operation type through the authenticated REST subscription API.");
         }
     }
 

@@ -239,16 +239,24 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
         }
 
         [Fact]
-        public async Task TogglePayAsYouGo_Enable_CallsServiceWithTrue()
+        public async Task TogglePayAsYouGo_Enable_RejectsUnconfiguredPaidOverages()
         {
             var userId = Guid.NewGuid();
             SetAuthenticatedUser(userId);
-            _svc.Setup(s => s.SetPayAsYouGoAsync(userId.ToString(), true)).Returns(Task.CompletedTask);
-
-            var result = await _ctrl.TogglePayAsYouGo(new SubscriptionController.TogglePayAsYouGoRequest { Enabled = true }) as OkObjectResult;
+            var result = await _ctrl.TogglePayAsYouGo(new SubscriptionController.TogglePayAsYouGoRequest { Enabled = true }) as ObjectResult;
 
             result.Should().NotBeNull();
-            _svc.Verify(s => s.SetPayAsYouGoAsync(userId.ToString(), true), Times.Once);
+            result!.StatusCode.Should().Be(501);
+            _svc.VerifyNoOtherCalls();
+        }
+
+        [Fact]
+        public async Task SubscriberCannotChangeServerWideHyperDrivePlan()
+        {
+            SetAuthenticatedUser(Guid.NewGuid());
+            var result = await _ctrl.UpdateHyperDriveConfig(new SubscriptionController.UpdateHyperDriveConfigRequest { PlanType = "enterprise" });
+            result.Result.Should().BeOfType<ObjectResult>().Which.StatusCode.Should().Be(403);
+            _svc.VerifyNoOtherCalls();
         }
 
         [Fact]
