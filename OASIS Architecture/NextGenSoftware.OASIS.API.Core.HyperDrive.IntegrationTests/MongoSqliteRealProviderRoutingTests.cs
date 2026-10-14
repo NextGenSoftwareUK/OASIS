@@ -315,8 +315,9 @@ public sealed class MongoSqliteRealProviderRoutingTests
                     explicitRejected.Result.Should().BeNull();
                     (integrityManager.PerformanceMonitor.GetMetrics(secondaryType)?.TotalRequests ?? 0).Should().Be(beforeSecondary);
                 }
-                foreach (var operation in new[] { "DeleteAvatarByUsername", "DeleteAvatarByEmail" })
+                foreach (var operation in new[] { "DeleteAvatarByUsername", "DeleteAvatarByEmail", "DeleteAvatarDetailByUsername", "DeleteAvatarDetailByEmail" })
                 foreach (var softDelete in new[] { false, true }) {
+                    if (!softDelete && operation.StartsWith("DeleteAvatarDetail", StringComparison.Ordinal)) continue;
                     var beforeSecondary = integrityManager.PerformanceMonitor.GetMetrics(secondaryType)?.TotalRequests ?? 0;
                     var rejectedDeleteRequest = new StorageOperationRequest { Operation = operation, PreferredProvider = ambiguousPrimary,
                         Username = "owned-asymmetric-user-" + ambiguousPrimary, Email = ambiguousPrimary + "@integrity.invalid", SoftDelete = softDelete };
