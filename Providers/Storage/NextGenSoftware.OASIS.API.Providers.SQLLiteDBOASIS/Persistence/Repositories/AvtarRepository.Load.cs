@@ -271,7 +271,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var rows = await _dbContext.Avatars
+                var rows = await _dbContext.Avatars.AsNoTracking()
                     .Where(p => (version == 0 || p.Version == version)).ToListAsync();
                 var avatarEntities = rows
                     .Select(GetAvatarFromEntity)
@@ -301,9 +301,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var avatarEntities = _dbContext.Avatars
-                    .ToList()
+                var avatarEntities = _dbContext.Avatars.AsNoTracking()
                     .Where(p => (version == 0 || p.Version == version))
+                    .ToList()
                     .Select(GetAvatarFromEntity)
                     .ToList();
                 return new OASISResult<IEnumerable<IAvatar>>
