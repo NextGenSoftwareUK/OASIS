@@ -160,6 +160,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     }
                     bool Contains(string value, ISearchTextGroup group) =>
                         (value ?? string.Empty).Contains(group.SearchQuery ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+                    bool MatchesIdentityAndMetadata(IHolonBase value, ISearchTextGroup group, bool providerKeys, bool metadata, string metadataKey)
+                    {
+                        if (group.SearchIds && Contains(value.Id.ToString(), group)) return true;
+                        if ((group.SearchProviderKeys || providerKeys) && value.ProviderUniqueStorageKey != null &&
+                            value.ProviderUniqueStorageKey.Values.Any(key => Contains(key, group))) return true;
+                        if (!metadata || value.MetaData == null) return false;
+                        if (!string.IsNullOrEmpty(metadataKey))
+                            return value.MetaData.TryGetValue(metadataKey, out var selected) && selected != null && Contains(selected.ToString(), group);
+                        return value.MetaData.Values.Any(item => item != null && Contains(item.ToString(), group));
+                    }
                     bool Compare(int value, ISearchNumberGroup group) => group.NumberOperator switch {
                         SearchOperatorType.LessThan => value < group.Number,
                         SearchOperatorType.LessThanOrEqualTo => value <= group.Number,
@@ -212,10 +222,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                                 date.HolonSearchParams?.CreatedDate == true && CompareDate(h.CreatedDate, date) ||
                                 date.HolonSearchParams?.ModifiedDate == true && CompareDate(h.ModifiedDate, date) ||
                                 date.HolonSearchParams?.DeletedDate == true && CompareDate(h.DeletedDate, date)),
-                            ISearchTextGroup text => (!text.SearchAvatars || text.SearchHolons) && (text.HolonSearchParams == null
+                            ISearchTextGroup text => (!text.SearchAvatars || text.SearchHolons) && (MatchesIdentityAndMetadata(h, text,
+                                text.HolonSearchParams?.ProviderUniqueStorageKey == true || text.HolonSearchParams?.SearchAllFields == true,
+                                text.HolonSearchParams?.MetaData == true || text.HolonSearchParams?.SearchAllFields == true,
+                                text.HolonSearchParams?.MetaDataKey) || (text.HolonSearchParams == null
                                 ? Contains(h.Name, text) || Contains(h.Description, text)
                                 : (text.HolonSearchParams.Name || text.HolonSearchParams.SearchAllFields) && Contains(h.Name, text) ||
-                                  (text.HolonSearchParams.Description || text.HolonSearchParams.SearchAllFields) && Contains(h.Description, text)),
+                                  (text.HolonSearchParams.Description || text.HolonSearchParams.SearchAllFields) && Contains(h.Description, text))),
                             _ => false
                         })));
                     }
@@ -233,13 +246,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                                 date.AvatarSearchParams?.CreatedDate == true && CompareDate(a.CreatedDate, date) ||
                                 date.AvatarSearchParams?.ModifiedDate == true && CompareDate(a.ModifiedDate, date) ||
                                 date.AvatarSearchParams?.DeletedDate == true && CompareDate(a.DeletedDate, date)),
-                            ISearchTextGroup text => (!text.SearchHolons || text.SearchAvatars) && (text.AvatarSearchParams == null
+                            ISearchTextGroup text => (!text.SearchHolons || text.SearchAvatars) && (MatchesIdentityAndMetadata(a, text,
+                                text.AvatarSearchParams?.ProviderUniqueStorageKey == true || text.AvatarSearchParams?.SearchAllFields == true,
+                                text.AvatarSearchParams?.MetaData == true || text.AvatarSearchParams?.SearchAllFields == true, null) || (text.AvatarSearchParams == null
                                 ? Contains(a.Name, text) || Contains(a.Username, text) || Contains(a.Email, text)
                                 : (text.AvatarSearchParams.Username || text.AvatarSearchParams.SearchAllFields) && Contains(a.Username, text) ||
                                   (text.AvatarSearchParams.Email || text.AvatarSearchParams.SearchAllFields) && Contains(a.Email, text) ||
                                   (text.AvatarSearchParams.FirstName || text.AvatarSearchParams.SearchAllFields) && Contains(a.FirstName, text) ||
                                   (text.AvatarSearchParams.LastName || text.AvatarSearchParams.SearchAllFields) && Contains(a.LastName, text) ||
-                                  (text.AvatarSearchParams.Title || text.AvatarSearchParams.SearchAllFields) && Contains(a.Title, text)),
+                                  (text.AvatarSearchParams.Title || text.AvatarSearchParams.SearchAllFields) && Contains(a.Title, text))),
                             _ => false
                         })));
                     }
