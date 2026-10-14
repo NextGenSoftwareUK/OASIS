@@ -15,6 +15,35 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 public class SQLLiteDBOASISIntegrationTests : IDisposable
 {
     [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task WalletEntryPointsRetainNativeActivationFailure(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS($"Data Source={_databasePath};Mode=ReadOnly;Pooling=False");
+        var id = Guid.NewGuid();
+        foreach (var result in new[] {
+            synchronous ? provider.SaveProviderWallets(new()) : await provider.SaveProviderWalletsAsync(new()),
+            synchronous ? provider.SaveProviderWalletsForAvatarById(id, new()) : await provider.SaveProviderWalletsForAvatarByIdAsync(id, new()),
+            synchronous ? provider.SaveProviderWalletsForAvatarByUsername("owned", new()) : await provider.SaveProviderWalletsForAvatarByUsernameAsync("owned", new()),
+            synchronous ? provider.SaveProviderWalletsForAvatarByEmail("owned@test.local", new()) : await provider.SaveProviderWalletsForAvatarByEmailAsync("owned@test.local", new()) })
+        {
+            result.IsError.Should().BeTrue();
+            result.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        }
+        foreach (var result in new[] {
+            synchronous ? provider.LoadProviderWallets() : await provider.LoadProviderWalletsAsync(),
+            synchronous ? provider.LoadProviderWalletsForAvatarById(id) : await provider.LoadProviderWalletsForAvatarByIdAsync(id),
+            synchronous ? provider.LoadProviderWalletsForAvatarByUsername("owned") : await provider.LoadProviderWalletsForAvatarByUsernameAsync("owned"),
+            synchronous ? provider.LoadProviderWalletsForAvatarByEmail("owned@test.local") : await provider.LoadProviderWalletsForAvatarByEmailAsync("owned@test.local") })
+        {
+            result.IsError.Should().BeTrue();
+            result.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        }
+        provider.IsProviderActivated.Should().BeFalse();
+        File.Exists(_databasePath).Should().BeFalse();
+    }
+
+    [Theory]
     [InlineData(true, true)]
     [InlineData(true, false)]
     [InlineData(false, true)]
