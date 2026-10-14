@@ -485,7 +485,9 @@ public sealed class MongoLedgerTests : IAsyncLifetime
         await _ledger.ApplyStripeEventAsync("evt_canceled", new string('a', 64), _user, _clock.Now, _ => {
             var record = CanonicalSubscription(); record.Status = "canceled"; return Task.FromResult(record);
         }, null, default);
-        await _ledger.SetPayAsYouGoAsync(_user, true);
+        // Model a stored legacy preference; new public activation requires explicit consent.
+        await _client.GetDatabase(_databaseName).GetCollection<BsonDocument>("subscription_records").UpdateOneAsync(new BsonDocument("_id",_user),
+            new BsonDocument("$set",new BsonDocument("PayAsYouGoEnabled",true)));
         var request = new SubscriptionRecord { UserId = _user, PlanId = "free", Status = "active" };
         var admin = _client.GetDatabase("admin");
         await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
@@ -499,7 +501,7 @@ public sealed class MongoLedgerTests : IAsyncLifetime
         await _ledger.SaveSubscriptionAsync(request);
         var saved = await _ledger.GetSubscriptionAsync(_user);
         Assert.Equal("free", saved.PlanId); Assert.Equal("sub_current", saved.StripeSubscriptionId);
-        Assert.True(saved.PayAsYouGoEnabled);
+        Assert.False(saved.PayAsYouGoEnabled);
         Assert.Equal(1, await _client.GetDatabase(_databaseName).GetCollection<BsonDocument>("subscription_billing_audit")
             .CountDocumentsAsync(new BsonDocument("Kind", "free-plan-activation")));
     }
@@ -580,7 +582,9 @@ public sealed class MongoLedgerTests : IAsyncLifetime
         await _ledger.ApplyStripeEventAsync("evt_one", new string('a', 64), _user, _clock.Now,
             _ => Task.FromResult(CanonicalSubscription()), null, default);
         await Assert.ThrowsAsync<SubscriptionUsageConflictException>(() => _ledger.SaveSubscriptionAsync(new SubscriptionRecord { UserId = _user, PlanId = "free", Status = "active" }));
-        await _ledger.SetPayAsYouGoAsync(_user, true);
+        // Model a stored legacy preference; new public activation requires explicit consent.
+        await _client.GetDatabase(_databaseName).GetCollection<BsonDocument>("subscription_records").UpdateOneAsync(new BsonDocument("_id",_user),
+            new BsonDocument("$set",new BsonDocument("PayAsYouGoEnabled",true)));
         await _ledger.ApplyStripeEventAsync("evt_two", new string('b', 64), _user, _clock.Now,
             _ => Task.FromResult(CanonicalSubscription(plan: "silver")), null, default);
         Assert.True((await _ledger.GetSubscriptionAsync(_user)).PayAsYouGoEnabled);

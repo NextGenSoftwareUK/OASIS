@@ -13,6 +13,8 @@ using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.SubscriptionReconciliation;
 
+public enum StripeUsageInvoiceContract { IncludedInPlan, PassThroughUsd }
+
 /// <summary>Read-only verification of ledger projections and external evidence. Never repairs balances.</summary>
 public sealed class MongoUsageReconciler
 {
@@ -21,6 +23,7 @@ public sealed class MongoUsageReconciler
     private readonly IMongoCollection<UsageExternalReceipt> _receipts;
     private readonly IMongoCollection<UsageReconciliationReport> _reports;
     private readonly TimeProvider _time;
+    private readonly StripeUsageInvoiceContract _invoiceContract;
     private static readonly Meter Meter = new("OASIS.Subscription.Reconciliation", "1.0.0");
     private static readonly Counter<long> Drift = Meter.CreateCounter<long>("oasis.subscription.reconciliation.findings");
     private static readonly Histogram<double> Latency = Meter.CreateHistogram<double>("oasis.subscription.reconciliation.duration", "s");
@@ -31,10 +34,12 @@ public sealed class MongoUsageReconciler
         : this(new MongoClient(SubscriptionMongoConfiguration.ConnectionString(configuration)),
             SubscriptionMongoConfiguration.DatabaseName(configuration), timeProvider) { }
 
-    public MongoUsageReconciler(IMongoClient client, string database, TimeProvider timeProvider = null)
+    public MongoUsageReconciler(IMongoClient client, string database, TimeProvider timeProvider = null,
+        StripeUsageInvoiceContract invoiceContract = StripeUsageInvoiceContract.IncludedInPlan)
     {
         _client = client;
         _time = timeProvider ?? TimeProvider.System;
+        _invoiceContract = invoiceContract;
         _database = client.GetDatabase(database, new MongoDatabaseSettings
         {
             WriteConcern = WriteConcern.WMajority.With(journal: true), ReadConcern = ReadConcern.Majority,
@@ -84,7 +89,8 @@ public sealed class MongoUsageReconciler
         using var session = await _client.StartSessionAsync(cancellationToken: ct);
         var report = await session.WithTransactionAsync(async (tx, token) =>
         {
-            var result = new UsageReconciliationReport { UserId = userId, Month = month, CheckedAtUtc = _time.GetUtcNow().UtcDateTime };
+            var result = new UsageReconciliationReport { UserId = userId, Month = month, CheckedAtUtc = _time.GetUtcNow().UtcDateTime,
+                RequiresStripeUsageInvoice = _invoiceContract == StripeUsageInvoiceContract.PassThroughUsd };
             var expected = new Dictionary<string, UsageLedgerTotals>(StringComparer.Ordinal);
             var providerCorrections = new Dictionary<(string OperationId, string Provider, string RequestId), decimal>();
             var audit = _database.GetCollection<BsonDocument>("subscription_usage_audit");
@@ -163,7 +169,8 @@ public sealed class MongoUsageReconciler
                             if (matched.Count == 0)
                             {
                                 providerComplete = false;
-                                Add(result, "MISSING_PROVIDER_RECEIPT", operationId + ":" + requestId, "Provider cost remains independently unverified.");
+                                if(result.AwaitingPeriodClose)result.AwaitingProviderEvidence=true;
+                                else Add(result, "MISSING_PROVIDER_RECEIPT", operationId + ":" + requestId, "Provider cost remains independently unverified.");
                             }
                             else if (matched.Count != 1 || matched[0].UserId != userId || matched[0].Month != month ||
                                 matched[0].ConsumingService != operation["ConsumingService"].AsString ||
@@ -188,15 +195,26 @@ public sealed class MongoUsageReconciler
 
             var stripe = await _receipts.Find(tx, x => x.UserId == userId && x.Month == month && x.Source == "stripe").ToListAsync(token);
             decimal ledgerCost = buckets.Where(x => x["PeriodType"].AsString == "month").Sum(x => x["SettledCostUsd"].ToDecimal());
+            decimal customerOverages=buckets.Where(x=>x["PeriodType"].AsString=="month").Sum(x=>x.GetValue("SettledOverageUsd",0).ToDecimal());
+            decimal roundedOverages=decimal.Round(customerOverages,2,MidpointRounding.AwayFromZero);
+            result.RequiresStripeUsageInvoice |= roundedOverages>0;
+            var usageInvoices=stripe.Where(x=>x.BillingCostBasis==StripeUsageEvidenceReader.CostBasis).ToList();
+            var overageInvoices=stripe.Where(x=>x.BillingCostBasis==StripeUsageEvidenceReader.PaidOverageCostBasis).ToList();
             // Current-month costs are still accumulating. Invoice completeness can only
             // be asserted after the UTC period closes; pending is not a balanced report.
             if (!result.AwaitingPeriodClose)
             {
-                // A closed zero-cost period needs no usage invoice. Plan fees are separate.
-                result.StripeEvidenceComplete = ledgerCost == 0 || stripe.Count > 0;
-                if (!result.StripeEvidenceComplete) Add(result, "MISSING_STRIPE_RECEIPT", month, "No finalized usage-cost invoice evidence for this nonzero period.");
-                else if (stripe.Sum(x => x.AmountUsd) != decimal.Round(ledgerCost, 2, MidpointRounding.AwayFromZero))
-                    Add(result, "STRIPE_USAGE_DRIFT", month, "Finalized usage-cost invoice subtotal differs from the ledger rounded once at the invoice boundary.");
+                // Included usage is funded by the fixed monthly plan. Its USD provider cost
+                // is not a second customer invoice. An explicit pass-through contract requires one.
+                bool providerInvoiceRequired=_invoiceContract==StripeUsageInvoiceContract.PassThroughUsd && ledgerCost>0;
+                result.StripeEvidenceComplete=(!providerInvoiceRequired || usageInvoices.Count>0) && (roundedOverages==0 || overageInvoices.Count>0);
+                if(!result.StripeEvidenceComplete)Add(result,"MISSING_STRIPE_RECEIPT",month,"No finalized USD invoice evidence for the required billing contract.");
+                if(usageInvoices.Count>0 && usageInvoices.Sum(x=>x.AmountUsd)!=decimal.Round(ledgerCost,2,MidpointRounding.AwayFromZero))
+                    Add(result,"STRIPE_USAGE_DRIFT",month,"Pass-through invoice subtotal differs from provider costs rounded once.");
+                if(overageInvoices.Sum(x=>x.AmountUsd)!=roundedOverages)
+                    Add(result,"STRIPE_OVERAGE_DRIFT",month,"USD overage invoice subtotals differ from customer charges rounded once; included provider costs are not extra charges.");
+                var statements=await _database.GetCollection<BsonDocument>("subscription_overage_statements").Find(tx,new BsonDocument{{"UserId",userId},{"Month",month}}).ToListAsync(token);
+                if(statements.Any(x=>x.GetValue("State","").AsString!="paid"))Add(result,"OVERAGE_COLLECTION_PENDING",month,"One or more overage statements have not been paid or require operator resolution.");
             }
             result.ProviderEvidenceComplete = providerComplete;
             return result;

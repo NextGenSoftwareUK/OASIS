@@ -51,6 +51,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public string CostSource { get; set; }
         public string PricingCatalogueVersion { get; set; }
         public string SettlementFingerprint { get; set; }
+        public string PaidOveragePricingVersion { get; set; }
+        public string BillingStatementId { get; set; }
+        public long SettledSequence { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal ReservedOverageUsd { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal ReservedRequestOverageUsd { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal SettledRequestOverageUsd { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal SettledAiOverageUsd { get; set; }
         public DateTime AuthorizedAtUtc { get; set; }
         public DateTime ExpiresAtUtc { get; set; }
         public DateTime? SettledAtUtc { get; set; }
@@ -70,6 +77,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public long ReservedUnits { get; set; }
         public decimal ReservedCostUsd { get; set; }
         public decimal SettledCostUsd { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal ReservedOverageUsd { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal SettledOverageUsd { get; set; }
         public DateTime UpdatedAtUtc { get; set; }
     }
 
@@ -80,10 +89,13 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public string PeriodType { get; set; }
         public string Period { get; set; }
         public long Requests { get; set; }
+        public long SettlementSequence { get; set; }
         public long ReservedUnits { get; set; }
         public long SettledUnits { get; set; }
         [BsonRepresentation(BsonType.Decimal128)] public decimal ReservedCostUsd { get; set; }
         [BsonRepresentation(BsonType.Decimal128)] public decimal SettledCostUsd { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal ReservedOverageUsd { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal SettledOverageUsd { get; set; }
         public DateTime UpdatedAtUtc { get; set; }
     }
 
@@ -105,6 +117,9 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         public long SettledUnitsDelta { get; set; }
         [BsonRepresentation(BsonType.Decimal128)] public decimal ReservedCostDeltaUsd { get; set; }
         [BsonRepresentation(BsonType.Decimal128)] public decimal SettledCostDeltaUsd { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal ReservedOverageDeltaUsd { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal SettledOverageDeltaUsd { get; set; }
+        [BsonRepresentation(BsonType.Decimal128)] public decimal OverageWriteOffDeltaUsd { get; set; }
         public string PayloadJson { get; set; }
         public string ExternalReference { get; set; }
         public string CorrectionKind { get; set; }
@@ -145,7 +160,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 throw new SubscriptionUsageLimitException("DAILY_CALL_LIMIT_EXCEEDED", "The daily call limit has been reached.");
             if (policy.DailyTokenLimit > 0 && checked(aggregate.DailyTokens + aggregate.ReservedUnits + requestedUnits) > policy.DailyTokenLimit)
                 throw new SubscriptionUsageLimitException("DAILY_TOKEN_LIMIT_EXCEEDED", "The daily token limit would be exceeded.");
-            if (policy.MonthlyBudgetUsd > 0 && checked(aggregate.ReservedCostUsd + aggregate.SettledCostUsd + estimatedCostUsd) > policy.MonthlyBudgetUsd)
+            if (policy.MonthlyBudgetUsd > 0 && estimatedCostUsd > 0 && checked(aggregate.ReservedCostUsd + aggregate.SettledCostUsd + estimatedCostUsd) > policy.MonthlyBudgetUsd)
                 throw new SubscriptionUsageLimitException("MONTHLY_BUDGET_EXCEEDED", "The monthly usage budget would be exceeded.");
         }
     }
