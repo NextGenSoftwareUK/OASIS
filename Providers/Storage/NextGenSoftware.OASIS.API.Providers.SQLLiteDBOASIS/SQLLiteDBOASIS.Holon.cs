@@ -212,7 +212,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                                 date.HolonSearchParams?.CreatedDate == true && CompareDate(h.CreatedDate, date) ||
                                 date.HolonSearchParams?.ModifiedDate == true && CompareDate(h.ModifiedDate, date) ||
                                 date.HolonSearchParams?.DeletedDate == true && CompareDate(h.DeletedDate, date)),
-                            ISearchTextGroup text => Contains(h.Name, text) || Contains(h.Description, text),
+                            ISearchTextGroup text => (!text.SearchAvatars || text.SearchHolons) && (text.HolonSearchParams == null
+                                ? Contains(h.Name, text) || Contains(h.Description, text)
+                                : (text.HolonSearchParams.Name || text.HolonSearchParams.SearchAllFields) && Contains(h.Name, text) ||
+                                  (text.HolonSearchParams.Description || text.HolonSearchParams.SearchAllFields) && Contains(h.Description, text)),
                             _ => false
                         })));
                     }
@@ -230,7 +233,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                                 date.AvatarSearchParams?.CreatedDate == true && CompareDate(a.CreatedDate, date) ||
                                 date.AvatarSearchParams?.ModifiedDate == true && CompareDate(a.ModifiedDate, date) ||
                                 date.AvatarSearchParams?.DeletedDate == true && CompareDate(a.DeletedDate, date)),
-                            ISearchTextGroup text => Contains(a.Name, text) || Contains(a.Username, text) || Contains(a.Email, text),
+                            ISearchTextGroup text => (!text.SearchHolons || text.SearchAvatars) && (text.AvatarSearchParams == null
+                                ? Contains(a.Name, text) || Contains(a.Username, text) || Contains(a.Email, text)
+                                : (text.AvatarSearchParams.Username || text.AvatarSearchParams.SearchAllFields) && Contains(a.Username, text) ||
+                                  (text.AvatarSearchParams.Email || text.AvatarSearchParams.SearchAllFields) && Contains(a.Email, text) ||
+                                  (text.AvatarSearchParams.FirstName || text.AvatarSearchParams.SearchAllFields) && Contains(a.FirstName, text) ||
+                                  (text.AvatarSearchParams.LastName || text.AvatarSearchParams.SearchAllFields) && Contains(a.LastName, text) ||
+                                  (text.AvatarSearchParams.Title || text.AvatarSearchParams.SearchAllFields) && Contains(a.Title, text)),
                             _ => false
                         })));
                     }
