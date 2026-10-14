@@ -73,6 +73,10 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
         using var control = new DataContext(TestConnectionString);
         control.Database.ExecuteSqlRaw("DROP TABLE Holon;");
+        var all = synchronous ? provider.ExportAll() : await provider.ExportAllAsync();
+        all.IsError.Should().BeTrue();
+        all.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        all.Result.Should().BeNull();
         foreach (var result in new[] {
             synchronous ? provider.ExportAllDataForAvatarById(Guid.NewGuid()) : await provider.ExportAllDataForAvatarByIdAsync(Guid.NewGuid()),
             synchronous ? provider.ExportAllDataForAvatarByUsername("owned") : await provider.ExportAllDataForAvatarByUsernameAsync("owned"),
