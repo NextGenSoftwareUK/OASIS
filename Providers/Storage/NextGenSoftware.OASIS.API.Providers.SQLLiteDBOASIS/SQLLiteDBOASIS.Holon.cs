@@ -159,6 +159,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     }
                 }
                 
+                // Match the existing Mongo search contract: deleted records are excluded,
+                // ownership applies to both sets, and metadata filters apply to holons.
+                holons = holons.Where(h => h.DeletedDate == DateTime.MinValue).ToList();
+                avatars = avatars.Where(a => a.DeletedDate == DateTime.MinValue).ToList();
+                if (searchParams.SearchOnlyForCurrentAvatar)
+                {
+                    holons = holons.Where(h => h.CreatedByAvatarId == searchParams.AvatarId).ToList();
+                    avatars = avatars.Where(a => a.CreatedByAvatarId == searchParams.AvatarId).ToList();
+                }
+                if (searchParams.FilterByMetaData?.Count > 0)
+                {
+                    bool Matches(IHolon holon, KeyValuePair<string, string> filter) =>
+                        holon.MetaData != null && holon.MetaData.TryGetValue(filter.Key, out var value) &&
+                        value != null && string.Equals(value.ToString(), filter.Value, StringComparison.Ordinal);
+                    holons = holons.Where(h => searchParams.MetaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any
+                        ? searchParams.FilterByMetaData.Any(f => Matches(h, f))
+                        : searchParams.FilterByMetaData.All(f => Matches(h, f))).ToList();
+                }
+
                 searchResults.SearchResultHolons = holons;
                 searchResults.SearchResultAvatars = avatars;
                 
