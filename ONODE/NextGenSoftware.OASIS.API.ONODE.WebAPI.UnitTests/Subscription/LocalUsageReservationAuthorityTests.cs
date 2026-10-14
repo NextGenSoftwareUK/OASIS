@@ -1,12 +1,25 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using Moq;
 using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription;
 
 public class LocalUsageReservationAuthorityTests
 {
+    [Fact]
+    public void RegisteredAuthorityIsSingletonAndDoesNotCaptureARequestScope()
+    {
+        var services=new ServiceCollection();services.AddHttpContextAccessor();
+        services.AddSingleton(new Mock<ISubscriptionService>(MockBehavior.Strict).Object);
+        services.AddSingleton(new Mock<ISubscriptionUsageRepository>(MockBehavior.Strict).Object);
+        LocalUsageAuthorityRegistration.AddLocalUsageAuthority(services,(_,_)=>Task.FromResult(0));
+        using var provider=services.BuildServiceProvider(new ServiceProviderOptions{ValidateScopes=true,ValidateOnBuild=true});
+        var authority=provider.GetRequiredService<IUsageReservationAuthority>();
+        Assert.IsType<LocalUsageReservationAuthority>(authority);
+        using var scope=provider.CreateScope();Assert.Same(authority,scope.ServiceProvider.GetRequiredService<IUsageReservationAuthority>());
+    }
     [Fact]
     public async Task DurableDeliveryUsesExactReservationWithoutHttpContext()
     {
