@@ -137,7 +137,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
         }
 
-        private void RemoveAvatarDetailDependents(object entity, HashSet<object> deletionEntities)
+        internal void RemoveAvatarDetailDependents(object entity, HashSet<object> deletionEntities)
         {
             var entry = _dbContext.Entry(entity);
             foreach (var navigation in entry.Navigations.Where(n => n.Metadata is Microsoft.EntityFrameworkCore.Metadata.INavigation mapped && !mapped.IsOnDependent).ToList())
@@ -156,7 +156,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
         }
 
-        private async Task RemoveAvatarDetailDependentsAsync(object entity, HashSet<object> deletionEntities)
+        internal async Task RemoveAvatarDetailDependentsAsync(object entity, HashSet<object> deletionEntities)
         {
             var entry = _dbContext.Entry(entity);
             foreach (var navigation in entry.Navigations.Where(n => n.Metadata is Microsoft.EntityFrameworkCore.Metadata.INavigation mapped && !mapped.IsOnDependent).ToList())

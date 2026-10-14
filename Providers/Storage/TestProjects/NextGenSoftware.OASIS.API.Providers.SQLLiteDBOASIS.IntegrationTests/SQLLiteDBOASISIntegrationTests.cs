@@ -1358,6 +1358,84 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         }
     }
 
+    [Theory]
+    [InlineData(true, true, 0)]
+    [InlineData(true, true, 1)]
+    [InlineData(true, true, 2)]
+    [InlineData(true, false, 0)]
+    [InlineData(true, false, 1)]
+    [InlineData(true, false, 2)]
+    [InlineData(false, true, 0)]
+    [InlineData(false, true, 1)]
+    [InlineData(false, true, 2)]
+    [InlineData(false, false, 0)]
+    [InlineData(false, false, 1)]
+    [InlineData(false, false, 2)]
+    public async Task StandaloneDetailDeletionPreservesAvatarAndOtherOwnedGraphs(bool synchronous, bool softDelete, int selector)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var target = new AvatarDetail { Id = Guid.NewGuid(), Username = "owned-detail-target", Email = "target@detail.invalid", Karma = 123 };
+        var other = new AvatarDetail { Id = Guid.NewGuid(), Username = "owned-detail-other", Email = "other@detail.invalid", Karma = 456 };
+        foreach (var detail in new[] { target, other }) {
+            detail.Stats.HP.Current = 37;
+            detail.Inventory = new List<IInventoryItem> { new InventoryItem { Id = Guid.NewGuid(), Name = detail.Username, Quantity = 3 } };
+            (await provider.SaveAvatarAsync(new Avatar { Id = detail.Id, Username = detail.Username, Email = detail.Email,
+                AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) })).IsError.Should().BeFalse();
+            (await provider.SaveAvatarDetailAsync(detail)).IsError.Should().BeFalse();
+        }
+        IOASISStorageProvider store = provider;
+        var deleted = selector switch {
+            0 => synchronous ? store.DeleteAvatarDetail(target.Id, softDelete) : await store.DeleteAvatarDetailAsync(target.Id, softDelete),
+            1 => synchronous ? store.DeleteAvatarDetailByUsername(target.Username, softDelete) : await store.DeleteAvatarDetailByUsernameAsync(target.Username, softDelete),
+            _ => synchronous ? store.DeleteAvatarDetailByEmail(target.Email, softDelete) : await store.DeleteAvatarDetailByEmailAsync(target.Email, softDelete)
+        };
+        deleted.IsError.Should().BeFalse(deleted.Message);
+        deleted.Result.Should().BeTrue();
+        deleted.IsDeleted.Should().BeTrue();
+        (await store.LoadAvatarAsync(target.Id)).Result.DeletedDate.Should().Be(DateTime.MinValue);
+        var preserved = (await store.LoadAvatarDetailAsync(other.Id)).Result;
+        preserved.Karma.Should().Be(456);
+        preserved.Inventory.Single().Name.Should().Be(other.Username);
+        preserved.Stats.HP.Current.Should().Be(37);
+        var loadedTarget = (await store.LoadAvatarDetailAsync(target.Id)).Result;
+        if (softDelete) { loadedTarget.IsActive.Should().BeFalse(); loadedTarget.DeletedDate.Should().NotBe(DateTime.MinValue); }
+        else loadedTarget.Should().BeNull();
+        using var context = new DataContext(TestConnectionString);
+        context.Set<NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarStatsModel>().Count().Should().Be(softDelete ? 2 : 1);
+        context.Set<NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.InventoryItemModel>().Count().Should().Be(softDelete ? 2 : 1);
+    }
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public async Task RejectedStandaloneDetailDeletionRollsBackWithoutDeferredReplay(bool synchronous, bool softDelete)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var target = new AvatarDetail { Id = Guid.NewGuid(), Username = "owned-rejected-detail", Karma = 123 };
+        target.Inventory = new List<IInventoryItem> { new InventoryItem { Id = Guid.NewGuid(), Name = "owned-preserved-seed" } };
+        (await provider.SaveAvatarDetailAsync(target)).IsError.Should().BeFalse();
+        using var context = new DataContext(TestConnectionString);
+        if (softDelete) context.Database.ExecuteSqlRaw("CREATE TRIGGER reject_detail_delete BEFORE UPDATE ON AvatarDetail BEGIN SELECT RAISE(ABORT, 'owned detail deletion rejection'); END;");
+        else context.Database.ExecuteSqlRaw("CREATE TRIGGER reject_detail_delete BEFORE DELETE ON AvatarDetail BEGIN SELECT RAISE(ABORT, 'owned detail deletion rejection'); END;");
+        IOASISStorageProvider store = provider;
+        var rejected = synchronous ? store.DeleteAvatarDetail(target.Id, softDelete) : await store.DeleteAvatarDetailAsync(target.Id, softDelete);
+        rejected.IsError.Should().BeTrue();
+        rejected.Result.Should().BeFalse();
+        rejected.Exception.Should().NotBeNull();
+        context.Database.ExecuteSqlRaw("DROP TRIGGER reject_detail_delete;");
+        (await provider.SaveAvatarDetailAsync(new AvatarDetail { Id = Guid.NewGuid(), Username = "unrelated-next-detail", Karma = 456 })).IsError.Should().BeFalse();
+        var retained = (await provider.LoadAvatarDetailAsync(target.Id)).Result;
+        retained.Karma.Should().Be(123);
+        retained.DeletedDate.Should().Be(DateTime.MinValue);
+        retained.Inventory.Single().Name.Should().Be("owned-preserved-seed");
+        retained.Stats.Should().NotBeNull();
+        context.AvatarDetails.AsNoTracking().Count().Should().Be(2);
+    }
+
     [Fact]
     public async Task GenericAsyncUsernameLoaderFiltersBeforeMapping()
     {
