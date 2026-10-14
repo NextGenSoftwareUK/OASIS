@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, existsSync, openSync, writeSync, fsyncSync, closeSync, unlinkSync } from 'node:fs';
 import { requestSuiFromFaucetV2 } from '@mysten/sui/faucet';
 import { invoke } from './bridge.mjs';
+import { journaledMutation } from './fixture-submission.mjs';
 
 const rpcEndpoint = process.env.OASIS_SUI_TEST_RPC;
 const faucet = process.env.OASIS_SUI_TEST_FAUCET;
@@ -31,14 +32,7 @@ test('standard Sui coin registration, issuer mint, transfer, escrow lock/unlock 
   const record=value=>{writeSync(journal,JSON.stringify(value)+'\n');fsyncSync(journal);};
   async function ownedInvoke(request){
     if(unknown)throw new Error('Original token outcome requires reconciliation before any further mutation');
-    try{
-      const result=await invoke(request,async evidence=>record({stage:'prepared',operation:request.operation,evidence}));
-      record({stage:'returned',operation:request.operation,transactionHash:result.transactionHash??null});
-      return result;
-    }catch(error){
-      if(error.nativeMutation){unknown=true;record({stage:'unresolved',operation:request.operation,nativeMutation:error.nativeMutation});}
-      throw error;
-    }
+    return journaledMutation(invoke,request,record,()=>{unknown=true;});
   }
   async function burnBalance(wallet) {
     const amountUnits = await invoke({ ...wallet, operation: 'tokenBalance' });

@@ -4,6 +4,7 @@ import { readFileSync, openSync, writeSync, fsyncSync, closeSync, unlinkSync } f
 import { Ed25519Keypair } from '@mysten/sui/keypairs/ed25519';
 import { requestSuiFromFaucetV2 } from '@mysten/sui/faucet';
 import { invoke } from './bridge.mjs';
+import { journaledMutation } from './fixture-submission.mjs';
 
 const rpcEndpoint = process.env.OASIS_SUI_TEST_RPC;
 const faucet = process.env.OASIS_SUI_TEST_FAUCET;
@@ -20,14 +21,7 @@ test('real NFT objects mint in quantity, transfer ownership, reject the old owne
   let unknown=false,completed=false,primaryError;
   async function ownedInvoke(request){
     if(unknown)throw new Error('Original NFT outcome requires reconciliation before any further mutation');
-    try{
-      const result=await invoke(request,async evidence=>record({stage:'prepared',operation:request.operation,evidence}));
-      record({stage:'returned',operation:request.operation,transactionHash:result.transactionHash??null,tokenIds:result.tokenIds??null});
-      return result;
-    }catch(error){
-      if(error.nativeMutation){unknown=true;record({stage:'unresolved',operation:request.operation,nativeMutation:error.nativeMutation});}
-      throw error;
-    }
+    return journaledMutation(invoke,request,record,()=>{unknown=true;});
   }
   const remaining=new Set(),locked=new Set(),signers=new Map();
   let base;
