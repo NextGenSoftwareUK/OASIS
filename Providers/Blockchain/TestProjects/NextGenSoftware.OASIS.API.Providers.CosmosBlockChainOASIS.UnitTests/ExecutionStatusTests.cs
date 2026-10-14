@@ -5,6 +5,19 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 [TestClass]
 public sealed class ExecutionStatusTests
 {
+    [TestMethod]
+    public void CustomBalanceRequiresCanonicalUnitsAndExactDecimalRepresentation()
+    {
+        var method=typeof(CosmosBlockChainOASIS).GetMethod("CustomTokenBalanceFromUnits",BindingFlags.NonPublic|BindingFlags.Static)!;
+        Assert.AreEqual(0m,method.Invoke(null,new object[]{"0"}));
+        Assert.AreEqual(0.00000001m,method.Invoke(null,new object[]{"1"}));
+        Assert.AreEqual(90071992.54740993m,method.Invoke(null,new object[]{"9007199254740993"}));
+        foreach(var invalid in new string?[]{null,"-1","01"," 1","1.5","340282366920938463463374607431768211456",
+            "1000000000000000000000000000000000001"}){
+            var failure=Assert.ThrowsException<TargetInvocationException>(()=>method.Invoke(null,new object?[]{invalid}));
+            Assert.IsInstanceOfType<InvalidOperationException>(failure.InnerException);
+        }
+    }
     [DataTestMethod]
     [DataRow(9007199254740992L)]
     [DataRow(long.MaxValue)]
