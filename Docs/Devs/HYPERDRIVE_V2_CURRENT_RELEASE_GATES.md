@@ -4,6 +4,8 @@ Updated 2026-10-13, inspected parent `07e0ae20c` and retained reports/journals. 
 
 ## Authoritative state
 
+Current Hedera consumer refresh (2026-10-13): retained integration nonfunded suite289/289 passes, zero skips,2m9s after prepared-fee adapter and current Core refresh. Existing output dependency linking and fixed TRX reused; no restore/install/funded operation. Retained deployment journal field inspection found transaction IDs but no original signed preparation, so it cannot prove live prepared-fee recovery. Do not invent signed bytes or relabel direct mirror receipt proof as prepared recovery. Summary Cosmos/Sui rows refreshed to newer scope-specific evidence.
+
 Hedera prepared recovery controlled positive path (2026-10-13): actual official SDK-signed transfer plus real C# verifier now exercises the public fee recovery adapter through controlled HTTP mirror response. Wrong key causes0 mirror requests; correct key causes exactly1 exact-ID lookup and preserves payer0.0.1001/123tinybars. Focused2/2 passes, zero skips. HTTP response is controlled evidence, not live chain receipt; no funds/network submissions/install. Live signed-attempt fee lookup and production resolver/settlement remain open.
 
 Hedera actual signed recovery boundary (2026-10-13): offline official SDK creates a signed transfer, existing C# verifier accepts its correct public key, then prepared fee recovery rejects a substituted key with error/exception and undefined receipt. Focused2/2 passes, zero skips, existing source bridge explicitly selected; test output dependencies were absent, no reinstall/copy performed. Fixture corrected to use official TransactionId type and sanitized error contract. No network submission/funding; positive live prepared fee recovery remains open.
@@ -46,9 +48,9 @@ Retained TRX counters inspected directly on2026-10-13: zero failed/skipped in th
 
 | Provider | Verified evidence | Required work still open |
 | --- | --- | --- |
-| Cosmos | Retained full C#132/132 predates latest custody-casing edit; focused NFT44/44 and SDK60/60 after it | Original replication journal exists/unresolved; hosted admission, ordinary storage ownership adoption, actual three-policy refresh, full interfaces/recovery |
-| Hedera | Retained nonfunded C#289/289 predates latest SDK identity edit; SDK102/102 after it; earlier exact deployment fee receipt | Funded encrypted CRUD and all three policies, authoritative all-in spending bound, production resolver/settlement, full interfaces/hosted API |
-| Sui | Real local healthy1/1 and outage2/2; real prepared normal/lost-reply2/2; original fee1/1; these precede latest custody edit, SDK29/29 after it | Live NFT custody/public interfaces, process-crash recovery/settlement, hosted API; local policy evidence is not every-route proof |
+| Cosmos | Retained full C#135/135 predates latest prepared-fee helper; focused identity1/1; SDK60/60 Windows/Linux; read-only pending inspection1/1 | Original replication journal exists/unresolved; hosted admission, ordinary storage ownership adoption, actual three-policy refresh, full interfaces/recovery |
+| Hedera | Refreshed nonfunded integration289/289; SDK102/102 Windows/Linux; prepared-fee controlled boundary2/2; earlier exact deployment fee receipt | Live prepared receipt lacks retained original bytes; funded encrypted CRUD and all three policies, authoritative all-in spending bound, production resolver/settlement, full interfaces/hosted API |
+| Sui | Current-Core real healthy1/1 and outage2/2; prepared normal/lost-reply2/2; current-parser original fee1/1; real NFT/token assets2/2; offline bridge/helper31/31 Windows/Linux | Complete public-interface/API matrix, process-crash recovery/settlement, hosted authorization; local policy and asset evidence are not every-route proof |
 | TRON | Current full unit300/300, actual SDK controlled-gRPC acknowledgement coverage | Original pending journal exists/unresolved; live mutations/three-policy refresh, full interfaces/hosted API/recovery |
 
 No provider row currently proves every required gate. Keep the goal active and do not merge on these subsets.
