@@ -80,11 +80,17 @@ public class HederaPreparationTests
             Assert.AreEqual(attempt.ProviderRequestId,accepted.Result.GetProperty("transactionId").GetString());
             Assert.AreEqual("0.0.1001",accepted.Result.GetProperty("payer").GetString());
             Assert.AreEqual("123",accepted.Result.GetProperty("netUnits").GetString());
+            mirror.SubstituteIdentity=true;
+            var substituted=await provider.GetPreparedNativeFeeReceiptAsync(attempt,document.RootElement.GetProperty("publicKey").GetString()!,deadline.Token);
+            Assert.IsTrue(substituted.IsError); Assert.IsNotNull(substituted.Exception);
+            Assert.AreEqual(JsonValueKind.Undefined,substituted.Result.ValueKind);
+            Assert.AreEqual(2,mirror.Requests);
         } finally { if(!child.HasExited){child.Kill(entireProcessTree:true);await child.WaitForExitAsync();} }
     }
     private sealed class PreparedFeeMirror:HttpMessageHandler
     {
         public int Requests {get;private set;}
+        public bool SubstituteIdentity {get;set;}
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
         {
             token.ThrowIfCancellationRequested(); Requests++;
@@ -93,7 +99,7 @@ public class HederaPreparationTests
                 {"transactions":[{"transaction_id":"0.0.1001-1700000000-000000001","nonce":0,"scheduled":false,
                 "parent_consensus_timestamp":null,"name":"CRYPTOTRANSFER","result":"SUCCESS",
                 "consensus_timestamp":"1700000001.000000001","charged_tx_fee":123}]}
-                """)});
+                """.Replace("0.0.1001-1700000000-000000001",SubstituteIdentity?"0.0.1002-1700000000-000000001":"0.0.1001-1700000000-000000001"))});
         }
     }
     [DataTestMethod]
