@@ -175,8 +175,10 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 IsActive = false, Verified = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc), AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
             avatar.VerificationToken = "priority-verification-owned";
             avatar.ResetToken = "priority-reset-owned";
-            avatar.RefreshToken = "priority-refresh-owned";
-            avatar.RefreshTokens = new List<RefreshToken> { new RefreshToken { Token = avatar.RefreshToken } };
+            const string collectionRefreshToken = "priority-refresh-owned";
+            avatar.RefreshToken = null;
+            avatar.RefreshTokens = new List<RefreshToken> { new RefreshToken { Token = collectionRefreshToken,
+                CreatedByIp = "127.0.0.1", Expires = new DateTime(2026, 12, 31, 0, 0, 0, DateTimeKind.Utc) } };
             var avatarRequest = new StorageOperationRequest { Operation = "SaveAvatar", Payload = avatar, PreferredProvider = request.PreferredProvider };
             foreach (var updating in new[] { false, true })
             {
@@ -194,6 +196,11 @@ public sealed class MongoSqliteRealProviderRoutingTests
                     loaded.Result.IsActive.Should().Be(avatar.IsActive);
                     loaded.Result.Verified.Should().Be(avatar.Verified);
                     loaded.Result.IsVerified.Should().Be(avatar.IsVerified);
+                    loaded.Result.RefreshToken.Should().BeNull();
+                    loaded.Result.RefreshTokens.Should().ContainSingle();
+                    loaded.Result.RefreshTokens[0].Token.Should().Be(collectionRefreshToken);
+                    loaded.Result.RefreshTokens[0].CreatedByIp.Should().Be("127.0.0.1");
+                    loaded.Result.RefreshTokens[0].Expires.Should().Be(avatar.RefreshTokens[0].Expires);
                 }
             }
             foreach (var tokenProvider in new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS })
@@ -201,7 +208,7 @@ public sealed class MongoSqliteRealProviderRoutingTests
             foreach (var requestedVersion in new[] { 0, 2, 3 })
             {
                 var tokenRequest = new StorageOperationRequest { Operation = operation, PreferredProvider = tokenProvider, Version = requestedVersion,
-                    VerificationToken = avatar.VerificationToken, ResetToken = avatar.ResetToken, RefreshToken = avatar.RefreshToken };
+                    VerificationToken = avatar.VerificationToken, ResetToken = avatar.ResetToken, RefreshToken = collectionRefreshToken };
                 var beforeTokenRead = manager.PerformanceMonitor.GetMetrics(tokenProvider).TotalRequests;
                 var loaded = synchronous ? router.RouteRequest<IAvatar>(tokenRequest) : await router.RouteRequestAsync<IAvatar>(tokenRequest);
                 loaded.IsError.Should().BeFalse(loaded.Message);
