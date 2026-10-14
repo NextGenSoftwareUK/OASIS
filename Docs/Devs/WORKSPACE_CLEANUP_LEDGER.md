@@ -81,6 +81,8 @@ Do not rerun `cleanup-stale-holochain-build.sh` expecting further recovery: its 
 
 ## Still retained / unresolved
 
+Disk verification checkpoint2026-10-13 after current Sui live NFT/token runs: Windows free121517133824bytes (121.52GB decimal). Retained `/var/tmp/oasis-sui/network`973MiB, pinned Sui runtime209MiB; preceding ledger measurement954MiB is historical apparent usage, not exact Windows allocation. Current NFT/token TAP373/420bytes, prepared-ledger TRX4963bytes, startup stderr1994bytes; listed Sui reports small, no per-run environment copies. Windows pagefile remains20480MiB allocated,842MiB current,5409MiB peak. Recursive Temp audit found only VS Code installer251842640bytes above200MiB, last write12:12:50. This evidence does NOT account for the whole-drive multi-GB drop or prove its owner; no unrelated deletion/reinstall attempted. Keep measuring before/after subsequent substantive work and investigate changes rather than claim test footprint explains them.
+
 - Main repositories and the one active HyperDrive checkout, pinned runtimes and current reusable outputs.
 - Private `BuildLogs`, DPAPI test identities, live account keys, pending Cosmos/TRON/native deployment journals and necessary current test evidence.
 - Conda environments `piper-art`, `slp`, `mfa`: ownership/continued need unresolved. Their33GiB combined installation footprint is not proof of33GiB newly leaked data.
