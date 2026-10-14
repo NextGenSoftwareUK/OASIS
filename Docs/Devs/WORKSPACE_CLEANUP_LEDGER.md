@@ -88,3 +88,7 @@ Disk verification checkpoint2026-10-13 after current Sui live NFT/token runs: Wi
 - Conda environments `piper-art`, `slp`, `mfa`: ownership/continued need unresolved. Their33GiB combined installation footprint is not proof of33GiB newly leaked data.
 - NEAR runtime/build folders have not been removed; source/dependency ownership needs review before disposal.
 - Requested150GB recovery is unfinished. Last observed123.29GiB =132.38GB free before resuming dependency verification. User subsequently confirmed concurrent cleanup finished. The shared global NuGet packages directory was removed; required dependencies may now be restored into that same cache, without another environment or checkout. Reuse remains mandatory globally in `C:/Users/david/.codex/AGENTS.md`.
+# 2026-10-13 shared WEB4 dependency reuse
+
+WEB4 verification found pinned AWS DynamoDB3.7.400.15 and S3 3.7.401 package directories absent from the shared NuGet cache. Restored existing project into that same cache once; no new environment or checkout. Free C:109.99GiB before,109.35GiB after restore/build/test. Retained reusable packages and current build outputs; fixed compact WEB4 TRX reused rather than per-run directories. WEB4 build and147 unit tests pass. No deletion performed in this step.
+
