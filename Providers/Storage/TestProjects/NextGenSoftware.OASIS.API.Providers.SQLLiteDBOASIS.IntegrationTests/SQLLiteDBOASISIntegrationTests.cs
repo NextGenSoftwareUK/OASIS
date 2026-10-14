@@ -35,6 +35,14 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         var detail = synchronous ? provider.LoadAvatarDetail(avatar.Id) : await provider.LoadAvatarDetailAsync(avatar.Id);
         detail.IsError.Should().BeFalse(detail.Message);
         detail.Result.Karma.Should().Be(99);
+        foreach (var selected in new[] {
+            synchronous ? provider.LoadAvatarByUsername(avatar.Username) : await provider.LoadAvatarByUsernameAsync(avatar.Username),
+            synchronous ? provider.LoadAvatarByEmail(avatar.Email) : await provider.LoadAvatarByEmailAsync(avatar.Email) })
+            selected.Result.FirstName.Should().Be("after");
+        foreach (var selected in new[] {
+            synchronous ? provider.LoadAvatarDetailByUsername(avatar.Username) : await provider.LoadAvatarDetailByUsernameAsync(avatar.Username),
+            synchronous ? provider.LoadAvatarDetailByEmail(avatar.Email) : await provider.LoadAvatarDetailByEmailAsync(avatar.Email) })
+            selected.Result.Karma.Should().Be(99);
     }
 
     [Theory]
