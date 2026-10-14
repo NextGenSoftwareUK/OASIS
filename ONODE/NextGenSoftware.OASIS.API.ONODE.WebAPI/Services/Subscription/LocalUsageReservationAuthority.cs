@@ -20,6 +20,7 @@ public sealed class LocalUsageReservationAuthority : IUsageReservationAuthority
     { _subscriptions=subscriptions; _repository=repository; _context=context; _karma=authoritativeKarma; }
     public async Task<SubscriptionAuthorizationResult> AuthorizeUsageAsync(string bearerToken,UsageAuthorizationRequest request,CancellationToken token=default)
     {
+        token.ThrowIfCancellationRequested();
         ArgumentException.ThrowIfNullOrWhiteSpace(bearerToken);
         ArgumentNullException.ThrowIfNull(request); RequireLocal(request.ConsumingService);
         var context=_context.HttpContext;
@@ -30,9 +31,9 @@ public sealed class LocalUsageReservationAuthority : IUsageReservationAuthority
         return await _subscriptions.AuthorizeUsageAsync(avatarId.ToString("D"),await _karma(avatarId,token),request,token);
     }
     public Task<UsageStartResult> StartUsageAsync(UsageStartRequest request,CancellationToken token=default)
-    { ArgumentNullException.ThrowIfNull(request); RequireLocal(request.ConsumingService); return _repository.StartAsync(request,token); }
+    { token.ThrowIfCancellationRequested(); ArgumentNullException.ThrowIfNull(request); RequireLocal(request.ConsumingService); return _repository.StartAsync(request,token); }
     public Task<UsageSettlementResult> SettleUsageAsync(UsageSettlementRequest request,CancellationToken token=default)
-    { ArgumentNullException.ThrowIfNull(request); RequireLocal(request.ConsumingService); return _subscriptions.SettleUsageAsync(request.UserId,request,token); }
+    { token.ThrowIfCancellationRequested(); ArgumentNullException.ThrowIfNull(request); RequireLocal(request.ConsumingService); return _subscriptions.SettleUsageAsync(request.UserId,request,token); }
     private static void RequireLocal(string service)
     { if(service!="WEB4")throw new UnauthorizedAccessException("Local authority is restricted to WEB4-owned operations."); }
 }
