@@ -259,6 +259,10 @@ public class SuiPreparedLedgerTests
             Assert.IsFalse(string.IsNullOrWhiteSpace(attempt.NativePreparation.SignedTransactionBase64));
             Assert.IsFalse(string.IsNullOrWhiteSpace(attempt.NativePreparation.Signature));
             Assert.IsNull(attempt.AcknowledgedAtUtc,"Preparation alone must not claim ledger settlement.");
+            var recoveredFee=await provider.GetPreparedNativeFeeReceiptAsync(attempt,deadline.Token);
+            Assert.IsFalse(recoveredFee.IsError,recoveredFee.Message);
+            Assert.AreEqual(hash,recoveredFee.Result.GetProperty("transactionHash").GetString());
+            Assert.AreEqual(settings.GetProperty("chainId").GetString(),recoveredFee.Result.GetProperty("chainIdentifier").GetString());
             var status=await provider.GetTransactionStatusAsync(hash,deadline.Token);Assert.IsFalse(status.IsError,status.Message);
             Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,status.Result);
             var sdk=typeof(SuiOASIS).GetMethod("InvokeSdkAsync",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
