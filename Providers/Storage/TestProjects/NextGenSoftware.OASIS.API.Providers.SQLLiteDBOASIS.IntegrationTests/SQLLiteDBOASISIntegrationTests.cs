@@ -17,6 +17,31 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task AvatarExportsResolveStoredOwnerAndHonorHolonVersion(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = "export-owner", Email = "export-owner@test.local",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+        (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+        var matching = new Holon { Id = Guid.NewGuid(), Name = "owned-version-three", CreatedByAvatarId = avatar.Id, Version = 3 };
+        foreach (var holon in new[] { matching,
+            new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = avatar.Id, Version = 4 },
+            new Holon { Id = Guid.NewGuid(), CreatedByAvatarId = Guid.NewGuid(), Version = 3 } })
+            (await provider.SaveHolonAsync(holon, saveChildren:false)).IsError.Should().BeFalse();
+        foreach (var result in new[] {
+            synchronous ? provider.ExportAllDataForAvatarById(avatar.Id,3) : await provider.ExportAllDataForAvatarByIdAsync(avatar.Id,3),
+            synchronous ? provider.ExportAllDataForAvatarByUsername(avatar.Username,3) : await provider.ExportAllDataForAvatarByUsernameAsync(avatar.Username,3),
+            synchronous ? provider.ExportAllDataForAvatarByEmail(avatar.Email,3) : await provider.ExportAllDataForAvatarByEmailAsync(avatar.Email,3) })
+        {
+            result.IsError.Should().BeFalse(result.Message);
+            result.Result.Select(holon => holon.Id).Should().Equal(matching.Id);
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task AvatarExportsCannotReportMissingTableAsSuccessfulEmptyData(bool synchronous)
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
