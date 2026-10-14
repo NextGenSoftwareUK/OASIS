@@ -65,6 +65,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Content Update="Configuration\subscription-overage-prices.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
     <Content Include="OASISSQLLiteDB.db">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>

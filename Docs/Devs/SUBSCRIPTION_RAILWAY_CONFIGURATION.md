@@ -23,9 +23,9 @@ On checkout return, OPORTAL confirms the authenticated session through `GET /api
 
 ## What an endpoint costs
 
-The existing Stripe monthly price is the subscriber's bill. The usage ledger separately records included requests and USD provider costs; these measurements do **not** create extra Stripe per-request invoice charges.
+The existing Stripe monthly price funds included usage. Extra USD charges require an active paid subscriber to opt in to the published overage prices and a spending cap. Provider measurement alone does not activate extra billing. [Paid overage prices and steps](SUBSCRIPTION_PAID_OVERAGES.md) explain the separate USD invoice contract.
 
-Reconciliation uses the included-plan billing contract by default. A closed period with USD provider costs does not require an additional USD Stripe usage invoice. Explicit pass-through reconciliation remains available to callers that actually have that billing contract; tagged usage invoices are checked when present. The report's `requiresStripeUsageInvoice` field makes this distinction visible. Provider evidence and ledger/audit checks remain required, and an open UTC month remains pending rather than being reported fully balanced.
+Reconciliation uses the included-plan billing contract by default. A closed period with USD provider costs does not require an additional USD Stripe usage invoice. Explicit pass-through reconciliation remains available to callers that actually have that billing contract; tagged usage invoices are checked when present. When opted-in customer overages occur, their charge totals must match standalone USD invoices; the invoice must not charge all included provider costs again. The report's `requiresStripeUsageInvoice` field makes this distinction visible. Provider evidence and ledger/audit checks remain required, and an open UTC month remains pending rather than being reported fully balanced.
 
 | API | Current accounting policy |
 |---|---|
@@ -61,7 +61,7 @@ WEB4 reads the canonical paid plan from its Stripe-backed subscription record. A
 
 Daily limits apply in addition to the monthly limit, across the consuming APIs. Authoritative karma multiplies the daily call allowance: 500→1.5×, 1,000→2×, 5,000→3×, 20,000→5×, 100,000→10×. Resets use UTC calendar days/months. An AI reservation also reserves an input/output/fan-out bound before provider work; the final cost uses measured usage, not the reservation estimate.
 
-Launch uses the existing fixed monthly plans and included quotas. Paid overages have no configured metered Stripe price and cannot be enabled: the API returns `501 PAID_OVERAGES_UNAVAILABLE`. No invented per-request overage prices are billed. Server-wide HyperDrive configuration changes require an administrator; they cannot change a subscriber's purchased plan. Legacy GraphQL/gRPC HyperDrive stubs return explicit unsupported errors instead of empty usage or unconditional quota approval.
+The existing fixed monthly plans and included quotas are the default. Optional paid overages use reviewed external JSON request rates and WEB6 catalogue costs with no AI margin. Enabling them requires price-version/fingerprint consent, a default payment method and a monthly USD cap; missing consent returns `400 OVERAGE_CONSENT_REQUIRED`. USD overages are collected separately from GBP monthly plans. Server-wide HyperDrive configuration changes require an administrator; they cannot change a subscriber's purchased plan. Legacy GraphQL/gRPC HyperDrive stubs return explicit unsupported errors instead of empty usage or unconditional quota approval.
 
 The JSON is the bootstrap catalogue. Administrator publication saves a new immutable version and the previous bootstrap document in Holon settings, activates the new version, and reloads that published version after restart. Existing operations keep their original version. Use a new version name and a publication reason; never edit an already published version.
 
@@ -232,4 +232,4 @@ Telemetry is a separate optional operational feature. Leave `SUBSCRIPTION_TELEME
 4. Cancel at period end. Confirm My Subscriptions shows the end date and access remains available through that date. Undo cancellation and confirm renewal is restored.
 5. Before production promotion, configure the corresponding live-mode Stripe customer portal and repeat the approved release checks with production settings.
 
-Paid overages are a separate launch requirement. Their rates, billing currency and AI margin require agreement; the existing monthly Stripe plans use GBP while provider catalogue costs use USD. The existing backend rejects enabling unconfigured overages. Do not treat old displayed per-request amounts as a working billing contract.
+Paid overage rates are agreed in USD: Bronze 0.001, Silver 0.0005, Gold 0.0002 and Enterprise 0.0001 per extra successful request, with WEB6 AI excess at catalogue cost and no margin. Follow [the paid overage runbook](SUBSCRIPTION_PAID_OVERAGES.md) to verify consent, caps, USD collection, signed webhooks and administrator statements.
