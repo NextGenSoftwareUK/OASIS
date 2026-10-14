@@ -10,12 +10,15 @@ public sealed class OwnedPreparationScope
     private readonly AsyncLocal<Owner> _current=new();
     private sealed class Owner(Func<string,string,PreparedSubmissionServer> factory)
     {
-        private int _closed;
-        public void Close()=>Interlocked.Exchange(ref _closed,1);
+        private readonly object _gate=new();
+        private bool _closed;
+        public void Close(){lock(_gate){_closed=true;}}
         public PreparedSubmissionServer Create(string operation,string key)
         {
-            if(Volatile.Read(ref _closed)!=0)throw new InvalidOperationException("Native storage execution owner has already completed.");
-            return factory(operation,key)??throw new InvalidOperationException("Native storage execution owner returned no preparation gate.");
+            lock(_gate){
+                if(_closed)throw new InvalidOperationException("Native storage execution owner has already completed.");
+                return factory(operation,key)??throw new InvalidOperationException("Native storage execution owner returned no preparation gate.");
+            }
         }
     }
     public Task<T> RunAsync<T>(Func<Task<T>> operation,Func<PreparedSubmissionServer> factory)
