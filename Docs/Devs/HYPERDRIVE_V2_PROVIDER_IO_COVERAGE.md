@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-13 current Core live Sui routing: Healthy1/1 and actual node-outage2/2 pass with Core `c1a8cdd41f04f31e7a40eaf82b8def9fb4aa99aa`. Existing runtime/ledger/SDK dependencies reused, no installation; current integration consumer rebuilt, owned node stopped, reports overwritten in fixed locations. Evidence covers local encrypted replication and routing strategies plus real transport failover—not hosted authorization, settled native fees or completion of Cosmos/Hedera/TRON policy gates.
+
 2026-10-13 Core `c1a8cdd41f04f31e7a40eaf82b8def9fb4aa99aa`: preserves legitimate known-pre-execution recovery through existing canonical aggregation, exact settlement fingerprint and durable no-execution reason. Tampered zero-cost evidence rejected; valid rejection recovers to pending. This corrects the prior extra-receipt guard's rejection of canonical no-provider receipts without weakening provider-attempt integrity. Real owned Mongo suite79/79 plus initialization1/1 passes, no new environment/install.
 
 2026-10-13 recovery integrity fix: Core `d9bc458e446dd79dab005144a258e7b5671f6e13` rejects extra recovery receipts without persisted attempts. Owned Mongo protocol78/78 and initialization1/1 pass; negative regression asserts no settlement mutation. Same runtime/cache/environment, no installs. Core pushed and manifest/gitlink synchronized; full native recovery/valuation and live release certification remain incomplete.
