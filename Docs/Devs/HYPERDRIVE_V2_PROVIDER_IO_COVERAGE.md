@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Sui token-balance boundary fix (2026-10-13): canonical u64 parsing replaces permissive decimal parser; exact maximum/zero/one unit verified plus nine invalid representations rejected. Focused2/2 passes; current builds0errors. Not current full suite/live API proof; no native mutation or duplicate environment.
+
 Sui actual retained token lifecycle1/1 (2026-10-13):8.36s, zero skips, compact token-live-current.tap. Existing registration metadata/supply checked; real mint/issuer restriction/transfer/escrow lock+unlock/locked spend rejection/holder burn+cleanup with original supply restored. Recipient/runtime/deployment reused; owned journal absent/node stopped. Not fresh registration or every C# interface/hosted route/recovery/fee-settlement proof; no merge.
 
 Sui token preparation fixture progress (2026-10-13): durable original signed journal before each mutation, failure aggregation/supply-restored cleanup; unknown outcome prevents any further NFT/token mutation. Existing recipient cache found, no secrets read to output. Syntax and offline29/29 pass; live token support NOT yet verified on current fixture/runner. No ledger writes/new runtime.

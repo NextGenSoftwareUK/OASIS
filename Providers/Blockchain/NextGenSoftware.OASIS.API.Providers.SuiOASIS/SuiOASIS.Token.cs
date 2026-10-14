@@ -145,9 +145,17 @@ public partial class SuiOASIS
         {
             ValidateCoinType(tokenAddress);
             var units = await InvokeSdkAsync(locked ? "tokenLockedBalance" : "tokenBalance", new { walletAddress });
-            result.Result = decimal.Parse(units.GetString(), CultureInfo.InvariantCulture) / 1000000000m;
+            result.Result = TokenBalanceFromUnits(units.GetString());
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
         return result;
+    }
+
+    internal static decimal TokenBalanceFromUnits(string units)
+    {
+        if (!ulong.TryParse(units, NumberStyles.None, CultureInfo.InvariantCulture, out var value)
+            || units != value.ToString(CultureInfo.InvariantCulture))
+            throw new InvalidOperationException("Sui token balance must contain canonical exact unsigned 64-bit units.");
+        return value / 1000000000m;
     }
 }
