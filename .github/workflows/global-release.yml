@@ -110,6 +110,7 @@ jobs:
   plan:
     runs-on: windows-latest
     outputs:
+      nuget_count: ${{ steps.versions.outputs.nuget_count }}
       oasis_version: ${{ steps.versions.outputs.oasis_version }}
       star_version: ${{ steps.versions.outputs.star_version }}
       edge_version: ${{ steps.versions.outputs.edge_version }}
@@ -130,6 +131,20 @@ jobs:
           fetch-depth: 0
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Verify source-aware NuGet planning invariants
+        run: python -B Scripts/test_nuget_source_graph.py
+      - name: Verify NuGet version-selection invariants
+        shell: pwsh
+        run: ./Scripts/Test-NuGetVersionSelection.ps1
+      - name: Checkout pinned source-graph dependencies
+        shell: bash
+        run: |
+          set -euo pipefail
+          . Docker/oasis-dependency-versions.env
+          git clone --no-checkout "$LIBRARIES_REPO" ../NextGenSoftware-Libraries
+          git -C ../NextGenSoftware-Libraries checkout --detach "$LIBRARIES_COMMIT"
+          git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
+          git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
       - name: Generate and validate release plan
         shell: pwsh
         env:
@@ -166,6 +181,7 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           $plan = Get-Content artifacts/global-release/release-plan.json -Raw | ConvertFrom-Json
+          "nuget_count=$(@($plan.packages).Count)" >> $env:GITHUB_OUTPUT
           "oasis_version=$($plan.releaseVersions.oasisRuntime)" >> $env:GITHUB_OUTPUT
           $starVersion = '${{ inputs.star_existing_version }}'
           if ($starVersion) {
@@ -220,7 +236,7 @@ jobs:
             artifacts/global-release/release-notes/*.md
 
   nuget:
-    if: inputs.nuget_packages && !inputs.nuget_plan_only
+    if: inputs.nuget_packages && !inputs.nuget_plan_only && needs.plan.outputs.nuget_count != '0'
     needs: plan
     runs-on: windows-latest
     timeout-minutes: 240
@@ -254,6 +270,9 @@ jobs:
         with:
           name: global-release-nuget-packages
           path: artifacts/global-release/nuget/*.nupkg
+      - name: Validate packed identities, parent provenance and immutable registry content without pushing
+        shell: pwsh
+        run: ./Scripts/Publish-OASISReviewedNuGet.ps1 -PlanPath artifacts/global-release-plan/release-plan.json -PackageDirectory artifacts/global-release/nuget -ValidateProvenance -ReportPath artifacts/global-release/nuget-preflight.json
 
   nuget-publish:
     if: ${{ always() && inputs.publish && inputs.nuget_packages && needs.plan.result == 'success' && needs.nuget.result == 'success' && (inputs.edge_unity == false || needs.edge-runtime-validation.result == 'success') }}
