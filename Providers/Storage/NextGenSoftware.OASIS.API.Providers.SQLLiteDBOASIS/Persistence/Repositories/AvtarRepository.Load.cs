@@ -364,7 +364,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 if (avatarEntities == null)
                     return new OASISResult<IAvatar>
                     {
-                        IsLoaded = true,
+                        IsLoaded = false,
                         IsError = false,
                         Message = "No Avatar Found"
                     };
@@ -383,6 +383,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 {
                     IsLoaded = false,
                     IsError = true,
+                    Exception = ex,
                     Message = ex.ToString()
                 };
             }

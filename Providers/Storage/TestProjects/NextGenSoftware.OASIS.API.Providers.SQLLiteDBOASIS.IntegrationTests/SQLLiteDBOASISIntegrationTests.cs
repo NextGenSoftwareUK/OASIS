@@ -662,6 +662,20 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     }
 
     [Theory]
+    [InlineData(true,false)] [InlineData(false,false)]
+    [InlineData(true,true)] [InlineData(false,true)]
+    public async Task PublicGuidAvatarLoadDistinguishesAbsenceFromDatabaseFailure(bool synchronous,bool brokenTable)
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        if(brokenTable){using var control=new DataContext(TestConnectionString);control.Database.ExecuteSqlRaw("DROP TABLE Avatar;");}
+        var id=Guid.NewGuid();var result=synchronous?provider.LoadAvatar(id):await provider.LoadAvatarAsync(id);
+        result.IsLoaded.Should().BeFalse();result.Result.Should().BeNull();result.IsError.Should().Be(brokenTable);
+        if(brokenTable)result.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        else result.Exception.Should().BeNull();
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task ParentSelectorsIsolateChildrenAndRespectTypeAndVersion(bool synchronous)
