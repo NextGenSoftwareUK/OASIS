@@ -7,6 +7,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 public class SuiTokenBurnValidationTests
 {
     [TestMethod]
+    public void TokenBalancePreservesExactU64AndRejectsMalformedNativeUnits()
+    {
+        var method=typeof(SuiOASIS).GetMethod("TokenBalanceFromUnits",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Static)!;
+        Assert.AreEqual(18446744073.709551615m,method.Invoke(null,new object[]{"18446744073709551615"}));
+        Assert.AreEqual(0m,method.Invoke(null,new object[]{"0"}));
+        Assert.AreEqual(0.000000001m,method.Invoke(null,new object[]{"1"}));
+        foreach(var invalid in new string?[]{null,"","-1","1.5","1e3","18446744073709551616"," 1","01","+1"}){
+            var error=Assert.ThrowsException<System.Reflection.TargetInvocationException>(()=>method.Invoke(null,new object?[]{invalid}));
+            Assert.IsInstanceOfType<InvalidOperationException>(error.InnerException);
+        }
+    }
+    [TestMethod]
     public async Task InvalidExplicitAmountsFailBeforeSigningOrNetwork()
     {
         using var provider = new SuiOASIS("http://127.0.0.1:1", "localnet", contractAddress: "0x1", currencyObjectId: "0x1");
