@@ -25,6 +25,22 @@ The implementation is deployed to Railway **development** and OPORTAL **dev**. S
 3. **Resolve historical test supplier evidence.** The owned subscriber `73db840c-351b-49e5-aa3a-f0f288005758` has three held operations: `0f43aa73-9db9-9642-daff-497a07a26fb2`, `6b9e339e-e1b8-b0c0-a3be-425f9873b3f8`, and `4e7a716f-6d5b-8b47-df49-65f0a29a2b62`. Obtain terminal supplier evidence using durable attempt correlations and follow the recovery procedure. Audited cost corrections apply after a measured terminal settlement exists; they cannot manufacture missing provider evidence. These arose during tests before the fixes; do not invent zero cost, repeat provider work, or delete immutable events. Supplier invoices for an open calendar month are normally pending until close.
 4. **Record the protected-host and recovery evidence here.** Only then mark development acceptance complete. Production promotion remains the separately agreed release step.
 
+### Follow-up access and supplier lookup checks
+
+The additional verification attempt on 14 October confirmed GitHub's successful deployment of portal revision `ef50389487665f3757f11f0289167d86342c5b3e` to `https://oportal-41yb33pvq-oasis-team.vercel.app`. Visiting that exact preview redirected to Vercel authentication. The connected protected-fetch tool still returned 403 for the development alias. A temporary deployment share link is needed for browser verification when the connected account cannot obtain protected access; automatic deployment does not establish browser acceptance.
+
+Read-only inspection confirmed all three identified outboxes still have one persisted OpenServ attempt, no provider receipt ID, no measured receipts and no terminal settlement. The existing inference key was also tested against OpenServ's official console `/usage-logs` read endpoint and received 401. Inference credentials therefore did not establish console usage access in this check. Supplier console records are required; no new supplier work was executed and no held accounting event was edited.
+
+All three calls used OpenServ model `gpt-5.4-nano`. Supplier lookup details:
+
+| UTC date/time | Operation ID | Client request correlation |
+|---|---|---|
+| 2026-10-14 00:51:07.220 | `0f43aa73-9db9-9642-daff-497a07a26fb2` | `0f43aa73-9db9-9642-daff-497a07a26fb2:1` |
+| 2026-10-14 04:38:52.803 | `6b9e339e-e1b8-b0c0-a3be-425f9873b3f8` | `6b9e339e-e1b8-b0c0-a3be-425f9873b3f8:1` |
+| 2026-10-14 04:53:00.711 | `4e7a716f-6d5b-8b47-df49-65f0a29a2b62` | `4e7a716f-6d5b-8b47-df49-65f0a29a2b62:1` |
+
+Required supplier evidence: request/receipt ID, terminal outcome, actual prompt and completion token counts, charged amount/currency, and a traceable console record/export reference. An absence of local measurements is not a zero-cost supplier receipt.
+
 ## Prices and configuration
 
 - [Step-by-step Railway runbook](SUBSCRIPTION_RAILWAY_CONFIGURATION.md): existing DNA, keys, service credentials and worker activation.
