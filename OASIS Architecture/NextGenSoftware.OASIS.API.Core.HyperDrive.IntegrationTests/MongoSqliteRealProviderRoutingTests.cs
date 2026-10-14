@@ -955,6 +955,46 @@ public sealed class MongoSqliteRealProviderRoutingTests
             }
             (await failureMongo.ActivateProviderAsync()).IsError.Should().BeFalse();
             API.Providers.MongoDBOASIS.MongoTransactionReconciliationException commitEvidence = null;
+            foreach (var softDelete in new[] { false, true })
+            {
+                API.Providers.MongoDBOASIS.MongoTransactionReconciliationException detailCommitEvidence = null;
+                try
+                {
+                    var detailCommitManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true };
+                    detailCommitManager.RegisterProvider(failureMongo);
+                    detailCommitManager.RegisterProvider(sqlite);
+                    detailCommitManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                        { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("times",1) },
+                        { "data", new BsonDocument { { "failCommands", new BsonArray { "commitTransaction" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                    });
+                    var detailCommitRequest = new StorageOperationRequest { Operation = "DeleteAvatarDetail", AvatarId = detail.Id,
+                        SoftDelete = softDelete, PreferredProvider = ProviderType.MongoDBOASIS };
+                    var detailCommitRouter = new OASISHyperDrive(detailCommitManager);
+                    var rejected = synchronous ? detailCommitRouter.RouteRequest<bool>(detailCommitRequest)
+                        : await detailCommitRouter.RouteRequestAsync<bool>(detailCommitRequest);
+                    rejected.IsError.Should().BeTrue();
+                    rejected.Result.Should().BeFalse();
+                    detailCommitEvidence = rejected.Exception as API.Providers.MongoDBOASIS.MongoTransactionReconciliationException;
+                    detailCommitEvidence.Should().NotBeNull();
+                    detailCommitEvidence.TransactionNumber.Should().BeGreaterThanOrEqualTo(0);
+                    detailCommitEvidence.InnerException.Should().BeOfType<MongoCommandException>();
+                    (detailCommitManager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0).Should().Be(0);
+                    foreach (var provider in new IOASISStorageProvider[] { mongo, sqlite }) {
+                        (await provider.LoadAvatarAsync(avatar.Id)).Result.DeletedDate.Should().Be(DateTime.MinValue);
+                        var retained = (await provider.LoadAvatarDetailAsync(detail.Id)).Result;
+                        retained.DeletedDate.Should().Be(DateTime.MinValue);
+                        retained.Karma.Should().Be(456);
+                        retained.Inventory.Single().Name.Should().Be(item.Name);
+                    }
+                }
+                finally
+                {
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+                    if (detailCommitEvidence != null)
+                        await admin.RunCommandAsync<BsonDocument>(new BsonDocument("killSessions", new BsonArray { BsonDocument.Parse(detailCommitEvidence.SessionId) }));
+                }
+            }
             try
             {
                 var commitManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true };
