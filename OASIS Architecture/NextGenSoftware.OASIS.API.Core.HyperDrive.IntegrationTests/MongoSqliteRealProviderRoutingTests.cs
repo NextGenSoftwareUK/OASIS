@@ -86,6 +86,21 @@ public sealed class MongoSqliteRealProviderRoutingTests
             var explicitInvalidImport = await invalidRouter.FailoverRequestAsync<bool>(invalidImport);
             explicitInvalidImport.IsError.Should().BeTrue();
             explicitInvalidImport.ErrorCode.Should().Be("HYPERDRIVE_PAYLOAD_INVALID");
+            var repeatedNewHolon = new Holon();
+            IEnumerable<IHolon> ThrowingImportSource()
+            {
+                yield return new Holon();
+                throw new InvalidOperationException("Owned enumeration failure.");
+            }
+            foreach (var invalidBatch in new IEnumerable<IHolon>[] {
+                new IHolon[] { null }, new IHolon[] { repeatedNewHolon, repeatedNewHolon }, ThrowingImportSource() })
+            {
+                invalidImport.Payload = invalidBatch;
+                var invalidBatchResult = synchronous ? invalidRouter.RouteRequest<bool>(invalidImport) : await invalidRouter.RouteRequestAsync<bool>(invalidImport);
+                invalidBatchResult.IsError.Should().BeTrue();
+                invalidBatchResult.ErrorCode.Should().Be("HYPERDRIVE_PAYLOAD_INVALID");
+                invalidBatchResult.Exception.Should().NotBeNull();
+            }
             (invalidPayloadManager.PerformanceMonitor.GetMetrics(request.PreferredProvider)?.TotalRequests ?? 0).Should().Be(0);
             (invalidPayloadManager.PerformanceMonitor.GetMetrics(invalidProviders[1].Value)?.TotalRequests ?? 0).Should().Be(0);
             var result = synchronous ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
