@@ -806,6 +806,7 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
             savedAvatar.IsError.Should().BeFalse(savedAvatar.Message);
         }
         var result = await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+            SearchOnlyForCurrentAvatar = false,
             SearchGroups = new() { new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup { SearchQuery = "owned-version-search" } }
         }, loadChildren:false, version:version);
         result.IsError.Should().BeFalse(result.Message);
@@ -815,6 +816,86 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         {
             result.Result.SearchResultHolons.Should().OnlyContain(h => h.Version == version);
             result.Result.SearchResultAvatars.Should().OnlyContain(a => a.Version == version);
+        }
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task AvatarAuditFieldsSurviveSaveUpdateAndFreshConnection(bool synchronous)
+    {
+        var avatar = new Avatar { Id = Guid.NewGuid(), Username = "owned-audit-avatar", Email = "audit@test.invalid",
+            AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User),
+            CreatedByAvatarId = Guid.NewGuid(), ModifiedByAvatarId = Guid.NewGuid(), DeletedByAvatarId = Guid.NewGuid(),
+            CreatedDate = new DateTime(2026, 1, 2, 3, 4, 5, DateTimeKind.Utc),
+            ModifiedDate = new DateTime(2026, 2, 3, 4, 5, 6, DateTimeKind.Utc),
+            DeletedDate = new DateTime(2026, 3, 4, 5, 6, 7, DateTimeKind.Utc) };
+        using (var provider = new SQLLiteDBOASIS(TestConnectionString))
+        {
+            (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+            var saved = synchronous ? provider.SaveAvatar(avatar) : await provider.SaveAvatarAsync(avatar);
+            saved.IsError.Should().BeFalse(saved.Message);
+            avatar.ModifiedByAvatarId = Guid.NewGuid();
+            avatar.ModifiedDate = avatar.ModifiedDate.AddDays(1);
+            saved = synchronous ? provider.SaveAvatar(avatar) : await provider.SaveAvatarAsync(avatar);
+            saved.IsError.Should().BeFalse(saved.Message);
+        }
+        using var reopened = new SQLLiteDBOASIS(TestConnectionString);
+        (await reopened.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var result = synchronous ? reopened.LoadAvatar(avatar.Id) : await reopened.LoadAvatarAsync(avatar.Id);
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.CreatedByAvatarId.Should().Be(avatar.CreatedByAvatarId);
+        result.Result.ModifiedByAvatarId.Should().Be(avatar.ModifiedByAvatarId);
+        result.Result.DeletedByAvatarId.Should().Be(avatar.DeletedByAvatarId);
+        result.Result.CreatedDate.Should().Be(avatar.CreatedDate);
+        result.Result.ModifiedDate.Should().Be(avatar.ModifiedDate);
+        result.Result.DeletedDate.Should().Be(avatar.DeletedDate);
+    }
+
+    [Theory]
+    [InlineData(MetaKeyValuePairMatchMode.All, true, 1, 1)]
+    [InlineData(MetaKeyValuePairMatchMode.Any, true, 2, 1)]
+    [InlineData(MetaKeyValuePairMatchMode.All, false, 2, 2)]
+    [InlineData(MetaKeyValuePairMatchMode.Any, false, 3, 2)]
+    public async Task PublicSearchHonoursOwnershipMetadataAndDeletedRecords(MetaKeyValuePairMatchMode mode,
+        bool ownOnly, int holonCount, int avatarCount)
+    {
+        var owner = Guid.NewGuid();
+        var other = Guid.NewGuid();
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        foreach (var row in new[] { (owner, "match", "match", false), (owner, "match", "other", false),
+            (other, "match", "match", false), (owner, "match", "match", true), (owner, "other", "other", false) })
+        {
+            var holon = new Holon { Id = Guid.NewGuid(), Name = "owned-filter-search", CreatedByAvatarId = row.Item1,
+                DeletedDate = row.Item4 ? DateTime.UtcNow : DateTime.MinValue,
+                MetaData = new Dictionary<string,object> { ["Region"] = row.Item2, ["Category"] = row.Item3 } };
+            var saved = await provider.SaveHolonAsync(holon, saveChildren:false);
+            saved.IsError.Should().BeFalse(saved.Message);
+        }
+        foreach (var row in new[] { (owner, false), (other, false), (owner, true) })
+        {
+            var avatar = new Avatar { Id = Guid.NewGuid(), Username = "owned-filter-search-" + Guid.NewGuid(),
+                Email = Guid.NewGuid() + "@test.invalid", CreatedByAvatarId = row.Item1,
+                DeletedDate = row.Item2 ? DateTime.UtcNow : DateTime.MinValue,
+                AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
+            var saved = await provider.SaveAvatarAsync(avatar);
+            saved.IsError.Should().BeFalse(saved.Message);
+        }
+        var result = await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+            AvatarId = owner, SearchOnlyForCurrentAvatar = ownOnly, MetaKeyValuePairMatchMode = mode,
+            FilterByMetaData = new() { ["Region"] = "match", ["Category"] = "match" },
+            SearchGroups = new() { new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup { SearchQuery = "owned-filter-search" } }
+        }, loadChildren:false);
+        result.IsError.Should().BeFalse(result.Message);
+        result.Result.SearchResultHolons.Should().HaveCount(holonCount);
+        result.Result.SearchResultAvatars.Should().HaveCount(avatarCount);
+        result.Result.SearchResultHolons.Select(h => h.Id).Should().OnlyHaveUniqueItems();
+        result.Result.SearchResultHolons.Should().OnlyContain(h => h.DeletedDate == DateTime.MinValue);
+        result.Result.SearchResultAvatars.Should().OnlyContain(a => a.DeletedDate == DateTime.MinValue);
+        if (ownOnly) {
+            result.Result.SearchResultHolons.Should().OnlyContain(h => h.CreatedByAvatarId == owner);
+            result.Result.SearchResultAvatars.Should().OnlyContain(a => a.CreatedByAvatarId == owner);
         }
     }
 
