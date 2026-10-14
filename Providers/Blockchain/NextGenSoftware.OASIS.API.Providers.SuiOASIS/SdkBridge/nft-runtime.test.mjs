@@ -59,10 +59,16 @@ test('real NFT objects mint in quantity, transfer ownership, reject the old owne
     signers.set(tokenId, recipient.privateKey);
     assert.equal((await invoke({ ...base, operation: 'transaction', transactionHash: moved.transactionHash })).status.success, true);
     assert.equal((await invoke({ ...base, operation: 'nftGet', tokenId })).owner.AddressOwner, recipient.address);
+    const custodyRequest={...base,operation:'nftCustodyReceipt',tokenId,custody:recipient.address,transactionHash:moved.transactionHash};
+    const custody=await invoke(custodyRequest);
+    assert.equal(custody.objectId,tokenId);
+    assert.ok(custody.version);assert.ok(custody.digest);
+    await assert.rejects(invoke({...custodyRequest,custody:owner.address}),/does not prove this NFT entered custody/);
     await assert.rejects(ownedInvoke({ ...base, operation: 'nftBurn', tokenId }), /owner|owned|ownership/i);
     await ownedInvoke({ ...base, operation: 'nftBurn', tokenId, privateKey: recipient.privateKey });
     remaining.delete(tokenId);
     await assert.rejects(invoke({ ...base, operation: 'nftGet', tokenId }), /not found|not exist|deleted/i);
+    await assert.rejects(invoke(custodyRequest),/not found|not exist|deleted|stale/i);
   } catch(error){primaryError=error;throw error;} finally {
     try{
     if(!unknown)for (const tokenId of remaining) {
