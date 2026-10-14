@@ -9,6 +9,21 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 public class CosmosPreparationTests
 {
     [TestMethod]
+    public async Task PreparedFeeRecoveryRejectsWrongOrMalformedPersistedAttempt()
+    {
+        using var provider=new CosmosBlockChainOASIS("http://127.0.0.1:1","fixture-chain");
+        foreach(var attempt in new UsageProviderAttempt?[]{null,
+            new(){Provider="SuiOASIS",ProviderRequestId="original",NativePreparation=new(){ChainId="fixture-chain"}},
+            new(){Provider="CosmosBlockChainOASIS",ProviderRequestId="original",NativePreparation=new(){ChainId="foreign"}},
+            new(){Provider="CosmosBlockChainOASIS",ProviderRequestId="original"},
+            new(){Provider="CosmosBlockChainOASIS",NativePreparation=new(){ChainId="fixture-chain"}},
+            new(){Provider="CosmosBlockChainOASIS",ProviderRequestId="original",NativePreparation=new(){ChainId="fixture-chain",Sender="invalid",SignedTransactionBase64="AQID",SignDocBase64="AQID"}}}){
+            var result=await provider.GetPreparedNativeFeeReceiptAsync(attempt!);
+            Assert.IsTrue(result.IsError);Assert.IsNotNull(result.Exception);
+            Assert.AreEqual(JsonValueKind.Undefined,result.Result.ValueKind);
+        }
+    }
+    [TestMethod]
     public async Task DetachedChildCannotSubmitUsingCompletedStorageOwner()
     {
         var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;

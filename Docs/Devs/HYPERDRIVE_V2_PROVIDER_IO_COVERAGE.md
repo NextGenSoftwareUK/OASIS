@@ -5,6 +5,8 @@
 
 ## Current provider status — not full certification
 
+Cosmos signed original-attempt recovery read support (2026-10-13): provider method binds persisted chain/provider/hash/signature via official SDK then native fee lookup. Negative six-case1/1 passes; positive native lookup unverified/current original replication hash absent. No guessed fee/valuation/settlement/replay; all corresponding gates remain open.
+
 Sui recovery identity rejection1/1 (2026-10-13): six wrong/missing/malformed persisted-attempt cases return errors, no usable receipt or synthetic absent/zero outcome. Actual public method/offline SDK boundary,464ms; no native mutation. Full recovery valuation/worker integration remains open.
 
 Sui cryptographically bound original-attempt fee lookup (2026-10-13): verifies outbox provider/genesis/original signed identity before native receipt query; expanded real prepared2/2 passes14s on retained node+owned Mongo, no skips, cleanup successful. This is read-only evidence support for recovery, not concrete USD-valued IUsageRecoveryResolver/registration or final settlement. No guessed rates/sponsorship enabled.
