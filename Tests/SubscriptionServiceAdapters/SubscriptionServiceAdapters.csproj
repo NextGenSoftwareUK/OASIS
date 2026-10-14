@@ -11,5 +11,7 @@
     <Compile Include="../../WEB8/NextGenSoftware.OASIS.Web8.WebAPI/Middleware/SubscriptionMiddleware.cs" Link="Production/WEB8Policy.cs" />
     <Compile Include="../../WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Middleware/SubscriptionMiddleware.cs" Link="Production/WEB9Policy.cs" />
     <Compile Include="../../WEB10/NextGenSoftware.OASIS.Web10.WebAPI/Middleware/SubscriptionMiddleware.cs" Link="Production/WEB10Policy.cs" />
+    <Compile Include="../../WEB9/NextGenSoftware.OASIS.Web9.WebAPI/Attributes/AuthorizeAttribute.cs" Link="Production/WEB9Authorization.cs" />
+    <Compile Include="../../WEB10/NextGenSoftware.OASIS.Web10.WebAPI/Attributes/AuthorizeAttribute.cs" Link="Production/WEB10Authorization.cs" />
   </ItemGroup>
 </Project>

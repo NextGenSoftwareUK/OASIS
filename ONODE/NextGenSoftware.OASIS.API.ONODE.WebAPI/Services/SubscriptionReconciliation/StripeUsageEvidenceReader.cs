@@ -16,6 +16,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.SubscriptionReconcilia
 public sealed class StripeUsageEvidenceReader
 {
     public const string CostBasis = "ledger-cost-usd-v1";
+    public const string PaidOverageCostBasis = "overage_charge_usd_v1";
     private readonly HttpClient _http;
     private readonly IConfiguration _configuration;
     private readonly MongoUsageReconciler _reconciler;
@@ -40,7 +41,8 @@ public sealed class StripeUsageEvidenceReader
                 var metadata = invoice.GetProperty("metadata");
                 if (!metadata.TryGetProperty("oasis_usage_month", out var period) || period.GetString() != month) continue;
                 if (invoice.GetProperty("status").GetString() == "draft") continue; // Not final evidence yet; report stays incomplete.
-                var receipt = ParseFinalizedInvoice(invoice, customerId, userId, month, "stripe-reconciliation-worker");
+                if(metadata.TryGetProperty("oasis_ledger_scope",out var scope) && scope.GetString()!=SubscriptionMongoConfiguration.DatabaseName(_configuration))continue;
+                var receipt = ParseFinalizedInvoice(invoice, customerId, userId, month, "stripe-reconciliation-worker",SubscriptionMongoConfiguration.DatabaseName(_configuration));
                 await _reconciler.RecordReceiptAsync(receipt, ct);
             }
             if (!root.GetProperty("has_more").GetBoolean()) break;
@@ -54,7 +56,7 @@ public sealed class StripeUsageEvidenceReader
             throw new ArgumentException("A Stripe invoice identifier is required.");
         using var response = await GetAsync("invoices/" + Uri.EscapeDataString(invoiceId), ct);
         using var json = JsonDocument.Parse(await response.Content.ReadAsStringAsync(ct));
-        return await _reconciler.RecordReceiptAsync(ParseFinalizedInvoice(json.RootElement, customerId, userId, month, actor), ct);
+        return await _reconciler.RecordReceiptAsync(ParseFinalizedInvoice(json.RootElement, customerId, userId, month, actor,SubscriptionMongoConfiguration.DatabaseName(_configuration)), ct);
     }
 
     private async Task<HttpResponseMessage> GetAsync(string path, CancellationToken ct)
@@ -63,7 +65,7 @@ public sealed class StripeUsageEvidenceReader
         if (string.IsNullOrWhiteSpace(key)) throw new InvalidOperationException("Stripe SecretKey is required in OASIS DNA or STRIPE_SECRET_KEY for reconciliation.");
         using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.stripe.com/v1/" + path);
         request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", key);
-        request.Headers.Add("Stripe-Version", "2025-02-24.acacia");
+        request.Headers.Add("Stripe-Version", "2024-10-28.acacia");
         var response = await _http.SendAsync(request, ct);
         if (!response.IsSuccessStatusCode)
         {
@@ -74,7 +76,7 @@ public sealed class StripeUsageEvidenceReader
         return response;
     }
 
-    public static UsageExternalReceipt ParseFinalizedInvoice(JsonElement invoice, string customerId, string userId, string month, string actor)
+    public static UsageExternalReceipt ParseFinalizedInvoice(JsonElement invoice, string customerId, string userId, string month, string actor,string expectedScope=null)
     {
         var metadata = invoice.GetProperty("metadata");
         string status = invoice.GetProperty("status").GetString();
@@ -82,15 +84,18 @@ public sealed class StripeUsageEvidenceReader
             invoice.GetProperty("customer").GetString() != customerId || string.IsNullOrWhiteSpace(customerId) ||
             !metadata.TryGetProperty("oasis_avatar_id", out var avatar) || avatar.GetString() != userId ||
             !metadata.TryGetProperty("oasis_usage_month", out var period) || period.GetString() != month ||
-            !metadata.TryGetProperty("oasis_usage_cost_basis", out var basis) || basis.GetString() != CostBasis)
+            !metadata.TryGetProperty("oasis_usage_cost_basis", out var basis) || basis.GetString() is not (CostBasis or PaidOverageCostBasis))
             throw new InvalidOperationException("Stripe invoice is not finalized USD usage-only evidence bound to this avatar, customer, month and ledger cost basis.");
+        if(basis.GetString()==PaidOverageCostBasis && (string.IsNullOrEmpty(expectedScope) ||
+            !metadata.TryGetProperty("oasis_ledger_scope",out var scope) || scope.GetString()!=expectedScope))
+            throw new InvalidOperationException("USD overage invoice belongs to another ledger deployment.");
         // Fingerprint immutable accounting fields, excluding payment status which can change after finalization.
         string externalId = invoice.GetProperty("id").GetString();
         long subtotal = invoice.GetProperty("subtotal").GetInt64();
-        string canonical = JsonSerializer.Serialize(new { externalId, customerId, userId, month, subtotal, basis = CostBasis });
+        string canonical = JsonSerializer.Serialize(new { externalId, customerId, userId, month, subtotal, basis = basis.GetString() });
         var receipt = new UsageExternalReceipt
         {
-            Source = "stripe", ExternalId = externalId, UserId = userId, Month = month, AmountUsd = subtotal / 100m,
+            Source = "stripe", BillingCostBasis=basis.GetString(), ExternalId = externalId, UserId = userId, Month = month, AmountUsd = subtotal / 100m,
             EvidenceSha256 = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(canonical))).ToLowerInvariant(), Actor = actor
         };
         receipt.Validate();

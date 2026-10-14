@@ -57,7 +57,7 @@ $selectedVersionedComponents = @($OASISRuntime, $STARRuntime, $EdgeRuntime, $Edg
 if ($EdgeUnity -and -not $NuGetPackages) {
     throw 'The coordinated Edge Runtime release requires NuGetPackages because its nine reusable assemblies are part of the release contract.'
 }
-if ($VersionMode -eq 'Manual' -and $selectedVersionedComponents.Count -ne 1) {
+if ($VersionMode -eq 'Manual' -and $selectedVersionedComponents.Count -ne 1 -and -not ($NuGetPackages -and $selectedVersionedComponents.Count -eq 0)) {
     throw 'Manual version mode requires exactly one selected component.'
 }
 
@@ -124,8 +124,10 @@ function Assert-PackageMetadata($PackageProjects) {
 function Get-LatestNuGetRelease([string]$PackageId) {
     if ($Offline) { return $null }
     $url = "https://api.nuget.org/v3/registration5-semver1/$($PackageId.ToLowerInvariant())/index.json"
+    $registrationFetched = $false
     try {
         $response = Invoke-RestMethod -Uri $url -Method Get -Headers @{ 'User-Agent' = 'OASIS-global-release' }
+        $registrationFetched = $true
         $entries = foreach ($page in $response.items) {
             if ($page.items) { $page.items.catalogEntry }
             else {
@@ -139,10 +141,11 @@ function Get-LatestNuGetRelease([string]$PackageId) {
             Sort-Object { [version]$_.version } -Descending |
             Select-Object -First 1)
         if ($latest.Count -eq 0) { return $null }
-        return [pscustomobject]@{ Version = $latest[0].version; Published = $latest[0].published }
+        $catalog = Invoke-RestMethod -Uri $latest[0].'@id' -Headers @{ 'User-Agent' = 'OASIS-global-release' }
+        return [pscustomobject]@{ Version = $latest[0].version; Published = $latest[0].published; Repository = $catalog.repository }
     }
     catch {
-        if ($_.Exception.Response.StatusCode.value__ -eq 404) { return $null }
+        if (-not $registrationFetched -and $_.Exception.Response.StatusCode.value__ -eq 404) { return $null }
         throw
     }
 }
@@ -328,11 +331,34 @@ function Get-PlannedPackageVersion($Project, $PublishedRelease) {
     $sourceVersion = Get-SourceVersion $Project
     $publishedVersion = if ($PublishedRelease) { $PublishedRelease.Version } else { $null }
     if (-not $publishedVersion) {
-        if ($Offline) { return $sourceVersion }
+        if ($Offline) { throw 'Offline registry state cannot authorize a new package version.' }
         return '1.0.0'
     }
+    $provenance = $PublishedRelease.Repository
+    if (-not $provenance -or $provenance.commit -notmatch '^[a-fA-F0-9]{40}$') {
+        throw "Cannot prove published source for $($Project.PackageId) $publishedVersion; review repository provenance before publication."
+    }
+    $relative = $Project.File.FullName.Substring($repoRoot.Length).TrimStart('\', '/').Replace('\', '/')
+    $graph = $sourceGraphs.($Project.PackageId)
+    if (-not $graph) {
+        $request = @(@{ packageId=$Project.PackageId; root=$repoRoot; previousVersion=$publishedVersion; publishedRepository=$provenance; current='HEAD'; project=$relative })
+        $graphJson = ConvertTo-Json -InputObject $request -Depth 8 -Compress | & python (Join-Path $PSScriptRoot 'nuget_source_graph.py') --batch
+        if ($LASTEXITCODE -ne 0) { throw "Source graph verification failed for $($Project.PackageId)." }
+        $graph = ($graphJson | ConvertFrom-Json).($Project.PackageId)
+    }
+    $sourceDecisions.Add([pscustomobject]@{ packageId=$Project.PackageId; previousVersion=$publishedVersion; project=$relative; graph=$graph })
+    if (-not $graph.changed) {
+        $versionDecisions.Add([pscustomobject]@{ scope=$Project.PackageId; current=$publishedVersion; proposed=$publishedVersion; bump='None'; reason='Committed package input graph is unchanged; no pack or push.' })
+        return $null
+    }
     $baseline = if ([version]$publishedVersion -gt [version]$sourceVersion) { $publishedVersion } else { $sourceVersion }
-    return Get-NextPatchVersion $baseline
+    if ($VersionMode -in @('Automatic','Patch') -and [version]$sourceVersion -gt [version]$publishedVersion) { return $sourceVersion }
+    switch ($VersionMode) {
+        Major { return '{0}.0.0' -f (([version]$baseline).Major + 1) }
+        Minor { $parsed=[version]$baseline; return '{0}.{1}.0' -f $parsed.Major, ($parsed.Minor + 1) }
+        Manual { if ($ManualVersion -notmatch '^\d+\.\d+\.\d+$' -or [version]$ManualVersion -le [version]$baseline) { throw 'Manual NuGet version must be stable and exceed its immutable registry/source baseline.' }; return $ManualVersion }
+        default { return Get-NextPatchVersion $baseline }
+    }
 }
 
 function Get-PackageReleaseNotes($Project, [string]$Version, $PublishedRelease) {
@@ -466,6 +492,9 @@ if ($AdvanceWeb4ToWeb6ApiVersions -or $AdvanceWeb4ApiVersion -or $AdvanceWeb5Api
 
 $packageProjects = @()
 $packagePlan = @()
+$sourceDecisions = [Collections.Generic.List[object]]::new()
+$sourceGraphs = [pscustomobject]@{}
+$unchangedPackages = @()
 $edgePackageIds = @(
             'NextGenSoftware.OASIS.Contracts',
             'NextGenSoftware.OASIS.HyperDrive.Synchronization',
@@ -495,7 +524,14 @@ if ($NuGetPackages) {
         }
     }
     Assert-PackageMetadata $packageProjects
+    if (-not $reviewedPlan -and $VersionMode -eq 'Manual' -and $packageProjects.Count -ne 1) { throw 'Manual NuGet version mode requires exactly one selected package.' }
     if ($reviewedPlan) {
+        $unchangedPackages = @($reviewedPlan.unchangedPackages)
+        foreach ($unchanged in $unchangedPackages) {
+            if ($unchanged.packageId -notin @($packageProjects.PackageId) -or $unchanged.graph.changed -ne $false) { throw 'Invalid frozen unchanged package decision.' }
+        }
+        if (@($unchangedPackages.packageId | Sort-Object -Unique).Count -ne $unchangedPackages.Count) { throw 'Duplicate unchanged package decisions.' }
+        $packageProjects = @($packageProjects | Where-Object { $_.PackageId -notin @($unchangedPackages.packageId) })
         if (@($reviewedPlan.packages).Count -ne $packageProjects.Count) { throw 'Reviewed package coverage differs from source.' }
         foreach ($project in $packageProjects) {
             $matches = @($reviewedPlan.packages | Where-Object { $_.packageId -eq $project.PackageId })
@@ -506,9 +542,25 @@ if ($NuGetPackages) {
         }
         $packagePlan = @($reviewedPlan.packages)
     } else {
+    $publishedReleases = @{}
+    $graphRequests = @(foreach ($project in $packageProjects) {
+        $release = Get-LatestNuGetRelease $project.PackageId
+        $publishedReleases[$project.PackageId] = $release
+        if ($release) {
+            if ($release.Repository.commit -notmatch '^[a-fA-F0-9]{40}$') { throw "Missing source provenance: $($project.PackageId)." }
+            @{ packageId=$project.PackageId; root=$repoRoot; previousVersion=$release.Version; publishedRepository=$release.Repository; current='HEAD'; project=$project.File.FullName.Substring($repoRoot.Length).TrimStart('\', '/').Replace('\', '/') }
+        }
+    })
+    if ($graphRequests.Count) {
+        $graphsJson = ConvertTo-Json -InputObject $graphRequests -Depth 8 -Compress | & python (Join-Path $PSScriptRoot 'nuget_source_graph.py') --batch
+        if ($LASTEXITCODE -ne 0) { throw 'Package source graph analysis failed; nothing may be packed or published.' }
+        $sourceGraphs = $graphsJson | ConvertFrom-Json
+    }
     $packagePlan = @($packageProjects | ForEach-Object {
-        $publishedRelease = Get-LatestNuGetRelease $_.PackageId
+        $publishedRelease = $publishedReleases[$_.PackageId]
         $version = Get-PlannedPackageVersion $_ $publishedRelease
+        if (-not $version) { return }
+        $versionDecisions.Add([pscustomobject]@{ scope=$_.PackageId; current=if($publishedRelease){$publishedRelease.Version}else{'unpublished'}; proposed=$version; bump=$VersionMode; reason=if($publishedRelease){'Verified committed package input changes.'}else{'Verified registry identity has no stable release.'} })
         [pscustomobject]@{
             packageId = $_.PackageId
             version = $version
@@ -517,6 +569,7 @@ if ($NuGetPackages) {
             releaseNotes = Get-PackageReleaseNotes $_ $version $publishedRelease
         }
     })
+    $unchangedPackages = @($sourceDecisions | Where-Object { -not $_.graph.changed })
     }
 }
 
@@ -544,7 +597,8 @@ $components = [ordered]@{
 }
 $releaseVersions = [ordered]@{
     edgeUnityNuget = if ($EdgeUnity) {
-        $unityProject = [pscustomobject]@{ Xml = [xml](Get-Content (Join-Path $repoRoot 'UnityPackages/NextGenSoftware.OASIS.Edge.Unity.NuGet/NextGenSoftware.OASIS.Edge.Unity.csproj') -Raw); PackageId = 'NextGenSoftware.OASIS.Edge.Unity' }
+        $unityPath = Join-Path $repoRoot 'UnityPackages/NextGenSoftware.OASIS.Edge.Unity.NuGet/NextGenSoftware.OASIS.Edge.Unity.csproj'
+        $unityProject = [pscustomobject]@{ File = Get-Item $unityPath; Xml = [xml](Get-Content $unityPath -Raw); PackageId = 'NextGenSoftware.OASIS.Edge.Unity' }
         Get-PlannedPackageVersion $unityProject (Get-LatestNuGetRelease $unityProject.PackageId)
     } else { 'not-selected' }
     edgeUnity = if ($EdgeUnity) { Get-NextReleaseVersion '1.0.0' @('OASIS-Edge-Unity-v') @('UnityPackages','Scripts/build_edge_unity_package.ps1','Scripts/New-OASISEdgeRuntimeArchive.ps1') } else { 'not-selected' }
@@ -572,6 +626,8 @@ $plan = [ordered]@{
     releaseVersions = $releaseVersions
     apiVersions = if ($webVersions) { $webVersions } else { 'unchanged' }
     packages = $packagePlan
+    unchangedPackages = $unchangedPackages
+    sourceDecisions = @($sourceDecisions)
     excludedPackageIds = @($excludedIds)
     expectedExcludedPackageCount = $expectedExclusionCount
     edgePackageIds = $edgePackageIds
@@ -601,7 +657,9 @@ if ($NuGetPackages) {
         }
         foreach ($package in $packagePlan) {
             $projectPath = Join-Path $repoRoot $package.project
-            & dotnet pack $projectPath -c Release -o $packageOutput --nologo
+            # Global packages are built from the parent dependency graph, not an
+            # unqualified child commit. Record that graph in every future package.
+            & dotnet pack $projectPath -c Release -o $packageOutput --nologo "-p:RepositoryCommit=$($plan.sourceCommit)" '-p:RepositoryUrl=https://github.com/NextGenSoftwareUK/OASIS'
             if ($LASTEXITCODE -ne 0) { throw "Packing $($package.packageId) failed." }
         }
     }
