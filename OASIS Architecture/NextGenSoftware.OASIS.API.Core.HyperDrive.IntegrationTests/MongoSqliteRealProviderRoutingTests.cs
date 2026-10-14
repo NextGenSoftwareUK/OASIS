@@ -109,7 +109,56 @@ public sealed class MongoSqliteRealProviderRoutingTests
             (await mongo.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Name.Should().Be(holon.Name);
             (await sqlite.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Name.Should().Be(holon.Name);
             manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            var replicatedGraphRoot = new Holon { Id = Guid.NewGuid(), Name = "owned-v2-graph-root" };
+            var replicatedGraphChild = new Holon { Id = Guid.NewGuid(), Name = "owned-v2-graph-child", ParentHolonId = replicatedGraphRoot.Id };
+            var replicatedGraphGrandchild = new Holon { Id = Guid.NewGuid(), Name = "owned-v2-graph-grandchild", ParentHolonId = replicatedGraphChild.Id };
+            replicatedGraphRoot.Children = new List<IHolon> { replicatedGraphChild };
+            replicatedGraphChild.Children = new List<IHolon> { replicatedGraphGrandchild };
+            var graphRequest = new StorageOperationRequest { Operation = "SaveHolon", Payload = replicatedGraphRoot,
+                PreferredProvider = request.PreferredProvider, SaveChildren = true, Recursive = true, ChildrenFromProvider = true };
+            var graphSaved = synchronous ? router.RouteRequest<IHolon>(graphRequest) : await router.RouteRequestAsync<IHolon>(graphRequest);
+            graphSaved.IsError.Should().BeFalse(graphSaved.Message);
+            graphSaved.IsWarning.Should().BeFalse(graphSaved.Message);
+            foreach (var graphNode in new[] { replicatedGraphRoot, replicatedGraphChild, replicatedGraphGrandchild })
+            foreach (var graphStore in new IOASISStorageProvider[] { mongo, sqlite })
+            {
+                var graphRead = await graphStore.LoadHolonAsync(graphNode.Id,loadChildren:false);
+                graphRead.IsError.Should().BeFalse(graphRead.Message);
+                graphRead.Result.Should().NotBeNull("each graph node must be stored independently");
+                graphRead.Result.ParentHolonId.Should().Be(graphNode.ParentHolonId);
+            }
             var generatedImportHolons = new IHolon[] { new Holon { Name = "owned-generated-import-one" }, new Holon { Name = "owned-generated-import-two" } };
+            var cyclicMongoRoot = new Holon { Id = Guid.NewGuid(), Name = "owned-invalid-cycle" };
+            cyclicMongoRoot.Children = new List<IHolon> { cyclicMongoRoot };
+            var cyclicSave = synchronous ? mongo.SaveHolon(cyclicMongoRoot,saveChildren:true,saveChildrenOnProvider:true)
+                : await mongo.SaveHolonAsync(cyclicMongoRoot,saveChildren:true,saveChildrenOnProvider:true);
+            cyclicSave.IsError.Should().BeTrue();
+            cyclicSave.ErrorCode.Should().Be("HYPERDRIVE_PAYLOAD_INVALID");
+            cyclicSave.Exception.Should().BeOfType<ArgumentException>();
+            var cyclicImport = synchronous ? mongo.Import(new[] { cyclicMongoRoot }) : await mongo.ImportAsync(new[] { cyclicMongoRoot });
+            cyclicImport.IsError.Should().BeTrue();
+            cyclicImport.ErrorCode.Should().Be("HYPERDRIVE_PAYLOAD_INVALID");
+            cyclicImport.Exception.Should().BeOfType<ArgumentException>();
+            (await mongo.LoadHolonAsync(cyclicMongoRoot.Id,loadChildren:false)).Result.Should().BeNull();
+            foreach (var nonrecursive in new[] { false, true })
+            {
+                var boundedRoot = new Holon { Id = Guid.NewGuid(), Name = "owned-bounded-root" };
+                var boundedChild = new Holon { Id = Guid.NewGuid(), Name = "owned-bounded-child", ParentHolonId = boundedRoot.Id };
+                var excludedGrandchild = new Holon { Id = Guid.NewGuid(), Name = "owned-excluded-grandchild", ParentHolonId = boundedChild.Id };
+                boundedRoot.Children = new List<IHolon> { boundedChild };
+                boundedChild.Children = new List<IHolon> { excludedGrandchild };
+                var boundedRequest = new StorageOperationRequest { Operation = "SaveHolon", Payload = boundedRoot,
+                    PreferredProvider = request.PreferredProvider, SaveChildren = true, Recursive = !nonrecursive,
+                    MaxChildDepth = nonrecursive ? 0 : 1, ChildrenFromProvider = true };
+                var boundedSave = synchronous ? router.RouteRequest<IHolon>(boundedRequest) : await router.RouteRequestAsync<IHolon>(boundedRequest);
+                boundedSave.IsError.Should().BeFalse(boundedSave.Message);
+                boundedSave.IsWarning.Should().BeFalse(boundedSave.Message);
+                foreach (var boundedStore in new IOASISStorageProvider[] { mongo, sqlite })
+                {
+                    (await boundedStore.LoadHolonAsync(boundedChild.Id,loadChildren:false)).Result.Should().NotBeNull();
+                    (await boundedStore.LoadHolonAsync(excludedGrandchild.Id,loadChildren:false)).Result.Should().BeNull();
+                }
+            }
             var enumerationCount = 0;
             IEnumerable<IHolon> SingleEnumerationImport()
             {

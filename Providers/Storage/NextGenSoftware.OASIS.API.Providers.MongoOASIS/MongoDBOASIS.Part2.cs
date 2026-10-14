@@ -325,6 +325,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
+            var graphError = ValidateMongoChildGraph(holon);
+            if (graphError != null) return graphError;
             // Holon.Id is the public, provider-independent OASIS identity. MongoDB's ObjectId is
             // intentionally private and therefore is not present in REST, JavaScript/NPM, Unity,
             // or native update payloads. Resolve the operation from the persisted public identity
@@ -341,7 +343,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             if (!result.IsError && result.Result != null && saveChildren && saveChildrenOnProvider && result.Result.Children != null && result.Result.Children.Count() > 0)
             {
-                OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(result.Result.Children);
+                OASISResult<IEnumerable<IHolon>> saveChildrenResult = await SaveHolonsAsync(result.Result.Children, true, recursive, maxChildDepth, 1, continueOnError, saveChildrenOnProvider);
 
                 if (!saveChildrenResult.IsError && saveChildrenResult.Result != null)
                     result.Result.Children = saveChildrenResult.Result.ToList();
@@ -357,6 +359,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
+            var graphError = ValidateMongoChildGraph(holon);
+            if (graphError != null) return graphError;
             var mongoHolon = DataHelper.ConvertOASISHolonToMongoEntity(holon);
             var persistedHolon = _holonRepository.GetHolon(mongoHolon.HolonId);
             PreserveCreationAuditFields(mongoHolon, persistedHolon);
@@ -367,7 +371,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
             if (!result.IsError && result.Result != null && saveChildren && result.Result.Children != null && result.Result.Children.Count() > 0)
             {
-                OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(result.Result.Children);
+                OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(result.Result.Children, true, recursive, maxChildDepth, 1, continueOnError, saveChildrenOnProvider);
 
                 if (!saveChildrenResult.IsError && saveChildrenResult.Result != null)
                     result.Result.Children = saveChildrenResult.Result.ToList();
@@ -379,6 +383,31 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             }
 
             return result;
+        }
+
+        private static OASISResult<IHolon> ValidateMongoChildGraph(IHolon root)
+        {
+            var pending = new Stack<IHolon>();
+            var visited = new HashSet<IHolon>(new HolonReferenceComparer());
+            var identities = new HashSet<Guid>();
+            pending.Push(root);
+            while (pending.Count != 0)
+            {
+                var node = pending.Pop();
+                if (node == null || !visited.Add(node) || (node.Id != Guid.Empty && !identities.Add(node.Id)))
+                {
+                    var cause = new ArgumentException("Holon graph contains null, cyclic or repeated child identities.");
+                    return new OASISResult<IHolon> { IsError = true, ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID", Exception = cause, Message = cause.Message };
+                }
+                foreach (var child in node.Children ?? Enumerable.Empty<IHolon>()) pending.Push(child);
+            }
+            return null;
+        }
+
+        private sealed class HolonReferenceComparer : IEqualityComparer<IHolon>
+        {
+            public bool Equals(IHolon left, IHolon right) => ReferenceEquals(left, right);
+            public int GetHashCode(IHolon value) => System.Runtime.CompilerServices.RuntimeHelpers.GetHashCode(value);
         }
 
         private static void PreserveCreationAuditFields(Holon holon, Holon persistedHolon)
