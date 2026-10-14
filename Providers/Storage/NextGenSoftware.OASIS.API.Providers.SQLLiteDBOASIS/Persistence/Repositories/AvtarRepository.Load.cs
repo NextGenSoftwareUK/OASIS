@@ -180,10 +180,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var avatarEntities = _dbContext.Avatars
-                    .ToList()
-                    .Select(GetAvatarFromEntity)
-                    .FirstOrDefault(p => p.Username == username && p.Password == password && (version == 0 || p.Version == version));
+                var row = ReadUniqueAvatar(_dbContext.Avatars.Where(p => p.Username == username && p.Password == password && (version == 0 || p.Version == version)));
+                var avatarEntities = row == null ? null : GetAvatarFromEntity(row);
                 return new OASISResult<IAvatar>
                 {
                     IsLoaded = avatarEntities != null,
@@ -209,11 +207,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var avatarEntities =
-                    _dbContext.Avatars
-                        .ToList()
-                        .Select(GetAvatarFromEntity)
-                    .FirstOrDefault(p => p.Username == username && (version == 0 || p.Version == version));
+                var row = ReadUniqueAvatar(_dbContext.Avatars.Where(p => p.Username == username && (version == 0 || p.Version == version)));
+                var avatarEntities = row == null ? null : GetAvatarFromEntity(row);
                 return new OASISResult<IAvatar>
                 {
                     IsLoaded = avatarEntities != null,
@@ -239,7 +234,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var row = await _dbContext.Avatars.FirstOrDefaultAsync(p => p.Username == username && p.Password == password && (version == 0 || p.Version == version));
+                var row = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(p => p.Username == username && p.Password == password && (version == 0 || p.Version == version)));
                 var avatarEntity = row == null ? null : GetAvatarFromEntity(row);
                 if (avatarEntity == null)
                     return new OASISResult<IAvatar>

@@ -1268,6 +1268,39 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         }
     }
 
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task GenericUsernameAndCredentialSelectorsRejectAmbiguity(bool synchronous)
+    {
+        using var provider = new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        foreach (var version in new[] { 3, 4 })
+            (await provider.SaveAvatarAsync(new Avatar { Id = Guid.NewGuid(), Version = version, Username = "duplicate-owned-login",
+                Email = version + "@login.invalid", Password = "owned-fixture-password",
+                AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) })).IsError.Should().BeFalse();
+        using var context = new DataContext(TestConnectionString);
+        var repository = new AvatarRepository(context);
+        foreach (var result in new[] {
+            synchronous ? repository.LoadAvatar("duplicate-owned-login") : await repository.LoadAvatarAsync("duplicate-owned-login"),
+            synchronous ? repository.LoadAvatar("duplicate-owned-login","owned-fixture-password") : await repository.LoadAvatarAsync("duplicate-owned-login","owned-fixture-password")
+        }) {
+            result.IsError.Should().BeTrue();
+            result.Result.Should().BeNull();
+            result.ErrorCode.Should().Be(OASISResultErrorCodes.AmbiguousIdentity);
+            result.Exception.Should().BeOfType<StorageIdentityAmbiguousException>();
+        }
+        var valid = synchronous ? repository.LoadAvatar("duplicate-owned-login","owned-fixture-password",3)
+            : await repository.LoadAvatarAsync("duplicate-owned-login","owned-fixture-password",3);
+        valid.IsError.Should().BeFalse(valid.Message);
+        valid.Result.Version.Should().Be(3);
+        var wrong = synchronous ? repository.LoadAvatar("duplicate-owned-login","wrong-owned-password")
+            : await repository.LoadAvatarAsync("duplicate-owned-login","wrong-owned-password");
+        wrong.IsError.Should().BeFalse();
+        wrong.Result.Should().BeNull();
+        wrong.IsLoaded.Should().BeFalse();
+    }
+
     [Fact]
     public async Task GenericAsyncUsernameLoaderFiltersBeforeMapping()
     {
