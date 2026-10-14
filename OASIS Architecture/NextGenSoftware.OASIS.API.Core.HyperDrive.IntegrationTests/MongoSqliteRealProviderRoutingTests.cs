@@ -77,6 +77,16 @@ public sealed class MongoSqliteRealProviderRoutingTests
             var invalidImportResult = synchronous ? invalidRouter.RouteRequest<bool>(invalidImport) : await invalidRouter.RouteRequestAsync<bool>(invalidImport);
             invalidImportResult.IsError.Should().BeTrue();
             invalidImportResult.ErrorCode.Should().Be("HYPERDRIVE_PAYLOAD_INVALID");
+            var duplicatePayloadId = Guid.NewGuid();
+            invalidImport.Payload = new IHolon[] { new Holon { Id = duplicatePayloadId }, new Holon { Id = duplicatePayloadId } };
+            var invalidDuplicateResult = synchronous ? invalidRouter.RouteRequest<bool>(invalidImport) : await invalidRouter.RouteRequestAsync<bool>(invalidImport);
+            invalidDuplicateResult.IsError.Should().BeTrue();
+            invalidDuplicateResult.ErrorCode.Should().Be("HYPERDRIVE_PAYLOAD_INVALID");
+            invalidDuplicateResult.Exception.Should().BeOfType<ArgumentException>();
+            var explicitInvalidImport = await invalidRouter.FailoverRequestAsync<bool>(invalidImport);
+            explicitInvalidImport.IsError.Should().BeTrue();
+            explicitInvalidImport.ErrorCode.Should().Be("HYPERDRIVE_PAYLOAD_INVALID");
+            (invalidPayloadManager.PerformanceMonitor.GetMetrics(request.PreferredProvider)?.TotalRequests ?? 0).Should().Be(0);
             (invalidPayloadManager.PerformanceMonitor.GetMetrics(invalidProviders[1].Value)?.TotalRequests ?? 0).Should().Be(0);
             var result = synchronous ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
             result.IsError.Should().BeFalse(result.Message);
@@ -84,6 +94,22 @@ public sealed class MongoSqliteRealProviderRoutingTests
             (await mongo.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Name.Should().Be(holon.Name);
             (await sqlite.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Name.Should().Be(holon.Name);
             manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            var generatedImportHolons = new IHolon[] { new Holon { Name = "owned-generated-import-one" }, new Holon { Name = "owned-generated-import-two" } };
+            var enumerationCount = 0;
+            IEnumerable<IHolon> SingleEnumerationImport()
+            {
+                if (++enumerationCount != 1) throw new InvalidOperationException("Import source was enumerated twice.");
+                foreach (var generatedHolon in generatedImportHolons) yield return generatedHolon;
+            }
+            var generatedImportRequest = new StorageOperationRequest { Operation = "Import", Payload = SingleEnumerationImport(), PreferredProvider = request.PreferredProvider };
+            var generatedImportResult = synchronous ? router.RouteRequest<bool>(generatedImportRequest) : await router.RouteRequestAsync<bool>(generatedImportRequest);
+            generatedImportResult.IsError.Should().BeFalse(generatedImportResult.Message);
+            generatedImportResult.IsWarning.Should().BeFalse(generatedImportResult.Message);
+            enumerationCount.Should().Be(1);
+            generatedImportHolons.Select(item => item.Id).Should().OnlyHaveUniqueItems().And.NotContain(Guid.Empty);
+            foreach (var generatedHolon in generatedImportHolons)
+            foreach (var generatedRead in new[] { await mongo.LoadHolonAsync(generatedHolon.Id,loadChildren:false), await sqlite.LoadHolonAsync(generatedHolon.Id,loadChildren:false) })
+                generatedRead.Result.Name.Should().Be(generatedHolon.Name);
             var importedHolons = new IHolon[] {
                 new Holon { Id = Guid.NewGuid(), Name = "owned-v2-import-one" },
                 new Holon { Id = Guid.NewGuid(), Name = "owned-v2-import-two" }
