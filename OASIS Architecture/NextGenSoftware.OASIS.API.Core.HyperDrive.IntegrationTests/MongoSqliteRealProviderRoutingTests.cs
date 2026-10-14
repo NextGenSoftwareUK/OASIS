@@ -388,6 +388,35 @@ public sealed class MongoSqliteRealProviderRoutingTests
             failManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
             failManager.SetAndActivateCurrentStorageProvider(failureMongo).IsError.Should().BeFalse();
             var admin = client.GetDatabase("admin");
+            var searchProbe = new Holon { Id = Guid.NewGuid(), Name = "owned-search-failure-probe" };
+            var saveSearchProbe = new StorageOperationRequest { Operation = "SaveHolon", Payload = searchProbe, SaveChildren = false,
+                PreferredProvider = request.PreferredProvider };
+            var probeSaved = synchronous ? router.RouteRequest<IHolon>(saveSearchProbe) : await router.RouteRequestAsync<IHolon>(saveSearchProbe);
+            probeSaved.IsError.Should().BeFalse(probeSaved.Message);
+            probeSaved.IsWarning.Should().BeFalse();
+            failManager.SetAndActivateCurrentStorageProvider(failureMongo).IsError.Should().BeFalse();
+            try
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                    { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("times",1) },
+                    { "data", new BsonDocument { { "failCommands", new BsonArray { "aggregate" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                });
+                var searchFailureRequest = new StorageOperationRequest { Operation = "Search", LoadChildren = false,
+                    PreferredProvider = ProviderType.MongoDBOASIS, SearchParams = new SearchParams { SearchOnlyForCurrentAvatar = false,
+                        SearchGroups = new() { new SearchTextGroup { SearchQuery = searchProbe.Name, SearchHolons = true,
+                            HolonType = searchProbe.HolonType, HolonSearchParams = new SearchHolonParams { Name = true } } } } };
+                var searchFailureRouter = new OASISHyperDrive(failManager);
+                var recoveredSearch = synchronous ? searchFailureRouter.RouteRequest<ISearchResults>(searchFailureRequest)
+                    : await searchFailureRouter.RouteRequestAsync<ISearchResults>(searchFailureRequest);
+                recoveredSearch.IsError.Should().BeFalse(recoveredSearch.Message);
+                recoveredSearch.Result.SearchResultHolons.Select(h => h.Id).Should().Equal(searchProbe.Id);
+                failManager.LastFailoverDiagnostic.Should().NotBeNull("the Mongo command must fail before SQLite is selected");
+                failManager.LastFailoverDiagnostic.SelectedProvider.Should().Be(ProviderType.SQLLiteDBOASIS);
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+            }
             foreach (var rejectDetailUpdate in new[] { false, true })
             {
                 try
