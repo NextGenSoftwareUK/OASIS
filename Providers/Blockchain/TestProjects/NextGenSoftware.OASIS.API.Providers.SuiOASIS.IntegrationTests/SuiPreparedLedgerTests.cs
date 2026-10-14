@@ -143,7 +143,8 @@ public class SuiPreparedLedgerTests
         using var deployment=JsonDocument.Parse(File.ReadAllText(Environment.GetEnvironmentVariable("OASIS_SUI_TEST_DEPLOYMENT")??throw new InvalidOperationException("Retained deployment required.")));
         var settings=deployment.RootElement;
         using var provider=new SuiOASIS(rpc,"localnet",settings.GetProperty("chainId").GetString()!,settings.GetProperty("packageAddress").GetString()!,
-            settings.GetProperty("privateKey").GetString()!,settings.GetProperty("storageObjectId").GetString()!);
+            settings.GetProperty("privateKey").GetString()!,settings.GetProperty("storageObjectId").GetString()!,
+            storageEncryptionKeyResolver:()=>System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes("oasis-sui-prepared-storage-fixture-v1")));
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var result=await provider.GetNativeFeeReceiptAsync(hash,deadline.Token);Assert.IsFalse(result.IsError,result.Message);
         var receipt=result.Result;Assert.AreEqual(hash,receipt.GetProperty("transactionHash").GetString());Assert.IsTrue(receipt.GetProperty("success").GetBoolean());
@@ -206,7 +207,8 @@ public class SuiPreparedLedgerTests
         using var deployment=JsonDocument.Parse(File.ReadAllText(Environment.GetEnvironmentVariable("OASIS_SUI_TEST_DEPLOYMENT")??throw new InvalidOperationException("Retained deployment required.")));
         var settings=deployment.RootElement;
         using var provider=new SuiOASIS(rpc,"localnet",settings.GetProperty("chainId").GetString()!,settings.GetProperty("packageAddress").GetString()!,
-            settings.GetProperty("privateKey").GetString()!,settings.GetProperty("storageObjectId").GetString()!);
+            settings.GetProperty("privateKey").GetString()!,settings.GetProperty("storageObjectId").GetString()!,
+            storageEncryptionKeyResolver:()=>System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes("oasis-sui-prepared-storage-fixture-v1")));
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"),
             "Use the retained owned test service; never fall back to the user's Mongo instance.");
@@ -214,6 +216,7 @@ public class SuiPreparedLedgerTests
         var mongo=new MongoDB.Driver.MongoClient(connection);
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(90));
         var key="oasis/prepared-test/"+Guid.NewGuid().ToString("N");
+        var privateHolonId=Guid.NewGuid();
         var directory=new DirectoryInfo(AppContext.BaseDirectory);
         while(directory!=null&&!File.Exists(Path.Combine(directory.FullName,"Scripts/TestHosts/start-sui-test-network.sh")))directory=directory.Parent;
         Assert.IsNotNull(directory,"Existing task repository required.");
@@ -241,7 +244,7 @@ public class SuiPreparedLedgerTests
                 },execution,correlation,
                     settings.GetProperty("address").GetString()!,deadline.Token)
                 : provider.ExecutePreparedNativeAsync(operation,args,execution,correlation,settings.GetProperty("chainId").GetString()!,settings.GetProperty("address").GetString()!,deadline.Token);
-            await JsonSerializer.SerializeAsync(journalFile,new{database,key,storageScope,operationId=execution.OperationId,chainId=settings.GetProperty("chainId").GetString(),
+            await JsonSerializer.SerializeAsync(journalFile,new{database,key,storageScope,privateHolonId,encryptionKeyLabel="oasis-sui-prepared-storage-fixture-v1",operationId=execution.OperationId,chainId=settings.GetProperty("chainId").GetString(),
                 recovery="Inspect original write and cleanup attempts in this retained Mongo outbox; never resubmit on unknown outcome."},cancellationToken:deadline.Token);
             journalFile.Flush(true);
             string hash;
@@ -290,6 +293,22 @@ public class SuiPreparedLedgerTests
             var cleanupHash=cleanup.GetProperty("transactionHash").GetString()!;
             var cleaned=await store.GetAsync(execution.OperationId,deadline.Token);Assert.AreEqual(expectedWrites+1,cleaned.ProviderAttempts.Count);
             Assert.AreEqual(cleanupHash,cleaned.ProviderAttempts[expectedWrites].ProviderRequestId);
+            if(storageScope&&!loseConfirmedReply){
+                var holon=new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=privateHolonId,Name="owned encrypted prepared holon"};
+                var saved=await provider.ExecutePreparedStorageAsync(()=>provider.SaveHolonAsync(holon),execution,"private-save",
+                    settings.GetProperty("address").GetString()!,deadline.Token);
+                Assert.IsFalse(saved.IsError,saved.Message);
+                var persisted=await store.GetAsync(execution.OperationId,deadline.Token);
+                Assert.IsTrue(persisted.ProviderAttempts.Count>cleaned.ProviderAttempts.Count,"Encrypted public save must persist physical write attempts.");
+                var read=await provider.LoadHolonAsync(privateHolonId,loadChildren:false);
+                Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(holon.Name,read.Result.Name);
+                var removed=await provider.ExecutePreparedStorageAsync(()=>provider.DeleteHolonAsync(privateHolonId),execution,"private-delete",
+                    settings.GetProperty("address").GetString()!,deadline.Token);
+                Assert.IsFalse(removed.IsError,removed.Message);
+                var missing=await provider.LoadHolonAsync(privateHolonId,loadChildren:false);Assert.IsNull(missing.Result);
+                cleaned=await store.GetAsync(execution.OperationId,deadline.Token);
+                Assert.IsTrue(cleaned.ProviderAttempts.Count>persisted.ProviderAttempts.Count,"Public delete must also be prepared.");
+            }
             foreach(var physicalAttempt in cleaned.ProviderAttempts){
                 var physicalFee=await provider.GetPreparedNativeFeeReceiptAsync(physicalAttempt,deadline.Token);
                 Assert.IsFalse(physicalFee.IsError,physicalFee.Message);
