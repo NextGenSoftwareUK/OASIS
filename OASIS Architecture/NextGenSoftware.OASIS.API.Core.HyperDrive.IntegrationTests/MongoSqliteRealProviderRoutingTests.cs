@@ -1009,9 +1009,10 @@ public sealed class MongoSqliteRealProviderRoutingTests
                     else control.Database.ExecuteSqlRaw("CREATE TRIGGER reject_owned_v2_detail BEFORE DELETE ON AvatarDetail BEGIN SELECT RAISE(ABORT, 'owned V2 detail rejection'); END;");
                     try
                     {
-                        var reverseManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true };
+                        var reverseManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true, IsAutoReplicationEnabled = true };
                         reverseManager.RegisterProvider(sqlite);
                         reverseManager.RegisterProvider(mongo);
+                        reverseManager.SetAndReplaceAutoReplicationListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS), new EnumValue<ProviderType>(ProviderType.MongoDBOASIS) }).IsError.Should().BeFalse();
                         reverseManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS), new EnumValue<ProviderType>(ProviderType.MongoDBOASIS) }).IsError.Should().BeFalse();
                         var reverseRequest = new StorageOperationRequest { Operation = "DeleteAvatarDetail", AvatarId = sqliteFailoverDetail.Id,
                             SoftDelete = softDelete, PreferredProvider = ProviderType.SQLLiteDBOASIS };
@@ -1019,6 +1020,11 @@ public sealed class MongoSqliteRealProviderRoutingTests
                         var recovered = synchronous ? reverseRouter.RouteRequest<bool>(reverseRequest) : await reverseRouter.RouteRequestAsync<bool>(reverseRequest);
                         recovered.IsError.Should().BeFalse(recovered.Message);
                         recovered.Result.Should().BeTrue();
+                        recovered.IsWarning.Should().BeTrue();
+                        reverseManager.LastReplicationDiagnostic.FailedCount.Should().Be(1);
+                        reverseManager.LastReplicationDiagnostic.SucceededCount.Should().Be(0);
+                        reverseManager.PerformanceMonitor.GetMetrics(ProviderType.MongoDBOASIS).TotalRequests.Should().Be(1);
+                        reverseManager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests.Should().Be(2);
                         reverseManager.LastFailoverDiagnostic.SelectedProvider.Should().Be(ProviderType.MongoDBOASIS);
                         var retained = (await sqlite.LoadAvatarDetailAsync(sqliteFailoverDetail.Id)).Result;
                         retained.DeletedDate.Should().Be(DateTime.MinValue);
@@ -1031,9 +1037,10 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 }
                 try
                 {
-                    var detailCommitManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true };
+                    var detailCommitManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true, IsAutoReplicationEnabled = true };
                     detailCommitManager.RegisterProvider(failureMongo);
                     detailCommitManager.RegisterProvider(sqlite);
+                    detailCommitManager.SetAndReplaceAutoReplicationListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
                     detailCommitManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
                     await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
                         { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("times",1) },
