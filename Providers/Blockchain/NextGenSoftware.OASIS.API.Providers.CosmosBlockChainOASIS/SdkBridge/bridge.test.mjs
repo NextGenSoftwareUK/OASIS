@@ -93,7 +93,8 @@ test("raw signing keys recover exact official SDK identity with the requested pr
 const bridge = fileURLToPath(new URL("bridge.mjs", import.meta.url));
 function invoke(request) {
   const process = spawnSync(globalThis.process.execPath, [bridge], {
-    input: JSON.stringify(request), encoding: "utf8", timeout: 10000,
+    // Match CosmosSdkBackend's two-minute process deadline, including SDK startup.
+    input: JSON.stringify(request), encoding: "utf8", timeout: 120000,
   });
   assert.ifError(process.error);
   return { status: process.status, ...JSON.parse(process.stdout) };
