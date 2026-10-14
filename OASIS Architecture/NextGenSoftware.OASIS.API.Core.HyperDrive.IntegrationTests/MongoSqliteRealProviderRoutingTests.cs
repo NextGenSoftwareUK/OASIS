@@ -71,6 +71,22 @@ public sealed class MongoSqliteRealProviderRoutingTests
             (await mongo.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Name.Should().Be(holon.Name);
             (await sqlite.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Name.Should().Be(holon.Name);
             manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            // Seed the real engine's recommendation without fabricating a prediction model score.
+            // The real stores below prove routing/replication, not WEB4 endpoint prediction generation.
+            var engine = PredictiveFailoverEngine.ForProviderManager(manager);
+            var redirect = typeof(PredictiveFailoverEngine).GetMethod("ExecutePreventiveFailoverAsync",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!;
+            var selected = request.PreferredProvider;
+            var alternative = mongoPrimary ? ProviderType.SQLLiteDBOASIS : ProviderType.MongoDBOASIS;
+            await (Task)redirect.Invoke(engine, new object[] { selected, alternative })!;
+            holon.Name = "predictive-replicated";
+            var redirected = synchronous ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
+            redirected.IsError.Should().BeFalse(redirected.Message);
+            redirected.IsWarning.Should().BeFalse(redirected.Message);
+            manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            foreach (var predictiveRead in new[] { await mongo.LoadHolonAsync(holon.Id,loadChildren:false), await sqlite.LoadHolonAsync(holon.Id,loadChildren:false) })
+                predictiveRead.Result.Name.Should().Be("predictive-replicated");
+            engine.ClearFailoverOverride(selected);
             holon.Name = "priority-updated";
             holon.Version = 3;
             holon.MetaData["Email"] = "priority@test.local";
