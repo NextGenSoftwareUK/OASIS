@@ -3,6 +3,7 @@ param(
     [Parameter(Mandatory)][string]$PlanPath,
     [Parameter(Mandatory)][string]$PackageDirectory,
     [switch]$Publish,
+    [switch]$ValidateProvenance,
     [string]$ReportPath = '',
     [string]$NuGetApiKey = $env:NUGET_API_KEY
 )
@@ -57,7 +58,7 @@ try {
             if ($actualId -ne $planned.packageId -or $actualVersion -ne $planned.version) {
                 throw "Package manifest does not match reviewed identity: $name"
             }
-            if ($Publish) {
+            if ($Publish -or $ValidateProvenance) {
                 $repository = $metadata.SelectSingleNode("*[local-name()='repository']")
                 if (-not $repository -or $repository.GetAttribute('commit') -ne $plan.sourceCommit -or
                     $repository.GetAttribute('url').TrimEnd('/') -ne 'https://github.com/NextGenSoftwareUK/OASIS') {
