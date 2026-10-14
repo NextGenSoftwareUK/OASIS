@@ -255,14 +255,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
         }
 
         [Fact]
-        public async Task TogglePayAsYouGo_Enable_RejectsUnconfiguredPaidOverages()
+        public async Task TogglePayAsYouGo_Enable_RequiresExplicitPriceConsentAndCap()
         {
             var userId = Guid.NewGuid();
             SetAuthenticatedUser(userId);
             var result = await _ctrl.TogglePayAsYouGo(new SubscriptionController.TogglePayAsYouGoRequest { Enabled = true }) as ObjectResult;
 
             result.Should().NotBeNull();
-            result!.StatusCode.Should().Be(501);
+            result!.StatusCode.Should().Be(400);
             _svc.VerifyNoOtherCalls();
         }
 
@@ -463,6 +463,29 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.UnitTests.Subscription
             _svc.Setup(s=>s.GetSubscriptionAsync(user.ToString())).ReturnsAsync(new SubscriptionRecord {StripeCustomerId="cus_owned"});
             (await _ctrl.CreateBillingPortal(new() {ReturnUrl=url})).Should().BeOfType<BadRequestObjectResult>();
             _portal.VerifyNoOtherCalls();
+        }
+        [Fact]
+        public async Task PaidOverageConsentUsesOnlyTheOwnedVerifiedBillingAccount()
+        {
+            var user=Guid.NewGuid();SetAuthenticatedUser(user);
+            var record=new SubscriptionRecord{UserId=user.ToString(),PlanId="silver",Status="active",StripeCustomerId="cus_owned",StripeSubscriptionId="sub_owned"};
+            _svc.Setup(s=>s.GetSubscriptionAsync(user.ToString())).ReturnsAsync(record);
+            var billing=new Mock<ISubscriptionBillingRepository>();var gateway=new Mock<IPaidOverageGateway>();
+            gateway.Setup(g=>g.VerifyPaymentReadyAsync(record,It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+            var controller=new SubscriptionController(_cfg,_svc.Object,billingRepository:billing.Object,overageGateway:gateway.Object){ControllerContext=_ctrl.ControllerContext};
+            var pricing=PaidOveragePricing.Load();
+            (await controller.TogglePayAsYouGo(new(){Enabled=true,PricingVersion=pricing.Version,PricingSha256=pricing.PricingSha256,MonthlyLimitUsd=50})).Should().BeOfType<OkObjectResult>();
+            gateway.Verify(g=>g.VerifyPaymentReadyAsync(record,It.IsAny<CancellationToken>()),Times.Once);
+            billing.Verify(b=>b.SetPaidOverageConsentAsync(user.ToString(),"sub_owned",pricing.Version,50,It.IsAny<CancellationToken>()),Times.Once);
+        }
+        [Fact]
+        public async Task PaidOverageConsentRejectsChangedPricesBeforePaymentOrStorage()
+        {
+            SetAuthenticatedUser(Guid.NewGuid());
+            var billing=new Mock<ISubscriptionBillingRepository>();var gateway=new Mock<IPaidOverageGateway>();
+            var controller=new SubscriptionController(_cfg,_svc.Object,billingRepository:billing.Object,overageGateway:gateway.Object){ControllerContext=_ctrl.ControllerContext};
+            (await controller.TogglePayAsYouGo(new(){Enabled=true,PricingVersion="old",PricingSha256="old",MonthlyLimitUsd=50})).Should().BeOfType<ConflictObjectResult>();
+            billing.VerifyNoOtherCalls();gateway.VerifyNoOtherCalls();_svc.VerifyNoOtherCalls();
         }
         private void SetAuthenticatedUser(Guid userId)
         {

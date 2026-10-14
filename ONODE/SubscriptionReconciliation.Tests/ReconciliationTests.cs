@@ -57,6 +57,21 @@ public sealed class ReconciliationTests
         }));
 
     [Fact]
+    public void OverageEvidenceUsesCustomerChargesAndTheExactLedgerScope()
+    {
+        using var json=JsonDocument.Parse(JsonSerializer.Serialize(new {id="in_overage",status="paid",currency="usd",customer="cus_test",subtotal=123,
+            metadata=new{oasis_avatar_id=Avatar,oasis_usage_month="2026-09",oasis_usage_cost_basis=StripeUsageEvidenceReader.PaidOverageCostBasis,oasis_ledger_scope="ledger-test"}}));
+        var receipt=StripeUsageEvidenceReader.ParseFinalizedInvoice(json.RootElement,"cus_test",Avatar,"2026-09","worker","ledger-test");
+        Assert.Equal(1.23m,receipt.AmountUsd);Assert.Equal(StripeUsageEvidenceReader.PaidOverageCostBasis,receipt.BillingCostBasis);
+        Assert.Throws<InvalidOperationException>(()=>StripeUsageEvidenceReader.ParseFinalizedInvoice(json.RootElement,"cus_test",Avatar,"2026-09","worker","different-ledger"));
+    }
+    [Fact]
+    public void SignedOverageCreditEvidenceMayBeNegativeWithoutPermittingNegativeProviderReceipts()
+    {
+        var receipt=new UsageExternalReceipt {Source="stripe",BillingCostBasis=StripeUsageEvidenceReader.PaidOverageCostBasis,ExternalId="in_credit",UserId=Avatar,Month="2026-09",AmountUsd=-.1m,EvidenceSha256=new string('a',64),Actor="test"};
+        receipt.Validate();receipt.BillingCostBasis=StripeUsageEvidenceReader.CostBasis;Assert.Throws<ArgumentException>(receipt.Validate);
+    }
+    [Fact]
     public void StripePaymentStatusDoesNotChangeImmutableAccountingEvidence()
     {
         using var open = Invoice("open"); using var paid = Invoice();

@@ -13,6 +13,7 @@ public sealed class UsageExternalReceipt
 {
     [BsonId] public string Id { get; set; }
     public string Source { get; set; } // provider or stripe
+    public string BillingCostBasis { get; set; } = "ledger-cost-usd-v1";
     public string UserId { get; set; }
     public string Month { get; set; }
     public string OperationId { get; set; }
@@ -29,7 +30,7 @@ public sealed class UsageExternalReceipt
     {
         if (!Guid.TryParseExact(UserId, "D", out _) || !UsageReconciliationMath.IsMonth(Month))
             throw new ArgumentException("A canonical avatar UUID and UTC yyyy-MM month are required.");
-        if (Source is not ("provider" or "stripe") || AmountUsd < 0 || string.IsNullOrWhiteSpace(ExternalId) || ExternalId.Length > 200)
+        if (Source is not ("provider" or "stripe") || (AmountUsd < 0 && !(Source=="stripe" && BillingCostBasis=="overage_charge_usd_v1")) || string.IsNullOrWhiteSpace(ExternalId) || ExternalId.Length > 200)
             throw new ArgumentException("Receipt source, non-negative USD amount and external identifier are required.");
         if (Source == "provider" && (!Guid.TryParseExact(OperationId, "D", out _) ||
             ConsumingService is not ("WEB5" or "WEB6" or "WEB7" or "WEB8" or "WEB9" or "WEB10") ||
@@ -65,11 +66,12 @@ public sealed class UsageReconciliationReport
     public bool Balanced => !ActionRequired && !AwaitingPeriodClose && ProviderEvidenceComplete && StripeEvidenceComplete && UnsettledOperations == 0;
 }
 
-public readonly record struct UsageLedgerTotals(long Requests, long ReservedUnits, long SettledUnits, decimal ReservedCostUsd, decimal SettledCostUsd)
+public readonly record struct UsageLedgerTotals(long Requests, long ReservedUnits, long SettledUnits, decimal ReservedCostUsd, decimal SettledCostUsd, decimal ReservedOverageUsd=0, decimal SettledOverageUsd=0)
 {
     public static UsageLedgerTotals operator +(UsageLedgerTotals a, UsageLedgerTotals b) => new(
         checked(a.Requests + b.Requests), checked(a.ReservedUnits + b.ReservedUnits), checked(a.SettledUnits + b.SettledUnits),
-        checked(a.ReservedCostUsd + b.ReservedCostUsd), checked(a.SettledCostUsd + b.SettledCostUsd));
+        checked(a.ReservedCostUsd + b.ReservedCostUsd), checked(a.SettledCostUsd + b.SettledCostUsd),
+        checked(a.ReservedOverageUsd+b.ReservedOverageUsd),checked(a.SettledOverageUsd+b.SettledOverageUsd));
 }
 
 public static class UsageReconciliationMath
@@ -112,16 +114,18 @@ public static class UsageReconciliationMath
 
     public static UsageLedgerTotals ReadAudit(BsonDocument document) => new(
         document["RequestsDelta"].ToInt64(), document["ReservedUnitsDelta"].ToInt64(), document["SettledUnitsDelta"].ToInt64(),
-        document["ReservedCostDeltaUsd"].ToDecimal(), document["SettledCostDeltaUsd"].ToDecimal());
+        document["ReservedCostDeltaUsd"].ToDecimal(), document["SettledCostDeltaUsd"].ToDecimal(),
+        document.GetValue("ReservedOverageDeltaUsd",0).ToDecimal(),document.GetValue("SettledOverageDeltaUsd",0).ToDecimal());
 
     public static UsageLedgerTotals ReadBucket(BsonDocument document) => new(
         document["Requests"].ToInt64(), document["ReservedUnits"].ToInt64(), document["SettledUnits"].ToInt64(),
-        document["ReservedCostUsd"].ToDecimal(), document["SettledCostUsd"].ToDecimal());
+        document["ReservedCostUsd"].ToDecimal(), document["SettledCostUsd"].ToDecimal(),
+        document.GetValue("ReservedOverageUsd",0).ToDecimal(),document.GetValue("SettledOverageUsd",0).ToDecimal());
 
     // Receipt retries compare every accounting field. Server-assigned time/actor are excluded.
     public static bool SameReceipt(UsageExternalReceipt a, UsageExternalReceipt b) =>
         a.Id == b.Id && a.UserId == b.UserId && a.Month == b.Month && a.OperationId == b.OperationId &&
         a.ConsumingService == b.ConsumingService && a.ProviderRequestId == b.ProviderRequestId &&
         a.Provider == b.Provider && a.ExternalId == b.ExternalId && a.Source == b.Source &&
-        a.AmountUsd == b.AmountUsd && a.EvidenceSha256 == b.EvidenceSha256;
+        a.AmountUsd == b.AmountUsd && a.BillingCostBasis==b.BillingCostBasis && a.EvidenceSha256 == b.EvidenceSha256;
 }

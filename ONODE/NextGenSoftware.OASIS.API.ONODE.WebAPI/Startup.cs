@@ -405,10 +405,14 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddSingleton<Services.Subscription.ISubscriptionPlanPriceReader, Services.Subscription.StripeSubscriptionPlanPriceReader>();
             services.AddSingleton<Services.Subscription.SubscriptionPlanCatalogue>();
             services.AddSingleton<Services.Subscription.ISubscriptionBillingPortal, Services.Subscription.StripeSubscriptionBillingPortal>();
+            services.AddSingleton<Services.Subscription.IPaidOverageStatementStore>(provider => provider.GetRequiredService<Services.Subscription.MongoSubscriptionUsageRepository>());
+            services.AddSingleton<Services.Subscription.IPaidOverageGateway, Services.Subscription.StripePaidOverageGateway>();
+            services.AddSingleton<Services.Subscription.PaidOverageBillingService>();
             bool subscriptionUsageEnabled = string.Equals(Configuration["SUBSCRIPTION_USAGE_ENABLED"], "true", StringComparison.OrdinalIgnoreCase);
             if (subscriptionUsageEnabled)
             {
                 services.AddHostedService<Services.Subscription.SubscriptionUsageExpiryWorker>();
+                services.AddHostedService<Services.Subscription.PaidOverageBillingWorker>();
                 NextGenSoftware.OASIS.API.Core.Services.Subscriptions.SubscriptionTelemetryRegistration.AddSubscriptionUsageTelemetry(services, Configuration, "WEB4");
             }
             Services.SubscriptionReconciliation.UsageReconciliationRegistration.AddUsageReconciliation(services, subscriptionUsageEnabled);
