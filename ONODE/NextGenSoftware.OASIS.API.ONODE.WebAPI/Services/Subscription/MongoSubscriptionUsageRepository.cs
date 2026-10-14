@@ -103,7 +103,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 subscription.AuthorizationVersion = checked(subscription.AuthorizationVersion + 1);
                 await Subscriptions.ReplaceOneAsync(session, x => x.UserId == usageEvent.UserId, subscription, cancellationToken: ct);
                 var aggregate = await LoadAggregateAsync(session, usageEvent.UserId, usageEvent.AuthorizedAtUtc, ct);
-                if (subscription.PayAsYouGoEnabled && !subscription.OveragePaymentBlocked)
+                if (PaidOveragePricing.HasConsent(subscription) && !subscription.OveragePaymentBlocked)
                 {
                     var pricing = _overagePricing ?? PaidOveragePricing.Load();
                     if(subscription.PaidOverageTermsVersion != pricing.Version || subscription.PaidOverageTermsSha256 != pricing.PricingSha256 || !subscription.PaidOverageTermsAcceptedAtUtc.HasValue ||

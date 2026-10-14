@@ -37,7 +37,7 @@ public sealed class PaidOverageLedgerTests : IAsyncLifetime
         if(!_dbName.StartsWith("ovgt_",StringComparison.Ordinal) || _dbName.Length!=37)throw new InvalidOperationException("Refusing to delete an unexpected test database.");
         await _client.DropDatabaseAsync(_dbName);
     }
-    private Task Consent(decimal cap=2)=>_ledger.SetPaidOverageConsentAsync(_user,"sub_isolated_fixture",_pricing.Version,cap,default);
+    private Task Consent(decimal cap=2)=>_ledger.SetPaidOverageConsentAsync(_user,"sub_isolated_fixture",_pricing.Version,_pricing.PricingSha256,cap,default);
     private SubscriptionUsageEvent Reservation(decimal cost=0.1m)=>new(){OperationId=Guid.NewGuid().ToString("D"),UserId=_user,ConsumingService="WEB6",Endpoint="POST /isolated-billing-test",
         MeterCategory="ai.tokens",RequestedUnits=10,ReservedCostUsd=cost,RequestFingerprint=new string('a',64),Status="authorized",AuthorizedAtUtc=_clock.Now,ExpiresAtUtc=_clock.Now.AddMinutes(15)};
     private async Task<SubscriptionUsageEvent> Authorize(decimal cost=0.1m)=>(await _ledger.AuthorizeAsync(Reservation(cost),0,default)).Event;

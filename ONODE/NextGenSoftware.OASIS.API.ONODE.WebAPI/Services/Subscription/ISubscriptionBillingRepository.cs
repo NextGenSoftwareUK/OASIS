@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
         Task<SubscriptionRecord> FindSubscriptionAsync(string stripeId, bool customer, CancellationToken cancellationToken = default);
         Task SaveSubscriptionAsync(SubscriptionRecord record, CancellationToken cancellationToken = default);
         Task SetPayAsYouGoAsync(string userId, bool enabled, CancellationToken cancellationToken = default);
-        Task SetPaidOverageConsentAsync(string userId,string expectedSubscriptionId,string pricingVersion,decimal monthlyLimitUsd,CancellationToken cancellationToken=default);
+        Task SetPaidOverageConsentAsync(string userId,string expectedSubscriptionId,string pricingVersion,string pricingSha256,decimal monthlyLimitUsd,CancellationToken cancellationToken=default);
         Task<List<OrderRecord>> GetOrdersAsync(string userId, CancellationToken cancellationToken = default);
         Task AddOrderAsync(OrderRecord order, CancellationToken cancellationToken = default);
         Task<bool> ApplyStripeEventAsync(string eventId, string sourceFingerprint, string userId, DateTime eventCreatedAtUtc,
