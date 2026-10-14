@@ -219,6 +219,29 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 else loaded.Result.Id.Should().Be(avatar.Id);
                 manager.PerformanceMonitor.GetMetrics(tokenProvider).TotalRequests.Should().Be(beforeTokenRead + 1);
             }
+            const string rotatedRefreshToken = "priority-rotated-refresh-owned";
+            avatar.RefreshTokens = new List<RefreshToken> { new RefreshToken { Id = 7, Token = rotatedRefreshToken,
+                CreatedByIp = "127.0.0.2", Expires = new DateTime(2027, 1, 1, 0, 0, 0, DateTimeKind.Utc) } };
+            var rotatedSave = synchronous ? router.RouteRequest<IAvatar>(avatarRequest) : await router.RouteRequestAsync<IAvatar>(avatarRequest);
+            rotatedSave.IsError.Should().BeFalse(rotatedSave.Message);
+            rotatedSave.IsWarning.Should().BeFalse();
+            manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            foreach (var tokenProvider in new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS })
+            foreach (var token in new[] { collectionRefreshToken, rotatedRefreshToken })
+            {
+                var readRotated = new StorageOperationRequest { Operation = "LoadAvatarByRefreshToken", RefreshToken = token,
+                    PreferredProvider = tokenProvider, Version = 3 };
+                var loaded = synchronous ? router.RouteRequest<IAvatar>(readRotated) : await router.RouteRequestAsync<IAvatar>(readRotated);
+                loaded.IsError.Should().BeFalse(loaded.Message);
+                if (token == collectionRefreshToken) { loaded.IsLoaded.Should().BeFalse(); loaded.Result.Should().BeNull(); }
+                else {
+                    loaded.Result.Id.Should().Be(avatar.Id);
+                    loaded.Result.RefreshTokens.Should().ContainSingle();
+                    loaded.Result.RefreshTokens[0].Id.Should().Be(7);
+                    loaded.Result.RefreshTokens[0].Token.Should().Be(rotatedRefreshToken);
+                    loaded.Result.RefreshTokens[0].CreatedByIp.Should().Be("127.0.0.2");
+                }
+            }
             foreach (var searchProvider in new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS })
             {
                 var emailSearch = new StorageOperationRequest { Operation = "Search", LoadChildren = false, PreferredProvider = searchProvider,
