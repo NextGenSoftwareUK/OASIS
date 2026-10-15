@@ -478,10 +478,15 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             var result = new OASISResult<IHolon>();
             try
             {
+                ValidateGraphRead(maxChildDepth,0,version);
+                if(id==Guid.Empty) throw new ArgumentException("A nonempty holon identity is required.",nameof(id));
                 var resp = await _client.GetItemAsync(new GetItemRequest {TableName="OasisHolons",ConsistentRead=true,Key=new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } }});
                 if (resp.Item == null || !resp.Item.Any() || (resp.Item.TryGetValue("is_deleted", out var del) && del.BOOL)) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No holon for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
                 var holon = Des<Holon>(resp.Item["data_json"].S); if (holon == null) { OASISErrorHandling.HandleError(ref result, "DynamoDBOASIS: Deserialise failed."); return result; }
-                result.Result = holon; result.IsError = false; result.Message = "DynamoDBOASIS: Holon loaded.";
+                if(holon.Id!=id) throw new InvalidOperationException("Stored DynamoDB holon identity does not match its key.");
+                var records=loadChildren && loadChildrenFromProvider ? await ScanHolonsAsync():new List<IHolon> {holon};
+                result.Result = CreateGraphProjection(records,loadChildren,recursive,maxChildDepth,0,loadChildrenFromProvider)(holon);
+                result.IsLoaded=true;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
