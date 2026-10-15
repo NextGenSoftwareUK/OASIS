@@ -87,12 +87,10 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             return LoadAllAvatarDetailsAsync().Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
+        public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version=0)
         {
-            string json = "";
-            json = await LoadStringToJson(avatarDetailsFileAddress);
-            AvatarsDetailsList = (List<IAvatarDetail>) JsonConvert.DeserializeObject(json);
-            return new OASISResult<IEnumerable<IAvatarDetail>>(AvatarsDetailsList);
+            var records=await ReadIndexedCollectionAsync<AvatarDetail>("avatar-detail",entry=>true,version);
+            return new OASISResult<IEnumerable<IAvatarDetail>>(records) {IsLoaded=true};
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar)

@@ -285,67 +285,35 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         /*** Templates****/
 
-        public async Task<OASISResult<IAvatar>> LoadAvatarTemplateAsync(Func<HolonResume, bool> predicate)
+        public async Task<OASISResult<IAvatar>> LoadAvatarTemplateAsync(Func<HolonResume,bool> predicate)
         {
-            string json = "";
-            _idLookup = await LoadLookupToJson();
-
+            _idLookup=await LoadLookupToJson();
             var selected=FindIndexEntry("avatar",predicate);
-            string avatarAddress=selected.Key;
-
-            json = await LoadStringToJson(avatarAddress);
-            IAvatar avatar = JsonConvert.DeserializeObject<Avatar>(json);
-
-            return new OASISResult<IAvatar>(avatar);
+            var record=await ReadPrivateRecordAsync<Avatar>(selected.Key,"avatar",selected.Value.Id);
+            return new OASISResult<IAvatar>(record) {IsLoaded=true};
         }
 
-        public async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailTemplateAsync(Func<HolonResume, bool> predicate)
+        public async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailTemplateAsync(Func<HolonResume,bool> predicate)
         {
-            string json = "";
-            _idLookup = await LoadLookupToJson();
-
+            _idLookup=await LoadLookupToJson();
             var selected=FindIndexEntry("avatar-detail",predicate);
-            string avatarAddress=selected.Key;
-
-            json = await LoadStringToJson(avatarAddress);
-            IAvatarDetail avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(json);
-
-            return new OASISResult<IAvatarDetail>(avatarDetail);
+            var record=await ReadPrivateRecordAsync<AvatarDetail>(selected.Key,"avatar-detail",selected.Value.Id);
+            return new OASISResult<IAvatarDetail>(record) {IsLoaded=true};
         }
 
 
-        public async Task<OASISResult<IHolon>> LoadHolonTemplateAsync(Func<HolonResume, bool> predicate)
+        public async Task<OASISResult<IHolon>> LoadHolonTemplateAsync(Func<HolonResume,bool> predicate)
         {
-            string json = "";
-            _idLookup = await LoadLookupToJson();
-
+            _idLookup=await LoadLookupToJson();
             var selected=FindIndexEntry("holon",predicate);
-            string avatarAddress=selected.Key;
-
-            json = await LoadStringToJson(avatarAddress);
-            IHolon holon = JsonConvert.DeserializeObject<Holon>(json);
-
-            return new OASISResult<IHolon>(holon);
+            var record=await ReadPrivateRecordAsync<Holon>(selected.Key,"holon",selected.Value.Id);
+            return new OASISResult<IHolon>(record) {IsLoaded=true};
         }
 
-        public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentTemplateAsync(Func<HolonResume, bool> predicate)
+        public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentTemplateAsync(Func<HolonResume,bool> predicate,int version=0)
         {
-            List<IHolon> holons = new List<IHolon>();
-            string json = "";
-            _idLookup = await LoadLookupToJson();
-
-            IEnumerable<HolonResume> holonsDico = _idLookup.Values.Where(predicate).AsEnumerable();
-
-            foreach (var h in holonsDico)
-            {
-                string holonAddress = _idLookup.FirstOrDefault(a => a.Value.Id == h.Id).Key;
-                
-                json = await LoadStringToJson(holonAddress);
-                IHolon holon = JsonConvert.DeserializeObject<Holon>(json);
-                holons.Add(holon);
-            }
-
-            return new OASISResult<IEnumerable<IHolon>>(holons);
+            var records=await ReadIndexedCollectionAsync<Holon>("holon",predicate,version);
+            return new OASISResult<IEnumerable<IHolon>>(records) {IsLoaded=true};
         }
         /***********/
 
@@ -356,7 +324,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return await LoadHolonsForParentTemplateAsync(a => a.ParentHolonId == id && a.HolonType == type);
+            return await LoadHolonsForParentTemplateAsync(a => a.ParentHolonId == id && (type==HolonType.All || a.HolonType==type),version);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -477,26 +445,10 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             return LoadAllAvatarsAsync().Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
+        public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version=0)
         {
-            List<IAvatar> avatars = new List<IAvatar>();
-            string json = "";
-            _idLookup = await LoadLookupToJson();
-
-            IEnumerable<HolonResume> Dico = _idLookup.Values.AsEnumerable();
-
-            foreach (var d in Dico)
-            {
-                string avatarAddress = _idLookup.FirstOrDefault(a => a.Value.Id == d.Id).Key;
-
-                json = await LoadStringToJson(avatarAddress);
-
-                IAvatar avatar = (IAvatar) JsonConvert.DeserializeObject<Avatar>(json);
-
-                avatars.Add(avatar);
-            }
-
-            return new OASISResult<IEnumerable<IAvatar>>(avatars.AsEnumerable());
+            var records=await ReadIndexedCollectionAsync<Avatar>("avatar",entry=>true,version);
+            return new OASISResult<IEnumerable<IAvatar>>(records) {IsLoaded=true};
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.Holon, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -504,24 +456,10 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             return LoadAllHolonsAsync(type).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.Holon, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type=HolonType.Holon,bool loadChildren=true,bool recursive=true,int maxChildDepth=0,int curentChildDepth=0,bool continueOnError=true,bool loadChildrenFromProvider=false,int version=0)
         {
-            List<IHolon> HolonsList = new List<IHolon>();
-            string json = "";
-            _idLookup = await LoadLookupToJson();
-
-            IEnumerable<HolonResume> Dico = _idLookup.Values.AsEnumerable();
-
-            foreach (var d in Dico)
-            {
-                string HolonAddress = _idLookup.FirstOrDefault(a => a.Value.Id == d.Id).Key;
-      
-                json = await LoadStringToJson(HolonAddress);
-                IHolon holon = JsonConvert.DeserializeObject<Holon>(json);
-                HolonsList.Add(holon);
-            }
-
-            return new OASISResult<IEnumerable<IHolon>>(HolonsList.Where(a => a.HolonType == type));
+            var records=await ReadIndexedCollectionAsync<Holon>("holon",entry=>type==HolonType.All || entry.HolonType==type,version);
+            return new OASISResult<IEnumerable<IHolon>>(records) {IsLoaded=true};
         }
 
     }
