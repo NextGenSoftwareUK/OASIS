@@ -177,68 +177,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             return DeleteAvatarAsync(providerKey, softDelete).Result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-        {
-            OASISResult<bool> result = new OASISResult<bool>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (!_enableFirestore)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
-                    return result;
-                }
-
-                // Delete avatar from Firestore by username
-                var query = _firestoreDb.Collection("avatars").WhereEqualTo("username", avatarUsername);
-                var snapshot = await query.GetSnapshotAsync();
-                
-                if (snapshot.Count > 0)
-                {
-                    var doc = snapshot.Documents.First();
-                    var docRef = doc.Reference;
-                    
-                    if (true) // Soft delete by default (OASIS standard)
-                    {
-                        // Soft delete - mark as deleted
-                        var updateData = new Dictionary<string, object>
-                        {
-                            ["IsDeleted"] = true,
-                            ["DeletedDate"] = Timestamp.FromDateTime(DateTime.UtcNow),
-                            ["DeletedByAvatarId"] = AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty
-                        };
-                        await docRef.UpdateAsync(updateData);
-                    }
-                    else
-                    {
-                        // Hard delete - remove document
-                        await docRef.DeleteAsync();
-                    }
-                    
-                    result.Result = true;
-                    result.IsError = false;
-                    result.Message = $"Avatar {(softDelete ? "soft" : "hard")} deleted successfully from Google Cloud Firestore by username";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Avatar not found in Google Cloud Firestore by username");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from Google Cloud by username: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+            => DeleteCanonicalAvatarSelectorAsync(avatarUsername,false,softDelete);
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
