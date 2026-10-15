@@ -309,9 +309,8 @@ Remove-Item -LiteralPath $nativeArtifactsFullPath -Recurse -Force
 
 if ($Profile -eq 'HoloEnabled') {
     Invoke-DotNet @('build', $projects.HoloClient, '--configuration', $Configuration, '--nologo')
-    Invoke-DotNet @('test', $projects.HoloClientTests, '--configuration', $Configuration,
-        '--logger', 'trx;LogFileName=holonet-app-authentication.trx',
-        '--results-directory', $artifactsPath, '--nologo')
+    & (Join-Path $PSScriptRoot 'test_holonet_live_release.ps1') -Project $projects.HoloClientTests `
+        -Happ (Join-Path $artifactsPath 'oasis.happ') -ResultsDirectory $artifactsPath -Configuration $Configuration
     Invoke-DotNet @('build', $projects.HoloOrm, '--configuration', $Configuration, '--nologo')
     Invoke-DotNet @('build', $projects.HoloUnity, '--configuration', $Configuration,
         '--framework', 'netstandard2.1', '--nologo')
