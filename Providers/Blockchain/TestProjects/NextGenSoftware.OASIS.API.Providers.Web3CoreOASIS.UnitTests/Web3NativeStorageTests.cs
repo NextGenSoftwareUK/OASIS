@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests;
 
 [TestClass]
 [DoNotParallelize]
-public class Web3NativeStorageTests
+public partial class Web3NativeStorageTests
 {
     public sealed class Deployment : ContractDeploymentMessage
     {
@@ -64,6 +64,7 @@ public class Web3NativeStorageTests
             Assert.AreEqual(129,avatars.Result.Select(row=>row.Id).Distinct().Count());
             var raw=await new Web3CoreOASIS(key,"http://127.0.0.1:18545",receipt.ContractAddress,Web3CoreOASISBaseProviderHelper.Abi,31337).ReadCollectionAsync("avatar");
             Assert.IsFalse(raw.Any(row=>System.Text.Encoding.UTF8.GetString(row.Info).Contains(avatar.Email)));
+            await VerifyV2Async(provider,avatar.Id);
         }
         finally {await provider.DeActivateProviderAsync();}
     }
