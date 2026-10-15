@@ -13,6 +13,22 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 
 public partial class GoogleCloudOASIS
 {
+    private Task<OASISResult<bool>> DeleteCanonicalAvatarKeyAsync(string key,bool softDelete)
+    {
+        if(Guid.TryParse(key,out var id) && id!=Guid.Empty) return DeleteCanonicalAvatarAsync(id,softDelete);
+        var result=new OASISResult<bool>();
+        var cause=new ArgumentException("A nonempty GUID Firestore avatar storage key is required.",nameof(key));
+        OASISErrorHandling.HandleError(ref result,cause.Message,cause);
+        return Task.FromResult(result);
+    }
+
+    private async Task<OASISResult<bool>> DeleteCanonicalAvatarSelectorAsync(string selector,bool email,bool softDelete)
+    {
+        var loaded=await ReadCanonicalAvatarSelectorAsync(selector,email,0);
+        if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,bool>(loaded);
+        return await DeleteCanonicalAvatarAsync(loaded.Result.Id,softDelete);
+    }
+
     private async Task<OASISResult<bool>> DeleteCanonicalAvatarAsync(Guid id,bool softDelete)
     {
         var result=new OASISResult<bool>();

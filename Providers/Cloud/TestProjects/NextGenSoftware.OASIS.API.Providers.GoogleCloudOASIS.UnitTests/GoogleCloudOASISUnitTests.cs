@@ -13,6 +13,17 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
         private GoogleCloudOASIS _provider = null!;
 
         [TestMethod]
+        public async Task DeleteSelectorsValidateAndPreserveLookupErrors()
+        {
+            var provider=new FailedActivationProvider();
+            Assert.IsInstanceOfType((await provider.DeleteAvatarAsync("bad-key")).Exception,typeof(System.ArgumentException));
+            Assert.IsInstanceOfType((await provider.DeleteAvatarByEmailAsync(" ")).Exception,typeof(System.ArgumentException));
+            Assert.AreEqual(0,provider.Activations);
+            var failed=await provider.DeleteAvatarByUsernameAsync("owned");
+            Assert.AreSame(provider.Cause,failed.Exception);Assert.AreEqual("owned-code",failed.ErrorCode);
+        }
+
+        [TestMethod]
         public async Task AvatarDeleteValidatesIdentityAndRetainsActivationFailure()
         {
             var provider=new FailedActivationProvider();

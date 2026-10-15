@@ -36,6 +36,9 @@ public class GoogleNativeDetailTests
             Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,(await provider.LoadAvatarByUsernameAsync(avatar.Username)).ErrorCode);
             Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,(await provider.LoadAvatarByEmailAsync(avatar.Email)).ErrorCode);
             Assert.AreEqual(2,(await provider.LoadAllAvatarsAsync()).Result.Count());
+            Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,(await provider.DeleteAvatarByUsernameAsync(avatar.Username)).ErrorCode);
+            Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,(await provider.DeleteAvatarByEmailAsync(avatar.Email,softDelete:false)).ErrorCode);
+            Assert.AreEqual(2,(await provider.LoadAllAvatarsAsync()).Result.Count());
             var emptyHolons=await provider.LoadAllHolonsAsync();Assert.IsFalse(emptyHolons.IsError,emptyHolons.Message);Assert.AreEqual(0,emptyHolons.Result.Count());
             var empty=await provider.LoadAllAvatarDetailsAsync();Assert.IsFalse(empty.IsError,empty.Message);Assert.AreEqual(0,empty.Result.Count());
             var detail=new AvatarDetail {Id=Guid.NewGuid(),IsActive=true,Username="owned-user",Email="owned@example.invalid",XP=321,Karma=29,
@@ -99,7 +102,8 @@ public class GoogleNativeDetailTests
             Assert.AreEqual(0,(await provider.LoadHolonAsync(holonId,loadChildren:false,loadChildrenFromProvider:true)).Result.Children.Count());
             var flat=await provider.LoadAllHolonsAsync(loadChildren:false,loadChildrenFromProvider:true);
             Assert.IsTrue(flat.Result.All(row=>row.Children.Count()==0));
-            var deleted=await provider.DeleteAvatarAsync(avatarId);Assert.IsFalse(deleted.IsError,deleted.Message);
+            Assert.IsFalse((await provider.DeleteAvatarAsync(duplicateAvatarId.ToString(),softDelete:false)).IsError);
+            var deleted=await provider.DeleteAvatarByUsernameAsync("OWNED-AVATAR");Assert.IsFalse(deleted.IsError,deleted.Message);
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadAvatarAsync(avatarId)).ErrorCode);
             var tombstone=await db.Collection("avatars").Document(avatarId.ToString()).GetSnapshotAsync();
             var stored=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<Avatar>(tombstone.GetValue<string>("data_json"));
@@ -107,7 +111,10 @@ public class GoogleNativeDetailTests
             Assert.AreEqual("profile-value",stored.MetaData["profile-field"]);
             var repeated=await provider.DeleteAvatarAsync(avatarId);Assert.IsFalse(repeated.IsError,repeated.Message);
             Assert.AreEqual(tombstone.UpdateTime,(await db.Collection("avatars").Document(avatarId.ToString()).GetSnapshotAsync()).UpdateTime);
-            Assert.IsFalse((await provider.DeleteAvatarAsync(avatarId,softDelete:false)).IsError);
+            Assert.IsFalse((await provider.DeleteAvatarAsync(avatarId.ToString(),softDelete:false)).IsError);
+            Assert.IsFalse((await db.Collection("avatars").Document(avatarId.ToString()).GetSnapshotAsync()).Exists);
+            Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+            Assert.IsFalse((await provider.DeleteAvatarByEmailAsync("OWNED-AVATAR@EXAMPLE.INVALID",softDelete:false)).IsError);
             Assert.IsFalse((await db.Collection("avatars").Document(avatarId.ToString()).GetSnapshotAsync()).Exists);
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadHolonAsync(Guid.NewGuid(),loadChildren:false)).ErrorCode);
         }
