@@ -160,6 +160,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
             var result = new OASISResult<IHolon>();
             try
             {
+                ValidateDetailVersion(version);
+                if(maxChildDepth<0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
                 var blob = _serviceClient.GetBlobContainerClient(_holonContainer).GetBlobClient(providerKey);
                 var json = await ReadBlobAsync(blob);
                 var holon = Deserialise<Holon>(json) ?? throw new InvalidDataException("Azure holon record is null.");
@@ -190,13 +192,19 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
             var holons = new List<IHolon>();
             try
             {
+                ValidateDetailVersion(version);
+                if(maxChildDepth<0 || curentChildDepth<0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
                 var container = _serviceClient.GetBlobContainerClient(_holonContainer);
                 await foreach (var item in container.GetBlobsAsync())
                 {
                     var r = await LoadHolonAsync(item.Name, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
-                    if (!r.IsError && r.Result != null) holons.Add(r.Result);
+                    if(r.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(r);
+                    if(r.Result==null) throw new InvalidDataException("Azure holon read returned no record.");
+                    holons.Add(r.Result);
                 }
-                result.Result = holons;
+                var project=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphProjection.Create(holons,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,
+                    source=>Deserialise<Holon>(Serialise(source))!);
+                result.Result = holons.Where(row=>type==HolonType.All || row.HolonType==type).Select(project).ToList();
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
@@ -206,18 +214,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            // providerKey = blob name prefix (e.g. "avatarId/")
             var result = new OASISResult<IEnumerable<IHolon>>();
-            var holons = new List<IHolon>();
             try
             {
-                var container = _serviceClient.GetBlobContainerClient(_holonContainer);
-                await foreach (var item in container.GetBlobsAsync(prefix: providerKey))
-                {
-                    var r = await LoadHolonAsync(item.Name, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
-                    if (!r.IsError && r.Result != null) holons.Add(r.Result);
-                }
-                result.Result = holons;
+                var parent=await LoadHolonAsync(providerKey,loadChildren:false,version:version);
+                if(parent.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(parent);
+                return await LoadHolonsForParentAsync(parent.Result.Id,type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,loadChildrenFromProvider,version);
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
@@ -226,7 +228,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
             => LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => await LoadHolonsForParentAsync(id.ToString(), type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
+        {
+            var loaded=await LoadAllHolonsAsync(HolonType.All,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,loadChildrenFromProvider,version);
+            if(loaded.IsError) return loaded;
+            loaded.Result=loaded.Result.Where(row=>row.ParentHolonId==id && (type==HolonType.All || row.HolonType==type)).ToList();
+            return loaded;
+        }
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
