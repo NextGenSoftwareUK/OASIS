@@ -49,7 +49,7 @@ public partial class SolanaOASIS
     }
 
     private async Task<OASISResult<IEnumerable<IHolon>>> SavePlannedSolanaGraphAsync(IEnumerable<IHolon> input,
-        bool saveChildren,bool recursive,int maxDepth,int initialDepth)
+        bool saveChildren,bool recursive,int maxDepth,int initialDepth,bool continueOnError)
     {
         var result=new OASISResult<IEnumerable<IHolon>>();
         var committed=new List<string>();
@@ -72,15 +72,37 @@ public partial class SolanaOASIS
             }
             // Publish stable identity assignments only after the whole selected graph validates.
             foreach(var node in plan.Nodes) {node.Source.Id=node.Record.Id;node.Source.ParentHolonId=node.Record.ParentHolonId;}
+            var failures=new List<Exception>();
+            var failedParents=new HashSet<Guid>();
             foreach(var node in plan.Nodes)
             {
-                var signature=node.PriorSignature == null ? await _solanaRepository.CreateAsync(node.Record):await _solanaRepository.UpdateAsync(node.Record);
-                if(string.IsNullOrWhiteSpace(signature)) throw new InvalidOperationException("Solana storage returned no committed signature.");
-                committed.Add(signature);
-                node.Source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
-                node.Source.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS]=signature;
-                node.Source.Version=node.Record.Version; node.Source.PreviousVersionId=node.Record.PreviousVersionId;
+                if(failedParents.Contains(node.Record.ParentHolonId))
+                {
+                    failedParents.Add(node.Record.Id);
+                    failures.Add(new InvalidOperationException("Solana selected descendant skipped because its parent was not saved."));
+                    continue;
+                }
+                try
+                {
+                    var signature=node.PriorSignature == null ? await _solanaRepository.CreateAsync(node.Record):await _solanaRepository.UpdateAsync(node.Record);
+                    if(string.IsNullOrWhiteSpace(signature)) throw new InvalidOperationException("Solana storage returned no committed signature.");
+                    committed.Add(signature);
+                    node.Source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+                    node.Source.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS]=signature;
+                    node.Source.Version=node.Record.Version; node.Source.PreviousVersionId=node.Record.PreviousVersionId;
+                }
+                catch(Exception cause)
+                {
+                    failedParents.Add(node.Record.Id);
+                    if(!continueOnError || NativeMutationReconciliation.IsRequired(cause))
+                    {
+                        if(failures.Count>0) throw new AggregateException("Solana graph stopped after earlier node failures.",failures.Concat(new[] {cause}));
+                        throw;
+                    }
+                    failures.Add(cause);
+                }
             }
+            if(failures.Count>0) throw failures.Count==1 ? failures[0]:new AggregateException("Solana selected graph has failed or skipped nodes.",failures);
             result.Result=plan.Roots; result.IsSaved=true;
         }
         catch(Exception cause)

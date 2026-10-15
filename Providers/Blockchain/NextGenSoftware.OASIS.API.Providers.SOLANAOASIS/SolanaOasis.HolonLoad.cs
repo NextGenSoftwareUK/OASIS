@@ -135,7 +135,7 @@ public partial class SolanaOASIS
     public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon,bool saveChildren=true,bool recursive=true,
         int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
     {
-        var saved=await SavePlannedSolanaGraphAsync(new[] {holon},saveChildren,recursive,maxChildDepth,0);
+        var saved=await SavePlannedSolanaGraphAsync(new[] {holon},saveChildren,recursive,maxChildDepth,0,continueOnError);
         return new OASISResult<IHolon> {Result=saved.Result?.Single(),IsSaved=saved.IsSaved,IsError=saved.IsError,
             ErrorCode=saved.ErrorCode,ErrorCount=saved.ErrorCount,Message=saved.Message,Exception=saved.Exception};
     }
@@ -151,7 +151,7 @@ public partial class SolanaOASIS
     public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons,
         bool saveChildren=true,bool recursive=true,int maxChildDepth=0,int currentChildDepth=0,
         bool continueOnError=true,bool saveChildrenOnProvider=false)
-        => SavePlannedSolanaGraphAsync(holons,saveChildren,recursive,maxChildDepth,currentChildDepth);
+        => SavePlannedSolanaGraphAsync(holons,saveChildren,recursive,maxChildDepth,currentChildDepth,continueOnError);
 
     public override OASISResult<IHolon> DeleteHolon(string providerKey)
     {

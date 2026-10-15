@@ -16,6 +16,32 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 public class SolanaHolonAdapterTests
 {
     [DataTestMethod]
+    [DataRow(false,false)]
+    [DataRow(false,true)]
+    [DataRow(true,false)]
+    [DataRow(true,true)]
+    public async Task ContinuationSkipsDependentNodesAndStopsOnNativeUncertainty(bool continueOnError,bool uncertain)
+    {
+        var repository=new RecordsRepository {ContinueAfterOneFailure=true};
+        if(uncertain) repository.WriteCause=new SolanaTransactionReconciliationException("owned-uncertain-signature",new System.IO.IOException("Owned lost reply"));
+        var provider=new ActiveProvider(repository);
+        var first=new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=Guid.NewGuid()};
+        var failed=new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=Guid.NewGuid()};
+        var dependent=new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=Guid.NewGuid()};
+        failed.Children=new List<IHolon> {dependent};
+        var last=new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=Guid.NewGuid()};
+        var result=await provider.SaveHolonsAsync(new[] {first,failed,last},continueOnError:continueOnError);
+        Assert.IsTrue(result.IsError); Assert.IsFalse(result.IsSaved);
+        Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception));
+        var continues=continueOnError && !uncertain;
+        Assert.AreEqual(continues ? 3:2,repository.WriteCalls);
+        Assert.AreEqual(continues,last.ProviderUniqueStorageKey.ContainsKey(ProviderType.SolanaOASIS));
+        Assert.IsFalse(dependent.ProviderUniqueStorageKey.ContainsKey(ProviderType.SolanaOASIS));
+        Assert.IsFalse(failed.ProviderUniqueStorageKey.ContainsKey(ProviderType.SolanaOASIS));
+        Assert.AreEqual(continues ? 2:1,((SolanaPartialMutationException)result.Exception!).CommittedSignatures.Count);
+    }
+
+    [DataTestMethod]
     [DataRow(false,0,3)]
     [DataRow(true,1,3)]
     [DataRow(true,2,5)]
@@ -207,6 +233,7 @@ public class SolanaHolonAdapterTests
         public int Reads;
         public bool AllowPartialWrite;
         public bool AllowAllWrites;
+        public bool ContinueAfterOneFailure;
         public List<SolanaBaseDto> Written=new();
         public int WriteCalls;
         public Exception WriteCause=new System.IO.IOException("Owned second write rejection");
@@ -221,9 +248,14 @@ public class SolanaHolonAdapterTests
         }
         public Task<string> CreateAsync<T>(T entity) where T:SolanaBaseDto,new()
         {
-            if(!AllowPartialWrite && !AllowAllWrites) throw new InvalidOperationException("Unexpected write");
+            if(!AllowPartialWrite && !AllowAllWrites && !ContinueAfterOneFailure) throw new InvalidOperationException("Unexpected write");
             WriteCalls++;
             Written.Add(entity);
+            if(ContinueAfterOneFailure)
+            {
+                if(WriteCalls==2) throw WriteCause;
+                return Task.FromResult("owned-committed-"+WriteCalls);
+            }
             if(AllowAllWrites) return Task.FromResult("owned-committed-"+WriteCalls);
             if(WriteCalls==1) return Task.FromResult("owned-first-committed-signature");
             throw WriteCause;
