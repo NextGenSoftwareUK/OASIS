@@ -13,6 +13,33 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.UnitTests
     {
         private AzureStorageOASIS _provider = null!;
 
+        private sealed class PartialWriter : AzureStorageOASIS
+        {
+            public int Writes;
+            public readonly System.Exception Cause=new AzureBlobMutationReconciliationException("owned-container","owned-key",new System.IO.IOException("owned lost reply"));
+            public PartialWriter():base("UseDevelopmentStorage=true") {}
+            public override System.Threading.Tasks.Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>> SaveHolonAsync(
+                NextGenSoftware.OASIS.API.Core.Interfaces.IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
+            {
+                Writes++;
+                return System.Threading.Tasks.Task.FromResult(Writes==1 ? new NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> {Result=holon,IsSaved=true}
+                    :new NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> {IsError=true,Exception=Cause});
+            }
+        }
+
+        [TestMethod]
+        public async System.Threading.Tasks.Task ImportRetainsPartialAcknowledgementAndStopsUncertainty()
+        {
+            var provider=new PartialWriter();
+            var first=new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=System.Guid.NewGuid()};
+            var result=await provider.ImportAsync(new[] {first,new NextGenSoftware.OASIS.API.Core.Holons.Holon(),new NextGenSoftware.OASIS.API.Core.Holons.Holon()});
+            Assert.IsTrue(result.IsError);Assert.IsFalse(result.Result);Assert.IsFalse(result.IsSaved);
+            var partial=(AzureBlobPartialMutationException)result.Exception;
+            Assert.AreSame(provider.Cause,partial.InnerException);Assert.AreEqual(first.Id,partial.AcknowledgedRecordIds[0]);Assert.AreEqual(2,provider.Writes);
+            var invalid=new PartialWriter();
+            Assert.IsTrue((await invalid.SaveHolonsAsync(new[] {first,first})).IsError);Assert.AreEqual(0,invalid.Writes);
+        }
+
         [TestInitialize]
         public void Setup() => _provider = new AzureStorageOASIS("UseDevelopmentStorage=true");
 

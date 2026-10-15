@@ -65,6 +65,10 @@ public class AzureNativeStorageTests
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadAvatarAsync(deletable.Id)).ErrorCode);
             Assert.IsFalse((await provider.DeleteAvatarAsync(deletable.Id,softDelete:false)).IsError);
             Assert.IsFalse((await retainedBlob.ExistsAsync()).Value);
+            var importedRows=new[] {new Holon {Id=Guid.NewGuid(),Name="owned-import-one"},new Holon {Id=Guid.NewGuid(),Name="owned-import-two"}};
+            var imported=await provider.ImportAsync(importedRows);
+            Assert.IsFalse(imported.IsError,imported.Message);Assert.IsTrue(imported.Result);Assert.IsTrue(imported.IsSaved);
+            foreach(var row in importedRows) Assert.AreEqual(row.Name,(await provider.LoadHolonAsync(row.Id,loadChildren:false)).Result.Name);
         }
         finally {
             await provider.DeActivateProviderAsync();
