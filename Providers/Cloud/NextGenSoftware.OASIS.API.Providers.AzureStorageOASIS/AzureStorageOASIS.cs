@@ -143,12 +143,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 var blob = _serviceClient.GetBlobContainerClient(_holonContainer).GetBlobClient(providerKey);
                 if (!await blob.ExistsAsync()) { OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Blob '{providerKey}' not found."); return result; }
                 var json = await ReadBlobAsync(blob);
-                var doc = JsonDocument.Parse(json);
-                var holon = new Holon();
+                var holon = Deserialise<Holon>(json) ?? throw new InvalidDataException("Azure holon record is null.");
+                if(holon.Id==Guid.Empty) throw new InvalidDataException("Azure holon record has no identity.");
+                if(Guid.TryParse(providerKey,out var requestedId) && holon.Id!=requestedId)
+                    throw new InvalidDataException("Azure holon identity does not match blob key.");
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = providerKey;
-                holon.Name = doc.RootElement.TryGetProperty("name", out var n) ? n.GetString() : "";
-                holon.Description = doc.RootElement.TryGetProperty("description", out var d) ? d.GetString() : "";
-                if (doc.RootElement.TryGetProperty("id", out var id) && Guid.TryParse(id.GetString(), out var guid)) holon.Id = guid;
                 result.Result = holon;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }

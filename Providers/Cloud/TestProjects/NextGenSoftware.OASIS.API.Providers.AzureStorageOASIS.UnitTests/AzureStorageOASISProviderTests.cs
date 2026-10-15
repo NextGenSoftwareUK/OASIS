@@ -17,6 +17,20 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.UnitTests
         public void Setup() => _provider = new AzureStorageOASIS("UseDevelopmentStorage=true");
 
         [TestMethod]
+        public void StoredHolonRetainsIdentityRelationshipsAndMetadata()
+        {
+            var holon=new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=System.Guid.NewGuid(),Name="owned root",Description="stored description",
+                ParentHolonId=System.Guid.NewGuid(),CreatedByAvatarId=System.Guid.NewGuid(),Version=3,
+                MetaData=new System.Collections.Generic.Dictionary<string,object> {{"owned-field","owned-value"}}};
+            var flags=System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic;
+            var json=(string)typeof(AzureStorageOASIS).GetMethod("Serialise",flags)!.MakeGenericMethod(typeof(NextGenSoftware.OASIS.API.Core.Interfaces.IHolon)).Invoke(null,new object[] {holon})!;
+            var loaded=(NextGenSoftware.OASIS.API.Core.Holons.Holon)typeof(AzureStorageOASIS).GetMethod("Deserialise",flags)!.MakeGenericMethod(typeof(NextGenSoftware.OASIS.API.Core.Holons.Holon)).Invoke(null,new object[] {json})!;
+            Assert.AreEqual(holon.Id,loaded.Id);Assert.AreEqual(holon.Name,loaded.Name);Assert.AreEqual(holon.Description,loaded.Description);
+            Assert.AreEqual(holon.ParentHolonId,loaded.ParentHolonId);Assert.AreEqual(holon.CreatedByAvatarId,loaded.CreatedByAvatarId);
+            Assert.AreEqual(3,loaded.Version);Assert.AreEqual("owned-value",loaded.MetaData["owned-field"]);
+        }
+
+        [TestMethod]
         public async System.Threading.Tasks.Task DetailValidationFailsBeforeNetwork()
         {
             Assert.IsInstanceOfType((await _provider.LoadAvatarDetailAsync(System.Guid.Empty)).Exception,typeof(System.ArgumentException));
