@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-14 reusable Mongo verification inspection: `TestResults/SubscriptionUsageCurrent/mongo-current.log` was 489,761,165 bytes (~467 MiB). Exact disposable-log removal was denied by execution policy; nothing removed and no alternative deletion route used. Port27029 was not listening after owned suite shutdown; unrelated mongod PID7140 was not stopped. Existing compact TRX reports are overwritten, pinned runtime/replica reused. Latest free C111444733952bytes (~103.8GiB); remaining free-space movement is not attributed to a specific artifact by this check. A bounded runtime-log retention policy remains needed; no claim that cleanup succeeded.
+
 Updated 2026-10-13. Units: GiB = 1,073,741,824 bytes; GB = 1,000,000,000 bytes. File totals, logical VHD length, and recovered drive space are different measurements. Concurrent cleanup means a drive-space increase cannot all be attributed to this chat.
 
 ## Rules
