@@ -15,6 +15,39 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 
 public partial class GoogleCloudOASIS
 {
+    private Task<OASISResult<IHolon>> DeleteCanonicalHolonAsync(string key)
+    {
+        if(Guid.TryParse(key,out var id) && id!=Guid.Empty) return DeleteCanonicalHolonAsync(id);
+        var result=new OASISResult<IHolon>();
+        var cause=new ArgumentException("A nonempty GUID Firestore holon storage key is required.",nameof(key));
+        OASISErrorHandling.HandleError(ref result,cause.Message,cause);
+        return Task.FromResult(result);
+    }
+
+    private async Task<OASISResult<IHolon>> DeleteCanonicalHolonAsync(Guid id)
+    {
+        var result=new OASISResult<IHolon>();
+        try
+        {
+            if(id==Guid.Empty) throw new ArgumentException("A nonempty holon identity is required.");
+            var ready=await EnsureDetailStoreAsync(0);
+            if(ready.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IHolon>(ready);
+            var reference=_firestoreDb.Collection("holons").Document(id.ToString());
+            var snapshot=await reference.GetSnapshotAsync();
+            if(!snapshot.Exists) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Firestore holon not found.";return result;}
+            var holon=DecodeHolon(snapshot.ConvertTo<Dictionary<string,object>>(),snapshot.Id);
+            try {await reference.DeleteAsync(Google.Cloud.Firestore.Precondition.LastUpdated(snapshot.UpdateTime.Value));}
+            catch(Grpc.Core.RpcException cause) when(cause.StatusCode==Grpc.Core.StatusCode.FailedPrecondition || cause.StatusCode==Grpc.Core.StatusCode.NotFound)
+            {
+                OASISErrorHandling.HandleError(ref result,cause.Message,cause);result.ErrorCode=StorageLifecycleConflictException.ErrorCode;return result;
+            }
+            catch(Exception cause) {throw new GoogleFirestoreMutationReconciliationException(reference.Path,cause);}
+            result.Result=holon;result.IsSaved=true;
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
+    }
+
     private sealed record PlannedFirestoreHolon(IHolon Source,Holon Snapshot);
 
     private static (List<IHolon> Roots,List<PlannedFirestoreHolon> Nodes) PlanFirestoreGraph(IEnumerable<IHolon> input,bool children,bool recursive,int depth,int initialDepth)
