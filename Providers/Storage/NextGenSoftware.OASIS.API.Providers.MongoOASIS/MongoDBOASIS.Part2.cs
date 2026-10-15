@@ -61,17 +61,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 {
                     result.Result = DataHelper.ConvertMongoEntityToOASISHolon(holonResult);
                     result.IsError = false;
+                    result.IsLoaded = true;
                     result.Message = "Holon loaded successfully from MongoDB";
                 }
                 else
                 {
-                    result.ErrorCode = "HOLON_NOT_FOUND";
-                    OASISErrorHandling.HandleError(ref result, "Holon not found in MongoDB database");
+                    return new OASISResult<IHolon> { ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Holon not found." };
                 }
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading holon from MongoDB: {ex.Message}", ex);
+                if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
             }
             return result;
         }
@@ -86,16 +87,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 {
                     result.Result = DataHelper.ConvertMongoEntityToOASISHolon(holonResult);
                     result.IsError = false;
+                    result.IsLoaded = true;
                     result.Message = "Holon loaded successfully from MongoDB";
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holon not found in MongoDB database");
+                    return new OASISResult<IHolon> { ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Holon not found." };
                 }
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading holon from MongoDB: {ex.Message}", ex);
+                if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
             }
             return result;
         }
@@ -116,16 +119,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 {
                     result.Result = DataHelper.ConvertMongoEntityToOASISHolon(holonResult, loadChildrenFromProvider);
                     result.IsError = false;
+                    result.IsLoaded = true;
                     result.Message = "Holon loaded successfully from MongoDB by provider key";
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holon not found in MongoDB database by provider key");
+                    return new OASISResult<IHolon> { ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Holon not found." };
                 }
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading holon from MongoDB by provider key: {ex.Message}", ex);
+                if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
             }
             return result;
         }
@@ -140,16 +145,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 {
                     result.Result = DataHelper.ConvertMongoEntityToOASISHolon(holonResult, loadChildrenFromProvider);
                     result.IsError = false;
+                    result.IsLoaded = true;
                     result.Message = "Holon loaded successfully from MongoDB by provider key";
                 }
                 else
                 {
-                    OASISErrorHandling.HandleError(ref result, "Holon not found in MongoDB database by provider key");
+                    return new OASISResult<IHolon> { ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Holon not found." };
                 }
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error loading holon from MongoDB by provider key: {ex.Message}", ex);
+                if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
             }
             return result;
         }
