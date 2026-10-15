@@ -107,7 +107,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 var container = _serviceClient.GetBlobContainerClient(_holonContainer);
                 var blob = container.GetBlobClient(key);
                 using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
-                await blob.UploadAsync(stream, overwrite: true);
+                await ObserveBlobMutationAsync(()=>blob.UploadAsync(stream, overwrite: true),blob);
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = key;
                 result.Result = holon; result.Message = $"AzureStorageOASIS: Saved holon blob '{key}'.";
             }
@@ -212,7 +212,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
             try
             {
                 var blob = _serviceClient.GetBlobContainerClient(_holonContainer).GetBlobClient(id.ToString());
-                await blob.DeleteIfExistsAsync();
+                await ObserveBlobMutationAsync(()=>blob.DeleteIfExistsAsync(),blob);
                 result.Result = new Holon { Id = id };
                 result.Message = $"AzureStorageOASIS: Deleted holon blob '{id}'.";
             }
@@ -227,7 +227,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
             try
             {
                 var blob = _serviceClient.GetBlobContainerClient(_holonContainer).GetBlobClient(providerKey);
-                await blob.DeleteIfExistsAsync();
+                await ObserveBlobMutationAsync(()=>blob.DeleteIfExistsAsync(),blob);
                 result.Result = new Holon { CustomKey = providerKey };
                 result.Message = $"AzureStorageOASIS: Deleted holon blob '{providerKey}'.";
             }
@@ -325,7 +325,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 var container = _serviceClient.GetBlobContainerClient(_avatarContainer);
                 var blob = container.GetBlobClient(key);
                 using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
-                await blob.UploadAsync(stream, overwrite: true);
+                await ObserveBlobMutationAsync(()=>blob.UploadAsync(stream, overwrite: true),blob);
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = key;
                 result.Result = avatar; result.Message = $"AzureStorageOASIS: Saved avatar blob '{key}'.";
             }
@@ -363,9 +363,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 if(softDelete) {
                     if(avatar.IsDeleted) {result.Result=true;return result;}
                     avatar.IsActive=false;avatar.DeletedDate=DateTime.UtcNow;
-                    await blob.UploadAsync(BinaryData.FromString(Serialise(avatar)),new BlobUploadOptions {Conditions=condition});
+                    var payload=BinaryData.FromString(Serialise(avatar));
+                    await ObserveBlobMutationAsync(()=>blob.UploadAsync(payload,new BlobUploadOptions {Conditions=condition}),blob);
                 }
-                else await blob.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots,condition);
+                else await ObserveBlobMutationAsync(()=>blob.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots,condition),blob);
                 result.Result=true;result.IsDeleted=true;
             }
             catch(Azure.RequestFailedException cause) when(cause.Status==412) {

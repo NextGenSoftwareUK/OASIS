@@ -14,6 +14,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS;
 
 public partial class AzureStorageOASIS
 {
+    private static async Task<T> ObserveBlobMutationAsync<T>(Func<Task<T>> operation,Azure.Storage.Blobs.BlobClient blob)
+    {
+        try {return await operation();}
+        catch(RequestFailedException cause) when(cause.Status==412) {throw;}
+        catch(Exception cause) {throw new AzureBlobMutationReconciliationException(blob.BlobContainerName,blob.Name,cause);}
+    }
     private async Task<OASISResult<bool>> DeleteSelectedAvatarAsync(Task<OASISResult<IAvatar>> lookup,bool softDelete)
     {
         var loaded=await lookup;
@@ -119,7 +125,8 @@ public partial class AzureStorageOASIS
             if(detail.Id==Guid.Empty) detail.Id=Guid.NewGuid();
             var key=detail.Id.ToString();
             var payload=BinaryData.FromString(Serialise(detail));
-            await _serviceClient.GetBlobContainerClient(_detailContainer).GetBlobClient(key).UploadAsync(payload,overwrite:true);
+            var blob=_serviceClient.GetBlobContainerClient(_detailContainer).GetBlobClient(key);
+            await ObserveBlobMutationAsync(()=>blob.UploadAsync(payload,overwrite:true),blob);
             detail.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
             detail.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS]=key;
             result.Result=detail;result.IsSaved=true;
