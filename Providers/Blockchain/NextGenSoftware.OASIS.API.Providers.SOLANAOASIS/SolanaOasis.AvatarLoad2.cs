@@ -175,7 +175,11 @@ public partial class SolanaOASIS
                 avatar.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS,
                     out var avatarSolanaHash))
             {
-                var solanaAvatarDto = await _solanaRepository.GetAsync<SolanaAvatarDto>(avatarSolanaHash);
+                var persistedAvatar = await _solanaRepository.GetAsync<SolanaAvatarDto>(avatarSolanaHash);
+                if (persistedAvatar == null || persistedAvatar.Id != avatar.Id)
+                    throw new InvalidOperationException("Solana avatar storage reference does not match the requested identity.");
+                var solanaAvatarDto = avatar.GetSolanaAvatarDto();
+                solanaAvatarDto.Version = persistedAvatar.Version;
                 transactionHash = await _solanaRepository.UpdateAsync(solanaAvatarDto);
             }
             // Create avatar if transaction hash not exist
@@ -221,8 +225,12 @@ public partial class SolanaOASIS
                 avatar.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS,
                     out var avatarDetailSolanaHash))
             {
-                var solanaAvatarDetailDto =
+                var persistedDetail =
                     await _solanaRepository.GetAsync<SolanaAvatarDetailDto>(avatarDetailSolanaHash);
+                if (persistedDetail == null || persistedDetail.Id != avatar.Id)
+                    throw new InvalidOperationException("Solana avatar detail storage reference does not match the requested identity.");
+                var solanaAvatarDetailDto = avatar.GetSolanaAvatarDetailDto();
+                solanaAvatarDetailDto.Version = persistedDetail.Version;
                 transactionHash = await _solanaRepository.UpdateAsync(solanaAvatarDetailDto);
             }
             // Create avatar if transaction hash not exist
