@@ -115,6 +115,7 @@ public partial class Web3NativeStorageTests
                 }
                 finally {field.SetValue(provider,original);}
             }
+            await VerifyPreparedReplicationAsync(provider,native,executor,user,policy,store);
             var rejectedHandle=await executor.BeginAsync("local-fixture-bearer",user,"web3-rejected-owner",new string('b',64),"local rejected owner fixture",policy);
             var beforeOwner=await store.GetAsync(rejectedHandle.OperationId,default);
             var operations=client.GetDatabase(database).GetCollection<UsageOutboxOperation>("subscription_usage_outbox_v1")
