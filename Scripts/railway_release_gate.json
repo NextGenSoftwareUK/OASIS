@@ -6,6 +6,11 @@
     "accountingDbName": "oasis_subscription_accounting_staging",
     "mongoUsername": null
   },
+  "stagingStripeWebhook": {
+    "id": "we_1UQf0rD2t0mRpwzcXlM9vqeK",
+    "url": "https://staging.api.web4.oasisomniverse.one/api/subscription/webhooks/stripe",
+    "apiVersion": "2024-10-28.acacia"
+  },
   "environments": {
     "staging": "e0796a6e-8afe-4a38-8472-675ef572f7d7",
     "production": "86de55b2-51e3-4c83-ae6b-806d554349cc"

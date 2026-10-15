@@ -11,6 +11,7 @@ class ReleaseGateContracts(unittest.TestCase):
     def report(self):
         return {"candidate": self.candidate(), "environment": "staging", "accepted": True,
                 "acceptedAt": 1000, "checks": [{}] * 10,
+                "stripeWebhook": {"id": gate.CONFIG['stagingStripeWebhook']['id'], "livemode": False, "status": "enabled"},
                 "deployments": {n: "deployment-" + n for n in gate.CONFIG["services"]}}
 
     def test_complete_staging_evidence_accepted(self):
@@ -21,7 +22,7 @@ class ReleaseGateContracts(unittest.TestCase):
             gate.validate_staging_evidence(self.report(), {"candidate": "b" * 40}, now=1001)
 
     def test_failed_or_partial_acceptance_rejected(self):
-        for field, value in (("accepted", False), ("checks", [{}] * 9), ("deployments", {})):
+        for field, value in (("accepted", False), ("checks", [{}] * 9), ("deployments", {}), ("stripeWebhook", {})):
             report = self.report()
             report[field] = value
             with self.assertRaises(ValueError):
@@ -120,6 +121,45 @@ class ReleaseGateContracts(unittest.TestCase):
             self.assertEqual(candidate['candidate'], call.args[1]['sha'])
             self.assertIn('commitSha:$sha', call.args[0])
             self.assertNotIn('latestCommit', call.args[0])
+
+    def test_webhook_cannot_activate_before_staging_acceptance(self):
+        with patch.object(gate, 'stripe_endpoint') as stripe:
+            with self.assertRaisesRegex(ValueError, 'acceptance'):
+                gate.activate_staging_webhook({'environment': 'staging', 'accepted': False}, 'not-a-token')
+            stripe.assert_not_called()
+
+    def test_live_embedded_stripe_key_is_rejected_even_with_test_override(self):
+        import json
+        values = {'OASIS_DNA_JSON': json.dumps({'OASIS': {'StorageProviders': {'MongoDBOASIS': {'DBName': 'staging'}},
+                    'SubscriptionConfig': {'Stripe': {'SecretKey': 'sk_live_fictional'}}}}), 'STRIPE_SECRET_KEY': 'sk_test_fictional'}
+        with self.assertRaisesRegex(ValueError, 'test-mode'):
+            gate.validate_staging_variables(values, 'staging')
+
+    def test_webhook_foreign_url_or_live_mode_prevents_activation(self):
+        import json
+        config = copy.deepcopy(gate.CONFIG)
+        config['stagingIsolation']['mongoUsername'] = 'stage_user'
+        values = {'OASIS_DNA_JSON': json.dumps({'OASIS': {'StorageProviders': {'MongoDBOASIS': {
+            'DBName': config['stagingIsolation']['mongoDbName'], 'ConnectionString': 'mongodb://stage_user:fictional@localhost/staging'}}}}),
+            'STRIPE_SECRET_KEY': 'sk_test_fictional', 'SUBSCRIPTION_MONGODB_DATABASE': config['stagingIsolation']['accountingDbName']}
+        endpoint = {'id': config['stagingStripeWebhook']['id'], 'url': config['stagingStripeWebhook']['url'],
+                    'api_version': config['stagingStripeWebhook']['apiVersion'], 'livemode': False, 'status': 'disabled'}
+        for change in ({'url': 'https://foreign.invalid'}, {'livemode': True}):
+            with patch.object(gate, 'CONFIG', config), patch.object(gate, 'service_variables', return_value=values), \
+                 patch.object(gate, 'stripe_endpoint', return_value=dict(endpoint, **change)) as stripe:
+                with self.assertRaisesRegex(ValueError, 'differs'):
+                    gate.checked_staging_webhook('not-a-token', activate=True)
+                self.assertEqual(1, stripe.call_count)
+
+    def test_postapproval_read_cannot_silently_reactivate_disabled_webhook(self):
+        with patch.object(gate, 'service_variables', return_value={}), patch.object(gate, 'validate_staging_variables'), \
+             patch.dict(gate.CONFIG['stagingIsolation'], {'mongoUsername': 'stage_user'}), \
+             patch.object(gate, 'stripe_endpoint', return_value=dict(id=gate.CONFIG['stagingStripeWebhook']['id'],
+                url=gate.CONFIG['stagingStripeWebhook']['url'], api_version=gate.CONFIG['stagingStripeWebhook']['apiVersion'],
+                livemode=False, status='disabled')) as stripe:
+            with self.assertRaisesRegex(ValueError, 'activation'):
+                gate.checked_staging_webhook('not-a-token')
+            self.assertEqual(1, stripe.call_count)
 
 
 if __name__ == '__main__':
