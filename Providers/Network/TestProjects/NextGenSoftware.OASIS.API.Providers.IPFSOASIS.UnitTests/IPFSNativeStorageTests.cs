@@ -182,6 +182,7 @@ public class IPFSNativeStorageTests
                 var raw=await provider.IPFSClient.FileSystem.ReadAllTextAsync((Cid)cid);
                 Assert.StartsWith("oasis-aes256gcm-gzip-v2:",raw); Assert.DoesNotContain(avatar.Email,raw); Assert.DoesNotContain(avatar.Password,raw); Assert.DoesNotContain(id.ToString(),raw);
             }
+            await VerifyPartialPublicationAsync(provider,dna,Path.GetDirectoryName(path)!,ownedCids);
             var exactTombstone=await VerifySqliteTombstoneReplication(provider,dna,id,Path.GetDirectoryName(path)!,ownedCids);
             var deleted=await provider.ApplyAvatarTombstoneAsync(exactTombstone);
             Assert.False(deleted.IsError,deleted.Message); Assert.True(deleted.Result);
@@ -236,6 +237,54 @@ public class IPFSNativeStorageTests
             }
         }
     }
+    private static async Task VerifyPartialPublicationAsync(IPFSOASIS ipfs,OASISDNA dna,string directory,HashSet<string> ownedCids)
+    {
+        var id=Guid.NewGuid();
+        var avatar=new Avatar {Id=id,Username="partial-native-"+id,Email=id+"@example.invalid",IsActive=true};
+        var detail=new AvatarDetail {Id=id,Username=avatar.Username,IsActive=true,XP=123};
+        await ipfs.SaveAvatarToFile(avatar);
+        ownedCids.Add(avatar.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]); ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+        await ipfs.SaveAvatarDetailToFile(detail);
+        ownedCids.Add(detail.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]); ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+        var root=dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
+        var local=new NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.LocalFileOASIS(storageDirectory:Path.Combine(directory,"routing-files"));
+        Assert.False((await local.ActivateProviderAsync()).IsError);
+        try
+        {
+            Assert.False((await local.SaveAvatarAsync(new Avatar {Id=id,Username="untouched-backup",IsActive=true})).IsError);
+            var manager=new ProviderManager(null,dna) {IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=false,IsAutoLoadBalanceEnabled=false};
+            manager.RegisterProvider(ipfs); manager.RegisterProvider(local);
+            Assert.False(manager.SetAndReplaceAutoFailOverListForProviders(new[] {new EnumValue<ProviderType>(ProviderType.IPFSOASIS),new EnumValue<ProviderType>(ProviderType.LocalFileOASIS)}).IsError);
+            var keyField=typeof(IPFSOASIS).GetField("_storageKeyResolver",BindingFlags.Instance|BindingFlags.NonPublic)!;
+            var prior=keyField.GetValue(ipfs); var calls=0;
+            var cause=new System.IO.IOException("owned index encryption failure after both native acknowledgements");
+            keyField.SetValue(ipfs,new Func<byte[]>(()=>++calls==6 ? throw cause:Convert.FromBase64String(Environment.GetEnvironmentVariable("OASIS_IPFS_STORAGE_ENCRYPTION_KEY")!)));
+            NextGenSoftware.OASIS.Common.OASISResult<bool> failed;
+            try
+            {
+                failed=await new OASISHyperDrive(manager).RouteRequestAsync<bool>(new StorageOperationRequest {
+                    Operation="DeleteAvatar",AvatarId=id,SoftDelete=true,PreferredProvider=ProviderType.IPFSOASIS});
+            }
+            finally {keyField.SetValue(ipfs,prior);}
+            Assert.True(failed.IsError); Assert.Equal(6,calls);
+            var publication=Assert.IsType<IPFSRecordPublicationException>(failed.Exception);
+            Assert.Same(cause,publication.InnerException); Assert.Equal(2,publication.AcknowledgedRecordCids.Count);
+            Assert.Equal(2,publication.AcknowledgedRecordCids.Distinct().Count());
+            foreach(var cid in publication.AcknowledgedRecordCids)
+            {
+                Assert.StartsWith("oasis-aes256gcm-gzip-v2:",await ipfs.IPFSClient.FileSystem.ReadAllTextAsync((Cid)cid));
+                ownedCids.Add(cid);
+            }
+            Assert.Equal(root,dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+            Assert.True((await ipfs.LoadAvatarAsync(id)).Result.IsActive);
+            Assert.True((await ipfs.LoadAvatarDetailAsync(id)).Result.IsActive);
+            Assert.True((await local.LoadAvatarAsync(id)).Result.IsActive);
+            Assert.Null(manager.PerformanceMonitor.GetMetrics(ProviderType.LocalFileOASIS));
+            Assert.False((await local.DeleteAvatarAsync(id,softDelete:false)).IsError);
+        }
+        finally {await local.DeActivateProviderAsync();}
+    }
+
     private static async Task<AvatarTombstone> VerifySqliteTombstoneReplication(IPFSOASIS ipfs,OASISDNA dna,Guid originalId,string directory,HashSet<string> ownedCids)
     {
         var path=Path.Combine(directory,"tombstone-routing.db");

@@ -11,6 +11,18 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests;
 public class IPFSLifecycleTests
 {
     [Fact]
+    public void PublicationFailureCapturesImmutableCompleteReceipts()
+    {
+        var receipts=new List<string> {"avatar-cid","detail-cid"};
+        var cause=new System.IO.IOException("owned failure");
+        var error=new IPFSRecordPublicationException(receipts,cause);
+        receipts.Clear();
+        Assert.Equal(new[] {"avatar-cid","detail-cid"},error.AcknowledgedRecordCids);
+        Assert.Same(cause,error.InnerException); Assert.Equal("avatar-cid",error.OriginalTransactionId);
+        Assert.Throws<NotSupportedException>(()=>((IList<string>)error.AcknowledgedRecordCids).Add("foreign"));
+    }
+
+    [Fact]
     public async Task AcknowledgedRecordIndexFailureFencesActualV2Failover()
     {
         var provider=new IPFSOASIS(Settings("http://127.0.0.1:1"));
