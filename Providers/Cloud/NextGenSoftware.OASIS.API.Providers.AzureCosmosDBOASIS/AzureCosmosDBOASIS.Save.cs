@@ -58,6 +58,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         {
             try
             {
+                ArgumentNullException.ThrowIfNull(holon);
+                if(maxChildDepth<0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
+                if(saveChildren)
+                {
+                    var graph=await SaveHolonsAsync(new[] {holon},true,recursive,maxChildDepth,0,continueOnError,saveChildrenOnProvider);
+                    var converted=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IHolon>(graph);
+                    if(!graph.IsError) converted.Result=holon;
+                    return converted;
+                }
                 IHolon objHolon = await holonRepository.UpsertAsync(holon);
                 return new OASISResult<IHolon> { IsSaved = true, Result = objHolon };
             }
@@ -68,43 +77,49 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            try
-            {
-                List<IHolon> savedHolons = new List<IHolon>();
-
-                if (holons != null)
-                {
-                    foreach (var holon in holons)
-                        savedHolons.Add(holonRepository.UpsertAsync(holon).Result);
-                }
-
-                return new OASISResult<IEnumerable<IHolon>> { IsSaved = true, IsError = false, Result = savedHolons };
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IEnumerable<IHolon>> { IsSaved = false, IsError = true, Message = ex.Message, Exception = ex };
-            }
-        }
+            => SaveHolonsAsync(holons,saveChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,saveChildrenOnProvider).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            try
-            {
-                List<IHolon> savedHolons = new List<IHolon>();
-
-                if (holons != null)
-                {
-                    foreach (var holon in holons)
-                        savedHolons.Add(await holonRepository.UpsertAsync(holon));
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var saved = new List<IHolon>();
+            var failures=new List<Exception>();
+            try {
+                var plan=PlanCosmosGraph(holons,saveChildren,recursive,maxChildDepth,curentChildDepth);
+                var failedParents=new HashSet<Guid>();
+                foreach(var node in plan.Nodes) {
+                    if(failedParents.Contains(node.Snapshot.ParentHolonId)) {
+                        failedParents.Add(node.Snapshot.Id);
+                        failures.Add(new InvalidOperationException("Cosmos DB descendant skipped because its parent failed."));
+                        continue;
+                    }
+                    var written=await SaveHolonAsync(node.Snapshot,false,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider);
+                    if(written.IsError || written.Result==null) {
+                        failedParents.Add(node.Snapshot.Id);
+                        if(!result.IsError) result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(written);
+                        result.IsError=true;
+                        failures.Add(written.Exception ?? new InvalidOperationException(written.Message ?? "Cosmos DB item returned no acknowledgement."));
+                        if(!continueOnError || NativeMutationReconciliation.IsRequired(written.Exception)) break;
+                    }
+                    else {
+                        saved.Add(written.Result);
+                        node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
+                        node.Source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+                        node.Source.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=node.Snapshot.Id.ToString();
+                    }
                 }
-                
-                return new OASISResult<IEnumerable<IHolon>> { IsSaved = true, IsError = false, Result = savedHolons };
+                result.Result=failures.Count==0 ? plan.Roots:saved;result.IsSaved=failures.Count==0;
+                if(failures.Count>0) {
+                    result.IsError=true;
+                    var cause=failures.Count==1 ? failures[0]:new AggregateException(failures);
+                    result.Exception=saved.Count>0 ? new CosmosPartialMutationException(saved.Select(row=>row.Id),cause):cause;
+                }
             }
-            catch (Exception ex)
-            {
-                return new OASISResult<IEnumerable<IHolon>> { IsSaved = false, IsError = true, Message = ex.Message, Exception = ex };
+            catch(Exception cause) {
+                result.Exception=saved.Count>0 ? new CosmosPartialMutationException(saved.Select(row=>row.Id),cause):cause;
+                result.IsSaved=false;OASISErrorHandling.HandleError(ref result,cause.Message);
             }
+            return result;
         }
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
