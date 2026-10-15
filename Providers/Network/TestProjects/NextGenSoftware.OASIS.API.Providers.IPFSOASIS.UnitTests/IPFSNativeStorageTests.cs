@@ -149,6 +149,32 @@ public class IPFSNativeStorageTests
                     Assert.Equal(beforeIpfs+(choseIpfs ? 1:0),manager.PerformanceMonitor.GetMetrics(ProviderType.IPFSOASIS).TotalRequests);
                     Assert.Equal(beforeLocal+(choseIpfs ? 0:1),manager.PerformanceMonitor.GetMetrics(ProviderType.LocalFileOASIS).TotalRequests);
                 }
+                dna.OASIS.OASISHyperDriveConfig ??= new NextGenSoftware.OASIS.API.Core.Configuration.OASISHyperDriveConfig();
+                var priorDefault=dna.OASIS.OASISHyperDriveConfig.DefaultStrategy;
+                try
+                {
+                    dna.OASIS.OASISHyperDriveConfig.DefaultStrategy="RoundRobin";
+                    var first=router.RouteRequest<IHolon>(new StorageOperationRequest {Operation="LoadHolon",HolonId=id},LoadBalancingStrategy.Auto);
+                    Assert.False(first.IsError,first.Message); Assert.Equal(LoadBalancingStrategy.RoundRobin,manager.LastProviderSelectionDiagnostic.EffectiveStrategy);
+                    var second=await router.RouteRequestAsync<IHolon>(new StorageOperationRequest {Operation="LoadHolon",HolonId=id},LoadBalancingStrategy.Auto);
+                    Assert.False(second.IsError,second.Message); Assert.NotEqual(first.Result.Name,second.Result.Name);
+                }
+                finally {dna.OASIS.OASISHyperDriveConfig.DefaultStrategy=priorDefault;}
+                // Controlled selection inputs, not real fees or geographic measurements.
+                foreach(var preferIpfs in new[] {true,false})
+                {
+                    manager.PerformanceMonitor.UpdateCostAnalysis(ProviderType.IPFSOASIS,new CostAnalysis {TotalCost=preferIpfs ? 1:10});
+                    manager.PerformanceMonitor.UpdateCostAnalysis(ProviderType.LocalFileOASIS,new CostAnalysis {TotalCost=preferIpfs ? 10:1});
+                    manager.PerformanceMonitor.UpdateGeographicInfo(ProviderType.IPFSOASIS,new GeographicInfo {NetworkLatency=preferIpfs ? 1:10});
+                    manager.PerformanceMonitor.UpdateGeographicInfo(ProviderType.LocalFileOASIS,new GeographicInfo {NetworkLatency=preferIpfs ? 10:1});
+                    foreach(var strategy in new[] {LoadBalancingStrategy.CostBased,LoadBalancingStrategy.Geographic})
+                    foreach(var asynchronous in new[] {false,true})
+                    {
+                        var request=new StorageOperationRequest {Operation="LoadHolon",HolonId=id};
+                        var selected=asynchronous ? await router.RouteRequestAsync<IHolon>(request,strategy):router.RouteRequest<IHolon>(request,strategy);
+                        Assert.False(selected.IsError,selected.Message); Assert.Equal(preferIpfs ? holon.Name:"distinct-local-route",selected.Result.Name);
+                    }
+                }
                 manager.PerformanceMonitor.RecordConnection(ProviderType.IPFSOASIS,true);
                 try
                 {
