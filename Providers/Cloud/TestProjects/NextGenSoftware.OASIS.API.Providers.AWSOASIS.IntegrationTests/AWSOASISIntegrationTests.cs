@@ -210,6 +210,18 @@ public class AWSOASISIntegrationTests
         var graph=await _provider.LoadHolonsForParentAsync(parent,loadChildrenFromProvider:true);
         Assert.IsFalse(graph.IsError,graph.Message);
         Assert.AreEqual(grandchild.Id,graph.Result.Single(row=>row.Id==children[0].Id).Children.Single().Id);
+        var greatGrandchild=new Holon {Id=Guid.NewGuid(),ParentHolonId=grandchild.Id,Name="owned-great-grandchild"};
+        Assert.IsFalse((await _provider.SaveHolonAsync(greatGrandchild,saveChildren:false)).IsError);
+        var single=await _provider.LoadHolonAsync(children[0].Id,loadChildrenFromProvider:true);
+        Assert.IsFalse(single.IsError,single.Message);
+        Assert.AreEqual(greatGrandchild.Id,single.Result.Children.Single().Children.Single().Id);
+        var nonRecursive=_provider.LoadHolon(children[0].Id.ToString(),recursive:false,loadChildrenFromProvider:true);
+        Assert.IsFalse(nonRecursive.IsError,nonRecursive.Message);
+        Assert.AreEqual(grandchild.Id,nonRecursive.Result.Children.Single().Id);
+        Assert.AreEqual(0,nonRecursive.Result.Children.Single().Children.Count);
+        var noChildren=await _provider.LoadHolonAsync(children[0].Id,loadChildren:false,loadChildrenFromProvider:true);
+        Assert.AreEqual(0,noChildren.Result.Children.Count);
+        Assert.IsInstanceOfType(_provider.LoadHolon(children[0].Id,version:1).Exception,typeof(NotSupportedException));
         var truncated=_provider.LoadHolonsForParent(parent,loadChildrenFromProvider:true,maxChildDepth:1,curentChildDepth:1);
         Assert.IsFalse(truncated.IsError,truncated.Message);
         Assert.IsTrue(truncated.Result.All(row=>row.Children.Count==0));
