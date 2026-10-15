@@ -12,6 +12,27 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
     {
         private GoogleCloudOASIS _provider = null!;
 
+        [TestMethod]
+        public void CanonicalDetailDocumentRetainsInventoryProgressAndMetadata()
+        {
+            var detail=new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail {Id=System.Guid.NewGuid(),Username="owned-user",Email="owned@example.invalid",XP=321,Karma=29,
+                MetaData=new System.Collections.Generic.Dictionary<string,object> {{"owned-field","owned-value"}}};
+            detail.Inventory.Add(new InventoryItem {Id=System.Guid.NewGuid(),Name="owned seed"});
+            var flags=System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic;
+            var fields=(System.Collections.Generic.Dictionary<string,object>)typeof(GoogleCloudOASIS).GetMethod("EncodeAvatarDetail",flags)!.Invoke(null,new object[] {detail})!;
+            var decode=typeof(GoogleCloudOASIS).GetMethod("DecodeAvatarDetail",flags)!;
+            var loaded=(NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail)decode.Invoke(null,new object[] {fields,detail.Id.ToString()})!;
+            Assert.AreEqual(detail.Username,fields["username"]);Assert.AreEqual(detail.Email,fields["email"]);
+            Assert.AreEqual(321,loaded.XP);Assert.AreEqual(29L,loaded.Karma);
+            Assert.AreEqual(detail.Inventory[0].Id,loaded.Inventory[0].Id);Assert.AreEqual("owned seed",loaded.Inventory[0].Name);
+            Assert.AreEqual("owned-value",loaded.MetaData["owned-field"]);Assert.IsNotNull(loaded.Stats);
+            var wrong=Assert.ThrowsException<System.Reflection.TargetInvocationException>(()=>decode.Invoke(null,new object[] {fields,System.Guid.NewGuid().ToString()}));
+            Assert.IsInstanceOfType(wrong.InnerException,typeof(System.IO.InvalidDataException));
+            fields.Remove("data_json");
+            var missing=Assert.ThrowsException<System.Reflection.TargetInvocationException>(()=>decode.Invoke(null,new object[] {fields,detail.Id.ToString()}));
+            Assert.IsInstanceOfType(missing.InnerException,typeof(System.IO.InvalidDataException));
+        }
+
         [DataTestMethod]
         [DataRow(System.DateTimeKind.Local)]
         [DataRow(System.DateTimeKind.Utc)]

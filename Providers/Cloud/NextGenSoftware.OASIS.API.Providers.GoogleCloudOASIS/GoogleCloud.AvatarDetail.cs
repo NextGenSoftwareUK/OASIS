@@ -57,46 +57,10 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 }
 
                 // Save avatar detail to Firestore with FULL property mapping
+                ArgumentNullException.ThrowIfNull(avatarDetail);
+                if(avatarDetail.Id==Guid.Empty) avatarDetail.Id=Guid.NewGuid();
                 var docRef = _firestoreDb.Collection("avatarDetails").Document(avatarDetail.Id.ToString());
-                var avatarDetailData = new Dictionary<string, object>
-                {
-                    ["id"] = avatarDetail.Id.ToString(),
-                    ["username"] = avatarDetail.Username,
-                    ["email"] = avatarDetail.Email,
-                    // Map supported AvatarDetail to MetaData for Firestore to avoid interface mismatch
-                    ["firstName"] = avatarDetail.GetType().GetProperty("FirstName")?.GetValue(avatarDetail) ?? string.Empty,
-                    ["lastName"] = avatarDetail.GetType().GetProperty("LastName")?.GetValue(avatarDetail) ?? string.Empty,
-                    ["createdDate"] = ToFirestoreTimestamp(avatarDetail.CreatedDate),
-                    ["modifiedDate"] = ToFirestoreTimestamp(avatarDetail.ModifiedDate),
-                    // Map ALL AvatarDetail properties to Google Cloud fields
-                    ["title"] = avatarDetail.GetType().GetProperty("Title")?.GetValue(avatarDetail) ?? string.Empty,
-                    // Store extended fields into a nested meta object if present
-                    ["meta"] = new Dictionary<string, object>
-                    {
-                        ["address"] = avatarDetail.GetType().GetProperty("Address")?.GetValue(avatarDetail) ?? string.Empty,
-                        ["country"] = avatarDetail.GetType().GetProperty("Country")?.GetValue(avatarDetail) ?? string.Empty,
-                        ["postcode"] = avatarDetail.GetType().GetProperty("Postcode")?.GetValue(avatarDetail) ?? string.Empty,
-                        ["mobile"] = avatarDetail.GetType().GetProperty("Mobile")?.GetValue(avatarDetail) ?? string.Empty,
-                        ["landline"] = avatarDetail.GetType().GetProperty("Landline")?.GetValue(avatarDetail) ?? string.Empty,
-                        ["dob"] = avatarDetail.GetType().GetProperty("DOB")?.GetValue(avatarDetail) is DateTime dob && dob != default ? ToFirestoreTimestamp(dob) : null,
-                        ["avatarType"] = avatarDetail.GetType().GetProperty("AvatarType")?.GetValue(avatarDetail)?.ToString() ?? string.Empty,
-                        ["karmaAkashicRecords"] = avatarDetail.GetType().GetProperty("KarmaAkashicRecords")?.GetValue(avatarDetail) ?? 0,
-                        ["level"] = avatarDetail.GetType().GetProperty("Level")?.GetValue(avatarDetail) ?? 0,
-                        ["xp"] = avatarDetail.GetType().GetProperty("XP")?.GetValue(avatarDetail) ?? 0,
-                        ["hp"] = avatarDetail.GetType().GetProperty("HP")?.GetValue(avatarDetail) ?? 0,
-                        ["mana"] = avatarDetail.GetType().GetProperty("Mana")?.GetValue(avatarDetail) ?? 0,
-                        ["stamina"] = avatarDetail.GetType().GetProperty("Stamina")?.GetValue(avatarDetail) ?? 0,
-                        ["description"] = avatarDetail.GetType().GetProperty("Description")?.GetValue(avatarDetail) ?? string.Empty,
-                        ["website"] = avatarDetail.GetType().GetProperty("Website")?.GetValue(avatarDetail) ?? string.Empty,
-                        ["language"] = avatarDetail.GetType().GetProperty("Language")?.GetValue(avatarDetail) ?? string.Empty
-                    },
-                    // Map Google Cloud specific metadata
-                    ["googleCloudProjectId"] = _projectId,
-                    ["googleCloudBucketName"] = _bucketName,
-                    ["googleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
-                    ["googleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
-                    ["savedAt"] = ToFirestoreTimestamp(DateTime.UtcNow)
-                };
+var avatarDetailData = EncodeAvatarDetail(avatarDetail);
                 
                 await docRef.SetAsync(avatarDetailData);
                 
