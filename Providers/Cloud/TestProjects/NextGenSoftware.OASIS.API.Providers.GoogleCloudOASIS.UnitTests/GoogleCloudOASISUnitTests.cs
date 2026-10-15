@@ -13,6 +13,19 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
         private GoogleCloudOASIS _provider = null!;
 
         [TestMethod]
+        public async Task SearchValidatesBeforeActivationAndPreservesStorageCause()
+        {
+            var provider=new FailedActivationProvider();
+            Assert.IsInstanceOfType((await provider.SearchAsync(null!)).Exception,typeof(System.ArgumentNullException));
+            var search=new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {SearchOnlyForCurrentAvatar=false,
+                SearchGroups=new() {new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup {SearchQuery="owned",SearchHolons=true}}};
+            Assert.IsInstanceOfType((await provider.SearchAsync(search,version:1)).Exception,typeof(System.NotSupportedException));
+            Assert.AreEqual(0,provider.Activations);
+            var failed=await provider.SearchAsync(search);
+            Assert.AreSame(provider.Cause,failed.Exception);Assert.AreEqual("owned-code",failed.ErrorCode);
+        }
+
+        [TestMethod]
         public async Task MetadataQueriesValidateBeforeActivationAndPreserveCause()
         {
             var provider=new FailedActivationProvider();

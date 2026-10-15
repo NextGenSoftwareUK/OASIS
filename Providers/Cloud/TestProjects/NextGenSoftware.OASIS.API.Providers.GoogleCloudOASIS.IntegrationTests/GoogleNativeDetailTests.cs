@@ -56,6 +56,11 @@ public class GoogleNativeDetailTests
             Assert.IsFalse(any.IsError,any.Message);Assert.AreEqual(holonId,any.Result.Single().Id);
             var all=provider.LoadHolonsByMetaData(pairs,NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All);
             Assert.IsFalse(all.IsError,all.Message);Assert.AreEqual(0,all.Result.Count());
+            var search=await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+                SearchOnlyForCurrentAvatar=false,FilterByMetaData=new Dictionary<string,string> {{"owned-field","owned-value"}},
+                SearchGroups=new() {new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup {SearchQuery="owned holon",SearchHolons=true}}});
+            Assert.IsFalse(search.IsError,search.Message);Assert.AreEqual(1,search.Result.NumberOfResults);
+            Assert.AreEqual(holonId,search.Result.SearchResultHolons.Single().Id);Assert.AreEqual(0,search.Result.SearchResultAvatars.Count);
             var allHolons=await provider.LoadAllHolonsAsync(loadChildren:false);
             Assert.IsFalse(allHolons.IsError,allHolons.Message);Assert.AreEqual(holonId,allHolons.Result.Single().Id);
             var otherType=holon.HolonType==NextGenSoftware.OASIS.API.Core.Enums.HolonType.Avatar
