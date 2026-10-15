@@ -309,100 +309,50 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 			return result;
 		}
 
-		public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
-		{
-			var result = new OASISResult<IEnumerable<IHolon>>();
-			try
-			{
-				var allHolonsResult = await LoadAllHolonsAsync(HolonType.All, version: version);
-				if (allHolonsResult.IsError)
-					result.IsError = true;
-					result.Message = allHolonsResult.Message;
-					result.Exception = allHolonsResult.Exception;
-					return result;
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+        {
+            return await ReadIpfsExportAsync(avatarId,null,version);
+        }
 
-				var holons = allHolonsResult.Result.Where(h => h.CreatedByAvatarId == avatarId || h.ParentHolonId == avatarId).ToList();
-				result.Result = holons;
-				result.Message = "Exported holons for avatar (by Id) from IPFS.";
-			}
-			catch (Exception ex)
-			{
-				OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar by Id from IPFS: {ex.Message}");
-			}
-			return result;
-		}
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
+        {
+            return await ReadIpfsExportAsync(null,row=>string.Equals(row.login,avatarUsername,StringComparison.OrdinalIgnoreCase),version,!string.IsNullOrWhiteSpace(avatarUsername));
+        }
 
-		public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
-		{
-			var result = new OASISResult<IEnumerable<IHolon>>();
-			try
-			{
-				var avatarResult = await LoadAvatarTemplateAsync(a => a.login == avatarUsername);
-				if (avatarResult.IsError || avatarResult.Result == null)
-					result.IsError = true;
-					result.Message = avatarResult.Message;
-					result.Exception = avatarResult.Exception;
-					return result;
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
+        {
+            return await ReadIpfsExportAsync(null,row=>string.Equals(row.email,avatarEmailAddress,StringComparison.OrdinalIgnoreCase),version,!string.IsNullOrWhiteSpace(avatarEmailAddress));
+        }
 
-				return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
-			}
-			catch (Exception ex)
-			{
-				OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar by username from IPFS: {ex.Message}");
-				return result;
-			}
-		}
-
-		public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
-		{
-			var result = new OASISResult<IEnumerable<IHolon>>();
-			try
-			{
-				var avatarResult = await LoadAvatarTemplateAsync(a => a.email == avatarEmailAddress);
-				if (avatarResult.IsError || avatarResult.Result == null)
-					result.IsError = true;
-					result.Message = avatarResult.Message;
-					result.Exception = avatarResult.Exception;
-					return result;
-
-				return await ExportAllDataForAvatarByIdAsync(avatarResult.Result.Id, version);
-			}
-			catch (Exception ex)
-			{
-				OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar by email from IPFS: {ex.Message}");
-				return result;
-			}
-		}
-
-		public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-		{
-			return await LoadAllHolonsAsync(HolonType.All, version: version);
-		}
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+        {
+            return await ReadIpfsExportAsync(null,null,version);
+        }
 
 		public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
 		{
 			return ImportAsync(holons).Result;
 		}
 
-		public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
-		{
-			return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
-		}
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
+        {
+            return ExportAllDataForAvatarByIdAsync(avatarId,version).GetAwaiter().GetResult();
+        }
 
-		public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
-		{
-			return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
-		}
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
+        {
+            return ExportAllDataForAvatarByUsernameAsync(avatarUsername,version).GetAwaiter().GetResult();
+        }
 
-		public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
-		{
-			return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
-		}
+        public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
+        {
+            return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress,version).GetAwaiter().GetResult();
+        }
 
-		public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
-		{
-			return ExportAllAsync(version).Result;
-		}
+        public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
+        {
+            return ExportAllAsync(version).GetAwaiter().GetResult();
+        }
 
         //public override Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         //{
