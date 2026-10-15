@@ -158,6 +158,8 @@ jobs:
 
   build-holooasis-happ:
     runs-on: ubuntu-latest
+    outputs:
+      source-commit: ${{ steps.happ-source.outputs.commit }}
     steps:
       - uses: actions/checkout@v7
         with:
@@ -175,6 +177,13 @@ jobs:
         shell: pwsh
         working-directory: OASIS
         run: ./Scripts/build_holooasis_happ.ps1
+      - name: Export verified hApp source identity
+        id: happ-source
+        shell: pwsh
+        run: |
+          $manifest = Get-Content OASIS/Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/build-manifest.json -Raw | ConvertFrom-Json
+          if ($manifest.sourceCommit -notmatch '^[0-9a-f]{40}$') { throw 'Invalid verified hApp source identity.' }
+          "commit=$($manifest.sourceCommit)" >> $env:GITHUB_OUTPUT
       - uses: actions/upload-artifact@v7
         with:
           name: verified-holooasis-happ
@@ -383,6 +392,16 @@ jobs:
           repository: NextGenSoftwareUK/OASIS-Holochain-hApp
           path: OASIS-Holochain-hApp
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Pin hApp source to the verified producer artifact
+        shell: pwsh
+        env:
+          VERIFIED_HAPP_COMMIT: ${{ needs.build-holooasis-happ.outputs.source-commit }}
+        run: |
+          if ($env:VERIFIED_HAPP_COMMIT -notmatch '^[0-9a-f]{40}$') { throw 'Missing verified producer source identity.' }
+          git -C OASIS-Holochain-hApp fetch origin $env:VERIFIED_HAPP_COMMIT
+          if ($LASTEXITCODE -ne 0) { throw 'Unable to fetch verified hApp source.' }
+          git -C OASIS-Holochain-hApp checkout --detach $env:VERIFIED_HAPP_COMMIT
+          if ($LASTEXITCODE -ne 0) { throw 'Unable to select verified hApp source.' }
       - name: Checkout pinned legacy hApp rejection fixture
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
         with:
