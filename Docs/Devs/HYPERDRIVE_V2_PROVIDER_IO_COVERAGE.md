@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+Solana metadata follow-up: single-key and All/Any selectors now query actual authenticated memo records with validated input, exact ordinal/invariant scalar matching and shared graph options. Full unit suite79/79 passes; controlled culture/case/filter tests are not native-chain/index/full structured-query certification.
+
 Solana adapter follow-up: direct provider parent/type/GUID/signature graph and validation coverage now passes; synchronous signature options no longer dropped. Full unit project77/77 passes. Historical provider-child graph remains explicitly unsupported pending a versioned index, and no fresh native finality verification is claimed.
 
 Solana holon collection follow-up: parent/all-holon/GUID paths now use actual encrypted memo records rather than synthetic program accounts. Shared graph projector extracted from Ethereum and reused. Solana unit suite74/74 and Ethereum native91/91 pass; direct Solana adapter/live-chain and full graph-save/query/retention gates remain open.

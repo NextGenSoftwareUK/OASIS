@@ -14,6 +14,29 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 
 public partial class SolanaOASIS
 {
+    private async Task<OASISResult<IEnumerable<IHolon>>> ReadHolonMetadataAsync(Dictionary<string,string> pairs,
+        Core.Enums.MetaKeyValuePairMatchMode mode,Core.Enums.HolonType type,bool loadChildren,bool recursive,
+        int maxDepth,int initialDepth,bool fromProvider,int version)
+    {
+        var result=new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if(pairs == null || pairs.Count==0 || pairs.Keys.Any(string.IsNullOrWhiteSpace))
+                throw new ArgumentException("Nonempty metadata pairs with nonblank keys are required.");
+            if(mode is not (Core.Enums.MetaKeyValuePairMatchMode.All or Core.Enums.MetaKeyValuePairMatchMode.Any))
+                throw new ArgumentOutOfRangeException(nameof(mode));
+            var requested=pairs.ToArray();
+            bool Match(IHolon row,KeyValuePair<string,string> pair) => row.MetaData != null
+                && row.MetaData.TryGetValue(pair.Key,out var stored)
+                && string.Equals(stored == null ? null:Convert.ToString(stored,System.Globalization.CultureInfo.InvariantCulture),pair.Value,StringComparison.Ordinal);
+            return await ReadHolonCollectionAsync(row=>(type==Core.Enums.HolonType.All || row.HolonType==type)
+                && (mode==Core.Enums.MetaKeyValuePairMatchMode.All ? requested.All(pair=>Match(row,pair)):requested.Any(pair=>Match(row,pair))),
+                loadChildren,recursive,maxDepth,initialDepth,fromProvider,version);
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,"Solana metadata query failed: "+cause.Message,cause);}
+        return result;
+    }
+
     private async Task<OASISResult<IEnumerable<IHolon>>> ReadHolonCollectionAsync(Func<IHolon,bool> select,
         bool loadChildren,bool recursive,int maxDepth,int initialDepth,bool fromProvider,int version)
     {
