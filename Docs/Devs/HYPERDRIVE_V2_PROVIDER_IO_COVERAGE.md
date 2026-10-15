@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+IPFS priority follow-up: SDK-based provider lifecycle no longer shuts down an externally managed daemon on disconnect/activation failure; focused5/5 tests and producer build pass. Entity/index JSON publication paths still need approved private-record encryption and index/receipt/recovery/interface/V2 live validation. Cache-only restore reused existing dependencies, no runtime installed or private data published.
+
 Solana continuation follow-up: independent-node continuation now respects continueOnError, failed-parent descendants are skipped, uncertainty stops immediately and incomplete plans remain errors with signature evidence. Full unit suite101/101 passes; native finality and remaining graph/interface/recovery gates are still open.
 
 Solana graph-write follow-up: single/batch saves share selected-graph planning with stable sibling depths, pre-mutation identity/reference checks and committed-signature replay fencing. Full unit suite97/97 passes. Encryption/signing whole-plan preflight, continueOnError/embedded/cache semantics, CAS and native-chain verification remain incomplete.

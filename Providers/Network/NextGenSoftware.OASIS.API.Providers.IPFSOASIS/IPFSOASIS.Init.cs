@@ -54,11 +54,8 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             {
                 IsProviderActivated = false;
 
-                if (IPFSClient != null)
-                    await IPFSClient.ShutdownAsync();
-
                 IPFSClient = null;
-                OASISErrorHandling.HandleError(ref result, $"Error Occured In IPFSOASIS Provider In ActivateProviderAsync Method. Reason: {e}");
+                OASISErrorHandling.HandleError(ref result, $"Error Occured In IPFSOASIS Provider In ActivateProviderAsync Method. Reason: {e}",e);
             }
 
             return result;
@@ -66,42 +63,15 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override OASISResult<bool> DeActivateProvider()
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-
-            try
-            {
-                IPFSClient.ShutdownAsync().GetAwaiter().GetResult();
-                IPFSClient = null;
-                result.Result = true;
-                IsProviderActivated = false;
-            }
-            catch (Exception e)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error Occured In IPFSOASIS Provider In DeActivateProvider Method. Reason: {e}");
-            }
-
-            return result;
+            return DeActivateProviderAsync().GetAwaiter().GetResult();
         }
 
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-
-            try
-            {
-                if (IPFSClient != null)
-                    await IPFSClient.ShutdownAsync();
-
-                IPFSClient = null;
-                result.Result = true;
-                IsProviderActivated = false;
-            }
-            catch (Exception e)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error Occured In IPFSOASIS Provider In DeActivateProviderAsync Method. Reason: {e}");
-            }
-
-            return result;
+            // This provider owns a client handle, not the externally managed IPFS daemon.
+            IPFSClient = null;
+            IsProviderActivated = false;
+            return Task.FromResult(new OASISResult<bool> {Result=true});
         }
 
         public async Task<string> LoadFileToJson(string address)
