@@ -391,6 +391,41 @@ public class EthereumOASISIntegrationTests
         await provider.DeActivateProviderAsync();
     }
 
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task ParentQueriesUseNativeSnapshotAndPreserveReadErrors(bool synchronous)
+    {
+        var (provider,address) = await CreateActivatedProviderAsync();
+        var parent=Guid.NewGuid();
+        var child=new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=parent,Name="direct child",HolonType=HolonType.Holon };
+        var grandchild=new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=child.Id,Name="grandchild",HolonType=HolonType.Holon };
+        var unrelated=new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=Guid.NewGuid(),Name="unrelated",HolonType=HolonType.Holon };
+        child.Children.Add(grandchild);
+        foreach(var row in new[] {child,grandchild,unrelated}) Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);
+        async Task<OASISResult<IEnumerable<IHolon>>> Read(bool byKey=false,bool children=true,HolonType type=HolonType.All,int version=0)
+        {
+            if(byKey) return synchronous ? provider.LoadHolonsForParent(parent.ToString().ToUpperInvariant(),type,children,loadChildrenFromProvider:true,version:version)
+                : await provider.LoadHolonsForParentAsync(parent.ToString().ToUpperInvariant(),type,children,loadChildrenFromProvider:true,version:version);
+            return synchronous ? provider.LoadHolonsForParent(parent,type,children,loadChildrenFromProvider:true,version:version)
+                : await provider.LoadHolonsForParentAsync(parent,type,children,loadChildrenFromProvider:true,version:version);
+        }
+        foreach(var byKey in new[] {false,true})
+        {
+            var loaded=await Read(byKey); Assert.IsFalse(loaded.IsError,loaded.Message); Assert.IsTrue(loaded.IsLoaded);
+            Assert.AreEqual(child.Id,loaded.Result.Single().Id); Assert.AreEqual(grandchild.Id,loaded.Result.Single().Children.Single().Id);
+            var flat=await Read(byKey,children:false); Assert.IsFalse(flat.IsError,flat.Message); Assert.AreEqual(0,flat.Result.Single().Children.Count);
+            var filtered=await Read(byKey,type:HolonType.Avatar); Assert.IsFalse(filtered.IsError,filtered.Message); Assert.AreEqual(0,filtered.Result.Count());
+            var history=await Read(byKey,version:1); Assert.IsTrue(history.IsError); Assert.IsNull(history.Result); Assert.IsInstanceOfType(history.Exception,typeof(NotSupportedException));
+        }
+        var malformed=await provider.LoadHolonsForParentAsync("not-a-guid"); Assert.IsTrue(malformed.IsError); Assert.IsInstanceOfType(malformed.Exception,typeof(ArgumentException));
+        var absent=await provider.LoadHolonsForParentAsync(Guid.NewGuid()); Assert.IsFalse(absent.IsError,absent.Message); Assert.AreEqual(0,absent.Result.Count());
+        var service=new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        await service.CreateHolonRequestAndWaitForReceiptAsync(NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(child.Id.ToString()),child.Id.ToString(),"corrupt payload");
+        var corrupt=await Read(); Assert.IsTrue(corrupt.IsError); Assert.IsNull(corrupt.Result); Assert.IsFalse(corrupt.IsLoaded); Assert.IsNotNull(corrupt.Exception);
+        await provider.DeActivateProviderAsync();
+    }
+
     [TestMethod]
     public async Task Holon_SaveLoadRoundTrip_UsesDisposableEvmChain()
     {
