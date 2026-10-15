@@ -43,6 +43,10 @@ public class AzureNativeStorageTests
             var stored=await provider.LoadHolonAsync(holon.Id,loadChildren:false);Assert.IsFalse(stored.IsError,stored.Message);
             Assert.AreEqual(holon.Id,stored.Result.Id);Assert.AreEqual(holon.ParentHolonId,stored.Result.ParentHolonId);Assert.AreEqual(holon.Name,stored.Result.Name);
             await VerifyV2Async(provider,holon);
+            var absentContainer=new AzureStorageOASIS(connection,"oasis-native-absent",names[1],names[2]);
+            var operational=await absentContainer.LoadHolonAsync(Guid.NewGuid(),loadChildren:false);
+            Assert.IsTrue(operational.IsError);Assert.IsInstanceOfType(operational.Exception,typeof(Azure.RequestFailedException));
+            Assert.AreNotEqual(OASISResultErrorCodes.RecordNotFound,operational.ErrorCode);
         }
         finally {
             await provider.DeActivateProviderAsync();
@@ -91,6 +95,23 @@ public class AzureNativeStorageTests
                 Assert.AreEqual(value.Name,(await azure.LoadHolonAsync(native.Id,loadChildren:false)).Result.Name);
                 Assert.AreEqual(value.Name,(await local.LoadHolonAsync(native.Id,loadChildren:false)).Result.Name);
             }
+            manager.IsAutoReplicationEnabled=false;manager.IsAutoFailOverEnabled=true;
+            Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(providers).IsError);
+            var missingId=Guid.NewGuid();
+            try {
+                Assert.IsFalse((await local.SaveHolonAsync(new Holon {Id=missingId,Name="must-not-return-stale"},saveChildren:false)).IsError);
+                var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests;
+                foreach(var asynchronous in new[] {false,true}) {
+                    var request=new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {
+                        Operation="LoadHolon",HolonId=missingId,PreferredProvider=Core.Enums.ProviderType.AzureStorageOASIS};
+                    var read=asynchronous ? await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request)
+                        :router.RouteRequest<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request);
+                    Assert.IsNull(read.Result);Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,read.ErrorCode);
+                }
+                Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
+                Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await azure.LoadAvatarAsync(missingId)).ErrorCode);
+            }
+            finally {await local.DeleteHolonAsync(missingId);}
         }
         finally {await local.DeleteHolonAsync(native.Id);await local.DeActivateProviderAsync();}
     }
