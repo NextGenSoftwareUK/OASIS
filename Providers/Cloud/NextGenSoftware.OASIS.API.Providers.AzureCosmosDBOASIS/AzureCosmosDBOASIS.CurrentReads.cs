@@ -14,6 +14,25 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
 
 public partial class AzureCosmosDBOASIS
 {
+    private async Task<OASISResult<IEnumerable<IHolon>>> ReadCurrentParentAsync(string key,HolonType type,bool children,bool recursive,int depth,int initialDepth,bool fromProvider,int version)
+    {
+        var result=new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if(!Guid.TryParse(key,out var id) || id==Guid.Empty) throw new ArgumentException("A nonempty Cosmos parent GUID key is required.",nameof(key));
+            if(depth<0 || initialDepth<0) throw new ArgumentOutOfRangeException(nameof(depth));
+            var loaded=await ReadCurrentListAsync<IHolon>(()=>holonRepository,version);
+            if(loaded.IsError) return loaded;
+            var records=loaded.Result.ToList();
+            var project=HolonGraphProjection.Create(records,children,recursive,depth,initialDepth,fromProvider,
+                source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
+            result.Result=records.Where(row=>row.ParentHolonId==id && (type==HolonType.All || row.HolonType==type)).Select(project).ToArray();
+            result.IsLoaded=true;
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
+    }
+
     private async Task<OASISResult<IEnumerable<IHolon>>> ReadCurrentHolonsAsync(HolonType type,bool children,bool recursive,int depth,int initialDepth,bool fromProvider,int version)
     {
         var result=new OASISResult<IEnumerable<IHolon>>();

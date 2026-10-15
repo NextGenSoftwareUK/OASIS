@@ -33,6 +33,12 @@ public class CosmosCurrentReadTests
         var typed=await provider.LoadAllHolonsAsync(type:NextGenSoftware.OASIS.API.Core.Enums.HolonType.Park,loadChildrenFromProvider:true);
         Assert.IsFalse(typed.IsError,typed.Message);Assert.AreEqual(1,typed.Result.Count());
         Assert.AreEqual(child.Id,typed.Result.Single().Children.Single().Id);
+        var parent=await provider.LoadHolonsForParentAsync(root.Id,loadChildrenFromProvider:true);
+        Assert.IsFalse(parent.IsError,parent.Message);Assert.IsTrue(parent.IsLoaded);
+        Assert.AreEqual(child.Id,parent.Result.Single().Id);Assert.AreEqual(grandchild.Id,parent.Result.Single().Children.Single().Id);
+        var missing=provider.LoadHolonsForParent(Guid.NewGuid().ToString());
+        Assert.IsFalse(missing.IsError,missing.Message);Assert.IsTrue(missing.IsLoaded);Assert.IsFalse(missing.Result.Any());
+        Assert.IsInstanceOfType((await provider.LoadHolonsForParentAsync("invalid")).Exception,typeof(ArgumentException));
         Assert.IsInstanceOfType((await provider.LoadAllHolonsAsync(curentChildDepth:-1)).Exception,typeof(ArgumentOutOfRangeException));
     }
 

@@ -393,44 +393,16 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             => await ReadCurrentHolonKeyAsync(providerKey,loadChildren,recursive,maxChildDepth,loadChildrenFromProvider,version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return LoadHolonsForParent(id.ToString(), type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
-        }
+            => ReadCurrentParentAsync(id.ToString(),type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version).GetAwaiter().GetResult();
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-
-            try
-            {
-                var holonList = holonRepository.GetList();
-                var holonFiltered = holonList.Where(h => h.HolonType == type && h.ParentHolonId.ToString() == providerKey).ToList();
-
-                if (holonList.Count <= 0)
-                    result.Message = "No holons found in LoadHolonsForParent method in AzureCOSMOSDBOASIS.";
-                else
-                {
-                    result.Result = holonFiltered;
-                    result.Message = "Holons fetched in LoadHolonsForParent method in AzureCOSMOSDBOASIS.";
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadHolonsForParent method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
-            }
-
-            return result;
-        }
+            => ReadCurrentParentAsync(providerKey,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version).GetAwaiter().GetResult();
 
         public async override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return LoadHolonsForParent(id.ToString(), type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
-        }
+            => await ReadCurrentParentAsync(id.ToString(),type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
         public async override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return LoadHolonsForParent(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
-        }
+            => await ReadCurrentParentAsync(providerKey,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
     }
 }
