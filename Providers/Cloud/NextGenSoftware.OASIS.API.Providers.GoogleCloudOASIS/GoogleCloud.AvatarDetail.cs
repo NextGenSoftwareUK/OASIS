@@ -66,8 +66,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     // Map supported AvatarDetail to MetaData for Firestore to avoid interface mismatch
                     ["firstName"] = avatarDetail.GetType().GetProperty("FirstName")?.GetValue(avatarDetail) ?? string.Empty,
                     ["lastName"] = avatarDetail.GetType().GetProperty("LastName")?.GetValue(avatarDetail) ?? string.Empty,
-                    ["createdDate"] = Timestamp.FromDateTime(avatarDetail.CreatedDate),
-                    ["modifiedDate"] = Timestamp.FromDateTime(avatarDetail.ModifiedDate),
+                    ["createdDate"] = ToFirestoreTimestamp(avatarDetail.CreatedDate),
+                    ["modifiedDate"] = ToFirestoreTimestamp(avatarDetail.ModifiedDate),
                     // Map ALL AvatarDetail properties to Google Cloud fields
                     ["title"] = avatarDetail.GetType().GetProperty("Title")?.GetValue(avatarDetail) ?? string.Empty,
                     // Store extended fields into a nested meta object if present
@@ -78,7 +78,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                         ["postcode"] = avatarDetail.GetType().GetProperty("Postcode")?.GetValue(avatarDetail) ?? string.Empty,
                         ["mobile"] = avatarDetail.GetType().GetProperty("Mobile")?.GetValue(avatarDetail) ?? string.Empty,
                         ["landline"] = avatarDetail.GetType().GetProperty("Landline")?.GetValue(avatarDetail) ?? string.Empty,
-                        ["dob"] = avatarDetail.GetType().GetProperty("DOB")?.GetValue(avatarDetail) is DateTime dob && dob != default ? Timestamp.FromDateTime(dob) : null,
+                        ["dob"] = avatarDetail.GetType().GetProperty("DOB")?.GetValue(avatarDetail) is DateTime dob && dob != default ? ToFirestoreTimestamp(dob) : null,
                         ["avatarType"] = avatarDetail.GetType().GetProperty("AvatarType")?.GetValue(avatarDetail)?.ToString() ?? string.Empty,
                         ["karmaAkashicRecords"] = avatarDetail.GetType().GetProperty("KarmaAkashicRecords")?.GetValue(avatarDetail) ?? 0,
                         ["level"] = avatarDetail.GetType().GetProperty("Level")?.GetValue(avatarDetail) ?? 0,
@@ -95,7 +95,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     ["googleCloudBucketName"] = _bucketName,
                     ["googleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
                     ["googleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
-                    ["savedAt"] = Timestamp.FromDateTime(DateTime.Now)
+                    ["savedAt"] = ToFirestoreTimestamp(DateTime.UtcNow)
                 };
                 
                 await docRef.SetAsync(avatarDetailData);
