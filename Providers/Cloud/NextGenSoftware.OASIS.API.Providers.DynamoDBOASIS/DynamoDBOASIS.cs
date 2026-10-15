@@ -191,8 +191,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var resp = await _client.GetItemAsync("OasisAvatars", new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } });
-                if (resp.Item == null || !resp.Item.Any() || (resp.Item.TryGetValue("is_deleted", out var del) && del.BOOL)) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for ID '{id}'."); return result; }
+                var resp = await _client.GetItemAsync(new GetItemRequest {TableName="OasisAvatars",ConsistentRead=true,Key=new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } }});
+                if (resp.Item == null || !resp.Item.Any() || (resp.Item.TryGetValue("is_deleted", out var del) && del.BOOL)) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
                 var avatar = Des<Avatar>(resp.Item["data_json"].S); if (avatar == null) { OASISErrorHandling.HandleError(ref result, "DynamoDBOASIS: Deserialise failed."); return result; }
                 result.Result = avatar; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded.";
             }
@@ -372,8 +372,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
-                var resp = await _client.GetItemAsync("OasisAvatarDetails", new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } });
-                if (resp.Item == null || !resp.Item.Any()) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No detail for ID '{id}'."); return result; }
+                var resp = await _client.GetItemAsync(new GetItemRequest {TableName="OasisAvatarDetails",ConsistentRead=true,Key=new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } }});
+                if (resp.Item == null || !resp.Item.Any()) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No detail for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
                 var d = Des<AvatarDetail>(resp.Item["data_json"].S); if (d == null) { OASISErrorHandling.HandleError(ref result, "DynamoDBOASIS: Deserialise failed."); return result; }
                 result.Result = d; result.IsError = false; result.Message = "DynamoDBOASIS: AvatarDetail loaded.";
             }
@@ -453,8 +453,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var resp = await _client.GetItemAsync("OasisHolons", new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } });
-                if (resp.Item == null || !resp.Item.Any() || (resp.Item.TryGetValue("is_deleted", out var del) && del.BOOL)) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No holon for ID '{id}'."); return result; }
+                var resp = await _client.GetItemAsync(new GetItemRequest {TableName="OasisHolons",ConsistentRead=true,Key=new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } }});
+                if (resp.Item == null || !resp.Item.Any() || (resp.Item.TryGetValue("is_deleted", out var del) && del.BOOL)) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No holon for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
                 var holon = Des<Holon>(resp.Item["data_json"].S); if (holon == null) { OASISErrorHandling.HandleError(ref result, "DynamoDBOASIS: Deserialise failed."); return result; }
                 result.Result = holon; result.IsError = false; result.Message = "DynamoDBOASIS: Holon loaded.";
             }
