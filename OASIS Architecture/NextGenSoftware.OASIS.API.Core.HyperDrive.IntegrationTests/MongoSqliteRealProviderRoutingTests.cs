@@ -625,11 +625,12 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 }
             }
             foreach (var searchProvider in new[] { ProviderType.MongoDBOASIS, ProviderType.SQLLiteDBOASIS })
+            foreach (var byUsername in new[] { false, true })
             {
                 var emailSearch = new StorageOperationRequest { Operation = "Search", LoadChildren = false, PreferredProvider = searchProvider,
                     SearchParams = new SearchParams { SearchOnlyForCurrentAvatar = false,
-                        SearchGroups = new() { new SearchTextGroup { SearchQuery = avatar.Email.ToUpperInvariant(), SearchAvatars = true,
-                            AvatarSearchParams = new NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar.SearchAvatarParams { Email = true } } } } };
+                        SearchGroups = new() { new SearchTextGroup { SearchQuery = (byUsername ? avatar.Username : avatar.Email).ToUpperInvariant(), SearchAvatars = true, HolonType = HolonType.All,
+                            AvatarSearchParams = new NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar.SearchAvatarParams { Email = !byUsername, Username = byUsername } } } } };
                 var beforeSearch = manager.PerformanceMonitor.GetMetrics(searchProvider).TotalRequests;
                 var searched = synchronous ? router.RouteRequest<ISearchResults>(emailSearch) : await router.RouteRequestAsync<ISearchResults>(emailSearch);
                 searched.IsError.Should().BeFalse(searched.Message);
