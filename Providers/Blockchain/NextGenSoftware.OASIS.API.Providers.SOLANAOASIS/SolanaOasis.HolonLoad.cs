@@ -278,106 +278,49 @@ public partial class SolanaOASIS
         return DeleteHolonAsync(providerKey).Result;
     }
 
-    public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams,
-        bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true,
-        int version = 0)
-    {
-        var result = new OASISResult<ISearchResults>();
-        try
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Search avatars and holons using Solana program
-            // Real Solana implementation: Query program accounts and filter by search criteria
-            var searchResults = new SearchResults();
-            var matchingAvatars = new List<IAvatar>();
-            var matchingHolons = new List<IHolon>();
-
+            var result=new OASISResult<ISearchResults>();
             try
             {
-                var accounts = await _rpcClient.GetProgramAccountsAsync(_oasisSolanaAccount.PublicKey);
-                
-                if (accounts.WasSuccessful && accounts.Result != null)
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth);
+                var groups=searchParams.SearchGroups ?? new List<ISearchGroupBase>();
+                var wantsAvatars=groups.Count == 0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
+                var wantsHolons=groups.Count == 0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);
+                var avatars=new List<IAvatar>();
+                var holons=new List<IHolon>();
+                if(wantsAvatars)
                 {
-                    foreach (var account in accounts.Result)
+                    var loaded=await LoadAllAvatarsAsync(version);
+                    if(loaded.IsError)
                     {
-                        try
-                        {
-                            var accountData = account.Account.Data;
-                            if (accountData != null && accountData.Count > 0)
-                            {
-                                var accountDataString = accountData is IReadOnlyList<byte> bytes ? Encoding.UTF8.GetString(bytes.ToArray()) : string.Join("", (IEnumerable<string>)accountData);
-                                var searchQuery = searchParams.SearchGroups?.OfType<SearchTextGroup>().FirstOrDefault()?.SearchQuery ?? "";
-                                // Try parsing as avatar
-                                try
-                                {
-                                    var avatarDto = JsonConvert.DeserializeObject<SolanaAvatarDto>(accountDataString);
-                                    if (avatarDto != null && !string.IsNullOrEmpty(searchQuery))
-                                    {
-                                        if (avatarDto.UserName?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) == true ||
-                                            avatarDto.Email?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) == true)
-                                        {
-                                            var avatar = avatarDto.GetAvatar();
-                                            if (avatar != null) matchingAvatars.Add(avatar);
-                                        }
-                                    }
-                                }
-                                catch { }
-
-                                // Try parsing as holon
-                                try
-                                {
-                                    var holonDto = JsonConvert.DeserializeObject<Entities.Models.SolanaHolonDto>(accountDataString);
-                                    if (holonDto != null && !string.IsNullOrEmpty(searchQuery))
-                                    {
-                                        if (holonDto.Name?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) == true ||
-                                            holonDto.Description?.Contains(searchQuery, StringComparison.OrdinalIgnoreCase) == true)
-                                        {
-                                            holonDto.PublicKey = account.PublicKey;
-                                            holonDto.AccountInfo = account.Account;
-                                            var holon = holonDto.GetHolon();
-                                            if (holon != null) matchingHolons.Add(holon);
-                                        }
-                                    }
-                                }
-                                catch { }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            if (!continueOnError) throw;
-                            continue;
-                        }
+                        OASISErrorHandling.HandleError(ref result,loaded.Message,loaded.Exception);
+                        result.ErrorCode=loaded.ErrorCode; return result;
                     }
+                    avatars=loaded.Result.ToList();
                 }
-
-                searchResults.SearchResultAvatars = matchingAvatars;
-                searchResults.SearchResultHolons = matchingHolons;
-                searchResults.NumberOfResults = matchingAvatars.Count + matchingHolons.Count;
-
-                result.Result = searchResults;
-                result.IsError = false;
-                result.Message = $"Search completed: Found {matchingAvatars.Count} avatars and {matchingHolons.Count} holons";
+                if(wantsHolons || searchParams.ParentId != Guid.Empty)
+                {
+                    var loaded=await LoadAllHolonsAsync(HolonType.All,loadChildren,recursive,maxChildDepth,0,continueOnError,false,version);
+                    if(loaded.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result,loaded.Message,loaded.Exception);
+                        result.ErrorCode=loaded.ErrorCode; return result;
+                    }
+                    holons=loaded.Result.ToList();
+                }
+                var found=new SearchResults();
+                found.SearchResultAvatars.AddRange(avatars.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,true,searchParams,holons)));
+                if(wantsHolons) found.SearchResultHolons.AddRange(holons.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Matches(row,false,searchParams,holons)));
+                found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
+                result.Result=found; result.IsLoaded=true;
             }
-            catch (Exception ex)
+            catch(Exception cause)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error searching Solana program accounts: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result,$"Solana native search failed: {cause.Message}",cause);
             }
+            return result;
         }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error searching in Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
 
     public override OASISResult<IHolon> DeleteHolon(Guid id)
     {
