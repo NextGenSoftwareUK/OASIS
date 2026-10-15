@@ -942,6 +942,52 @@ public class EthereumOASISIntegrationTests
         await provider.DeActivateProviderAsync();
     }
 
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task SoftDeletePreflightFailuresLeaveBothCiphertextsAndNonceUnchanged(bool synchronous)
+    {
+        var (provider,address)=await CreateActivatedProviderAsync();
+        var id=Guid.Parse("00005f42-0000-0000-0000-000000000000");
+        var other=Guid.Parse("00017b6d-0000-0000-0000-000000000000");
+        var account=new Account(PrivateKey,ChainId);
+        var web3=new Web3(account,Host);
+        var service=new NextGenSoftwareOASISService(web3,address);
+        var key=NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(id.ToString());
+        Assert.IsFalse((await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=id,Username="protected avatar",IsActive=true})).IsError);
+        Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail {Id=id,XP=101,Karma=202})).IsError);
+        var originalAvatar=(await service.GetAvatarByIdQueryAsync(key)).ReturnValue1.Info;
+        var originalDetail=(await service.GetAvatarDetailByIdQueryAsync(key)).ReturnValue1.Info;
+        var before=await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(account.Address);
+        var collision=synchronous ? provider.DeleteAvatar(other) : await provider.DeleteAvatarAsync(other);
+        Assert.IsTrue(collision.IsError); Assert.IsFalse(collision.Result); Assert.IsInstanceOfType(collision.Exception,typeof(InvalidDataException));
+        var secret=Environment.GetEnvironmentVariable("OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY");
+        try
+        {
+            Environment.SetEnvironmentVariable("OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY",null);
+            var missing=synchronous ? provider.DeleteAvatar(id) : await provider.DeleteAvatarAsync(id);
+            Assert.IsTrue(missing.IsError); Assert.IsFalse(missing.Result); Assert.IsFalse(missing.IsDeleted);
+            Assert.IsNotNull(missing.Exception);
+        }
+        finally { Environment.SetEnvironmentVariable("OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY",secret); }
+        Assert.AreEqual(before.Value,(await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(account.Address)).Value);
+        Assert.AreEqual(originalAvatar,(await service.GetAvatarByIdQueryAsync(key)).ReturnValue1.Info);
+        Assert.AreEqual(originalDetail,(await service.GetAvatarDetailByIdQueryAsync(key)).ReturnValue1.Info);
+        // A detail belonging to the colliding OTHER identity must not be touched either.
+        await service.DeleteAvatarDetailRequestAndWaitForReceiptAsync(key);
+        Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail {Id=other,XP=303})).IsError);
+        var otherDetail=(await service.GetAvatarDetailByIdQueryAsync(key)).ReturnValue1.Info;
+        before=await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(account.Address);
+        var wrongDetail=synchronous ? provider.DeleteAvatar(id) : await provider.DeleteAvatarAsync(id);
+        Assert.IsTrue(wrongDetail.IsError); Assert.IsFalse(wrongDetail.Result); Assert.IsInstanceOfType(wrongDetail.Exception,typeof(InvalidDataException));
+        Assert.AreEqual(before.Value,(await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(account.Address)).Value);
+        Assert.AreEqual(originalAvatar,(await service.GetAvatarByIdQueryAsync(key)).ReturnValue1.Info);
+        Assert.AreEqual(otherDetail,(await service.GetAvatarDetailByIdQueryAsync(key)).ReturnValue1.Info);
+        Assert.AreEqual(DateTime.MinValue,(await provider.LoadAvatarAsync(id)).Result.DeletedDate);
+        Assert.AreEqual(303L,Convert.ToInt64((await provider.LoadAvatarDetailAsync(other)).Result.XP));
+        await provider.DeActivateProviderAsync();
+    }
+
     [TestMethod]
     public async Task Holon_SaveLoadRoundTrip_UsesDisposableEvmChain()
     {
