@@ -1,5 +1,7 @@
 # Actions for David
 
+For the current release-gate and OurWorld Cloud owner setup, use [What I need from David](Devs/OWNER_SETUP_CHECKLIST.md), updated 15 October 2026. The older task list below covers separate work and is not the current gate checklist.
+
 Things only you can do: they need your phone, your accounts, admin rights or a decision.
 Everything else is done or in progress. Last updated 2026-10-14.
 
