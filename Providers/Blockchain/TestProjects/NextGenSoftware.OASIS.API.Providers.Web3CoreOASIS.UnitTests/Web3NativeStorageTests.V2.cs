@@ -207,6 +207,7 @@ public partial class Web3NativeStorageTests
             }
             await using(var proxy=new Web3AcceptedWriteProxy())
             {
+                manager.IsAutoReplicationEnabled=true;
                 field.SetValue(polygon,new Web3CoreOASIS(Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_PRIVATE_KEY")!,"http://127.0.0.1:18546",address,Web3CoreOASISBaseProviderHelper.Abi,31337));
                 try
                 {
@@ -224,6 +225,61 @@ public partial class Web3NativeStorageTests
                         var committed=polygon.DecodePrivateEntity<AvatarDetail>("detail",entity);
                         Assert.AreEqual(id,committed.Id);Assert.AreEqual(734L,committed.XP);Assert.AreEqual(91L,committed.Karma);
                         Assert.AreEqual(string.Empty,((Web3MutationReconciliationException)saved.Exception).OriginalTransactionId,"Lost submission hash must not be invented.");
+                        foreach(var operation in new[] {"SaveAvatar","SaveHolon","DeleteHolon","DeleteAvatar"})
+                        {
+                            var fixtureId=Guid.NewGuid();var numeric=(uint)Core.Utilities.HashUtility.GetNumericHash(fixtureId.ToString());
+                            var raw=(Web3CoreOASIS)healthy!;
+                            var profile=new Avatar {Id=fixtureId,IsActive=true,Username="withheld-response "+fixtureId,AvatarType=new EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User)};
+                            var holon=new Holon {Id=fixtureId,IsActive=true,Name="withheld-response holon"};
+                            var detail=new AvatarDetail {Id=fixtureId,IsActive=true,XP=128,Karma=53};
+                            if(operation=="DeleteHolon")
+                            {
+                                await raw.UpsertHolonAsync(numeric,Web3CoreOASISBaseProvider.PrivateExternalId(fixtureId),System.Text.Encoding.UTF8.GetBytes(polygon.EncodePrivateRecord("holon",holon)));
+                                Assert.IsFalse((await sqlite.SaveHolonAsync(holon,saveChildren:false)).IsError);
+                            }
+                            if(operation=="DeleteAvatar")
+                            {
+                                await raw.UpsertAvatarAsync(numeric,Web3CoreOASISBaseProvider.PrivateExternalId(fixtureId),System.Text.Encoding.UTF8.GetBytes(polygon.EncodePrivateRecord("avatar",profile)));
+                                await raw.UpsertAvatarDetailAsync(numeric,Web3CoreOASISBaseProvider.PrivateExternalId(fixtureId),System.Text.Encoding.UTF8.GetBytes(polygon.EncodePrivateRecord("detail",detail)));
+                                var seededAvatar=await sqlite.SaveAvatarAsync(profile);Assert.IsFalse(seededAvatar.IsError,seededAvatar.Message);
+                                var seededDetail=await sqlite.SaveAvatarDetailAsync(detail);Assert.IsFalse(seededDetail.IsError,seededDetail.Message);
+                            }
+                            var acceptedBefore=proxy.AcceptedHashes.Count;
+                            var callsBefore=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests;
+                            var mutation=new Core.StorageOperationRequest {Operation=operation,AvatarId=fixtureId,HolonId=fixtureId,
+                                SoftDelete=operation=="DeleteAvatar",SaveChildren=false,PreferredProvider=Core.Enums.ProviderType.PolygonOASIS,
+                                Payload=operation=="SaveAvatar" ? profile:holon};
+                            void Check<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result)
+                            {
+                                Assert.IsTrue(result.IsError,result.Message);Assert.IsFalse(result.IsSaved);
+                                Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception));
+                                Assert.AreEqual(acceptedBefore+1,proxy.AcceptedHashes.Count,operation);
+                                Assert.AreEqual(callsBefore,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests,operation);
+                            }
+                            if(operation=="SaveAvatar")
+                            {
+                                Check(asynchronous ? await router.RouteRequestAsync<IAvatar>(mutation):router.RouteRequest<IAvatar>(mutation));
+                                Assert.AreEqual(fixtureId,polygon.DecodePrivateEntity<Avatar>("avatar",await raw.GetAvatarByIdAsync(numeric)).Id);
+                                Assert.IsNull((await sqlite.LoadAvatarAsync(fixtureId)).Result);
+                            }
+                            else if(operation=="DeleteAvatar")
+                            {
+                                Check(asynchronous ? await router.RouteRequestAsync<bool>(mutation):router.RouteRequest<bool>(mutation));
+                                var pair=await raw.ReadAvatarPairAsync(numeric);
+                                var avatar=polygon.DecodePrivateEntity<Avatar>("avatar",pair.Avatar);var nativeDetail=polygon.DecodePrivateEntity<AvatarDetail>("detail",pair.Detail);
+                                Assert.IsFalse(avatar.IsActive);Assert.IsFalse(nativeDetail.IsActive);Assert.AreEqual(avatar.DeletedDate,nativeDetail.DeletedDate);
+                                Assert.IsTrue((await sqlite.LoadAvatarAsync(fixtureId)).Result.IsActive);Assert.IsTrue((await sqlite.LoadAvatarDetailAsync(fixtureId)).Result.IsActive);
+                            }
+                            else
+                            {
+                                Check(asynchronous ? await router.RouteRequestAsync<IHolon>(mutation):router.RouteRequest<IHolon>(mutation));
+                                var stored=await raw.GetHolonByIdAsync(numeric);
+                                if(operation=="DeleteHolon")
+                                {Assert.IsTrue(Web3CoreOASISBaseProvider.IsPrivateRecordAbsent(stored));Assert.AreEqual(fixtureId,(await sqlite.LoadHolonAsync(fixtureId,loadChildren:false)).Result.Id);}
+                                else
+                                {Assert.AreEqual(fixtureId,polygon.DecodePrivateEntity<Holon>("holon",stored).Id);Assert.IsNull((await sqlite.LoadHolonAsync(fixtureId,loadChildren:false)).Result);}
+                            }
+                        }
                     }
                 }
                 finally {field.SetValue(polygon,healthy);}
