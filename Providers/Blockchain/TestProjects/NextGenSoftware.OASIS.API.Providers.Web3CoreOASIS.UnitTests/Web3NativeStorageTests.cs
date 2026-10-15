@@ -54,8 +54,15 @@ public partial class Web3NativeStorageTests
             Assert.AreEqual(avatar.Id,(await provider.LoadAvatarByProviderKeyAsync(avatar.Id.ToString().ToUpperInvariant())).Result.Id);
             Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,provider.LoadAvatarByEmail("absent@example.invalid").ErrorCode);
             var root=new Holon {Id=Guid.NewGuid(),IsActive=true,Name="owned root",CreatedByAvatarId=avatar.Id,IsNewHolon=true,MetaData=new Dictionary<string,object> {{"biome","park"}}};
+            root.MetaData["Latitude"]="21.1619";root.MetaData["Longitude"]="-86.8515";
             var child=new Holon {Id=Guid.NewGuid(),IsActive=true,Name="owned child",ParentHolonId=root.Id,IsNewHolon=true};
             foreach(var row in new[] {root,child}) {var result=await provider.SaveHolonAsync(row,saveChildren:false);Assert.IsFalse(result.IsError,result.Message);}
+            var nearby=provider.GetHolonsNearMe(21161900,-86851500,0,Core.Enums.HolonType.All);
+            Assert.IsFalse(nearby.IsError,nearby.Message);Assert.IsTrue(nearby.IsLoaded);Assert.AreEqual(root.Id,nearby.Result.Single().Id);
+            Assert.IsFalse(provider.GetHolonsNearMe(0,0,1,Core.Enums.HolonType.All).Result.Any());
+            Assert.IsInstanceOfType(provider.GetAvatarsNearMe(90000001,0,1).Exception,typeof(ArgumentOutOfRangeException));
+            Assert.IsInstanceOfType(provider.GetHolonsNearMe(0,0,-1,Core.Enums.HolonType.All).Exception,typeof(ArgumentOutOfRangeException));
+            Assert.IsInstanceOfType(provider.GetHolonsNearMe(Core.Enums.HolonType.All).Exception,typeof(NotSupportedException));
             child.Name="updated child";
             Assert.IsFalse((await provider.SaveHolonAsync(child,saveChildren:false)).IsError);
             Assert.AreEqual("updated child",(await provider.LoadHolonAsync(child.Id,loadChildren:false)).Result.Name);
