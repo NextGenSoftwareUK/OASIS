@@ -40,20 +40,23 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             OASISResult<bool> result = new OASISResult<bool>();
+            if(IsProviderActivated) return new OASISResult<bool>(true);
 
             try
             {
                 // Initialize Google Cloud Storage client if enabled
                 if (_enableStorage)
                 {
-                    _storageClient = await StorageClient.CreateAsync();
+                    var storageBuilder=new StorageClientBuilder();
+                    if(!string.IsNullOrWhiteSpace(_credentialsPath)) storageBuilder.CredentialsPath=_credentialsPath;
+                    _storageClient = await storageBuilder.BuildAsync();
                     
                     // Test connection by creating a test bucket if it doesn't exist
                     try
                     {
                         await _storageClient.GetBucketAsync(_bucketName);
                     }
-                    catch
+                    catch(Google.GoogleApiException cause) when(cause.HttpStatusCode==System.Net.HttpStatusCode.NotFound)
                     {
                         // Create bucket if it doesn't exist
                         await _storageClient.CreateBucketAsync(_projectId, _bucketName);
@@ -88,7 +91,10 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 // Initialize BigQuery client if enabled
                 if (_enableBigQuery)
                 {
-                    _bigQueryClient = await BigQueryClient.CreateAsync(_projectId);
+                    var bigQueryBuilder=new BigQueryClientBuilder {ProjectId=_projectId};
+                    if(!string.IsNullOrWhiteSpace(_credentialsPath)) bigQueryBuilder.CredentialsPath=_credentialsPath;
+                    _bigQueryClient = await bigQueryBuilder.BuildAsync();
+                    await _bigQueryClient.GetDatasetAsync(_bigQueryDatasetId);
                 }
                 
                 IsProviderActivated = true;
@@ -98,37 +104,30 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             }
             catch (Exception e)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error activating Google Cloud provider: {e.Message}", e);
+                var cleanup=await DeActivateProviderAsync();
+                var cause=cleanup.IsError ? new AggregateException("Google activation and cleanup failed.",e,cleanup.Exception ?? new InvalidOperationException(cleanup.Message)):e;
+                OASISErrorHandling.HandleError(ref result, $"Error activating Google Cloud provider: {e.Message}", cause);
             }
 
             return result;
         }
 
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync()
+        public override Task<OASISResult<bool>> DeActivateProviderAsync()
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-
-            try
+            var result=new OASISResult<bool>();
+            var storage=_storageClient;var bigQuery=_bigQueryClient;
+            _storageClient=null;_bigQueryClient=null;_firestoreDb=null;
+            IsProviderActivated=false;
+            var failures=new List<Exception>();
+            try {storage?.Dispose();} catch(Exception cause) {failures.Add(cause);}
+            try {bigQuery?.Dispose();} catch(Exception cause) {failures.Add(cause);}
+            if(failures.Count>0)
             {
-                // Dispose Google Cloud clients properly
-                _storageClient?.Dispose();
-                _bigQueryClient?.Dispose();
-                
-                _storageClient = null;
-                _firestoreDb = null;
-                _bigQueryClient = null;
-                
-                IsProviderActivated = false;
-                result.Result = true;
-                result.IsError = false;
-                result.Message = "Google Cloud provider deactivated successfully with all clients disposed";
+                var cause=failures.Count==1 ? failures[0]:new AggregateException(failures);
+                OASISErrorHandling.HandleError(ref result,cause.Message,cause);
             }
-            catch (Exception e)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error deactivating Google Cloud provider: {e.Message}", e);
-            }
-
-            return result;
+            else result.Result=true;
+            return Task.FromResult(result);
         }
 
         public override OASISResult<bool> DeActivateProvider()

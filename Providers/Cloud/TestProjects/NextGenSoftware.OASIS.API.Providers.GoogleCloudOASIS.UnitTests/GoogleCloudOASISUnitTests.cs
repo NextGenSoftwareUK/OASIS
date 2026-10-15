@@ -12,6 +12,16 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
     {
         private GoogleCloudOASIS _provider = null!;
 
+        [DataTestMethod]
+        [DataRow(false)] [DataRow(true)]
+        public async Task ExplicitMissingCredentialsFailLocallyAndLeaveProviderInactive(bool bigQuery)
+        {
+            var provider=new GoogleCloudOASIS(credentialsPath:System.IO.Path.Combine(System.IO.Path.GetTempPath(),"oasis-nonexistent-google-credentials","credentials.json"),
+                enableStorage:!bigQuery,enableFirestore:false,enableBigQuery:bigQuery);
+            var result=await provider.ActivateProviderAsync();
+            Assert.IsTrue(result.IsError);Assert.IsNotNull(result.Exception);Assert.IsFalse(provider.IsProviderActivated);
+        }
+
         [TestMethod]
         public async Task HolonDeleteRejectsInvalidIdentityBeforeActivationAndPreservesCause()
         {
