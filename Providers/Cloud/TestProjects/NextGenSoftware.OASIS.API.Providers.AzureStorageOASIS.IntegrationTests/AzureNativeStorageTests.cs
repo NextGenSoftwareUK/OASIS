@@ -79,6 +79,15 @@ public class AzureNativeStorageTests
             var byKey=provider.LoadHolonsForParent(holon.Id.ToString(),loadChildren:false);
             Assert.IsFalse(byKey.IsError,byKey.Message);Assert.AreEqual(child.Id,byKey.Result.Single().Id);Assert.AreEqual(0,byKey.Result.Single().Children.Count);
             Assert.IsInstanceOfType(provider.LoadAllHolons(version:1).Exception,typeof(NotSupportedException));
+            var root=await provider.LoadHolonAsync(holon.Id,loadChildrenFromProvider:true);
+            Assert.IsFalse(root.IsError,root.Message);Assert.AreEqual(grandchild.Id,root.Result.Children.Single().Children.Single().Id);
+            var shallow=provider.LoadHolon(holon.Id.ToString(),recursive:false,loadChildrenFromProvider:true);
+            Assert.IsFalse(shallow.IsError,shallow.Message);Assert.AreEqual(child.Id,shallow.Result.Children.Single().Id);
+            Assert.AreEqual(0,shallow.Result.Children.Single().Children.Count);
+            var bounded=await provider.LoadHolonAsync(holon.Id,maxChildDepth:1,loadChildrenFromProvider:true);
+            Assert.AreEqual(0,bounded.Result.Children.Single().Children.Count);
+            var disabled=await provider.LoadHolonAsync(holon.Id,loadChildren:false,loadChildrenFromProvider:true);
+            Assert.AreEqual(0,disabled.Result.Children.Count);
         }
         finally {
             await provider.DeActivateProviderAsync();

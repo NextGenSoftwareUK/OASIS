@@ -162,6 +162,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
             {
                 ValidateDetailVersion(version);
                 if(maxChildDepth<0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
+                if(string.IsNullOrWhiteSpace(providerKey)) throw new ArgumentException("A nonblank Azure holon key is required.");
                 var blob = _serviceClient.GetBlobContainerClient(_holonContainer).GetBlobClient(providerKey);
                 var json = await ReadBlobAsync(blob);
                 var holon = Deserialise<Holon>(json) ?? throw new InvalidDataException("Azure holon record is null.");
@@ -170,7 +171,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                     throw new InvalidDataException("Azure holon identity does not match blob key.");
                 holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = providerKey;
-                result.Result = holon;
+                IEnumerable<IHolon> records=new[] {holon};
+                if(loadChildren && loadChildrenFromProvider) {
+                    var loaded=await LoadAllHolonsAsync(loadChildren:false,version:version);
+                    if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IHolon>(loaded);
+                    records=loaded.Result;
+                }
+                var project=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphProjection.Create(records,loadChildren,recursive,maxChildDepth,0,loadChildrenFromProvider,
+                    source=>Deserialise<Holon>(Serialise(source))!);
+                result.Result = project(holon);result.IsLoaded=true;
             }
             catch (Azure.RequestFailedException cause) when(cause.Status==404 && cause.ErrorCode=="BlobNotFound") {
                 result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Azure holon blob not found.";
@@ -197,7 +206,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 var container = _serviceClient.GetBlobContainerClient(_holonContainer);
                 await foreach (var item in container.GetBlobsAsync())
                 {
-                    var r = await LoadHolonAsync(item.Name, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+                    var r = await LoadHolonAsync(item.Name, loadChildren:false, version:version);
                     if(r.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(r);
                     if(r.Result==null) throw new InvalidDataException("Azure holon read returned no record.");
                     holons.Add(r.Result);
