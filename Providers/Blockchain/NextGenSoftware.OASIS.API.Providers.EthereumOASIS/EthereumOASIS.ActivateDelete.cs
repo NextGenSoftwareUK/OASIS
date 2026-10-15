@@ -169,7 +169,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var requestTransaction = await _nextGenSoftwareOasisService
                     .CreateAvatarRequestAndWaitForReceiptAsync(avatarEntityId, avatarId, avatarInfo);
 
-                if (requestTransaction.HasErrors() is true)
+                if (!StorageReceiptSucceeded(requestTransaction))
                 {
                     OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
                     return result;
@@ -207,7 +207,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var requestTransaction = _nextGenSoftwareOasisService
                     .CreateAvatarDetailRequestAndWaitForReceiptAsync(avatarDetailEntityId, avatarDetailId, avatarDetailInfo).Result;
 
-                if (requestTransaction.HasErrors() is true)
+                if (!StorageReceiptSucceeded(requestTransaction))
                 {
                     OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
                     return result;
@@ -245,7 +245,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var requestTransaction = await _nextGenSoftwareOasisService
                     .CreateAvatarDetailRequestAndWaitForReceiptAsync(avatarDetailEntityId, avatarDetailId, avatarDetailInfo);
 
-                if (requestTransaction.HasErrors() is true)
+                if (!StorageReceiptSucceeded(requestTransaction))
                 {
                     OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
                     return result;
@@ -278,7 +278,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var requestTransaction = _nextGenSoftwareOasisService
                     .DeleteAvatarRequestAndWaitForReceiptAsync(avatarEntityId).Result;
 
-                if (requestTransaction.HasErrors() is true)
+                if (!StorageReceiptSucceeded(requestTransaction))
                 {
                     OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
                     return result;
@@ -418,7 +418,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var requestTransaction = await _nextGenSoftwareOasisService
                     .DeleteAvatarRequestAndWaitForReceiptAsync(avatarEntityId);
 
-                if (requestTransaction.HasErrors() is true)
+                if (!StorageReceiptSucceeded(requestTransaction))
                 {
                     OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
                     return result;
