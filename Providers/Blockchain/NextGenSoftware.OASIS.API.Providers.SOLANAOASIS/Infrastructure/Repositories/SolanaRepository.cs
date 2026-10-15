@@ -37,7 +37,7 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
     {
         ValidateStorageEntity(entity);
         var nextVersion=checked(entity.Version + 1);
-        var snapshot=Newtonsoft.Json.Linq.JObject.FromObject(entity);
+        var snapshot=Newtonsoft.Json.Linq.JObject.Parse(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(entity));
         snapshot["Version"]=nextVersion;
         snapshot["PreviousVersionId"]=entity.Id;
         var serializedEntity = EncodeEntity(snapshot);
@@ -102,7 +102,7 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
         var document=Newtonsoft.Json.Linq.JObject.Parse(content);
         if(document.Value<string>("RecordKind") != new T().RecordKind)
             throw new InvalidOperationException("Solana storage record kind does not match the requested type; untyped historical memos require explicit review.");
-        var record=document.ToObject<T>() ?? throw new InvalidOperationException("Finalized Solana memo has no record content.");
+        var record=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<T>(content) ?? throw new InvalidOperationException("Finalized Solana memo has no record content.");
         if(record.Id == Guid.Empty || record.Version < 0)
             throw new InvalidOperationException("Solana storage record has invalid identity/version.");
         return record;
@@ -194,7 +194,7 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
     private string EncodeEntity<T>(T entity)
     {
         using var codec = OpenCodec();
-        return codec.Encrypt(MemoIdentity, JsonConvert.SerializeObject(entity));
+        return codec.Encrypt(MemoIdentity, NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(entity));
     }
 
     private string DecodeEntity(byte[] transactionData)

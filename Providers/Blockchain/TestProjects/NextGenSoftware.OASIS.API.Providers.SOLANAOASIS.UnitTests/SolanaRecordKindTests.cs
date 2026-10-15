@@ -10,6 +10,39 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 [TestClass]
 public class SolanaRecordKindTests
 {
+    [TestMethod]
+    public void EncryptedDetailMemoReconstructsOwnedInventoryAndStats()
+    {
+        var detail = new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail {Id=Guid.NewGuid(),XP=321,Karma=29};
+        var item = new NextGenSoftware.OASIS.API.Core.Objects.InventoryItem {Id=Guid.NewGuid(),Name="owned seed"};
+        detail.Inventory.Add(item);
+        var dto=NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Extensions.OasisEntitiesExtensions.GetSolanaAvatarDetailDto(detail);
+        var repository=new SolanaRepository(new Solnet.Wallet.Account(),null!,()=>Enumerable.Repeat((byte)23,32).ToArray());
+        var encoded=(string)typeof(SolanaRepository).GetMethod("EncodeEntity",BindingFlags.Instance|BindingFlags.NonPublic)!
+            .MakeGenericMethod(typeof(SolanaAvatarDetailDto)).Invoke(repository,new object[] {dto})!;
+        Assert.IsFalse(encoded.Contains("owned seed"));
+        var decoded=(string)typeof(SolanaRepository).GetMethod("DecodeEntity",BindingFlags.Instance|BindingFlags.NonPublic)!
+            .Invoke(repository,new object[] {System.Text.Encoding.UTF8.GetBytes(encoded)})!;
+        var loaded=Read<SolanaAvatarDetailDto>(decoded);
+        Assert.AreEqual(item.Id,loaded.Inventory.Single().Id);
+        Assert.AreEqual("owned seed",loaded.Inventory.Single().Name);
+        Assert.IsInstanceOfType(loaded.Inventory.Single(),typeof(NextGenSoftware.OASIS.API.Core.Objects.InventoryItem));
+        Assert.IsNotNull(loaded.Stats); Assert.IsNotNull(loaded.Skills);
+        Assert.AreEqual(321,loaded.XP); Assert.AreEqual(29L,loaded.Karma);
+    }
+
+    [TestMethod]
+    public void StoredDetailCannotInstantiateNonOasisInventoryType()
+    {
+        var document=JObject.FromObject(new SolanaAvatarDetailDto {Id=Guid.NewGuid()});
+        document["Inventory"]=new JArray(new JObject {
+            ["$type"]="System.IO.FileInfo, System.Private.CoreLib",
+            ["OriginalPath"]="must-not-be-opened"
+        });
+        var error=Assert.ThrowsException<TargetInvocationException>(()=>Read<SolanaAvatarDetailDto>(document.ToString()));
+        Assert.IsInstanceOfType(error.InnerException,typeof(JsonSerializationException));
+    }
+
     private static T Read<T>(string json) where T:SolanaBaseDto,new()
         => (T)typeof(SolanaRepository).GetMethod("DeserializeStoredRecord",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(T)).Invoke(null,new object[] {json})!;
 
