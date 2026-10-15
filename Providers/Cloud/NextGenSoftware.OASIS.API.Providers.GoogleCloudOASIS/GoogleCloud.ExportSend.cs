@@ -93,24 +93,32 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             var saved = new List<IHolon>();
             var failures=new List<Exception>();
             try {
-                ArgumentNullException.ThrowIfNull(holons);
-                var planned=holons.ToList();
-                if(planned.Count==0 || maxChildDepth<0 || curentChildDepth<0 || planned.Any(row=>row==null)) throw new ArgumentException("Invalid batch nodes or depth.");
-                foreach(var row in planned) if(row.Id==Guid.Empty) row.Id=Guid.NewGuid();
-                if(planned.Select(row=>row.Id).Distinct().Count()!=planned.Count) throw new ArgumentException("Duplicate batch identities.");
-                foreach(var row in planned) NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(row);
-                foreach(var row in planned) {
-                    var written=await SaveHolonAsync(row,saveChildren,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider);
+                var plan=PlanFirestoreGraph(holons,saveChildren,recursive,maxChildDepth,curentChildDepth);
+                var failedParents=new HashSet<Guid>();
+                foreach(var node in plan.Nodes) {
+                    if(failedParents.Contains(node.Snapshot.ParentHolonId)) {
+                        failedParents.Add(node.Snapshot.Id);
+                        failures.Add(new InvalidOperationException("Firestore descendant skipped because its parent failed."));
+                        continue;
+                    }
+                    var written=await SaveHolonAsync(node.Snapshot,false,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider);
                     if(written.IsError || written.Result==null) {
+                        failedParents.Add(node.Snapshot.Id);
                         if(!result.IsError) result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(written);
                         result.IsError=true;
                         failures.Add(written.Exception ?? new InvalidOperationException(written.Message ?? "Firestore item returned no acknowledgement."));
                         if(!continueOnError || NativeMutationReconciliation.IsRequired(written.Exception)) break;
                     }
-                    else saved.Add(written.Result);
+                    else {
+                        saved.Add(written.Result);
+                        node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
+                        node.Source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+                        node.Source.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS]=node.Snapshot.Id.ToString();
+                    }
                 }
-                result.Result=saved;result.IsSaved=failures.Count==0;
+                result.Result=failures.Count==0 ? plan.Roots:saved;result.IsSaved=failures.Count==0;
                 if(failures.Count>0) {
+                    result.IsError=true;
                     var cause=failures.Count==1 ? failures[0]:new AggregateException(failures);
                     result.Exception=saved.Count>0 ? new GoogleFirestorePartialMutationException(saved.Select(row=>row.Id),cause):cause;
                 }

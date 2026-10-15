@@ -22,6 +22,7 @@ public class GoogleNativeDetailTests
         var childId=Guid.NewGuid();
         var avatarId=Guid.NewGuid();var duplicateAvatarId=Guid.NewGuid();
         var importedIds=new[] {Guid.NewGuid(),Guid.NewGuid()};
+        var graphIds=new[] {Guid.NewGuid(),Guid.NewGuid(),Guid.NewGuid()};
         try {
             var active=await provider.ActivateProviderAsync();Assert.IsFalse(active.IsError,active.Message);
             Assert.AreEqual(0,(await provider.LoadAllAvatarsAsync()).Result.Count());
@@ -140,13 +141,25 @@ public class GoogleNativeDetailTests
             Assert.IsFalse(imported.IsError,imported.Message);Assert.IsTrue(imported.Result);Assert.IsTrue(imported.IsSaved);
             foreach(var importedId in importedIds)
                 Assert.AreEqual("import-value",(await provider.LoadHolonAsync(importedId,loadChildren:false)).Result.MetaData["import-field"]);
+            var graphGrandchild=new Holon {Id=graphIds[2],IsActive=true,Name="graph grandchild"};
+            var graphChild=new Holon {Id=graphIds[1],IsActive=true,Name="graph child",Children=new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> {graphGrandchild}};
+            var graphRoot=new Holon {Id=graphIds[0],IsActive=true,Name="graph root",Children=new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> {graphChild}};
+            Assert.IsFalse((await provider.SaveHolonAsync(graphRoot,saveChildren:false)).IsError);
+            Assert.IsFalse((await db.Collection("holons").Document(graphIds[1].ToString()).GetSnapshotAsync()).Exists);
+            Assert.IsFalse((await provider.SaveHolonAsync(graphRoot,recursive:false)).IsError);
+            Assert.AreEqual(graphIds[0],(await provider.LoadHolonAsync(graphIds[1],loadChildren:false)).Result.ParentHolonId);
+            Assert.IsFalse((await db.Collection("holons").Document(graphIds[2].ToString()).GetSnapshotAsync()).Exists);
+            Assert.IsFalse((await provider.SaveHolonAsync(graphRoot)).IsError);
+            var graphLoaded=await provider.LoadHolonAsync(graphIds[0],loadChildrenFromProvider:true);
+            Assert.IsFalse(graphLoaded.IsError,graphLoaded.Message);
+            Assert.AreEqual(graphIds[2],graphLoaded.Result.Children.Single().Children.Single().Id);
             Assert.IsFalse((await db.Collection("avatarDetails").Document(avatarId.ToString()).GetSnapshotAsync()).Exists);
             Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
             Assert.IsFalse((await provider.DeleteAvatarByEmailAsync("OWNED-AVATAR@EXAMPLE.INVALID",softDelete:false)).IsError);
             Assert.IsFalse((await db.Collection("avatars").Document(avatarId.ToString()).GetSnapshotAsync()).Exists);
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadHolonAsync(Guid.NewGuid(),loadChildren:false)).ErrorCode);
         }
-        finally {foreach(var id in ids) await db.Collection("avatarDetails").Document(id.ToString()).DeleteAsync();foreach(var id in importedIds) await db.Collection("holons").Document(id.ToString()).DeleteAsync();await db.Collection("holons").Document(holonId.ToString()).DeleteAsync();await db.Collection("holons").Document(childId.ToString()).DeleteAsync();await db.Collection("avatars").Document(avatarId.ToString()).DeleteAsync();await db.Collection("avatars").Document(duplicateAvatarId.ToString()).DeleteAsync();await provider.DeActivateProviderAsync();}
+        finally {foreach(var id in ids) await db.Collection("avatarDetails").Document(id.ToString()).DeleteAsync();foreach(var id in importedIds.Concat(graphIds)) await db.Collection("holons").Document(id.ToString()).DeleteAsync();await db.Collection("holons").Document(holonId.ToString()).DeleteAsync();await db.Collection("holons").Document(childId.ToString()).DeleteAsync();await db.Collection("avatars").Document(avatarId.ToString()).DeleteAsync();await db.Collection("avatars").Document(duplicateAvatarId.ToString()).DeleteAsync();await provider.DeActivateProviderAsync();}
     }
 
     private static async Task VerifyV2Async(GoogleCloudOASIS google,AvatarDetail detail)
