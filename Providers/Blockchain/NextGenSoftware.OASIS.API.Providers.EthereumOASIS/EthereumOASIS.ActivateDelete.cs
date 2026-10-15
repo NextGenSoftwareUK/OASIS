@@ -280,8 +280,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             try
             {
                 var avatarEntityId = HashUtility.GetNumericHash(id.ToString());
-                var requestTransaction = _nextGenSoftwareOasisService
-                    .DeleteAvatarRequestAndWaitForReceiptAsync(avatarEntityId).Result;
+                var requestTransaction = Web3Client.Eth.GetContractHandler(ContractAddress)
+                    .SendRequestAndWaitForReceiptAsync(new ContractDefinition.DeleteAvatarByIdentityFunction { EntityId=avatarEntityId, Identity=id.ToString() }).GetAwaiter().GetResult();
 
                 if (!StorageReceiptSucceeded(requestTransaction))
                 {
@@ -420,8 +420,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             try
             {
                 var avatarEntityId = HashUtility.GetNumericHash(id.ToString());
-                var requestTransaction = await _nextGenSoftwareOasisService
-                    .DeleteAvatarRequestAndWaitForReceiptAsync(avatarEntityId);
+                var requestTransaction = await Web3Client.Eth.GetContractHandler(ContractAddress)
+                    .SendRequestAndWaitForReceiptAsync(new ContractDefinition.DeleteAvatarByIdentityFunction { EntityId=avatarEntityId, Identity=id.ToString() });
 
                 if (!StorageReceiptSucceeded(requestTransaction))
                 {
