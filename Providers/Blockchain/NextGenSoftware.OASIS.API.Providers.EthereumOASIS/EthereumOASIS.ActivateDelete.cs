@@ -278,36 +278,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            string errorMessage = "Error in DeleteAvatar method in EthereumOASIS while deleting avatar. Reason: ";
-
-            try
-            {
-                var avatarEntityId = HashUtility.GetNumericHash(id.ToString());
-                var requestTransaction = Web3Client.Eth.GetContractHandler(ContractAddress)
-                    .SendRequestAndWaitForReceiptAsync(new ContractDefinition.DeleteAvatarByIdentityFunction { EntityId=avatarEntityId, Identity=id.ToString() }).GetAwaiter().GetResult();
-
-                if (!StorageReceiptSucceeded(requestTransaction))
-                {
-                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, requestTransaction.Logs));
-                    return result;
-                }
-                
-                result.Result = true;
-                result.IsError = false;
-                result.IsSaved = true;
-            }
-            catch (RpcResponseException ex)
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-            }
-            return result;
-        }
+            => DeleteAvatarAsync(id,softDelete).GetAwaiter().GetResult();
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
         {
@@ -424,9 +395,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
+                if(!IsProviderActivated)
+                {
+                    var activation=await ActivateProviderAsync();
+                    if(activation.IsError) throw new InvalidOperationException(activation.Message,activation.Exception);
+                }
                 var avatarEntityId = HashUtility.GetNumericHash(id.ToString());
-                var requestTransaction = await Web3Client.Eth.GetContractHandler(ContractAddress)
-                    .SendRequestAndWaitForReceiptAsync(new ContractDefinition.DeleteAvatarByIdentityFunction { EntityId=avatarEntityId, Identity=id.ToString() });
+                var requestTransaction = softDelete ? await SoftDeleteStoredAvatarAsync(id)
+                    : await Web3Client.Eth.GetContractHandler(ContractAddress)
+                        .SendRequestAndWaitForReceiptAsync(new ContractDefinition.DeleteAvatarByIdentityFunction { EntityId=avatarEntityId, Identity=id.ToString() });
 
                 if (!StorageReceiptSucceeded(requestTransaction))
                 {
@@ -437,6 +414,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 result.Result = true;
                 result.IsError = false;
                 result.IsSaved = true;
+                result.IsDeleted = true;
+                result.DeletedCount = 1;
             }
             catch (RpcResponseException ex)
             {
