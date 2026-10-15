@@ -726,7 +726,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             Core.Holons.Holon oasisHolon = new Core.Holons.Holon();
             oasisHolon.IsNewHolon = false; //TODO: Not sure if best to default all new Holons to have this set to true or not?
             oasisHolon.Id = holon.HolonId;
-            oasisHolon.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey;
+            oasisHolon.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey == null ? new Dictionary<ProviderType,string>()
+                : new Dictionary<ProviderType,string>(holon.ProviderUniqueStorageKey);
 
             //Just in case this has not been set yet or has been lost/corrupted somehow! ;-)
             oasisHolon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = holon.Id;
