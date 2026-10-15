@@ -1625,7 +1625,9 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
             ? (synchronous ? repository.DeleteHolon(id.ToString(), false) : await repository.DeleteHolonAsync(id.ToString(), false))
             : (synchronous ? repository.DeleteHolon(id, false) : await repository.DeleteHolonAsync(id, false));
         rejected.IsError.Should().BeTrue();
-        rejected.Exception.Should().NotBeNull();
+        var failure=rejected.Exception.Should().BeOfType<SqliteMutationReconciliationException>().Which;
+        failure.RecordId.Should().Be(id);
+        failure.InnerException.Should().BeOfType<DbUpdateException>().Which.InnerException.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
         rejected.IsDeleted.Should().BeFalse();
         context.Database.ExecuteSqlRaw("DROP TRIGGER reject_delete;");
         repository.SaveHolon(new Holon { Id = Guid.NewGuid() }).IsError.Should().BeFalse();
