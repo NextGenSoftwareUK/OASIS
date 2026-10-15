@@ -58,14 +58,28 @@ public partial class Web3CoreOASISBaseProvider
 
     public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         => SavePrivateProfileAsync<IAvatar>(avatar,"avatar",row=>OasisJson.Deserialize<Avatar>(OasisJson.Serialize(row)),
-            (id,key,payload)=>_web3CoreOASIS.UpsertAvatarAsync(id,key,payload));
+            (id,key,payload)=>SavePrivateProfileSnapshotAsync("avatar",id,key,payload));
 
     public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
         => SaveAvatarDetailAsync(avatarDetail).GetAwaiter().GetResult();
 
     public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         => SavePrivateProfileAsync<IAvatarDetail>(avatarDetail,"detail",row=>OasisJson.Deserialize<AvatarDetail>(OasisJson.Serialize(row)),
-            (id,key,payload)=>_web3CoreOASIS.UpsertAvatarDetailAsync(id,key,payload));
+            (id,key,payload)=>SavePrivateProfileSnapshotAsync("detail",id,key,payload));
+
+    private async Task<TransactionReceipt> SavePrivateProfileSnapshotAsync(string kind,uint id,byte[] external,byte[] payload)
+    {
+        var previous=kind=="avatar" ? await _web3CoreOASIS.GetAvatarByIdAsync(id):await _web3CoreOASIS.GetAvatarDetailByIdAsync(id);
+        var present=!IsPrivateRecordAbsent(previous);
+        if(present)
+        {
+            var incoming=new EntityOASIS {EntityId=id,ExternalId=external,Info=payload};
+            IHolonBase desired=kind=="avatar" ? DecodePrivateEntity<Avatar>(kind,incoming):DecodePrivateEntity<AvatarDetail>(kind,incoming);
+            IHolonBase stored=kind=="avatar" ? DecodePrivateRecord<Avatar>(kind,desired.Id,previous):DecodePrivateRecord<AvatarDetail>(kind,desired.Id,previous);
+            if(!stored.IsActive) throw new StorageLifecycleConflictException("Normal Web3Core saves cannot overwrite a committed inactive profile; use an explicit lifecycle operation.");
+        }
+        return await _web3CoreOASIS.UpsertCheckedAsync(kind,id,external,present,Sha3Keccack.Current.CalculateHash(previous.Info),payload);
+    }
 
     private async Task<OASISResult<T>> SavePrivateProfileAsync<T>(T source,string kind,Func<T,T> clone,
         Func<uint,byte[],byte[],Task<TransactionReceipt>> submit) where T:class,IHolonBase
@@ -95,6 +109,7 @@ public partial class Web3CoreOASISBaseProvider
         {
             var error=acknowledged==Guid.Empty ? cause:new Web3PartialMutationException(new[] {acknowledged},new[] {transaction},cause);
             OASISErrorHandling.HandleError(ref result,error.Message,error);
+            if(cause is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
         }
         return result;
     }
