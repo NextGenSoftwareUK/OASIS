@@ -95,6 +95,16 @@ public class IPFSNativeStorageTests
             query.FilterByMetaData["biome"]="not-this-park";
             var noMatch=await provider.SearchAsync(query);
             Assert.False(noMatch.IsError,noMatch.Message); Assert.Equal(0,noMatch.Result.NumberOfResults);
+            var metadata=await provider.LoadHolonsByMetaDataAsync("biome","owned-park",loadChildrenFromProvider:true);
+            Assert.False(metadata.IsError,metadata.Message); Assert.True(metadata.IsLoaded);
+            Assert.Equal(child.Id,Assert.Single(metadata.Result).Id);
+            Assert.Equal(grandchild.Id,Assert.Single(metadata.Result.Single().Children).Id);
+            var pairs=new Dictionary<string,string> {{"biome","owned-park"},{"missing","none"}};
+            Assert.Single(provider.LoadHolonsByMetaData(pairs,MetaKeyValuePairMatchMode.Any,loadChildren:false).Result);
+            Assert.Empty((await provider.LoadHolonsByMetaDataAsync(pairs,MetaKeyValuePairMatchMode.All)).Result);
+            Assert.Empty(provider.LoadHolonsByMetaData("Biome","owned-park").Result);
+            Assert.IsType<ArgumentException>((await provider.LoadHolonsByMetaDataAsync(" ","value")).Exception);
+            Assert.IsType<NotSupportedException>(provider.LoadHolonsByMetaData("biome","owned-park",version:1).Exception);
             var loadedRoot=await provider.LoadHolonAsync(id,loadChildrenFromProvider:true);
             Assert.False(loadedRoot.IsError,loadedRoot.Message);
             Assert.Equal(grandchild.Id,Assert.Single(Assert.Single(loadedRoot.Result.Children).Children).Id);
