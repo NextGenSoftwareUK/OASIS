@@ -13,6 +13,22 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
         private GoogleCloudOASIS _provider = null!;
 
         [TestMethod]
+        public async Task AvatarReadsAndSaveValidateBeforeActivationAndRetainCause()
+        {
+            var provider=new FailedActivationProvider();
+            Assert.IsInstanceOfType((await provider.LoadAvatarAsync(System.Guid.Empty)).Exception,typeof(System.ArgumentException));
+            Assert.IsInstanceOfType((await provider.LoadAvatarByEmailAsync(" ")).Exception,typeof(System.ArgumentException));
+            Assert.IsInstanceOfType((await provider.LoadAllAvatarsAsync(version:1)).Exception,typeof(System.NotSupportedException));
+            Assert.IsInstanceOfType((await provider.SaveAvatarAsync(null!)).Exception,typeof(System.ArgumentNullException));
+            Assert.AreEqual(0,provider.Activations);
+            Assert.AreSame(provider.Cause,(await provider.LoadAvatarAsync(System.Guid.NewGuid())).Exception);
+            Assert.AreSame(provider.Cause,(await provider.LoadAvatarByUsernameAsync("owned")).Exception);
+            Assert.AreSame(provider.Cause,(await provider.LoadAllAvatarsAsync()).Exception);
+            var failed=await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar());
+            Assert.AreSame(provider.Cause,failed.Exception);Assert.AreEqual("owned-code",failed.ErrorCode);
+        }
+
+        [TestMethod]
         public async Task SearchValidatesBeforeActivationAndPreservesStorageCause()
         {
             var provider=new FailedActivationProvider();

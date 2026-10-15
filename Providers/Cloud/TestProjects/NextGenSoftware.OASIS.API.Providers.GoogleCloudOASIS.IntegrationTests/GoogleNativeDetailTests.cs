@@ -20,8 +20,22 @@ public class GoogleNativeDetailTests
         var ids=new List<Guid>();
         var holonId=Guid.NewGuid();
         var childId=Guid.NewGuid();
+        var avatarId=Guid.NewGuid();var duplicateAvatarId=Guid.NewGuid();
         try {
             var active=await provider.ActivateProviderAsync();Assert.IsFalse(active.IsError,active.Message);
+            Assert.AreEqual(0,(await provider.LoadAllAvatarsAsync()).Result.Count());
+            var avatar=new Avatar {Id=avatarId,IsActive=true,Username="owned-avatar",Email="owned-avatar@example.invalid",FirstName="Owned",
+                MetaData=new Dictionary<string,object> {{"profile-field","profile-value"}}};
+            var avatarSaved=await provider.SaveAvatarAsync(avatar);Assert.IsFalse(avatarSaved.IsError,avatarSaved.Message);Assert.IsTrue(avatarSaved.IsSaved);
+            var avatarRead=await provider.LoadAvatarAsync(avatarId);Assert.IsFalse(avatarRead.IsError,avatarRead.Message);
+            Assert.AreEqual("Owned",avatarRead.Result.FirstName);Assert.AreEqual("profile-value",avatarRead.Result.MetaData["profile-field"]);
+            Assert.AreEqual(avatarId,(await provider.LoadAvatarByUsernameAsync("OWNED-AVATAR")).Result.Id);
+            Assert.AreEqual(avatarId,provider.LoadAvatarByEmail("OWNED-AVATAR@EXAMPLE.INVALID").Result.Id);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadAvatarAsync(Guid.NewGuid())).ErrorCode);
+            Assert.IsFalse((await provider.SaveAvatarAsync(new Avatar {Id=duplicateAvatarId,IsActive=true,Username=avatar.Username,Email=avatar.Email})).IsError);
+            Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,(await provider.LoadAvatarByUsernameAsync(avatar.Username)).ErrorCode);
+            Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,(await provider.LoadAvatarByEmailAsync(avatar.Email)).ErrorCode);
+            Assert.AreEqual(2,(await provider.LoadAllAvatarsAsync()).Result.Count());
             var emptyHolons=await provider.LoadAllHolonsAsync();Assert.IsFalse(emptyHolons.IsError,emptyHolons.Message);Assert.AreEqual(0,emptyHolons.Result.Count());
             var empty=await provider.LoadAllAvatarDetailsAsync();Assert.IsFalse(empty.IsError,empty.Message);Assert.AreEqual(0,empty.Result.Count());
             var detail=new AvatarDetail {Id=Guid.NewGuid(),IsActive=true,Username="owned-user",Email="owned@example.invalid",XP=321,Karma=29,
@@ -87,7 +101,7 @@ public class GoogleNativeDetailTests
             Assert.IsTrue(flat.Result.All(row=>row.Children.Count()==0));
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadHolonAsync(Guid.NewGuid(),loadChildren:false)).ErrorCode);
         }
-        finally {foreach(var id in ids) await db.Collection("avatarDetails").Document(id.ToString()).DeleteAsync();await db.Collection("holons").Document(holonId.ToString()).DeleteAsync();await db.Collection("holons").Document(childId.ToString()).DeleteAsync();await provider.DeActivateProviderAsync();}
+        finally {foreach(var id in ids) await db.Collection("avatarDetails").Document(id.ToString()).DeleteAsync();await db.Collection("holons").Document(holonId.ToString()).DeleteAsync();await db.Collection("holons").Document(childId.ToString()).DeleteAsync();await db.Collection("avatars").Document(avatarId.ToString()).DeleteAsync();await db.Collection("avatars").Document(duplicateAvatarId.ToString()).DeleteAsync();await provider.DeActivateProviderAsync();}
     }
 
     private static async Task VerifyV2Async(GoogleCloudOASIS google,AvatarDetail detail)
