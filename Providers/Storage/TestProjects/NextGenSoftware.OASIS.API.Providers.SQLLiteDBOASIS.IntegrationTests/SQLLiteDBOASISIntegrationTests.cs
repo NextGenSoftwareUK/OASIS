@@ -317,7 +317,9 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         control.Database.ExecuteSqlRaw("CREATE TRIGGER reject_graph BEFORE INSERT ON Holon WHEN NEW.Name = 'graph-rejection-grandchild' BEGIN SELECT RAISE(ABORT,'owned graph rejection'); END;");
         var saved = synchronous ? provider.SaveHolon(parent,saveChildren:true,recursive:true) : await provider.SaveHolonAsync(parent,saveChildren:true,recursive:true);
         saved.IsError.Should().BeTrue();
-        saved.Exception.Should().BeOfType<DbUpdateException>();
+        var failure = saved.Exception.Should().BeOfType<SqliteMutationReconciliationException>().Which;
+        failure.InnerException.Should().BeOfType<DbUpdateException>();
+        failure.RecordIds.Should().BeEquivalentTo(new[] {parent.Id,child.Id,grandchild.Id});
         control.Holons.Should().BeEmpty();
         control.Database.ExecuteSqlRaw("DROP TRIGGER reject_graph;");
         var unrelated = new Holon { Id = Guid.NewGuid(), Name = "unrelated-graph-check" };
@@ -438,7 +440,9 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         var rejected = synchronous ? provider.Import(new[] { first, second }) : await provider.ImportAsync(new[] { first, second });
         rejected.IsError.Should().BeTrue();
         rejected.Result.Should().BeFalse();
-        rejected.Exception.Should().BeOfType<DbUpdateException>().Which.InnerException.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        var failure = rejected.Exception.Should().BeOfType<SqliteMutationReconciliationException>().Which;
+        failure.InnerException.Should().BeOfType<DbUpdateException>().Which.InnerException.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        failure.RecordIds.Should().BeEquivalentTo(new[] {first.Id,second.Id});
         control.Database.ExecuteSqlRaw("DROP TRIGGER reject_import;");
         var unrelated = new Holon { Id = Guid.NewGuid(), Name = "unrelated-import-check" };
         (await provider.SaveHolonAsync(unrelated,saveChildren:false)).IsError.Should().BeFalse();
