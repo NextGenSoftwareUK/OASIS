@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+Solana collection follow-up: avatar/avatar-detail enumeration now scans actual finalized signer history and decrypts typed records instead of generating synthetic accounts; full unit project51/51 passes. Pagination/version/error/tombstone cases use controlled RPC responses, not native-chain evidence. Available-history retention completeness, scalable indexes, remaining query/parser fabrication and live finality remain open; do not equate this scan with fully supported arbitrary collection queries.
+
 Solana follow-up: full existing unit project40/40 passes (2s) after blockhash/pre-submission mutation fixes. Retained read-only validator inspection returns finalized slot505, no recent finalized signatures and no new submissions; live refresh remains unproven. Account enumeration and parser fabrication identified in source remains an implementation gap, not supported functionality.
 
 As of the latest 2026-10-14 local runs: Ethereum native suite91/91, focused tombstone evidence/guard suite17/17, SQLite direct suite278/278, Mongo/SQLite real V2 matrix4/4 plus replica initialization1/1, and Mongo deletion serialization3/3; zero skips in these runs. Counts are selected test cases, not proof of every API route/interface/provider. Ethereum now encrypts private storage and implements native identity checks, owner/version guards, query/graph work and exact committed tombstones; older plaintext/count statements below are historical. Mongo, SQLite and Ethereum implement committed lifecycle-only tombstone application, preserving replica-local statistics. Latest exact chronology and remaining gates are in `HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md`.

@@ -92,6 +92,7 @@ public class SolanaAvatarUpdateTests
         public SolanaBaseDto Existing = null!;
         public SolanaBaseDto? Updated;
         public Task<T> GetAsync<T>(string reference) where T : SolanaBaseDto, new() => Task.FromResult((T)Existing);
+        public Task<IReadOnlyList<(T Record,string Signature)>> GetAllAsync<T>() where T:SolanaBaseDto,new() => throw new InvalidOperationException("Unexpected collection read");
         public Task<string> UpdateAsync<T>(T entity) where T : SolanaBaseDto, new() { Updated = entity; return Task.FromResult("new-signature"); }
         public Task<string> CreateAsync<T>(T entity) where T : SolanaBaseDto, new() => throw new InvalidOperationException("Unexpected create");
         public Task<bool> DeleteAsync(string reference) => throw new InvalidOperationException("Unexpected delete");
