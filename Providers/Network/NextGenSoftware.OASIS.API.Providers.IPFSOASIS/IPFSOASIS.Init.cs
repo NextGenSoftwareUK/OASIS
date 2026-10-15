@@ -151,7 +151,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             if(previous.Value != null)
                 avatar.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS]=previous.Key;
 
-            string json = JsonConvert.SerializeObject(avatar);
+            string json = ProtectRecord("avatar",avatar.Id,JsonConvert.SerializeObject(avatar));
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
             avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
 
@@ -181,7 +181,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             if(previous.Value != null)
                 holon.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS]=previous.Key;
 
-            string json = JsonConvert.SerializeObject(holon);
+            string json = ProtectRecord("holon",holon.Id,JsonConvert.SerializeObject(holon));
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
             holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
 
@@ -208,7 +208,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             if(previous.Value != null)
                 avatarDetail.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS]=previous.Key;
 
-            string json = JsonConvert.SerializeObject(avatarDetail);
+            string json = ProtectRecord("avatar-detail",avatarDetail.Id,JsonConvert.SerializeObject(avatarDetail));
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
             avatarDetail.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
 

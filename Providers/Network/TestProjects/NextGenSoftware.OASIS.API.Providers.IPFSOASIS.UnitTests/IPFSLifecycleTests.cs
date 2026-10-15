@@ -14,6 +14,44 @@ public class IPFSLifecycleTests
     [InlineData("avatar")]
     [InlineData("avatar-detail")]
     [InlineData("holon")]
+    public void PrivateEntityEncryptionBindsKindAndGuid(string kind)
+    {
+        var provider=new IPFSOASIS(Settings("http://127.0.0.1:1"));
+        var key=System.Security.Cryptography.RandomNumberGenerator.GetBytes(32); StorageKey(provider,()=> (byte[])key.Clone());
+        var id=Guid.NewGuid(); var json="{\"Id\":\""+id+"\",\"Email\":\"owned@example.invalid\"}";
+        var protect=typeof(IPFSOASIS).GetMethod("ProtectRecord",BindingFlags.Instance|BindingFlags.NonPublic)!;
+        var unprotect=typeof(IPFSOASIS).GetMethod("UnprotectRecord",BindingFlags.Instance|BindingFlags.NonPublic)!;
+        var envelope=(string)protect.Invoke(provider,new object[] {kind,id,json})!;
+        Assert.DoesNotContain("owned@example.invalid",envelope); Assert.DoesNotContain(id.ToString(),envelope);
+        Assert.Equal(json,unprotect.Invoke(provider,new object[] {kind,id,envelope}));
+        Assert.IsAssignableFrom<System.Security.Cryptography.CryptographicException>(Assert.Throws<TargetInvocationException>(()=>unprotect.Invoke(provider,new object[] {kind,Guid.NewGuid(),envelope})).InnerException);
+        var other=kind=="avatar" ? "holon":"avatar";
+        Assert.IsAssignableFrom<System.Security.Cryptography.CryptographicException>(Assert.Throws<TargetInvocationException>(()=>unprotect.Invoke(provider,new object[] {other,id,envelope})).InnerException);
+        Assert.IsAssignableFrom<System.Security.Cryptography.CryptographicException>(Assert.Throws<TargetInvocationException>(()=>unprotect.Invoke(provider,new object[] {kind,id,json})).InnerException);
+        StorageKey(provider,()=>System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+        Assert.IsAssignableFrom<System.Security.Cryptography.CryptographicException>(Assert.Throws<TargetInvocationException>(()=>unprotect.Invoke(provider,new object[] {kind,id,envelope})).InnerException);
+    }
+
+    [Theory]
+    [InlineData("avatar")]
+    [InlineData("avatar-detail")]
+    [InlineData("holon")]
+    public async Task EntitySaveWithMissingKeyCannotPublishPrivateBlob(string kind)
+    {
+        var dna=Settings("http://127.0.0.1:1"); var provider=new IPFSOASIS(dna);
+        StorageKey(provider,()=>throw new InvalidOperationException("Owned missing entity key"));
+        Func<Task> save=kind=="avatar" ? async()=> {await provider.SaveAvatarToFile(new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=Guid.NewGuid()});}
+            :kind=="avatar-detail" ? async()=> {await provider.SaveAvatarDetailToFile(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail {Id=Guid.NewGuid()});}
+            :async()=> {await provider.SaveHolonToFile(new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=Guid.NewGuid()});};
+        var error=await Assert.ThrowsAsync<InvalidOperationException>(save);
+        Assert.Equal("Owned missing entity key",error.Message); Assert.Null(provider.IPFSClient);
+        Assert.Null(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+    }
+
+    [Theory]
+    [InlineData("avatar")]
+    [InlineData("avatar-detail")]
+    [InlineData("holon")]
     public void SameGuidKindsKeepIndependentCurrentIndexEntries(string kind)
     {
         var provider=new IPFSOASIS(Settings("http://127.0.0.1:1")); var id=Guid.NewGuid();

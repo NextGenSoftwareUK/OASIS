@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+IPFS entity encryption follow-up: private avatar/detail/holon writers and typed readers now use kind+GUID-bound authenticated encryption; current typed collections decrypt and validate inner IDs. Focused30/30 tests pass. Raw content APIs stay raw by explicit design. Native readback, atomic/concurrent publication, graph/version/interface parity and V2 certification remain incomplete.
+
 IPFS typed index follow-up: canonical record kind separates avatar/detail/holon records sharing a GUID; current-entry replacement and single-record selection no longer mutate/select another kind. Focused24/24 tests pass. Entity encryption, collection/version/interface parity and native V2 publication/recovery are still incomplete.
 
 IPFS index encryption follow-up: shared AES-GCM/gzip codec now protects lookup publication/read, requiring separately persisted OASIS_IPFS_STORAGE_ENCRYPTION_KEY and rejecting plaintext/wrong-key content. Focused20/20 tests pass. Entity/list encryption and identity/type binding remain unfinished; no full privacy/native V2 certification or deployment.
