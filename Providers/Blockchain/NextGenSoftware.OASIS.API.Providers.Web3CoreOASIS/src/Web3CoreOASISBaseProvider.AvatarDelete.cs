@@ -335,148 +335,27 @@ public partial class Web3CoreOASISBaseProvider
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
-    {
-        return ExportAllAsync(version).Result;
-    }
+        => LoadAllHolonsAsync(loadChildrenFromProvider:true,version:version).GetAwaiter().GetResult();
 
     public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-    {
-        return LoadAllHolonsAsync(HolonType.All, true, true, 0, 0, true, false, version);
-    }
+        => LoadAllHolonsAsync(loadChildrenFromProvider:true,version:version);
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
-    {
-        return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
-    }
+        => ExportPrivateSelectorAsync(avatarEmailAddress,true,version).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
-    {
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            // Load avatar by email first
-            var avatarResult = await LoadAvatarByEmailAsync(avatarEmailAddress);
-            if (avatarResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
-                return result;
-            }
-
-            if (avatarResult.Result != null)
-            {
-                // Export all holons for this avatar
-                var holonsResult = await LoadHolonsForParentAsync(avatarResult.Result.Id);
-                if (holonsResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons for avatar: {holonsResult.Message}");
-                    return result;
-                }
-
-                result.Result = holonsResult.Result;
-                result.IsError = false;
-                result.Message = $"Successfully exported {holonsResult.Result?.Count() ?? 0} holons for avatar by email from Web3Core";
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "Avatar not found by email");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar by email from Web3Core: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ExportPrivateSelectorAsync(avatarEmailAddress,true,version);
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
-    {
-        return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
-    }
+        => ExportPrivateOwnedAsync(avatarId,version).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
-    {
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            // Export all holons for avatar from Web3Core
-            var holonsResult = await LoadHolonsForParentAsync(avatarId);
-            if (holonsResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons for avatar: {holonsResult.Message}");
-                return result;
-            }
-
-            result.Result = holonsResult.Result;
-            result.IsError = false;
-            result.Message = $"Successfully exported {holonsResult.Result?.Count() ?? 0} holons for avatar from Web3Core";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar from Web3Core: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ExportPrivateOwnedAsync(avatarId,version);
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
-    {
-        return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
-    }
+        => ExportPrivateSelectorAsync(avatarUsername,false,version).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
-    {
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            // Load avatar by username first
-            var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
-            if (avatarResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
-                return result;
-            }
-
-            if (avatarResult.Result != null)
-            {
-                // Export all holons for this avatar
-                var holonsResult = await LoadHolonsForParentAsync(avatarResult.Result.Id);
-                if (holonsResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons for avatar: {holonsResult.Message}");
-                    return result;
-                }
-
-                result.Result = holonsResult.Result;
-                result.IsError = false;
-                result.Message = $"Successfully exported {holonsResult.Result?.Count() ?? 0} holons for avatar by username from Web3Core";
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "Avatar not found by username");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error exporting data for avatar by username from Web3Core: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ExportPrivateSelectorAsync(avatarUsername,false,version);
 
 }

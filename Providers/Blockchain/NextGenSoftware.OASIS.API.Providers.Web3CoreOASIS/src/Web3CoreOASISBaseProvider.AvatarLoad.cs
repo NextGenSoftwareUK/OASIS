@@ -186,40 +186,14 @@ public partial class Web3CoreOASISBaseProvider
 
     public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
     {
-        return ImportAsync(holons).Result;
+        return ImportAsync(holons).GetAwaiter().GetResult();
     }
 
     public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
     {
-        var result = new OASISResult<bool>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            var importedCount = 0;
-            foreach (var holon in holons)
-            {
-                var saveResult = await SaveHolonAsync(holon);
-                if (saveResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}");
-                    return result;
-                }
-                importedCount++;
-            }
-
-            result.Result = true;
-            result.IsError = false;
-            result.Message = $"Successfully imported {importedCount} holons to Web3Core";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error importing holons to Web3Core: {ex.Message}", ex);
-        }
+        var written=await SaveHolonsAsync(holons,saveChildren:true,continueOnError:false,saveChildrenOnProvider:true);
+        var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,bool>(written);
+        result.Result=!written.IsError && written.IsSaved;
         return result;
     }
 

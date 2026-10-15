@@ -13,6 +13,29 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
 public partial class Web3CoreOASISBaseProvider
 {
+    private async Task<OASISResult<IEnumerable<IHolon>>> ExportPrivateOwnedAsync(Guid owner,int version)
+    {
+        var result=new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if(owner==Guid.Empty) throw new ArgumentException("A nonempty export avatar identity is required.",nameof(owner));
+            var loaded=await LoadAllHolonsAsync(loadChildren:false,version:version);
+            if(loaded.IsError) return loaded;
+            var records=loaded.Result.ToList();
+            var project=HolonGraphProjection.Create(records,true,true,0,0,true,row=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(row)));
+            result.Result=records.Where(row=>row.CreatedByAvatarId==owner || row.ParentHolonId==owner).Select(project).ToArray();result.IsLoaded=true;
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
+    }
+
+    private async Task<OASISResult<IEnumerable<IHolon>>> ExportPrivateSelectorAsync(string selector,bool email,int version)
+    {
+        var loaded=email ? await LoadAvatarByEmailAsync(selector,version):await LoadAvatarByUsernameAsync(selector,version);
+        if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(loaded);
+        return await ExportPrivateOwnedAsync(loaded.Result.Id,version);
+    }
+
     private async Task<OASISResult<IEnumerable<IHolon>>> ReadPrivateParentAsync(string key,HolonType type,bool children,bool recursive,int depth,int initialDepth,bool fromProvider,int version)
     {
         var result=new OASISResult<IEnumerable<IHolon>>();
