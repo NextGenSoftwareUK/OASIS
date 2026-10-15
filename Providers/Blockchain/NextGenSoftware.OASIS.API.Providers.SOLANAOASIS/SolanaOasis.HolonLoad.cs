@@ -360,7 +360,7 @@ public partial class SolanaOASIS
         }
         catch (Exception ex)
         {
-            OASISErrorHandling.HandleError(ref result, ex.Message);
+            OASISErrorHandling.HandleError(ref result, ex.Message, ex);
         }
 
         return result;
