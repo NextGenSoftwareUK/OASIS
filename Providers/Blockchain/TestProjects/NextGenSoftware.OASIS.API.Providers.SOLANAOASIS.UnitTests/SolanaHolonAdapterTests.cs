@@ -13,6 +13,36 @@ public class SolanaHolonAdapterTests
     [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]
+    public async Task MetadataAdaptersUseAuthenticatedValuesAndAllAnySemantics(bool synchronous)
+    {
+        var repository=new RecordsRepository();
+        var first=new SolanaHolonDto {Id=Guid.NewGuid(),HolonType=HolonType.Holon,MetaData=new Dictionary<string,object> {{"parkType","Woodland"},{"count",2.5m}}};
+        var second=new SolanaHolonDto {Id=Guid.NewGuid(),HolonType=HolonType.Holon,MetaData=new Dictionary<string,object> {{"parkType","Meadow"},{"count",9}}};
+        repository.Records=new[] {(first,"first-signature"),(second,"second-signature")};
+        var provider=new ActiveProvider(repository);
+        var original=System.Globalization.CultureInfo.CurrentCulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentCulture=System.Globalization.CultureInfo.GetCultureInfo("fr-FR");
+            var allPairs=new Dictionary<string,string> {{"parkType","Woodland"},{"count","2.5"}};
+            var all=synchronous ? provider.LoadHolonsByMetaData(allPairs,MetaKeyValuePairMatchMode.All,loadChildren:false)
+                : await provider.LoadHolonsByMetaDataAsync(allPairs,MetaKeyValuePairMatchMode.All,loadChildren:false);
+            Assert.IsFalse(all.IsError,all.Message); Assert.AreEqual(first.Id,all.Result.Single().Id);
+            Assert.AreEqual("first-signature",all.Result.Single().ProviderUniqueStorageKey[ProviderType.SolanaOASIS]);
+            var anyPairs=new Dictionary<string,string> {{"parkType","Woodland"},{"count","9"}};
+            var any=synchronous ? provider.LoadHolonsByMetaData(anyPairs,MetaKeyValuePairMatchMode.Any,loadChildren:false)
+                : await provider.LoadHolonsByMetaDataAsync(anyPairs,MetaKeyValuePairMatchMode.Any,loadChildren:false);
+            Assert.IsFalse(any.IsError,any.Message); Assert.AreEqual(2,any.Result.Count());
+            var exact=synchronous ? provider.LoadHolonsByMetaData("parkType","woodland",loadChildren:false)
+                : await provider.LoadHolonsByMetaDataAsync("parkType","woodland",loadChildren:false);
+            Assert.IsFalse(exact.IsError,exact.Message); Assert.AreEqual(0,exact.Result.Count()); Assert.AreEqual(3,repository.Reads);
+        }
+        finally {System.Globalization.CultureInfo.CurrentCulture=original;}
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
     public async Task HolonAdaptersSelectActualParentTypeAndIdentityWithGraphOptions(bool synchronous)
     {
         var repository=new RecordsRepository();
@@ -52,6 +82,9 @@ public class SolanaHolonAdapterTests
         Assert.IsTrue((await provider.LoadAllHolonsAsync(curentChildDepth:-1)).IsError);
         Assert.IsTrue((await provider.LoadHolonAsync("signature",maxChildDepth:-1)).IsError);
         Assert.IsTrue((await provider.LoadHolonAsync("signature",version:1,loadChildrenFromProvider:true)).IsError);
+        Assert.IsTrue((await provider.LoadHolonsByMetaDataAsync(" ","value")).IsError);
+        Assert.IsTrue((await provider.LoadHolonsByMetaDataAsync(new Dictionary<string,string>(),MetaKeyValuePairMatchMode.All)).IsError);
+        Assert.IsTrue((await provider.LoadHolonsByMetaDataAsync(new Dictionary<string,string> {{"key","value"}},(MetaKeyValuePairMatchMode)999)).IsError);
         Assert.AreEqual(0,repository.Reads);
     }
 

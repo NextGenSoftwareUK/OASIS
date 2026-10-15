@@ -47,99 +47,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
 
 public partial class SolanaOASIS
 {
-    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(
         Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode,
         HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
         int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false,
         int version = 0)
-    {
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Query holons by multiple metadata pairs from Solana program
-            // Real Solana implementation: Query program accounts and filter by metadata pairs
-            var holons = new List<IHolon>();
-            try
-            {
-                var accounts = await _rpcClient.GetProgramAccountsAsync(_oasisSolanaAccount.PublicKey);
-                
-                if (accounts.WasSuccessful && accounts.Result != null)
-                {
-                    foreach (var account in accounts.Result)
-                    {
-                        try
-                        {
-                            var accountData = account.Account.Data;
-                            if (accountData != null && accountData.Count > 0)
-                            {
-                                var accountDataString = accountData is IReadOnlyList<byte> bytes ? Encoding.UTF8.GetString(bytes.ToArray()) : string.Join("", (IEnumerable<string>)accountData);
-                                var holonDto = JsonConvert.DeserializeObject<Entities.Models.SolanaHolonDto>(accountDataString);
-                                
-                                if (holonDto != null)
-                                {
-                                    holonDto.PublicKey = account.PublicKey;
-                                    holonDto.AccountInfo = account.Account;
-                                    holonDto.Lamports = account.Account.Lamports;
-                                    
-                                    var holon = holonDto.GetHolon();
-                                    if (holon != null && holon.MetaData != null)
-                                    {
-                                        bool matches = false;
-                                        if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All)
-                                        {
-                                            matches = metaKeyValuePairs.All(kvp => 
-                                                holon.MetaData.ContainsKey(kvp.Key) &&
-                                                holon.MetaData[kvp.Key]?.ToString()?.Equals(kvp.Value, StringComparison.OrdinalIgnoreCase) == true);
-                                        }
-                                        else // MetaKeyValuePairMatchMode.Any
-                                        {
-                                            matches = metaKeyValuePairs.Any(kvp => 
-                                                holon.MetaData.ContainsKey(kvp.Key) &&
-                                                holon.MetaData[kvp.Key]?.ToString()?.Equals(kvp.Value, StringComparison.OrdinalIgnoreCase) == true);
-                                        }
-                                        
-                                        if (matches)
-                                        {
-                                            holons.Add(holon);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            if (!continueOnError) throw;
-                            continue;
-                        }
-                    }
-                }
-
-                result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Found {holons.Count} holons matching metadata pairs";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error querying Solana program accounts by metadata pairs: {ex.Message}", ex);
-            }
-            result.Message = $"Successfully loaded {holons.Count} holons by metadata pairs from Solana with full object mapping";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => ReadHolonMetadataAsync(metaKeyValuePairs,metaKeyValuePairMatchMode,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(
         Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode,
