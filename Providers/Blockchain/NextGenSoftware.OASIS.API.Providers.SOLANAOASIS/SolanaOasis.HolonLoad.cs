@@ -54,97 +54,11 @@ public partial class SolanaOASIS
         return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id,
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id,
         HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
         int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false,
         int version = 0)
-    {
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Load holons for parent from Solana blockchain
-            // Query Solana program accounts to find holons with the given parent ID
-            var holons = new List<IHolon>();
-            try
-            {
-                // Query program accounts owned by the OASIS program
-                var accounts = await _rpcClient.GetProgramAccountsAsync(_oasisSolanaAccount.PublicKey);
-                
-                if (accounts.WasSuccessful && accounts.Result != null)
-                {
-                    foreach (var account in accounts.Result)
-                    {
-                        try
-                        {
-                            // Parse account data to check if it's a holon with the matching parent ID
-                            // In a real implementation, you would deserialize the account data
-                            // and check the parent ID field
-                            var holonDto = new Entities.Models.SolanaHolonDto
-                            {
-                                Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{id}:{account.PublicKey}"),
-                                Name = $"Solana Child Holon for Parent {id}",
-                                Description = $"Solana blockchain holon with parent {id}",
-                                CreatedDate = DateTime.UtcNow,
-                                ModifiedDate = DateTime.UtcNow,
-                                Version = 1,
-                                IsActive = true,
-                                PublicKey = account.PublicKey,
-                                AccountInfo = account.Account,
-                                Lamports = account.Account.Lamports,
-                                Owner = account.Account.Owner,
-                                Executable = account.Account.Executable,
-                                RentEpoch = account.Account.RentEpoch,
-                                Data = account.Account.Data,
-                                MetaData = new Dictionary<string, object>
-                                {
-                                    ["SolanaAccountAddress"] = account.PublicKey,
-                                    ["SolanaParentId"] = id.ToString(),
-                                    ["SolanaLamports"] = account.Account.Lamports,
-                                    ["SolanaOwner"] = account.Account.Owner
-                                }
-                            };
-                            
-                            var holon = holonDto.GetHolon();
-                            if (holon != null)
-                            {
-                                holon.ParentHolonId = id;
-                                holons.Add(holon);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            if (!continueOnError)
-                                throw;
-                            // Continue processing other accounts
-                        }
-                    }
-                }
-                
-                result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {holons.Count} holons for parent from Solana";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from Solana: {ex.Message}", ex);
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => ReadHolonCollectionAsync(row=>row.ParentHolonId==id && (type==HolonType.All || row.HolonType==type),loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey,
         HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0,
@@ -207,102 +121,10 @@ public partial class SolanaOASIS
         return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }
 
-    public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All,
+    public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All,
         bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
         bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    {
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Load all holons from Solana blockchain
-            // Real Solana implementation: Get all accounts and parse as holons
-            var holonsData = new OASISResult<List<SolanaHolonDto>>();
-            try
-            {
-                var accounts = await _rpcClient.GetProgramAccountsAsync(_oasisSolanaAccount.PublicKey);
-                
-                if (accounts.WasSuccessful && accounts.Result != null)
-                {
-                    var holonList = new List<SolanaHolonDto>();
-                    foreach (var account in accounts.Result)
-                    {
-                        try
-                        {
-                            var holonDto = new SolanaHolonDto
-                            {
-                                Id = CreateDeterministicGuid($"{ProviderType.Value}:holon:{account.PublicKey}"),
-                                Name = $"Solana Holon {account.PublicKey[..8]}",
-                                Description = $"Solana blockchain holon with account {account.PublicKey}",
-                                CreatedDate = DateTime.UtcNow,
-                                ModifiedDate = DateTime.UtcNow,
-                                Version = 1,
-                                IsActive = true,
-                                PublicKey = account.PublicKey,
-                                AccountInfo = account.Account,
-                                Lamports = account.Account.Lamports,
-                                Owner = account.Account.Owner,
-                                Executable = account.Account.Executable,
-                                RentEpoch = account.Account.RentEpoch,
-                                Data = account.Account.Data,
-                                MetaData = new Dictionary<string, object>
-                                {
-                                    ["SolanaAccountAddress"] = account.PublicKey,
-                                    ["SolanaLamports"] = account.Account.Lamports,
-                                    ["SolanaOwner"] = account.Account.Owner,
-                                    ["SolanaExecutable"] = account.Account.Executable,
-                                    ["SolanaRentEpoch"] = account.Account.RentEpoch,
-                                    ["SolanaDataLength"] = account.Account.Data?.Count ?? 0,
-                                    ["SolanaNetwork"] = "mainnet-beta",
-                                    ["SolanaProgramId"] = _oasisSolanaAccount.PublicKey.Key,
-                                    ["RetrievedAt"] = DateTime.UtcNow.ToString("O")
-                                }
-                            };
-                            holonList.Add(holonDto);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error parsing Solana holon {account.PublicKey}: {ex.Message}");
-                        }
-                    }
-                    holonsData.Result = holonList;
-                    holonsData.IsError = false;
-                    holonsData.Message = $"Successfully loaded {holonList.Count} holons from Solana blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref holonsData, $"Failed to get program accounts from Solana: {accounts.Reason}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref holonsData, $"Error querying holons from Solana: {ex.Message}", ex);
-            }
-            if (holonsData.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading all holons: {holonsData.Message}");
-                return result;
-            }
-
-            result.Result = holonsData.Result?.Select(h => h.GetHolon());
-            result.IsError = false;
-            result.Message = $"Successfully loaded {holonsData.Result?.Count() ?? 0} holons from Solana";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading all holons from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => ReadHolonCollectionAsync(row=>type==HolonType.All || row.HolonType==type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
     public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true,
         int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
