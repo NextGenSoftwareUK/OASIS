@@ -109,7 +109,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             try
             {
                 var holonEntityId = HashUtility.GetNumericHash(id.ToString());
-                var requestTransaction = _nextGenSoftwareOasisService.DeleteHolonRequestAndWaitForReceiptAsync(holonEntityId).Result;
+                var requestTransaction = Web3Client.Eth.GetContractHandler(ContractAddress)
+                    .SendRequestAndWaitForReceiptAsync(new ContractDefinition.DeleteHolonByIdentityFunction { EntityId=holonEntityId, Identity=id.ToString() }).GetAwaiter().GetResult();
 
                 if (!StorageReceiptSucceeded(requestTransaction))
                 {
@@ -140,7 +141,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             try
             {
                 var holonEntityId = HashUtility.GetNumericHash(id.ToString());
-                var requestTransaction = await _nextGenSoftwareOasisService.DeleteHolonRequestAndWaitForReceiptAsync(holonEntityId);
+                var requestTransaction = await Web3Client.Eth.GetContractHandler(ContractAddress)
+                    .SendRequestAndWaitForReceiptAsync(new ContractDefinition.DeleteHolonByIdentityFunction { EntityId=holonEntityId, Identity=id.ToString() });
 
                 if (!StorageReceiptSucceeded(requestTransaction))
                 {
