@@ -24,7 +24,8 @@ foreach ($asset in $pin.assets) {
 }
 
 $manifest = Get-Content -LiteralPath (Join-Path $outputRoot 'build-manifest.json') -Raw | ConvertFrom-Json
-if ($manifest.commit -ne $pin.commit -or $manifest.holochainCompatibility -ne '0.7') {
-    throw "The release manifest does not match the pinned commit $($pin.commit) / Holochain 0.7."
+if ($pin.holochainVersion -ne '0.7.1' -or $manifest.commit -ne $pin.commit -or
+    $manifest.holochainCompatibility -ne $pin.holochainCompatibility -or $manifest.holochainVersion -ne $pin.holochainVersion) {
+    throw "The release manifest does not match the pinned commit $($pin.commit) / exact Holochain 0.7.1."
 }
 Write-Host "Holochain iOS conductor $($pin.tag) ($($pin.commit)) verified in $outputRoot"
