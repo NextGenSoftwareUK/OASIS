@@ -90,8 +90,8 @@ try {
     if ($LASTEXITCODE -ne 0) { throw "AWSOASIS provider evidence failed with exit code $LASTEXITCODE." }
     [xml]$report = Get-Content -LiteralPath (Join-Path $artifacts 'aws-provider.trx') -Raw
     $counters = $report.TestRun.ResultSummary.Counters
-    if ([int]$counters.total -ne 4 -or [int]$counters.passed -ne 4 -or [int]$counters.notExecuted -ne 0) {
-        throw 'Expected exactly four passing native AWS tests without skips.'
+    if ([int]$counters.total -ne 5 -or [int]$counters.passed -ne 5 -or [int]$counters.notExecuted -ne 0) {
+        throw 'Expected exactly five passing native AWS tests without skips.'
     }
 
     [ordered]@{

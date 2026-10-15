@@ -8,6 +8,52 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests;
 [TestClass]
 public class AWSOASISIntegrationTests
 {
+    [TestMethod]
+    public async Task ActualV2RoundRobinAndBidirectionalReplication()
+    {
+        var directory=Path.GetFullPath("TestResults/AWSRoutingFiles");
+        if(Directory.Exists(directory) && Directory.EnumerateFileSystemEntries(directory).Any())
+            Assert.Fail("Owned routing fixture is not empty; refusing to overwrite existing evidence.");
+        var local=new NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.LocalFileOASIS(storageDirectory:directory);
+        var id=Guid.NewGuid();
+        Assert.IsFalse((await local.ActivateProviderAsync()).IsError);
+        try {
+            Assert.IsFalse((await _provider.SaveHolonAsync(new Holon {Id=id,Name="native-aws"},saveChildren:false)).IsError);
+            Assert.IsFalse((await local.SaveHolonAsync(new Holon {Id=id,Name="native-local"},saveChildren:false)).IsError);
+            var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {
+                HyperDriveMode=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2,
+                SubscriptionConfig=new NextGenSoftware.OASIS.API.DNA.SubscriptionConfig {PlanType="Gold"}}};
+            var manager=new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null,dna) {
+                IsAutoLoadBalanceEnabled=true,IsAutoReplicationEnabled=false,IsAutoFailOverEnabled=false};
+            manager.RegisterProvider(_provider); manager.RegisterProvider(local);
+            var providers=new[] {new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.AWSOASIS),
+                new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.LocalFileOASIS)};
+            Assert.IsFalse(manager.SetAndReplaceAutoLoadBalanceListForProviders(providers).IsError);
+            var router=new NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISHyperDrive(manager);
+            var counts=new Dictionary<string,int>();
+            for(int i=0;i<6;i++) {
+                var request=new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {Operation="LoadHolon",HolonId=id};
+                var read=i%2==0 ? router.RouteRequest<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request,Core.Enums.LoadBalancingStrategy.RoundRobin)
+                    : await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request,Core.Enums.LoadBalancingStrategy.RoundRobin);
+                Assert.IsFalse(read.IsError,read.Message);
+                counts[read.Result.Name]=counts.GetValueOrDefault(read.Result.Name)+1;
+            }
+            Assert.AreEqual(3,counts["native-aws"]); Assert.AreEqual(3,counts["native-local"]);
+            manager.IsAutoLoadBalanceEnabled=false; manager.IsAutoReplicationEnabled=true;
+            Assert.IsFalse(manager.SetAndReplaceAutoReplicationListForProviders(providers).IsError);
+            foreach(var primary in providers) {
+                var value=new Holon {Id=id,Name="replicated-"+primary.Value};
+                var saved=await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(
+                    new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {
+                        Operation="SaveHolon",Payload=value,SaveChildren=false,PreferredProvider=primary.Value});
+                Assert.IsFalse(saved.IsError,saved.Message); Assert.IsFalse(saved.IsWarning,saved.Message);
+                Assert.AreEqual(value.Name,(await _provider.LoadHolonAsync(id,loadChildren:false)).Result.Name);
+                Assert.AreEqual(value.Name,(await local.LoadHolonAsync(id,loadChildren:false)).Result.Name);
+            }
+        }
+        finally {await local.DeleteHolonAsync(id); await local.DeActivateProviderAsync();}
+    }
+
     private AWSOASIS _provider = null!;
 
     [TestInitialize]
