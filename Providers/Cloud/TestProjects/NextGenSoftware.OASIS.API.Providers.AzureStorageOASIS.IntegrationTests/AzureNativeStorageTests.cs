@@ -42,11 +42,56 @@ public class AzureNativeStorageTests
             var written=await provider.SaveHolonAsync(holon,saveChildren:false);Assert.IsFalse(written.IsError,written.Message);
             var stored=await provider.LoadHolonAsync(holon.Id,loadChildren:false);Assert.IsFalse(stored.IsError,stored.Message);
             Assert.AreEqual(holon.Id,stored.Result.Id);Assert.AreEqual(holon.ParentHolonId,stored.Result.ParentHolonId);Assert.AreEqual(holon.Name,stored.Result.Name);
+            await VerifyV2Async(provider,holon);
         }
         finally {
             await provider.DeActivateProviderAsync();
             foreach(var name in names) await service.GetBlobContainerClient(name).DeleteIfExistsAsync();
         }
         Assert.IsFalse(provider.IsProviderActivated);
+    }
+
+    private static async Task VerifyV2Async(AzureStorageOASIS azure,Holon native)
+    {
+        var directory=Path.GetFullPath("TestResults/AzureRoutingFiles");
+        if(Directory.Exists(directory) && Directory.EnumerateFiles(directory,"*",SearchOption.AllDirectories).Any())
+            Assert.Fail("Owned Azure routing fixture contains prior files; refusing overwrite.");
+        var local=new NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.LocalFileOASIS(storageDirectory:directory);
+        Assert.IsFalse((await local.ActivateProviderAsync()).IsError);
+        try {
+            Assert.IsFalse((await local.SaveHolonAsync(new Holon {Id=native.Id,Name="distinct-local"},saveChildren:false)).IsError);
+            var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {
+                HyperDriveMode=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2,
+                StorageProviders=new NextGenSoftware.OASIS.API.DNA.StorageProviderSettings(),
+                SubscriptionConfig=new NextGenSoftware.OASIS.API.DNA.SubscriptionConfig {PlanType="Gold"}}};
+            var manager=new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null,dna) {
+                IsAutoLoadBalanceEnabled=true,IsAutoFailOverEnabled=false,IsAutoReplicationEnabled=false};
+            manager.RegisterProvider(azure);manager.RegisterProvider(local);
+            var providers=new[] {new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.AzureStorageOASIS),
+                new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.LocalFileOASIS)};
+            Assert.IsFalse(manager.SetAndReplaceAutoLoadBalanceListForProviders(providers).IsError);
+            var router=new NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISHyperDrive(manager);
+            var counts=new Dictionary<string,int>();
+            for(int i=0;i<6;i++) {
+                var request=new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {Operation="LoadHolon",HolonId=native.Id};
+                var read=i%2==0 ? router.RouteRequest<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request,Core.Enums.LoadBalancingStrategy.RoundRobin)
+                    :await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request,Core.Enums.LoadBalancingStrategy.RoundRobin);
+                Assert.IsFalse(read.IsError,read.Message);counts[read.Result.Name]=counts.GetValueOrDefault(read.Result.Name)+1;
+            }
+            Assert.AreEqual(3,counts[native.Name]);Assert.AreEqual(3,counts["distinct-local"]);
+            manager.IsAutoLoadBalanceEnabled=false;manager.IsAutoReplicationEnabled=true;
+            Assert.IsFalse(manager.SetAndReplaceAutoReplicationListForProviders(providers).IsError);
+            foreach(var primary in providers)
+            foreach(var asynchronous in new[] {false,true}) {
+                var value=new Holon {Id=native.Id,Name="replicated-"+primary.Value+"-"+asynchronous};
+                var request=new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {Operation="SaveHolon",Payload=value,SaveChildren=false,PreferredProvider=primary.Value};
+                var saved=asynchronous ? await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request)
+                    :router.RouteRequest<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request);
+                Assert.IsFalse(saved.IsError,saved.Message);Assert.IsFalse(saved.IsWarning,saved.Message);
+                Assert.AreEqual(value.Name,(await azure.LoadHolonAsync(native.Id,loadChildren:false)).Result.Name);
+                Assert.AreEqual(value.Name,(await local.LoadHolonAsync(native.Id,loadChildren:false)).Result.Name);
+            }
+        }
+        finally {await local.DeleteHolonAsync(native.Id);await local.DeActivateProviderAsync();}
     }
 }
