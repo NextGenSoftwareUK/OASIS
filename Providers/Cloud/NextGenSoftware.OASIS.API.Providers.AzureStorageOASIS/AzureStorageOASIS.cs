@@ -261,10 +261,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
+                ValidateDetailVersion(version);
+                if(!Guid.TryParse(providerKey,out var requestedId) || requestedId==Guid.Empty) throw new ArgumentException("Azure avatar key must be a nonempty GUID.");
                 var blob = _serviceClient.GetBlobContainerClient(_avatarContainer).GetBlobClient(providerKey);
                 var json = await ReadBlobAsync(blob);
                 var avatar = Deserialise<Avatar>(json) ?? throw new InvalidDataException("Azure avatar record is null.");
                 if(avatar.Id==Guid.Empty) throw new InvalidDataException("Azure avatar record has no identity.");
+                if(avatar.Id!=requestedId) throw new InvalidDataException("Azure avatar identity does not match blob key.");
                 avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = providerKey;
                 result.Result = avatar;
@@ -278,11 +281,11 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) => LoadAvatarByProviderKeyAsync(providerKey, version).Result;
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
-            => await LoadAvatarByProviderKeyAsync($"username:{avatarUsername}", version);
+            => await ReadSelectedAvatarAsync(avatarUsername,false,version);
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) => LoadAvatarByUsernameAsync(avatarUsername, version).Result;
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
-            => await LoadAvatarByProviderKeyAsync($"email:{avatarEmail}", version);
+            => await ReadSelectedAvatarAsync(avatarEmail,true,version);
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => LoadAvatarByEmailAsync(avatarEmail, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
@@ -291,11 +294,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
             var avatars = new List<IAvatar>();
             try
             {
+                ValidateDetailVersion(version);
                 var container = _serviceClient.GetBlobContainerClient(_avatarContainer);
                 await foreach (var item in container.GetBlobsAsync())
                 {
                     var r = await LoadAvatarByProviderKeyAsync(item.Name, version);
-                    if (!r.IsError && r.Result != null) avatars.Add(r.Result);
+                    if(r.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IAvatar>>(r);
+                    if(r.Result==null) throw new InvalidDataException("Azure avatar read returned no record.");
+                    if(!r.Result.IsDeleted) avatars.Add(r.Result);
                 }
                 result.Result = avatars;
             }
@@ -316,19 +322,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 var blob = container.GetBlobClient(key);
                 using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
                 await blob.UploadAsync(stream, overwrite: true);
-                // also index by username and email for lookup
-                if (!string.IsNullOrEmpty(avatar.Username))
-                {
-                    var uBlob = container.GetBlobClient($"username:{avatar.Username}");
-                    using var us = new MemoryStream(Encoding.UTF8.GetBytes(json));
-                    await uBlob.UploadAsync(us, overwrite: true);
-                }
-                if (!string.IsNullOrEmpty(avatar.Email))
-                {
-                    var eBlob = container.GetBlobClient($"email:{avatar.Email}");
-                    using var es = new MemoryStream(Encoding.UTF8.GetBytes(json));
-                    await eBlob.UploadAsync(es, overwrite: true);
-                }
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = key;
                 result.Result = avatar; result.Message = $"AzureStorageOASIS: Saved avatar blob '{key}'.";
             }
