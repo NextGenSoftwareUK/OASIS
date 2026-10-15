@@ -104,6 +104,35 @@ public partial class Web3NativeStorageTests
             Assert.AreEqual(nonceBefore.Value,(await rpc.Eth.Transactions.GetTransactionCount.SendRequestAsync(sdkCurrent.SigningAddress,Nethereum.RPC.Eth.DTOs.BlockParameter.CreatePending())).Value);
             var afterOwner=await new MongoUsageOutboxStore(uri,database).GetAsync(rejectedHandle.OperationId,default);
             Assert.AreEqual(changedOwner,afterOwner.ExecutionOwner);Assert.AreEqual(0,afterOwner.ProviderAttempts.Count);
+            var pendingHandle=await executor.BeginAsync("local-fixture-bearer",user,"web3-unsubmitted-original",new string('c',64),"local unresolved receipt fixture",policy);
+            const string pendingData="0x0102";
+            var signedPending=new Nethereum.Signer.LegacyTransactionSigner().SignTransaction(Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_PRIVATE_KEY")!,
+                new System.Numerics.BigInteger(31337),address,0,1000000,1,3000000,pendingData);
+            var pendingBytes=signedPending.HexToByteArray();
+            var pendingHash="0x"+Convert.ToHexString(Nethereum.Util.Sha3Keccack.Current.CalculateHash(pendingBytes)).ToLowerInvariant();
+            await pendingHandle.BeginPreparedNativeAttemptAsync("PolygonOASIS",null,"never-submitted-fixture",pendingHash,
+                new UsageNativePreparation {ChainId="31337",Sender=sdkCurrent.SigningAddress,SignedTransactionBase64=Convert.ToBase64String(pendingBytes)});
+            var pendingAttempt=(await new MongoUsageOutboxStore(uri,database).GetAsync(pendingHandle.OperationId,default)).ProviderAttempts.Single();
+            var pending=await provider.GetPreparedNativeReceiptAsync(pendingAttempt,pendingData);
+            Assert.IsTrue(pending.IsError);Assert.AreEqual("OASIS_NATIVE_OUTCOME_UNRESOLVED",pending.ErrorCode);
+            Assert.IsNull(pending.Result);Assert.IsNull(pending.Exception);Assert.IsFalse(pending.IsLoaded);Assert.IsFalse(pending.IsSaved);
+            Assert.AreEqual(nonceBefore.Value,(await rpc.Eth.Transactions.GetTransactionCount.SendRequestAsync(sdkCurrent.SigningAddress,Nethereum.RPC.Eth.DTOs.BlockParameter.CreatePending())).Value);
+
+            var revertHandle=await executor.BeginAsync("local-fixture-bearer",user,"web3-reverted-original",new string('d',64),"local reverted receipt fixture",policy);
+            var revertId=Guid.NewGuid();var revertKey=(uint)Core.Utilities.HashUtility.GetNumericHash(revertId.ToString());
+            var external=Web3CoreOASISBaseProvider.PrivateExternalId(revertId);var invalidExpectedHash=new byte[32];var revertPayload=new byte[] {1};
+            var reverted=await Assert.ThrowsExceptionAsync<Web3MutationReconciliationException>(()=>provider.ExecutePreparedStorageAsync(
+                ()=>sdkCurrent.UpsertCheckedAsync("detail",revertKey,external,true,invalidExpectedHash,revertPayload),revertHandle,"reverted-original",sdkCurrent.SigningAddress));
+            var revertAttempt=(await new MongoUsageOutboxStore(uri,database).GetAsync(revertHandle.OperationId,default)).ProviderAttempts.Single();
+            Assert.AreEqual(reverted.OriginalTransactionId,revertAttempt.ProviderRequestId);
+            var revertData=rpc.Eth.GetContract(Web3CoreOASISBaseProviderHelper.Abi,address).GetFunction("upsertAvatarDetailChecked")
+                .GetData(revertKey,external,true,invalidExpectedHash,revertPayload);
+            var revertReceipt=await provider.GetPreparedNativeReceiptAsync(revertAttempt,revertData);
+            Assert.IsFalse(revertReceipt.IsError,revertReceipt.Message);Assert.IsTrue(revertReceipt.IsLoaded);Assert.IsFalse(revertReceipt.IsSaved);
+            Assert.AreEqual(System.Numerics.BigInteger.Zero,revertReceipt.Result.Status.Value);
+            Assert.IsTrue(revertReceipt.Message.Contains("reverted"));
+            Assert.IsTrue(Web3CoreOASISBaseProvider.IsPrivateRecordAbsent(await native.GetAvatarDetailByIdAsync(revertKey)));
+            Assert.AreEqual(1,(await store.GetAsync(revertHandle.OperationId,default)).ProviderAttempts.Count);
             verified=true;
             Console.WriteLine("WEB3_REAL_OUTBOX_VERIFIED");
         }
