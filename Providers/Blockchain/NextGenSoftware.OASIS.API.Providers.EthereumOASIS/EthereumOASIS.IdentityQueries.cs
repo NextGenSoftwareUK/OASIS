@@ -10,6 +10,30 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 {
     public partial class EthereumOASIS
     {
+        private static async Task<OASISResult<T>> LoadProviderIdentityAsync<T>(string providerKey,int version,
+            Func<Guid,Task<OASISResult<T>>> load) where T : class,NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase
+        {
+            var error = new OASISResult<T>();
+            try
+            {
+                if (!Guid.TryParseExact(providerKey,"D",out var id) || id == Guid.Empty)
+                    throw new ArgumentException("Ethereum provider key must be a nonempty D-format record GUID.",nameof(providerKey));
+                if (version != 0) throw new NotSupportedException("Ethereum provider-key history is not implemented; only current version 0 is supported.");
+                var result = await load(id);
+                if (!result.IsError && result.Result != null)
+                {
+                    result.Result.ProviderUniqueStorageKey ??= new Dictionary<NextGenSoftware.OASIS.API.Core.Enums.ProviderType,string>();
+                    result.Result.ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.EthereumOASIS] = id.ToString();
+                }
+                return result;
+            }
+            catch (Exception cause)
+            {
+                OASISErrorHandling.HandleError(ref error,$"Ethereum provider-key lookup failed: {cause.Message}",cause);
+                return error;
+            }
+        }
+
         private static async Task<OASISResult<T>> FindStoredIdentityAsync<T>(string value,Func<T,string> select,
             Func<Task<OASISResult<IEnumerable<T>>>> load) where T : class
         {

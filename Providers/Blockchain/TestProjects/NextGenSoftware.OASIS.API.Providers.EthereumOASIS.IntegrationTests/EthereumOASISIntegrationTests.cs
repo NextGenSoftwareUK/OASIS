@@ -356,6 +356,41 @@ public class EthereumOASISIntegrationTests
         await provider.DeActivateProviderAsync();
     }
 
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task ProviderKeysResolveSavedNativeIdentitiesWithoutCollisionOrSyntheticData(bool synchronous)
+    {
+        var (provider,_) = await CreateActivatedProviderAsync();
+        var id=Guid.Parse("00005f42-0000-0000-0000-000000000000");
+        var collision=Guid.Parse("00017b6d-0000-0000-0000-000000000000");
+        var savedHolon=await provider.SaveHolonAsync(new CoreHolon { Id=id,Name="keyed holon" });
+        var savedAvatar=await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=id,Username="keyed avatar" });
+        Assert.IsFalse(savedHolon.IsError,savedHolon.Message); Assert.IsFalse(savedAvatar.IsError,savedAvatar.Message);
+        Assert.AreEqual(id.ToString(),savedHolon.Result.ProviderUniqueStorageKey[ProviderType.EthereumOASIS]);
+        Assert.AreEqual(id.ToString(),savedAvatar.Result.ProviderUniqueStorageKey[ProviderType.EthereumOASIS]);
+        var key=id.ToString().ToUpperInvariant();
+        var holon=synchronous ? provider.LoadHolon(key) : await provider.LoadHolonAsync(key);
+        var avatar=synchronous ? provider.LoadAvatarByProviderKey(key) : await provider.LoadAvatarByProviderKeyAsync(key);
+        Assert.IsFalse(holon.IsError,holon.Message); Assert.IsTrue(holon.IsLoaded); Assert.AreEqual(id,holon.Result.Id); Assert.AreEqual("keyed holon",holon.Result.Name);
+        Assert.IsFalse(avatar.IsError,avatar.Message); Assert.IsTrue(avatar.IsLoaded); Assert.AreEqual(id,avatar.Result.Id); Assert.AreEqual("keyed avatar",avatar.Result.Username);
+        Assert.AreEqual(id.ToString(),avatar.Result.ProviderUniqueStorageKey[ProviderType.EthereumOASIS]);
+        Assert.AreEqual(id,(await provider.LoadAvatarByProviderKeyVersionAsync(key)).Result.Id);
+        Assert.AreEqual(1,(await provider.LoadAllAvatarsByVersionAsync()).Result.Count());
+        foreach(var bad in new[] {"not-a-guid",Guid.Empty.ToString(),collision.ToString(),Guid.NewGuid().ToString()})
+        {
+            var h=synchronous ? provider.LoadHolon(bad) : await provider.LoadHolonAsync(bad);
+            var a=synchronous ? provider.LoadAvatarByProviderKey(bad) : await provider.LoadAvatarByProviderKeyAsync(bad);
+            Assert.IsTrue(h.IsError); Assert.IsNull(h.Result); Assert.IsFalse(h.IsLoaded);
+            Assert.IsTrue(a.IsError); Assert.IsNull(a.Result); Assert.IsFalse(a.IsLoaded);
+            if(bad==collision.ToString()) { Assert.IsInstanceOfType(h.Exception,typeof(InvalidDataException)); Assert.IsInstanceOfType(a.Exception,typeof(InvalidDataException)); }
+        }
+        Assert.IsTrue((await provider.LoadHolonAsync(key,version:1)).IsError);
+        Assert.IsTrue((await provider.LoadAvatarByProviderKeyVersionAsync(key,1)).IsError);
+        Assert.IsTrue((await provider.LoadAllAvatarsByVersionAsync(1)).IsError);
+        await provider.DeActivateProviderAsync();
+    }
+
     [TestMethod]
     public async Task Holon_SaveLoadRoundTrip_UsesDisposableEvmChain()
     {
