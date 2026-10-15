@@ -104,6 +104,13 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             {
                 ArgumentNullException.ThrowIfNull(holon);
                 if(maxChildDepth<0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
+                if(saveChildren)
+                {
+                    var graph=await SaveHolonsAsync(new[] {holon},true,recursive,maxChildDepth,0,continueOnError,saveChildrenOnProvider);
+                    var converted=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IHolon>(graph);
+                    if(!graph.IsError) converted.Result=holon;
+                    return converted;
+                }
                 if (!IsProviderActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
