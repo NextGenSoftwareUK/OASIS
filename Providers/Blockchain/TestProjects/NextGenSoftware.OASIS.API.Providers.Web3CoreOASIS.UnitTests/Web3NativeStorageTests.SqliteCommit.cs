@@ -30,7 +30,7 @@ public partial class Web3NativeStorageTests
         public override Task TransactionCommittedAsync(System.Data.Common.DbTransaction transaction,TransactionEndEventData data,CancellationToken token=default)
             =>Task.FromException(cause);
     }
-    private sealed class DeleteCommitFaultSqlite : SQLLiteDBOASIS.SQLLiteDBOASIS,IOASISStorageProvider
+    private sealed class DeleteCommitFaultSqlite : SQLLiteDBOASIS.SQLLiteDBOASIS,IOASISStorageProvider,IAvatarTombstoneStorageProvider
     {
         public CommitFaultContext Context {get;}
         private readonly DetailRepository repository;
@@ -41,6 +41,8 @@ public partial class Web3NativeStorageTests
         public new Task<OASISResult<bool>> DeleteAvatarDetailAsync(Guid id,bool softDelete=true)=>repository.DeleteAvatarDetailAsync(id,softDelete);
         public override OASISResult<bool> DeleteAvatar(Guid id,bool softDelete=true)=>avatars.DeleteAvatar(id,softDelete);
         public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id,bool softDelete=true)=>avatars.DeleteAvatarAsync(id,softDelete);
+        public new OASISResult<bool> ApplyAvatarTombstone(Core.Objects.AvatarTombstone tombstone)=>avatars.ApplyAvatarTombstone(tombstone);
+        public new Task<OASISResult<bool>> ApplyAvatarTombstoneAsync(Core.Objects.AvatarTombstone tombstone)=>avatars.ApplyAvatarTombstoneAsync(tombstone);
     }
     private sealed class CommitFaultSqlite : SQLLiteDBOASIS.SQLLiteDBOASIS
     {
@@ -224,6 +226,28 @@ public partial class Web3NativeStorageTests
                 Assert.IsTrue(untouched.Result.IsActive);Assert.AreEqual(81L,untouched.Result.XP);
                 var attempt=(await store.GetAsync(handle.OperationId,default)).ProviderAttempts.Single();
                 Assert.AreEqual("SQLLiteDBOASIS",attempt.Provider);Assert.IsNull(attempt.NativePreparation);
+            }
+            foreach(var asynchronous in new[] {false,true})
+            {
+                var id=Guid.NewGuid();
+                var avatar=new Avatar {Id=id,IsActive=true,Username="replica-commit-"+id.ToString("N"),AvatarType=new EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User)};
+                Assert.IsFalse((await healthySqlite.SaveAvatarAsync(avatar)).IsError);
+                Assert.IsFalse((await healthySqlite.SaveAvatarDetailAsync(new AvatarDetail {Id=id,IsActive=true,XP=93})).IsError);
+                var tombstone=new Core.Objects.AvatarTombstone(id,DateTime.UtcNow.AddTicks(17),Guid.NewGuid());
+                IAvatarTombstoneStorageProvider capability=deletion;
+                var applied=asynchronous ? await capability.ApplyAvatarTombstoneAsync(tombstone):capability.ApplyAvatarTombstone(tombstone);
+                Assert.IsTrue(applied.IsError);Assert.IsFalse(applied.Result);Assert.IsFalse(applied.IsSaved);Assert.IsFalse(applied.IsDeleted);
+                var failure=applied.Exception as SQLLiteDBOASIS.SqliteMutationReconciliationException;Assert.IsNotNull(failure);
+                Assert.AreEqual(id,failure.RecordId);Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(failure));
+                Assert.IsTrue(ReferenceEquals(deletionCause,failure.InnerException)
+                    || failure.InnerException is AggregateException aggregate && aggregate.Flatten().InnerExceptions.Contains(deletionCause));
+                using var control=new SqlContext(db.Database.GetDbConnection().ConnectionString);
+                var storedAvatar=await control.Avatars.AsNoTracking().SingleAsync(row=>row.Id==id.ToString());
+                var storedDetail=await control.AvatarDetails.AsNoTracking().SingleAsync(row=>row.Id==id.ToString());
+                Assert.IsFalse(storedAvatar.IsActive);Assert.IsFalse(storedDetail.IsActive);
+                Assert.AreEqual(tombstone.DeletedAtUtc,storedAvatar.DeletedDate);Assert.AreEqual(tombstone.DeletedAtUtc,storedDetail.DeletedDate);
+                Assert.AreEqual(tombstone.DeletedByAvatarId.ToString(),storedAvatar.DeletedByAvatarId);
+                Assert.AreEqual(storedAvatar.DeletedByAvatarId,storedDetail.DeletedByAvatarId);
             }
         }
         finally {deletion.Context.Dispose();deletion.Dispose();}
