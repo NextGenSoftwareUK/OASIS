@@ -88,6 +88,16 @@ public class AzureNativeStorageTests
             Assert.AreEqual(0,bounded.Result.Children.Single().Children.Count);
             var disabled=await provider.LoadHolonAsync(holon.Id,loadChildren:false,loadChildrenFromProvider:true);
             Assert.AreEqual(0,disabled.Result.Children.Count);
+            child.MetaData=new Dictionary<string,object> {{"owned-kind","seed"},{"amount",1.5m}};
+            Assert.IsFalse((await provider.SaveHolonAsync(child,saveChildren:false)).IsError);
+            var metadata=await provider.LoadHolonsByMetaDataAsync("owned-kind","seed",loadChildrenFromProvider:true);
+            Assert.IsFalse(metadata.IsError,metadata.Message);Assert.AreEqual(child.Id,metadata.Result.Single().Id);
+            Assert.AreEqual(grandchild.Id,metadata.Result.Single().Children.Single().Id);
+            var all=provider.LoadHolonsByMetaData(new Dictionary<string,string> {{"owned-kind","seed"},{"amount","1.5"}},Core.Enums.MetaKeyValuePairMatchMode.All);
+            Assert.IsFalse(all.IsError,all.Message);Assert.AreEqual(child.Id,all.Result.Single().Id);
+            var any=await provider.LoadHolonsByMetaDataAsync(new Dictionary<string,string> {{"owned-kind","missing"},{"amount","1.5"}},Core.Enums.MetaKeyValuePairMatchMode.Any);
+            Assert.IsFalse(any.IsError,any.Message);Assert.AreEqual(child.Id,any.Result.Single().Id);
+            Assert.IsTrue((await provider.LoadHolonsByMetaDataAsync((string)null!,"seed")).IsError);
         }
         finally {
             await provider.DeActivateProviderAsync();
