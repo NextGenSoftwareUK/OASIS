@@ -18,9 +18,10 @@ public partial class AzureCosmosDBOASIS
     private async Task<OASISResult<bool>> DeleteCurrentAvatarAsync(string key,bool soft)
     {
         var result=new OASISResult<bool>(false);
+        var acknowledged=new List<string>();Guid id=Guid.Empty;
         try
         {
-            if(!Guid.TryParse(key,out var id) || id==Guid.Empty) throw new ArgumentException("A nonempty Cosmos avatar GUID is required.",nameof(key));
+            if(!Guid.TryParse(key,out id) || id==Guid.Empty) throw new ArgumentException("A nonempty Cosmos avatar GUID is required.",nameof(key));
             if(!IsProviderActivated)
             {
                 var activation=await ActivateProviderAsync();
@@ -29,20 +30,40 @@ public partial class AzureCosmosDBOASIS
             }
             var avatar=await avatarRepository.GetByIdAsync(id.ToString());
             if(avatar==null) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Cosmos avatar not found.";return result;}
+            var detail=await avatarDetailRepository.GetByIdAsync(id.ToString());
             if(soft)
             {
-                if(!avatar.IsActive) {result.Result=true;return result;}
+                // Plan both payloads before the first write. No actor is supplied by this interface.
+                var date=avatar.IsActive || avatar.DeletedDate==default ? DateTime.UtcNow:avatar.DeletedDate;
+                var actor=avatar.IsActive ? Guid.Empty:avatar.DeletedByAvatarId;
                 var snapshot=(IAvatar)OasisJson.Deserialize(OasisJson.Serialize(avatar),typeof(Avatar));
-                snapshot.IsActive=false;snapshot.DeletedDate=DateTime.UtcNow;
-                // The storage interface supplies no actor. Do not depend on global login state.
-                snapshot.DeletedByAvatarId=Guid.Empty;
-                var saved=await SaveCurrentRecordAsync<IAvatar>(snapshot,()=>avatarRepository);
-                if(saved.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,bool>(saved);
+                snapshot.IsActive=false;snapshot.DeletedDate=date;snapshot.DeletedByAvatarId=actor;
+                var detailSnapshot=detail==null ? null:(IAvatarDetail)OasisJson.Deserialize(OasisJson.Serialize(detail),typeof(AvatarDetail));
+                if(detailSnapshot!=null) {detailSnapshot.IsActive=false;detailSnapshot.DeletedDate=date;detailSnapshot.DeletedByAvatarId=actor;}
+                if(avatar.IsActive || avatar.DeletedDate==default)
+                {
+                    if(await avatarRepository.UpsertAsync(snapshot)==null) throw new CosmosMutationReconciliationException(id.ToString(),new System.IO.InvalidDataException("Cosmos avatar tombstone lacks acknowledged record."));
+                    acknowledged.Add("avatarItems");
+                }
+                if(detailSnapshot!=null && (detail.IsActive || detail.DeletedDate!=date || detail.DeletedByAvatarId!=actor))
+                {
+                    if(await avatarDetailRepository.UpsertAsync(detailSnapshot)==null) throw new CosmosMutationReconciliationException(id.ToString(),new System.IO.InvalidDataException("Cosmos detail tombstone lacks acknowledged record."));
+                    acknowledged.Add("avatarDetailItems");
+                }
             }
-            else await avatarRepository.DeleteAsync(id.ToString());
-            result.Result=true;result.IsSaved=true;
+            else
+            {
+                // Remove detail first, so an acknowledged primary deletion never leaves its detail behind.
+                if(detail!=null) {await avatarDetailRepository.DeleteAsync(id.ToString());acknowledged.Add("avatarDetailItems");}
+                await avatarRepository.DeleteAsync(id.ToString());acknowledged.Add("avatarItems");
+            }
+            result.Result=true;result.IsSaved=acknowledged.Count>0;
         }
-        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        catch(Exception cause)
+        {
+            var error=acknowledged.Count>0 ? new CosmosAvatarLifecycleException(id,acknowledged,cause):cause;
+            OASISErrorHandling.HandleError(ref result,error.Message,error);
+        }
         return result;
     }
 
