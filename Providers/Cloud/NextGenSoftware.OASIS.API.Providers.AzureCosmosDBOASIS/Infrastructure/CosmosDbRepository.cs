@@ -66,14 +66,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         {
             try
             {
+                ArgumentNullException.ThrowIfNull(entity);
                 if (entity.Id == Guid.Empty)
                     entity.Id = GenerateId(entity);
+                entity.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                 entity.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS] = entity.Id.ToString();
 
                 var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
-                var partitionKey = ResolvePartitionKey(entity.Id.ToString());
+                var expectedId=entity.Id.ToString();
+                var partitionKey = ResolvePartitionKey(expectedId);
                 var json = await cosmosDbClient.CreateDocumentAsync(entity, partitionKey);
-                return json == null ? entity : DeserializeEntity(json);
+                return DecodeAcknowledgedEntity(json,entity,expectedId);
             }
             catch (CosmosException e)
             {
@@ -85,13 +88,16 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 
         public async Task<T> UpsertAsync(T entity)
         {
+            ArgumentNullException.ThrowIfNull(entity);
             if (entity.Id == Guid.Empty)
                 entity.Id = GenerateId(entity);
 
+            entity.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
             entity.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS] = entity.Id.ToString();
             var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
-            var json = await cosmosDbClient.UpsertDocumentAsync(entity, ResolvePartitionKey(entity.Id.ToString()));
-            return json == null ? entity : DeserializeEntity(json);
+            var expectedId=entity.Id.ToString();
+            var json = await cosmosDbClient.UpsertDocumentAsync(entity, ResolvePartitionKey(expectedId));
+            return DecodeAcknowledgedEntity(json,entity,expectedId);
         }
 
         public async Task UpdateAsync(T entity)
@@ -140,6 +146,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         protected abstract Type EntityType { get; }
         public virtual Guid GenerateId(T entity) => Guid.NewGuid();
         public virtual PartitionKey? ResolvePartitionKey(string entityId) => null;
+
+        private T DecodeAcknowledgedEntity(string json,T entity,string expectedId)
+        {
+            try
+            {
+                if(json!=null) return DeserializeEntity(json,expectedId);
+                if(entity.Id.ToString()!=expectedId) throw new InvalidDataException("Caller identity changed after acknowledged Cosmos write.");
+                return entity;
+            }
+            catch(Exception cause) {throw new CosmosMutationReconciliationException(expectedId,cause,acknowledged:true);}
+        }
 
         private T DeserializeEntity(string json,string expectedId=null)
         {
