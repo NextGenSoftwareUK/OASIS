@@ -545,33 +545,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         //}
 
         public async Task<OASISResult<IHolon>> DeleteAsync(Guid id)
-        {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-
-            try
-            {
-                Holon holon = await GetHolonAsync(id);
-
-                if (holon != null)
-                {
-                    FilterDefinition<Holon> data = Builders<Holon>.Filter.Where(x => x.HolonId == id);
-                    await _dbContext.Holon.DeleteOneAsync(data);
-                    result.IsDeleted = true;
-                    result.DeletedCount = 1;
-                    result.Result = Helpers.DataHelper.ConvertMongoEntityToOASISHolon(holon); 
-                }
-                else
-                {
-                    result.IsError = true;
-                    result.Message = $"Holon with id {id} not found.";
-                }
-            }
-            catch (Exception e)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error Occured In MongoDBOASIS Provider.HolonRepository.DeleteAsync. Reason: {e}");
-            }
-
-            return result;
-        }
+            => await DeleteObservedHolonAsync(Builders<Holon>.Filter.Where(x => x.HolonId == id && x.DeletedDate == DateTime.MinValue));
     }
 }
