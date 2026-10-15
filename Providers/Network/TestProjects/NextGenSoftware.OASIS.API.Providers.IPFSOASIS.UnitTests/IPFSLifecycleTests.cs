@@ -10,6 +10,23 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests;
 
 public class IPFSLifecycleTests
 {
+    [Fact]
+    public async Task AcknowledgedRecordIndexFailureFencesActualV2Failover()
+    {
+        var provider=new IPFSOASIS(Settings("http://127.0.0.1:1"));
+        var cause=new System.IO.IOException("owned index encryption failure after record acknowledgement");
+        typeof(IPFSOASIS).GetField("_storageKeyResolver",BindingFlags.Instance|BindingFlags.NonPublic)!
+            .SetValue(provider,new Func<byte[]>(()=>throw cause));
+        var method=typeof(IPFSOASIS).GetMethod("PublishAcknowledgedRecordAsync",BindingFlags.Instance|BindingFlags.NonPublic)!;
+        var task=(Task)method.Invoke(provider,new object[] {"acknowledged-record-cid",new HolonResume {Id=Guid.NewGuid(),RecordKind="holon"}})!;
+        var error=await Assert.ThrowsAsync<IPFSRecordPublicationException>(()=>task);
+        Assert.Equal("acknowledged-record-cid",error.OriginalTransactionId); Assert.Same(cause,error.InnerException);
+        var router=typeof(NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive.OASISHyperDrive);
+        var shouldFailOver=router.GetMethod("ShouldFailOver",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(bool));
+        var result=new NextGenSoftware.OASIS.Common.OASISResult<bool> {IsError=true,Exception=error};
+        Assert.False((bool)shouldFailOver.Invoke(null,new object[] {new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {Operation="SaveHolon"},result})!);
+    }
+
     [Theory]
     [InlineData("avatar")]
     [InlineData("avatar-detail")]
