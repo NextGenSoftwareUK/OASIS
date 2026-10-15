@@ -184,6 +184,41 @@ public class EthereumOASISIntegrationTests
     }
 
     [TestMethod]
+    public async Task StorageMutationsRejectAnUnrelatedNativeAccount()
+    {
+        var (provider,address) = await CreateActivatedProviderAsync();
+        var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        await service.CreateHolonRequestAndWaitForReceiptAsync(101,"holon","holon-original");
+        await service.CreateAvatarRequestAndWaitForReceiptAsync(101,"avatar","avatar-original");
+        await service.CreateAvatarDetailRequestAndWaitForReceiptAsync(101,"detail","detail-original");
+        var fixturePath = Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_FIXTURE_JSON")!;
+        using var compiled = System.Text.Json.JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(Path.GetDirectoryName(fixturePath)!,"default-storage.json")));
+        var unlocked = new Web3(Host);
+        var accounts = await unlocked.Eth.Accounts.SendRequestAsync();
+        var owner = new Account(PrivateKey,ChainId).Address;
+        var outsider = accounts.First(account => !string.Equals(account,owner,StringComparison.OrdinalIgnoreCase));
+        var contract = unlocked.Eth.GetContract(compiled.RootElement.GetProperty("abi").GetRawText(),address);
+        foreach(var name in new[] {"CreateHolon","CreateAvatar","CreateAvatarDetail","UpdateHolon","UpdateAvatar","UpdateAvatarDetail","DeleteHolon","DeleteAvatar","DeleteAvatarDetail"})
+        {
+            object[] input = name.StartsWith("Create") ? new object[] {new BigInteger(999),"unrelated-id","unrelated-value"}
+                : name.StartsWith("Update") ? new object[] {new BigInteger(101),"corrupted"} : new object[] {new BigInteger(101)};
+            var denied = false;
+            try
+            {
+                var receipt = await contract.GetFunction(name).SendTransactionAndWaitForReceiptAsync(outsider,
+                    new Nethereum.Hex.HexTypes.HexBigInteger(2000000),null,null,input);
+                denied = receipt.Status?.Value == 0;
+            }
+            catch(Exception error) { denied = error.ToString().Contains("OASIS storage owner required",StringComparison.Ordinal); }
+            Assert.IsTrue(denied,"Unrelated account must not execute " + name);
+        }
+        Assert.AreEqual("holon-original",(await service.GetHolonByIdQueryAsync(101)).ReturnValue1.Info);
+        Assert.AreEqual("avatar-original",(await service.GetAvatarByIdQueryAsync(101)).ReturnValue1.Info);
+        Assert.AreEqual("detail-original",(await service.GetAvatarDetailByIdQueryAsync(101)).ReturnValue1.Info);
+        await provider.DeActivateProviderAsync();
+    }
+
+    [TestMethod]
     public async Task NativeDeleteThenInsertKeepsAllRecordArraysQueryable()
     {
         var (provider,contract) = await CreateActivatedProviderAsync();
