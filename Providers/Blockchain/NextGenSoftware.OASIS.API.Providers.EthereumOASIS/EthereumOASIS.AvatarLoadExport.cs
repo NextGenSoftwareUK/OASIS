@@ -374,7 +374,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                var avatarEntityResult = DeserializePrivateStorage<Avatar>("avatar",avatarDto.ReturnValue1.EntityId,avatarDto.ReturnValue1.Info);
+                var avatarEntityResult = DeserializePrivateStorage<Avatar>("avatar",avatarDto.ReturnValue1.EntityId,avatarDto.ReturnValue1.Info,Id);
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Result = avatarEntityResult;
@@ -515,7 +515,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                var avatarEntityResult = DeserializePrivateStorage<Avatar>("avatar",avatarDto.ReturnValue1.EntityId,avatarDto.ReturnValue1.Info);
+                var avatarEntityResult = DeserializePrivateStorage<Avatar>("avatar",avatarDto.ReturnValue1.EntityId,avatarDto.ReturnValue1.Info,Id);
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Result = avatarEntityResult;
