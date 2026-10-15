@@ -32,28 +32,59 @@ public partial class GoogleCloudOASIS
     private async Task<OASISResult<bool>> DeleteCanonicalAvatarAsync(Guid id,bool softDelete)
     {
         var result=new OASISResult<bool>();
+        bool mutationPrepared=false;
+        string paths=string.Empty;
         try
         {
             if(id==Guid.Empty) throw new ArgumentException("A nonempty avatar identity is required.");
             var ready=await EnsureDetailStoreAsync(0);
             if(ready.IsError) return ready;
             var reference=_firestoreDb.Collection("avatars").Document(id.ToString());
-            var snapshot=await reference.GetSnapshotAsync();
-            if(!snapshot.Exists) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Firestore avatar not found.";return result;}
-            var avatar=DecodeAvatar(snapshot.ConvertTo<Dictionary<string,object>>(),snapshot.Id);
-            var condition=Google.Cloud.Firestore.Precondition.LastUpdated(snapshot.UpdateTime.Value);
-            if(softDelete)
+            var detailReference=_firestoreDb.Collection("avatarDetails").Document(id.ToString());
+            paths=reference.Path+";"+detailReference.Path;
+            var exists=await _firestoreDb.RunTransactionAsync(async transaction=>
             {
-                if(!avatar.IsActive) {result.Result=true;return result;}
-                avatar.IsActive=false;
-                avatar.DeletedDate=DateTime.UtcNow;
-                var update=new Dictionary<string,object> { ["isActive"]=false,["data_json"]=OasisJson.Serialize(avatar) };
-                await ObserveFirestoreMutationAsync(()=>reference.UpdateAsync(update,condition),reference.Path);
-            }
-            else await ObserveFirestoreMutationAsync(()=>reference.DeleteAsync(condition),reference.Path);
-            result.Result=true;result.IsSaved=true;
+                var snapshot=await transaction.GetSnapshotAsync(reference);
+                var detailSnapshot=await transaction.GetSnapshotAsync(detailReference);
+                if(!snapshot.Exists) return false;
+                var avatar=DecodeAvatar(snapshot.ConvertTo<Dictionary<string,object>>(),snapshot.Id);
+                var detail=detailSnapshot.Exists ? DecodeAvatarDetail(detailSnapshot.ConvertTo<Dictionary<string,object>>(),detailSnapshot.Id):null;
+                if(softDelete)
+                {
+                    if(!avatar.IsActive && (detail==null || !detail.IsActive)) return true;
+                    var deletedAt=DateTime.UtcNow;
+                    avatar.IsActive=false;avatar.DeletedDate=deletedAt;
+                    var avatarUpdate=new Dictionary<string,object> { ["isActive"]=false,["data_json"]=OasisJson.Serialize(avatar) };
+                    Dictionary<string,object> detailUpdate=null;
+                    if(detail!=null)
+                    {
+                        detail.IsActive=false;detail.DeletedDate=deletedAt;
+                        detailUpdate=new Dictionary<string,object> { ["isActive"]=false,["data_json"]=OasisJson.Serialize(detail) };
+                    }
+                    transaction.Update(reference,avatarUpdate);
+                    if(detailUpdate!=null) transaction.Update(detailReference,detailUpdate);
+                }
+                else
+                {
+                    transaction.Delete(reference);
+                    if(detailSnapshot.Exists) transaction.Delete(detailReference);
+                }
+                mutationPrepared=true;
+                return true;
+            },Google.Cloud.Firestore.TransactionOptions.ForMaxAttempts(1));
+            if(!exists) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Firestore avatar not found.";return result;}
+            result.Result=true;result.IsSaved=mutationPrepared;
         }
-        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        catch(Grpc.Core.RpcException cause) when(mutationPrepared && (cause.StatusCode==Grpc.Core.StatusCode.FailedPrecondition || cause.StatusCode==Grpc.Core.StatusCode.Aborted || cause.StatusCode==Grpc.Core.StatusCode.NotFound))
+        {
+            OASISErrorHandling.HandleError(ref result,cause.Message,cause);
+            result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
+        }
+        catch(Exception cause)
+        {
+            var error=mutationPrepared ? new GoogleFirestoreMutationReconciliationException(paths,cause):cause;
+            OASISErrorHandling.HandleError(ref result,error.Message,error);
+        }
         return result;
     }
 
