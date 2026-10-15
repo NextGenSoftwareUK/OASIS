@@ -12,6 +12,16 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
     {
         private GoogleCloudOASIS _provider = null!;
 
+        [TestMethod]
+        public async Task TombstoneCapabilityRejectsNullBeforeActivationAndPreservesFailure()
+        {
+            var provider=new FailedActivationProvider();
+            Assert.IsInstanceOfType((await provider.ApplyAvatarTombstoneAsync(null!)).Exception,typeof(System.ArgumentNullException));
+            Assert.AreEqual(0,provider.Activations);
+            var failed=await provider.ApplyAvatarTombstoneAsync(new AvatarTombstone(System.Guid.NewGuid(),System.DateTime.UtcNow));
+            Assert.AreSame(provider.Cause,failed.Exception);Assert.AreEqual("owned-code",failed.ErrorCode);
+        }
+
         [DataTestMethod]
         [DataRow(false)] [DataRow(true)]
         public async Task ExplicitMissingCredentialsFailLocallyAndLeaveProviderInactive(bool bigQuery)

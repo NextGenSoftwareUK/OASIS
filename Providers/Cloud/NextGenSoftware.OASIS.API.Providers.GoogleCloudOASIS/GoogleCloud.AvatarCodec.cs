@@ -6,13 +6,29 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 
-public partial class GoogleCloudOASIS
+public partial class GoogleCloudOASIS : IAvatarTombstoneStorageProvider
 {
+    public OASISResult<bool> ApplyAvatarTombstone(AvatarTombstone tombstone)
+        => ApplyAvatarTombstoneAsync(tombstone).GetAwaiter().GetResult();
+
+    public async Task<OASISResult<bool>> ApplyAvatarTombstoneAsync(AvatarTombstone tombstone)
+    {
+        if(tombstone!=null) return await DeleteCanonicalAvatarAsync(tombstone.AvatarId,true,tombstone);
+        var result=new OASISResult<bool>();
+        var cause=new ArgumentNullException(nameof(tombstone));
+        OASISErrorHandling.HandleError(ref result,cause.Message,cause);
+        return result;
+    }
+
+    private static bool MatchesTombstone(IHolonBase record,AvatarTombstone tombstone)
+        => !record.IsActive && record.DeletedDate==tombstone.DeletedAtUtc && record.DeletedByAvatarId==tombstone.DeletedByAvatarId;
+
     private Task<OASISResult<bool>> DeleteCanonicalAvatarKeyAsync(string key,bool softDelete)
     {
         if(Guid.TryParse(key,out var id) && id!=Guid.Empty) return DeleteCanonicalAvatarAsync(id,softDelete);
@@ -29,11 +45,12 @@ public partial class GoogleCloudOASIS
         return await DeleteCanonicalAvatarAsync(loaded.Result.Id,softDelete);
     }
 
-    private async Task<OASISResult<bool>> DeleteCanonicalAvatarAsync(Guid id,bool softDelete)
+    private async Task<OASISResult<bool>> DeleteCanonicalAvatarAsync(Guid id,bool softDelete,AvatarTombstone supplied=null)
     {
         var result=new OASISResult<bool>();
         bool mutationPrepared=false;
         string paths=string.Empty;
+        AvatarTombstone committed=null;
         try
         {
             if(id==Guid.Empty) throw new ArgumentException("A nonempty avatar identity is required.");
@@ -51,14 +68,19 @@ public partial class GoogleCloudOASIS
                 var detail=detailSnapshot.Exists ? DecodeAvatarDetail(detailSnapshot.ConvertTo<Dictionary<string,object>>(),detailSnapshot.Id):null;
                 if(softDelete)
                 {
-                    if(!avatar.IsActive && (detail==null || !detail.IsActive)) return true;
-                    var deletedAt=DateTime.UtcNow;
-                    avatar.IsActive=false;avatar.DeletedDate=deletedAt;
+                    var patch=supplied ?? (!avatar.IsActive
+                        ? new AvatarTombstone(id,avatar.DeletedDate,avatar.DeletedByAvatarId)
+                        : new AvatarTombstone(id,DateTime.UtcNow));
+                    if(!avatar.IsActive && !MatchesTombstone(avatar,patch) || detail!=null && !detail.IsActive && !MatchesTombstone(detail,patch))
+                        throw new StorageLifecycleConflictException("Firestore stored tombstone differs from requested committed lifecycle state.");
+                    committed=patch;
+                    if(MatchesTombstone(avatar,patch) && (detail==null || MatchesTombstone(detail,patch))) return true;
+                    avatar.IsActive=false;avatar.DeletedDate=patch.DeletedAtUtc;avatar.DeletedByAvatarId=patch.DeletedByAvatarId;
                     var avatarUpdate=new Dictionary<string,object> { ["isActive"]=false,["data_json"]=OasisJson.Serialize(avatar) };
                     Dictionary<string,object> detailUpdate=null;
                     if(detail!=null)
                     {
-                        detail.IsActive=false;detail.DeletedDate=deletedAt;
+                        detail.IsActive=false;detail.DeletedDate=patch.DeletedAtUtc;detail.DeletedByAvatarId=patch.DeletedByAvatarId;
                         detailUpdate=new Dictionary<string,object> { ["isActive"]=false,["data_json"]=OasisJson.Serialize(detail) };
                     }
                     transaction.Update(reference,avatarUpdate);
@@ -74,6 +96,8 @@ public partial class GoogleCloudOASIS
             },Google.Cloud.Firestore.TransactionOptions.ForMaxAttempts(1));
             if(!exists) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Firestore avatar not found.";return result;}
             result.Result=true;result.IsSaved=mutationPrepared;
+            result.IsDeleted=true;result.DeletedCount=1;
+            if(softDelete) AvatarTombstoneEvidence.Attach(result,committed);
         }
         catch(Grpc.Core.RpcException cause) when(mutationPrepared && (cause.StatusCode==Grpc.Core.StatusCode.FailedPrecondition || cause.StatusCode==Grpc.Core.StatusCode.Aborted || cause.StatusCode==Grpc.Core.StatusCode.NotFound))
         {
@@ -84,6 +108,7 @@ public partial class GoogleCloudOASIS
         {
             var error=mutationPrepared ? new GoogleFirestoreMutationReconciliationException(paths,cause):cause;
             OASISErrorHandling.HandleError(ref result,error.Message,error);
+            if(cause is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
         }
         return result;
     }
