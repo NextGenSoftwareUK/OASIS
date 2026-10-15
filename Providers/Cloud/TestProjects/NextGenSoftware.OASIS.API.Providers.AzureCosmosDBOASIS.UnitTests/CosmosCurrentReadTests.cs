@@ -9,6 +9,21 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
 [TestClass]
 public class CosmosCurrentReadTests
 {
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task InvalidActivationConfigurationLeavesNoClientAndCanRetry(bool missingContainers)
+    {
+        var provider=new AzureCosmosDBOASIS(new Uri("https://localhost:8081"),missingContainers ? "unused":" ","owned",
+            missingContainers ? new List<string>():new List<string> {"avatarItems","avatarDetailItems","holonItems"});
+        foreach(var attempt in Enumerable.Range(0,2))
+        {
+            var result=await provider.ActivateProviderAsync();
+            Assert.IsTrue(result.IsError);Assert.IsInstanceOfType(result.Exception,typeof(ArgumentException));Assert.IsFalse(provider.IsProviderActivated);
+            Assert.IsNull(typeof(AzureCosmosDBOASIS).GetField("dbClientFactory",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.GetValue(provider));
+        }
+        Assert.IsTrue((await provider.DeActivateProviderAsync()).Result);
+    }
+
     private sealed class Provider(bool fail) : AzureCosmosDBOASIS(new Uri("https://localhost:8081"),"unused","owned",new List<string>())
     {
         public int Activations;
