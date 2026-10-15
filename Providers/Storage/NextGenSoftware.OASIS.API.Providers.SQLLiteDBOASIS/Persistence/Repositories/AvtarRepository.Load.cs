@@ -28,6 +28,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
             OASISResult<AvatarModel> avatarResult = new();
             var avatar = await _dbContext.Avatars.FirstOrDefaultAsync(p => p.Id == id.ToString());
+            if (avatar == null) return MissingAvatarForDeletion();
             if (avatar != null)
             {
                 avatarResult.IsError = false;
@@ -49,6 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         if (avatarResult.Result.DeletedDate != DateTime.MinValue)
                         {
+                            result.ErrorCode = StorageLifecycleConflictException.ErrorCode;
                             OASISErrorHandling.HandleError(ref result,
                                 $"The avatar with username {avatarResult.Result.Username} and email {avatarResult.Result.Email} and id {avatarResult.Result.Id} was already soft deleted on {avatarResult.Result.DeletedDate.ToString()} by avatar with id {avatarResult.Result.DeletedByAvatarId}. It cannot be deleted again. Please contact support if you wish this avatar to be restored or permanently deleted (cannot be reversed).");
                         }
@@ -86,6 +88,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             {
                                 OASISErrorHandling.HandleError(ref result,
                                     $"{errorMessage} The avatar detail with username {avatarResult.Result.Username} was not found.");
+                                result.ErrorCode = StorageLifecycleConflictException.ErrorCode;
                             }
                         }
                     }
@@ -165,8 +168,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 var avatar = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(a => a.Email == avatarEmail));
                 if (avatar == null)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Avatar deletion selector matched no persisted identity.");
-                    return result;
+                    return MissingAvatarForDeletion();
                 }
                 return await DeleteAvatarAsync(Guid.Parse(avatar.Id), softDelete);
             }
@@ -186,8 +188,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 var avatar = await _dbContext.Avatars.FirstOrDefaultAsync(a => a.LocalProviderKey == providerKey);
                 if (avatar == null)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Avatar deletion selector matched no persisted identity.");
-                    return result;
+                    return MissingAvatarForDeletion();
                 }
                 return await DeleteAvatarAsync(Guid.Parse(avatar.Id), softDelete);
             }
