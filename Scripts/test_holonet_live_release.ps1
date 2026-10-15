@@ -28,6 +28,10 @@ New-Item -ItemType Directory -Path $fixture | Out-Null
 $fixture = (Resolve-Path -LiteralPath $fixture).Path
 $Happ = (Resolve-Path -LiteralPath $Happ).Path
 $Project = (Resolve-Path -LiteralPath $Project).Path
+$legacy = Join-Path (Split-Path (Split-Path $Project -Parent) -Parent) 'HoloNET-Manager/NextGenSoftware.Holochain.HoloNET.Manager/OASIS_hAPP/oasis.happ'
+if (-not (Test-Path -LiteralPath $legacy)) { throw 'Pinned legacy hApp rejection fixture is missing; the full release suite must not skip it.' }
+$legacyBlob = (& git hash-object $legacy).Trim()
+if ($LASTEXITCODE -ne 0 -or $legacyBlob -ne '4069c5da8349f7a866f46fd0bc9a17e4dcef70c0') { throw 'Legacy hApp rejection fixture differs from the reviewed Git blob.' }
 $ResultsDirectory = (Resolve-Path -LiteralPath $ResultsDirectory).Path
 $saved = @{}
 $names = @('HOLONET_LIVE_ADMIN_URI', 'HOLONET_LIVE_HAPP_PATH', 'HOLONET_LIVE_CLONE_HAPP_PATH', 'HOLONET_LIVE_MEMPROOFS_HAPP_PATH')
