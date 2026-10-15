@@ -156,6 +156,13 @@ public partial class Web3NativeStorageTests
             Assert.IsFalse(deletedAvatar.IsActive);Assert.IsFalse(deletedDetail.IsActive);
             Assert.AreEqual(DateTimeKind.Utc,deletedAvatar.DeletedDate.Kind);Assert.AreEqual(deletedAvatar.DeletedDate,deletedDetail.DeletedDate);
             Assert.AreEqual(600L,deletedDetail.XP);Assert.AreEqual(504L,deletedDetail.Karma);Assert.AreEqual("routed seed",deletedDetail.Inventory.Single().Name);
+            var resurrectAvatar=await provider.SaveAvatarAsync(new Avatar {Id=avatar.Id,IsActive=true,Username="must not resurrect"});
+            var resurrectDetail=provider.SaveAvatarDetail(new AvatarDetail {Id=avatar.Id,IsActive=true,XP=99999});
+            Assert.AreEqual(Core.Helpers.StorageLifecycleConflictException.ErrorCode,resurrectAvatar.ErrorCode);
+            Assert.AreEqual(Core.Helpers.StorageLifecycleConflictException.ErrorCode,resurrectDetail.ErrorCode);
+            Assert.IsFalse(resurrectAvatar.IsSaved);Assert.IsFalse(resurrectDetail.IsSaved);
+            var afterResurrection=await native.ReadAvatarPairAsync(pairId);
+            CollectionAssert.AreEqual(softPair.Avatar.Info,afterResurrection.Avatar.Info);CollectionAssert.AreEqual(softPair.Detail.Info,afterResurrection.Detail.Info);
             var repeated=provider.DeleteAvatar(avatar.Id);Assert.IsFalse(repeated.IsError,repeated.Message);Assert.IsTrue(repeated.Result);Assert.IsFalse(repeated.IsSaved);
             var repeatedPair=await native.ReadAvatarPairAsync(pairId);CollectionAssert.AreEqual(softPair.Avatar.Info,repeatedPair.Avatar.Info);CollectionAssert.AreEqual(softPair.Detail.Info,repeatedPair.Detail.Info);
             Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.AvatarTombstoneEvidence.TryGet(softDeleted,out var committed));
