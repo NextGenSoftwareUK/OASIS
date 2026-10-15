@@ -90,6 +90,11 @@ public class CosmosNativeStorageTests
             Assert.AreEqual(holonId,metadata.Result.Single().Id);Assert.AreEqual(childId,metadata.Result.Single().Children.Single().Id);
             var allMetadata=provider.LoadHolonsByMetaData(pairs,Core.Enums.MetaKeyValuePairMatchMode.All);
             Assert.IsFalse(allMetadata.IsError,allMetadata.Message);Assert.IsFalse(allMetadata.Result.Any());
+            var search=await provider.SearchAsync(new Core.Objects.Search.SearchParams {SearchOnlyForCurrentAvatar=false,
+                FilterByMetaData=new Dictionary<string,string> {{"owned-field","owned-value"}},
+                SearchGroups=new() {new Core.Objects.Search.SearchTextGroup {SearchQuery="owned root",SearchHolons=true}}});
+            Assert.IsFalse(search.IsError,search.Message);Assert.AreEqual(1,search.Result.NumberOfResults);
+            Assert.AreEqual(holonId,search.Result.SearchResultHolons.Single().Id);Assert.AreEqual(0,search.Result.SearchResultAvatars.Count);
             var depthLimited=await provider.LoadAllHolonsAsync(maxChildDepth:1,curentChildDepth:1,loadChildrenFromProvider:true);
             Assert.IsFalse(depthLimited.IsError,depthLimited.Message);
             Assert.IsFalse(depthLimited.Result.Single(row=>row.Id==holonId).Children.Any());

@@ -48,6 +48,14 @@ public class CosmosCurrentReadTests
         Assert.IsFalse(every.IsError,every.Message);Assert.IsFalse(every.Result.Any());
         var single=provider.LoadHolonsByMetaData("biome","park");Assert.AreEqual(root.Id,single.Result.Single().Id);
         Assert.IsInstanceOfType((await provider.LoadHolonsByMetaDataAsync(" ","value")).Exception,typeof(ArgumentException));
+        root.Name="searchable park";
+        var search=await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+            SearchOnlyForCurrentAvatar=false,FilterByMetaData=new Dictionary<string,string> {{"biome","park"}},
+            SearchGroups=new() {new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup {SearchQuery="searchable",SearchHolons=true,HolonType=NextGenSoftware.OASIS.API.Core.Enums.HolonType.All}}});
+        Assert.IsFalse(search.IsError,search.Message);Assert.AreEqual(1,search.Result.NumberOfResults);
+        Assert.AreEqual(root.Id,search.Result.SearchResultHolons.Single().Id);Assert.AreEqual(0,search.Result.SearchResultAvatars.Count);
+        Assert.AreEqual(child.Id,search.Result.SearchResultHolons.Single().Children.Single().Id);
+        Assert.IsInstanceOfType(provider.Search(null!).Exception,typeof(ArgumentNullException));
         Assert.IsInstanceOfType((await provider.LoadAllHolonsAsync(curentChildDepth:-1)).Exception,typeof(ArgumentOutOfRangeException));
     }
 
