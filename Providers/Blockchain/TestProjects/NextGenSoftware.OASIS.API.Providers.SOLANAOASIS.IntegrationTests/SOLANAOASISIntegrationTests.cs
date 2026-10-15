@@ -69,6 +69,23 @@ public sealed class SOLANAOASISIntegrationTests
         Assert.IsFalse(load.IsError, load.Message);
         Assert.AreEqual(holon.Id, load.Result.Id);
         Assert.AreEqual(holon.Name, load.Result.Name);
+
+        holon.Name = "Updated synthetic Solana holon";
+        holon.Description = "Updated payload must replace old DTO fields";
+        var update = await _provider.SaveHolonAsync(holon, saveChildren:false);
+        Assert.IsFalse(update.IsError, update.Message);
+        var updatedSignature = holon.ProviderUniqueStorageKey[ProviderType.SolanaOASIS];
+        Assert.AreNotEqual(signature, updatedSignature);
+        var updated = await _provider.LoadHolonAsync(updatedSignature,loadChildren:false);
+        Assert.IsFalse(updated.IsError, updated.Message);
+        Assert.AreEqual(holon.Name, updated.Result.Name);
+        Assert.AreEqual(holon.Description, updated.Result.Description);
+        Assert.AreEqual(load.Result.Version + 1, updated.Result.Version);
+        Assert.AreEqual(holon.Id, updated.Result.Id);
+        // Ledger history is immutable: an old signature must still identify the old version.
+        var historical = await _provider.LoadHolonAsync(signature!,loadChildren:false);
+        Assert.IsFalse(historical.IsError, historical.Message);
+        Assert.AreEqual(load.Result.Name, historical.Result.Name);
     }
 
     [TestCleanup]
