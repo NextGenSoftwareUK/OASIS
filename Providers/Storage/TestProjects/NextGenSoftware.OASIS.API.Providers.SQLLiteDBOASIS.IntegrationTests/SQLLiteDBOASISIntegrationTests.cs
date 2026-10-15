@@ -2295,7 +2295,9 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         var rejected = synchronous ? store.DeleteAvatarDetail(target.Id, softDelete) : await store.DeleteAvatarDetailAsync(target.Id, softDelete);
         rejected.IsError.Should().BeTrue();
         rejected.Result.Should().BeFalse();
-        rejected.Exception.Should().NotBeNull();
+        var failure = rejected.Exception.Should().BeOfType<SqliteMutationReconciliationException>().Which;
+        failure.RecordId.Should().Be(target.Id);
+        failure.InnerException.Should().BeOfType<DbUpdateException>().Which.InnerException.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
         context.Database.ExecuteSqlRaw("DROP TRIGGER reject_detail_delete;");
         (await provider.SaveAvatarDetailAsync(new AvatarDetail { Id = Guid.NewGuid(), Username = "unrelated-next-detail", Karma = 456 })).IsError.Should().BeFalse();
         var retained = (await provider.LoadAvatarDetailAsync(target.Id)).Result;
