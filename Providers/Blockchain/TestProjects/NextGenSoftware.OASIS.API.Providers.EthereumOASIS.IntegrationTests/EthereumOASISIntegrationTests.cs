@@ -56,6 +56,30 @@ public class EthereumOASISIntegrationTests
         Assert.IsFalse(provider.IsProviderActivated);
     }
 
+    [DataTestMethod]
+    [DataRow("LegacyStorageProtocolFixture")]
+    [DataRow("UnsupportedStorageProtocolFixture")]
+    public async Task ActivationRejectsIncompatibleStorageProtocolWithoutSubmittingWrites(string fixtureName)
+    {
+        var path = Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_FIXTURE_JSON")!;
+        using var fixture = System.Text.Json.JsonDocument.Parse(await File.ReadAllTextAsync(Path.Combine(Path.GetDirectoryName(path)!,fixtureName+".json")));
+        var account = new Account(PrivateKey,ChainId);
+        var web3 = new Web3(account,Host);
+        var deployed = await web3.Eth.DeployContract.SendRequestAndWaitForReceiptAsync(
+            fixture.RootElement.GetProperty("abi").GetRawText(),fixture.RootElement.GetProperty("bytecode").GetString(),
+            account.Address,new Nethereum.Hex.HexTypes.HexBigInteger(4000000));
+        Assert.AreEqual(BigInteger.One,deployed.Status.Value);
+        var before = await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(account.Address);
+        var provider = new EthereumOASIS(Host,PrivateKey,ChainId,deployed.ContractAddress);
+        var activation = await provider.ActivateProviderAsync();
+        Assert.IsTrue(activation.IsError); Assert.IsFalse(activation.Result);
+        Assert.IsFalse(provider.IsProviderActivated); Assert.IsNull(provider.Web3Client);
+        Assert.IsNotNull(activation.Exception);
+        if(fixtureName == "UnsupportedStorageProtocolFixture") StringAssert.Contains(activation.Message,"version 2 is required");
+        var after = await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(account.Address);
+        Assert.AreEqual(before.Value,after.Value);
+    }
+
     [TestMethod]
     public async Task Holon_SaveLoadRoundTrip_UsesDisposableEvmChain()
     {
