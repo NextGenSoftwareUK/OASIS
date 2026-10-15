@@ -63,6 +63,13 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                     rejected.Exception.Should().BeOfType<MongoCommandException>().Which.Code.Should().Be(2);
                     Core.Helpers.NativeMutationReconciliation.IsRequired(rejected.Exception).Should().BeFalse();
                     (await records.Find(row=>row.HolonId==holon.Id).SingleAsync()).Name.Should().Be(retained);
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument {{"configureFailPoint","failCommand"},{"mode","off"}});
+                    var key=(await records.Find(row=>row.HolonId==holon.Id).SingleAsync()).Id;
+                    await VerifyMongoUnknownFieldRetentionAsync(records.Database,"Holon",key,async ()=>
+                    {
+                        var saved=synchronous ? healthy.SaveHolon(holon,saveChildren:false):await healthy.SaveHolonAsync(holon,saveChildren:false);
+                        saved.IsError.Should().BeFalse(saved.Message);
+                    });
                 }
             }
             finally
@@ -72,7 +79,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 (await sqlite.DeleteHolonAsync(holon.Id)).IsError.Should().BeFalse();
             }
         }
-        foreach(var deleting in new[] {false,true})
+        foreach(var mutation in new[] {"rename","softDelete","addField"})
         {
             var holon=new Holon {Id=Guid.NewGuid(),IsActive=true,Name="before concurrent change"};
             (await healthy.SaveHolonAsync(holon,saveChildren:false)).IsError.Should().BeFalse();
@@ -88,17 +95,27 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 var before=manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0;
                 pending=synchronous ? Task.Run(()=>router.RouteRequest<IHolon>(request)):router.RouteRequestAsync<IHolon>(request);
                 await admin.RunCommandAsync<BsonDocument>(new BsonDocument {{"waitForFailPoint","failCommand"},{"timesEntered",configured["count"].ToInt64()+1},{"maxTimeMS",5000}});
-                var change=Builders<NativeHolon>.Update.Set(row=>row.Name,"concurrent change must survive");
-                if(deleting) change=change.Set(row=>row.DeletedDate,DateTime.UtcNow).Set(row=>row.IsActive,false);
-                await records.UpdateOneAsync(row=>row.HolonId==holon.Id,change);
+                if(mutation=="addField")
+                {
+                    var key=(await records.Find(row=>row.HolonId==holon.Id).SingleAsync()).Id;
+                    await records.Database.GetCollection<BsonDocument>("Holon").UpdateOneAsync(new BsonDocument("_id",ObjectId.Parse(key)),Builders<BsonDocument>.Update.Set("concurrent_extra",true));
+                }
+                else
+                {
+                    var change=Builders<NativeHolon>.Update.Set(row=>row.Name,"concurrent change must survive");
+                    if(mutation=="softDelete") change=change.Set(row=>row.DeletedDate,DateTime.UtcNow).Set(row=>row.IsActive,false);
+                    await records.UpdateOneAsync(row=>row.HolonId==holon.Id,change);
+                }
                 var result=await pending;
                 result.IsError.Should().BeTrue();result.IsSaved.Should().BeFalse();result.Result.Should().BeNull();
                 result.ErrorCode.Should().Be(Core.Helpers.StorageLifecycleConflictException.ErrorCode);
                 Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception).Should().BeFalse("CAS returned known no-match, not uncertain completion");
                 (manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0).Should().Be(before);
                 var retained=await records.Find(row=>row.HolonId==holon.Id).SingleAsync();
-                retained.Name.Should().Be("concurrent change must survive");
-                (retained.DeletedDate!=DateTime.MinValue).Should().Be(deleting);
+                retained.Name.Should().Be(mutation=="addField" ? "before concurrent change":"concurrent change must survive");
+                (retained.DeletedDate!=DateTime.MinValue).Should().Be(mutation=="softDelete");
+                if(mutation=="addField")
+                    (await records.Database.GetCollection<BsonDocument>("Holon").Find(new BsonDocument("_id",ObjectId.Parse(retained.Id))).SingleAsync())["concurrent_extra"].AsBoolean.Should().BeTrue();
                 (await sqlite.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Name.Should().Be("before concurrent change");
             }
             finally
@@ -109,5 +126,17 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 (await sqlite.DeleteHolonAsync(holon.Id)).IsError.Should().BeFalse();
             }
         }
+    }
+
+    private static async Task VerifyMongoUnknownFieldRetentionAsync(IMongoDatabase database,string collection,string key,Func<Task> save)
+    {
+        var raw=database.GetCollection<BsonDocument>(collection);
+        var filter=new BsonDocument("_id",ObjectId.Parse(key));
+        var future=new BsonDocument {{"version",7},{"opaque",new BsonDocument {{"$ne",false}}}};
+        await raw.UpdateOneAsync(filter,Builders<BsonDocument>.Update.Set("future_schema",future));
+        await save();
+        var persisted=await raw.Find(filter).SingleAsync();
+        persisted.Contains("future_schema").Should().BeTrue("a mapped update must not erase unrecognized top-level schema fields");
+        persisted["future_schema"].Should().Be(future);
     }
 }
