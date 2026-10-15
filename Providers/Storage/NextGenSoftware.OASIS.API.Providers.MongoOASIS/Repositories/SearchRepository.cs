@@ -514,7 +514,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                             if (holon.MetaData.ContainsKey(metaKeyValuePair.Key) && holon.MetaData[metaKeyValuePair.Key] != null && holon.MetaData[metaKeyValuePair.Key].ToString() == metaKeyValuePair.Value)
                             {
                                 if (searchParams.MetaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any)
+                                {
                                     matchedHolons.Add(holon);
+                                    // ANY accepts this candidate once, not once per matching key.
+                                    break;
+                                }
                                 else
                                     matchedKeys++;
                             }

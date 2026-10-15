@@ -62,6 +62,19 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             var all=synchronous ? mongo.LoadHolonsByMetaData(noMatch,MetaKeyValuePairMatchMode.All,HolonType.Quest,loadChildren:false,version:317)
                 :await mongo.LoadHolonsByMetaDataAsync(noMatch,MetaKeyValuePairMatchMode.All,HolonType.Quest,loadChildren:false,version:317);
             all.IsError.Should().BeFalse();all.Result.Should().BeEmpty("ALL must not behave like the successful ANY query above");
+            foreach(var mode in new[] {MetaKeyValuePairMatchMode.Any,MetaKeyValuePairMatchMode.All})
+            {
+                var searchRequest=new StorageOperationRequest {Operation="Search",PreferredProvider=ProviderType.MongoDBOASIS,
+                    SearchParams=new Core.Objects.Search.SearchParams {SearchOnlyForCurrentAvatar=false,
+                        FilterByMetaData=new Dictionary<string,string>{{"NFT.MintedByAvatarId",literal},{"Status","Ready"}},
+                        MetaKeyValuePairMatchMode=mode,
+                        SearchGroups=new() {new Core.Objects.Search.SearchTextGroup {SearchQuery=root.Name,SearchHolons=true,
+                            HolonType=root.HolonType,HolonSearchParams=new SearchHolonParams {Name=true}}}}};
+                var searched=synchronous ? router.RouteRequest<Core.Interfaces.Search.ISearchResults>(searchRequest)
+                    :await router.RouteRequestAsync<Core.Interfaces.Search.ISearchResults>(searchRequest);
+                searched.IsError.Should().BeFalse(searched.Exception?.ToString() ?? searched.Message);
+                searched.Result.SearchResultHolons.Select(hit=>hit.Id).Should().Equal(new[] {root.Id},"multiple matching metadata keys must not duplicate a search hit");
+            }
             var missing=synchronous ? mongo.LoadHolonsForParent(ObjectId.GenerateNewId().ToString(),loadChildren:true,loadChildrenFromProvider:true)
                 :await mongo.LoadHolonsForParentAsync(ObjectId.GenerateNewId().ToString(),loadChildren:true,loadChildrenFromProvider:true);
             missing.IsError.Should().BeFalse();missing.IsLoaded.Should().BeTrue();missing.Result.Should().BeEmpty();
