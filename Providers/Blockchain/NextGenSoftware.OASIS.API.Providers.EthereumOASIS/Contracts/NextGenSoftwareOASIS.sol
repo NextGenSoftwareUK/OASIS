@@ -27,6 +27,14 @@ contract NextGenSoftwareOASIS {
         string memory avatarId,
         string memory info
     ) public returns (uint256) {
+        // Provider Save operations use this ABI for create and update. Keep one row per identity.
+        for (uint256 i = 0; i < totalAvatarsCount; i++) {
+            if (avatars[i].EntityId == entityId) {
+                require(keccak256(bytes(avatars[i].AvatarId)) == keccak256(bytes(avatarId)), "OASIS identity collision");
+                avatars[i].Info = info;
+                return i + 1;
+            }
+        }
         Avatar memory newAvatar = Avatar({
             AvatarId: avatarId,
             EntityId: entityId,
@@ -42,6 +50,13 @@ contract NextGenSoftwareOASIS {
         string memory holonId,
         string memory info
     ) public returns (uint256) {
+        for (uint256 i = 0; i < totalHolonsCount; i++) {
+            if (holons[i].EntityId == entityId) {
+                require(keccak256(bytes(holons[i].HolonId)) == keccak256(bytes(holonId)), "OASIS identity collision");
+                holons[i].Info = info;
+                return i + 1;
+            }
+        }
         Holon memory newHolon = Holon(
         {
             EntityId: entityId,
@@ -58,6 +73,13 @@ contract NextGenSoftwareOASIS {
         string memory avatarId,
         string memory info
     ) public returns (uint256) {
+        for (uint256 i = 0; i < totalAvatarDetailsCount; i++) {
+            if (avatarDetails[i].EntityId == entityId) {
+                require(keccak256(bytes(avatarDetails[i].AvatarId)) == keccak256(bytes(avatarId)), "OASIS identity collision");
+                avatarDetails[i].Info = info;
+                return i + 1;
+            }
+        }
         AvatarDetail memory newAvatarDetail = AvatarDetail(
         {
             AvatarId: avatarId,
