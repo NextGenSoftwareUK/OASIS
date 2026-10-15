@@ -133,6 +133,30 @@ public class IPFSNativeStorageTests
                     var name=routed.Result.Name; counts[name]=counts.GetValueOrDefault(name)+1;
                 }
                 Assert.Equal(3,counts[holon.Name]); Assert.Equal(3,counts["distinct-local-route"]);
+                foreach(var strategy in Enum.GetValues<LoadBalancingStrategy>())
+                foreach(var asynchronous in new[] {false,true})
+                {
+                    var beforeIpfs=manager.PerformanceMonitor.GetMetrics(ProviderType.IPFSOASIS).TotalRequests;
+                    var beforeLocal=manager.PerformanceMonitor.GetMetrics(ProviderType.LocalFileOASIS).TotalRequests;
+                    var request=new StorageOperationRequest {Operation="LoadHolon",HolonId=id};
+                    var routed=asynchronous ? await router.RouteRequestAsync<IHolon>(request,strategy):router.RouteRequest<IHolon>(request,strategy);
+                    Assert.False(routed.IsError,routed.Message);
+                    var decision=manager.LastProviderSelectionDiagnostic;
+                    Assert.Equal(strategy,decision.RequestedStrategy); Assert.Equal(2,decision.Candidates.Count);
+                    Assert.Contains(decision.SelectedProvider,new[] {ProviderType.IPFSOASIS,ProviderType.LocalFileOASIS});
+                    var choseIpfs=decision.SelectedProvider==ProviderType.IPFSOASIS;
+                    Assert.Equal(choseIpfs ? holon.Name:"distinct-local-route",routed.Result.Name);
+                    Assert.Equal(beforeIpfs+(choseIpfs ? 1:0),manager.PerformanceMonitor.GetMetrics(ProviderType.IPFSOASIS).TotalRequests);
+                    Assert.Equal(beforeLocal+(choseIpfs ? 0:1),manager.PerformanceMonitor.GetMetrics(ProviderType.LocalFileOASIS).TotalRequests);
+                }
+                manager.PerformanceMonitor.RecordConnection(ProviderType.IPFSOASIS,true);
+                try
+                {
+                    var leastBusy=await router.RouteRequestAsync<IHolon>(new StorageOperationRequest {Operation="LoadHolon",HolonId=id},LoadBalancingStrategy.LeastConnections);
+                    Assert.False(leastBusy.IsError,leastBusy.Message); Assert.Equal("distinct-local-route",leastBusy.Result.Name);
+                    Assert.Equal(ProviderType.LocalFileOASIS,manager.LastProviderSelectionDiagnostic.SelectedProvider);
+                }
+                finally {manager.PerformanceMonitor.RecordConnection(ProviderType.IPFSOASIS,false);}
                 manager.IsAutoLoadBalanceEnabled=false; manager.IsAutoFailOverEnabled=true;
                 manager.SetAndReplaceAutoFailOverListForProviders(new[] {new EnumValue<ProviderType>(ProviderType.IPFSOASIS),new EnumValue<ProviderType>(ProviderType.LocalFileOASIS)});
                 Assert.False(manager.SetAndActivateCurrentStorageProvider(provider).IsError);
