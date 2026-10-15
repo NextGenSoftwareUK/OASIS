@@ -79,6 +79,8 @@ public partial class Web3NativeStorageTests
                     attempt.ProviderRequestId=originalHash;
                     Assert.AreEqual(methodsBeforeInvalid,proxy.Methods.Count,"Invalid retained evidence must fail before RPC.");
                     Assert.AreEqual(1,(await reopened.GetAsync(handle.OperationId,default)).ProviderAttempts.Count);
+                    await VerifyFreshRecoveryProcessAsync(handle.OperationId,address,calldata);
+                    Assert.AreEqual(acceptedBeforeRecovery,proxy.AcceptedHashes.Count);
                 }
                 finally {field.SetValue(provider,original);}
             }
