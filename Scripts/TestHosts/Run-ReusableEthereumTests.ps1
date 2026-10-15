@@ -74,7 +74,11 @@ try {
     & $node (Join-Path $PSScriptRoot 'verify-web3core-pages.cjs')
     if($LASTEXITCODE){throw 'Web3Core native page verification failed.'}
     $web3Started=[DateTime]::UtcNow
-    & dotnet test $web3Project --no-build --no-restore /m:2 /nr:false --filter FullyQualifiedName~Web3NativeStorageTests --logger 'trx;LogFileName=web3-native-current.trx' --results-directory (Join-Path $taskRoot 'TestResults/Web3CoreCurrent') -v:q
+    $diagnosticArgs=@()
+    if($env:OASIS_WEB3_NATIVE_DIAGNOSTICS -eq '1'){
+        $diagnosticArgs=@('--diag',(Join-Path $taskRoot 'TestResults/Web3CoreCurrent/native-diagnostic.log'))
+    }
+    & dotnet test $web3Project --no-build --no-restore /m:2 /nr:false --filter FullyQualifiedName~Web3NativeStorageTests --logger 'trx;LogFileName=web3-native-current.trx' --results-directory (Join-Path $taskRoot 'TestResults/Web3CoreCurrent') @diagnosticArgs -v:q
     if($LASTEXITCODE){throw 'Web3Core native C# storage verification failed.'}
     $web3Report=Get-Item -LiteralPath (Join-Path $taskRoot 'TestResults/Web3CoreCurrent/web3-native-current.trx')
     if($web3Report.LastWriteTimeUtc -lt $web3Started){throw 'Web3Core native report is stale.'}
