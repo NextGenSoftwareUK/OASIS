@@ -182,6 +182,7 @@ public partial class Web3NativeStorageTests
             Assert.AreEqual(exactPatch.DeletedByAvatarId,replicaAvatar.DeletedByAvatarId);Assert.AreEqual(exactPatch.DeletedByAvatarId,replicaDetail.DeletedByAvatarId);
             Assert.IsFalse(replicaAvatar.IsActive);Assert.IsFalse(replicaDetail.IsActive);Assert.AreEqual(731L,replicaDetail.XP);Assert.AreEqual(193L,replicaDetail.Karma);
             var beforeCycle=await native.GetHolonsCountAsync();
+            await VerifyProfileAcknowledgementAsync(provider,native);
             var deleteFixture=new Holon {Id=Guid.NewGuid(),IsActive=true,Name="checked deletion"};
             Assert.IsFalse((await provider.SaveHolonAsync(deleteFixture,saveChildren:false)).IsError);
             var deleteKey=(uint)Core.Utilities.HashUtility.GetNumericHash(deleteFixture.Id.ToString());
