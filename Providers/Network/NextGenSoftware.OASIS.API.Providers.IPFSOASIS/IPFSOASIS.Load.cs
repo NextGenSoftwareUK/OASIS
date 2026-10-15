@@ -22,6 +22,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.Utilities;
 using Ipfs.CoreApi;
 using System.Xml.Linq;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
@@ -324,7 +325,15 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return await LoadHolonsForParentTemplateAsync(a => a.ParentHolonId == id && (type==HolonType.All || a.HolonType==type),version);
+            if (id == Guid.Empty) throw new ArgumentException("A parent identity is required.", nameof(id));
+            if (maxChildDepth < 0 || curentChildDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
+            var records = await ReadIndexedCollectionAsync<Holon>("holon", row => true, version);
+            var project = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphProjection.Create(
+                records, loadChildren, recursive, maxChildDepth, curentChildDepth, loadChildrenFromProvider,
+                source => OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
+            return new OASISResult<IEnumerable<IHolon>>(records
+                .Where(row => row.ParentHolonId == id && (type == HolonType.All || row.HolonType == type))
+                .Select(project).ToList()) { IsLoaded = true };
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
