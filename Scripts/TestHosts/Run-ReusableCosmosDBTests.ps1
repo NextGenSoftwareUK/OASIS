@@ -6,6 +6,7 @@ $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenO
 $started=$false;$previous=$env:OASIS_COSMOSDB_NATIVE
 try {
     Push-Location $root
+    if(Get-NetTCPConnection -LocalPort 8082 -State Listen -ErrorAction SilentlyContinue) {throw 'Reserved Cosmos SDK outage endpoint8082 occupied.'}
     $state=(& wsl.exe -d Ubuntu -u root -- podman inspect oasis-cosmos --format '{{.State.Status}} {{.Image}}') -join ''
     if($LASTEXITCODE -ne 0 -or $state.Trim() -ne 'exited 77f8a39f5c39e0b7878c8d9cddd70ff08872695dec9b85d2055b38d5d58d5302') {throw 'Expected retained stopped Cosmos DB container/image; refusing replacement or interference.'}
     $project='Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests.csproj'
