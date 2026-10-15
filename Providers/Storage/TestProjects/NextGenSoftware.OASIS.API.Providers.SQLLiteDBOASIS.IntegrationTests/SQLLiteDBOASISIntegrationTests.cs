@@ -1027,6 +1027,7 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         var rejected = synchronous ? provider.DeleteAvatar(avatar.Id, false) : await provider.DeleteAvatarAsync(avatar.Id, false);
         rejected.IsError.Should().BeTrue();
         rejected.Exception.Should().NotBeNull();
+        Core.Helpers.NativeMutationReconciliation.IsRequired(rejected.Exception).Should().BeFalse("the explicit transaction rolled back before any commit attempt");
         control.Database.ExecuteSqlRaw("DROP TRIGGER reject_avatar_delete;");
         (await provider.SaveHolonAsync(new Holon { Id = Guid.NewGuid(), Name = "unrelated-after-rejected-delete" })).IsError.Should().BeFalse();
         control.Set<NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.ProviderPublicKeyModel>().AsNoTracking()
