@@ -96,106 +96,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         }
 
         public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
-        {
-            var result = new OASISResult<IEnumerable<IAvatar>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProviderAsync().Result;
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Azure Cosmos DB provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var avatarsResult = LoadAllAvatars();
-                if (avatarsResult.IsError || avatarsResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
-                    return result;
-                }
-
-                var centerLat = geoLat / 1e6d;
-                var centerLng = geoLong / 1e6d;
-                var nearby = new List<IAvatar>();
-
-                foreach (var avatar in avatarsResult.Result)
-                {
-                    if (avatar.MetaData != null &&
-                        avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
-                        avatar.MetaData.TryGetValue("Longitude", out var lngObj) &&
-                        double.TryParse(latObj?.ToString(), out var lat) &&
-                        double.TryParse(lngObj?.ToString(), out var lng))
-                    {
-                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
-                        if (distance <= radiusInMeters)
-                            nearby.Add(avatar);
-                    }
-                }
-
-                result.Result = nearby;
-                result.IsError = false;
-                result.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting avatars near me from Azure Cosmos DB: {ex.Message}", ex);
-            }
-            return result;
-        }
+            => ReadNearbyAsync(geoLat,geoLong,radiusInMeters,()=>LoadAllAvatarsAsync()).GetAwaiter().GetResult();
 
         public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProviderAsync().Result;
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Azure Cosmos DB provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var holonsResult = LoadAllHolons(Type);
-                if (holonsResult.IsError || holonsResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
-                    return result;
-                }
-
-                var centerLat = geoLat / 1e6d;
-                var centerLng = geoLong / 1e6d;
-                var nearby = new List<IHolon>();
-
-                foreach (var holon in holonsResult.Result)
-                {
-                    if (holon.MetaData != null &&
-                        holon.MetaData.TryGetValue("Latitude", out var latObj) &&
-                        holon.MetaData.TryGetValue("Longitude", out var lngObj) &&
-                        double.TryParse(latObj?.ToString(), out var lat) &&
-                        double.TryParse(lngObj?.ToString(), out var lng))
-                    {
-                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
-                        if (distance <= radiusInMeters)
-                            nearby.Add(holon);
-                    }
-                }
-
-                result.Result = nearby;
-                result.IsError = false;
-                result.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from Azure Cosmos DB: {ex.Message}", ex);
-            }
-            return result;
-        }
+            => ReadNearbyAsync(geoLat,geoLong,radiusInMeters,()=>LoadAllHolonsAsync(Type,loadChildren:false)).GetAwaiter().GetResult();
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
             => ReadCurrentListAsync<IAvatarDetail>(()=>avatarDetailRepository,version).GetAwaiter().GetResult();

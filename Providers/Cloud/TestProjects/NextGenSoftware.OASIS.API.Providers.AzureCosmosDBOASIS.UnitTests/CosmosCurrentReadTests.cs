@@ -68,6 +68,13 @@ public class CosmosCurrentReadTests
         Assert.AreEqual(3,provider.ExportAll().Result.Count());
         avatars.Setup(r=>r.GetList()).Returns(new List<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar> {owner,new Avatar {Id=Guid.NewGuid(),IsActive=true,Username=owner.Username}});
         Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,(await provider.ExportAllDataForAvatarByUsernameAsync(owner.Username)).ErrorCode);
+        root.MetaData["Latitude"]="-33.0009";root.MetaData["Longitude"]="151";
+        var nearby=provider.GetHolonsNearMe(-33000000,151000000,200,NextGenSoftware.OASIS.API.Core.Enums.HolonType.All);
+        Assert.IsFalse(nearby.IsError,nearby.Message);Assert.AreEqual(root.Id,nearby.Result.Single().Id);
+        Assert.IsFalse(provider.GetHolonsNearMe(-33000000,151000000,50,NextGenSoftware.OASIS.API.Core.Enums.HolonType.All).Result.Any());
+        Assert.IsInstanceOfType(provider.GetAvatarsNearMe(91000000,0,100).Exception,typeof(ArgumentOutOfRangeException));
+        root.MetaData["Latitude"]="NaN";
+        Assert.IsInstanceOfType(provider.GetHolonsNearMe(0,0,100,NextGenSoftware.OASIS.API.Core.Enums.HolonType.All).Exception,typeof(InvalidDataException));
         Assert.IsInstanceOfType((await provider.LoadAllHolonsAsync(curentChildDepth:-1)).Exception,typeof(ArgumentOutOfRangeException));
     }
 
