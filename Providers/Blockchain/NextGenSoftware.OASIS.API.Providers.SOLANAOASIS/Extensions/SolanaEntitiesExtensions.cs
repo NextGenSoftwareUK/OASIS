@@ -13,6 +13,18 @@ public static class SolanaEntitiesExtensions
             Mobile = avatarDetailDto.Mobile,
             Username = avatarDetailDto.Username,
             Email = avatarDetailDto.Email,
+            FirstName = avatarDetailDto.FirstName,
+            LastName = avatarDetailDto.LastName,
+            ModifiedDate = avatarDetailDto.ModifiedDate,
+            AvatarType = ParseStoredAvatarType(avatarDetailDto.AvatarType),
+            Description = avatarDetailDto.Description,
+            Country = avatarDetailDto.Country,
+            Town = avatarDetailDto.Town,
+            County = avatarDetailDto.County,
+            Postcode = avatarDetailDto.Postcode,
+            Landline = avatarDetailDto.Landline,
+            Title = avatarDetailDto.Title,
+            MetaData = avatarDetailDto.MetaData,
             DOB = avatarDetailDto.DOB,
             CreatedDate = avatarDetailDto.CreatedDate,
             XP = avatarDetailDto.XP,
@@ -53,10 +65,25 @@ public static class SolanaEntitiesExtensions
             Email = avatarDto.Email,
             Password = avatarDto.Password,
             Username = avatarDto.UserName,
+            FirstName = avatarDto.FirstName,
+            LastName = avatarDto.LastName,
+            CreatedDate = avatarDto.CreatedDate,
+            ModifiedDate = avatarDto.ModifiedDate,
+            AvatarType = ParseStoredAvatarType(avatarDto.AvatarType),
+            Description = avatarDto.Description,
+            MetaData = avatarDto.MetaData,
             Version = avatarDto.Version,
             IsActive = !avatarDto.IsDeleted,
             PreviousVersionId = avatarDto.PreviousVersionId
         };
+    }
+
+    private static NextGenSoftware.Utilities.EnumValue<Core.Enums.AvatarType> ParseStoredAvatarType(string stored)
+    {
+        if(stored == null) return null;
+        if(!Enum.TryParse<Core.Enums.AvatarType>(stored,out var parsed) || !Enum.IsDefined(typeof(Core.Enums.AvatarType),parsed))
+            throw new InvalidOperationException("Stored Solana avatar type is invalid.");
+        return new NextGenSoftware.Utilities.EnumValue<Core.Enums.AvatarType>(parsed);
     }
 
     public static IHolon GetHolon(this SolanaHolonDto holonDto)
