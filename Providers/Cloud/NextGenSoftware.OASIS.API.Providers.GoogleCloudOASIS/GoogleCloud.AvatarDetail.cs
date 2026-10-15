@@ -40,13 +40,13 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
             try
             {
+                ArgumentNullException.ThrowIfNull(avatarDetail);
                 if (!IsProviderActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
-                        return result;
+                        return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IAvatarDetail>(activateResult);
                     }
                 }
 
@@ -60,11 +60,12 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 ArgumentNullException.ThrowIfNull(avatarDetail);
                 if(avatarDetail.Id==Guid.Empty) avatarDetail.Id=Guid.NewGuid();
                 var docRef = _firestoreDb.Collection("avatarDetails").Document(avatarDetail.Id.ToString());
-var avatarDetailData = EncodeAvatarDetail(avatarDetail);
+                var avatarDetailData = EncodeAvatarDetail(avatarDetail);
                 
                 await docRef.SetAsync(avatarDetailData);
                 
                 result.Result = avatarDetail;
+                result.IsSaved = true;
                 result.IsError = false;
                 result.Message = "Avatar detail saved successfully to Google Cloud Firestore with full property mapping";
             }
