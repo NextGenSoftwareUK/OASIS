@@ -51,130 +51,25 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
     public partial class EthereumOASIS
     {
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var result = new OASISResult<IHolon>();
-            string errorMessage = "Error in SaveHolon method in EthereumOASIS while saving holon. Reason: ";
-
-            try
-            {
-                var holonInfo = SerializePrivateStorage("holon",holon);
-                var holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
-                var holonId = holon.Id.ToString();
-
-                var requestTransaction = _nextGenSoftwareOasisService
-                    .CreateHolonRequestAndWaitForReceiptAsync(holonEntityId, holonId, holonInfo).Result;
-
-                if (!StorageReceiptSucceeded(requestTransaction))
-                {
-                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Creating of Holon (Id): {holon.Id}, failed! Transaction performing is failure!"));
-                    return result;
-                }
-                
-                result.Result = holon;
-                result.IsError = false;
-                result.IsSaved = true;
-            }
-            catch (RpcResponseException ex)
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-            }
-
-            return result;
-        }
+            => SaveHolonAsync(holon,saveChildren,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            if (holon == null)
-                throw new ArgumentNullException(nameof(holon));
-            
-            var result = new OASISResult<IHolon>();
-            string errorMessage = "Error in SaveHolonAsync method in EthereumOASIS while saving holon. Reason: ";
-
-            try
+            var result=new OASISResult<IHolon>();
+            var saved=await SaveHolonsAsync(new[] {holon},saveChildren,recursive,maxChildDepth,0,continueOnError,saveChildrenOnProvider);
+            if(saved.IsError)
             {
-                var holonInfo = SerializePrivateStorage("holon",holon);
-                var holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
-                var holonId = holon.Id.ToString();
-
-                var requestTransaction = await _nextGenSoftwareOasisService
-                    .CreateHolonRequestAndWaitForReceiptAsync(holonEntityId, holonId, holonInfo);
-
-                if (!StorageReceiptSucceeded(requestTransaction))
-                {
-                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Creating of Holon (Id): {holon.Id}, failed! Transaction performing is failure!"));
-                    return result;
-                }
-                
-                result.Result = holon;
-                result.IsError = false;
-                result.IsSaved = true;
+                OASISErrorHandling.HandleError(ref result,saved.Message,saved.Exception);
+                result.ErrorCode=saved.ErrorCode;
+                return result;
             }
-            catch (RpcResponseException ex)
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-            }
-
+            result.Result=saved.Result.Single(); result.IsSaved=true;
             return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0,
             int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            if (holons == null)
-                throw new ArgumentNullException(nameof(holons));
-
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            string errorMessage = "Error in SaveHolons method in EthereumOASIS while saving holons. Reason: ";
-
-            var committed = new List<string>();
-            var saved = new List<IHolon>();
-            try
-            {
-                foreach (var holon in holons)
-                {
-                    var holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
-                    var holonId = holon.Id.ToString();
-                    var holonEntityInfo = SerializePrivateStorage("holon",holon);
-                    
-                    var createHolonResult = _nextGenSoftwareOasisService
-                        .CreateHolonRequestAndWaitForReceiptAsync(holonEntityId, holonId, holonEntityInfo).Result;
-
-                    if (!StorageReceiptSucceeded(createHolonResult))
-                    {
-                        OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Receipt is missing, reverted or lacks success status/identity."));
-                        if(!continueOnError)
-                            break;
-                    }
-                    else
-                    {
-                        committed.Add(createHolonResult.TransactionHash);
-                        saved.Add(holon);
-                    }
-                }
-
-                result.Result = saved;
-                result.IsSaved = !result.IsError;
-            }
-            catch (RpcResponseException ex)
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-            }
-            
-            FencePartialStorageWrite(result, committed);
-            return result;
-        }
+            => SaveHolonsAsync(holons,saveChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,saveChildrenOnProvider).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {

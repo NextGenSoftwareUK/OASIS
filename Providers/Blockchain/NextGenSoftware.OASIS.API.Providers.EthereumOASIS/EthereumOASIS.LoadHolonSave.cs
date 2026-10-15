@@ -53,51 +53,37 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0,
             int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            if (holons == null)
-                throw new ArgumentNullException(nameof(holons));
-            
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            string errorMessage = "Error in SaveHolonsAsync method in EthereumOASIS while saving holons. Reason: ";
-
-            var committed = new List<string>();
-            var saved = new List<IHolon>();
+            var result=new OASISResult<IEnumerable<IHolon>>();
+            var committed=new List<string>();
+            var prepared=false;
             try
             {
-                foreach (var holon in holons)
+                var plan=PlanStoredGraph(holons,saveChildren,recursive,maxChildDepth,curentChildDepth);
+                prepared=true;
+                if(!IsProviderActivated)
                 {
-                    var holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
-                    var holonId = holon.Id.ToString();
-                    var holonEntityInfo = SerializePrivateStorage("holon",holon);
-                    
-                    var createHolonResult = await _nextGenSoftwareOasisService
-                        .CreateHolonRequestAndWaitForReceiptAsync(holonEntityId, holonId, holonEntityInfo);
-
-                    if (!StorageReceiptSucceeded(createHolonResult))
-                    {
-                        OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Receipt is missing, reverted or lacks success status/identity."));
-                        if(!continueOnError)
-                            break;
-                    }
-                    else
-                    {
-                        committed.Add(createHolonResult.TransactionHash);
-                        saved.Add(holon);
-                    }
+                    var activation=await ActivateProviderAsync();
+                    if(activation.IsError) throw new InvalidOperationException(activation.Message,activation.Exception);
                 }
-
-                result.Result = saved;
-                result.IsSaved = !result.IsError;
+                foreach(var node in plan.Nodes)
+                {
+                    var receipt=await _nextGenSoftwareOasisService.CreateHolonRequestAndWaitForReceiptAsync(
+                        HashUtility.GetNumericHash(node.Record.Id.ToString()),node.Record.Id.ToString(),node.Payload);
+                    if(!StorageReceiptSucceeded(receipt))
+                    {
+                        OASISErrorHandling.HandleError(ref result,"Ethereum graph write reverted.");
+                        if(!continueOnError) break;
+                    }
+                    else committed.Add(receipt.TransactionHash);
+                }
+                if(!result.IsError) { result.Result=plan.Roots; result.IsSaved=true; }
             }
-            catch (RpcResponseException ex)
+            catch(Exception cause)
             {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+                OASISErrorHandling.HandleError(ref result,$"Ethereum graph save failed: {cause.Message}",cause);
+                if(!prepared && cause is ArgumentException) result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-            }
-
-            FencePartialStorageWrite(result, committed);
+            FencePartialStorageWrite(result,committed);
             return result;
         }
 
