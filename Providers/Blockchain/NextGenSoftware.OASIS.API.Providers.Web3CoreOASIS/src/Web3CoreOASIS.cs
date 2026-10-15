@@ -29,11 +29,22 @@ public sealed class Web3CoreOASIS
     }
 
     public Task<TransactionReceipt> UpsertAvatarAsync(uint id,byte[] external,byte[] info)
-        =>SendAndWaitForReceiptAsync(_web3.Eth.GetContract(_abi,_contractAddress).GetFunction("upsertAvatar"),id,external,info);
+        =>UpsertObservedAsync("avatar",id,external,info,()=>GetAvatarByIdAsync(id));
     public Task<TransactionReceipt> UpsertAvatarDetailAsync(uint id,byte[] external,byte[] info)
-        =>SendAndWaitForReceiptAsync(_web3.Eth.GetContract(_abi,_contractAddress).GetFunction("upsertAvatarDetail"),id,external,info);
+        =>UpsertObservedAsync("detail",id,external,info,()=>GetAvatarDetailByIdAsync(id));
     public Task<TransactionReceipt> UpsertHolonAsync(uint id,byte[] external,byte[] info)
-        =>SendAndWaitForReceiptAsync(_web3.Eth.GetContract(_abi,_contractAddress).GetFunction("upsertHolon"),id,external,info);
+        =>UpsertObservedAsync("holon",id,external,info,()=>GetHolonByIdAsync(id));
+
+    private async Task<TransactionReceipt> UpsertObservedAsync(string kind,uint id,byte[] external,byte[] info,Func<Task<EntityOASIS>> read)
+    {
+        // A failed read is known to precede submission: retain its original error, not an uncertain-write marker.
+        var previous=await read();
+        if(previous==null || previous.Info==null || previous.ExternalId?.Length!=32)
+            throw new System.IO.InvalidDataException("Malformed Web3Core pre-write snapshot.");
+        var present=!Web3CoreOASISBaseProvider.IsPrivateRecordAbsent(previous);
+        var hash=Nethereum.Util.Sha3Keccack.Current.CalculateHash(previous.Info);
+        return await UpsertCheckedAsync(kind,id,external,present,hash,info);
+    }
 
     public Task<TransactionReceipt> UpsertCheckedAsync(string kind,uint id,byte[] external,bool expectedPresent,byte[] expectedHash,byte[] info)
     {

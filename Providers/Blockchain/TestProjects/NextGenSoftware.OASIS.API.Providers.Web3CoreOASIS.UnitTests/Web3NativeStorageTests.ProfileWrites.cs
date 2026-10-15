@@ -27,7 +27,7 @@ public partial class Web3NativeStorageTests
         {
             var pending=new AvatarDetail {IsNewHolon=true,IsActive=true,XP=123};
             var failed=await provider.SaveAvatarDetailAsync(pending);
-            Assert.IsTrue(failed.IsError);Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(failed.Exception));
+            Assert.IsTrue(failed.IsError);Assert.IsNotNull(failed.Exception);Assert.IsFalse(Core.Helpers.NativeMutationReconciliation.IsRequired(failed.Exception));
             Assert.AreEqual(Guid.Empty,pending.Id);Assert.IsTrue(pending.IsNewHolon);
             Assert.IsFalse(pending.ProviderUniqueStorageKey?.ContainsKey(Core.Enums.ProviderType.PolygonOASIS)==true);
         }
