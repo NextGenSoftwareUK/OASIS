@@ -4,6 +4,11 @@ public class SolanaRepository(Account oasisAccount, IRpcClient rpcClient, Func<b
 {
     public SolanaRepository(Account oasisAccount, IRpcClient rpcClient) : this(oasisAccount, rpcClient, null) { }
     private const string MemoIdentity = "oasis/solana/private-memo/v1";
+    // Finalization requires additional rooted slots after confirmation. Observe up
+    // to ~60s rather than assuming the earlier ~15s window always suffices.
+    // This is a read-only observation policy, never permission to resubmit.
+    private const int FinalityObservationAttempts = 120;
+    private const int FinalityObservationIntervalMs = 500;
     private NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.EncryptedRecordCodec OpenCodec()
     {
         var key = storageKeyResolver != null ? storageKeyResolver()
@@ -140,17 +145,19 @@ public class SolanaRepository(Account oasisAccount, IRpcClient rpcClient, Func<b
                 throw new InvalidOperationException("Solana submission did not acknowledge the signed transaction: " + submitted.RawRpcResponse);
             // Bounded status reads only; never rebroadcast. A missing/pending status
             // is not proof of failure or permission to replay on another provider.
-            for (var attempt = 0; attempt < 30; attempt++)
+            string lastStatus = "not observed";
+            for (var attempt = 0; attempt < FinalityObservationAttempts; attempt++)
             {
                 var statuses = await rpcClient.GetSignatureStatusesAsync(new List<string> { signature }, true);
                 if (!statuses.WasSuccessful || statuses.Result?.Value == null || statuses.Result.Value.Count != 1)
                     throw new InvalidOperationException("Solana status response was unavailable or malformed.");
                 var status = statuses.Result.Value[0];
+                lastStatus = status?.ConfirmationStatus ?? "not found";
                 if (status?.Error != null) throw new InvalidOperationException("Solana transaction reports native execution error: " + status.Error);
                 if (status?.ConfirmationStatus == "finalized") return signature;
-                if (attempt < 29) await Task.Delay(500);
+                if (attempt < FinalityObservationAttempts - 1) await Task.Delay(FinalityObservationIntervalMs);
             }
-            throw new TimeoutException("Solana transaction has not reached finalized status within the observation window.");
+            throw new TimeoutException("Solana transaction has not reached finalized status within the observation window; last status: " + lastStatus);
         }
         catch (Exception error) { throw new SolanaTransactionReconciliationException(signature, error); }
     }
