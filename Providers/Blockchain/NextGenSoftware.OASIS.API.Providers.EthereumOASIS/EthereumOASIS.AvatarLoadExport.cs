@@ -114,102 +114,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return LoadAllAvatarsAsync(version).Result;
         }
 
-        // Duplicate removed; use contract-backed implementation below
-        /*public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var response = await _httpClient.GetAsync($"{_apiBaseUrl}/avatars/by-email/{Uri.EscapeDataString(avatarEmail)}?version={version}");
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
-                    if (avatar != null)
-                    {
-                        result.Result = avatar;
-                        result.IsError = false;
-                        result.Message = "Avatar loaded successfully by email from Ethereum";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize avatar from Ethereum API");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Ethereum API error: {response.StatusCode} - {response.ReasonPhrase}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from Ethereum: {ex.Message}", ex);
-            }
-            return result;
-        }*/
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {
             return LoadAvatarByEmailAsync(avatarEmail, version).Result;
         }
 
-        // Duplicate removed; use contract-backed implementation below
-        /*public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var response = await _httpClient.GetAsync($"{_apiBaseUrl}/avatars/by-username/{Uri.EscapeDataString(avatarUsername)}?version={version}");
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
-                    if (avatar != null)
-                    {
-                        result.Result = avatar;
-                        result.IsError = false;
-                        result.Message = "Avatar loaded successfully by username from Ethereum";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize avatar from Ethereum API");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Ethereum API error: {response.StatusCode} - {response.ReasonPhrase}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from Ethereum: {ex.Message}", ex);
-            }
-            return result;
-        }*/
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
         {
