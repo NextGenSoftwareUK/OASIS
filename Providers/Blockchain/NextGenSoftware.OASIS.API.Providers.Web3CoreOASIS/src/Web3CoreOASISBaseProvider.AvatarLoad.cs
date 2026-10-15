@@ -242,19 +242,7 @@ public partial class Web3CoreOASISBaseProvider
         => ReadPrivateHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
-    {
-        var result=new OASISResult<IAvatar>();
-        try
-        {
-            if(id==Guid.Empty) throw new ArgumentException("A nonempty Web3Core avatar identity is required.",nameof(id));
-            if(version!=0) throw new NotSupportedException("Web3Core historical storage reads are not implemented.");
-            if(_web3CoreOASIS==null) throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            var entity=await _web3CoreOASIS.GetAvatarByIdAsync((uint)HashUtility.GetNumericHash(id.ToString()));
-            result.Result=DecodePrivateRecord<Avatar>("avatar",id,entity);result.IsLoaded=true;
-        }
-        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
-        return result;
-    }
+        => await ReadPrivateGuidAsync<IAvatar>(id,version,index=>_web3CoreOASIS.GetAvatarByIdAsync(index),row=>DecodePrivateEntity<Avatar>("avatar",row));
 
     public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
     {

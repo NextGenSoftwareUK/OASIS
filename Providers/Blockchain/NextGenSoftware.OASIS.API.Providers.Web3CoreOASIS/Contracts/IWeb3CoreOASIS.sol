@@ -25,6 +25,9 @@ interface IWeb3CoreOASIS {
     function getAvatarById(uint256 entityId) external view returns (EntityOASIS memory);
     function getAvatarDetailById(uint256 entityId) external view returns (EntityOASIS memory);
     function getHolonById(uint256 entityId) external view returns (EntityOASIS memory);
+    function lookupAvatar(uint256 entityId) external view returns (EntityOASIS memory);
+    function lookupAvatarDetail(uint256 entityId) external view returns (EntityOASIS memory);
+    function lookupHolon(uint256 entityId) external view returns (EntityOASIS memory);
 
     function getAvatarsCount() external view returns (uint256);
     function getAvatarDetailsCount() external view returns (uint256);

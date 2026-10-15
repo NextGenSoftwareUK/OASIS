@@ -77,6 +77,55 @@ public partial class Web3NativeStorageTests
                     Assert.AreEqual(avatarId,record.Result.ParentHolonId);Assert.AreEqual("owned-value",record.Result.MetaData["owned-field"].ToString());
                 }
             }
+            manager.IsAutoReplicationEnabled=false;manager.IsAutoFailOverEnabled=true;
+            Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(providers).IsError);
+            var stale=Guid.NewGuid();
+            Assert.IsFalse((await sqlite.SaveAvatarAsync(new Avatar {Id=stale,IsActive=true,Username="stale",AvatarType=new EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User)})).IsError);
+            Assert.IsFalse((await sqlite.SaveAvatarDetailAsync(new AvatarDetail {Id=stale,IsActive=true,XP=999})).IsError);
+            Assert.IsFalse((await sqlite.SaveHolonAsync(new Holon {Id=stale,IsActive=true},saveChildren:false)).IsError);
+            foreach(var asynchronous in new[] {false,true})
+            {
+                var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests;
+                var avatarRequest=new Core.StorageOperationRequest {Operation="LoadAvatar",AvatarId=stale,PreferredProvider=Core.Enums.ProviderType.PolygonOASIS};
+                var detailRequest=new Core.StorageOperationRequest {Operation="LoadAvatarDetail",AvatarId=stale,PreferredProvider=Core.Enums.ProviderType.PolygonOASIS};
+                var holonRequest=new Core.StorageOperationRequest {Operation="LoadHolon",HolonId=stale,LoadChildren=false,PreferredProvider=Core.Enums.ProviderType.PolygonOASIS};
+                var ar=asynchronous ? await router.RouteRequestAsync<IAvatar>(avatarRequest):router.RouteRequest<IAvatar>(avatarRequest);
+                var dr=asynchronous ? await router.RouteRequestAsync<IAvatarDetail>(detailRequest):router.RouteRequest<IAvatarDetail>(detailRequest);
+                var hr=asynchronous ? await router.RouteRequestAsync<IHolon>(holonRequest):router.RouteRequest<IHolon>(holonRequest);
+                foreach(var code in new[] {ar.ErrorCode,dr.ErrorCode,hr.ErrorCode}) Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,code);
+                Assert.IsNull(ar.Result);Assert.IsNull(dr.Result);Assert.IsNull(hr.Result);
+                Assert.IsNull(ar.Exception);Assert.IsNull(dr.Exception);Assert.IsNull(hr.Exception);
+                Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests);
+            }
+            var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+            var field=typeof(Web3CoreOASISBaseProvider).GetField("_web3CoreOASIS",flags)!;
+            var healthy=field.GetValue(polygon);
+            var address=(string)typeof(Web3CoreOASISBaseProvider).GetField("_contractAddress",flags)!.GetValue(polygon)!;
+            field.SetValue(polygon,new Web3CoreOASIS(Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_PRIVATE_KEY")!,"http://127.0.0.1:18546",address,Web3CoreOASISBaseProviderHelper.Abi,31337));
+            try
+            {
+                foreach(var asynchronous in new[] {false,true})
+                {
+                    var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests;
+                    var a=new Core.StorageOperationRequest {Operation="LoadAvatar",AvatarId=avatarId,PreferredProvider=Core.Enums.ProviderType.PolygonOASIS};
+                    var d=new Core.StorageOperationRequest {Operation="LoadAvatarDetail",AvatarId=avatarId,PreferredProvider=Core.Enums.ProviderType.PolygonOASIS};
+                    var h=new Core.StorageOperationRequest {Operation="LoadHolon",HolonId=holonId,LoadChildren=false,PreferredProvider=Core.Enums.ProviderType.PolygonOASIS};
+                    var ar=asynchronous ? await router.RouteRequestAsync<IAvatar>(a):router.RouteRequest<IAvatar>(a);
+                    var dr=asynchronous ? await router.RouteRequestAsync<IAvatarDetail>(d):router.RouteRequest<IAvatarDetail>(d);
+                    var hr=asynchronous ? await router.RouteRequestAsync<IHolon>(h):router.RouteRequest<IHolon>(h);
+                    Assert.IsFalse(ar.IsError,ar.Message);Assert.AreEqual("replicated",ar.Result.FirstName);
+                    Assert.IsFalse(dr.IsError,dr.Message);Assert.AreEqual(504L,dr.Result.Karma);
+                    Assert.IsFalse(hr.IsError,hr.Message);Assert.AreEqual(holonId,hr.Result.Id);
+                    Assert.AreEqual(before+3,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests);
+                    var failedId=Guid.NewGuid();
+                    var request=new Core.StorageOperationRequest {Operation="SaveAvatarDetail",Payload=new AvatarDetail {Id=failedId,IsActive=true,XP=888},PreferredProvider=Core.Enums.ProviderType.PolygonOASIS};
+                    var saved=asynchronous ? await router.RouteRequestAsync<IAvatarDetail>(request):router.RouteRequest<IAvatarDetail>(request);
+                    Assert.IsTrue(saved.IsError);Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(saved.Exception));
+                    Assert.AreEqual(before+3,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests);
+                    Assert.IsNull((await sqlite.LoadAvatarDetailAsync(failedId)).Result);
+                }
+            }
+            finally {field.SetValue(polygon,healthy);}
             verified=true;
         }
         finally {await sqlite.DeActivateProviderAsync();sqlite.Dispose();if(verified && File.Exists(path)) File.Delete(path);}
