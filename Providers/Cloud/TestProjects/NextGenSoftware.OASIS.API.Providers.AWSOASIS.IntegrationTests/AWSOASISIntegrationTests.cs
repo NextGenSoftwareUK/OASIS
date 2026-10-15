@@ -12,7 +12,7 @@ public class AWSOASISIntegrationTests
     public async Task ActualV2RoundRobinAndBidirectionalReplication()
     {
         var directory=Path.GetFullPath("TestResults/AWSRoutingFiles");
-        if(Directory.Exists(directory) && Directory.EnumerateFileSystemEntries(directory).Any())
+        if(Directory.Exists(directory) && Directory.EnumerateFiles(directory,"*",SearchOption.AllDirectories).Any())
             Assert.Fail("Owned routing fixture is not empty; refusing to overwrite existing evidence.");
         var local=new NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.LocalFileOASIS(storageDirectory:directory);
         var id=Guid.NewGuid();
@@ -22,6 +22,7 @@ public class AWSOASISIntegrationTests
             Assert.IsFalse((await local.SaveHolonAsync(new Holon {Id=id,Name="native-local"},saveChildren:false)).IsError);
             var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {
                 HyperDriveMode=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2,
+                StorageProviders=new NextGenSoftware.OASIS.API.DNA.StorageProviderSettings(),
                 SubscriptionConfig=new NextGenSoftware.OASIS.API.DNA.SubscriptionConfig {PlanType="Gold"}}};
             var manager=new NextGenSoftware.OASIS.API.Core.Managers.ProviderManager(null,dna) {
                 IsAutoLoadBalanceEnabled=true,IsAutoReplicationEnabled=false,IsAutoFailOverEnabled=false};
@@ -41,15 +42,44 @@ public class AWSOASISIntegrationTests
             Assert.AreEqual(3,counts["native-aws"]); Assert.AreEqual(3,counts["native-local"]);
             manager.IsAutoLoadBalanceEnabled=false; manager.IsAutoReplicationEnabled=true;
             Assert.IsFalse(manager.SetAndReplaceAutoReplicationListForProviders(providers).IsError);
-            foreach(var primary in providers) {
-                var value=new Holon {Id=id,Name="replicated-"+primary.Value};
-                var saved=await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(
-                    new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {
-                        Operation="SaveHolon",Payload=value,SaveChildren=false,PreferredProvider=primary.Value});
+            foreach(var primary in providers)
+            foreach(var asynchronous in new[] {false,true}) {
+                var value=new Holon {Id=id,Name="replicated-"+primary.Value+"-"+asynchronous};
+                var request=new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {
+                        Operation="SaveHolon",Payload=value,SaveChildren=false,PreferredProvider=primary.Value};
+                var saved=asynchronous ? await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request)
+                    :router.RouteRequest<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request);
                 Assert.IsFalse(saved.IsError,saved.Message); Assert.IsFalse(saved.IsWarning,saved.Message);
                 Assert.AreEqual(value.Name,(await _provider.LoadHolonAsync(id,loadChildren:false)).Result.Name);
                 Assert.AreEqual(value.Name,(await local.LoadHolonAsync(id,loadChildren:false)).Result.Name);
             }
+            manager.IsAutoReplicationEnabled=false; manager.IsAutoFailOverEnabled=true;
+            Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(providers).IsError);
+            var activated=manager.SetAndActivateCurrentStorageProvider(_provider);
+            Assert.IsFalse(activated.IsError,activated.Message);
+            var field=typeof(NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.DynamoDBOASIS)
+                .GetField("_client",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+            var healthy=field.GetValue(_provider);
+            using var unreachable=new Amazon.DynamoDBv2.AmazonDynamoDBClient(
+                new Amazon.Runtime.BasicAWSCredentials("owned-key","owned-secret"),new Amazon.DynamoDBv2.AmazonDynamoDBConfig {
+                    ServiceURL="http://127.0.0.1:18001",AuthenticationRegion="us-east-1",UseHttp=true,MaxErrorRetry=0,
+                    Timeout=TimeSpan.FromSeconds(2)});
+            try {
+                field.SetValue(_provider,unreachable);
+                foreach(var asynchronous in new[] {false,true}) {
+                    var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests;
+                    var request=new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {
+                        Operation="LoadHolon",HolonId=id,PreferredProvider=Core.Enums.ProviderType.AWSOASIS};
+                    var read=asynchronous ? await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request)
+                        :router.RouteRequest<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request);
+                    Assert.IsFalse(read.IsError,read.Message);
+                    Assert.AreEqual(id,read.Result.Id);
+                    Assert.AreEqual((await local.LoadHolonAsync(id,loadChildren:false)).Result.Name,read.Result.Name);
+                    Assert.AreEqual(Core.Enums.ProviderType.LocalFileOASIS,manager.LastFailoverDiagnostic.SelectedProvider);
+                    Assert.AreEqual(before+1,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
+                }
+            }
+            finally {field.SetValue(_provider,healthy);}
         }
         finally {await local.DeleteHolonAsync(id); await local.DeActivateProviderAsync();}
     }
@@ -106,6 +136,9 @@ public class AWSOASISIntegrationTests
         var avatar = new Avatar { Id = Guid.NewGuid(), Username = $"aws-{Guid.NewGuid():N}", Email = $"{Guid.NewGuid():N}@example.test" };
 
         var saved = await _provider.SaveAvatarAsync(avatar);
+        Assert.IsFalse((await _provider.DeActivateProviderAsync()).IsError);
+        var reactivated=await _provider.ActivateProviderAsync();
+        Assert.IsFalse(reactivated.IsError,reactivated.Message);
         var loaded = await _provider.LoadAvatarAsync(avatar.Id);
 
         Assert.IsFalse(saved.IsError, saved.Message);
