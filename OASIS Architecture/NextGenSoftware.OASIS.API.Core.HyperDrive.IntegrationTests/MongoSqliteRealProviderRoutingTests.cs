@@ -78,6 +78,34 @@ public sealed class MongoSqliteRealProviderRoutingTests
             var holon = new Holon { Id = Guid.NewGuid(), Name = "priority-replication" };
             var request = new StorageOperationRequest { Operation = "SaveHolon", Payload = holon, SaveChildren = false, PreferredProvider = mongoPrimary ? ProviderType.MongoDBOASIS : ProviderType.SQLLiteDBOASIS };
             var router = new OASISHyperDrive(manager);
+            var replicatedDeletionId=Guid.NewGuid(); var replicatedActor=Guid.NewGuid();
+            foreach(var store in new IOASISStorageProvider[] {mongo,sqlite})
+            {
+                (await store.SaveAvatarAsync(new Avatar {Id=replicatedDeletionId,Username="owned exact replica",IsActive=true,DeletedByAvatarId=replicatedActor,AvatarType=new EnumValue<AvatarType>(AvatarType.User)})).IsError.Should().BeFalse();
+                (await store.SaveAvatarDetailAsync(new AvatarDetail {Id=replicatedDeletionId,Username="owned exact replica",IsActive=true,XP=store==mongo ? 101:202,Karma=29})).IsError.Should().BeFalse();
+            }
+            var deletionRequest=new StorageOperationRequest {Operation="DeleteAvatar",AvatarId=replicatedDeletionId,SoftDelete=true,PreferredProvider=request.PreferredProvider};
+            var replicatedDeletion=synchronous ? router.RouteRequest<bool>(deletionRequest) : await router.RouteRequestAsync<bool>(deletionRequest);
+            replicatedDeletion.IsError.Should().BeFalse(replicatedDeletion.Message);
+            replicatedDeletion.IsWarning.Should().BeFalse(replicatedDeletion.Message);
+            NextGenSoftware.OASIS.API.Core.Helpers.AvatarTombstoneEvidence.TryGet(replicatedDeletion,out var replicatedSnapshot).Should().BeTrue();
+            foreach(var store in new IOASISStorageProvider[] {mongo,sqlite})
+            {
+                var profile=(await store.LoadAvatarAsync(replicatedDeletionId)).Result;
+                var statistics=(await store.LoadAvatarDetailAsync(replicatedDeletionId)).Result;
+                profile.DeletedDate.Should().Be(replicatedSnapshot.DeletedAtUtc); statistics.DeletedDate.Should().Be(replicatedSnapshot.DeletedAtUtc);
+                profile.DeletedByAvatarId.Should().Be(replicatedActor); statistics.DeletedByAvatarId.Should().Be(replicatedActor);
+                profile.IsActive.Should().BeFalse(); statistics.IsActive.Should().BeFalse();
+                Convert.ToInt64(statistics.XP).Should().Be(store==mongo ? 101:202);
+                Convert.ToInt64(statistics.Karma).Should().Be(29);
+            }
+            var repeatedTombstone=synchronous ? mongo.ApplyAvatarTombstone(replicatedSnapshot) : await mongo.ApplyAvatarTombstoneAsync(replicatedSnapshot);
+            repeatedTombstone.IsError.Should().BeFalse(repeatedTombstone.Message); repeatedTombstone.IsSaved.Should().BeFalse();
+            var conflictingTombstone=new AvatarTombstone(replicatedDeletionId,replicatedSnapshot.DeletedAtUtc.AddTicks(1),replicatedActor);
+            var conflictResult=synchronous ? mongo.ApplyAvatarTombstone(conflictingTombstone) : await mongo.ApplyAvatarTombstoneAsync(conflictingTombstone);
+            conflictResult.IsError.Should().BeTrue();
+            (await mongo.LoadAvatarAsync(replicatedDeletionId)).Result.DeletedDate.Should().Be(replicatedSnapshot.DeletedAtUtc);
+            (await mongo.ApplyAvatarTombstoneAsync(new AvatarTombstone(Guid.NewGuid(),replicatedSnapshot.DeletedAtUtc))).IsError.Should().BeTrue();
             var invalidPayloadManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true, IsAutoReplicationEnabled = true };
             invalidPayloadManager.RegisterProvider(mongo);
             invalidPayloadManager.RegisterProvider(sqlite);

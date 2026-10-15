@@ -16,7 +16,7 @@ using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 {
-    public class AvatarRepository : IAvatarRepository
+    public partial class AvatarRepository : IAvatarRepository
     {
         private MongoDbContext _dbContext;
 
