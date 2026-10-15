@@ -26,20 +26,25 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
     /// Avatars are stored in a separate "avatars" container, keyed by avatar ID or username.
     /// SDK: Azure.Storage.Blobs v12
     /// </summary>
-    public class AzureStorageOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
+    public partial class AzureStorageOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
     {
         private readonly BlobServiceClient _serviceClient;
         private readonly string _holonContainer;
         private readonly string _avatarContainer;
+        private readonly string _detailContainer;
 
         public AzureStorageOASIS(
             string connectionString,
             string holonContainer = "oasis-holons",
-            string avatarContainer = "oasis-avatars")
+            string avatarContainer = "oasis-avatars",
+            string avatarDetailContainer = "oasis-avatar-details")
         {
             _serviceClient = new BlobServiceClient(connectionString);
             _holonContainer = holonContainer;
             _avatarContainer = avatarContainer;
+            _detailContainer = avatarDetailContainer;
+            if(_detailContainer==_avatarContainer || _detailContainer==_holonContainer)
+                throw new ArgumentException("Avatar details require a distinct blob container.",nameof(avatarDetailContainer));
 
             ProviderName = "AzureStorageOASIS";
             ProviderDescription = "Azure Blob Storage Provider — JSON holons and avatars as blobs";
@@ -58,6 +63,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 await holons.CreateIfNotExistsAsync(PublicAccessType.None);
                 var avatars = _serviceClient.GetBlobContainerClient(_avatarContainer);
                 await avatars.CreateIfNotExistsAsync(PublicAccessType.None);
+                await _serviceClient.GetBlobContainerClient(_detailContainer).CreateIfNotExistsAsync(PublicAccessType.None);
                 IsProviderActivated = true; result.Result = true; result.Message = "AzureStorageOASIS activated.";
             }
             catch (Exception ex) { IsProviderActivated=false; result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
@@ -332,19 +338,19 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar) => SaveAvatarAsync(avatar).Result;
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
-        { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "AzureStorageOASIS: AvatarDetail not separately stored."); return await Task.FromResult(r); }
+        { return await ReadDetailAsync(id,version); }
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
-        { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "AzureStorageOASIS: AvatarDetail not separately stored."); return await Task.FromResult(r); }
+        { return await ReadSelectedDetailAsync(avatarEmail,true,version); }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0) => LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
-        { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "AzureStorageOASIS: AvatarDetail not separately stored."); return await Task.FromResult(r); }
+        { return await ReadSelectedDetailAsync(avatarUsername,false,version); }
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0) => LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-        { var r = new OASISResult<IEnumerable<IAvatarDetail>>(); OASISErrorHandling.HandleError(ref r, "AzureStorageOASIS: AvatarDetail not separately stored."); return await Task.FromResult(r); }
+        { return await ReadAllDetailsAsync(version); }
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => LoadAllAvatarDetailsAsync(version).Result;
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatar)
-        { var r = new OASISResult<IAvatarDetail>(); OASISErrorHandling.HandleError(ref r, "AzureStorageOASIS: AvatarDetail not separately stored."); return await Task.FromResult(r); }
+        { return await WriteDetailAsync(avatar); }
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatar) => SaveAvatarDetailAsync(avatar).Result;
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
