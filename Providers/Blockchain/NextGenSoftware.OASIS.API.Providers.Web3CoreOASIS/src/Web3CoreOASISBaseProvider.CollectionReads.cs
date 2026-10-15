@@ -13,6 +13,30 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
 public partial class Web3CoreOASISBaseProvider
 {
+    private async Task<OASISResult<T>> ReadPrivateSelectorAsync<T>(string selector,Func<T,string> field,Func<Task<OASISResult<IEnumerable<T>>>> load) where T:IHolonBase
+    {
+        var result=new OASISResult<T>();
+        try
+        {
+            if(string.IsNullOrWhiteSpace(selector)) throw new ArgumentException("A nonempty Web3Core selector is required.",nameof(selector));
+            var loaded=await load();
+            if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>,T>(loaded);
+            var matches=loaded.Result.Where(row=>string.Equals(field(row),selector,StringComparison.OrdinalIgnoreCase)).Take(2).ToArray();
+            if(matches.Length>1) throw new StorageIdentityAmbiguousException();
+            if(matches.Length==0) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Web3Core selector not found.";}
+            else {result.Result=matches[0];result.IsLoaded=true;}
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;}
+        return result;
+    }
+
+    private Task<OASISResult<T>> ReadPrivateKeyAsync<T>(string key,Func<Guid,Task<OASISResult<T>>> load)
+    {
+        if(Guid.TryParse(key,out var id) && id!=Guid.Empty) return load(id);
+        var result=new OASISResult<T>();var cause=new ArgumentException("A nonempty Web3Core GUID storage key is required.",nameof(key));
+        OASISErrorHandling.HandleError(ref result,cause.Message,cause);return Task.FromResult(result);
+    }
+
     private async Task<OASISResult<T>> ReadPrivateGuidAsync<T>(Guid id,int version,Func<uint,Task<EntityOASIS>> load,Func<EntityOASIS,T> decode) where T:IHolonBase
     {
         var result=new OASISResult<T>();
