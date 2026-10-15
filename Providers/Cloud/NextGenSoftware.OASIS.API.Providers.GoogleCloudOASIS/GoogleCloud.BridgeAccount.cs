@@ -254,46 +254,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 {
                     var doc = snapshot.Documents.First();
                     var avatarDetailData = doc.ConvertTo<Dictionary<string, object>>();
-                    var avatarDetail = new AvatarDetail
-                    {
-                        Id = Guid.Parse(doc.Id),
-                        Username = avatarDetailData.GetValueOrDefault("username")?.ToString(),
-                        Email = avatarDetailData.GetValueOrDefault("email")?.ToString(),
-                        FirstName = avatarDetailData.GetValueOrDefault("firstName")?.ToString(),
-                        LastName = avatarDetailData.GetValueOrDefault("lastName")?.ToString(),
-                        CreatedDate = ((Timestamp)avatarDetailData.GetValueOrDefault("createdDate")).ToDateTime(),
-                        ModifiedDate = ((Timestamp)avatarDetailData.GetValueOrDefault("modifiedDate")).ToDateTime(),
-                        Version = Convert.ToInt32(avatarDetailData.GetValueOrDefault("version") ?? 1),
-                        IsActive = Convert.ToBoolean(avatarDetailData.GetValueOrDefault("isActive") ?? true),
-                        // AvatarDetail specific properties
-                        Address = avatarDetailData.GetValueOrDefault("address")?.ToString(),
-                        Country = avatarDetailData.GetValueOrDefault("country")?.ToString(),
-                        Postcode = avatarDetailData.GetValueOrDefault("postcode")?.ToString(),
-                        Mobile = avatarDetailData.GetValueOrDefault("mobile")?.ToString(),
-                        Landline = avatarDetailData.GetValueOrDefault("landline")?.ToString(),
-                        Title = avatarDetailData.GetValueOrDefault("title")?.ToString(),
-                        DOB = avatarDetailData.GetValueOrDefault("dob") != null ? ((Timestamp)avatarDetailData.GetValueOrDefault("dob")).ToDateTime() : DateTime.MinValue,
-                        AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(avatarDetailData.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User),
-                        KarmaAkashicRecords = new List<IKarmaAkashicRecord>(),
-                        // Level is read-only and calculated from Karma
-                        XP = Convert.ToInt32(avatarDetailData.GetValueOrDefault("xp") ?? 0),
-                        // HP, Mana, Stamina properties don't exist on AvatarDetail
-                        Description = avatarDetailData.GetValueOrDefault("description")?.ToString(),
-                        // Website, Language, ProviderWallets properties don't exist on AvatarDetail
-                        // Map Google Cloud specific data to custom properties
-                        MetaData = new Dictionary<string, object>
-                        {
-                            ["GoogleCloudProjectId"] = _projectId,
-                            ["GoogleCloudBucketName"] = _bucketName,
-                            ["GoogleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
-                            ["GoogleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
-                            ["GoogleCloudDocumentId"] = doc.Id,
-                            ["GoogleCloudDocumentPath"] = doc.Reference.Path,
-                            ["GoogleCloudCreateTime"] = doc.CreateTime,
-                            ["GoogleCloudUpdateTime"] = doc.UpdateTime,
-                            ["GoogleCloudReadTime"] = doc.ReadTime
-                        }
-                    };
+var avatarDetail = DecodeAvatarDetail(avatarDetailData, doc.Id);
                     
                     result.Result = avatarDetail;
                     result.IsError = false;
@@ -433,46 +394,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 {
                     var doc = snapshot.Documents.First();
                     var avatarDetailData = doc.ConvertTo<Dictionary<string, object>>();
-                    var avatarDetail = new AvatarDetail
-                    {
-                        Id = Guid.Parse(doc.Id),
-                        Username = avatarDetailData.GetValueOrDefault("username")?.ToString(),
-                        Email = avatarDetailData.GetValueOrDefault("email")?.ToString(),
-                        FirstName = avatarDetailData.GetValueOrDefault("firstName")?.ToString(),
-                        LastName = avatarDetailData.GetValueOrDefault("lastName")?.ToString(),
-                        CreatedDate = ((Timestamp)avatarDetailData.GetValueOrDefault("createdDate")).ToDateTime(),
-                        ModifiedDate = ((Timestamp)avatarDetailData.GetValueOrDefault("modifiedDate")).ToDateTime(),
-                        Version = Convert.ToInt32(avatarDetailData.GetValueOrDefault("version") ?? 1),
-                        IsActive = Convert.ToBoolean(avatarDetailData.GetValueOrDefault("isActive") ?? true),
-                        // AvatarDetail specific properties
-                        Address = avatarDetailData.GetValueOrDefault("address")?.ToString(),
-                        Country = avatarDetailData.GetValueOrDefault("country")?.ToString(),
-                        Postcode = avatarDetailData.GetValueOrDefault("postcode")?.ToString(),
-                        Mobile = avatarDetailData.GetValueOrDefault("mobile")?.ToString(),
-                        Landline = avatarDetailData.GetValueOrDefault("landline")?.ToString(),
-                        Title = avatarDetailData.GetValueOrDefault("title")?.ToString(),
-                        DOB = avatarDetailData.GetValueOrDefault("dob") != null ? ((Timestamp)avatarDetailData.GetValueOrDefault("dob")).ToDateTime() : DateTime.MinValue,
-                        AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(avatarDetailData.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User),
-                        KarmaAkashicRecords = new List<IKarmaAkashicRecord>(),
-                        // Level is read-only and calculated from Karma
-                        XP = Convert.ToInt32(avatarDetailData.GetValueOrDefault("xp") ?? 0),
-                        // HP, Mana, Stamina properties don't exist on AvatarDetail
-                        Description = avatarDetailData.GetValueOrDefault("description")?.ToString(),
-                        // Website, Language, ProviderWallets properties don't exist on AvatarDetail
-                        // Map Google Cloud specific data to custom properties
-                        MetaData = new Dictionary<string, object>
-                        {
-                            ["GoogleCloudProjectId"] = _projectId,
-                            ["GoogleCloudBucketName"] = _bucketName,
-                            ["GoogleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
-                            ["GoogleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
-                            ["GoogleCloudDocumentId"] = doc.Id,
-                            ["GoogleCloudDocumentPath"] = doc.Reference.Path,
-                            ["GoogleCloudCreateTime"] = doc.CreateTime,
-                            ["GoogleCloudUpdateTime"] = doc.UpdateTime,
-                            ["GoogleCloudReadTime"] = doc.ReadTime
-                        }
-                    };
+var avatarDetail = DecodeAvatarDetail(avatarDetailData, doc.Id);
                     
                     result.Result = avatarDetail;
                     result.IsError = false;
