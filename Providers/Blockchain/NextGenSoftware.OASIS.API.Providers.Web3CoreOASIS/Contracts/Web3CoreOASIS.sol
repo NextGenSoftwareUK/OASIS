@@ -48,6 +48,7 @@ contract Web3CoreOASIS is ERC721, Ownable, IWeb3CoreOASIS {
         bytes memory info
     ) public onlyOwner returns (uint256) {
         require(avatars[entityId].ExternalId == bytes32(0), ENTITY_ALREADY_EXIST);
+        require(avatarId != bytes32(0), "External identity required");
         avatars[entityId] = EntityOASIS(entityId, avatarId, info);
         avatarIds.add(entityId);
         totalAvatarsCount++;
@@ -60,6 +61,7 @@ contract Web3CoreOASIS is ERC721, Ownable, IWeb3CoreOASIS {
         bytes memory info
     ) public onlyOwner returns (uint256) {
         require(holons[entityId].ExternalId == bytes32(0), ENTITY_ALREADY_EXIST);
+        require(holonId != bytes32(0), "External identity required");
         holons[entityId] = EntityOASIS(entityId, holonId, info);
         holonIds.add(entityId);
         totalHolonsCount++;
@@ -72,6 +74,7 @@ contract Web3CoreOASIS is ERC721, Ownable, IWeb3CoreOASIS {
         bytes memory info
     ) public onlyOwner returns (uint256) {
         require(avatarDetails[entityId].ExternalId == bytes32(0), ENTITY_ALREADY_EXIST);
+        require(avatarId != bytes32(0), "External identity required");
         avatarDetails[entityId] = EntityOASIS(entityId, avatarId, info);
         avatarDetailIds.add(entityId);
         totalAvatarDetailsCount++;
@@ -85,6 +88,34 @@ contract Web3CoreOASIS is ERC721, Ownable, IWeb3CoreOASIS {
         require(avatars[entityId].ExternalId != bytes32(0), ENTITY_NOT_EXIST);
         avatars[entityId].Info = info;
         return true;
+    }
+
+    function upsertAvatar(uint256 entityId, bytes32 externalId, bytes memory info) external onlyOwner returns (bool) {
+        if (upsert(avatars, avatarIds, entityId, externalId, info)) totalAvatarsCount++;
+        return true;
+    }
+
+    function upsertAvatarDetail(uint256 entityId, bytes32 externalId, bytes memory info) external onlyOwner returns (bool) {
+        if (upsert(avatarDetails, avatarDetailIds, entityId, externalId, info)) totalAvatarDetailsCount++;
+        return true;
+    }
+
+    function upsertHolon(uint256 entityId, bytes32 externalId, bytes memory info) external onlyOwner returns (bool) {
+        if (upsert(holons, holonIds, entityId, externalId, info)) totalHolonsCount++;
+        return true;
+    }
+
+    function upsert(mapping(uint256 => EntityOASIS) storage records, EnumerableSet.UintSet storage ids,
+        uint256 entityId, bytes32 externalId, bytes memory info) private returns (bool created) {
+        require(externalId != bytes32(0), "External identity required");
+        created = records[entityId].ExternalId == bytes32(0);
+        if (created) {
+            require(ids.add(entityId), "Inconsistent entity index");
+            records[entityId] = EntityOASIS(entityId, externalId, info);
+        } else {
+            require(records[entityId].ExternalId == externalId, "Storage identity collision");
+            records[entityId].Info = info;
+        }
     }
 
     function updateAvatarDetail(

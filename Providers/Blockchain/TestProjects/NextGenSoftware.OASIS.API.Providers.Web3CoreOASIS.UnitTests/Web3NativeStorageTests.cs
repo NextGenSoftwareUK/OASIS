@@ -40,10 +40,19 @@ public class Web3NativeStorageTests
             var detailSaved=await provider.SaveAvatarDetailAsync(detail);Assert.IsFalse(detailSaved.IsError,detailSaved.Message);
             var detailRead=await provider.LoadAvatarDetailAsync(detail.Id);Assert.IsFalse(detailRead.IsError,detailRead.Message);
             Assert.AreEqual(321L,detailRead.Result.XP);Assert.AreEqual(29L,detailRead.Result.Karma);Assert.AreEqual("owned seed",detailRead.Result.Inventory.Single().Name);
+            avatar.FirstName="updated native profile";
+            Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+            Assert.AreEqual("updated native profile",(await provider.LoadAvatarAsync(avatar.Id)).Result.FirstName);
+            detail.XP=444;
+            Assert.IsFalse((await provider.SaveAvatarDetailAsync(detail)).IsError);
+            Assert.AreEqual(444L,(await provider.LoadAvatarDetailAsync(detail.Id)).Result.XP);
             var details=provider.LoadAllAvatarDetails();Assert.IsFalse(details.IsError,details.Message);Assert.AreEqual(detail.Id,details.Result.Single().Id);
             var root=new Holon {Id=Guid.NewGuid(),IsActive=true,Name="owned root",IsNewHolon=true};
             var child=new Holon {Id=Guid.NewGuid(),IsActive=true,Name="owned child",ParentHolonId=root.Id,IsNewHolon=true};
             foreach(var row in new[] {root,child}) {var result=await provider.SaveHolonAsync(row,saveChildren:false);Assert.IsFalse(result.IsError,result.Message);}
+            child.Name="updated child";
+            Assert.IsFalse((await provider.SaveHolonAsync(child,saveChildren:false)).IsError);
+            Assert.AreEqual("updated child",(await provider.LoadHolonAsync(child.Id,loadChildren:false)).Result.Name);
             var graph=await provider.LoadAllHolonsAsync(loadChildrenFromProvider:true);Assert.IsFalse(graph.IsError,graph.Message);
             Assert.AreEqual(child.Id,graph.Result.Single(row=>row.Id==root.Id).Children.Single().Id);
             for(var index=0;index<128;index++)

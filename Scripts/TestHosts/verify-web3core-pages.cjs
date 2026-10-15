@@ -34,10 +34,19 @@ async function main(){
     await (await contract[create](2,ethers.id('recreated'),'0x0304')).wait();
     assert.equal(await contract[count](),5n);assertions++;
     assert.equal((await contract[page](0,256)).filter(row=>row.EntityId===2n).length,1);assertions++;
+    const upsert=create.replace('create','upsert');
+    await (await contract[upsert](1,ethers.id('owned-1'),'0x0506')).wait();
+    assert.equal(await contract[count](),5n);assertions++;
+    assert.equal((await contract[page](0,256)).find(row=>row.EntityId===1n).Info,'0x0506');assertions++;
+    await assert.rejects(contract[upsert](1,ethers.id('different-identity'),'0xff'));assertions++;
+    assert.equal((await contract[page](0,256)).find(row=>row.EntityId===1n).Info,'0x0506');assertions++;
+    await (await contract[upsert](6,ethers.id('owned-6'),'0x0708')).wait();
+    assert.equal(await contract[count](),6n);assertions++;
+    await assert.rejects(contract[upsert](7,ethers.ZeroHash,'0x00'));assertions++;
   }
   const other=contract.connect(await provider.getSigner(1));
   await assert.rejects(other.createAvatar(99,ethers.id('unauthorized'),'0x00'));assertions++;
-  assert.equal(await contract.getAvatarsCount(),5n);assertions++;
+  assert.equal(await contract.getAvatarsCount(),6n);assertions++;
   const result={passed:true,assertions,collections:3,chainId:31337,contract:await contract.getAddress()};
   fs.writeFileSync(path.join(root,'TestResults/Web3CoreCurrent/web3-pages-current.json'),JSON.stringify(result));
   console.log(JSON.stringify(result));await provider.destroy();

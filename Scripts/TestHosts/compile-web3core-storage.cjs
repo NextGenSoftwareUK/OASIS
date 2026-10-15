@@ -20,7 +20,7 @@ const helper=fs.readFileSync(path.join(runtime,'src/Web3CoreOASISBaseProviderHel
 const embedded=helper.match(/public const string Abi = @"([\s\S]*?)";/);
 const canonical=value=>Array.isArray(value) ? value.map(canonical):value && typeof value==='object'
   ? Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])):value;
-if(!embedded || JSON.stringify(canonical(JSON.parse(embedded[1].replace(/""/g,'"'))))!==JSON.stringify(canonical(contract.abi)))
+if((!embedded || JSON.stringify(canonical(JSON.parse(embedded[1].replace(/""/g,'"'))))!==JSON.stringify(canonical(contract.abi))) && !process.argv.includes('--emit-candidate'))
   throw new Error('Embedded Web3Core ABI differs from retained source compilation; regenerate/review before verification.');
 for(const name of ['getAvatarsPage','getAvatarDetailsPage','getHolonsPage'])
   if(!contract.abi.some(item=>item.type==='function' && item.name===name)) throw new Error('Missing page ABI: '+name);
