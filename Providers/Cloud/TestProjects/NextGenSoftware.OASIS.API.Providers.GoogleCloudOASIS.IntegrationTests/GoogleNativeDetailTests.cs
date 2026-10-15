@@ -259,6 +259,8 @@ public class GoogleNativeDetailTests
                     Assert.AreEqual(holon.ParentHolonId,read.Result.ParentHolonId);Assert.AreEqual(id,read.Result.CreatedByAvatarId);
                     Assert.AreEqual("retained-value",read.Result.MetaData["replicated-holon"].ToString());
                 }
+                if(primary==Core.Enums.ProviderType.GoogleCloudOASIS && !asynchronous)
+                    await VerifyAvatarHolonFailoverAsync(google,sqlite,manager,router,id);
                 var request=new Core.StorageOperationRequest {Operation="DeleteAvatar",AvatarId=id,SoftDelete=true,PreferredProvider=primary};
                 var deleted=asynchronous ? await router.RouteRequestAsync<bool>(request):router.RouteRequest<bool>(request);
                 Assert.IsFalse(deleted.IsError,deleted.Message);Assert.IsFalse(deleted.IsWarning,deleted.Message);Assert.IsTrue(deleted.Result);
@@ -285,6 +287,56 @@ public class GoogleNativeDetailTests
             await sqlite.DeActivateProviderAsync();sqlite.Dispose();
             if(verified && File.Exists(path)) File.Delete(path);
         }
+    }
+
+    private static async Task VerifyAvatarHolonFailoverAsync(GoogleCloudOASIS google,Core.Interfaces.IOASISStorageProvider sqlite,
+        Core.Managers.ProviderManager manager,Core.Managers.OASISHyperDrive.OASISHyperDrive router,Guid id)
+    {
+        manager.IsAutoReplicationEnabled=false;manager.IsAutoFailOverEnabled=true;
+        Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(new[] {
+            new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.GoogleCloudOASIS),
+            new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.SQLLiteDBOASIS)}).IsError);
+        var field=typeof(GoogleCloudOASIS).GetField("_firestoreDb",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+        var healthy=field.GetValue(google);
+        try
+        {
+            var staleId=Guid.NewGuid();
+            Assert.IsFalse((await sqlite.SaveAvatarAsync(new Avatar {Id=staleId,IsActive=true,Username="stale-"+staleId,
+                AvatarType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User)})).IsError);
+            Assert.IsFalse((await sqlite.SaveHolonAsync(new Holon {Id=staleId,IsActive=true},saveChildren:false)).IsError);
+            foreach(var asynchronous in new[] {false,true})
+            {
+                var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests;
+                var missingAvatar=new Core.StorageOperationRequest {Operation="LoadAvatar",AvatarId=staleId,PreferredProvider=Core.Enums.ProviderType.GoogleCloudOASIS};
+                var avatar=asynchronous ? await router.RouteRequestAsync<Core.Interfaces.IAvatar>(missingAvatar):router.RouteRequest<Core.Interfaces.IAvatar>(missingAvatar);
+                Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,avatar.ErrorCode);Assert.IsNull(avatar.Result);
+                var missingHolon=new Core.StorageOperationRequest {Operation="LoadHolon",HolonId=staleId,LoadChildren=false,PreferredProvider=Core.Enums.ProviderType.GoogleCloudOASIS};
+                var holon=asynchronous ? await router.RouteRequestAsync<Core.Interfaces.IHolon>(missingHolon):router.RouteRequest<Core.Interfaces.IHolon>(missingHolon);
+                Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,holon.ErrorCode);Assert.IsNull(holon.Result);
+                Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests);
+            }
+            var settings=Google.Api.Gax.Grpc.CallSettingsExtensions.WithRetry(
+                Google.Api.Gax.Grpc.CallSettings.FromExpiration(Google.Api.Gax.Expiration.FromTimeout(TimeSpan.FromSeconds(2))),
+                Google.Api.Gax.Grpc.RetrySettings.FromConstantBackoff(1,TimeSpan.Zero,_=>false));
+            var client=new Google.Cloud.Firestore.V1.FirestoreClientBuilder {Endpoint="127.0.0.1:18083",ChannelCredentials=Grpc.Core.ChannelCredentials.Insecure,
+                Settings=new Google.Cloud.Firestore.V1.FirestoreSettings {GetDocumentSettings=settings}}.Build();
+            field.SetValue(google,FirestoreDb.Create("oasis-google-native",client));
+            foreach(var asynchronous in new[] {false,true})
+            {
+                var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests;
+                var avatarRequest=new Core.StorageOperationRequest {Operation="LoadAvatar",AvatarId=id,PreferredProvider=Core.Enums.ProviderType.GoogleCloudOASIS};
+                var avatar=asynchronous ? await router.RouteRequestAsync<Core.Interfaces.IAvatar>(avatarRequest):router.RouteRequest<Core.Interfaces.IAvatar>(avatarRequest);
+                Assert.IsFalse(avatar.IsError,avatar.Message);Assert.AreEqual("replicated profile",avatar.Result.FirstName);
+                Assert.AreEqual(Core.Enums.ProviderType.SQLLiteDBOASIS,manager.LastFailoverDiagnostic.SelectedProvider);
+                var holonRequest=new Core.StorageOperationRequest {Operation="LoadHolon",HolonId=id,LoadChildren=false,PreferredProvider=Core.Enums.ProviderType.GoogleCloudOASIS};
+                var holon=asynchronous ? await router.RouteRequestAsync<Core.Interfaces.IHolon>(holonRequest):router.RouteRequest<Core.Interfaces.IHolon>(holonRequest);
+                Assert.IsFalse(holon.IsError,holon.Message);Assert.AreEqual(id,holon.Result.Id);
+                Assert.AreEqual("retained-value",holon.Result.MetaData["replicated-holon"].ToString());
+                Assert.AreEqual(Core.Enums.ProviderType.SQLLiteDBOASIS,manager.LastFailoverDiagnostic.SelectedProvider);
+                Assert.AreEqual(before+2,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests);
+            }
+        }
+        finally {field.SetValue(google,healthy);manager.IsAutoFailOverEnabled=false;manager.IsAutoReplicationEnabled=true;}
     }
 
     private sealed class InterruptAfterFirstWriteProvider : GoogleCloudOASIS
