@@ -49,57 +49,19 @@ public partial class SolanaOASIS
 {
     public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
     {
-        var result = new OASISResult<bool>();
+        var result=new OASISResult<bool>();
         try
         {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            if (holons == null || !holons.Any())
-            {
-                OASISErrorHandling.HandleError(ref result, "No holons provided for import");
-                return result;
-            }
-
-            int successCount = 0;
-            int errorCount = 0;
-
-            foreach (var holon in holons)
-            {
-                try
-                {
-                    var saveResult = await SaveHolonAsync(holon);
-                    if (saveResult.IsError)
-                    {
-                        errorCount++;
-                        OASISErrorHandling.HandleWarning(ref result, $"Error importing holon {holon.Id}: {saveResult.Message}");
-                    }
-                    else
-                    {
-                        successCount++;
-                    }
-                }
-                catch (Exception ex)
-                {
-                    errorCount++;
-                    OASISErrorHandling.HandleWarning(ref result, $"Error importing holon {holon.Id}: {ex.Message}");
-                }
-            }
-
-            result.Result = successCount > 0;
-            result.IsError = successCount == 0;
-            result.Message = $"Import completed: {successCount} holons imported successfully, {errorCount} errors";
+            ArgumentNullException.ThrowIfNull(holons);
+            var planned=holons.ToList();
+            if(planned.Count==0) throw new ArgumentException("At least one holon is required for import.");
+            var saved=await SaveHolonsAsync(planned,saveChildren:true,recursive:true,continueOnError:false,saveChildrenOnProvider:true);
+            result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,bool>(saved);
+            result.Result=!saved.IsError && saved.IsSaved;
         }
-        catch (Exception ex)
+        catch(Exception cause)
         {
-            OASISErrorHandling.HandleError(ref result, $"Error importing holons to Solana: {ex.Message}", ex);
+            OASISErrorHandling.HandleError(ref result,"Solana import failed: "+cause.Message,cause);
         }
         return result;
     }
@@ -129,7 +91,7 @@ public partial class SolanaOASIS
 
     public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
     {
-        return ImportAsync(holons).Result;
+        return ImportAsync(holons).GetAwaiter().GetResult();
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
