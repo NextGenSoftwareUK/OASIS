@@ -44,101 +44,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<OASISResult<Avatar>> AddAsync(Avatar avatar)
-        {
-            OASISResult<Avatar> result = new OASISResult<Avatar>();
+        public Task<OASISResult<Avatar>> AddAsync(Avatar avatar)
+            => MongoNativeRecordWriter.SaveAsync(_dbContext.Avatar,avatar,false,false);
 
-            try
-            {
-                if (avatar.HolonId == Guid.Empty)
-                    avatar.HolonId = Guid.NewGuid();
-
-                avatar.CreatedProviderType ??= new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
-
-                if (string.IsNullOrEmpty(avatar.Id)) avatar.Id = ObjectId.GenerateNewId().ToString();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
-                await _dbContext.Avatar.InsertOneAsync(avatar);
-                result.Result = avatar;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error in AddAsync method in AvatarRepository creating Avatar. Reason: {ex}", ex);
-            }
-
-            return result;
-        }
-
-        public async Task<OASISResult<AvatarDetail>> AddAsync(AvatarDetail avatar)
-        {
-            OASISResult<AvatarDetail> result = new OASISResult<AvatarDetail>();
-
-            try
-            {
-                if (avatar.HolonId == Guid.Empty)
-                    avatar.HolonId = Guid.NewGuid();
-
-                avatar.CreatedProviderType ??= new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
-
-                if (string.IsNullOrEmpty(avatar.Id)) avatar.Id = ObjectId.GenerateNewId().ToString();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
-                await _dbContext.AvatarDetail.InsertOneAsync(avatar);
-                result.Result = avatar;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error in AddAsync method in AvatarRepository creating Avatar. Reason: {ex}", ex);
-            }
-
-            return result;
-        }
+        public Task<OASISResult<AvatarDetail>> AddAsync(AvatarDetail avatar)
+            => MongoNativeRecordWriter.SaveAsync(_dbContext.AvatarDetail,avatar,false,false);
 
         public OASISResult<Avatar> Add(Avatar avatar)
-        {
-            OASISResult<Avatar> result = new OASISResult<Avatar>();
-
-            try
-            {
-                if (avatar.HolonId == Guid.Empty)
-                    avatar.HolonId = Guid.NewGuid();
-
-                avatar.CreatedProviderType ??= new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
-
-                if (string.IsNullOrEmpty(avatar.Id)) avatar.Id = ObjectId.GenerateNewId().ToString();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
-                _dbContext.Avatar.InsertOne(avatar);
-                result.Result = avatar;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error in Add method in AvatarRepository creating Avatar. Reason: {ex}", ex);
-            }
-
-            return result;
-        }
+            => MongoNativeRecordWriter.SaveAsync(_dbContext.Avatar,avatar,false,true).GetAwaiter().GetResult();
 
         public OASISResult<AvatarDetail> Add(AvatarDetail avatar)
-        {
-            OASISResult<AvatarDetail> result = new OASISResult<AvatarDetail>();
-
-            try
-            {
-                if (avatar.HolonId == Guid.Empty)
-                    avatar.HolonId = Guid.NewGuid();
-
-                avatar.CreatedProviderType ??= new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
-
-                if (string.IsNullOrEmpty(avatar.Id)) avatar.Id = ObjectId.GenerateNewId().ToString();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.MongoDBOASIS] = avatar.Id;
-                _dbContext.AvatarDetail.InsertOne(avatar);
-                result.Result = avatar;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error in Add method in AvatarRepository loading Avatar. Reason: {ex}", ex);
-            }
-
-            return result;
-        }
+            => MongoNativeRecordWriter.SaveAsync(_dbContext.AvatarDetail,avatar,false,true).GetAwaiter().GetResult();
 
         public async Task<OASISResult<Avatar>> GetAvatarAsync(Guid id)
         {
@@ -331,50 +247,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             return result;
         }
 
-        public async Task<OASISResult<Avatar>> UpdateAsync(Avatar avatar)
-        {
-            OASISResult<Avatar> result = new OASISResult<Avatar>();
+        public Task<OASISResult<Avatar>> UpdateAsync(Avatar avatar)
+            => MongoNativeRecordWriter.SaveAsync(_dbContext.Avatar,avatar,true,false);
 
-            try
-            {
-                var replaced = await _dbContext.Avatar.ReplaceOneAsync(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
-                if (!replaced.IsAcknowledged || replaced.MatchedCount != 1)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Avatar update did not acknowledge exactly one matched identity.");
-                    return result;
-                }
-                result.Result = avatar;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error in UpdateAsync method in AvatarRepository updating Avatar. Reason: {ex}", ex);
-            }
-
-            return result;
-        }
-
-        public async Task<OASISResult<AvatarDetail>> UpdateAsync(AvatarDetail avatar)
-        {
-            OASISResult<AvatarDetail> result = new OASISResult<AvatarDetail>();
-
-            try
-            {
-                var replaceResult = await _dbContext.AvatarDetail.ReplaceOneAsync(filter: g => g.HolonId == avatar.HolonId, replacement: avatar).ConfigureAwait(false);
-                if (!replaceResult.IsAcknowledged || replaceResult.MatchedCount == 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"AvatarDetail update matched no document (HolonId={avatar.HolonId}). Active quest / XP were not persisted.");
-                    return result;
-                }
-
-                result.Result = avatar;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error in UpdateAsync method in AvatarRepository updating Avatar. Reason: {ex}", ex);
-            }
-
-            return result;
-        }
+        public Task<OASISResult<AvatarDetail>> UpdateAsync(AvatarDetail avatar)
+            => MongoNativeRecordWriter.SaveAsync(_dbContext.AvatarDetail,avatar,true,false);
 
         public OASISResult<AvatarDetail> GetAvatarDetail(Expression<Func<AvatarDetail, bool>> expression)
         {
@@ -521,49 +398,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         }
 
         public OASISResult<Avatar> Update(Avatar avatar)
-        {
-            OASISResult<Avatar> result = new OASISResult<Avatar>();
-
-            try
-            {
-                var replaced = _dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
-                if (!replaced.IsAcknowledged || replaced.MatchedCount != 1)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Avatar update did not acknowledge exactly one matched identity.");
-                    return result;
-                }
-                result.Result = avatar;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error in Update method in AvatarRepository updating Avatar. Reason: {ex}", ex);
-            }
-
-            return result;
-        }
+            => MongoNativeRecordWriter.SaveAsync(_dbContext.Avatar,avatar,true,true).GetAwaiter().GetResult();
 
         public OASISResult<AvatarDetail> Update(AvatarDetail avatar)
-        {
-            OASISResult<AvatarDetail> result = new OASISResult<AvatarDetail>();
-
-            try
-            {
-                var replaceResult = _dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatar.HolonId, replacement: avatar);
-                if (!replaceResult.IsAcknowledged || replaceResult.MatchedCount == 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"AvatarDetail update matched no document (HolonId={avatar.HolonId}). Active quest / XP were not persisted.");
-                    return result;
-                }
-
-                result.Result = avatar;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error in Update method in AvatarRepository updating Avatar. Reason: {ex}", ex);
-            }
-
-            return result;
-        }
+            => MongoNativeRecordWriter.SaveAsync(_dbContext.AvatarDetail,avatar,true,true).GetAwaiter().GetResult();
 
         public Task<OASISResult<bool>> DeleteAsync(Guid id, bool softDelete = true) => DeleteGraphAsync(id, softDelete, false);
         public Task<OASISResult<bool>> DeleteDetailAsync(Guid id, bool softDelete = true) => DeleteGraphAsync(id, softDelete, true);
