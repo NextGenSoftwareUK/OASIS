@@ -98,13 +98,17 @@ Offered to `holochain/android-service-runtime`; reply to any review comments, or
 
 ## Status: HoloNET test coverage (measured 2026-10-14)
 
-Not 100%. Honest numbers:
+Not 100% yet. Honest numbers:
 
-- **85 automated tests**: 71 offline (serialization, wire format, signing) + 14 live-conductor tests.
-- **Offline line coverage of HoloNET.Client: 5.2%.** The live tests exercise far more (every admin/app API was verified against a
-  real 0.7.0 conductor in October), but they only run with a conductor, so they aren't in that number yet.
-- Until today the 14 live tests silently "passed" without a conductor; they now report as **skipped**.
-- No Unity test project for HoloNET; the TestHarness is a manual demo app, not automated tests.
-- Not covered by design: countersigning and `GetCompatibleCells` (only in Holochain's `unstable-*` builds, which we don't use).
+- **89 automated tests, all passing live against a real Holochain 0.7.0 conductor**, repeatably
+  (71 run offline; the 18 live ones report as **skipped** without a conductor, instead of silently "passing" as before).
+- **HoloNET.Client line coverage: 52.8%** (branches 47.7%) with the conductor; **5.2%** offline-only.
+- Writing tests for untested paths found **six real bugs**, now fixed in `holochain-client-csharp` `main` (`9109f80`),
+  so they'll ship in 4.1.0:
+  `app_info` rejected by 0.7; `app_info` responses crashing; `list_app_interfaces` crashing; the synchronous
+  `CallZomeFunction` always returning null; **every HoloNET client sharing one DNA** (creating one client overwrote
+  the others' settings); and a thread-safety crash in shared signing credentials.
+- Not covered by design: countersigning and `GetCompatibleCells` (only in Holochain's `unstable-*` builds).
+- No Unity test project for HoloNET yet; the TestHarness is a manual demo app.
 
-Claude is working on raising this (see `holochain-client-csharp/AUDIT.md` / `CHANGELOG.md` for progress).
+Claude is continuing to raise coverage; progress is in `holochain-client-csharp/CHANGELOG.md`.
