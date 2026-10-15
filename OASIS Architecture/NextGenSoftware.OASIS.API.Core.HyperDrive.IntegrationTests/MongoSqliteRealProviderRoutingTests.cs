@@ -21,7 +21,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 
-public sealed class MongoSqliteRealProviderRoutingTests
+public sealed partial class MongoSqliteRealProviderRoutingTests
 {
     private static readonly string[] QueryKeys = { "CreatedByAvatarId", "Active", "HolonType", "STARNETHolonId", "_versionStamp", "data",
         "Username", "Email", "Name", "Description", "ParentId", "ParentProviderKey", "SearchQuery", "parkType", "env",
@@ -78,6 +78,7 @@ public sealed class MongoSqliteRealProviderRoutingTests
             var holon = new Holon { Id = Guid.NewGuid(), Name = "priority-replication" };
             var request = new StorageOperationRequest { Operation = "SaveHolon", Payload = holon, SaveChildren = false, PreferredProvider = mongoPrimary ? ProviderType.MongoDBOASIS : ProviderType.SQLLiteDBOASIS };
             var router = new OASISHyperDrive(manager);
+            await VerifyMongoHolonDeleteOutcomesAsync(mongo,sqlite,manager,router,synchronous);
             var replicatedDeletionId=Guid.NewGuid(); var replicatedActor=Guid.NewGuid();
             foreach(var store in new IOASISStorageProvider[] {mongo,sqlite})
             {
@@ -836,6 +837,8 @@ public sealed class MongoSqliteRealProviderRoutingTests
             failManager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) }).IsError.Should().BeFalse();
             failManager.SetAndActivateCurrentStorageProvider(failureMongo).IsError.Should().BeFalse();
             var admin = client.GetDatabase("admin");
+            await VerifyMongoHolonDeleteWriteConcernAsync(failureMongo,mongo,sqlite,dna,admin,failureApp,synchronous,
+                client.GetDatabase(databaseName).GetCollection<API.Providers.MongoDBOASIS.Entities.Holon>("Holon"));
             var retainedImportRows = new List<IHolon>();
             foreach (var importedHolon in importedHolons)
                 retainedImportRows.Add((await mongo.LoadHolonAsync(importedHolon.Id,loadChildren:false)).Result);

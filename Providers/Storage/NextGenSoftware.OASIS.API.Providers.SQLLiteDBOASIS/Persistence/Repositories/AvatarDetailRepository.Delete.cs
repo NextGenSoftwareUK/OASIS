@@ -26,9 +26,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     new AvatarRepository(_dbContext).RemoveAvatarDetailDependents(detail, affected);
                     _dbContext.Remove(detail);
                 }
-                persistenceEntered = true;
-                _dbContext.SaveChanges();
-                transaction.Commit();
+                var commitEntered = false;
+                try
+                {
+                    persistenceEntered = true;
+                    _dbContext.SaveChanges();
+                    commitEntered = true;
+                    transaction.Commit();
+                }
+                catch (Exception cause)
+                {
+                    if (commitEntered) throw; // Do not attempt to undo an outcome whose commit may already have completed.
+                    try
+                    {
+                        transaction.Rollback();
+                        persistenceEntered = false;
+                    }
+                    catch (Exception rollback) { throw new AggregateException("SQLite detail deletion and rollback failed.", cause, rollback); }
+                    throw;
+                }
                 return new OASISResult<bool> { Result = true, IsDeleted = true };
             }
             catch (Exception exception)
@@ -54,9 +70,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     await new AvatarRepository(_dbContext).RemoveAvatarDetailDependentsAsync(detail, affected);
                     _dbContext.Remove(detail);
                 }
-                persistenceEntered = true;
-                await _dbContext.SaveChangesAsync();
-                await transaction.CommitAsync();
+                var commitEntered = false;
+                try
+                {
+                    persistenceEntered = true;
+                    await _dbContext.SaveChangesAsync();
+                    commitEntered = true;
+                    await transaction.CommitAsync();
+                }
+                catch (Exception cause)
+                {
+                    if (commitEntered) throw; // Do not attempt to undo an outcome whose commit may already have completed.
+                    try
+                    {
+                        await transaction.RollbackAsync();
+                        persistenceEntered = false;
+                    }
+                    catch (Exception rollback) { throw new AggregateException("SQLite detail deletion and rollback failed.", cause, rollback); }
+                    throw;
+                }
                 return new OASISResult<bool> { Result = true, IsDeleted = true };
             }
             catch (Exception exception)
