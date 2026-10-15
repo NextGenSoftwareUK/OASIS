@@ -17,6 +17,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
     {
         var parent=new Holon {Id=Guid.NewGuid(),IsActive=true,HolonType=HolonType.Zome,Name="collection parent"};
         var root=new Holon {Id=Guid.NewGuid(),IsActive=true,Version=317,HolonType=HolonType.Quest,ParentHolonId=parent.Id,Name="selected collection root"};
+        root.Description=root.Name;
         var child=new Holon {Id=Guid.NewGuid(),IsActive=true,Version=8,HolonType=HolonType.Holon,ParentHolonId=root.Id,Name="native descendant outside root filter"};
         var grand=new Holon {Id=Guid.NewGuid(),IsActive=true,Version=9,HolonType=HolonType.Holon,ParentHolonId=child.Id,Name="native grandchild"};
         var deleted=new Holon {Id=Guid.NewGuid(),IsActive=false,DeletedDate=DateTime.UtcNow,ParentHolonId=root.Id,Name="deleted child must be excluded"};
@@ -74,6 +75,20 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                     :await router.RouteRequestAsync<Core.Interfaces.Search.ISearchResults>(searchRequest);
                 searched.IsError.Should().BeFalse(searched.Exception?.ToString() ?? searched.Message);
                 searched.Result.SearchResultHolons.Select(hit=>hit.Id).Should().Equal(new[] {root.Id},"multiple matching metadata keys must not duplicate a search hit");
+            }
+            foreach(var byName in new[] {true,false})
+            foreach(var type in new[] {HolonType.All,HolonType.Quest,HolonType.Zome})
+            foreach(var parentFilter in new[] {Guid.Empty,parent.Id,child.Id})
+            {
+                var request=new StorageOperationRequest {Operation="Search",PreferredProvider=ProviderType.MongoDBOASIS,
+                    SearchParams=new Core.Objects.Search.SearchParams {SearchOnlyForCurrentAvatar=false,ParentId=parentFilter,
+                        SearchGroups=new() {new Core.Objects.Search.SearchTextGroup {SearchQuery=root.Name.ToUpperInvariant(),SearchHolons=true,
+                            HolonType=type,HolonSearchParams=new SearchHolonParams {Name=byName,Description=!byName}}}}};
+                var found=synchronous ? router.RouteRequest<Core.Interfaces.Search.ISearchResults>(request)
+                    :await router.RouteRequestAsync<Core.Interfaces.Search.ISearchResults>(request);
+                found.IsError.Should().BeFalse(found.Exception?.ToString() ?? found.Message);
+                var expected=type!=HolonType.Zome && parentFilter!=child.Id ? new[] {root.Id}:Array.Empty<Guid>();
+                found.Result.SearchResultHolons.Select(hit=>hit.Id).Should().Equal(expected,"All is a wildcard and parent/type restrictions must still apply");
             }
             var missing=synchronous ? mongo.LoadHolonsForParent(ObjectId.GenerateNewId().ToString(),loadChildren:true,loadChildrenFromProvider:true)
                 :await mongo.LoadHolonsForParentAsync(ObjectId.GenerateNewId().ToString(),loadChildren:true,loadChildrenFromProvider:true);
