@@ -60,27 +60,9 @@ public class SolanaRepository(Account oasisAccount, IRpcClient rpcClient, Func<b
     {
         var blockHash = await rpcClient.GetLatestBlockHashAsync();
 
-        var entityTransactionQueryResult =
-            await rpcClient.GetTransactionAsync(transactionHashReference, Commitment.Confirmed);
-        if (!entityTransactionQueryResult.WasSuccessful ||
-            entityTransactionQueryResult.HttpStatusCode != HttpStatusCode.OK)
-            throw new Exception(entityTransactionQueryResult.RawRpcResponse);
-
-        if (entityTransactionQueryResult.Result == null)
-            throw new Exception(
-                $"{entityTransactionQueryResult.RawRpcResponse} Reason: No record found for hash {transactionHashReference} (transactionData.Result is null).");
-
-        if (entityTransactionQueryResult.Result.Transaction.Message.Instructions.Length == 0)
-            throw new Exception(
-                $"{entityTransactionQueryResult.RawRpcResponse} Reason: No record found for hash {transactionHashReference}. (transactionData.Result.Transaction.Message.Instructions.Length is 0)");
-
-        var transactionDataBuffer =
-            Encoders.Base58.DecodeData(entityTransactionQueryResult.Result.Transaction.Message.Instructions[^1]
-                .Data);
-        var transactionContent = DecodeEntity(transactionDataBuffer);
+        var transactionContent = await ReadStoredRecordAsync(transactionHashReference);
         var deserializedEntity = JsonConvert.DeserializeObject<Newtonsoft.Json.Linq.JObject>(transactionContent)
-                                 ?? throw new Exception(
-                                     $"{entityTransactionQueryResult.RawRpcResponse} Reason: No content found for hash {transactionHashReference}.");
+            ?? throw new InvalidOperationException("Finalized Solana memo has no record content.");
 
         var identity = deserializedEntity["Id"]?.ToObject<Guid?>();
         var version = deserializedEntity.Value<int?>("Version");
@@ -104,29 +86,44 @@ public class SolanaRepository(Account oasisAccount, IRpcClient rpcClient, Func<b
     public async Task<T> GetAsync<T>(string transactionHashReference)
         where T : SolanaBaseDto, new()
     {
-        var entityTransactionQueryResult =
-            await rpcClient.GetTransactionAsync(transactionHashReference, Commitment.Confirmed);
-        if (!entityTransactionQueryResult.WasSuccessful ||
-            entityTransactionQueryResult.HttpStatusCode != HttpStatusCode.OK)
-            throw new Exception(entityTransactionQueryResult.RawRpcResponse);
-
-        if (entityTransactionQueryResult.Result == null)
-            throw new Exception(
-                $"{entityTransactionQueryResult.RawRpcResponse} Reason: No record found for hash {transactionHashReference} (transactionData.Result is null).");
-
-        if (entityTransactionQueryResult.Result.Transaction.Message.Instructions.Length == 0)
-            throw new Exception(
-                $"{entityTransactionQueryResult.RawRpcResponse} Reason: No record found for hash {transactionHashReference}. (transactionData.Result.Transaction.Message.Instructions.Length is 0)");
-
-        var transactionDataBuffer =
-            Encoders.Base58.DecodeData(entityTransactionQueryResult.Result.Transaction.Message.Instructions[^1]
-                .Data);
-        var transactionContent = DecodeEntity(transactionDataBuffer);
+        var transactionContent = await ReadStoredRecordAsync(transactionHashReference);
         var deserializedEntity = JsonConvert.DeserializeObject<T>(transactionContent)
-                                 ?? throw new Exception(
-                                     $"{entityTransactionQueryResult.RawRpcResponse} Reason: No content found for hash {transactionHashReference}.");
+            ?? throw new InvalidOperationException("Finalized Solana memo has no record content.");
 
         return deserializedEntity;
+    }
+
+    private async Task<string> ReadStoredRecordAsync(string signature)
+    {
+        var queried = await rpcClient.GetTransactionAsync(signature, Commitment.Finalized);
+        if (!queried.WasSuccessful || queried.HttpStatusCode != HttpStatusCode.OK)
+            throw new InvalidOperationException("Solana finalized record lookup failed: " + queried.RawRpcResponse);
+        var memo = ValidateStoredTransaction(queried.Result, signature, oasisAccount.PublicKey.Key);
+        return DecodeEntity(memo);
+    }
+
+    private static byte[] ValidateStoredTransaction(TransactionMetaSlotInfo native, string signature, string writer)
+    {
+        if (native?.Meta == null || native.Meta.Error != null)
+            throw new InvalidOperationException("Solana storage transaction is missing success metadata or failed execution.");
+        var transaction = native.Transaction;
+        if (transaction?.Signatures == null || transaction.Signatures.Length != 1 || transaction.Signatures[0] != signature)
+            throw new InvalidOperationException("Solana storage transaction signature does not match its reference.");
+        var message = transaction.Message;
+        if (message?.AccountKeys == null || message.AccountKeys.Length == 0 || message.AccountKeys[0] != writer
+            || message.Instructions == null)
+            throw new InvalidOperationException("Solana storage transaction has an unexpected writer or missing message.");
+        var memos = new List<InstructionInfo>();
+        foreach (var instruction in message.Instructions)
+        {
+            if (instruction == null || instruction.ProgramIdIndex >= message.AccountKeys.Length)
+                throw new InvalidOperationException("Solana storage instruction has an invalid program index.");
+            if (message.AccountKeys[instruction.ProgramIdIndex] == "MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr")
+                memos.Add(instruction);
+        }
+        if (memos.Count != 1 || string.IsNullOrWhiteSpace(memos[0].Data))
+            throw new InvalidOperationException("Solana storage requires exactly one Memo-v2 payload.");
+        return Encoders.Base58.DecodeData(memos[0].Data);
     }
 
     private async Task<string> SubmitAndConfirmAsync(byte[] signedTransaction)

@@ -1,4 +1,5 @@
 #Requires -Version 7.0
+param([switch]$Diagnostics,[switch]$InspectRecent)
 $ErrorActionPreference='Stop'
 $taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $taskRoot 'TestResults/SolanaCurrent'
@@ -40,8 +41,18 @@ try {
     $env:SOLANA_PUBLIC_KEY=[Solnet.Wallet.Utilities.Encoders]::Base58.EncodeData([byte[]]$secret[32..63])
     $env:SOLANA_RPC_URL='http://127.0.0.1:18899'
     $env:OASIS_SOLANA_STORAGE_ENCRYPTION_KEY=(Get-Content -LiteralPath '\\wsl.localhost\Ubuntu\var\tmp\oasis-solana\storage-key' -Raw).Trim()
+    if($InspectRecent){
+        $body=@{jsonrpc='2.0';id=1;method='getSignaturesForAddress';params=@($env:SOLANA_PUBLIC_KEY,@{limit=5;commitment='finalized'})} | ConvertTo-Json -Depth 5 -Compress
+        $recent=Invoke-RestMethod -Uri $env:SOLANA_RPC_URL -Method Post -ContentType 'application/json' -Body $body -TimeoutSec 5
+        if($recent.error){throw 'Read-only native signature inspection failed.'}
+        if($null -eq $recent.result){throw 'Native signature inspection omitted its result.'}
+        @{Count=@($recent.result).Count;Transactions=@($recent.result | Select-Object signature,slot,confirmationStatus,err)} | ConvertTo-Json -Depth 5 -Compress | Write-Output
+        return
+    }
     $testStarted=[DateTime]::UtcNow
-    & dotnet test $project --no-build --no-restore /m:2 /nr:false --logger 'trx;LogFileName=solana-validator-current.trx' --results-directory $work -v:q
+    $testArguments=@('test',$project,'--no-build','--no-restore','/m:2','/nr:false','--logger','trx;LogFileName=solana-validator-current.trx','--results-directory',$work,'-v:q')
+    if($Diagnostics){$testArguments+=@('--diag',(Join-Path $work 'validator-test-current.diag.log'))}
+    & dotnet @testArguments
     if($LASTEXITCODE){throw 'Real Solana integration failed; inspect fixed report.'}
     $report=Get-Item -LiteralPath (Join-Path $work 'solana-validator-current.trx')
     if($report.LastWriteTimeUtc -lt $testStarted){throw 'Integration report is stale.'}
