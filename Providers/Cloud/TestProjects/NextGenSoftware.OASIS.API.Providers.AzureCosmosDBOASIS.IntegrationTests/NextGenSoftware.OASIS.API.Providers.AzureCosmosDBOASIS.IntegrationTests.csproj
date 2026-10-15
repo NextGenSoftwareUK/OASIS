@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS\NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.csproj" />
+    <ProjectReference Include="..\..\..\Storage\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
   </ItemGroup>
 
 </Project>
