@@ -16,6 +16,13 @@ public sealed class Web3CoreOASIS
     private readonly string _contractAddress;
     private readonly string _abi;
 
+    public Task<TransactionReceipt> UpsertAvatarAsync(uint id,byte[] external,byte[] info)
+        =>SendAndWaitForReceiptAsync(_web3.Eth.GetContract(_abi,_contractAddress).GetFunction("upsertAvatar"),id,external,info);
+    public Task<TransactionReceipt> UpsertAvatarDetailAsync(uint id,byte[] external,byte[] info)
+        =>SendAndWaitForReceiptAsync(_web3.Eth.GetContract(_abi,_contractAddress).GetFunction("upsertAvatarDetail"),id,external,info);
+    public Task<TransactionReceipt> UpsertHolonAsync(uint id,byte[] external,byte[] info)
+        =>SendAndWaitForReceiptAsync(_web3.Eth.GetContract(_abi,_contractAddress).GetFunction("upsertHolon"),id,external,info);
+
     internal async Task<System.Collections.Generic.List<EntityOASIS>> ReadCollectionAsync(string kind)
     {
         var functionName=kind switch {"avatar"=>"getAvatarsPage","detail"=>"getAvatarDetailsPage","holon"=>"getHolonsPage",_=>throw new ArgumentException("Unknown Web3Core collection.",nameof(kind))};

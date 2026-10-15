@@ -1243,6 +1243,93 @@ internal static partial class Web3CoreOASISBaseProviderHelper
     ],
     ""stateMutability"": ""nonpayable"",
     ""type"": ""function""
+  },
+  {
+    ""inputs"": [
+      {
+        ""internalType"": ""uint256"",
+        ""name"": ""entityId"",
+        ""type"": ""uint256""
+      },
+      {
+        ""internalType"": ""bytes32"",
+        ""name"": ""externalId"",
+        ""type"": ""bytes32""
+      },
+      {
+        ""internalType"": ""bytes"",
+        ""name"": ""info"",
+        ""type"": ""bytes""
+      }
+    ],
+    ""name"": ""upsertAvatar"",
+    ""outputs"": [
+      {
+        ""internalType"": ""bool"",
+        ""name"": """",
+        ""type"": ""bool""
+      }
+    ],
+    ""stateMutability"": ""nonpayable"",
+    ""type"": ""function""
+  },
+  {
+    ""inputs"": [
+      {
+        ""internalType"": ""uint256"",
+        ""name"": ""entityId"",
+        ""type"": ""uint256""
+      },
+      {
+        ""internalType"": ""bytes32"",
+        ""name"": ""externalId"",
+        ""type"": ""bytes32""
+      },
+      {
+        ""internalType"": ""bytes"",
+        ""name"": ""info"",
+        ""type"": ""bytes""
+      }
+    ],
+    ""name"": ""upsertAvatarDetail"",
+    ""outputs"": [
+      {
+        ""internalType"": ""bool"",
+        ""name"": """",
+        ""type"": ""bool""
+      }
+    ],
+    ""stateMutability"": ""nonpayable"",
+    ""type"": ""function""
+  },
+  {
+    ""inputs"": [
+      {
+        ""internalType"": ""uint256"",
+        ""name"": ""entityId"",
+        ""type"": ""uint256""
+      },
+      {
+        ""internalType"": ""bytes32"",
+        ""name"": ""externalId"",
+        ""type"": ""bytes32""
+      },
+      {
+        ""internalType"": ""bytes"",
+        ""name"": ""info"",
+        ""type"": ""bytes""
+      }
+    ],
+    ""name"": ""upsertHolon"",
+    ""outputs"": [
+      {
+        ""internalType"": ""bool"",
+        ""name"": """",
+        ""type"": ""bool""
+      }
+    ],
+    ""stateMutability"": ""nonpayable"",
+    ""type"": ""function""
   }
 ]";
 }
