@@ -146,58 +146,16 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
-        {
-            return DeleteAvatarByUsernameAsync(avatarEmail).Result;
-        }
+            => DeleteAvatarByEmailAsync(avatarEmail,softDelete).GetAwaiter().GetResult();
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
-        {
-            return DeleteAvatarByUsernameAsync(avatarUsername).Result;
-        }
+            => DeleteAvatarByUsernameAsync(avatarUsername,softDelete).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
-        {
-            OASISResult<bool> result = new OASISResult<bool>();
+        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+            => DeleteIndexedAvatarAsync(row=>string.Equals(row.email,avatarEmail,StringComparison.OrdinalIgnoreCase),softDelete,!string.IsNullOrWhiteSpace(avatarEmail));
 
-            try
-            {
-                OASISResult<IAvatar> avatar = await LoadAvatarTemplateAsync(a => a.email == avatarEmail);
-
-                avatar.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
-                avatar.Result.DeletedDate = DateTime.Now;
-
-                await SaveAvatarToFile(avatar.Result);
-                result.Result = true;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"An error occured in DeleteAvatarByEmailAsync in IPFSOASIS Provider. Reason: {ex.ToString()}");
-            }
-
-            return result;
-        }
-
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-        {
-            OASISResult<bool> result = new OASISResult<bool>();
-
-            try
-            {
-                OASISResult<IAvatar> avatar = await LoadAvatarTemplateAsync(a => a.login == avatarUsername);
-
-                avatar.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
-                avatar.Result.DeletedDate = DateTime.Now;
-
-                await SaveAvatarToFile(avatar.Result);
-                result.Result = true;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"An error occured in DeleteAvatarByUsernameAsync in IPFSOASIS Provider. Reason: {ex.ToString()}");
-            }
-
-            return result;
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+            => DeleteIndexedAvatarAsync(row=>string.Equals(row.login,avatarUsername,StringComparison.OrdinalIgnoreCase),softDelete,!string.IsNullOrWhiteSpace(avatarUsername));
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {

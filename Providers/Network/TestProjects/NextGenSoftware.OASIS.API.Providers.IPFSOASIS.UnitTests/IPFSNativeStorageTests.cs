@@ -182,6 +182,28 @@ public class IPFSNativeStorageTests
                 var raw=await provider.IPFSClient.FileSystem.ReadAllTextAsync((Cid)cid);
                 Assert.StartsWith("oasis-aes256gcm-gzip-v2:",raw); Assert.DoesNotContain(avatar.Email,raw); Assert.DoesNotContain(avatar.Password,raw); Assert.DoesNotContain(id.ToString(),raw);
             }
+            var deleted=provider.DeleteAvatarByEmail(avatar.Email.ToUpperInvariant());
+            Assert.False(deleted.IsError,deleted.Message); Assert.True(deleted.Result);
+            var tombstonedAvatar=(await provider.LoadAvatarAsync(id)).Result;
+            var tombstonedDetail=(await provider.LoadAvatarDetailAsync(id)).Result;
+            Assert.False(tombstonedAvatar.IsActive); Assert.False(tombstonedDetail.IsActive);
+            Assert.Equal(tombstonedAvatar.DeletedDate,tombstonedDetail.DeletedDate);
+            Assert.Equal(DateTimeKind.Utc,tombstonedAvatar.DeletedDate.Kind);
+            Assert.Equal(321,tombstonedDetail.XP); Assert.Equal(29,tombstonedDetail.Karma);
+            Assert.Equal(inventoryId,Assert.Single(tombstonedDetail.Inventory).Id);
+            ownedCids.Add(tombstonedAvatar.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]);
+            ownedCids.Add(tombstonedDetail.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]);
+            ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+            var committedRoot=dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
+            Assert.False((await provider.DeleteAvatarByUsernameAsync(avatar.Username)).IsError);
+            Assert.Equal(committedRoot,dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+            Assert.True((await provider.DeleteAvatarByEmailAsync(" ")).IsError);
+            Assert.Equal(committedRoot,dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+            Assert.False((await provider.DeleteAvatarAsync(id,softDelete:false)).IsError);
+            ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+            Assert.True((await provider.LoadAvatarAsync(id)).IsError);
+            Assert.True((await provider.LoadAvatarDetailAsync(id)).IsError);
+            Assert.False((await provider.LoadHolonAsync(id,loadChildren:false)).IsError);
             await provider.DeActivateProviderAsync();
             var version=await new Ipfs.Http.IpfsClient(endpoint).VersionAsync(); Assert.NotEmpty(version);
             verified=true;
