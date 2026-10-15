@@ -8,6 +8,28 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 public class SolanaAvatarMappingTests
 {
     [TestMethod]
+    public void DetailMappingPreservesEveryStoredProfileAndOwnedValue()
+    {
+        var detail = new AvatarDetail {
+            Id = Guid.NewGuid(), UmaJson = "{}",
+            Portrait = "portrait", Model3D = "model", FavouriteColour = ConsoleColor.Green,
+            STARCLIColour = ConsoleColor.Cyan
+        };
+        var dto = detail.GetSolanaAvatarDetailDto();
+        var loaded = dto.GetAvatarDetail();
+        foreach (var name in new[] {
+            "UmaJson", "Portrait", "Model3D", "FavouriteColour", "STARCLIColour", "KarmaAkashicRecords",
+            "HeartRateData", "Omniverse", "Gifts", "DimensionLevelIds", "DimensionLevels", "Chakras", "Aura",
+            "Stats", "GeneKeys", "HumanDesign", "Skills", "Attributes", "SuperPowers", "Spells", "Achievements", "Inventory"})
+        {
+            var expected = typeof(AvatarDetail).GetProperty(name)!.GetValue(detail);
+            var stored = dto.GetType().GetProperty(name)!.GetValue(dto);
+            var actual = typeof(AvatarDetail).GetProperty(name)!.GetValue(loaded);
+            Assert.AreEqual(expected, stored, name + " write"); Assert.AreEqual(expected, actual, name + " read");
+        }
+    }
+
+    [TestMethod]
     public void AvatarProfileScalarsSurviveDtoSerialization()
     {
         var avatar=new Avatar {Id=Guid.NewGuid(),FirstName="Actual",LastName="Profile",Description="stored description",
