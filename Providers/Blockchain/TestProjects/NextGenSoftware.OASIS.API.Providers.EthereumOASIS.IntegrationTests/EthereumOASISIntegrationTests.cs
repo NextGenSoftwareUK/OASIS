@@ -134,6 +134,44 @@ public class EthereumOASISIntegrationTests
         await provider.DeActivateProviderAsync();
     }
 
+    [DataTestMethod]
+    [DataRow(false,false)]
+    [DataRow(true,false)]
+    [DataRow(false,true)]
+    [DataRow(true,true)]
+    public async Task CollectionRejectsAuthenticCiphertextUnderCollidingPublicIdentity(bool synchronous,bool details)
+    {
+        var (provider,address) = await CreateActivatedProviderAsync();
+        var original = Guid.Parse("00005f42-0000-0000-0000-000000000000");
+        var other = Guid.Parse("00017b6d-0000-0000-0000-000000000000");
+        var key = NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(original.ToString());
+        Assert.AreEqual(key,NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(other.ToString()));
+        var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        if(details)
+        {
+            Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=original,Username="authentic detail" })).IsError);
+            var encrypted = (await service.GetAvatarDetailByIdQueryAsync(key)).ReturnValue1.Info;
+            await service.DeleteAvatarDetailRequestAndWaitForReceiptAsync(key);
+            await service.CreateAvatarDetailRequestAndWaitForReceiptAsync(key,other.ToString(),encrypted);
+            var result = synchronous ? provider.LoadAllAvatarDetails() : await provider.LoadAllAvatarDetailsAsync();
+            Assert.IsTrue(result.IsError); Assert.IsFalse(result.IsLoaded); Assert.IsNull(result.Result);
+            Assert.IsInstanceOfType(result.Exception,typeof(InvalidDataException));
+            StringAssert.Contains(result.Exception!.Message,"requested GUID");
+        }
+        else
+        {
+            Assert.IsFalse((await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=original,Username="authentic avatar" })).IsError);
+            var encrypted = (await service.GetAvatarByIdQueryAsync(key)).ReturnValue1.Info;
+            await service.DeleteAvatarRequestAndWaitForReceiptAsync(key);
+            await service.CreateAvatarRequestAndWaitForReceiptAsync(key,other.ToString(),encrypted);
+            var result = synchronous ? provider.LoadAllAvatars() : await provider.LoadAllAvatarsAsync();
+            Assert.IsTrue(result.IsError); Assert.IsFalse(result.IsLoaded); Assert.IsNull(result.Result);
+            Assert.IsInstanceOfType(result.Exception,typeof(InvalidDataException));
+            StringAssert.Contains(result.Exception!.Message,"requested GUID");
+        }
+        await provider.DeActivateProviderAsync();
+    }
+
     [TestMethod]
     public async Task Holon_SaveLoadRoundTrip_UsesDisposableEvmChain()
     {
