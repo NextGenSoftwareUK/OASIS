@@ -92,6 +92,7 @@ public partial class Web3NativeStorageTests
         var source=new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder(connectionString).DataSource;
         Assert.AreEqual(Path.GetFullPath("TestResults/Web3CoreRouting/routing.db"),Path.GetFullPath(source),"Only the owned fixed test database may be locked.");
         var priorTimeout=db.Database.GetCommandTimeout();db.Database.SetCommandTimeout(1);
+        var reverseWrites=new List<Guid>();
         using(var control=new Microsoft.Data.Sqlite.SqliteConnection(connectionString))
         {
             await control.OpenAsync();using var command=control.CreateCommand();command.CommandTimeout=1;
@@ -113,6 +114,20 @@ public partial class Web3NativeStorageTests
                     foreach(var type in types) Assert.AreEqual(before[type]+1,manager.PerformanceMonitor.GetMetrics(type).TotalRequests);
                     Assert.AreEqual(0,(await store.GetAsync(handle.OperationId,default)).ProviderAttempts.Count,"Read-only routing must not invent mutation attempts.");
                 }
+                foreach(var asynchronous in new[] {false,true})
+                {
+                    var handle=await Begin("sqlite-prewrite-outage");var id=Guid.NewGuid();reverseWrites.Add(id);
+                    var before=types.ToDictionary(type=>type,type=>manager.PerformanceMonitor.GetMetrics(type).TotalRequests);
+                    var request=new Core.StorageOperationRequest {Operation="SaveAvatarDetail",Payload=new AvatarDetail {Id=id,IsActive=true,XP=333},PreferredProvider=Core.Enums.ProviderType.SQLLiteDBOASIS,PreparedExecution=Context(handle)};
+                    var saved=asynchronous ? await router.RouteRequestAsync<IAvatarDetail>(request):router.RouteRequest<IAvatarDetail>(request);
+                    Assert.IsFalse(saved.IsError,saved.Message);Assert.AreEqual(id,saved.Result.Id);
+                    foreach(var type in types) Assert.AreEqual(before[type]+1,manager.PerformanceMonitor.GetMetrics(type).TotalRequests);
+                    var attempts=(await store.GetAsync(handle.OperationId,default)).ProviderAttempts;
+                    Assert.AreEqual(2,attempts.Count);Assert.AreEqual(2,attempts.Select(attempt=>attempt.ClientRequestId).Distinct().Count());
+                    Assert.AreEqual("SQLLiteDBOASIS",attempts[0].Provider);Assert.IsNull(attempts[0].NativePreparation);
+                    Assert.AreEqual("PolygonOASIS",attempts[1].Provider);Assert.IsNotNull(attempts[1].NativePreparation);
+                    Assert.AreEqual(333L,polygon.DecodePrivateEntity<AvatarDetail>("detail",await native.GetAvatarDetailByIdAsync((uint)Core.Utilities.HashUtility.GetNumericHash(id.ToString()))).XP);
+                }
             }
             finally
             {
@@ -122,5 +137,6 @@ public partial class Web3NativeStorageTests
             }
         }
         Assert.AreEqual(999L,(await sqlite.LoadAvatarDetailAsync(reverseId)).Result.XP);
+        foreach(var id in reverseWrites) Assert.IsNull((await sqlite.LoadAvatarDetailAsync(id)).Result,"Pre-write SQLite lock failure must leave no row after unlock.");
     }
 }
