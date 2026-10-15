@@ -1,0 +1,20 @@
+{
+  "repository": "NextGenSoftwareUK/OASIS",
+  "projectId": "712f50f6-3b7b-46d4-b229-44b49922f16b",
+  "stagingIsolation": {
+    "mongoDbName": null
+  },
+  "environments": {
+    "staging": "e0796a6e-8afe-4a38-8472-675ef572f7d7",
+    "production": "86de55b2-51e3-4c83-ae6b-806d554349cc"
+  },
+  "services": {
+    "4": "5123199a-43c4-4439-9921-e10e2aec7841",
+    "5": "bb2c3e9a-ec96-44a5-9916-05e06d54b1f4",
+    "6": "1e6ee65f-df5d-42b1-972e-97f3a560f5d3",
+    "7": "31bd0ff6-2d3d-4793-8197-eabcd3afcb75",
+    "8": "95c937b9-b4e8-4fd3-866f-bd98d5420b2f",
+    "9": "36eda15e-fd28-4fc6-a0c9-7fe454829554",
+    "10": "6f9e4f24-29be-49d7-914b-f1f9b42790d6"
+  }
+}
