@@ -17,6 +17,32 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
+    public async Task SoftDeletionMarksBothRecordsInactiveWithOneUtcTimestamp(bool synchronous)
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var id=Guid.NewGuid();
+        var avatar=new Avatar {Id=id,Username="utc-delete",Email="utc-delete@test.invalid",IsActive=true,
+            AvatarType=new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User)};
+        (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+        (await provider.SaveAvatarDetailAsync(new AvatarDetail {Id=id,Username=avatar.Username,IsActive=true,XP=43,Karma=17})).IsError.Should().BeFalse();
+        var before=DateTime.UtcNow;
+        var deleted=synchronous ? provider.DeleteAvatar(id) : await provider.DeleteAvatarAsync(id);
+        deleted.IsError.Should().BeFalse(deleted.Message); deleted.Result.Should().BeTrue();
+        var after=DateTime.UtcNow;
+        using var control=new DataContext(TestConnectionString);
+        var storedAvatar=control.Avatars.AsNoTracking().Single(row=>row.Id==id.ToString());
+        var storedDetail=control.AvatarDetails.AsNoTracking().Single(row=>row.Id==id.ToString());
+        storedAvatar.IsActive.Should().BeFalse(); storedDetail.IsActive.Should().BeFalse();
+        storedAvatar.DeletedDate.Should().Be(storedDetail.DeletedDate);
+        storedAvatar.DeletedDate.Should().BeOnOrAfter(before).And.BeOnOrBefore(after);
+        storedAvatar.Email.Should().Be(avatar.Email);
+        storedDetail.XP.Should().Be(43); storedDetail.Karma.Should().Be(17);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
     public async Task AvatarAndDetailReadsObserveIndependentlyCommittedUpdates(bool synchronous)
     {
         using var provider = new SQLLiteDBOASIS(TestConnectionString);
