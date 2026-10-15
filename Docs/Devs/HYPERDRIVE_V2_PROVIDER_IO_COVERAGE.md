@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+Solana write follow-up (2026-10-15): invalid identity/version preflight and committed-partial-batch replay fence implemented; full unit suite89/89 passes. Controlled failure tests invoke actual V2 replay predicate, not a live validator. Complete graph-write semantics and live native verification remain open.
+
 Search follow-up: Solana now uses authenticated collections plus Ethereum's extracted shared StoredRecordSearch evaluator/validation. Solana unit81/81 and actual Ethereum native91/91 pass. Wallet/history search, full DTO/field/query semantics, private indexing, result redaction and live Solana finality remain incomplete.
 
 Solana metadata follow-up: single-key and All/Any selectors now query actual authenticated memo records with validated input, exact ordinal/invariant scalar matching and shared graph options. Full unit suite79/79 passes; controlled culture/case/filter tests are not native-chain/index/full structured-query certification.

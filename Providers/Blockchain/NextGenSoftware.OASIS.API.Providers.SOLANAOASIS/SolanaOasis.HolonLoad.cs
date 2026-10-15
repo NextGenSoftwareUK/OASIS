@@ -202,6 +202,7 @@ public partial class SolanaOASIS
     {
         var errorMessage = "Error occured in SaveHolonsAsync method in SolanaOASIS Provider";
         var result = new OASISResult<IEnumerable<IHolon>>();
+        var committedSignatures=new List<string>();
 
         try
         {
@@ -222,15 +223,10 @@ public partial class SolanaOASIS
                     transactionHash = await _solanaRepository.CreateAsync(solanaAvatarDetailDto);
                 }
 
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
-
                 if (string.IsNullOrEmpty(transactionHash))
-                {
-                    OASISErrorHandling.HandleWarning(ref result,
-                        $"{errorMessage} saving {LoggingHelper.GetHolonInfoForLogging(holon)}. Reason: transaction processing failed!");
-                    if (!continueOnError)
-                        break;
-                }
+                    throw new InvalidOperationException("Solana storage returned no committed transaction signature.");
+                committedSignatures.Add(transactionHash);
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
 
                 // Note: Child saving logic is provider-specific. For cross-provider persistence, use ProviderManager to save to multiple providers.
                 if ((saveChildren && !recursive && currentChildDepth == 0) || saveChildren && recursive &&
@@ -257,7 +253,9 @@ public partial class SolanaOASIS
         }
         catch (Exception ex)
         {
-            OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}", ex);
+            var cause=committedSignatures.Count>0
+                ? new Infrastructure.Repositories.SolanaPartialMutationException(committedSignatures,ex) : ex;
+            OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}", cause);
         }
 
         return result;

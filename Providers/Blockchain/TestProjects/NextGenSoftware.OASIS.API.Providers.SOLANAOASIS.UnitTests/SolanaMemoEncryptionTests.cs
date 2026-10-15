@@ -56,7 +56,7 @@ public class SolanaMemoEncryptionTests
     public async Task MissingStorageKeyFailsBeforeRpcAccess()
     {
         var repository = new SolanaRepository(null!, null!, () => throw new InvalidOperationException("Storage key unavailable"));
-        var error = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => repository.CreateAsync(new SolanaAvatarDto()));
+        var error = await Assert.ThrowsExceptionAsync<InvalidOperationException>(() => repository.CreateAsync(new SolanaAvatarDto {Id=Guid.NewGuid()}));
         Assert.AreEqual("Storage key unavailable", error.Message);
     }
 }

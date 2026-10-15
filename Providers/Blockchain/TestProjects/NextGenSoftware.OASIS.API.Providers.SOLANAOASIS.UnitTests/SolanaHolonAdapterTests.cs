@@ -1,6 +1,9 @@
 using System.Reflection;
+using NextGenSoftware.OASIS.API.Core;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.Models;
@@ -12,6 +15,31 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 [TestClass]
 public class SolanaHolonAdapterTests
 {
+    [DataTestMethod]
+    [DataRow(false,false)]
+    [DataRow(false,true)]
+    [DataRow(true,false)]
+    [DataRow(true,true)]
+    public async Task PartialBatchRetainsCommittedSignatureAndRequiresReconciliation(bool synchronous,bool continueOnError)
+    {
+        var repository=new RecordsRepository {AllowPartialWrite=true};
+        var provider=new ActiveProvider(repository);
+        var first=new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=Guid.NewGuid()};
+        var second=new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=Guid.NewGuid()};
+        var input=new[] {first,second};
+        var result=synchronous ? provider.SaveHolons(input,saveChildren:false,continueOnError:continueOnError)
+            : await provider.SaveHolonsAsync(input,saveChildren:false,continueOnError:continueOnError);
+        Assert.IsTrue(result.IsError); Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception));
+        var partial=result.Exception as SolanaPartialMutationException;
+        Assert.IsNotNull(partial); Assert.AreEqual("owned-first-committed-signature",partial.CommittedSignatures.Single());
+        Assert.AreSame(repository.WriteCause,partial.InnerException);
+        Assert.AreEqual("owned-first-committed-signature",first.ProviderUniqueStorageKey[ProviderType.SolanaOASIS]);
+        Assert.IsFalse(second.ProviderUniqueStorageKey.ContainsKey(ProviderType.SolanaOASIS));
+        Assert.AreEqual(2,repository.WriteCalls);
+        var shouldFailOver=typeof(OASISHyperDrive).GetMethod("ShouldFailOver",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(IEnumerable<IHolon>));
+        Assert.IsFalse((bool)shouldFailOver.Invoke(null,new object[] {new StorageOperationRequest {Operation="SaveHolons",Payload=input},result})!);
+    }
+
     [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]
@@ -129,6 +157,9 @@ public class SolanaHolonAdapterTests
     {
         public (SolanaHolonDto Record,string Signature)[] Records=Array.Empty<(SolanaHolonDto,string)>();
         public int Reads;
+        public bool AllowPartialWrite;
+        public int WriteCalls;
+        public Exception WriteCause=new System.IO.IOException("Owned second write rejection");
         public Task<IReadOnlyList<(T Record,string Signature)>> GetAllAsync<T>() where T:SolanaBaseDto,new()
         {
             Reads++;
@@ -138,7 +169,13 @@ public class SolanaHolonAdapterTests
         {
             Reads++; return Task.FromResult((T)(SolanaBaseDto)Records.Single(entry=>entry.Signature==reference).Record);
         }
-        public Task<string> CreateAsync<T>(T entity) where T:SolanaBaseDto,new() => throw new InvalidOperationException("Unexpected write");
+        public Task<string> CreateAsync<T>(T entity) where T:SolanaBaseDto,new()
+        {
+            if(!AllowPartialWrite) throw new InvalidOperationException("Unexpected write");
+            WriteCalls++;
+            if(WriteCalls==1) return Task.FromResult("owned-first-committed-signature");
+            throw WriteCause;
+        }
         public Task<string> UpdateAsync<T>(T entity) where T:SolanaBaseDto,new() => throw new InvalidOperationException("Unexpected write");
         public Task<bool> DeleteAsync(string reference) => throw new InvalidOperationException("Unexpected write");
         public Task<string> CreateTombstoneAsync(string reference) => throw new InvalidOperationException("Unexpected write");
