@@ -252,48 +252,49 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            var result = new OASISResult<ISearchResults>();
+            var result=new OASISResult<ISearchResults>();
             try
             {
-                if (!IsProviderActivated)
+                ArgumentNullException.ThrowIfNull(searchParams);
+                if(searchParams.SearchOnlyForCurrentAvatar && searchParams.AvatarId == Guid.Empty)
+                    throw new ArgumentException("Current-avatar search requires AvatarId.");
+                if(searchParams.MetaKeyValuePairMatchMode != MetaKeyValuePairMatchMode.All && searchParams.MetaKeyValuePairMatchMode != MetaKeyValuePairMatchMode.Any)
+                    throw new ArgumentOutOfRangeException(nameof(searchParams.MetaKeyValuePairMatchMode));
+                foreach(var group in searchParams.SearchGroups ?? new List<ISearchGroupBase>())
                 {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
+                    if(group == null || group is not ISearchTextGroup && group is not ISearchNumberGroup && group is not ISearchDateGroup)
+                        throw new NotSupportedException("Unknown Ethereum search group type.");
+                    if(!Enum.IsDefined(typeof(SearchParamGroupOperator),group.PreviousSearchGroupOperator))
+                        throw new ArgumentException("Unknown search group operator.");
+                    if(group is ISearchTextGroup text && string.IsNullOrWhiteSpace(text.SearchQuery))
+                        throw new ArgumentException("Text search query must be nonempty.");
+                    if(group is ISearchDateGroup date && !Enum.IsDefined(typeof(SearchOperatorType),date.DateOperator)
+                        || group is ISearchNumberGroup number && !Enum.IsDefined(typeof(SearchOperatorType),number.NumberOperator))
+                        throw new ArgumentException("Unknown search comparison operator.");
+                    if(group.AvatarSearchParams?.SearchAvatarWalletParams != null)
+                        throw new NotSupportedException("Ethereum wallet-field search is not implemented.");
                 }
-
-                // Search avatars and holons from Ethereum smart contract
-                var searchResults = new SearchResults();
-                
-                // Search avatars
-                if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
+                var avatars=await LoadAllAvatarsAsync(version);
+                if(avatars.IsError)
                 {
-                    var avatarsResult = await LoadAllAvatarsAsync();
-                    if (!avatarsResult.IsError && avatarsResult.Result != null)
-                    {
-                        searchResults.SearchResultAvatars.AddRange(avatarsResult.Result);
-                    }
+                    OASISErrorHandling.HandleError(ref result,avatars.Message,avatars.Exception);
+                    result.ErrorCode=avatars.ErrorCode; return result;
                 }
-                
-                // Search holons
-                    var holonsResult = await LoadAllHolonsAsync();
-                    if (!holonsResult.IsError && holonsResult.Result != null)
-                    {
-                    searchResults.SearchResultHolons.AddRange(holonsResult.Result);
+                var holons=await LoadAllHolonsAsync(HolonType.All,loadChildren,recursive,maxChildDepth,0,continueOnError,false,version);
+                if(holons.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result,holons.Message,holons.Exception);
+                    result.ErrorCode=holons.ErrorCode; return result;
                 }
-                
-                searchResults.NumberOfResults = searchResults.SearchResultAvatars.Count + searchResults.SearchResultHolons.Count;
-                
-                result.Result = searchResults;
-                result.IsError = false;
-                result.Message = $"Successfully searched Ethereum blockchain and found {searchResults.NumberOfResults} results";
+                var found=new SearchResults();
+                found.SearchResultAvatars.AddRange(avatars.Result.Where(row=>SearchRecordMatches(row,true,searchParams,holons.Result)));
+                found.SearchResultHolons.AddRange(holons.Result.Where(row=>SearchRecordMatches(row,false,searchParams,holons.Result)));
+                found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
+                result.Result=found; result.IsLoaded=true;
             }
-            catch (Exception ex)
+            catch(Exception cause)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error searching Ethereum blockchain: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result,$"Ethereum native search failed: {cause.Message}",cause);
             }
             return result;
         }
