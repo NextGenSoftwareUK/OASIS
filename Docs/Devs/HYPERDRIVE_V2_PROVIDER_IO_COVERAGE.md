@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+Solana selector follow-up: avatar/detail GUID/email/username loads now use authenticated collection reads with terminal duplicate-identity handling and cause/code preservation. Dead synthetic avatar parsers removed. Full unit project63/63 passes; selector tests are controlled boundary evidence, not refreshed native-chain support. Full DTO/query/index/history/recovery interfaces remain incomplete.
+
 Solana collection follow-up: avatar/avatar-detail enumeration now scans actual finalized signer history and decrypts typed records instead of generating synthetic accounts; full unit project51/51 passes. Pagination/version/error/tombstone cases use controlled RPC responses, not native-chain evidence. Available-history retention completeness, scalable indexes, remaining query/parser fabrication and live finality remain open; do not equate this scan with fully supported arbitrary collection queries.
 
 Solana follow-up: full existing unit project40/40 passes (2s) after blockhash/pre-submission mutation fixes. Retained read-only validator inspection returns finalized slot505, no recent finalized signatures and no new submissions; live refresh remains unproven. Account enumeration and parser fabrication identified in source remains an implementation gap, not supported functionality.
