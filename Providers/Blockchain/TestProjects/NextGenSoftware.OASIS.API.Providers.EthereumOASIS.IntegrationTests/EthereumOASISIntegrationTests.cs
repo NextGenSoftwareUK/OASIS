@@ -69,6 +69,42 @@ public class EthereumOASISIntegrationTests
         Assert.AreEqual(holon.Name, loaded.Result.Name);
     }
 
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task BulkNativeRejectionRetainsCommittedEvidence(bool synchronous)
+    {
+        var fixturePath = Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_FIXTURE_JSON")
+            ?? throw new InvalidOperationException("Compile the retained local rejection fixture first.");
+        using var fixture = System.Text.Json.JsonDocument.Parse(await File.ReadAllTextAsync(fixturePath));
+        var account = new Account(PrivateKey,ChainId);
+        var web3 = new Web3(account,Host);
+        var deployed = await web3.Eth.DeployContract.SendRequestAndWaitForReceiptAsync(
+            fixture.RootElement.GetProperty("abi").GetRawText(),fixture.RootElement.GetProperty("bytecode").GetString(),
+            account.Address,new Nethereum.Hex.HexTypes.HexBigInteger(4000000));
+        Assert.AreEqual(BigInteger.One,deployed.Status.Value);
+        var provider = new EthereumOASIS(Host,PrivateKey,ChainId,deployed.ContractAddress);
+        Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+        var first = new CoreHolon { Id = Guid.NewGuid(), Name = "owned committed first holon" };
+        var second = new CoreHolon { Id = Guid.NewGuid(), Name = "owned rejected second holon" };
+        var batch = new[] { first,second };
+        var result = synchronous ? provider.SaveHolons(batch,saveChildren:false) : await provider.SaveHolonsAsync(batch,saveChildren:false);
+        Assert.IsTrue(result.IsError);
+        Assert.IsFalse(result.IsSaved);
+        Assert.IsInstanceOfType(result.Exception,typeof(EthereumPartialStorageMutationException));
+        var evidence = (EthereumPartialStorageMutationException)result.Exception;
+        Assert.AreEqual(1,evidence.CommittedTransactions.Count);
+        Assert.IsNotNull(evidence.InnerException);
+        var receipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(evidence.OriginalTransactionId);
+        Assert.AreEqual(BigInteger.One,receipt.Status.Value);
+        var firstRead = await provider.LoadHolonAsync(first.Id);
+        Assert.IsFalse(firstRead.IsError,firstRead.Message);
+        Assert.AreEqual(first.Name,firstRead.Result.Name);
+        var rejectedRead = await provider.LoadHolonAsync(second.Id);
+        Assert.IsNull(rejectedRead.Result);
+        await provider.DeActivateProviderAsync();
+    }
+
     [TestMethod]
     public async Task Activation_RejectsWrongChainId()
     {
