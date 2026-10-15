@@ -33,12 +33,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         {
             if (string.IsNullOrEmpty(ciphertext) && entityId == 0) return null;
             using var codec = OpenPrivateStorageCodec();
-            var record = JsonConvert.DeserializeObject<T>(codec.Decrypt(PrivateStorageContext(kind,entityId),ciphertext));
+            var record = JsonConvert.DeserializeObject<T>(codec.Decrypt(PrivateStorageContext(kind,entityId),ciphertext),new StoredHolonConverter());
             if (record == null || HashUtility.GetNumericHash(record.Id.ToString()) != entityId)
                 throw new InvalidDataException("Encrypted Ethereum record identity does not match its storage key.");
             if (expectedId.HasValue && record.Id != expectedId.Value)
                 throw new InvalidDataException("Encrypted Ethereum record identity does not match the requested GUID; numeric storage key collision.");
             return record;
+        }
+
+        private sealed class StoredHolonConverter : Newtonsoft.Json.Converters.CustomCreationConverter<IHolon>
+        {
+            public override IHolon Create(Type objectType) => new Core.Holons.Holon();
+            public override bool CanConvert(Type objectType) => objectType == typeof(IHolon);
         }
     }
 }
