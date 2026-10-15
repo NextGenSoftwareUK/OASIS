@@ -45,7 +45,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
         {
-            return await LoadAvatarTemplateAsync(a => a.Id == Id,version);
+            return await LoadAvatarTemplateAsync(a => a.Id == Id,version,Id!=Guid.Empty);
         }
 
 
@@ -57,7 +57,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
         {
             //return await LoadAvatarAsync(providerKey);
-            return await LoadAvatarTemplateAsync(a => a.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.IPFSOASIS,out var key) && key == providerKey,version);
+            return await LoadAvatarTemplateAsync(a => a.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.IPFSOASIS,out var key) && key == providerKey,version,!string.IsNullOrWhiteSpace(providerKey));
         }
 
 
@@ -81,7 +81,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
         {
-            return await LoadAvatarDetailTemplateAsync(a => a.Id == id,version);
+            return await LoadAvatarDetailTemplateAsync(a => a.Id == id,version,id!=Guid.Empty);
         }
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
@@ -112,12 +112,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
         {
-            return await LoadAvatarTemplateAsync(a => a.email == avatarEmail,version);
+            return await LoadAvatarTemplateAsync(a => string.Equals(a.email,avatarEmail,StringComparison.OrdinalIgnoreCase),version,!string.IsNullOrWhiteSpace(avatarEmail));
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
-            return await LoadAvatarTemplateAsync(a => a.login == avatarUsername,version);
+            return await LoadAvatarTemplateAsync(a => string.Equals(a.login,avatarUsername,StringComparison.OrdinalIgnoreCase),version,!string.IsNullOrWhiteSpace(avatarUsername));
         }
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
@@ -137,12 +137,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
         {
-            return await LoadAvatarDetailTemplateAsync(a => a.login == avatarUsername,version);
+            return await LoadAvatarDetailTemplateAsync(a => string.Equals(a.login,avatarUsername,StringComparison.OrdinalIgnoreCase),version,!string.IsNullOrWhiteSpace(avatarUsername));
         }
 
         public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
         {
-            return await LoadAvatarDetailTemplateAsync(a => a.email == avatarEmail,version);
+            return await LoadAvatarDetailTemplateAsync(a => string.Equals(a.email,avatarEmail,StringComparison.OrdinalIgnoreCase),version,!string.IsNullOrWhiteSpace(avatarEmail));
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
