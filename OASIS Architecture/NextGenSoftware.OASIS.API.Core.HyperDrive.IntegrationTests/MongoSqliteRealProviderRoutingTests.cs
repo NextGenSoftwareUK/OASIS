@@ -814,6 +814,44 @@ public sealed class MongoSqliteRealProviderRoutingTests
                 if (importCommitEvidence != null)
                     await admin.RunCommandAsync<BsonDocument>(new BsonDocument("killSessions", new BsonArray { BsonDocument.Parse(importCommitEvidence.SessionId) }));
             }
+            MongoTransactionReconciliationException graphCommitEvidence = null;
+            var uncertainGraph = new Holon { Id = Guid.NewGuid(), Name = "owned-graph-commit-rejected" };
+            var uncertainGraphChild = new Holon { Id = Guid.NewGuid(), Name = "owned-graph-commit-child", ParentHolonId = uncertainGraph.Id };
+            uncertainGraph.Children = new List<IHolon> { uncertainGraphChild };
+            try
+            {
+                var graphManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true, IsAutoReplicationEnabled = true };
+                graphManager.RegisterProvider(failureMongo);
+                graphManager.RegisterProvider(sqlite);
+                var graphProviders = new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) };
+                graphManager.SetAndReplaceAutoFailOverListForProviders(graphProviders).IsError.Should().BeFalse();
+                graphManager.SetAndReplaceAutoReplicationListForProviders(graphProviders).IsError.Should().BeFalse();
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                    { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("times",1) },
+                    { "data", new BsonDocument { { "failCommands", new BsonArray { "commitTransaction" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                });
+                var graphRouter = new OASISHyperDrive(graphManager);
+                var uncertainGraphRequest = new StorageOperationRequest { Operation = "SaveHolon", Payload = uncertainGraph,
+                    PreferredProvider = ProviderType.MongoDBOASIS, SaveChildren = true, Recursive = true, ChildrenFromProvider = true };
+                var rejectedGraphCommit = synchronous ? graphRouter.RouteRequest<IHolon>(uncertainGraphRequest)
+                    : await graphRouter.RouteRequestAsync<IHolon>(uncertainGraphRequest);
+                rejectedGraphCommit.IsError.Should().BeTrue();
+                rejectedGraphCommit.Result.Should().BeNull();
+                graphCommitEvidence = rejectedGraphCommit.Exception as MongoTransactionReconciliationException;
+                graphCommitEvidence.Should().NotBeNull();
+                graphCommitEvidence.InnerException.Should().BeOfType<MongoCommandException>();
+                graphCommitEvidence.TransactionNumber.Should().BeGreaterThanOrEqualTo(0);
+                (graphManager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0).Should().Be(0);
+                foreach (var storage in new IOASISStorageProvider[] { mongo, sqlite })
+                foreach (var node in new[] { uncertainGraph, uncertainGraphChild })
+                    (await storage.LoadHolonAsync(node.Id,loadChildren:false)).Result.Should().BeNull();
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+                if (graphCommitEvidence != null)
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument("killSessions", new BsonArray { BsonDocument.Parse(graphCommitEvidence.SessionId) }));
+            }
             var rejectedImportBatch = new IHolon[] {
                 new Holon { Id = Guid.NewGuid(), Name = "owned-import-rollback-one" },
                 new Holon { Id = Guid.NewGuid(), Name = "owned-import-rollback-two" }
