@@ -83,6 +83,22 @@ public class AzureNativeStorageTests
                 Assert.IsFalse(read.IsError,read.Message);counts[read.Result.Name]=counts.GetValueOrDefault(read.Result.Name)+1;
             }
             Assert.AreEqual(3,counts[native.Name]);Assert.AreEqual(3,counts["distinct-local"]);
+            foreach(var strategy in Enum.GetValues<Core.Enums.LoadBalancingStrategy>())
+            foreach(var asynchronous in new[] {false,true}) {
+                var azureBefore=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.AzureStorageOASIS).TotalRequests;
+                var localBefore=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests;
+                var request=new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {Operation="LoadHolon",HolonId=native.Id};
+                var read=asynchronous ? await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request,strategy)
+                    :router.RouteRequest<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request,strategy);
+                Assert.IsFalse(read.IsError,read.Message);
+                var decision=manager.LastProviderSelectionDiagnostic;
+                Assert.AreEqual(strategy,decision.RequestedStrategy);Assert.AreEqual(2,decision.Candidates.Count);
+                Assert.IsTrue(decision.SelectedProvider==Core.Enums.ProviderType.AzureStorageOASIS || decision.SelectedProvider==Core.Enums.ProviderType.LocalFileOASIS);
+                var choseAzure=decision.SelectedProvider==Core.Enums.ProviderType.AzureStorageOASIS;
+                Assert.AreEqual(choseAzure ? native.Name:"distinct-local",read.Result.Name);
+                Assert.AreEqual(azureBefore+(choseAzure ? 1:0),manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.AzureStorageOASIS).TotalRequests);
+                Assert.AreEqual(localBefore+(choseAzure ? 0:1),manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
+            }
             manager.IsAutoLoadBalanceEnabled=false;manager.IsAutoReplicationEnabled=true;
             Assert.IsFalse(manager.SetAndReplaceAutoReplicationListForProviders(providers).IsError);
             foreach(var primary in providers)
@@ -112,6 +128,27 @@ public class AzureNativeStorageTests
                 Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await azure.LoadAvatarAsync(missingId)).ErrorCode);
             }
             finally {await local.DeleteHolonAsync(missingId);}
+            var activated=manager.SetAndActivateCurrentStorageProvider(azure);
+            Assert.IsFalse(activated.IsError,activated.Message);
+            var field=typeof(AzureStorageOASIS).GetField("_serviceClient",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+            var healthy=field.GetValue(azure);
+            var options=new Azure.Storage.Blobs.BlobClientOptions();
+            options.Retry.MaxRetries=0;options.Retry.NetworkTimeout=TimeSpan.FromSeconds(2);
+            try {
+                field.SetValue(azure,new BlobServiceClient(new Uri("http://127.0.0.1:10003/devstoreaccount1"),options));
+                foreach(var asynchronous in new[] {false,true}) {
+                    var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests;
+                    var request=new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {
+                        Operation="LoadHolon",HolonId=native.Id,PreferredProvider=Core.Enums.ProviderType.AzureStorageOASIS};
+                    var read=asynchronous ? await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request)
+                        :router.RouteRequest<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request);
+                    Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(native.Id,read.Result.Id);
+                    Assert.AreEqual((await local.LoadHolonAsync(native.Id,loadChildren:false)).Result.Name,read.Result.Name);
+                    Assert.AreEqual(Core.Enums.ProviderType.LocalFileOASIS,manager.LastFailoverDiagnostic.SelectedProvider);
+                    Assert.AreEqual(before+1,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
+                }
+            }
+            finally {field.SetValue(azure,healthy);}
         }
         finally {await local.DeleteHolonAsync(native.Id);await local.DeActivateProviderAsync();}
     }
