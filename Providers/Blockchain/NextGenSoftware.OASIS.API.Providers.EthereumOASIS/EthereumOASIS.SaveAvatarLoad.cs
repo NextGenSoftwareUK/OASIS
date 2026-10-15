@@ -178,70 +178,42 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
         {
-            var response = new OASISResult<IEnumerable<IAvatar>>();
+            var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
+                if (version != 0)
+                    throw new NotSupportedException("Ethereum collection history is not implemented; only current version 0 is supported.");
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return response;
-                    }
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError)
+                        throw new InvalidOperationException(activation.Message,activation.Exception);
                 }
-
-                // Query all avatars from Ethereum smart contract
-                // Real Ethereum implementation: Query smart contract via HTTP API or Nethereum service
-                try
+                // Count and indexed reads share one block: swap-delete cannot skip/duplicate rows.
+                var block = new Nethereum.RPC.Eth.DTOs.BlockParameter(await Web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync());
+                var count = await _nextGenSoftwareOasisService.GetAvatarsCountQueryAsync(block);
+                var details = new List<IAvatar>();
+                var identities = new HashSet<Guid>();
+                for (BigInteger index = 0; index < count; index++)
                 {
-                    if (!string.IsNullOrEmpty(_apiBaseUrl))
-                    {
-                        // Use HTTP API if available
-                        var httpResponse = await _httpClient.GetAsync($"{_apiBaseUrl}/avatars/all?version={version}");
-                        if (httpResponse.IsSuccessStatusCode)
-                        {
-                            var content = await httpResponse.Content.ReadAsStringAsync();
-                            var avatars = System.Text.Json.JsonSerializer.Deserialize<List<Avatar>>(content, new System.Text.Json.JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                            
-                            if (avatars != null)
-                            {
-                                response.Result = avatars.Select(a => (IAvatar)a).ToList();
-                                response.IsError = false;
-                                response.Message = $"Successfully loaded {avatars.Count} avatars from Ethereum API";
-                                return response;
-                            }
-                        }
-                    }
-                    
-                    // Fallback: Query smart contract events/logs using Nethereum
-                    if (_nextGenSoftwareOasisService != null && Web3Client != null && !string.IsNullOrEmpty(_contractAddress))
-                    {
-                        // Query AvatarCreated events from the contract
-                        // Note: This requires the contract to emit AvatarCreated events
-                        var avatars = new List<IAvatar>();
-                        // In a real implementation, you would query contract events here
-                        // For now, return empty list with message indicating contract query is needed
-                        response.Result = avatars;
-                        response.IsError = false;
-                        response.Message = "Ethereum contract query requires AvatarCreated events. Configure API endpoint or implement event querying.";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Ethereum provider not fully configured. Contract address or API endpoint required.");
-                    }
+                    var row = (await _nextGenSoftwareOasisService.ContractHandler
+                        .QueryDeserializingToObjectAsync<ContractDefinition.GetAvatarAtFunction,ContractDefinition.GetAvatarByIdOutputDTO>(
+                            new ContractDefinition.GetAvatarAtFunction { Index=index },block)).ReturnValue1;
+                    if (row == null || !Guid.TryParseExact(row.AvatarId,"D",out var id))
+                        throw new InvalidDataException("Ethereum avatar has an invalid public GUID.");
+                    var detail = DeserializePrivateStorage<Avatar>("avatar",row.EntityId,row.Info,id);
+                    if (detail == null || !identities.Add(detail.Id))
+                        throw new InvalidDataException("Ethereum avatar collection contains a missing or duplicate identity.");
+                    details.Add(detail);
                 }
-                catch (Exception ex)
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Error loading all avatars from Ethereum: {ex.Message}", ex);
-                }
+                result.Result = details;
+                result.IsLoaded = true;
             }
-            catch (Exception ex)
+            catch (Exception error)
             {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatars from Ethereum: {ex.Message}");
+                OASISErrorHandling.HandleError(ref result,$"Error loading native Ethereum avatars: {error.Message}",error);
             }
-            return response;
+            return result;
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
