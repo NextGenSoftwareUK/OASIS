@@ -9,6 +9,20 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
 [TestClass]
 public class CosmosCurrentReadTests
 {
+    [TestMethod]
+    public async Task SaveValidatesBeforeActivationAndPreservesOriginalActivationFailure()
+    {
+        var provider=new Provider(true);
+        Assert.IsInstanceOfType((await provider.SaveAvatarAsync(null!)).Exception,typeof(ArgumentNullException));
+        Assert.IsInstanceOfType((await provider.SaveAvatarDetailAsync(null!)).Exception,typeof(ArgumentNullException));
+        Assert.IsInstanceOfType((await provider.SaveHolonAsync(null!)).Exception,typeof(ArgumentNullException));
+        Assert.AreEqual(0,provider.Activations);
+        var avatar=await provider.SaveAvatarAsync(new Avatar());
+        Assert.AreSame(provider.Cause,avatar.Exception);Assert.AreEqual("owned-code",avatar.ErrorCode);
+        Assert.AreSame(provider.Cause,(await provider.SaveAvatarDetailAsync(new AvatarDetail())).Exception);
+        Assert.AreSame(provider.Cause,(await provider.SaveHolonAsync(new Holon())).Exception);
+    }
+
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     public async Task InvalidActivationConfigurationLeavesNoClientAndCanRetry(bool missingContainers)
