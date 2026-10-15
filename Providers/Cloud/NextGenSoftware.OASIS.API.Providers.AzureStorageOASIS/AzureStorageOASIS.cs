@@ -137,7 +137,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
             try
             {
                 var blob = _serviceClient.GetBlobContainerClient(_holonContainer).GetBlobClient(providerKey);
-                if (!await blob.ExistsAsync()) { OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Blob '{providerKey}' not found."); return result; }
                 var json = await ReadBlobAsync(blob);
                 var holon = Deserialise<Holon>(json) ?? throw new InvalidDataException("Azure holon record is null.");
                 if(holon.Id==Guid.Empty) throw new InvalidDataException("Azure holon record has no identity.");
@@ -146,6 +145,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = providerKey;
                 result.Result = holon;
+            }
+            catch (Azure.RequestFailedException cause) when(cause.Status==404 && cause.ErrorCode=="BlobNotFound") {
+                result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Azure holon blob not found.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
@@ -260,13 +262,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
             try
             {
                 var blob = _serviceClient.GetBlobContainerClient(_avatarContainer).GetBlobClient(providerKey);
-                if (!await blob.ExistsAsync()) { OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Avatar blob '{providerKey}' not found."); return result; }
                 var json = await ReadBlobAsync(blob);
                 var avatar = Deserialise<Avatar>(json) ?? throw new InvalidDataException("Azure avatar record is null.");
                 if(avatar.Id==Guid.Empty) throw new InvalidDataException("Azure avatar record has no identity.");
                 avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = providerKey;
                 result.Result = avatar;
+            }
+            catch (Azure.RequestFailedException cause) when(cause.Status==404 && cause.ErrorCode=="BlobNotFound") {
+                result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Azure avatar blob not found.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
