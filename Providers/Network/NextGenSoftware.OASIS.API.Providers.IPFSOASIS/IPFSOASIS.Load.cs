@@ -296,7 +296,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 var snapshot = await LoadLookupToJson();
                 var matches = snapshot.Where(entry => entry.Value?.RecordKind == "holon" && select(entry.Value)).Take(2).ToList();
                 if (matches.Count > 1) throw new StorageIdentityAmbiguousException();
-                if (matches.Count == 0) throw new KeyNotFoundException("No IPFS holon matches the requested identity.");
+                if (matches.Count == 0) return new OASISResult<IHolon> {
+                    IsError=true, ErrorCount=1, ErrorCode=OASISResultErrorCodes.RecordNotFound,
+                    Message="No IPFS holon matches the requested identity." };
                 var selected = matches[0];
                 var root = await ReadPrivateRecordAsync<Holon>(selected.Key, "holon", selected.Value.Id);
                 var records = loadChildren && childrenFromProvider
@@ -310,6 +312,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             catch (Exception cause)
             {
                 OASISErrorHandling.HandleError(ref result, "IPFS holon read failed: " + cause.Message, cause);
+                if (cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
             }
             return result;
         }
