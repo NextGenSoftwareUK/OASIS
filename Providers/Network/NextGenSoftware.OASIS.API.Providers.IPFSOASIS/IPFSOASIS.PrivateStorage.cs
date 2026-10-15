@@ -73,6 +73,12 @@ public partial class IPFSOASIS
     {
         if(version!=0) throw new NotSupportedException("IPFS current index collection requires version 0; historical traversal is not implemented.");
         var lookup=await LoadLookupToJson();
+        return await ReadIndexSnapshotAsync<T>(lookup,kind,predicate);
+    }
+
+    private async Task<List<T>> ReadIndexSnapshotAsync<T>(IReadOnlyDictionary<string,HolonResume> lookup,
+        string kind,Func<HolonResume,bool> predicate) where T:class,IHolonBase
+    {
         var selected=lookup.Where(entry=>entry.Value?.RecordKind==kind && predicate(entry.Value)).ToList();
         if(selected.GroupBy(entry=>entry.Value.Id).Any(group=>group.Count()>1)) throw new StorageIdentityAmbiguousException();
         var records=new List<T>();

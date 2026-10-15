@@ -293,11 +293,14 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             {
                 if (version != 0) throw new NotSupportedException("Historical IPFS holon reads are not implemented.");
                 if (maxDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
-                _idLookup = await LoadLookupToJson();
-                var selected = FindIndexEntry("holon", select);
+                var snapshot = await LoadLookupToJson();
+                var matches = snapshot.Where(entry => entry.Value?.RecordKind == "holon" && select(entry.Value)).Take(2).ToList();
+                if (matches.Count > 1) throw new StorageIdentityAmbiguousException();
+                if (matches.Count == 0) throw new KeyNotFoundException("No IPFS holon matches the requested identity.");
+                var selected = matches[0];
                 var root = await ReadPrivateRecordAsync<Holon>(selected.Key, "holon", selected.Value.Id);
                 var records = loadChildren && childrenFromProvider
-                    ? await ReadIndexedCollectionAsync<Holon>("holon", row => true)
+                    ? await ReadIndexSnapshotAsync<Holon>(snapshot, "holon", row => true)
                     : new List<Holon> { root };
                 var project = HolonGraphProjection.Create(records, loadChildren, recursive, maxDepth, 0, childrenFromProvider,
                     source => OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
