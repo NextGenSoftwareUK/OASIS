@@ -135,7 +135,7 @@ contract NextGenSoftwareOASIS {
         for (uint256 i = 0; i < totalAvatarsCount; i++) {
             if (avatars[i].EntityId == entityId) {
                 avatars[i] = avatars[totalAvatarsCount - 1];
-                delete avatars[totalAvatarsCount - 1];
+                avatars.pop();
                 totalAvatarsCount--;
                 return true;
             }
@@ -148,7 +148,7 @@ contract NextGenSoftwareOASIS {
         for (uint256 i = 0; i < totalAvatarDetailsCount; i++) {
             if (avatarDetails[i].EntityId == entityId) {
                 avatarDetails[i] = avatarDetails[totalAvatarDetailsCount - 1];
-                delete avatarDetails[totalAvatarDetailsCount - 1];
+                avatarDetails.pop();
                 totalAvatarDetailsCount--;
                 return true;
             }
@@ -161,7 +161,7 @@ contract NextGenSoftwareOASIS {
         for (uint256 i = 0; i < totalHolonsCount; i++) {
             if (holons[i].EntityId == entityId) {
                 holons[i] = holons[totalHolonsCount - 1];
-                delete holons[totalHolonsCount - 1];
+                holons.pop();
                 totalHolonsCount--;
                 return true;
             }
