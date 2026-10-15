@@ -16,6 +16,7 @@ public sealed class Web3CoreOASIS
     private readonly Web3 _web3;
     private readonly string _contractAddress;
     private readonly string _abi;
+    private readonly BigInteger? _chainId;
 
     public Task<TransactionReceipt> ApplyAvatarLifecycleAsync(AvatarLifecycleRequest request)
         =>SendAndWaitForReceiptAsync(_web3.Eth.GetContract(_abi,_contractAddress).GetFunction("applyAvatarLifecycle"),request);
@@ -82,6 +83,7 @@ public sealed class Web3CoreOASIS
         var bytes=signed.HexToByteArray();
         if(bytes.Length==0) throw new InvalidOperationException("EVM signer returned empty signed transaction.");
         var hash="0x"+Convert.ToHexString(Nethereum.Util.Sha3Keccack.Current.CalculateHash(bytes)).ToLowerInvariant();
+        Web3SignedPreparation.Verify(bytes,hash,_chainId ?? throw new InvalidOperationException("Signed EVM mutations require an explicit chain identity."),input.From,_contractAddress,input.Data.HexToByteArray());
         return await Web3TransactionOutcome.SubmitAndObserveAsync(
             ()=>_web3.Eth.Transactions.SendRawTransaction.SendRequestAsync(signed),
             hash=>_web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(hash),
@@ -97,6 +99,7 @@ public sealed class Web3CoreOASIS
         _web3 = new(new Account(accountPrivateKey,chainId), blockchainUrl);
         _contractAddress = contractAddress;
         _abi = abi;
+        _chainId = chainId;
     }
 
     public Task<TransactionReceipt> CreateAvatarAsync(uint entityId, byte[] avatarId, byte[] info)
