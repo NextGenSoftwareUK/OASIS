@@ -67,6 +67,18 @@ public partial class Web3NativeStorageTests
                     var calldata=new Nethereum.Web3.Web3("http://127.0.0.1:18545").Eth.GetContract(Web3CoreOASISBaseProviderHelper.Abi,address).GetFunction("upsertAvatarDetailChecked")
                         .GetData(numeric,Web3CoreOASISBaseProvider.PrivateExternalId(id),false,Nethereum.Util.Sha3Keccack.Current.CalculateHash(Array.Empty<byte>()),entity.Info);
                     Web3SignedPreparation.Verify(Convert.FromBase64String(attempt.NativePreparation.SignedTransactionBase64),attempt.ProviderRequestId,31337,sdk.SigningAddress,address,calldata.HexToByteArray());
+                    var acceptedBeforeRecovery=proxy.AcceptedHashes.Count;
+                    var recovered=await provider.GetPreparedNativeReceiptAsync(attempt,calldata);
+                    Assert.IsFalse(recovered.IsError,recovered.Message);Assert.IsTrue(recovered.IsLoaded);
+                    Assert.AreEqual(attempt.ProviderRequestId,recovered.Result.TransactionHash);Assert.AreEqual(System.Numerics.BigInteger.One,recovered.Result.Status.Value);
+                    Assert.AreEqual(acceptedBeforeRecovery,proxy.AcceptedHashes.Count,"Read-only recovery must not resubmit.");
+                    var methodsBeforeInvalid=proxy.Methods.Count;
+                    Assert.IsInstanceOfType((await provider.GetPreparedNativeReceiptAsync(attempt,"0x00")).Exception,typeof(InvalidDataException));
+                    var originalHash=attempt.ProviderRequestId;attempt.ProviderRequestId="0xwrong";
+                    Assert.IsInstanceOfType((await provider.GetPreparedNativeReceiptAsync(attempt,calldata)).Exception,typeof(InvalidDataException));
+                    attempt.ProviderRequestId=originalHash;
+                    Assert.AreEqual(methodsBeforeInvalid,proxy.Methods.Count,"Invalid retained evidence must fail before RPC.");
+                    Assert.AreEqual(1,(await reopened.GetAsync(handle.OperationId,default)).ProviderAttempts.Count);
                 }
                 finally {field.SetValue(provider,original);}
             }
