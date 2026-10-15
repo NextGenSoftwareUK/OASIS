@@ -311,6 +311,48 @@ public class IPFSNativeStorageTests
                 var raw=await provider.IPFSClient.FileSystem.ReadAllTextAsync((Cid)cid);
                 Assert.StartsWith("oasis-aes256gcm-gzip-v2:",raw); Assert.DoesNotContain(avatar.Email,raw); Assert.DoesNotContain(avatar.Password,raw); Assert.DoesNotContain(id.ToString(),raw);
             }
+            foreach(var conflictingAvatar in new[] {true,false})
+            {
+                var conflictId=Guid.NewGuid(); var priorDate=DateTime.UtcNow;
+                var conflictAvatar=new Avatar {Id=conflictId,Username="conflict-"+conflictId,Email=conflictId+"@example.invalid",
+                    IsActive=true,DeletedDate=conflictingAvatar ? priorDate:default};
+                var conflictDetail=new AvatarDetail {Id=conflictId,Username=conflictAvatar.Username,IsActive=true,
+                    DeletedDate=conflictingAvatar ? default:priorDate,XP=246};
+                await provider.SaveAvatarToFile(conflictAvatar);
+                ownedCids.Add(conflictAvatar.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]); ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+                await provider.SaveAvatarDetailToFile(conflictDetail);
+                ownedCids.Add(conflictDetail.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]); ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+                var conflictRoot=dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
+                var rejected=await provider.ApplyAvatarTombstoneAsync(new AvatarTombstone(conflictId,DateTime.UtcNow,Guid.NewGuid()));
+                Assert.True(rejected.IsError); Assert.IsType<NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException>(rejected.Exception);
+                Assert.Equal(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode,rejected.ErrorCode);
+                var conflictBackup=new NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.LocalFileOASIS(storageDirectory:Path.Combine(Path.GetDirectoryName(path)!,"routing-files"));
+                Assert.False((await conflictBackup.ActivateProviderAsync()).IsError);
+                try
+                {
+                    Assert.False((await conflictBackup.SaveAvatarAsync(new Avatar {Id=conflictId,Username="untouched-conflict-backup",IsActive=true})).IsError);
+                    var conflictManager=new ProviderManager(null,dna) {IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=false,IsAutoLoadBalanceEnabled=false};
+                    conflictManager.RegisterProvider(provider); conflictManager.RegisterProvider(conflictBackup);
+                    Assert.False(conflictManager.SetAndReplaceAutoFailOverListForProviders(new[] {new EnumValue<ProviderType>(ProviderType.IPFSOASIS),new EnumValue<ProviderType>(ProviderType.LocalFileOASIS)}).IsError);
+                    var conflictRouter=new OASISHyperDrive(conflictManager);
+                    foreach(var asynchronous in new[] {false,true})
+                    {
+                        var request=new StorageOperationRequest {Operation="DeleteAvatar",AvatarId=conflictId,SoftDelete=true,PreferredProvider=ProviderType.IPFSOASIS};
+                        var routed=asynchronous ? await conflictRouter.RouteRequestAsync<bool>(request):conflictRouter.RouteRequest<bool>(request);
+                        Assert.True(routed.IsError); Assert.Equal(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode,routed.ErrorCode);
+                    }
+                    Assert.Null(conflictManager.PerformanceMonitor.GetMetrics(ProviderType.LocalFileOASIS));
+                    Assert.True((await conflictBackup.LoadAvatarAsync(conflictId)).Result.IsActive);
+                    Assert.False((await conflictBackup.DeleteAvatarAsync(conflictId,softDelete:false)).IsError);
+                }
+                finally {await conflictBackup.DeActivateProviderAsync();}
+                Assert.Equal(conflictRoot,dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+                var retainedAvatar=(await provider.LoadAvatarAsync(conflictId)).Result;
+                var retainedDetail=(await provider.LoadAvatarDetailAsync(conflictId)).Result;
+                Assert.True(retainedAvatar.IsActive); Assert.True(retainedDetail.IsActive);
+                Assert.Equal(conflictAvatar.DeletedDate,retainedAvatar.DeletedDate);
+                Assert.Equal(conflictDetail.DeletedDate,retainedDetail.DeletedDate); Assert.Equal(246,retainedDetail.XP);
+            }
             await VerifyPartialPublicationAsync(provider,dna,Path.GetDirectoryName(path)!,ownedCids);
             var exactTombstone=await VerifySqliteTombstoneReplication(provider,dna,id,Path.GetDirectoryName(path)!,ownedCids);
             var deleted=await provider.ApplyAvatarTombstoneAsync(exactTombstone);
