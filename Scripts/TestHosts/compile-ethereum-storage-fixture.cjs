@@ -14,4 +14,18 @@ const contract = output.contracts['Fixture.sol'].RejectSecondHolon;
 const folder = path.join(root, 'TestResults/EthereumCurrent');
 fs.mkdirSync(folder,{recursive:true});
 fs.writeFileSync(path.join(folder,'reject-second-holon.json'),JSON.stringify({abi:contract.abi,bytecode:'0x'+contract.evm.bytecode.object}));
+const contractRoot = path.join(root,'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EthereumOASIS/Contracts');
+const files = ['NextGenSoftwareOASIS.sol','Core/Entities/Avatar.sol','Core/Entities/AvatarDetail.sol','Core/Entities/Holon.sol'];
+const sources = Object.fromEntries(files.map(file => [file,{content:fs.readFileSync(path.join(contractRoot,file),'utf8')}]));
+const nativeOutput = JSON.parse(solc.compile(JSON.stringify({language:'Solidity',sources,settings:{evmVersion:'paris',
+  optimizer:{enabled:true,runs:200},outputSelection:{'*':{'*':['abi','evm.bytecode.object']}}}})));
+const nativeErrors=(nativeOutput.errors||[]).filter(item=>item.severity==='error');
+if(nativeErrors.length)throw new Error(nativeErrors.map(item=>item.formattedMessage).join('\n'));
+const native=nativeOutput.contracts['NextGenSoftwareOASIS.sol'].NextGenSoftwareOASIS;
+fs.writeFileSync(path.join(folder,'default-storage.json'),JSON.stringify({compiler:solc.version(),evmVersion:'paris',
+  optimizerRuns:200,abi:native.abi,bytecode:native.evm.bytecode.object}));
+const deployedSource=fs.readFileSync(path.join(root,'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EthereumOASIS/ContractDefinition/NextGenSoftwareOASISDeploymentBase.cs'),'utf8');
+const embedded=deployedSource.match(/public static string BYTECODE = "([0-9a-fA-F]+)"/);
+if(!embedded || embedded[1]!==native.evm.bytecode.object)
+  throw new Error('Embedded Ethereum deployment bytecode differs from pinned source compilation. Regenerate/review it before tests or deployment.');
 console.log('Compiled retained solc fixture; no network or dependency install.');

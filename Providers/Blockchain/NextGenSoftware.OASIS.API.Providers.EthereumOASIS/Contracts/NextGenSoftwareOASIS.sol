@@ -99,7 +99,7 @@ contract NextGenSoftwareOASIS {
         uint256 entityId,
         string memory info
     ) public returns (bool) {
-        for (uint256 i = 0; i < totalAvatarDetailsCount; i++) {
+        for (uint256 i = 0; i < totalHolonsCount; i++) {
             if (holons[i].EntityId == entityId) {
                 holons[i].Info = info;
                 return true;
