@@ -132,60 +132,12 @@ public partial class SolanaOASIS
         return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError).Result;
     }
 
-    public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true,
-        bool recursive = true, int maxChildDepth = 0, bool continueOnError = true,
-        bool saveChildrenOnProvider = false)
+    public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon,bool saveChildren=true,bool recursive=true,
+        int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
     {
-        var result = new OASISResult<IHolon>();
-
-        try
-        {
-            holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
-            string transactionHash;
-            // Update if avatar if transaction hash exist
-            if (holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.SolanaOASIS) &&
-                holon.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS,
-                    out var avatarDetailSolanaHash))
-            {
-                transactionHash = await UpdateStoredHolonAsync(holon, avatarDetailSolanaHash);
-            }
-            // Create avatar if transaction hash not exist
-            else
-            {
-                var solanaAvatarDetailDto = holon.GetSolanaHolonDto();
-                transactionHash = await _solanaRepository.CreateAsync(solanaAvatarDetailDto);
-            }
-
-            if (!string.IsNullOrEmpty(transactionHash))
-            {
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
-
-                if (saveChildren)
-                {
-                    var holonsResult = await SaveHolonsAsync(holon.Children, saveChildren, recursive, maxChildDepth,
-                        0, continueOnError);
-
-                    if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
-                        holon.Children = holonsResult.Result.ToList();
-                    else
-                        OASISErrorHandling.HandleWarning(ref result,
-                            $"{holonsResult?.Message} saving {LoggingHelper.GetHolonInfoForLogging(holon)} children. Reason: {holonsResult?.Message}");
-                }
-
-                result.Result = holon;
-                result.IsSaved = true;
-                result.IsError = false;
-            }
-            else
-                OASISErrorHandling.HandleError(ref result,
-                    "Error Occured In SolanaOASIS.SaveAvatarAsync. Transaction processing failed!");
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, ex.Message, ex);
-        }
-
-        return result;
+        var saved=await SavePlannedSolanaGraphAsync(new[] {holon},saveChildren,recursive,maxChildDepth,0);
+        return new OASISResult<IHolon> {Result=saved.Result?.Single(),IsSaved=saved.IsSaved,IsError=saved.IsError,
+            ErrorCode=saved.ErrorCode,ErrorCount=saved.ErrorCount,Message=saved.Message,Exception=saved.Exception};
     }
 
     public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons,
@@ -196,80 +148,10 @@ public partial class SolanaOASIS
             .Result;
     }
 
-    public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons,
-        bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int currentChildDepth = 0,
-        bool continueOnError = true, bool saveChildrenOnProvider = false)
-    {
-        var errorMessage = "Error occured in SaveHolonsAsync method in SolanaOASIS Provider";
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        var committedSignatures=new List<string>();
-
-        try
-        {
-            foreach (var holon in holons)
-            {
-                string transactionHash;
-                // Update if avatar if transaction hash exist
-                if (holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.SolanaOASIS) &&
-                    holon.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS,
-                        out var avatarDetailSolanaHash))
-                {
-                    transactionHash = await UpdateStoredHolonAsync(holon, avatarDetailSolanaHash);
-                }
-                // Create avatar if transaction hash not exist
-                else
-                {
-                    var solanaAvatarDetailDto = holon.GetSolanaHolonDto();
-                    transactionHash = await _solanaRepository.CreateAsync(solanaAvatarDetailDto);
-                }
-
-                if (string.IsNullOrEmpty(transactionHash))
-                    throw new InvalidOperationException("Solana storage returned no committed transaction signature.");
-                committedSignatures.Add(transactionHash);
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = transactionHash;
-
-                // Note: Child saving logic is provider-specific. For cross-provider persistence, use ProviderManager to save to multiple providers.
-                if ((saveChildren && !recursive && currentChildDepth == 0) || saveChildren && recursive &&
-                    currentChildDepth >= 0 &&
-                    (maxChildDepth == 0 || (maxChildDepth > 0 && currentChildDepth <= maxChildDepth)))
-                {
-                    currentChildDepth++;
-                    var holonsResult = await SaveHolonsAsync(holon.Children, saveChildren, recursive, maxChildDepth,
-                        currentChildDepth, continueOnError);
-
-                    if (holonsResult != null && !holonsResult.IsError && holonsResult.Result != null)
-                        holon.Children = holonsResult.Result.ToList();
-                    else
-                    {
-                        OASISErrorHandling.HandleWarning(ref result,
-                            $"{errorMessage} saving {LoggingHelper.GetHolonInfoForLogging(holon)} children. Reason: {holonsResult?.Message}");
-                        if (!continueOnError)
-                            break;
-                    }
-                }
-            }
-
-            result.Result = holons;
-        }
-        catch (Exception ex)
-        {
-            var cause=committedSignatures.Count>0
-                ? new Infrastructure.Repositories.SolanaPartialMutationException(committedSignatures,ex) : ex;
-            OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}", cause);
-        }
-
-        return result;
-    }
-
-    private async Task<string> UpdateStoredHolonAsync(IHolon holon, string signature)
-    {
-        var persisted = await _solanaRepository.GetAsync<SolanaHolonDto>(signature);
-        if (persisted == null || persisted.Id != holon.Id)
-            throw new InvalidOperationException("Solana holon storage reference does not match the requested identity.");
-        var current = holon.GetSolanaHolonDto();
-        current.Version = persisted.Version;
-        return await _solanaRepository.UpdateAsync(current);
-    }
+    public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons,
+        bool saveChildren=true,bool recursive=true,int maxChildDepth=0,int currentChildDepth=0,
+        bool continueOnError=true,bool saveChildrenOnProvider=false)
+        => SavePlannedSolanaGraphAsync(holons,saveChildren,recursive,maxChildDepth,currentChildDepth);
 
     public override OASISResult<IHolon> DeleteHolon(string providerKey)
     {
