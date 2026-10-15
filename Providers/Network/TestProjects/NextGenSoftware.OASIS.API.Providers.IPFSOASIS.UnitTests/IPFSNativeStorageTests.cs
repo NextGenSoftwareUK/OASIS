@@ -105,6 +105,14 @@ public class IPFSNativeStorageTests
             Assert.Empty(provider.LoadHolonsByMetaData("Biome","owned-park").Result);
             Assert.IsType<ArgumentException>((await provider.LoadHolonsByMetaDataAsync(" ","value")).Exception);
             Assert.IsType<NotSupportedException>(provider.LoadHolonsByMetaData("biome","owned-park",version:1).Exception);
+            var exportById=await provider.ExportAllDataForAvatarByIdAsync(id);
+            Assert.False(exportById.IsError,exportById.Message); Assert.True(exportById.IsLoaded);
+            Assert.Equal(child.Id,Assert.Single(exportById.Result).Id);
+            Assert.Equal(child.Id,Assert.Single(provider.ExportAllDataForAvatarByEmail(avatar.Email.ToUpperInvariant()).Result).Id);
+            Assert.Equal(child.Id,Assert.Single((await provider.ExportAllDataForAvatarByUsernameAsync(avatar.Username)).Result).Id);
+            Assert.Equal(3,provider.ExportAll().Result.Count());
+            Assert.IsType<NotSupportedException>(provider.ExportAll(version:1).Exception);
+            Assert.IsType<ArgumentException>(provider.ExportAllDataForAvatarById(Guid.Empty).Exception);
             var loadedRoot=await provider.LoadHolonAsync(id,loadChildrenFromProvider:true);
             Assert.False(loadedRoot.IsError,loadedRoot.Message);
             Assert.Equal(grandchild.Id,Assert.Single(Assert.Single(loadedRoot.Result.Children).Children).Id);
