@@ -104,6 +104,7 @@ public sealed class MongoSqliteRealProviderRoutingTests
             var conflictingTombstone=new AvatarTombstone(replicatedDeletionId,replicatedSnapshot.DeletedAtUtc.AddTicks(1),replicatedActor);
             var conflictResult=synchronous ? mongo.ApplyAvatarTombstone(conflictingTombstone) : await mongo.ApplyAvatarTombstoneAsync(conflictingTombstone);
             conflictResult.IsError.Should().BeTrue();
+            conflictResult.ErrorCode.Should().Be(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode);
             (await mongo.LoadAvatarAsync(replicatedDeletionId)).Result.DeletedDate.Should().Be(replicatedSnapshot.DeletedAtUtc);
             (await mongo.ApplyAvatarTombstoneAsync(new AvatarTombstone(Guid.NewGuid(),replicatedSnapshot.DeletedAtUtc))).IsError.Should().BeTrue();
             var failedReplicaId=Guid.NewGuid();

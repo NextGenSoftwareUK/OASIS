@@ -36,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     Guid Actor(HolonBase row) => string.IsNullOrEmpty(row.DeletedByAvatarId) ? Guid.Empty : Guid.Parse(row.DeletedByAvatarId);
                     bool Conflicts(HolonBase row) => row != null && row.DeletedDate != DateTime.MinValue
                         && (row.DeletedDate != tombstone.DeletedAtUtc || Actor(row) != tombstone.DeletedByAvatarId);
-                    if(Conflicts(avatar) || Conflicts(detail)) throw new InvalidOperationException("Mongo replica has a conflicting committed tombstone.");
+                    if(Conflicts(avatar) || Conflicts(detail)) throw new StorageLifecycleConflictException("Mongo replica has a conflicting committed tombstone.");
                     bool Matches(HolonBase row) => row == null || row.DeletedDate==tombstone.DeletedAtUtc && Actor(row)==tombstone.DeletedByAvatarId && !row.IsActive;
                     var already=Matches(avatar) && Matches(detail);
                     if(!already)
@@ -65,6 +65,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     Exception evidence=commitAttempted ? new MongoTransactionReconciliationException(session.ServerSession.Id.ToJson(),session.WrappedCoreSession.CurrentTransaction.TransactionNumber,cause) : cause;
                     OASISErrorHandling.HandleError(ref result,"Mongo committed tombstone application failed.",evidence);
                     if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
+                    if(cause is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
                     if(session.IsInTransaction) await session.AbortTransactionAsync();
                 }
             }
