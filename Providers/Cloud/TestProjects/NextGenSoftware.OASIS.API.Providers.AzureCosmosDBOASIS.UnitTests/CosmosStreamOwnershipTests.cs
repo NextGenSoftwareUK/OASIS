@@ -53,11 +53,13 @@ public class CosmosStreamOwnershipTests
     [DataRow("create",false)] [DataRow("create",true)]
     [DataRow("upsert",false)] [DataRow("upsert",true)]
     [DataRow("replace",false)] [DataRow("replace",true)]
+    [DataRow("delete",false)] [DataRow("delete",true)]
     public async Task ItemPathsDisposeSdkResponseAndOwnedRequestStreams(string operation,bool failure)
     {
         var response=new TrackedResponse(failure ? HttpStatusCode.BadRequest:HttpStatusCode.OK);response.SetContent("{}");
         var container=new Mock<Container>();Stream? request=null;
         container.Setup(c=>c.ReadItemStreamAsync(It.IsAny<string>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(response);
+        container.Setup(c=>c.DeleteItemStreamAsync(It.IsAny<string>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(response);
         container.Setup(c=>c.CreateItemStreamAsync(It.IsAny<Stream>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>()))
             .Callback<Stream,PartitionKey,ItemRequestOptions,CancellationToken>((s,_,_,_)=>request=s).ReturnsAsync(response);
         container.Setup(c=>c.UpsertItemStreamAsync(It.IsAny<Stream>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>()))
@@ -74,11 +76,28 @@ public class CosmosStreamOwnershipTests
                 case "create":await client.CreateDocumentAsync(document,null);break;
                 case "upsert":await client.UpsertDocumentAsync(document,null);break;
                 case "replace":await client.ReplaceDocumentAsync(document.Id.ToString(),document,null);break;
+                case "delete":await client.DeleteDocumentAsync(document.Id.ToString(),null);break;
             }
         }
         if(failure) await Assert.ThrowsExceptionAsync<CosmosException>(Execute);else await Execute();
         Assert.IsTrue(response.Disposed);
-        if(operation!="read") {Assert.IsNotNull(request);Assert.IsFalse(request.CanRead);}
+        if(operation!="read" && operation!="delete") {Assert.IsNotNull(request);Assert.IsFalse(request.CanRead);}
+    }
+
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task UnknownUpsertOutcomesRetainCauseAndReconciliationMarker(bool transport)
+    {
+        var id=Guid.NewGuid();var cause=new IOException("owned lost response");
+        var response=new TrackedResponse(HttpStatusCode.InternalServerError);response.SetContent("{}");
+        var container=new Mock<Container>();
+        container.Setup(c=>c.UpsertItemStreamAsync(It.IsAny<Stream>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>()))
+            .Returns(()=>transport ? Task.FromException<ResponseMessage>(cause):Task.FromResult<ResponseMessage>(response));
+        var failure=await Assert.ThrowsExceptionAsync<CosmosMutationReconciliationException>(()=>new CosmosDbClient(container.Object).UpsertDocumentAsync(new {Id=id},null));
+        Assert.AreEqual(id.ToString(),failure.DocumentId);Assert.AreEqual(string.Empty,failure.OriginalTransactionId);
+        Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(failure));
+        if(transport) Assert.AreSame(cause,failure.InnerException);
+        else {Assert.IsInstanceOfType(failure.InnerException,typeof(CosmosException));Assert.IsTrue(response.Disposed);}
     }
 
     [DataTestMethod]
