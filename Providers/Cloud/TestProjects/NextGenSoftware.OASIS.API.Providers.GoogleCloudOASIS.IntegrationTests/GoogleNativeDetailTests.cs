@@ -42,6 +42,9 @@ public class GoogleNativeDetailTests
                 MetaData=new Dictionary<string,object> {{"owned-field","owned-value"}}};
             var written=await provider.SaveHolonAsync(holon,saveChildren:false);Assert.IsFalse(written.IsError,written.Message);
             var read=await provider.LoadHolonAsync(holonId,loadChildren:false);Assert.IsFalse(read.IsError,read.Message);
+            var keyRead=await provider.LoadHolonAsync(holonId.ToString(),loadChildren:false);
+            Assert.IsFalse(keyRead.IsError,keyRead.Message);Assert.AreEqual(holonId,keyRead.Result.Id);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadHolonAsync(Guid.NewGuid().ToString(),loadChildren:false)).ErrorCode);
             Assert.AreEqual(holonId,read.Result.Id);Assert.AreEqual(detail.Id,read.Result.ParentHolonId);Assert.AreEqual(detail.Id,read.Result.CreatedByAvatarId);
             Assert.AreEqual("owned-value",read.Result.MetaData["owned-field"]);
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadHolonAsync(Guid.NewGuid(),loadChildren:false)).ErrorCode);
