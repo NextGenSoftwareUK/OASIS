@@ -50,6 +50,14 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 nodes.Add(copy);
                 if(saveChildren && (maxDepth == 0 || depth < maxDepth) && (recursive || depth == initialDepth))
                     foreach(var child in source.Children ?? Enumerable.Empty<IHolon>()) copy.Children.Add(Visit(child,depth+1,id));
+                // Manager-managed calls may intentionally provide only cache references.
+                // Rebuild derived IDs only when this plan actually owns child nodes.
+                if(copy.Children.Count > 0)
+                {
+                    copy.ChildrenIds=copy.Children.Select(child=>child.Id).ToList();
+                    copy.ChildIdListCache=string.Join(",",copy.ChildrenIds);
+                    copy.AllChildIdListCache=string.Join(",",PlannedDescendantIds(copy));
+                }
                 return copy;
             }
             var selectedRoots=sourceRoots.Select(root=>Visit(root,initialDepth,null)).ToList();
@@ -63,6 +71,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 assignment.Source.ParentHolonId=assignment.Parent;
             }
             return (selectedRoots,encoded);
+        }
+
+        private static IEnumerable<Guid> PlannedDescendantIds(IHolon root)
+        {
+            foreach(var child in root.Children)
+            {
+                yield return child.Id;
+                foreach(var id in PlannedDescendantIds(child)) yield return id;
+            }
         }
     }
 }
