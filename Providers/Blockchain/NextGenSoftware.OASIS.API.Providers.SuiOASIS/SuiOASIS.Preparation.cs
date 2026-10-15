@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS;
 
-public partial class SuiOASIS
+public partial class SuiOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeStorageProvider
 {
     /// <summary>Own every physical put/delete, including encrypted storage index writes, in one admitted execution.</summary>
     public Task<T> ExecutePreparedStorageAsync<T>(Func<Task<T>> operation,UsageExecutionHandle execution,
