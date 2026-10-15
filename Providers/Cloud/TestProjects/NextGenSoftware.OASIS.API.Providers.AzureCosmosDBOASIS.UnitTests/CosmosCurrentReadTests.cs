@@ -10,6 +10,24 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
 public class CosmosCurrentReadTests
 {
     [TestMethod]
+    public async Task AvatarDeleteCannotReportSuccessAfterFailedTombstone()
+    {
+        var provider=new Provider(false);var repository=new Mock<IAvatarRepository>();var id=Guid.NewGuid();
+        var avatar=new Avatar {Id=id,IsActive=true};
+        repository.Setup(r=>r.GetByIdAsync(id.ToString())).ReturnsAsync(avatar);
+        var cause=new CosmosMutationReconciliationException(id.ToString(),new IOException("lost tombstone reply"));
+        repository.Setup(r=>r.UpsertAsync(It.IsAny<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>())).ThrowsAsync(cause);
+        typeof(AzureCosmosDBOASIS).GetField("avatarRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,repository.Object);
+        var failed=provider.DeleteAvatar(id);
+        Assert.IsTrue(failed.IsError);Assert.IsFalse(failed.Result);Assert.IsFalse(failed.IsSaved);Assert.AreSame(cause,failed.Exception);
+        Assert.IsTrue(avatar.IsActive);
+        repository.Setup(r=>r.UpsertAsync(It.IsAny<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>())).ReturnsAsync((NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar value)=>value);
+        var saved=await provider.DeleteAvatarAsync(id);
+        Assert.IsFalse(saved.IsError,saved.Message);Assert.IsTrue(saved.Result);Assert.IsTrue(saved.IsSaved);
+        repository.Verify(r=>r.UpsertAsync(It.Is<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>(a=>!a.IsActive && a.DeletedDate.Kind==DateTimeKind.Utc)),Times.Exactly(2));
+    }
+
+    [TestMethod]
     public async Task DeleteRetainsUncertainOutcomeAndReturnsOnlyAcknowledgedRecord()
     {
         var provider=new Provider(false);var repository=new Mock<IHolonRepository>();

@@ -15,6 +15,44 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
 
 public partial class AzureCosmosDBOASIS
 {
+    private async Task<OASISResult<bool>> DeleteCurrentAvatarAsync(string key,bool soft)
+    {
+        var result=new OASISResult<bool>(false);
+        try
+        {
+            if(!Guid.TryParse(key,out var id) || id==Guid.Empty) throw new ArgumentException("A nonempty Cosmos avatar GUID is required.",nameof(key));
+            if(!IsProviderActivated)
+            {
+                var activation=await ActivateProviderAsync();
+                if(activation.IsError) return activation;
+                if(!activation.Result) throw new InvalidOperationException("Cosmos activation did not acknowledge readiness.");
+            }
+            var avatar=await avatarRepository.GetByIdAsync(id.ToString());
+            if(avatar==null) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Cosmos avatar not found.";return result;}
+            if(soft)
+            {
+                if(!avatar.IsActive) {result.Result=true;return result;}
+                var snapshot=(IAvatar)OasisJson.Deserialize(OasisJson.Serialize(avatar),typeof(Avatar));
+                snapshot.IsActive=false;snapshot.DeletedDate=DateTime.UtcNow;
+                // The storage interface supplies no actor. Do not depend on global login state.
+                snapshot.DeletedByAvatarId=Guid.Empty;
+                var saved=await SaveCurrentRecordAsync<IAvatar>(snapshot,()=>avatarRepository);
+                if(saved.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,bool>(saved);
+            }
+            else await avatarRepository.DeleteAsync(id.ToString());
+            result.Result=true;result.IsSaved=true;
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
+    }
+
+    private async Task<OASISResult<bool>> DeleteCurrentAvatarSelectorAsync(string selector,bool email,bool soft)
+    {
+        var loaded=await ReadCurrentSelectorAsync<IAvatar>(()=>avatarRepository,selector,row=>email ? row.Email:row.Username,0);
+        if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,bool>(loaded);
+        return await DeleteCurrentAvatarAsync(loaded.Result.Id.ToString(),soft);
+    }
+
     private async Task<OASISResult<IHolon>> DeleteCurrentHolonAsync(string key)
     {
         var result=await ReadCurrentKeyAsync<IHolon>(()=>holonRepository,key,0);
