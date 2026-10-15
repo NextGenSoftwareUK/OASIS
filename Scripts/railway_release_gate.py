@@ -123,8 +123,44 @@ def validate_staging_variables(values, expected_db, expected_accounting=None, ex
         if accounting_uri and expected_user:
             require(urllib.parse.unquote(urllib.parse.urlsplit(accounting_uri).username or "") == expected_user,
                     "Staging accounting credential does not match reviewed staging-only identity")
-    stripe_key = values.get("STRIPE_SECRET_KEY", "")
-    require(not stripe_key or stripe_key.startswith(("sk_test_", "rk_test_")), "Staging Stripe credentials are not test-mode")
+    dna = json.loads(values.get("OASIS_DNA_JSON", "{}"))
+    embedded_stripe = dna.get("OASIS", {}).get("SubscriptionConfig", {}).get("Stripe", {})
+    for stripe_key in (values.get("STRIPE_SECRET_KEY", ""), embedded_stripe.get("SecretKey", "")):
+        require(not stripe_key or stripe_key.startswith(("sk_test_", "rk_test_")), "Staging Stripe credentials are not test-mode")
+
+
+def stripe_endpoint(key, identity, enable=False):
+    require(key.startswith(("sk_test_", "rk_test_")), "Only test-mode Stripe access is allowed")
+    require(bool(re.fullmatch(r"we_[A-Za-z0-9]+", identity)), "Invalid reviewed webhook identity")
+    request = urllib.request.Request(f"https://api.stripe.com/v1/webhook_endpoints/{identity}",
+        data=urllib.parse.urlencode({"disabled": "false"}).encode() if enable else None,
+        headers={"Authorization": f"Bearer {key}", "Content-Type": "application/x-www-form-urlencoded"})
+    with urllib.request.urlopen(request, timeout=30) as response:
+        return json.load(response)
+
+
+def activate_staging_webhook(report, token):
+    require(report.get("environment") == "staging" and report.get("accepted") is True and len(report.get("checks", [])) == 10,
+            "Webhook activation requires complete staging acceptance")
+    return checked_staging_webhook(token, activate=True)
+
+
+def checked_staging_webhook(token, activate=False):
+    values = service_variables("staging", CONFIG["services"]["4"], token)
+    isolation = CONFIG["stagingIsolation"]
+    require(bool(isolation["mongoUsername"]), "Reviewed staging database identity is required before webhook activation")
+    validate_staging_variables(values, isolation["mongoDbName"], isolation["accountingDbName"], isolation["mongoUsername"])
+    expected = CONFIG["stagingStripeWebhook"]
+    key = values.get("STRIPE_SECRET_KEY", "")
+    endpoint = stripe_endpoint(key, expected["id"])
+    require(endpoint.get("id") == expected["id"] and endpoint.get("url") == expected["url"] and
+            endpoint.get("livemode") is False and endpoint.get("api_version") == expected["apiVersion"],
+            "Stripe webhook differs from reviewed staging test endpoint")
+    result = stripe_endpoint(key, expected["id"], enable=True) if activate else endpoint
+    require(result.get("status") == "enabled" and result.get("livemode") is False and
+            result.get("id") == expected["id"] and result.get("url") == expected["url"] and
+            result.get("api_version") == expected["apiVersion"], "Staging test webhook activation failed")
+    return {"id": expected["id"], "livemode": False, "status": "enabled"}
 
 
 def deployment(identity, token):
@@ -214,6 +250,8 @@ def validate_staging_evidence(report, candidate, now=None):
     require(report.get("environment") == "staging" and report.get("candidate") == candidate, "Staging candidate mismatch")
     require(report.get("accepted") is True and len(report.get("checks", [])) == 10, "Missing complete staging acceptance")
     require(set(report.get("deployments", {})) == set(CONFIG["services"]), "Missing staged services")
+    require(report.get("stripeWebhook") == {"id": CONFIG["stagingStripeWebhook"]["id"], "livemode": False, "status": "enabled"},
+            "Missing accepted staging test webhook activation")
     require(0 <= (now or int(time.time())) - report.get("acceptedAt", 0) <= 6 * 3600, "Staging evidence expired; run a fresh candidate")
 
 
@@ -250,8 +288,11 @@ def main():
                         "Staging and production accounting databases are not isolated")
         # Recheck staged identity and contracts after human approval, before any production write.
         acceptance(report, stage_token)
-    report = deploy(candidate, args.operation, token, args.output)
-    write(args.output, acceptance(report, token))
+        require(checked_staging_webhook(stage_token) == report["stripeWebhook"], "Staging test webhook drifted after acceptance")
+    report = acceptance(deploy(candidate, args.operation, token, args.output), token)
+    if args.operation == "staging":
+        report["stripeWebhook"] = activate_staging_webhook(report, token)
+    write(args.output, report)
 
 
 if __name__ == "__main__":
