@@ -506,6 +506,18 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             return items.Where(i => !(i.TryGetValue("is_deleted", out var d) && d.BOOL)).Select(i => Des<Holon>(i["data_json"].S)).Where(h => h != null).Cast<IHolon>().ToList();
         }
 
+        private static async Task<List<Dictionary<string,AttributeValue>>> ReadQueryItemsAsync(Func<QueryRequest,Task<QueryResponse>> query,QueryRequest request)
+        {
+            var items=new List<Dictionary<string,AttributeValue>>();
+            do {
+                var response=await query(request);
+                if(response?.Items==null) throw new InvalidOperationException("DynamoDB query returned no item collection.");
+                items.AddRange(response.Items);
+                request.ExclusiveStartKey=response.LastEvaluatedKey;
+            } while(request.ExclusiveStartKey?.Count>0);
+            return items;
+        }
+
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
@@ -527,14 +539,14 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                var resp = await _client.QueryAsync(new QueryRequest
+                var items = await ReadQueryItemsAsync(request=>_client.QueryAsync(request),new QueryRequest
                 {
                     TableName = "OasisHolons",
                     IndexName = "parentHolonId-index",
                     KeyConditionExpression = "parentHolonId = :pid",
                     ExpressionAttributeValues = new Dictionary<string, AttributeValue> { [":pid"] = new AttributeValue { S = id.ToString() } }
                 });
-                var holons = resp.Items.Where(i => !(i.TryGetValue("is_deleted", out var d) && d.BOOL) && (type == HolonType.All || (i.TryGetValue("holon_type", out var ht) && ht.N == ((int)type).ToString()))).Select(i => Des<Holon>(i["data_json"].S)).Where(h => h != null).Cast<IHolon>().ToList();
+                var holons = items.Where(i => !(i.TryGetValue("is_deleted", out var d) && d.BOOL) && (type == HolonType.All || (i.TryGetValue("holon_type", out var ht) && ht.N == ((int)type).ToString()))).Select(i => Des<Holon>(i["data_json"].S)).Where(h => h != null).Cast<IHolon>().ToList();
                 result.Result = holons; result.IsError = false; result.Message = $"DynamoDBOASIS: Loaded {holons.Count} holon(s) for parent '{id}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }

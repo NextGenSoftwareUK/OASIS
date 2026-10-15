@@ -8,6 +8,31 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
     public class DynamoDBOASISProviderTests
     {
         [DataTestMethod]
+        [DataRow(false)] [DataRow(true)]
+        public async Task QueryPaginationIncludesLaterPagesAndDoesNotHideLaterFailure(bool fail)
+        {
+            int calls=0;
+            var cause=new System.IO.IOException("owned later page failure");
+            Func<Amazon.DynamoDBv2.Model.QueryRequest,Task<Amazon.DynamoDBv2.Model.QueryResponse>> query=request=> {
+                calls++;
+                if(calls==2) {
+                    Assert.AreEqual("cursor",request.ExclusiveStartKey["id"].S);
+                    if(fail) throw cause;
+                }
+                return Task.FromResult(new Amazon.DynamoDBv2.Model.QueryResponse {
+                    Items=new() {new() {["id"]=new() {S="page-"+calls}}},
+                    LastEvaluatedKey=calls==1 ? new() {["id"]=new() {S="cursor"}} : new()
+                });
+            };
+            var task=(Task<List<Dictionary<string,Amazon.DynamoDBv2.Model.AttributeValue>>>)typeof(DynamoDBOASIS)
+                .GetMethod("ReadQueryItemsAsync",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!
+                .Invoke(null,new object[] {query,new Amazon.DynamoDBv2.Model.QueryRequest {TableName="OasisHolons"}})!;
+            if(fail) Assert.AreSame(cause,await Assert.ThrowsExceptionAsync<System.IO.IOException>(()=>task));
+            else {var rows=await task;Assert.AreEqual(2,rows.Count);Assert.AreEqual("page-2",rows[1]["id"].S);}
+            Assert.AreEqual(2,calls);
+        }
+
+        [DataTestMethod]
         [DataRow("ACTIVE")]
         [DataRow("CREATING")]
         [DataRow("DELETING")]

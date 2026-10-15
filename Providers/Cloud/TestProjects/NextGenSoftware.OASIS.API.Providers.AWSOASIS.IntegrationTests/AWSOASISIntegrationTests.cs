@@ -194,5 +194,16 @@ public class AWSOASISIntegrationTests
         Assert.IsFalse(search.IsError, search.Message);
         Assert.IsTrue(search.Result.SearchResultHolons.Any(x => x.Id == holon.Id));
         Assert.AreEqual(holon.Id.ToString(), loaded.Result.ProviderUniqueStorageKey[Core.Enums.ProviderType.AWSOASIS]);
+        // Six ~190KB records exceed DynamoDB's 1MB query response page while staying under its per-item limit.
+        var parent=Guid.NewGuid();
+        var children=Enumerable.Range(0,6).Select(i=>new Holon {
+            Id=Guid.NewGuid(),ParentHolonId=parent,Name="owned-page-"+i,Description=new string('x',190000)}).ToArray();
+        foreach(var child in children) {
+            var written=await _provider.SaveHolonAsync(child,saveChildren:false);
+            Assert.IsFalse(written.IsError,written.Message);
+        }
+        var allPages=await _provider.LoadHolonsForParentAsync(parent,loadChildren:false);
+        Assert.IsFalse(allPages.IsError,allPages.Message);
+        CollectionAssert.AreEquivalent(children.Select(c=>c.Id).ToArray(),allPages.Result.Select(c=>c.Id).ToArray());
     }
 }
