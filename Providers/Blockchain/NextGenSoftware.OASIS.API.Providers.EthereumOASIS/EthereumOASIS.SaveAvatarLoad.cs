@@ -57,7 +57,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
-                var holonInfo = JsonConvert.SerializeObject(holon);
+                var holonInfo = SerializePrivateStorage("holon",holon);
                 var holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
                 var holonId = holon.Id.ToString();
 
@@ -96,7 +96,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
-                var holonInfo = JsonConvert.SerializeObject(holon);
+                var holonInfo = SerializePrivateStorage("holon",holon);
                 var holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
                 var holonId = holon.Id.ToString();
 
@@ -142,7 +142,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 {
                     var holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
                     var holonId = holon.Id.ToString();
-                    var holonEntityInfo = JsonConvert.SerializeObject(holon);
+                    var holonEntityInfo = SerializePrivateStorage("holon",holon);
                     
                     var createHolonResult = _nextGenSoftwareOasisService
                         .CreateHolonRequestAndWaitForReceiptAsync(holonEntityId, holonId, holonEntityInfo).Result;
@@ -260,7 +260,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                var avatarDetailEntityResult = JsonConvert.DeserializeObject<AvatarDetail>(avatarDetailDto.ReturnValue1.Info);
+                var avatarDetailEntityResult = DeserializePrivateStorage<AvatarDetail>("avatar-detail",avatarDetailDto.ReturnValue1.EntityId,avatarDetailDto.ReturnValue1.Info);
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Result = avatarDetailEntityResult;
@@ -469,7 +469,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                var avatarDetailEntityResult = JsonConvert.DeserializeObject<AvatarDetail>(avatarDetailDto.ReturnValue1.Info);
+                var avatarDetailEntityResult = DeserializePrivateStorage<AvatarDetail>("avatar-detail",avatarDetailDto.ReturnValue1.EntityId,avatarDetailDto.ReturnValue1.Info);
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Result = avatarDetailEntityResult;

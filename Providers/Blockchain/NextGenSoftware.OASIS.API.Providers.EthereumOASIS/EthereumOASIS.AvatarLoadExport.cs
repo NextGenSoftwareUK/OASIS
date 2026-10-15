@@ -374,7 +374,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                var avatarEntityResult = JsonConvert.DeserializeObject<Avatar>(avatarDto.ReturnValue1.Info);
+                var avatarEntityResult = DeserializePrivateStorage<Avatar>("avatar",avatarDto.ReturnValue1.EntityId,avatarDto.ReturnValue1.Info);
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Result = avatarEntityResult;
@@ -515,7 +515,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                var avatarEntityResult = JsonConvert.DeserializeObject<Avatar>(avatarDto.ReturnValue1.Info);
+                var avatarEntityResult = DeserializePrivateStorage<Avatar>("avatar",avatarDto.ReturnValue1.EntityId,avatarDto.ReturnValue1.Info);
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Result = avatarEntityResult;
@@ -542,7 +542,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
-                var avatarInfo = JsonConvert.SerializeObject(avatar);
+                var avatarInfo = SerializePrivateStorage("avatar",avatar);
                 var avatarEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
                 var avatarId = avatar.AvatarId.ToString();
 
