@@ -100,14 +100,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
             var result = new OASISResult<IHolon>();
             try
             {
+                ArgumentNullException.ThrowIfNull(holon);
+                if(holon.Id==Guid.Empty) holon.Id=Guid.NewGuid();
                 var key = HolonKey(holon);
-                var json = Serialise(new
-                {
-                    id = holon.Id, name = holon.Name, description = holon.Description,
-                    holonType = holon.HolonType.ToString(),
-                    customKey = (holon as Holon)?.CustomKey,
-                    metaData = holon.MetaData
-                });
+                var json = Serialise(holon);
                 var container = _serviceClient.GetBlobContainerClient(_holonContainer);
                 var blob = container.GetBlobClient(key);
                 using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
