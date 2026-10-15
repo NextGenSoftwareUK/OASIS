@@ -13,6 +13,36 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
 public partial class Web3CoreOASISBaseProvider
 {
+    private async Task<OASISResult<IEnumerable<IHolon>>> ReadPrivateParentAsync(string key,HolonType type,bool children,bool recursive,int depth,int initialDepth,bool fromProvider,int version)
+    {
+        var result=new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if(!Guid.TryParse(key,out var id) || id==Guid.Empty) throw new ArgumentException("A nonempty Web3Core parent GUID is required.",nameof(key));
+            var loaded=await ReadPrivateHolonsAsync(type,children,recursive,depth,initialDepth,fromProvider,version);
+            if(loaded.IsError) return loaded;
+            loaded.Result=loaded.Result.Where(row=>row.ParentHolonId==id).ToArray();return loaded;
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
+    }
+
+    private async Task<OASISResult<IEnumerable<IHolon>>> ReadPrivateMetadataAsync(Dictionary<string,string> pairs,MetaKeyValuePairMatchMode mode,HolonType type,bool children,bool recursive,int depth,int initialDepth,bool fromProvider,int version)
+    {
+        var result=new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if(pairs==null || pairs.Count==0 || pairs.Keys.Any(string.IsNullOrWhiteSpace)) throw new ArgumentException("Nonempty metadata pairs and keys are required.");
+            var search=new Core.Objects.Search.SearchParams {SearchOnlyForCurrentAvatar=false,FilterByMetaData=new Dictionary<string,string>(pairs),MetaKeyValuePairMatchMode=mode};
+            StoredRecordSearch.Validate(search,version,depth);
+            var loaded=await ReadPrivateHolonsAsync(type,children,recursive,depth,initialDepth,fromProvider,version);
+            if(loaded.IsError) return loaded;
+            var records=loaded.Result.ToList();loaded.Result=records.Where(row=>StoredRecordSearch.Matches(row,false,search,records)).ToArray();return loaded;
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
+    }
+
     private async Task<OASISResult<T>> ReadPrivateSelectorAsync<T>(string selector,Func<T,string> field,Func<Task<OASISResult<IEnumerable<T>>>> load) where T:IHolonBase
     {
         var result=new OASISResult<T>();

@@ -53,7 +53,7 @@ public partial class Web3NativeStorageTests
             Assert.AreEqual(avatar.Id,provider.LoadAvatarDetailByUsername(avatar.Username.ToUpperInvariant()).Result.Id);
             Assert.AreEqual(avatar.Id,(await provider.LoadAvatarByProviderKeyAsync(avatar.Id.ToString().ToUpperInvariant())).Result.Id);
             Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,provider.LoadAvatarByEmail("absent@example.invalid").ErrorCode);
-            var root=new Holon {Id=Guid.NewGuid(),IsActive=true,Name="owned root",IsNewHolon=true};
+            var root=new Holon {Id=Guid.NewGuid(),IsActive=true,Name="owned root",IsNewHolon=true,MetaData=new Dictionary<string,object> {{"biome","park"}}};
             var child=new Holon {Id=Guid.NewGuid(),IsActive=true,Name="owned child",ParentHolonId=root.Id,IsNewHolon=true};
             foreach(var row in new[] {root,child}) {var result=await provider.SaveHolonAsync(row,saveChildren:false);Assert.IsFalse(result.IsError,result.Message);}
             child.Name="updated child";
@@ -63,6 +63,14 @@ public partial class Web3NativeStorageTests
             Assert.IsInstanceOfType((await provider.LoadHolonAsync("invalid",loadChildren:false)).Exception,typeof(ArgumentException));
             var graph=await provider.LoadAllHolonsAsync(loadChildrenFromProvider:true);Assert.IsFalse(graph.IsError,graph.Message);
             Assert.AreEqual(child.Id,graph.Result.Single(row=>row.Id==root.Id).Children.Single().Id);
+            var parent=provider.LoadHolonsForParent(root.Id.ToString());Assert.IsFalse(parent.IsError,parent.Message);Assert.IsTrue(parent.IsLoaded);Assert.AreEqual(child.Id,parent.Result.Single().Id);
+            var missing=await provider.LoadHolonsForParentAsync(Guid.NewGuid());Assert.IsFalse(missing.IsError,missing.Message);Assert.IsFalse(missing.Result.Any());
+            var pairs=new Dictionary<string,string> {{"biome","park"},{"missing","no"}};
+            var any=await provider.LoadHolonsByMetaDataAsync(pairs,Core.Enums.MetaKeyValuePairMatchMode.Any,loadChildrenFromProvider:true);
+            Assert.IsFalse(any.IsError,any.Message);Assert.AreEqual(root.Id,any.Result.Single().Id);Assert.AreEqual(child.Id,any.Result.Single().Children.Single().Id);
+            var all=provider.LoadHolonsByMetaData(pairs,Core.Enums.MetaKeyValuePairMatchMode.All);Assert.IsFalse(all.IsError,all.Message);Assert.IsFalse(all.Result.Any());
+            Assert.AreEqual(root.Id,provider.LoadHolonsByMetaData("biome","park").Result.Single().Id);
+            Assert.IsInstanceOfType((await provider.LoadHolonsByMetaDataAsync(" ","no")).Exception,typeof(ArgumentException));
             for(var index=0;index<128;index++)
             {
                 var result=await provider.SaveAvatarAsync(new Avatar {Id=Guid.NewGuid(),IsActive=true,Username="owned-"+index});
