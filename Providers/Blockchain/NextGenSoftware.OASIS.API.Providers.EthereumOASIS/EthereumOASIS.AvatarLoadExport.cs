@@ -55,43 +55,37 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
             try
             {
+                if (version != 0)
+                    throw new NotSupportedException("Ethereum collection history is not implemented; only current version 0 is supported.");
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError)
+                        throw new InvalidOperationException(activation.Message,activation.Exception);
                 }
-
-                // Call smart contract to get all avatar details directly
-                var response = await _httpClient.GetAsync($"{_apiBaseUrl}/avatar-details/all?version={version}");
-
-                if (response.IsSuccessStatusCode)
+                // Count and indexed reads share one block: swap-delete cannot skip/duplicate rows.
+                var block = new Nethereum.RPC.Eth.DTOs.BlockParameter(await Web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync());
+                var count = await _nextGenSoftwareOasisService.GetAvatarDetailsCountQueryAsync(block);
+                var details = new List<IAvatarDetail>();
+                var identities = new HashSet<Guid>();
+                for (BigInteger index = 0; index < count; index++)
                 {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var avatarDetails = System.Text.Json.JsonSerializer.Deserialize<List<AvatarDetail>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
-                    if (avatarDetails != null)
-                    {
-                        result.Result = avatarDetails.Select(ad => (IAvatarDetail)ad).ToList();
-                        result.IsError = false;
-                        result.Message = $"Successfully loaded {avatarDetails.Count} avatar details from Ethereum";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize avatar details from Ethereum API");
-                    }
+                    var row = (await _nextGenSoftwareOasisService.ContractHandler
+                        .QueryDeserializingToObjectAsync<ContractDefinition.GetAvatarDetailAtFunction,ContractDefinition.GetAvatarDetailByIdOutputDTO>(
+                            new ContractDefinition.GetAvatarDetailAtFunction { Index=index },block)).ReturnValue1;
+                    if (row == null || !Guid.TryParseExact(row.AvatarId,"D",out var id))
+                        throw new InvalidDataException("Ethereum avatar detail has an invalid public GUID.");
+                    var detail = DeserializePrivateStorage<AvatarDetail>("avatar-detail",row.EntityId,row.Info,id);
+                    if (detail == null || !identities.Add(detail.Id))
+                        throw new InvalidDataException("Ethereum avatar detail collection contains a missing or duplicate identity.");
+                    details.Add(detail);
                 }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Ethereum API error: {response.StatusCode} - {response.ReasonPhrase}");
-                }
+                result.Result = details;
+                result.IsLoaded = true;
             }
-            catch (Exception ex)
+            catch (Exception error)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading all avatar details from Ethereum: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result,$"Error loading native Ethereum avatar details: {error.Message}",error);
             }
             return result;
         }
