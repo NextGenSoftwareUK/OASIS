@@ -97,6 +97,31 @@ public partial class Web3NativeStorageTests
             Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.AmbiguousIdentity,(await provider.LoadAvatarByUsernameAsync(avatar.Username)).ErrorCode);
             Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.AmbiguousIdentity,provider.LoadAvatarByEmail(avatar.Email).ErrorCode);
             await VerifyV2Async(provider,avatar.Id);
+            var generatedChild=new Holon {IsActive=true,Name="generated child"};
+            var generatedRoot=new Holon {IsActive=true,Name="generated root",Children=new List<Core.Interfaces.IHolon> {generatedChild}};
+            var graphSaved=await provider.SaveHolonAsync(generatedRoot);
+            Assert.IsFalse(graphSaved.IsError,graphSaved.Message);Assert.IsTrue(graphSaved.IsSaved);
+            Assert.AreNotEqual(Guid.Empty,generatedRoot.Id);Assert.AreNotEqual(Guid.Empty,generatedChild.Id);
+            Assert.AreEqual(generatedRoot.Id,generatedChild.ParentHolonId);
+            Assert.AreEqual(generatedChild.Id,(await provider.LoadHolonsForParentAsync(generatedRoot.Id)).Result.Single().Id);
+            var native=new Web3CoreOASIS(key,"http://127.0.0.1:18545",receipt.ContractAddress,Web3CoreOASISBaseProviderHelper.Abi,31337);
+            var beforeCycle=await native.GetHolonsCountAsync();
+            var cycle=new Holon {IsActive=true};cycle.Children=new List<Core.Interfaces.IHolon> {cycle};
+            var invalid=await provider.SaveHolonAsync(cycle);
+            Assert.IsTrue(invalid.IsError);Assert.IsInstanceOfType(invalid.Exception,typeof(ArgumentException));
+            Assert.AreEqual(Guid.Empty,cycle.Id);Assert.AreEqual(beforeCycle,await native.GetHolonsCountAsync());
+            var first=new Holon {Id=Guid.NewGuid(),IsActive=true,Name="first acknowledged"};
+            var second=new Holon {Id=Guid.NewGuid(),IsActive=true,Name="collision rejected"};
+            var third=new Holon {Id=Guid.NewGuid(),IsActive=true,Name="must not run"};
+            await native.CreateHolonAsync((uint)Core.Utilities.HashUtility.GetNumericHash(second.Id.ToString()),System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes("owned conflicting identity")),new byte[] {1});
+            var partial=await provider.SaveHolonsAsync(new[] {first,second,third},saveChildren:false,continueOnError:true);
+            Assert.IsTrue(partial.IsError);Assert.IsFalse(partial.IsSaved);
+            var evidence=partial.Exception as Web3PartialMutationException;Assert.IsNotNull(evidence);
+            CollectionAssert.AreEqual(new[] {first.Id},evidence.AcknowledgedRecordIds.ToArray());
+            Assert.AreEqual(1,evidence.AcknowledgedTransactionIds.Count);Assert.AreEqual(66,evidence.AcknowledgedTransactionIds.Single().Length);
+            Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(evidence.InnerException));
+            Assert.AreEqual("first acknowledged",(await provider.LoadHolonAsync(first.Id,loadChildren:false)).Result.Name);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,(await provider.LoadHolonAsync(third.Id)).ErrorCode);
         }
         finally {await provider.DeActivateProviderAsync();}
     }
