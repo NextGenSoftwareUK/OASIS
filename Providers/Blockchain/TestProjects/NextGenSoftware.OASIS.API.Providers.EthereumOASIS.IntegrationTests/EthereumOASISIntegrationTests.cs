@@ -588,6 +588,45 @@ public class EthereumOASISIntegrationTests
         await provider.DeActivateProviderAsync();
     }
 
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task NativeSearchComparisonAndFieldSelectionMatrix(bool synchronous)
+    {
+        var (provider,_) = await CreateActivatedProviderAsync();
+        var first=new CoreHolon { Id=Guid.NewGuid(),Name="amber",Description="hidden",Version=4,HolonType=HolonType.Park,CreatedDate=new DateTime(2024,1,1),MetaData=new Dictionary<string,object> { ["tag"]="markerA" } };
+        var second=new CoreHolon { Id=Guid.NewGuid(),Name="blue",Description="amber",Version=7,HolonType=HolonType.Quest,CreatedDate=new DateTime(2027,1,1) };
+        foreach(var row in new[] {first,second}) Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);
+        async Task<List<IHolon>> Run(params ISearchGroupBase[] groups)
+        {
+            var query=new SearchParams { SearchOnlyForCurrentAvatar=false,SearchGroups=groups.ToList() };
+            var result=synchronous ? provider.Search(query,loadChildren:false) : await provider.SearchAsync(query,loadChildren:false);
+            Assert.IsFalse(result.IsError,result.Message); return result.Result.SearchResultHolons;
+        }
+        SearchTextGroup Text(string value,SearchHolonParams fields,HolonType type=HolonType.All)=>new SearchTextGroup {
+            SearchQuery=value,SearchHolons=true,HolonType=type,HolonSearchParams=fields };
+        Assert.AreEqual(first.Id,(await Run(Text("amber",new SearchHolonParams { Name=true }))).Single().Id);
+        Assert.AreEqual(second.Id,(await Run(Text("amber",new SearchHolonParams { Description=true }))).Single().Id);
+        Assert.AreEqual(first.Id,(await Run(Text("amber",new SearchHolonParams { Name=true,Description=true },HolonType.Park))).Single().Id);
+        Assert.AreEqual(first.Id,(await Run(Text("markerA",new SearchHolonParams { MetaData=true,MetaDataKey="tag" }))).Single().Id);
+        Assert.AreEqual(0,(await Run(Text("markerA",new SearchHolonParams { MetaData=true,MetaDataKey="absent" }))).Count);
+        var firstGroup=Text("amber",new SearchHolonParams { Name=true });
+        var secondGroup=Text("blue",new SearchHolonParams { Name=true });
+        secondGroup.PreviousSearchGroupOperator=SearchParamGroupOperator.Or;
+        Assert.AreEqual(2,(await Run(firstGroup,secondGroup)).Count);
+        secondGroup.PreviousSearchGroupOperator=SearchParamGroupOperator.And;
+        Assert.AreEqual(0,(await Run(firstGroup,secondGroup)).Count);
+        foreach(var pair in new[] {(SearchOperatorType.LessThan,0),(SearchOperatorType.LessThanOrEqualTo,1),(SearchOperatorType.EqualTo,1),
+            (SearchOperatorType.NotEqualTo,1),(SearchOperatorType.GreaterThan,1),(SearchOperatorType.GreaterThanOrEqualTo,2)})
+        {
+            Assert.AreEqual(pair.Item2,(await Run(new SearchNumberGroup { Number=4,NumberOperator=pair.Item1,SearchHolons=true,HolonType=HolonType.All,HolonSearchParams=new SearchHolonParams { Version=true } })).Count,"number "+pair.Item1);
+            Assert.AreEqual(pair.Item2,(await Run(new SearchDateGroup { Date=first.CreatedDate,DateOperator=pair.Item1,SearchHolons=true,HolonType=HolonType.All,HolonSearchParams=new SearchHolonParams { CreatedDate=true } })).Count,"date "+pair.Item1);
+        }
+        var keyGroup=Text(first.Id.ToString(),new SearchHolonParams()); keyGroup.SearchProviderKeys=true;
+        Assert.AreEqual(first.Id,(await Run(keyGroup)).Single().Id);
+        await provider.DeActivateProviderAsync();
+    }
+
     [TestMethod]
     public async Task Holon_SaveLoadRoundTrip_UsesDisposableEvmChain()
     {
