@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Net;
+using System.IO;
+using Newtonsoft.Json.Linq;
 using System.Threading.Tasks;
 using Microsoft.Azure.Cosmos;
 using Newtonsoft.Json;
@@ -24,10 +26,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         {
             try
             {
+                if(!Guid.TryParse(id,out var identity) || identity==Guid.Empty)
+                    throw new ArgumentException("A nonempty Cosmos OASIS GUID identity is required.",nameof(id));
+                id=identity.ToString();
                 var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
                 var partitionKey = ResolvePartitionKey(id);
                 var json = await cosmosDbClient.ReadDocumentAsync(id, partitionKey);
-                return json == null ? default : DeserializeEntity(json);
+                return json == null ? default : DeserializeEntity(json,id);
             }
             catch (CosmosException e)
             {
@@ -151,6 +156,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         public virtual Guid GenerateId(T entity) => Guid.NewGuid();
         public virtual PartitionKey? ResolvePartitionKey(string entityId) => null;
 
-        private T DeserializeEntity(string json) => (T)OasisJson.Deserialize(json, EntityType);
+        private T DeserializeEntity(string json,string expectedId=null)
+        {
+            var document=JObject.Parse(json);
+            if(document["Id"]?.Type!=JTokenType.String || document["id"]?.Type!=JTokenType.String
+                || !Guid.TryParse(document["Id"].Value<string>(),out var logical) || logical==Guid.Empty
+                || document["id"].Value<string>()!=logical.ToString()
+                || expectedId!=null && expectedId!=logical.ToString())
+                throw new InvalidDataException("Cosmos document key, OASIS payload identity and requested identity must match.");
+            var entity=(T)OasisJson.Deserialize(json,EntityType);
+            if(entity==null || entity.Id!=logical) throw new InvalidDataException("Deserialized Cosmos identity differs from its document.");
+            return entity;
+        }
     }
 }
