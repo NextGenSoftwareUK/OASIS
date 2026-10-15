@@ -326,6 +326,36 @@ public class EthereumOASISIntegrationTests
         finally { sqlite.Dispose(); File.Delete(path); await ethereum.DeActivateProviderAsync(); }
     }
 
+    [DataTestMethod]
+    [DataRow(false,false)]
+    [DataRow(true,false)]
+    [DataRow(false,true)]
+    [DataRow(true,true)]
+    public async Task MissingGuidCannotReportLoadedSuccess(bool synchronous,bool populated)
+    {
+        var (provider,_) = await CreateActivatedProviderAsync();
+        if(populated)
+        {
+            Assert.IsFalse((await provider.SaveHolonAsync(new CoreHolon { Id=Guid.NewGuid(),Name="retained" })).IsError);
+            Assert.IsFalse((await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=Guid.NewGuid(),Username="retained" })).IsError);
+            Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=Guid.NewGuid(),Username="retained" })).IsError);
+        }
+        var absent=Guid.NewGuid();
+        var holon=synchronous ? provider.LoadHolon(absent) : await provider.LoadHolonAsync(absent);
+        var avatar=synchronous ? provider.LoadAvatar(absent) : await provider.LoadAvatarAsync(absent);
+        var detail=synchronous ? provider.LoadAvatarDetail(absent) : await provider.LoadAvatarDetailAsync(absent);
+        Assert.IsTrue(holon.IsError); Assert.IsFalse(holon.IsLoaded); Assert.IsNull(holon.Result); Assert.IsNotNull(holon.Exception);
+        Assert.IsTrue(avatar.IsError); Assert.IsFalse(avatar.IsLoaded); Assert.IsNull(avatar.Result); Assert.IsNotNull(avatar.Exception);
+        Assert.IsTrue(detail.IsError); Assert.IsFalse(detail.IsLoaded); Assert.IsNull(detail.Result); Assert.IsNotNull(detail.Exception);
+        if(populated)
+        {
+            Assert.IsInstanceOfType(holon.Exception,typeof(KeyNotFoundException));
+            Assert.IsInstanceOfType(avatar.Exception,typeof(KeyNotFoundException));
+            Assert.IsInstanceOfType(detail.Exception,typeof(KeyNotFoundException));
+        }
+        await provider.DeActivateProviderAsync();
+    }
+
     [TestMethod]
     public async Task Holon_SaveLoadRoundTrip_UsesDisposableEvmChain()
     {
