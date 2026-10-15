@@ -380,9 +380,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         public OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
         {
             AvatarModel avatarEntity = null;
+            var persistenceEntered = false;
             try
             {
                 avatarEntity = AddOrUpdateAvatar(CreateAvatarModel(avatar));
+                persistenceEntered = true;
                 _dbContext.SaveChanges();
                 return new OASISResult<IAvatar>
                 {
@@ -394,7 +396,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
-                if (avatar != null) DetachFailedAvatarSave(avatar.Id.ToString());
+                ex = AvatarSaveFailure(avatarEntity, avatar, persistenceEntered, ex);
                 return new OASISResult<IAvatar>
                 {
                     IsSaved = false,
@@ -409,9 +411,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         public async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
             AvatarModel avatarEntity = null;
+            var persistenceEntered = false;
             try
             {
                 avatarEntity = AddOrUpdateAvatar(CreateAvatarModel(avatar));
+                persistenceEntered = true;
                 await _dbContext.SaveChangesAsync();
                 //return Avatar;
                 return new OASISResult<IAvatar>
@@ -424,7 +428,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
-                if (avatar != null) DetachFailedAvatarSave(avatar.Id.ToString());
+                ex = AvatarSaveFailure(avatarEntity, avatar, persistenceEntered, ex);
                 return new OASISResult<IAvatar>
                 {
                     IsSaved = false,
@@ -434,6 +438,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     Message = ex.ToString()
                 };
             }
+        }
+
+        private Exception AvatarSaveFailure(AvatarModel model, IAvatar source, bool persistenceEntered, Exception cause)
+        {
+            // Model identity is the actual attempted write, even if the caller changes its object later.
+            var id = model?.Id ?? source?.Id.ToString();
+            try { if (id != null) DetachFailedAvatarSave(id); }
+            catch (Exception cleanup) { cause = new AggregateException("SQLite failure cleanup also failed.", cause, cleanup); }
+            return persistenceEntered ? new SqliteMutationReconciliationException(Guid.Parse(id), cause) : cause;
         }
 
         private static AvatarModel RequireUniqueAvatar(List<AvatarModel> rows)
