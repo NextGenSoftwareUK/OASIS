@@ -218,26 +218,29 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             => await QueryUniqueAvatarAsync(request => _client.QueryAsync(request), indexName, keyName, keyValue);
 
         private static async Task<Avatar?> QueryUniqueAvatarAsync(Func<QueryRequest, Task<QueryResponse>> query, string indexName, string keyName, string keyValue)
+            => await QueryUniqueIdentityAsync<Avatar>(query,"OasisAvatars",indexName,keyName,keyValue,avatar=>avatar.Id);
+
+        private static async Task<T?> QueryUniqueIdentityAsync<T>(Func<QueryRequest, Task<QueryResponse>> query, string tableName, string indexName, string keyName, string keyValue, Func<T,Guid> identity) where T:class
         {
             if(string.IsNullOrWhiteSpace(keyValue)) throw new ArgumentException("Avatar selector must not be blank.",nameof(keyValue));
             var request = new QueryRequest
             {
-                TableName = "OasisAvatars",
+                TableName = tableName,
                 IndexName = indexName,
                 KeyConditionExpression = "#k = :v",
                 ExpressionAttributeNames = new Dictionary<string, string> { ["#k"] = keyName },
                 ExpressionAttributeValues = new Dictionary<string, AttributeValue> { [":v"] = new AttributeValue { S = keyValue } },
             };
-            Avatar? match = null;
+            T? match = null;
             do
             {
                 var response = await query(request);
                 foreach(var item in response.Items)
                 {
                     if(item.TryGetValue("is_deleted",out var deleted) && deleted.BOOL) continue;
-                    var avatar=Des<Avatar>(item["data_json"].S)
+                    var avatar=Des<T>(item["data_json"].S)
                         ?? throw new InvalidOperationException("Stored DynamoDB avatar is null.");
-                    if(avatar.Id==Guid.Empty || !item.TryGetValue("id",out var id) || id.S!=avatar.Id.ToString())
+                    if(identity(avatar)==Guid.Empty || !item.TryGetValue("id",out var id) || id.S!=identity(avatar).ToString())
                         throw new InvalidOperationException("Stored DynamoDB avatar identity does not match its key.");
                     if(match!=null) throw new StorageIdentityAmbiguousException();
                     match=avatar;
@@ -396,15 +399,25 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
 
         private async Task<AvatarDetail?> QueryDetailByGsiAsync(string indexName, string keyName, string keyValue)
-        {
-            var resp = await _client.QueryAsync(new QueryRequest { TableName = "OasisAvatarDetails", IndexName = indexName, KeyConditionExpression = "#k = :v", ExpressionAttributeNames = new Dictionary<string, string> { ["#k"] = keyName }, ExpressionAttributeValues = new Dictionary<string, AttributeValue> { [":v"] = new AttributeValue { S = keyValue } }, Limit = 1 });
-            var item = resp.Items.FirstOrDefault();
-            return item == null ? null : Des<AvatarDetail>(item["data_json"].S);
-        }
+            => await QueryUniqueIdentityAsync<AvatarDetail>(request=>_client.QueryAsync(request),"OasisAvatarDetails",indexName,keyName,keyValue,detail=>detail.Id);
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await QueryDetailByGsiAsync("username-index", "username", u); if (d == null) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No detail for username '{u}'."); return result; } result.Result = d; result.IsError = false; result.Message = "DynamoDBOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); } return result; }
+        private async Task<OASISResult<IAvatarDetail>> LoadSelectedDetailAsync(string index,string key,string value)
+        {
+            var result=new OASISResult<IAvatarDetail>();
+            try {
+                var detail=await QueryDetailByGsiAsync(index,key,value);
+                if(detail==null) {OASISErrorHandling.HandleError(ref result,"DynamoDBOASIS: No matching detail.");return result;}
+                result.Result=detail;result.IsLoaded=true;
+            }
+            catch(Exception cause) {
+                result.Exception=cause;OASISErrorHandling.HandleError(ref result,cause.Message);
+                if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
+            }
+            return result;
+        }
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) => LoadSelectedDetailAsync("username-index","username",u);
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string u, int version = 0) => LoadAvatarDetailByUsernameAsync(u, version).Result;
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) { var result = new OASISResult<IAvatarDetail>(); try { var d = await QueryDetailByGsiAsync("email-index", "email", e); if (d == null) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No detail for email '{e}'."); return result; } result.Result = d; result.IsError = false; result.Message = "DynamoDBOASIS: AvatarDetail loaded."; } catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); } return result; }
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) => LoadSelectedDetailAsync("email-index","email",e);
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string e, int version = 0) => LoadAvatarDetailByEmailAsync(e, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
