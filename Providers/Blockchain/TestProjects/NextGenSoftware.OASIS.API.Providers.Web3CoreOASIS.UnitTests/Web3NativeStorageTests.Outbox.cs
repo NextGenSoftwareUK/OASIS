@@ -70,6 +70,28 @@ public partial class Web3NativeStorageTests
                 }
                 finally {field.SetValue(provider,original);}
             }
+            var rejectedHandle=await executor.BeginAsync("local-fixture-bearer",user,"web3-rejected-owner",new string('b',64),"local rejected owner fixture",policy);
+            var beforeOwner=await store.GetAsync(rejectedHandle.OperationId,default);
+            var operations=client.GetDatabase(database).GetCollection<UsageOutboxOperation>("subscription_usage_outbox_v1")
+                .WithWriteConcern(WriteConcern.WMajority.With(journal:true));
+            var changedOwner=Guid.NewGuid().ToString();
+            var changed=await operations.UpdateOneAsync(row=>row.Id==rejectedHandle.OperationId && row.ExecutionOwner==beforeOwner.ExecutionOwner,
+                Builders<UsageOutboxOperation>.Update.Set(row=>row.ExecutionOwner,changedOwner));
+            Assert.AreEqual(1L,changed.MatchedCount);
+            var deniedId=Guid.NewGuid();var deniedKey=(uint)Core.Utilities.HashUtility.GetNumericHash(deniedId.ToString());
+            var sdkCurrent=(Web3CoreOASIS)field.GetValue(provider)!;
+            var rpc=new Nethereum.Web3.Web3("http://127.0.0.1:18545");
+            var nonceBefore=await rpc.Eth.Transactions.GetTransactionCount.SendRequestAsync(sdkCurrent.SigningAddress,Nethereum.RPC.Eth.DTOs.BlockParameter.CreatePending());
+            var denied=await provider.ExecutePreparedStorageAsync(()=>provider.SaveAvatarDetailAsync(new AvatarDetail {Id=deniedId,IsActive=true,XP=999}),
+                rejectedHandle,"rejected-owner",sdkCurrent.SigningAddress);
+            Assert.IsTrue(denied.IsError);Assert.IsFalse(denied.IsSaved);Assert.IsNull(denied.Result);
+            var ownershipError=denied.Exception as UsageProtocolException;Assert.IsNotNull(ownershipError);
+            Assert.AreEqual("PROVIDER_ATTEMPT_ALREADY_STARTED",ownershipError.Code);
+            Assert.IsFalse(Core.Helpers.NativeMutationReconciliation.IsRequired(ownershipError));
+            Assert.IsTrue(Web3CoreOASISBaseProvider.IsPrivateRecordAbsent(await native.GetAvatarDetailByIdAsync(deniedKey)));
+            Assert.AreEqual(nonceBefore.Value,(await rpc.Eth.Transactions.GetTransactionCount.SendRequestAsync(sdkCurrent.SigningAddress,Nethereum.RPC.Eth.DTOs.BlockParameter.CreatePending())).Value);
+            var afterOwner=await new MongoUsageOutboxStore(uri,database).GetAsync(rejectedHandle.OperationId,default);
+            Assert.AreEqual(changedOwner,afterOwner.ExecutionOwner);Assert.AreEqual(0,afterOwner.ProviderAttempts.Count);
             verified=true;
             Console.WriteLine("WEB3_REAL_OUTBOX_VERIFIED");
         }
