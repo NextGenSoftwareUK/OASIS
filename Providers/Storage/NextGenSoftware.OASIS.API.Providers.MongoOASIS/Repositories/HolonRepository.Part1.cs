@@ -127,13 +127,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             => SaveNativeHolonAsync(holon,false,true).GetAwaiter().GetResult();
 
         private static void PrepareNativeHolonIdentity(Holon holon)
-        {
-            if (string.IsNullOrEmpty(holon.Id)) holon.Id = ObjectId.GenerateNewId().ToString();
-            if (!ObjectId.TryParse(holon.Id, out _))
-                throw new ArgumentException("Mongo native holon ID must be an ObjectId.");
-            holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
-            holon.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS] = holon.Id;
-        }
+            => MongoNativeRecordWriter.PrepareIdentity(holon);
 
         public async Task<Holon> GetHolonAsync(Guid id)
             => await ReadNativeHolonAsync(Builders<Holon>.Filter.Where(x => x.HolonId == id && x.DeletedDate == DateTime.MinValue));
