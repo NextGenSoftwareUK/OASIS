@@ -10,6 +10,37 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
 [TestClass]
 public class CosmosStreamOwnershipTests
 {
+    [DataTestMethod]
+    [DataRow("unique")] [DataRow("duplicate")] [DataRow("error")]
+    public void SelectorsReadAllPagesAndNeverHideDuplicateOrLaterFailure(string mode)
+    {
+        var pages=new[] {new TrackedResponse(HttpStatusCode.OK),new TrackedResponse(HttpStatusCode.OK),
+            new TrackedResponse(mode=="error" ? HttpStatusCode.BadRequest:HttpStatusCode.OK)};
+        pages[0].SetContent("{\"Documents\":[]}");
+        pages[1].SetContent("{\"Documents\":[{\"id\":\"owned-one\"}]}");
+        pages[2].SetContent(mode=="duplicate" ? "{\"Documents\":[{\"id\":\"owned-two\"}]}":"{\"Documents\":[]}");
+        var queue=new Queue<ResponseMessage>(pages);
+        var iterator=new Mock<FeedIterator>();
+        iterator.SetupSequence(i=>i.HasMoreResults).Returns(true).Returns(true).Returns(true).Returns(false);
+        iterator.Setup(i=>i.ReadNextAsync(It.IsAny<CancellationToken>())).Returns(()=>Task.FromResult(queue.Dequeue()));
+        var container=new Mock<Container>();
+        container.Setup(c=>c.GetItemQueryStreamIterator(It.IsAny<QueryDefinition>(),It.IsAny<string>(),It.IsAny<QueryRequestOptions>())).Returns(iterator.Object);
+        var client=new CosmosDbClient(container.Object);
+        if(mode=="duplicate") Assert.ThrowsException<NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException>(()=>client.ReadDocumentByField("Username","owned"));
+        else if(mode=="error") Assert.ThrowsException<CosmosException>(()=>client.ReadDocumentByField("Username","owned"));
+        else StringAssert.Contains(client.ReadDocumentByField("Username","owned"),"owned-one");
+        Assert.IsTrue(pages.All(page=>page.Disposed));
+    }
+
+    [TestMethod]
+    public void SelectorRejectsSqlPropertyInjectionBeforeSdkCall()
+    {
+        var container=new Mock<Container>(MockBehavior.Strict);
+        var client=new CosmosDbClient(container.Object);
+        Assert.ThrowsException<ArgumentException>(()=>client.ReadDocumentByField("Username OR true --","owned"));
+        container.VerifyNoOtherCalls();
+    }
+
     private sealed class TrackedResponse(HttpStatusCode status) : ResponseMessage(status)
     {
         public bool Disposed;
