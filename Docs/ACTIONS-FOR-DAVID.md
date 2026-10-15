@@ -106,6 +106,13 @@ Offered to `holochain/android-service-runtime`; reply to any review comments, or
 
 ---
 
+## 10. Holochain 0.7.1: rebuild hApps (informational)
+
+HoloNET now supports **both 0.7.0 and 0.7.1** (96/96 live tests pass on each). If you move a conductor to 0.7.1,
+hApps must be rebuilt with **hdk 0.7.1 / hdi 0.8.1**; a 0.7.0-built hApp fails there with "callback has invalid
+parameters". The OASIS hApp has a ready branch: `OASIS-Holochain-hApp` → `holochain-0.7.1`. Merge it when you switch.
+Nothing needs doing while you stay on 0.7.0.
+
 ## Status: HoloNET test coverage (measured 2026-10-14)
 
 Not 100% yet. Honest numbers:
