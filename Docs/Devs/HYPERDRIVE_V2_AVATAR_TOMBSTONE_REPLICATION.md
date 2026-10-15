@@ -26,13 +26,13 @@ The weak association is process-local, not a durable outbox, restart recovery me
 ## Remaining implementation
 
 1. Ethereum implementation is present: receipt-bound publication, supplied-timestamp paired CAS, replica-local profile/XP/karma preservation, no-write recognition of an exact match and rejection of conflicting prior tombstones/missing accounts. Two real contract instances verify these paths; missing-account repair and concurrency stress remain open.
-2. SQLite: publish evidence only after commit; apply the supplied timestamp/attribution/inactive state to both matching records within one local transaction. Preserve existing data and rollback/tracker recovery behavior.
+2. SQLite implemented and locally verified: publishes evidence after commit; applies supplied timestamp/attribution/inactive state atomically while preserving profile data and unrelated tracked changes. Full suite 278/278.
 3. Ethereum username/email/provider-key deletion wrappers now preserve the actual result/evidence and failure cause/code. SQLite and other providers still need equivalent preservation.
-4. V2 replication: apply committed evidence through the explicit capability instead of replaying deletion. Missing evidence/capability must produce an explicit replication failure diagnostic after a primary commit, not a hidden command fallback or false complete success.
+4. V2 replication implemented: applies committed evidence through the explicit capability instead of replaying deletion. Missing evidence/capability produces explicit replication failure diagnostics. Explicit unproven soft-delete command replication is rejected. Four sync/async dispatch guard tests reject forged payloads/unsupported capabilities before storage calls; focused suite 17/17.
 5. Prove exact canonical timestamp, attribution and inactive flags in both directions, sync/async. Retain independent raw/database reads, failed-secondary diagnostics, no replay after uncertain submission, and zero backup requests for terminal identity errors.
 6. Resolve absent/stale/already-deleted replicas, concurrent updates, optional/missing detail, unsupported providers and durable recovery. Do not fabricate full account records to make a patch succeed.
 7. Extend relevant provider implementations and hosted route tests before claiming all-provider support. Existing legacy behavior is not certified by this work.
 
 ## Verification boundaries
 
-The existing V2 cross-provider tests still exercise command replay and record timestamp divergence. Explicit Ethereum-to-Ethereum tombstone application is tested independently, not through V2 dispatch. The eight foundation tests are not end-to-end replication evidence. The current release-gates document records exact run results and remains authoritative for unresolved gates.
+The current real V2 Ethereum/SQLite tests assert exact committed state in both directions, with sync/async coverage and replica-failure rollback cases (native suite 91/91). Offline evidence/guard tests (17/17) are not native-provider evidence. MongoDB pair deletion still lacks inactive-state updates and committed-evidence/capability wiring; its existing uncertain-commit marker must be retained. The current release-gates document records exact run results and remains authoritative for unresolved gates.
