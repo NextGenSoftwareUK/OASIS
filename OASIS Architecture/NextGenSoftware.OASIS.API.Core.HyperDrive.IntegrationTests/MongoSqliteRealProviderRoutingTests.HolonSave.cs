@@ -71,5 +71,42 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 (await sqlite.DeleteHolonAsync(holon.Id)).IsError.Should().BeFalse();
             }
         }
+        foreach(var deleting in new[] {false,true})
+        {
+            var holon=new Holon {Id=Guid.NewGuid(),IsActive=true,Name="before concurrent change"};
+            (await healthy.SaveHolonAsync(holon,saveChildren:false)).IsError.Should().BeFalse();
+            (await sqlite.SaveHolonAsync(holon,saveChildren:false)).IsError.Should().BeFalse();
+            Task<Common.OASISResult<IHolon>>? pending=null;
+            try
+            {
+                var configured=await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                    {"configureFailPoint","failCommand"},{"mode",new BsonDocument("times",1)},
+                    {"data",new BsonDocument {{"failCommands",new BsonArray {"update"}},{"appName",app},{"blockConnection",true},{"blockTimeMS",1500}}}});
+                holon.Name="stale replacement must not overwrite concurrent change";
+                var request=new StorageOperationRequest {Operation="SaveHolon",Payload=holon,SaveChildren=false,PreferredProvider=ProviderType.MongoDBOASIS};
+                var before=manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0;
+                pending=synchronous ? Task.Run(()=>router.RouteRequest<IHolon>(request)):router.RouteRequestAsync<IHolon>(request);
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument {{"waitForFailPoint","failCommand"},{"timesEntered",configured["count"].ToInt64()+1},{"maxTimeMS",5000}});
+                var change=Builders<NativeHolon>.Update.Set(row=>row.Name,"concurrent change must survive");
+                if(deleting) change=change.Set(row=>row.DeletedDate,DateTime.UtcNow).Set(row=>row.IsActive,false);
+                await records.UpdateOneAsync(row=>row.HolonId==holon.Id,change);
+                var result=await pending;
+                result.IsError.Should().BeTrue();result.IsSaved.Should().BeFalse();result.Result.Should().BeNull();
+                result.ErrorCode.Should().Be(Core.Helpers.StorageLifecycleConflictException.ErrorCode);
+                Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception).Should().BeFalse("CAS returned known no-match, not uncertain completion");
+                (manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0).Should().Be(before);
+                var retained=await records.Find(row=>row.HolonId==holon.Id).SingleAsync();
+                retained.Name.Should().Be("concurrent change must survive");
+                (retained.DeletedDate!=DateTime.MinValue).Should().Be(deleting);
+                (await sqlite.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Name.Should().Be("before concurrent change");
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument {{"configureFailPoint","failCommand"},{"mode","off"}});
+                if(pending!=null) await pending;
+                await records.DeleteManyAsync(row=>row.HolonId==holon.Id);
+                (await sqlite.DeleteHolonAsync(holon.Id)).IsError.Should().BeFalse();
+            }
+        }
     }
 }
