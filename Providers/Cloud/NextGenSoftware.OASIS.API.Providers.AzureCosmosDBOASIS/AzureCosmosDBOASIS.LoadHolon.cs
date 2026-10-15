@@ -210,49 +210,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             => await ReadCurrentListAsync<IAvatar>(()=>avatarRepository,version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        //public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, int version = 0)
-        {
-            //return LoadAllHolonsAsync(type, version).Result;
-            return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-        }
+            => ReadCurrentHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        //public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, int version = 0)
-        {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            string errorMessage = "Error occured in LoadAllHolonsAsync method in AzureCosmosDBOASIS Provider. Reason: ";
-
-            try
-            {
-                List<IHolon> allHolonsToReturn = new List<IHolon>();
-                List<IHolon> holonList = holonRepository.GetList();
-                IEnumerable<IHolon> holonsFiltered = null;
-
-                if (version > 0)
-                    holonsFiltered = holonList.Where(h => h.HolonType == type && h.Version == version).ToList();
-                else
-                    holonsFiltered = holonList.Where(h => h.HolonType == type).ToList();
-
-                // Child loading is deferred: recursive holon loading would call LoadAllHolons on each child,
-                // which risks infinite recursion on deep graphs. Child holons are loaded on demand via LoadChildHolons.
-                // The loadChildren/recursive/maxChildDepth params are accepted but not yet applied here.
-
-                if (holonList.Count <= 0)
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}No records found.");
-                else
-                {
-                    result.Result = holonsFiltered;
-                    result.IsLoaded = true;
-                    result.Message = "Holons fetched";
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage}{ex}");
-            }
-
-            return result;
-        }
+            => await ReadCurrentHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0)
             => ReadCurrentIdAsync<IAvatar>(()=>avatarRepository,id,version).GetAwaiter().GetResult();
@@ -420,16 +381,16 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             => await ReadCurrentKeyAsync<IAvatar>(()=>avatarRepository,providerKey,version);
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => ReadCurrentIdAsync<IHolon>(()=>holonRepository,id,version,maxChildDepth).GetAwaiter().GetResult();
+            => ReadCurrentHolonAsync(id,loadChildren,recursive,maxChildDepth,loadChildrenFromProvider,version).GetAwaiter().GetResult();
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => ReadCurrentKeyAsync<IHolon>(()=>holonRepository,providerKey,version,maxChildDepth).GetAwaiter().GetResult();
+            => ReadCurrentHolonKeyAsync(providerKey,loadChildren,recursive,maxChildDepth,loadChildrenFromProvider,version).GetAwaiter().GetResult();
 
         public async override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => await ReadCurrentIdAsync<IHolon>(()=>holonRepository,id,version,maxChildDepth);
+            => await ReadCurrentHolonAsync(id,loadChildren,recursive,maxChildDepth,loadChildrenFromProvider,version);
 
         public async override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => await ReadCurrentKeyAsync<IHolon>(()=>holonRepository,providerKey,version,maxChildDepth);
+            => await ReadCurrentHolonKeyAsync(providerKey,loadChildren,recursive,maxChildDepth,loadChildrenFromProvider,version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {

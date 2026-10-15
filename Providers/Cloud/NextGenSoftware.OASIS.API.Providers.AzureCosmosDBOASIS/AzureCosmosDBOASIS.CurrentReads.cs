@@ -6,11 +6,60 @@ using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
 
 public partial class AzureCosmosDBOASIS
 {
+    private async Task<OASISResult<IEnumerable<IHolon>>> ReadCurrentHolonsAsync(HolonType type,bool children,bool recursive,int depth,int initialDepth,bool fromProvider,int version)
+    {
+        var result=new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if(depth<0 || initialDepth<0) throw new ArgumentOutOfRangeException(nameof(depth));
+            var loaded=await ReadCurrentListAsync<IHolon>(()=>holonRepository,version);
+            if(loaded.IsError) return loaded;
+            var records=loaded.Result.ToList();
+            var project=HolonGraphProjection.Create(records,children,recursive,depth,initialDepth,fromProvider,
+                source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
+            result.Result=records.Where(row=>type==HolonType.All || row.HolonType==type).Select(project).ToArray();
+            result.IsLoaded=true;
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
+    }
+
+    private async Task<OASISResult<IHolon>> ReadCurrentHolonAsync(Guid id,bool children,bool recursive,int depth,bool fromProvider,int version)
+    {
+        var result=await ReadCurrentIdAsync<IHolon>(()=>holonRepository,id,version,depth);
+        if(result.IsError) return result;
+        try
+        {
+            IEnumerable<IHolon> records=new[] {result.Result};
+            if(children && fromProvider)
+            {
+                var loaded=await ReadCurrentListAsync<IHolon>(()=>holonRepository,version);
+                if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IHolon>(loaded);
+                records=loaded.Result;
+            }
+            var project=HolonGraphProjection.Create(records,children,recursive,depth,0,fromProvider,
+                source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
+            result.Result=project(result.Result);
+        }
+        catch(Exception cause) {result.Result=null;result.IsLoaded=false;OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
+    }
+
+    private Task<OASISResult<IHolon>> ReadCurrentHolonKeyAsync(string key,bool children,bool recursive,int depth,bool fromProvider,int version)
+    {
+        if(Guid.TryParse(key,out var id) && id!=Guid.Empty) return ReadCurrentHolonAsync(id,children,recursive,depth,fromProvider,version);
+        var result=new OASISResult<IHolon>();var cause=new ArgumentException("A nonempty Cosmos OASIS GUID key is required.",nameof(key));
+        OASISErrorHandling.HandleError(ref result,cause.Message,cause);return Task.FromResult(result);
+    }
+
     private async Task<OASISResult<IEnumerable<T>>> ReadCurrentListAsync<T>(Func<IRepository<T>> repository,int version) where T:IHolonBase
     {
         var result=new OASISResult<IEnumerable<T>>();
