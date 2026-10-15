@@ -13,6 +13,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 public class SolanaBlockhashTests
 {
     [DataTestMethod]
+    [DataRow(false,false)]
+    [DataRow(false,true)]
+    [DataRow(true,false)]
+    [DataRow(true,true)]
+    public async Task InvalidIdentityOrVersionFailsBeforeKeyResolutionAndRpc(bool update,bool negativeVersion)
+    {
+        var keyCalls=0;
+        var repository=new SolanaRepository(null!,null!,()=> {keyCalls++;throw new InvalidOperationException("Unexpected key access");});
+        var dto=new SolanaAvatarDto {Id=negativeVersion ? Guid.NewGuid():Guid.Empty,Version=negativeVersion ? -1:0};
+        await Assert.ThrowsExceptionAsync<ArgumentException>(()=>update ? repository.UpdateAsync(dto):repository.CreateAsync(dto));
+        Assert.AreEqual(0,keyCalls); Assert.AreEqual(negativeVersion ? -1:0,dto.Version);
+    }
+
+    [DataTestMethod]
     [DataRow(false,"missing")]
     [DataRow(true,"missing")]
     [DataRow(false,"http")]
