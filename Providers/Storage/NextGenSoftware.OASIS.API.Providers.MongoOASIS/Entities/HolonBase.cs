@@ -22,7 +22,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 {
     [BsonDiscriminator("OAPPDNA")]
     [BsonIgnoreExtraElements()]
-    public class HolonBase : IHolonBase// Equvilant to the HolonBase object in OASIS.API.Core.
+    public partial class HolonBase : IHolonBase, ISupportInitialize// Equvilant to the HolonBase object in OASIS.API.Core.
     {
         [BsonId]  
         [BsonRepresentation(BsonType.ObjectId)]  
@@ -60,7 +60,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
         public DateTime ModifiedDate { get; set; }
 
         [BsonRepresentation(BsonType.DateTime)]
-        public DateTime DeletedDate { get; set; }
+        public DateTime DeletedDate
+        {
+            get => _deletedDate;
+            set
+            {
+                _deletedDate = value;
+                if (_readingBson) _readDeletionDate = true;
+                else _readDeletionTicks = null;
+            }
+        }
 
         public int Version { get; set; }
         public Guid PreviousVersionId { get; set; }

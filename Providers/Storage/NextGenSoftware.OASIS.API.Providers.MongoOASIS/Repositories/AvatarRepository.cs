@@ -607,9 +607,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 throw new InvalidOperationException("Avatar is already soft deleted.");
                             var detail = await _dbContext.AvatarDetail.Find(session, x => x.HolonId == id).FirstOrDefaultAsync();
                             if (detail == null) throw new InvalidOperationException("Avatar detail deletion matched no persisted identity.");
-                            // BSON dates persist milliseconds, so evidence must describe the persisted value.
-                            var now = DateTime.UtcNow;
-                            var deletedDate = new DateTime(now.Ticks - now.Ticks % TimeSpan.TicksPerMillisecond, DateTimeKind.Utc);
+                            var deletedDate = DateTime.UtcNow;
                             var actor = string.IsNullOrEmpty(avatar.DeletedByAvatarId) ? Guid.Empty : Guid.Parse(avatar.DeletedByAvatarId);
                             tombstone = new Core.Objects.AvatarTombstone(id, deletedDate, actor);
                             avatar.IsActive = false;
@@ -698,8 +696,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 throw new InvalidOperationException("Avatar is already soft deleted.");
                             var detail = _dbContext.AvatarDetail.Find(session, x => x.HolonId == id).FirstOrDefault();
                             if (detail == null) throw new InvalidOperationException("Avatar detail deletion matched no persisted identity.");
-                            var now = DateTime.UtcNow;
-                            var deletedDate = new DateTime(now.Ticks - now.Ticks % TimeSpan.TicksPerMillisecond, DateTimeKind.Utc);
+                            var deletedDate = DateTime.UtcNow;
                             var actor = string.IsNullOrEmpty(avatar.DeletedByAvatarId) ? Guid.Empty : Guid.Parse(avatar.DeletedByAvatarId);
                             tombstone = new Core.Objects.AvatarTombstone(id, deletedDate, actor);
                             avatar.IsActive = false;
