@@ -280,6 +280,67 @@ internal static partial class Web3CoreOASISBaseProviderHelper
   {
     ""inputs"": [
       {
+        ""components"": [
+          {
+            ""internalType"": ""uint256"",
+            ""name"": ""entityId"",
+            ""type"": ""uint256""
+          },
+          {
+            ""internalType"": ""bytes32"",
+            ""name"": ""externalId"",
+            ""type"": ""bytes32""
+          },
+          {
+            ""internalType"": ""bytes32"",
+            ""name"": ""expectedAvatarHash"",
+            ""type"": ""bytes32""
+          },
+          {
+            ""internalType"": ""bytes32"",
+            ""name"": ""expectedDetailHash"",
+            ""type"": ""bytes32""
+          },
+          {
+            ""internalType"": ""bool"",
+            ""name"": ""hasDetail"",
+            ""type"": ""bool""
+          },
+          {
+            ""internalType"": ""bool"",
+            ""name"": ""hardDelete"",
+            ""type"": ""bool""
+          },
+          {
+            ""internalType"": ""bytes"",
+            ""name"": ""avatarInfo"",
+            ""type"": ""bytes""
+          },
+          {
+            ""internalType"": ""bytes"",
+            ""name"": ""detailInfo"",
+            ""type"": ""bytes""
+          }
+        ],
+        ""internalType"": ""struct IWeb3CoreOASIS.AvatarLifecycleRequest"",
+        ""name"": ""request"",
+        ""type"": ""tuple""
+      }
+    ],
+    ""name"": ""applyAvatarLifecycle"",
+    ""outputs"": [
+      {
+        ""internalType"": ""bool"",
+        ""name"": """",
+        ""type"": ""bool""
+      }
+    ],
+    ""stateMutability"": ""nonpayable"",
+    ""type"": ""function""
+  },
+  {
+    ""inputs"": [
+      {
         ""internalType"": ""address"",
         ""name"": ""to"",
         ""type"": ""address""
