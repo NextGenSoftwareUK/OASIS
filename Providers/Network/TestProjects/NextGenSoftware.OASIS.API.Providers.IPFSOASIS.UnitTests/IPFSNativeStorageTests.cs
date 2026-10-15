@@ -9,6 +9,13 @@ using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.DNA;
 using Xunit;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
+using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.API.Core;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests;
 
@@ -87,6 +94,60 @@ public class IPFSNativeStorageTests
                 Assert.Equal(grandchild.Id,Assert.Single(await read).Id);
             }
             finally {dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress=currentRoot;}
+            var local=new NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.LocalFileOASIS(storageDirectory:Path.Combine(Path.GetDirectoryName(path)!,"routing-files"));
+            Assert.False((await local.ActivateProviderAsync()).IsError);
+            try
+            {
+                Assert.False((await local.SaveHolonAsync(new Holon {Id=id,Name="distinct-local-route"},saveChildren:false)).IsError);
+                dna.OASIS.HyperDriveMode=HyperDriveModes.V2;
+                dna.OASIS.SubscriptionConfig=new SubscriptionConfig {PlanType="Gold"};
+                var manager=new ProviderManager(null,dna) {IsAutoLoadBalanceEnabled=true,IsAutoFailOverEnabled=false,IsAutoReplicationEnabled=false};
+                manager.RegisterProvider(provider); manager.RegisterProvider(local);
+                manager.SetAndReplaceAutoLoadBalanceListForProviders(new[] {new EnumValue<ProviderType>(ProviderType.IPFSOASIS),new EnumValue<ProviderType>(ProviderType.LocalFileOASIS)});
+                var router=new OASISHyperDrive(manager);
+                var counts=new Dictionary<string,int>();
+                for(var index=0;index<6;index++)
+                {
+                    var request=new StorageOperationRequest {Operation="LoadHolon",HolonId=id};
+                    var routed=index%2==0 ? router.RouteRequest<IHolon>(request,LoadBalancingStrategy.RoundRobin)
+                        : await router.RouteRequestAsync<IHolon>(request,LoadBalancingStrategy.RoundRobin);
+                    Assert.False(routed.IsError,routed.Message); Assert.NotNull(routed.Result);
+                    var name=routed.Result.Name; counts[name]=counts.GetValueOrDefault(name)+1;
+                }
+                Assert.Equal(3,counts[holon.Name]); Assert.Equal(3,counts["distinct-local-route"]);
+                manager.IsAutoLoadBalanceEnabled=false; manager.IsAutoFailOverEnabled=true;
+                manager.SetAndReplaceAutoFailOverListForProviders(new[] {new EnumValue<ProviderType>(ProviderType.IPFSOASIS),new EnumValue<ProviderType>(ProviderType.LocalFileOASIS)});
+                Assert.False(manager.SetAndActivateCurrentStorageProvider(provider).IsError);
+                var healthyClient=provider.IPFSClient;
+                try
+                {
+                    provider.IPFSClient=new Ipfs.Http.IpfsClient("http://127.0.0.1:18549");
+                    foreach(var asynchronous in new[] {false,true})
+                    {
+                        var request=new StorageOperationRequest {Operation="LoadHolon",HolonId=id,PreferredProvider=ProviderType.IPFSOASIS};
+                        var routed=asynchronous ? await router.RouteRequestAsync<IHolon>(request) : router.RouteRequest<IHolon>(request);
+                        Assert.False(routed.IsError,routed.Message); Assert.Equal("distinct-local-route",routed.Result.Name);
+                        Assert.Equal(ProviderType.LocalFileOASIS,manager.LastFailoverDiagnostic.SelectedProvider);
+                    }
+                }
+                finally {provider.IPFSClient=healthyClient;}
+                manager.IsAutoFailOverEnabled=false; manager.IsAutoReplicationEnabled=true;
+                Assert.False(manager.SetAndReplaceAutoReplicationListForProviders(new[] {new EnumValue<ProviderType>(ProviderType.IPFSOASIS),new EnumValue<ProviderType>(ProviderType.LocalFileOASIS)}).IsError);
+                foreach(var primary in new[] {ProviderType.IPFSOASIS,ProviderType.LocalFileOASIS})
+                {
+                    var changed=new Holon {Id=id,Name="replicated-from-"+primary};
+                    var request=new StorageOperationRequest {Operation="SaveHolon",Payload=changed,SaveChildren=false,PreferredProvider=primary};
+                    var saved=primary==ProviderType.IPFSOASIS ? await router.RouteRequestAsync<IHolon>(request) : router.RouteRequest<IHolon>(request);
+                    Assert.False(saved.IsError,saved.Message); Assert.False(saved.IsWarning,saved.Message);
+                    var native=await provider.LoadHolonAsync(id,loadChildren:false);
+                    Assert.False(native.IsError,native.Message); Assert.Equal(changed.Name,native.Result.Name);
+                    Assert.Equal(changed.Name,(await local.LoadHolonAsync(id,loadChildren:false)).Result.Name);
+                    ownedCids.Add(native.Result.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]);
+                    ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+                }
+                Assert.False((await local.DeleteHolonAsync(id)).IsError);
+            }
+            finally {await local.DeActivateProviderAsync();}
             foreach(var cid in new[] {avatar.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],detail.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],holon.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress})
             {
                 var raw=await provider.IPFSClient.FileSystem.ReadAllTextAsync((Cid)cid);
