@@ -56,6 +56,13 @@ public class GoogleNativeDetailTests
             Assert.AreEqual(0,(await provider.LoadAllHolonsAsync(otherType)).Result.Count());
             var child=new Holon {Id=childId,IsActive=true,Name="owned child",ParentHolonId=holonId};
             Assert.IsFalse((await provider.SaveHolonAsync(child,saveChildren:false)).IsError);
+            var parentRows=await provider.LoadHolonsForParentAsync(holonId,loadChildrenFromProvider:true);
+            Assert.IsFalse(parentRows.IsError,parentRows.Message);Assert.AreEqual(childId,parentRows.Result.Single().Id);
+            var parentKeyRows=provider.LoadHolonsForParent(holonId.ToString(),loadChildren:false);
+            Assert.IsFalse(parentKeyRows.IsError,parentKeyRows.Message);Assert.AreEqual(childId,parentKeyRows.Result.Single().Id);
+            var noParentRows=await provider.LoadHolonsForParentAsync(Guid.NewGuid());
+            Assert.IsFalse(noParentRows.IsError,noParentRows.Message);Assert.AreEqual(0,noParentRows.Result.Count());
+            Assert.AreEqual(0,(await provider.LoadHolonsForParentAsync(holonId,otherType)).Result.Count());
             var graph=await provider.LoadAllHolonsAsync(loadChildrenFromProvider:true,maxChildDepth:1);
             Assert.IsFalse(graph.IsError,graph.Message);
             Assert.AreEqual(childId,graph.Result.Single(row=>row.Id==holonId).Children.Single().Id);

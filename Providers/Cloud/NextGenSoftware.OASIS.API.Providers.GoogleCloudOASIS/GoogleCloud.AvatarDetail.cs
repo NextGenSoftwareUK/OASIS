@@ -271,58 +271,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (!_enableFirestore)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
-                    return result;
-                }
-
-                // Load holons for parent from Firestore
-                var query = _firestoreDb.Collection("holons").WhereEqualTo("parentId", id.ToString());
-                var snapshot = await query.GetSnapshotAsync();
-                
-                if (snapshot.Count > 0)
-                {
-                    var holons = new List<IHolon>();
-                    
-                    // Convert ALL Firestore documents to OASIS Holons with FULL property mapping
-                    foreach (var doc in snapshot.Documents)
-                    {
-                        var holonData = doc.ConvertTo<Dictionary<string, object>>();
-                    var holon = DecodeHolon(holonData,doc.Id);
-                        
-                        holons.Add(holon);
-                    }
-                    
-                    result.Result = holons;
-                    result.IsError = false;
-                    result.Message = $"Holons for parent loaded successfully from Google Cloud Firestore with full property mapping ({holons.Count} holons)";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "No holons found for parent in Google Cloud Firestore");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from Google Cloud: {ex.Message}", ex);
-            }
-            return result;
-        }
+            => await ReadCanonicalParentHolonsAsync(id,type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,loadChildrenFromProvider,version);
 
     }
 }

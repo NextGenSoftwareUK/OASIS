@@ -13,6 +13,19 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
         private GoogleCloudOASIS _provider = null!;
 
         [TestMethod]
+        public async Task ParentQueriesValidateIdentityDepthVersionAndPreserveActivationCause()
+        {
+            var provider=new FailedActivationProvider();
+            Assert.IsInstanceOfType((await provider.LoadHolonsForParentAsync(System.Guid.Empty)).Exception,typeof(System.ArgumentException));
+            Assert.IsInstanceOfType((await provider.LoadHolonsForParentAsync("bad-key")).Exception,typeof(System.ArgumentException));
+            Assert.IsInstanceOfType((await provider.LoadHolonsForParentAsync(System.Guid.NewGuid(),curentChildDepth:-1)).Exception,typeof(System.ArgumentOutOfRangeException));
+            Assert.IsInstanceOfType((await provider.LoadHolonsForParentAsync(System.Guid.NewGuid(),version:1)).Exception,typeof(System.NotSupportedException));
+            Assert.AreEqual(0,provider.Activations);
+            var failed=await provider.LoadHolonsForParentAsync(System.Guid.NewGuid().ToString());
+            Assert.AreSame(provider.Cause,failed.Exception);Assert.AreEqual("owned-code",failed.ErrorCode);
+        }
+
+        [TestMethod]
         public async Task HolonCollectionValidatesBeforeActivationAndRetainsCause()
         {
             var provider = new FailedActivationProvider();
