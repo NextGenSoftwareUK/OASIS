@@ -57,6 +57,14 @@ public class IPFSNativeStorageTests
             Assert.Equal(child.Id,Assert.Single(provider.LoadHolonsForParent(parentKey,loadChildren:false).Result).Id);
             Assert.Empty((await provider.LoadHolonsForParentAsync(child.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],loadChildren:false)).Result);
             Assert.Throws<NotSupportedException>(()=>provider.LoadHolonsForParent(parentKey,version:1));
+            var grandchild=new Holon {Id=Guid.NewGuid(),ParentHolonId=child.Id,Name="owned-native-grandchild",HolonType=HolonType.Holon};
+            await provider.SaveHolonToFile(grandchild);
+            ownedCids.Add(grandchild.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]); ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+            var graph=Assert.Single((await provider.LoadHolonsForParentAsync(parentKey,loadChildrenFromProvider:true)).Result);
+            Assert.Equal(grandchild.Id,Assert.Single(graph.Children).Id);
+            Assert.Empty(Assert.Single((await provider.LoadHolonsForParentAsync(parentKey,loadChildren:false,loadChildrenFromProvider:true)).Result).Children);
+            Assert.Empty(Assert.Single((await provider.LoadHolonsForParentAsync(parentKey,maxChildDepth:1,curentChildDepth:1,loadChildrenFromProvider:true)).Result).Children);
+            Assert.Throws<ArgumentOutOfRangeException>(()=>provider.LoadHolonsForParent(parentKey,maxChildDepth:-1));
             foreach(var cid in new[] {avatar.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],detail.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],holon.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress})
             {
                 var raw=await provider.IPFSClient.FileSystem.ReadAllTextAsync((Cid)cid);
