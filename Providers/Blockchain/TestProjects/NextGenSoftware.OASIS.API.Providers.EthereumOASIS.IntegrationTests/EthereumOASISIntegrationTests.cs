@@ -799,6 +799,97 @@ public class EthereumOASISIntegrationTests
         await provider.DeActivateProviderAsync();
     }
 
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task V2GraphsReplicateBalanceAndRejectInvalidInputWithoutBackupWrites(bool synchronous)
+    {
+        var (ethereum,address)=await CreateActivatedProviderAsync();
+        var path=Path.Combine(Path.GetDirectoryName(Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_FIXTURE_JSON"))!,"v2-graph.db");
+        if(File.Exists(path)) throw new InvalidOperationException("Existing graph fixture requires inspection.");
+        using var sqlite=new SQLiteProvider($"Data Source={path};Pooling=False");
+        try
+        {
+            Assert.IsFalse((await sqlite.ActivateProviderAsync()).IsError);
+            var dna=new OASISDNA { OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS { HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings() } };
+            dna.OASIS.SubscriptionConfig.PlanType="Gold";
+            var stores=new[] {new EnumValue<ProviderType>(ProviderType.EthereumOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)};
+            var manager=new ProviderManager(null,dna) { IsAutoReplicationEnabled=true };
+            manager.RegisterProvider(ethereum); manager.RegisterProvider(sqlite);
+            Assert.IsFalse(manager.SetAndReplaceAutoReplicationListForProviders(stores).IsError);
+            var router=new OASISHyperDrive(manager);
+            CoreHolon? selected=null;
+            foreach(var primary in new[] {ProviderType.EthereumOASIS,ProviderType.SQLLiteDBOASIS})
+            {
+                var root=new CoreHolon {Id=Guid.NewGuid(),Name="replicated graph "+primary};
+                var child=new CoreHolon {Id=Guid.NewGuid(),ParentHolonId=root.Id,Name="replicated child"};
+                var grandchild=new CoreHolon {Id=Guid.NewGuid(),ParentHolonId=child.Id,Name="replicated grandchild"};
+                root.Children.Add(child); child.Children.Add(grandchild); selected=root;
+                var request=new StorageOperationRequest {Operation="SaveHolon",Payload=root,SaveChildren=true,PreferredProvider=primary};
+                var saved=synchronous ? router.RouteRequest<IHolon>(request) : await router.RouteRequestAsync<IHolon>(request);
+                Assert.IsFalse(saved.IsError,saved.Message); Assert.IsFalse(saved.IsWarning,saved.Message);
+                foreach(var store in new IOASISStorageProvider[] {ethereum,sqlite})
+                {
+                    var read=await store.LoadHolonAsync(root.Id,loadChildrenFromProvider:true);
+                    Assert.IsFalse(read.IsError,read.Message);
+                    Assert.AreEqual(child.Id,read.Result.Children.Single().Id);
+                    Assert.AreEqual(grandchild.Id,read.Result.Children.Single().Children.Single().Id);
+                    foreach(var node in new[] {root,child,grandchild})
+                    {
+                        var independent=await store.LoadHolonAsync(node.Id,loadChildren:false);
+                        Assert.IsFalse(independent.IsError,independent.Message); Assert.AreEqual(node.Name,independent.Result.Name);
+                    }
+                }
+            }
+            var balancing=new ProviderManager(null,dna) { IsAutoLoadBalanceEnabled=true };
+            balancing.RegisterProvider(ethereum); balancing.RegisterProvider(sqlite);
+            Assert.IsFalse(balancing.SetAndReplaceAutoLoadBalanceListForProviders(stores).IsError);
+            var balanced=new OASISHyperDrive(balancing);
+            for(var index=0;index<6;index++)
+            {
+                var request=new StorageOperationRequest {Operation="LoadHolon",HolonId=selected!.Id,LoadChildren=true,ChildrenFromProvider=true};
+                var read=synchronous ? balanced.RouteRequest<IHolon>(request,LoadBalancingStrategy.RoundRobin) : await balanced.RouteRequestAsync<IHolon>(request,LoadBalancingStrategy.RoundRobin);
+                Assert.IsFalse(read.IsError,read.Message); Assert.AreEqual(selected.Children.Single().Children.Single().Id,read.Result.Children.Single().Children.Single().Id);
+            }
+            Assert.AreEqual(3L,balancing.PerformanceMonitor.GetMetrics(ProviderType.EthereumOASIS).TotalRequests);
+            Assert.AreEqual(3L,balancing.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests);
+            var invalidRoot=new CoreHolon {Id=Guid.NewGuid()};
+            var invalidChild=new CoreHolon {Id=Guid.NewGuid(),ParentHolonId=Guid.NewGuid()}; invalidRoot.Children.Add(invalidChild);
+            var failover=new ProviderManager(null,dna) { IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=true };
+            failover.RegisterProvider(ethereum); failover.RegisterProvider(sqlite);
+            Assert.IsFalse(failover.SetAndReplaceAutoFailOverListForProviders(stores).IsError);
+            Assert.IsFalse(failover.SetAndReplaceAutoReplicationListForProviders(stores).IsError);
+            var native=new Web3(new Account(PrivateKey,ChainId),Host);
+            var before=await native.Eth.Transactions.GetTransactionCount.SendRequestAsync(new Account(PrivateKey,ChainId).Address);
+            var rejected=new StorageOperationRequest {Operation="SaveHolon",Payload=invalidRoot,SaveChildren=true,PreferredProvider=ProviderType.EthereumOASIS};
+            var fenced=synchronous ? new OASISHyperDrive(failover).RouteRequest<IHolon>(rejected) : await new OASISHyperDrive(failover).RouteRequestAsync<IHolon>(rejected);
+            Assert.IsTrue(fenced.IsError); Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",fenced.ErrorCode);
+            Assert.AreEqual(0L,failover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0L);
+            Assert.AreEqual(before.Value,(await native.Eth.Transactions.GetTransactionCount.SendRequestAsync(new Account(PrivateKey,ChainId).Address)).Value);
+            Assert.IsNull((await sqlite.LoadHolonAsync(invalidRoot.Id,loadChildren:false)).Result);
+            Assert.IsNull((await sqlite.LoadHolonAsync(invalidChild.Id,loadChildren:false)).Result);
+            var unavailable=new EthereumOASIS("http://127.0.0.1:18546",PrivateKey,ChainId,address);
+            var outage=new ProviderManager(null,dna) { IsAutoFailOverEnabled=true };
+            outage.RegisterProvider(unavailable); outage.RegisterProvider(sqlite);
+            Assert.IsFalse(outage.SetAndReplaceAutoFailOverListForProviders(stores).IsError);
+            var recoveredRoot=new CoreHolon {Id=Guid.NewGuid(),Name="outage graph root"};
+            var recoveredChild=new CoreHolon {Id=Guid.NewGuid(),ParentHolonId=recoveredRoot.Id,Name="outage graph child"};
+            recoveredRoot.Children.Add(recoveredChild);
+            var recoveryRequest=new StorageOperationRequest {Operation="SaveHolon",Payload=recoveredRoot,SaveChildren=true,PreferredProvider=ProviderType.EthereumOASIS};
+            var recoveryRouter=new OASISHyperDrive(outage);
+            var recovery=synchronous ? recoveryRouter.RouteRequest<IHolon>(recoveryRequest) : await recoveryRouter.RouteRequestAsync<IHolon>(recoveryRequest);
+            Assert.IsFalse(recovery.IsError,recovery.Message);
+            var recovered=await sqlite.LoadHolonAsync(recoveredRoot.Id,loadChildrenFromProvider:true);
+            Assert.IsFalse(recovered.IsError,recovered.Message); Assert.AreEqual(recoveredChild.Id,recovered.Result.Children.Single().Id);
+            Assert.AreEqual(recoveredChild.Name,(await sqlite.LoadHolonAsync(recoveredChild.Id,loadChildren:false)).Result.Name);
+            Assert.IsNull((await ethereum.LoadHolonAsync(recoveredRoot.Id,loadChildren:false)).Result);
+            Assert.IsNull((await ethereum.LoadHolonAsync(recoveredChild.Id,loadChildren:false)).Result);
+            Assert.AreEqual(1L,outage.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests);
+            Assert.AreEqual(before.Value,(await native.Eth.Transactions.GetTransactionCount.SendRequestAsync(new Account(PrivateKey,ChainId).Address)).Value);
+        }
+        finally { sqlite.Dispose(); File.Delete(path); await ethereum.DeActivateProviderAsync(); }
+    }
+
     [TestMethod]
     public async Task Holon_SaveLoadRoundTrip_UsesDisposableEvmChain()
     {
