@@ -50,94 +50,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 {
     public partial class EthereumOASIS
     {
+        // Custom keys are exactly the stored CustomKey metadata field, never provider keys.
+        private static string StoredCustomKey(IHolon record)
+            => record.MetaData != null && record.MetaData.TryGetValue("CustomKey",out var value)
+                ? Convert.ToString(value,System.Globalization.CultureInfo.InvariantCulture) : null;
+
         public async Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (string.IsNullOrWhiteSpace(customKey))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Custom key cannot be null or empty");
-                    return result;
-                }
-
-                // Load holon by custom key from Ethereum smart contract
-                // Try loading by provider key first (custom key might be stored as provider key)
-                var holonResult = await LoadHolonAsync(customKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
-                if (!holonResult.IsError && holonResult.Result != null)
-                {
-                    result.Result = holonResult.Result;
-                    result.IsError = false;
-                    result.Message = "Holon loaded successfully from Ethereum by custom key";
-                }
-                else
-                {
-                    // If not found by provider key, try searching by metadata
-                    // Custom key might be stored in metadata
-                    if (_nextGenSoftwareOasisService != null)
-                    {
-                        try
-                        {
-                            // Search for holons with custom key in metadata
-                            var searchParams = new SearchParams
-                            {
-                                FilterByMetaData = new Dictionary<string, string> { ["CustomKey"] = customKey },
-                                MetaKeyValuePairMatchMode = MetaKeyValuePairMatchMode.All
-                            };
-                            
-                            var searchResult = await SearchAsync(searchParams);
-                            var holonList = searchResult.Result?.SearchResultHolons ?? new List<IHolon>();
-                            if (!searchResult.IsError && searchResult.Result != null && holonList.Any())
-                            {
-                                // Find holon where custom key matches
-                                var matchingHolon = holonList.FirstOrDefault(h => 
-                                    h.MetaData != null && 
-                                    h.MetaData.ContainsKey("CustomKey") && 
-                                    h.MetaData["CustomKey"]?.ToString() == customKey);
-                                
-                                if (matchingHolon != null)
-                                {
-                                    result.Result = matchingHolon;
-                                    result.IsError = false;
-                                    result.Message = "Holon loaded successfully from Ethereum by custom key (via metadata search)";
-                                }
-                                else
-                                {
-                                    OASISErrorHandling.HandleError(ref result, "Holon not found with that custom key on Ethereum");
-                                }
-                            }
-                            else
-                            {
-                                OASISErrorHandling.HandleError(ref result, "Holon not found with that custom key on Ethereum");
-                            }
-                        }
-                        catch (Exception searchEx)
-                        {
-                            OASISErrorHandling.HandleError(ref result, $"Failed to search for holon by custom key: {searchEx.Message}");
-                        }
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Ethereum service is not initialized");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holon by custom key from Ethereum: {ex.Message}", ex);
-            }
-            return result;
-        }
+            => await FindStoredIdentityAsync(customKey,StoredCustomKey,
+                ()=>LoadAllHolonsAsync(HolonType.All,loadChildren,recursive,maxChildDepth,0,continueOnError,loadChildrenFromProvider,version),
+                StringComparison.Ordinal);
 
         public OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
@@ -146,46 +67,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByCustomKeyAsync(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
+            OASISResult<IEnumerable<IHolon>> snapshot=null;
+            var parent=await FindStoredIdentityAsync(customKey,StoredCustomKey,
+                async ()=>snapshot=await LoadAllHolonsAsync(HolonType.All,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,loadChildrenFromProvider,version),StringComparison.Ordinal);
+            if(parent.IsError)
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (string.IsNullOrWhiteSpace(customKey))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Custom key cannot be null or empty");
-                    return result;
-                }
-
-                // First load the parent holon by custom key
-                var parentResult = await LoadHolonByCustomKeyAsync(customKey, false, false, 0, continueOnError, loadChildrenFromProvider, version);
-                
-                if (parentResult.IsError || parentResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Parent holon not found: {parentResult.Message}");
-                    return result;
-                }
-
-                // Then load children for the parent
-                var childrenResult = await LoadHolonsForParentAsync(parentResult.Result.Id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
-                
-                result.Result = childrenResult.Result;
-                result.IsError = childrenResult.IsError;
-                result.Message = childrenResult.Message;
+                var result=new OASISResult<IEnumerable<IHolon>>();
+                OASISErrorHandling.HandleError(ref result,parent.Message,parent.Exception);
+                result.ErrorCode=parent.ErrorCode;
+                return result;
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by custom key from Ethereum: {ex.Message}", ex);
-            }
-            return result;
+            snapshot.Result=snapshot.Result.Where(row=>row.ParentHolonId == parent.Result.Id && (type == HolonType.All || row.HolonType == type)).ToList();
+            return snapshot;
         }
 
         public OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
