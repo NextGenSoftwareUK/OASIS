@@ -57,14 +57,14 @@ public class GoogleNativeDetailTests
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadAvatarDetailAsync(Guid.NewGuid())).ErrorCode);
             Assert.AreEqual(2,(await provider.LoadAllAvatarDetailsAsync()).Result.Count());
             await VerifyV2Async(provider,detail);
-            var holon=new Holon {Id=holonId,IsActive=true,Name="owned holon",ParentHolonId=detail.Id,CreatedByAvatarId=detail.Id,
+            var holon=new Holon {Id=holonId,IsActive=true,Name="owned holon",ParentHolonId=detail.Id,CreatedByAvatarId=avatarId,
                 MetaData=new Dictionary<string,object> {{"owned-field","owned-value"}}};
             var written=await provider.SaveHolonAsync(holon,saveChildren:false);Assert.IsFalse(written.IsError,written.Message);
             var read=await provider.LoadHolonAsync(holonId,loadChildren:false);Assert.IsFalse(read.IsError,read.Message);
             var keyRead=await provider.LoadHolonAsync(holonId.ToString(),loadChildren:false);
             Assert.IsFalse(keyRead.IsError,keyRead.Message);Assert.AreEqual(holonId,keyRead.Result.Id);
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadHolonAsync(Guid.NewGuid().ToString(),loadChildren:false)).ErrorCode);
-            Assert.AreEqual(holonId,read.Result.Id);Assert.AreEqual(detail.Id,read.Result.ParentHolonId);Assert.AreEqual(detail.Id,read.Result.CreatedByAvatarId);
+            Assert.AreEqual(holonId,read.Result.Id);Assert.AreEqual(detail.Id,read.Result.ParentHolonId);Assert.AreEqual(avatarId,read.Result.CreatedByAvatarId);
             Assert.AreEqual("owned-value",read.Result.MetaData["owned-field"]);
             var metadata=await provider.LoadHolonsByMetaDataAsync("owned-field","owned-value",loadChildren:false);
             Assert.IsFalse(metadata.IsError,metadata.Message);Assert.AreEqual(holonId,metadata.Result.Single().Id);
@@ -102,7 +102,17 @@ public class GoogleNativeDetailTests
             Assert.AreEqual(0,(await provider.LoadHolonAsync(holonId,loadChildren:false,loadChildrenFromProvider:true)).Result.Children.Count());
             var flat=await provider.LoadAllHolonsAsync(loadChildren:false,loadChildrenFromProvider:true);
             Assert.IsTrue(flat.Result.All(row=>row.Children.Count()==0));
+            var exported=await provider.ExportAllDataForAvatarByIdAsync(avatarId);
+            Assert.IsFalse(exported.IsError,exported.Message);Assert.AreEqual(childId,exported.Result.Single().Children.Single().Id);
+            var unowned=await provider.ExportAllDataForAvatarByIdAsync(Guid.NewGuid());
+            Assert.IsFalse(unowned.IsError,unowned.Message);Assert.AreEqual(0,unowned.Result.Count());
+            Assert.AreEqual(2,(await provider.ExportAllAsync()).Result.Count());
+            Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,(await provider.ExportAllDataForAvatarByUsernameAsync(avatar.Username)).ErrorCode);
             Assert.IsFalse((await provider.DeleteAvatarAsync(duplicateAvatarId.ToString(),softDelete:false)).IsError);
+            var byUsername=provider.ExportAllDataForAvatarByUsername("OWNED-AVATAR");
+            Assert.IsFalse(byUsername.IsError,byUsername.Message);Assert.AreEqual(holonId,byUsername.Result.Single().Id);
+            var byEmail=await provider.ExportAllDataForAvatarByEmailAsync("OWNED-AVATAR@EXAMPLE.INVALID");
+            Assert.IsFalse(byEmail.IsError,byEmail.Message);Assert.AreEqual(childId,byEmail.Result.Single().Children.Single().Id);
             var pairedDetail=new AvatarDetail {Id=avatarId,IsActive=true,XP=444,Karma=555,
                 MetaData=new Dictionary<string,object> {{"paired-field","paired-value"}}};
             pairedDetail.Inventory.Add(new InventoryItem {Id=Guid.NewGuid(),Name="paired seed"});ids.Add(avatarId);
