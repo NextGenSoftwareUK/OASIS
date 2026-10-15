@@ -65,6 +65,20 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         private static string Ser(object o) => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(o);
         private static T? Des<T>(string? json) => json == null ? default : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<T>(json);
 
+        private static async Task<T> ObserveMutationAsync<T>(Func<Task<T>> mutation,string table,string key)
+        {
+            try {return await mutation();}
+            // A failed condition is explicit server evidence that this item mutation did not execute.
+            catch(ConditionalCheckFailedException) {throw;}
+            catch(Exception cause) {throw new DynamoDBMutationReconciliationException(table,key,cause);}
+        }
+        private Task<PutItemResponse> PutItemAsync(PutItemRequest request)
+            => ObserveMutationAsync(()=>_client.PutItemAsync(request),request.TableName,request.Item["id"].S);
+        private Task<UpdateItemResponse> UpdateItemAsync(UpdateItemRequest request)
+            => ObserveMutationAsync(()=>_client.UpdateItemAsync(request),request.TableName,request.Key["id"].S);
+        private Task<DeleteItemResponse> DeleteItemAsync(string table,Dictionary<string,AttributeValue> key)
+            => ObserveMutationAsync(()=>_client.DeleteItemAsync(table,key),table,key["id"].S);
+
         private static Dictionary<string, AttributeValue> WithOptionalIdentityIndexes(Dictionary<string, AttributeValue> item)
         {
             // DynamoDB GSI key attributes cannot contain empty strings. Missing selectors belong to the sparse index's absent set.
@@ -176,7 +190,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
                 if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
                 avatar.ProviderUniqueStorageKey[StorageProviderType] = avatar.Id.ToString();
-                await _client.PutItemAsync(new PutItemRequest
+                await PutItemAsync(new PutItemRequest
                 {
                     TableName = "OasisAvatars",
                     Item = WithOptionalIdentityIndexes(new Dictionary<string, AttributeValue>
@@ -316,7 +330,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         return result;
                     }
                     var av = (Avatar)loaded.Result; av.DeletedDate = DateTime.UtcNow;
-                    await _client.UpdateItemAsync(new UpdateItemRequest
+                    await UpdateItemAsync(new UpdateItemRequest
                     {
                         TableName = "OasisAvatars",
                         Key = new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } },
@@ -326,7 +340,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 }
                 else
                 {
-                    await _client.DeleteItemAsync("OasisAvatars", new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } });
+                    await DeleteItemAsync("OasisAvatars", new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } });
                 }
                 result.Result = true; result.IsError = false; result.Message = $"DynamoDBOASIS: Avatar '{id}' deleted.";
             }
@@ -363,7 +377,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             try
             {
                 if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
-                await _client.PutItemAsync(new PutItemRequest
+                await PutItemAsync(new PutItemRequest
                 {
                     TableName = "OasisAvatarDetails",
                     Item = WithOptionalIdentityIndexes(new Dictionary<string, AttributeValue>
@@ -440,7 +454,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
                 if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
                 holon.ProviderUniqueStorageKey[StorageProviderType] = holon.Id.ToString();
-                await _client.PutItemAsync(new PutItemRequest
+                await PutItemAsync(new PutItemRequest
                 {
                     TableName = "OasisHolons",
                     Item = new Dictionary<string, AttributeValue>
@@ -585,7 +599,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             {
                 var loaded = await LoadHolonAsync(id); if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: Holon '{id}' not found."); return result; }
                 var holon = (Holon)loaded.Result; holon.DeletedDate = DateTime.UtcNow;
-                await _client.UpdateItemAsync(new UpdateItemRequest
+                await UpdateItemAsync(new UpdateItemRequest
                 {
                     TableName = "OasisHolons",
                     Key = new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } },
