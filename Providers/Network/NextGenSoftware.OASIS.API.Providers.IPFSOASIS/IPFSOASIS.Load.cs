@@ -271,7 +271,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return await ReadProjectedHolonAsync(row => row.Id == id, loadChildren, recursive, maxChildDepth, loadChildrenFromProvider, version);
+            return await ReadProjectedHolonAsync(row => row.Id == id, loadChildren, recursive, maxChildDepth, loadChildrenFromProvider, version,id!=Guid.Empty);
         }
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -282,15 +282,16 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             return await ReadProjectedHolonAsync(row => row.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.IPFSOASIS, out var key) && key == providerKey,
-                loadChildren, recursive, maxChildDepth, loadChildrenFromProvider, version);
+                loadChildren, recursive, maxChildDepth, loadChildrenFromProvider, version,!string.IsNullOrWhiteSpace(providerKey));
         }
 
         private async Task<OASISResult<IHolon>> ReadProjectedHolonAsync(Func<HolonResume,bool> select,
-            bool loadChildren, bool recursive, int maxDepth, bool childrenFromProvider, int version)
+            bool loadChildren, bool recursive, int maxDepth, bool childrenFromProvider, int version,bool validSelector=true)
         {
             var result = new OASISResult<IHolon>();
             try
             {
+                if(!validSelector) throw new ArgumentException("A nonempty IPFS holon selector is required.");
                 if (version != 0) throw new NotSupportedException("Historical IPFS holon reads are not implemented.");
                 if (maxDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
                 var snapshot = await LoadLookupToJson();
@@ -411,55 +412,37 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             => DeleteIndexedAvatarAsync(row=>row.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.IPFSOASIS,out var key) && key==providerKey,softDelete,!string.IsNullOrWhiteSpace(providerKey));
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)
-        {
-            return DeleteHolonAsync(id).Result;
-        }
+            => DeleteHolonAsync(id).GetAwaiter().GetResult();
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
-        {
-            return DeleteHolonAsync(providerKey).Result;
-        }
+            => DeleteHolonAsync(providerKey).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
-        {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+            => DeletePrivateHolonAsync(()=>LoadHolonAsync(id,loadChildren:false));
 
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+            => DeletePrivateHolonAsync(()=>LoadHolonAsync(providerKey,loadChildren:false));
+
+        private async Task<OASISResult<IHolon>> DeletePrivateHolonAsync(Func<Task<OASISResult<IHolon>>> load)
+        {
+            var result=new OASISResult<IHolon>();
             try
             {
-                OASISResult<IHolon> holon = await LoadHolonTemplateAsync(a => a.Id == id);
-
-                holon.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
-                holon.Result.DeletedDate = DateTime.Now;
-                result.Result = await SaveHolonToFile(holon.Result);
+                var loaded=await load();
+                if(loaded.IsError) return loaded;
+                var holon=loaded.Result ?? throw new InvalidDataException("IPFS deletion read returned no entity.");
+                if(holon.DeletedDate!=default && !holon.IsActive)
+                    return new OASISResult<IHolon>(holon);
+                holon.DeletedDate=DateTime.UtcNow;
+                holon.DeletedByAvatarId=AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty;
+                holon.IsActive=false;
+                result.Result=await SaveHolonToFile(holon); result.IsSaved=true;
             }
-            catch (Exception ex)
+            catch(Exception cause)
             {
-                //result.Result = true;
-                OASISErrorHandling.HandleError(ref result, $"Error occured in DeleteHolonAsync method in IPFS Provider. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result,"IPFS holon deletion failed: "+cause.Message,cause);
+                if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
             }
-
-            return result;
-        }
-
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
-        {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-
-            try
-            {
-                OASISResult<IHolon> holon =
-                    await LoadHolonTemplateAsync(a => a.ProviderUniqueStorageKey.Where(b => b.Value == providerKey).Any());
-
-                holon.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
-                holon.Result.DeletedDate = DateTime.Now;
-                result.Result = await SaveHolonToFile(holon.Result);
-            }
-            catch (Exception ex)
-            {
-                //result.Result = true;
-                OASISErrorHandling.HandleError(ref result, $"Error occured in DeleteHolonAsync method in IPFS Provider. Reason: {ex}");
-            }
-
             return result;
         }
 
