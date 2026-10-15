@@ -191,6 +191,25 @@ public sealed class HyperDriveProviderExecutionTests
         public string OriginalTransactionId => "original-controlled-transaction";
     }
 
+    [Theory]
+    [InlineData(false,false)] [InlineData(true,false)] [InlineData(false,true)] [InlineData(true,true)]
+    public async Task HealthyDeleteAbsenceIsTerminalButStorageExceptionCanFailOver(bool synchronous,bool storageFailure)
+    {
+        var id=Guid.NewGuid();var first=CreateActiveProvider();var remaining=CreateActiveProvider(ProviderType.LocalFileOASIS,"stale-copy");
+        var failed=new OASISResult<IHolon>{IsError=true,ErrorCode=OASISResultErrorCodes.RecordNotFound,Exception=storageFailure ? new IOException("actual storage failure"):null};
+        first.Setup(p=>p.DeleteHolon(id)).Returns(failed);first.Setup(p=>p.DeleteHolonAsync(id)).ReturnsAsync(failed);
+        remaining.Setup(p=>p.DeleteHolon(id)).Returns(new OASISResult<IHolon>(new Holon{Id=id}){IsDeleted=true});
+        remaining.Setup(p=>p.DeleteHolonAsync(id)).ReturnsAsync(new OASISResult<IHolon>(new Holon{Id=id}){IsDeleted=true});
+        var dna=CreateDna(HyperDriveModes.V2);dna.OASIS.SubscriptionConfig.PlanType="Gold";
+        var manager=new ProviderManager(null,dna){IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=false,IsAutoLoadBalanceEnabled=false};
+        manager.RegisterProvider(first.Object);manager.RegisterProvider(remaining.Object);
+        manager.SetAndReplaceAutoFailOverListForProviders(new[] {new EnumValue<ProviderType>(ProviderType.MongoDBOASIS),new EnumValue<ProviderType>(ProviderType.LocalFileOASIS)}).IsError.Should().BeFalse();
+        var router=new OASISHyperDrive(manager);var request=new StorageOperationRequest{Operation="DeleteHolon",HolonId=id,SoftDelete=false,PreferredProvider=ProviderType.MongoDBOASIS};
+        var result=synchronous ? router.RouteRequest<IHolon>(request):await router.RouteRequestAsync<IHolon>(request);
+        result.IsError.Should().Be(!storageFailure);result.IsDeleted.Should().Be(storageFailure);
+        remaining.Invocations.Count(call=>call.Method.Name is "DeleteHolon" or "DeleteHolonAsync").Should().Be(storageFailure ? 1:0);
+    }
+
     private sealed class ReconciliationEvidenceException(string id,Exception? inner=null) : Exception("do not infer identity from this message",inner),INativeMutationReconciliationRequired
     { public string OriginalTransactionId=>id; }
 
@@ -6089,7 +6108,7 @@ public sealed class HyperDriveProviderExecutionTests
         };
         var method = typeof(OASISHyperDrive).GetMethod("ConvertResult", System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!
             .MakeGenericMethod(typeof(IHolon), typeof(IHolon));
-        var converted = (OASISResult<IHolon>)method.Invoke(router, new object[] { response })!;
+        var converted = (OASISResult<IHolon>)method.Invoke(router, new object[] { response, false })!;
         converted.IsError.Should().BeTrue();
     }
 

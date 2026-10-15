@@ -211,6 +211,23 @@ public partial class Web3NativeStorageTests
                 // Explicit fixture cleanup only AFTER proving routing left this native copy untouched.
                 Assert.IsFalse((await polygon.DeleteHolonAsync(holon.Id)).IsError);
             }
+            foreach(var asynchronous in new[] {false,true})
+            foreach(var byKey in new[] {false,true})
+            {
+                var holon=new Holon {Id=Guid.NewGuid(),Name="stale native copy must survive healthy SQL absence",IsActive=true};
+                Assert.IsFalse((await polygon.SaveHolonAsync(holon,saveChildren:false)).IsError);
+                var handle=await executor.BeginAsync("local-fixture-bearer",user,$"sqlite-missing-delete-{asynchronous}-{byKey}",new string('a',64),"local healthy delete absence fixture",policy);
+                var context=new PreparedStorageExecution(handle,"sqlite-missing-delete",new Dictionary<Core.Enums.ProviderType,string> {{Core.Enums.ProviderType.PolygonOASIS,sdk.SigningAddress}},new[] {Core.Enums.ProviderType.SQLLiteDBOASIS});
+                var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.PolygonOASIS)?.TotalRequests ?? 0;
+                var request=new Core.StorageOperationRequest {Operation=byKey ? "DeleteHolonByProviderKey":"DeleteHolon",HolonId=holon.Id,ProviderKey=holon.Id.ToString(),SoftDelete=false,PreferredProvider=Core.Enums.ProviderType.SQLLiteDBOASIS,PreparedExecution=context};
+                var result=asynchronous ? await router.RouteRequestAsync<IHolon>(request):router.RouteRequest<IHolon>(request);
+                Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsDeleted);Assert.IsNull(result.Result);Assert.IsNull(result.Exception);
+                Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,result.ErrorCode);
+                Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.PolygonOASIS)?.TotalRequests ?? 0);
+                var untouched=await polygon.LoadHolonAsync(holon.Id,loadChildren:false);Assert.IsFalse(untouched.IsError,untouched.Message);Assert.IsTrue(untouched.Result.IsActive);
+                var attempt=(await store.GetAsync(handle.OperationId,default)).ProviderAttempts.Single();Assert.AreEqual("SQLLiteDBOASIS",attempt.Provider);Assert.IsNull(attempt.NativePreparation);
+                Assert.IsFalse((await polygon.DeleteHolonAsync(holon.Id)).IsError);
+            }
         }
         finally {faulty.Context.Dispose();faulty.Dispose();}
         var deletionCause=new IOException("Owned notification failure AFTER actual SQLite transaction commit.");
