@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using Amazon;
 using Amazon.DynamoDBv2;
@@ -41,12 +40,6 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         private readonly AmazonDynamoDBClient _client;
         protected virtual ProviderType StorageProviderType => Core.Enums.ProviderType.DynamoDBOASIS;
 
-        private static readonly JsonSerializerOptions _jsonOpts = new JsonSerializerOptions
-        {
-            WriteIndented = false,
-            PropertyNamingPolicy = JsonNamingPolicy.CamelCase
-        };
-
         public DynamoDBOASIS(string accessKey, string secretKey, string region, string? serviceUrl = null)
         {
             var creds = new BasicAWSCredentials(accessKey, secretKey);
@@ -66,8 +59,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocalAndNetwork);
         }
 
-        private static string Ser(object o) => JsonSerializer.Serialize(o, _jsonOpts);
-        private static T? Des<T>(string? json) => json == null ? default : JsonSerializer.Deserialize<T>(json, _jsonOpts);
+        private static string Ser(object o) => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(o);
+        private static T? Des<T>(string? json) => json == null ? default : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<T>(json);
 
         // ─── Table creation helpers ───────────────────────────────────────────────
 
