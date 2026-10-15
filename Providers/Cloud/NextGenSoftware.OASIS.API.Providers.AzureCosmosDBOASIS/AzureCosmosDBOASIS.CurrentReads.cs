@@ -8,12 +8,33 @@ using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Interfaces;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
 
 public partial class AzureCosmosDBOASIS
 {
+    private async Task<OASISResult<IEnumerable<IHolon>>> ReadCurrentMetadataAsync(Dictionary<string,string> pairs,MetaKeyValuePairMatchMode mode,HolonType type,bool children,bool recursive,int depth,int initialDepth,bool fromProvider,int version)
+    {
+        var result=new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if(pairs==null || pairs.Count==0 || pairs.Keys.Any(string.IsNullOrWhiteSpace)) throw new ArgumentException("Nonempty metadata pairs and keys are required.");
+            if(!Enum.IsDefined(typeof(MetaKeyValuePairMatchMode),mode)) throw new ArgumentOutOfRangeException(nameof(mode));
+            if(initialDepth<0) throw new ArgumentOutOfRangeException(nameof(initialDepth));
+            var search=new SearchParams {SearchOnlyForCurrentAvatar=false,FilterByMetaData=new Dictionary<string,string>(pairs),MetaKeyValuePairMatchMode=mode};
+            StoredRecordSearch.Validate(search,version,depth);
+            var loaded=await ReadCurrentHolonsAsync(type,children,recursive,depth,initialDepth,fromProvider,version);
+            if(loaded.IsError) return loaded;
+            var records=loaded.Result.ToList();
+            result.Result=records.Where(row=>StoredRecordSearch.Matches(row,false,search,records)).ToArray();
+            result.IsLoaded=true;
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
+    }
+
     private async Task<OASISResult<IEnumerable<IHolon>>> ReadCurrentParentAsync(string key,HolonType type,bool children,bool recursive,int depth,int initialDepth,bool fromProvider,int version)
     {
         var result=new OASISResult<IEnumerable<IHolon>>();
