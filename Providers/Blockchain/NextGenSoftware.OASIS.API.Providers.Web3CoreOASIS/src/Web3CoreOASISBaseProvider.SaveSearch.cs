@@ -179,91 +179,54 @@ public partial class Web3CoreOASISBaseProvider
         return result;
     }
 
-    public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+    public override OASISResult<IHolon> SaveHolon(IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
+        =>SaveHolonAsync(holon,saveChildren,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider).GetAwaiter().GetResult();
+
+    public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
     {
-        return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
-    }
-
-    public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-    {
-        ArgumentNullException.ThrowIfNull(holon);
-
-        OASISResult<IHolon> result = new();
-        string errorMessage = "Error in SaveHolonAsync method in Web3CoreOASIS while saving holon. Reason: ";
-
-        if (_web3CoreOASIS is null)
-        {
-            OASISErrorHandling.HandleError(
-                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            return result;
-        }
-
-        try
-        {
-            string holonInfo = EncodePrivateRecord("holon",holon);
-            int holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
-            byte[] holonId = PrivateExternalId(holon.Id);
-
-            await _web3CoreOASIS.UpsertHolonAsync((uint)holonEntityId, holonId, Encoding.UTF8.GetBytes(holonInfo));
-
-            holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
-            holon.ProviderUniqueStorageKey[ProviderType.Value] = holon.Id.ToString();
-            holon.IsNewHolon = false;
-
-            result.Result = holon;
-            result.IsError = false;
-            result.IsSaved = true;
-        }
-        catch (RpcResponseException ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-
+        var batch=await SaveHolonsAsync(new[] {holon},saveChildren,recursive,maxChildDepth,0,continueOnError,saveChildrenOnProvider);
+        var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IHolon>(batch);
+        if(!batch.IsError) result.Result=holon;
         return result;
     }
 
-    public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+    public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,int curentChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
+        =>SaveHolonsAsync(holons,saveChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,saveChildrenOnProvider).GetAwaiter().GetResult();
+
+    public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,int curentChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
     {
-        return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
-    }
-
-    public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-    {
-        ArgumentNullException.ThrowIfNull(holons);
-
-        OASISResult<IEnumerable<IHolon>> result = new();
-        string errorMessage = "Error in SaveHolonsAsync method in Web3CoreOASIS while saving holons. Reason: ";
-
+        var result=new OASISResult<IEnumerable<IHolon>>();
+        var acknowledged=new List<IHolon>();var transactions=new List<string>();
         try
         {
-            foreach (IHolon holon in holons)
+            var plan=PlanWeb3Graph(holons,saveChildren,recursive,maxChildDepth,curentChildDepth);
+            // Freeze and encrypt the entire selected graph before any native write.
+            var writes=plan.Nodes.Select(node=>
             {
-                OASISResult<IHolon> saveHolonResult = await SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                if (saveHolonResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, saveHolonResult.DetailedMessage));
-
-                    if (!continueOnError) break;
-                }
+                node.Snapshot.IsNewHolon=false;
+                node.Snapshot.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
+                node.Snapshot.ProviderUniqueStorageKey[ProviderType.Value]=node.Snapshot.Id.ToString();
+                return (Node:node,Ciphertext:EncodePrivateRecord("holon",node.Snapshot));
+            }).ToList();
+            if(_web3CoreOASIS==null) throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
+            foreach(var write in writes)
+            {
+                var node=write.Node;
+                var receipt=await _web3CoreOASIS.UpsertHolonAsync((uint)HashUtility.GetNumericHash(node.Snapshot.Id.ToString()),PrivateExternalId(node.Snapshot.Id),Encoding.UTF8.GetBytes(write.Ciphertext));
+                acknowledged.Add(node.Snapshot);transactions.Add(receipt.TransactionHash);
+                if(node.Source.Id!=node.OriginalId || node.Source.ParentHolonId!=node.OriginalParent)
+                    throw new InvalidOperationException("Caller graph identity changed during acknowledged Web3Core write.");
+                node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;
+                node.Source.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
+                node.Source.ProviderUniqueStorageKey[ProviderType.Value]=node.Snapshot.Id.ToString();node.Source.IsNewHolon=false;
             }
-
-            result.Result = holons;
-            result.IsError = false;
-            result.IsSaved = true;
+            result.Result=plan.Roots;result.IsSaved=true;
         }
-        catch (RpcResponseException ex)
+        catch(Exception cause)
         {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
+            var error=acknowledged.Count>0 ? new Web3PartialMutationException(acknowledged.Select(row=>row.Id),transactions,cause):cause;
+            result.Result=acknowledged;result.IsSaved=false;OASISErrorHandling.HandleError(ref result,error.Message,error);
         }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-
         return result;
     }
 
