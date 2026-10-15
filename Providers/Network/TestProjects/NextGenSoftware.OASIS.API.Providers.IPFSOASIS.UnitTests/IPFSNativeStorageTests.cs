@@ -95,6 +95,14 @@ public class IPFSNativeStorageTests
             Assert.Empty(Assert.Single((await provider.LoadHolonsForParentAsync(parentKey,loadChildren:false,loadChildrenFromProvider:true)).Result).Children);
             Assert.Empty(Assert.Single((await provider.LoadHolonsForParentAsync(parentKey,maxChildDepth:1,curentChildDepth:1,loadChildrenFromProvider:true)).Result).Children);
             Assert.Throws<ArgumentOutOfRangeException>(()=>provider.LoadHolonsForParent(parentKey,maxChildDepth:-1));
+            var allGraph=provider.LoadAllHolons(HolonType.All,loadChildrenFromProvider:true);
+            Assert.False(allGraph.IsError,allGraph.Message);
+            Assert.Equal(grandchild.Id,Assert.Single(Assert.Single(allGraph.Result.Single(row=>row.Id==id).Children).Children).Id);
+            var shallowAll=await provider.LoadAllHolonsAsync(HolonType.All,loadChildren:false,loadChildrenFromProvider:true);
+            Assert.All(shallowAll.Result,row=>Assert.Empty(row.Children));
+            Assert.IsType<NotSupportedException>(provider.LoadAllHolons(HolonType.All,version:1).Exception);
+            Assert.IsType<NotSupportedException>(provider.LoadAllAvatars(version:1).Exception);
+            Assert.IsType<NotSupportedException>(provider.LoadAllAvatarDetails(version:1).Exception);
             var query=new SearchParams {SearchOnlyForCurrentAvatar=false,MetaKeyValuePairMatchMode=MetaKeyValuePairMatchMode.All,
                 SearchGroups=new() {new SearchTextGroup {SearchHolons=true,HolonType=HolonType.All,SearchQuery="owned-native-child",HolonSearchParams=new SearchHolonParams {Name=true}}}};
             var searched=await provider.SearchAsync(query);
