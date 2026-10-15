@@ -868,3 +868,11 @@ Counts are revision-scoped and overlap. Do not add them together or claim all en
 - Existing three-layer/password/metadata system versus whole-record storage, exact exemptions and integration pros/cons: [encryption comparison](OASIS_ENCRYPTION_ARCHITECTURE_COMPARISON.md).
 
 No sponsorship/mint fee policy is enabled by this document. Previously proposed NFT pricing remains unapproved; do not remove spending restrictions based on a green provider test.
+# IPFS parent-key lookup checkpoint — 2026-10-15
+
+Fixed parent-provider-key lookup to resolve the canonical holon parent identity, then select its children rather than select the parent itself. `HolonType.All` now works through the GUID path; synchronous parent wrappers forward version/options. Unsupported historical parent-key requests fail explicitly instead of silently returning current data. Graph option implementation remains an open gate.
+
+Extended the real offline Kubo scenario: encrypted child storage; async and sync parent-key lookup return the child, not the parent; a leaf returns no children; historical requests are rejected. Result: 1/1 selected native scenario passed, zero skips, 582 ms. This is not proof of HyperDrive routing/failover/replication/load-balancing or full interface completeness.
+
+Initial test exposed a runner build-order defect: it compiled only the consumer while retaining a stale provider assembly. Rebuilt the producer; the runner now builds producer before consumer with existing cached dependencies. Retained that failure report and encrypted fixture as `TestResults/IPFSCurrent/stale-producer.trx` and `stale-producer-dna.json`, without overwriting uncertain evidence. Successful rerun unpinned its own CIDs, GC removed 24 unpinned blocks, and the owned daemon stopped. No download, new environment, ledger reset or public fees. Free bytes 89960452096 → 89959718912.
+
