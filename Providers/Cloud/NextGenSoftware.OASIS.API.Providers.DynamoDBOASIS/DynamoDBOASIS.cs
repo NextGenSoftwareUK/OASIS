@@ -191,24 +191,43 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0) => LoadAvatarAsync(id, version).Result;
 
         private async Task<Avatar?> QueryAvatarByGsiAsync(string indexName, string keyName, string keyValue)
+            => await QueryUniqueAvatarAsync(request => _client.QueryAsync(request), indexName, keyName, keyValue);
+
+        private static async Task<Avatar?> QueryUniqueAvatarAsync(Func<QueryRequest, Task<QueryResponse>> query, string indexName, string keyName, string keyValue)
         {
-            var resp = await _client.QueryAsync(new QueryRequest
+            if(string.IsNullOrWhiteSpace(keyValue)) throw new ArgumentException("Avatar selector must not be blank.",nameof(keyValue));
+            var request = new QueryRequest
             {
                 TableName = "OasisAvatars",
                 IndexName = indexName,
                 KeyConditionExpression = "#k = :v",
                 ExpressionAttributeNames = new Dictionary<string, string> { ["#k"] = keyName },
                 ExpressionAttributeValues = new Dictionary<string, AttributeValue> { [":v"] = new AttributeValue { S = keyValue } },
-                Limit = 1
-            });
-            var item = resp.Items.FirstOrDefault(i => !(i.TryGetValue("is_deleted", out var d) && d.BOOL));
-            return item == null ? null : Des<Avatar>(item["data_json"].S);
+            };
+            Avatar? match = null;
+            do
+            {
+                var response = await query(request);
+                foreach(var item in response.Items)
+                {
+                    if(item.TryGetValue("is_deleted",out var deleted) && deleted.BOOL) continue;
+                    var avatar=Des<Avatar>(item["data_json"].S)
+                        ?? throw new InvalidOperationException("Stored DynamoDB avatar is null.");
+                    if(avatar.Id==Guid.Empty || !item.TryGetValue("id",out var id) || id.S!=avatar.Id.ToString())
+                        throw new InvalidOperationException("Stored DynamoDB avatar identity does not match its key.");
+                    if(match!=null) throw new StorageIdentityAmbiguousException();
+                    match=avatar;
+                }
+                request.ExclusiveStartKey=response.LastEvaluatedKey;
+            } while(request.ExclusiveStartKey?.Count>0);
+            return match;
         }
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
             try { var a = await QueryAvatarByGsiAsync("username-index", "username", username); if (a == null) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for username '{username}'."); return result; } result.Result = a; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded."; }
+            catch (StorageIdentityAmbiguousException ex) { result.Exception=ex; OASISErrorHandling.HandleError(ref result,ex.Message); result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -219,6 +238,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         {
             var result = new OASISResult<IAvatar>();
             try { var a = await QueryAvatarByGsiAsync("email-index", "email", email); if (a == null) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for email '{email}'."); return result; } result.Result = a; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded."; }
+            catch (StorageIdentityAmbiguousException ex) { result.Exception=ex; OASISErrorHandling.HandleError(ref result,ex.Message); result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
         }
