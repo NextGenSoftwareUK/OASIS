@@ -124,9 +124,15 @@ public class CosmosNativeStorageTests
             var avatarStore=new Infrastructure.AvatarRepository((Infrastructure.ICosmosDbClientFactory)factoryField.GetValue(provider)!);
             var tombstone=await avatarStore.GetByIdAsync(avatarId.ToString());
             Assert.IsFalse(tombstone.IsActive);Assert.AreEqual(DateTimeKind.Utc,tombstone.DeletedDate.Kind);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadAvatarDetailAsync(avatarId)).ErrorCode);
+            var detailStore=new Infrastructure.AvatarDetailRepository((Infrastructure.ICosmosDbClientFactory)factoryField.GetValue(provider)!);
+            var detailTombstone=await detailStore.GetByIdAsync(avatarId.ToString());
+            Assert.IsFalse(detailTombstone.IsActive);Assert.AreEqual(tombstone.DeletedDate,detailTombstone.DeletedDate);
+            Assert.AreEqual(321L,detailTombstone.XP);Assert.AreEqual(404L,detailTombstone.Karma);Assert.AreEqual(detail.Inventory.Single().Name,detailTombstone.Inventory.Single().Name);
             var repeated=provider.DeleteAvatar(avatarId);Assert.IsFalse(repeated.IsError,repeated.Message);Assert.IsTrue(repeated.Result);Assert.IsFalse(repeated.IsSaved);
             var hardDeleted=await provider.DeleteAvatarAsync(avatarId,softDelete:false);
             Assert.IsFalse(hardDeleted.IsError,hardDeleted.Message);Assert.IsTrue(hardDeleted.Result);Assert.IsTrue(hardDeleted.IsSaved);
+            Assert.IsNull(await detailStore.GetByIdAsync(avatarId.ToString()));
         }
         finally
         {

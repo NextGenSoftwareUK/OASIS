@@ -10,9 +10,31 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
 public class CosmosCurrentReadTests
 {
     [TestMethod]
+    public async Task PairedDeleteRetainsPartialAcknowledgementAndOriginalCause()
+    {
+        var provider=new Provider(false);var id=Guid.NewGuid();
+        var avatars=new Mock<IAvatarRepository>();var details=new Mock<IAvatarDetailRepository>();
+        avatars.Setup(r=>r.GetByIdAsync(id.ToString())).ReturnsAsync(new Avatar {Id=id,IsActive=true});
+        details.Setup(r=>r.GetByIdAsync(id.ToString())).ReturnsAsync(new AvatarDetail {Id=id,IsActive=true,XP=321});
+        avatars.Setup(r=>r.UpsertAsync(It.IsAny<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>())).ReturnsAsync((NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar row)=>row);
+        var cause=new IOException("owned detail write rejection");
+        details.Setup(r=>r.UpsertAsync(It.IsAny<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarDetail>())).ThrowsAsync(cause);
+        typeof(AzureCosmosDBOASIS).GetField("avatarRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,avatars.Object);
+        typeof(AzureCosmosDBOASIS).GetField("avatarDetailRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,details.Object);
+        var result=await provider.DeleteAvatarAsync(id);
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.Result);Assert.IsFalse(result.IsSaved);
+        var evidence=(CosmosAvatarLifecycleException)result.Exception;
+        Assert.AreEqual(id,evidence.AvatarId);Assert.AreSame(cause,evidence.InnerException);
+        CollectionAssert.AreEqual(new[] {"avatarItems"},evidence.AcknowledgedContainers.ToArray());
+        Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(evidence));
+    }
+
+    [TestMethod]
     public async Task AvatarDeleteCannotReportSuccessAfterFailedTombstone()
     {
         var provider=new Provider(false);var repository=new Mock<IAvatarRepository>();var id=Guid.NewGuid();
+        var details=new Mock<IAvatarDetailRepository>();
+        typeof(AzureCosmosDBOASIS).GetField("avatarDetailRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,details.Object);
         var avatar=new Avatar {Id=id,IsActive=true};
         repository.Setup(r=>r.GetByIdAsync(id.ToString())).ReturnsAsync(avatar);
         var cause=new CosmosMutationReconciliationException(id.ToString(),new IOException("lost tombstone reply"));
