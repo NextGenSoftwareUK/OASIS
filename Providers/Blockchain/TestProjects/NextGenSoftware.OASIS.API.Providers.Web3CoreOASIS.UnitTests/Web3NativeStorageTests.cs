@@ -191,6 +191,7 @@ public partial class Web3NativeStorageTests
             var beforeCycle=await native.GetHolonsCountAsync();
             await VerifyProfileAcknowledgementAsync(provider,native);
             await VerifyPreparationScopeAsync(provider,native);
+            if(Environment.GetEnvironmentVariable("OASIS_WEB3_PREPARED_OUTBOX_REQUIRED")=="1") await VerifyRealOutboxAsync(provider,native);
             await VerifyCheckedUpsertsAsync(native);
             var deleteFixture=new Holon {Id=Guid.NewGuid(),IsActive=true,Name="checked deletion"};
             Assert.IsFalse((await provider.SaveHolonAsync(deleteFixture,saveChildren:false)).IsError);
