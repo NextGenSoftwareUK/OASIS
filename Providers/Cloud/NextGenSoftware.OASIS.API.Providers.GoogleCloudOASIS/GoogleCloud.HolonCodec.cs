@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using System.Threading.Tasks;
@@ -14,6 +15,27 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 
 public partial class GoogleCloudOASIS
 {
+    private async Task<OASISResult<IEnumerable<IHolon>>> ReadCanonicalMetadataAsync(Dictionary<string,string> pairs,MetaKeyValuePairMatchMode mode,
+        HolonType type,bool children,bool recursive,int depth,int initialDepth,bool continueOnError,bool fromProvider,int version)
+    {
+        var result=new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if(pairs==null || pairs.Count==0 || pairs.Keys.Any(string.IsNullOrWhiteSpace))
+                throw new ArgumentException("Nonempty metadata pairs and keys are required.");
+            if(initialDepth<0) throw new ArgumentOutOfRangeException(nameof(initialDepth));
+            var search=new SearchParams {SearchOnlyForCurrentAvatar=false,FilterByMetaData=new Dictionary<string,string>(pairs),MetaKeyValuePairMatchMode=mode};
+            StoredRecordSearch.Validate(search,version,depth);
+            var loaded=await LoadAllHolonsAsync(type,children,recursive,depth,initialDepth,continueOnError,fromProvider,version);
+            if(loaded.IsError) return loaded;
+            var rows=loaded.Result.ToList();
+            result.Result=rows.Where(row=>StoredRecordSearch.Matches(row,false,search,rows)).ToList();
+            result.IsLoaded=true;
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
+    }
+
     private Task<OASISResult<IEnumerable<IHolon>>> ReadCanonicalParentHolonsAsync(string key,HolonType type,bool children,bool recursive,int depth,int initialDepth,bool continueOnError,bool fromProvider,int version)
     {
         if (Guid.TryParse(key,out var id) && id != Guid.Empty)
