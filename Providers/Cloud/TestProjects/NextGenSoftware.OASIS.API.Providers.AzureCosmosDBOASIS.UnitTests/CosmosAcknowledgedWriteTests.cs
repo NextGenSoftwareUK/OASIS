@@ -10,6 +10,24 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
 public class CosmosAcknowledgedWriteTests
 {
     [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task FailedWriteDoesNotPublishGeneratedIdentityOrProviderKey(bool create)
+    {
+        var entity=new Avatar {Id=Guid.Empty,FirstName="submitted",ProviderUniqueStorageKey=null!};
+        object? sent=null;var cause=new IOException("owned SDK failure");
+        var client=new Mock<ICosmosDbClient>();
+        Task<string> Fail(object value) {sent=value;entity.FirstName="changed";return Task.FromException<string>(cause);}
+        client.Setup(c=>c.CreateDocumentAsync(It.IsAny<object>(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>())).Returns((object value,PartitionKey? _,CancellationToken __)=>Fail(value));
+        client.Setup(c=>c.UpsertDocumentAsync(It.IsAny<object>(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>())).Returns((object value,PartitionKey? _,CancellationToken __)=>Fail(value));
+        var factory=new Mock<ICosmosDbClientFactory>();factory.Setup(f=>f.GetClient("avatarItems")).Returns(client.Object);
+        var repository=new AvatarRepository(factory.Object);
+        var failed=await Assert.ThrowsExceptionAsync<IOException>(async()=> {if(create) await repository.AddAsync(entity);else await repository.UpsertAsync(entity);});
+        Assert.AreSame(cause,failed);Assert.AreEqual(Guid.Empty,entity.Id);Assert.IsNull(entity.ProviderUniqueStorageKey);
+        Assert.IsNotNull(sent);Assert.AreNotSame(entity,sent);var snapshot=(Avatar)sent;
+        Assert.AreNotEqual(Guid.Empty,snapshot.Id);Assert.AreEqual("submitted",snapshot.FirstName);
+    }
+
+    [DataTestMethod]
     [DataRow(false,false)] [DataRow(false,true)] [DataRow(true,false)] [DataRow(true,true)]
     public async Task AcknowledgedInvalidResponseRetainsSubmittedIdentity(bool create,bool malformed)
     {
