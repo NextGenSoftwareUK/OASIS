@@ -9,6 +9,8 @@ using Microsoft.Azure.Cosmos;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+using NextGenSoftware.OASIS.Common;
+using System.Text.RegularExpressions;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 {
@@ -33,6 +35,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 
         public string ReadDocumentByField(string fieldName, string fieldValue, int version = 0)
         {
+            if(string.IsNullOrWhiteSpace(fieldName) || !Regex.IsMatch(fieldName,@"\A[A-Za-z_][A-Za-z0-9_]*(\.[A-Za-z_][A-Za-z0-9_]*)*\z"))
+                throw new ArgumentException("A valid Cosmos property path is required.",nameof(fieldName));
             var query = new QueryDefinition($"SELECT * FROM c WHERE c.{fieldName} = @value")
                 .WithParameter("@value", fieldValue);
             if (version > 0)
@@ -41,18 +45,22 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                     .WithParameter("@version", version);
 
             using var iterator = _container.GetItemQueryStreamIterator(query);
-            if (!iterator.HasMoreResults)
-                return null;
-            using var response = iterator.ReadNextAsync().GetAwaiter().GetResult();
-            if (!response.IsSuccessStatusCode)
-                throw new CosmosException(response.ErrorMessage ?? "Query failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
-            using var reader = new StreamReader(response.Content);
-            var content = reader.ReadToEnd();
-            var obj = JObject.Parse(content);
-            var docs = obj["Documents"] as JArray;
-            if (docs == null || !docs.Any())
-                return null;
-            return docs.First().ToString();
+            string match=null;
+            while(iterator.HasMoreResults)
+            {
+                using var response=iterator.ReadNextAsync().GetAwaiter().GetResult();
+                if(!response.IsSuccessStatusCode)
+                    throw new CosmosException(response.ErrorMessage ?? "Query failed",response.StatusCode,(int)response.StatusCode,response.Headers.ActivityId,response.Headers.RequestCharge);
+                using var reader=new StreamReader(response.Content);
+                var obj=JObject.Parse(reader.ReadToEnd());
+                if(obj["Documents"] is not JArray docs) throw new InvalidDataException("Cosmos query response lacks a Documents array.");
+                foreach(var doc in docs)
+                {
+                    if(match!=null) throw new StorageIdentityAmbiguousException();
+                    match=doc.ToString();
+                }
+            }
+            return match;
         }
 
         public List<string> ReadAllDocuments()
