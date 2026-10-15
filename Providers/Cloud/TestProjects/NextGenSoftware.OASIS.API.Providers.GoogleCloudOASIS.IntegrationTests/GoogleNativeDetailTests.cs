@@ -59,6 +59,7 @@ public class GoogleNativeDetailTests
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadAvatarDetailAsync(Guid.NewGuid())).ErrorCode);
             Assert.AreEqual(2,(await provider.LoadAllAvatarDetailsAsync()).Result.Count());
             await VerifyV2Async(provider,detail);
+            await VerifyNativePartialBatchAsync(db);
             var holon=new Holon {Id=holonId,IsActive=true,Name="owned holon",ParentHolonId=detail.Id,CreatedByAvatarId=avatarId,
                 MetaData=new Dictionary<string,object> {{"owned-field","owned-value"}}};
             var written=await provider.SaveHolonAsync(holon,saveChildren:false);Assert.IsFalse(written.IsError,written.Message);
@@ -146,6 +147,10 @@ public class GoogleNativeDetailTests
             var graphRoot=new Holon {Id=graphIds[0],IsActive=true,Name="graph root",Children=new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> {graphChild}};
             Assert.IsFalse((await provider.SaveHolonAsync(graphRoot,saveChildren:false)).IsError);
             Assert.IsFalse((await db.Collection("holons").Document(graphIds[1].ToString()).GetSnapshotAsync()).Exists);
+            Assert.IsFalse((await provider.SaveHolonsAsync(new[] {graphRoot},maxChildDepth:1,curentChildDepth:1)).IsError);
+            Assert.IsFalse((await db.Collection("holons").Document(graphIds[1].ToString()).GetSnapshotAsync()).Exists);
+            Assert.IsFalse((await provider.SaveHolonAsync(graphRoot,maxChildDepth:1)).IsError);
+            Assert.IsFalse((await db.Collection("holons").Document(graphIds[2].ToString()).GetSnapshotAsync()).Exists);
             Assert.IsFalse((await provider.SaveHolonAsync(graphRoot,recursive:false)).IsError);
             Assert.AreEqual(graphIds[0],(await provider.LoadHolonAsync(graphIds[1],loadChildren:false)).Result.ParentHolonId);
             Assert.IsFalse((await db.Collection("holons").Document(graphIds[2].ToString()).GetSnapshotAsync()).Exists);
@@ -160,6 +165,50 @@ public class GoogleNativeDetailTests
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadHolonAsync(Guid.NewGuid(),loadChildren:false)).ErrorCode);
         }
         finally {foreach(var id in ids) await db.Collection("avatarDetails").Document(id.ToString()).DeleteAsync();foreach(var id in importedIds.Concat(graphIds)) await db.Collection("holons").Document(id.ToString()).DeleteAsync();await db.Collection("holons").Document(holonId.ToString()).DeleteAsync();await db.Collection("holons").Document(childId.ToString()).DeleteAsync();await db.Collection("avatars").Document(avatarId.ToString()).DeleteAsync();await db.Collection("avatars").Document(duplicateAvatarId.ToString()).DeleteAsync();await provider.DeActivateProviderAsync();}
+    }
+
+    private sealed class InterruptAfterFirstWriteProvider : GoogleCloudOASIS
+    {
+        private readonly FirestoreDb _unreachable;
+        public int Writes;
+        public InterruptAfterFirstWriteProvider(FirestoreDb unreachable):base(projectId:"oasis-google-native",enableStorage:false,enableFirestore:true,enableBigQuery:false)
+            =>_unreachable=unreachable;
+        public override async Task<OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>> SaveHolonAsync(NextGenSoftware.OASIS.API.Core.Interfaces.IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
+        {
+            Writes++;
+            var result=await base.SaveHolonAsync(holon,saveChildren,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider);
+            if(Writes==1 && !result.IsError)
+                typeof(GoogleCloudOASIS).GetField("_firestoreDb",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(this,_unreachable);
+            return result;
+        }
+    }
+
+    private static async Task VerifyNativePartialBatchAsync(FirestoreDb healthy)
+    {
+        var settings=Google.Api.Gax.Grpc.CallSettingsExtensions.WithRetry(
+            Google.Api.Gax.Grpc.CallSettings.FromExpiration(Google.Api.Gax.Expiration.FromTimeout(TimeSpan.FromSeconds(2))),
+            Google.Api.Gax.Grpc.RetrySettings.FromConstantBackoff(1,TimeSpan.Zero,_=>false));
+        var client=new Google.Cloud.Firestore.V1.FirestoreClientBuilder {Endpoint="127.0.0.1:18083",ChannelCredentials=Grpc.Core.ChannelCredentials.Insecure,
+            Settings=new Google.Cloud.Firestore.V1.FirestoreSettings {CommitSettings=settings}}.Build();
+        var provider=new InterruptAfterFirstWriteProvider(FirestoreDb.Create("oasis-google-native",client));
+        var rows=Enumerable.Range(0,3).Select(_=>new Holon {Id=Guid.NewGuid(),IsActive=true,Name="owned partial"}).ToArray();
+        try
+        {
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            var result=await provider.SaveHolonsAsync(rows,saveChildren:false,continueOnError:true);
+            Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.AreEqual(2,provider.Writes);
+            var partial=result.Exception as GoogleFirestorePartialMutationException;
+            Assert.IsNotNull(partial);CollectionAssert.AreEqual(new[] {rows[0].Id},partial.AcknowledgedRecordIds.ToArray());
+            Assert.IsInstanceOfType(partial.InnerException,typeof(GoogleFirestoreMutationReconciliationException));
+            Assert.IsInstanceOfType(partial.InnerException.InnerException,typeof(Grpc.Core.RpcException));
+            Assert.IsTrue((await healthy.Collection("holons").Document(rows[0].Id.ToString()).GetSnapshotAsync()).Exists);
+            Assert.IsFalse((await healthy.Collection("holons").Document(rows[2].Id.ToString()).GetSnapshotAsync()).Exists);
+        }
+        finally
+        {
+            foreach(var row in rows) await healthy.Collection("holons").Document(row.Id.ToString()).DeleteAsync();
+            await provider.DeActivateProviderAsync();
+        }
     }
 
     private static async Task VerifyV2Async(GoogleCloudOASIS google,AvatarDetail detail)
