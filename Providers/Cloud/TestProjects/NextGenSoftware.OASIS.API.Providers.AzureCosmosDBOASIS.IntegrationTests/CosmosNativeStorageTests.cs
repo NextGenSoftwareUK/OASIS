@@ -236,6 +236,19 @@ public class CosmosNativeStorageTests
             =>new DeadlineClient(new Infrastructure.CosmosDbClient(client.GetContainer("oasis-cosmos-native",name)));
     }
 
+    private sealed class LifecycleFaultFactory(Infrastructure.ICosmosDbClient healthy,Infrastructure.ICosmosDbClient failed)
+        : Infrastructure.ICosmosDbClientFactory,Infrastructure.ICosmosDbClient
+    {
+        public Infrastructure.ICosmosDbClient GetClient(string name)=>this;
+        public Task<string> ReadDocumentAsync(string id,PartitionKey? key,CancellationToken token=default)=>healthy.ReadDocumentAsync(id,key,token);
+        public string ReadDocumentByField(string field,string value,int version=0)=>healthy.ReadDocumentByField(field,value,version);
+        public List<string> ReadAllDocuments()=>healthy.ReadAllDocuments();
+        public Task<string> CreateDocumentAsync(object doc,PartitionKey? key,CancellationToken token=default)=>failed.CreateDocumentAsync(doc,key,token);
+        public Task<string> UpsertDocumentAsync(object doc,PartitionKey? key,CancellationToken token=default)=>failed.UpsertDocumentAsync(doc,key,token);
+        public Task ReplaceDocumentAsync(string id,object doc,PartitionKey? key,CancellationToken token=default)=>failed.ReplaceDocumentAsync(id,doc,key,token);
+        public Task DeleteDocumentAsync(string id,PartitionKey? key,CancellationToken token=default)=>failed.DeleteDocumentAsync(id,key,token);
+    }
+
     private sealed class DeadlineClient(Infrastructure.ICosmosDbClient inner) : Infrastructure.ICosmosDbClient
     {
         private static async Task<T> Bound<T>(Func<CancellationToken,Task<T>> action,CancellationToken token)
@@ -311,5 +324,38 @@ public class CosmosNativeStorageTests
             }
         }
         finally {foreach(var pair in originals) pair.Key.SetValue(cosmos,pair.Value);manager.IsAutoFailOverEnabled=false;}
+        var avatarField=typeof(AzureCosmosDBOASIS).GetField("avatarRepository",flags)!;
+        var detailField=typeof(AzureCosmosDBOASIS).GetField("avatarDetailRepository",flags)!;
+        var healthyAvatar=(Interfaces.IAvatarRepository)originals[avatarField];
+        var healthyDetail=(Interfaces.IAvatarDetailRepository)originals[detailField];
+        var baseline=await healthyAvatar.GetByIdAsync(avatarId.ToString());
+        var healthyFactory=(Infrastructure.ICosmosDbClientFactory)typeof(AzureCosmosDBOASIS).GetField("dbClientFactory",flags)!.GetValue(cosmos)!;
+        var fault=new LifecycleFaultFactory(healthyFactory.GetClient("avatarDetailItems"),factory.GetClient("avatarDetailItems"));
+        detailField.SetValue(cosmos,new Infrastructure.AvatarDetailRepository(fault));
+        manager.IsAutoFailOverEnabled=true;
+        try
+        {
+            foreach(var asynchronous in new[] {false,true})
+            {
+                var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests;
+                var request=new Core.StorageOperationRequest {Operation="DeleteAvatar",AvatarId=avatarId,SoftDelete=true,PreferredProvider=Core.Enums.ProviderType.AzureCosmosDBOASIS};
+                var deleted=asynchronous ? await router.RouteRequestAsync<bool>(request):router.RouteRequest<bool>(request);
+                Assert.IsTrue(deleted.IsError);Assert.IsFalse(deleted.Result);
+                var evidence=deleted.Exception as CosmosAvatarLifecycleException;Assert.IsNotNull(evidence);
+                Assert.AreEqual(avatarId,evidence.AvatarId);CollectionAssert.AreEqual(new[] {"avatarItems"},evidence.AcknowledgedContainers.ToArray());
+                Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(evidence.InnerException));
+                Assert.IsFalse((await healthyAvatar.GetByIdAsync(avatarId.ToString())).IsActive);
+                Assert.IsTrue((await healthyDetail.GetByIdAsync(avatarId.ToString())).IsActive);
+                Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests);
+                Assert.IsTrue((await sqlite.LoadAvatarAsync(avatarId)).Result.IsActive);
+                Assert.IsTrue((await sqlite.LoadAvatarDetailAsync(avatarId)).Result.IsActive);
+                await healthyAvatar.UpsertAsync(baseline);
+            }
+        }
+        finally
+        {
+            detailField.SetValue(cosmos,healthyDetail);manager.IsAutoFailOverEnabled=false;
+            await healthyAvatar.UpsertAsync(baseline);
+        }
     }
 }
