@@ -10,6 +10,28 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class EncryptedKeyValueBackendTests
 {
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task RecordCodecAndBackendUseTheSameAuthenticatedEnvelope(bool compress)
+    {
+        var key = RandomNumberGenerator.GetBytes(32);
+        var store = new InMemoryBackend();
+        using var backend = new EncryptedKeyValueBackend(store, key, compress);
+        using var codec = new EncryptedRecordCodec(key, compress);
+        await backend.PutAsync("identity", "synthetic private record");
+        var stored = await store.GetAsync("identity");
+        Assert.AreEqual("synthetic private record", codec.Decrypt("identity", stored));
+        Assert.ThrowsException<AuthenticationTagMismatchException>(() => codec.Decrypt("different-identity", stored));
+        var encoded = codec.Encrypt("identity", "second private record");
+        await store.PutAsync("identity", encoded);
+        Assert.AreEqual("second private record", await backend.GetAsync("identity"));
+        Assert.AreNotEqual(encoded, codec.Encrypt("identity", "second private record"), "each encryption needs a fresh nonce");
+        codec.Dispose();
+        Assert.ThrowsException<ObjectDisposedException>(() => codec.Encrypt("identity", "value"));
+        Assert.ThrowsException<ObjectDisposedException>(() => codec.Decrypt("identity", encoded));
+    }
+
     [TestMethod]
     public async Task PrivateStoragePreservesExistingExemptMetadataEqualityQueriesAfterReopen()
     {
