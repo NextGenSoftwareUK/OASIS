@@ -53,6 +53,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
         OASISDNA dna,IMongoDatabase admin,string app,bool synchronous,IMongoCollection<API.Providers.MongoDBOASIS.Entities.Holon> records)
     {
         await VerifyMongoHolonReadsAreNonMutatingAsync(fault,healthy,sqlite,dna,admin,app,synchronous,records);
+        await VerifyMongoHolonSaveWriteConcernAsync(fault,healthy,sqlite,dna,admin,app,synchronous,records);
         var manager=new ProviderManager(null,dna){IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=true};
         manager.RegisterProvider(fault);manager.RegisterProvider(sqlite);
         var providers=new[] {new EnumValue<ProviderType>(ProviderType.MongoDBOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)};
