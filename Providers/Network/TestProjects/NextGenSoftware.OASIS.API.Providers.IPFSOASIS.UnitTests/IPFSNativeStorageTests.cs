@@ -64,6 +64,20 @@ public class IPFSNativeStorageTests
             Assert.Equal(inventoryId,item.Id); Assert.Equal(5,item.Quantity); Assert.Equal("Our World",item.GameSource);
             Assert.Single((await provider.LoadAllAvatarsAsync()).Result); Assert.Single((await provider.LoadAllAvatarDetailsAsync()).Result);
             Assert.Single((await provider.LoadAllHolonsAsync(HolonType.All)).Result);
+            Assert.Equal(id,provider.LoadAvatarByEmail(avatar.Email.ToUpperInvariant()).Result.Id);
+            Assert.Equal(id,(await provider.LoadAvatarByUsernameAsync(avatar.Username.ToUpperInvariant())).Result.Id);
+            Assert.Equal(id,provider.LoadAvatarDetailByUsername(detail.Username.ToUpperInvariant()).Result.Id);
+            Assert.Equal(id,(await provider.LoadAvatarDetailByEmailAsync(detail.Email.ToUpperInvariant())).Result.Id);
+            Assert.IsType<ArgumentException>(provider.LoadAvatarByEmail(" ").Exception);
+            Assert.IsType<ArgumentException>(provider.LoadAvatar(Guid.Empty).Exception);
+            var duplicate=new Avatar {Id=Guid.NewGuid(),Username=avatar.Username.ToUpperInvariant(),Email=avatar.Email.ToUpperInvariant()};
+            await provider.SaveAvatarToFile(duplicate);
+            ownedCids.Add(duplicate.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]); ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+            var ambiguous=await provider.LoadAvatarByEmailAsync(avatar.Email);
+            Assert.True(ambiguous.IsError); Assert.Equal(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.AmbiguousIdentity,ambiguous.ErrorCode);
+            Assert.IsType<NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException>(ambiguous.Exception);
+            Assert.False((await provider.DeleteAvatarAsync(duplicate.Id,softDelete:false)).IsError);
+            ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
             var child=new Holon {Id=Guid.NewGuid(),ParentHolonId=id,Name="owned-native-child",HolonType=HolonType.Holon,
                 MetaData=new Dictionary<string,object> {{"biome","owned-park"}}};
             await provider.SaveHolonToFile(child);
