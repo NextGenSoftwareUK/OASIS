@@ -948,6 +948,7 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         var failed = synchronous ? provider.DeleteAvatar(avatar.Id, true) : await provider.DeleteAvatarAsync(avatar.Id, true);
         failed.IsError.Should().BeTrue();
         failed.Result.Should().BeFalse();
+        if (missingDetail) failed.ErrorCode.Should().Be(Core.Helpers.StorageLifecycleConflictException.ErrorCode);
         if (!missingDetail)
         {
             failed.Exception.Should().NotBeNull();

@@ -335,6 +335,7 @@ public partial class Web3NativeStorageTests
                 Assert.AreEqual(2,attempts.Count);Assert.AreEqual(1,attempts.Count(a=>a.Provider=="PolygonOASIS" && a.NativePreparation!=null));
                 Assert.AreEqual(1,attempts.Count(a=>a.Provider=="SQLLiteDBOASIS" && a.NativePreparation==null));
             }
+            await VerifySqliteAvatarDeleteAbsenceAsync(polygon,healthySqlite,manager,router,sdk,executor,user,policy,store);
         }
         finally {deletion.Context.Dispose();deletion.Dispose();}
         await VerifySqliteWalletCommitFenceAsync(healthySqlite);
