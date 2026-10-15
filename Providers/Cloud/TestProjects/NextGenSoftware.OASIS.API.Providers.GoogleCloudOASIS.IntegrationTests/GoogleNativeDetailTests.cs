@@ -55,7 +55,9 @@ public class GoogleNativeDetailTests
             Assert.AreEqual(detail.Inventory[0].Id,loaded.Result.Inventory.Single().Id);Assert.AreEqual("owned-value",loaded.Result.MetaData["owned-field"]);
             Assert.AreEqual(detail.Id,(await provider.LoadAvatarDetailByUsernameAsync(detail.Username)).Result.Id);
             Assert.AreEqual(detail.Id,provider.LoadAvatarDetailByEmail(detail.Email).Result.Id);
-            var duplicate=new AvatarDetail {Id=Guid.NewGuid(),IsActive=true,Username=detail.Username,Email=detail.Email};ids.Add(duplicate.Id);
+            Assert.AreEqual(detail.Id,(await provider.LoadAvatarDetailByUsernameAsync(detail.Username.ToUpperInvariant())).Result.Id);
+            Assert.AreEqual(detail.Id,provider.LoadAvatarDetailByEmail(detail.Email.ToUpperInvariant()).Result.Id);
+            var duplicate=new AvatarDetail {Id=Guid.NewGuid(),IsActive=true,Username=detail.Username.ToUpperInvariant(),Email=detail.Email.ToUpperInvariant()};ids.Add(duplicate.Id);
             Assert.IsFalse((await provider.SaveAvatarDetailAsync(duplicate)).IsError);
             Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,(await provider.LoadAvatarDetailByEmailAsync(detail.Email)).ErrorCode);
             Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,(await provider.LoadAvatarDetailByUsernameAsync(detail.Username)).ErrorCode);

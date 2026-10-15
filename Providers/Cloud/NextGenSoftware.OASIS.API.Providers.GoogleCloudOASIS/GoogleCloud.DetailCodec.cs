@@ -66,10 +66,10 @@ public partial class GoogleCloudOASIS
         try {
             if(string.IsNullOrWhiteSpace(selector)) throw new ArgumentException("A nonblank avatar selector is required.");
             if(version!=0) throw new NotSupportedException("Firestore detail selectors currently support latest version (0) only.");
-            var ready=await EnsureDetailStoreAsync(version);
-            if(ready.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IAvatarDetail>(ready);
-            var snapshot=await _firestoreDb.Collection("avatarDetails").WhereEqualTo(field,selector).WhereEqualTo("isActive",true).Limit(2).GetSnapshotAsync();
-            var matches=snapshot.Documents.Select(doc=>DecodeAvatarDetail(doc.ConvertTo<Dictionary<string,object>>(),doc.Id)).ToList();
+            if(field!="username" && field!="email") throw new ArgumentException("Unknown avatar detail selector field.",nameof(field));
+            var loaded=await ReadCanonicalDetailsAsync(version);
+            if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IAvatarDetail>,IAvatarDetail>(loaded);
+            var matches=loaded.Result.Where(row=>string.Equals(field=="email" ? row.Email:row.Username,selector,StringComparison.OrdinalIgnoreCase)).Take(2).ToList();
             if(matches.Count>1) throw new StorageIdentityAmbiguousException();
             if(matches.Count==0) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="No Firestore detail matches selector.";}
             else {result.Result=matches[0];result.IsLoaded=true;}
