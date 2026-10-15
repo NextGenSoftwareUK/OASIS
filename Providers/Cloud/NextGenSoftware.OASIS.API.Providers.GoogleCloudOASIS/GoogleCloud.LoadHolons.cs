@@ -44,58 +44,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (!_enableFirestore)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
-                    return result;
-                }
-
-                // Load holons by metadata from Firestore
-                var query = _firestoreDb.Collection("holons").WhereEqualTo($"metadata.{metaKey}", metaValue);
-                var snapshot = await query.GetSnapshotAsync();
-                
-                if (snapshot.Count > 0)
-                {
-                    var holons = new List<IHolon>();
-                    
-                    // Convert ALL Firestore documents to OASIS Holons with FULL property mapping
-                    foreach (var doc in snapshot.Documents)
-                    {
-                        var holonData = doc.ConvertTo<Dictionary<string, object>>();
-                    var holon = DecodeHolon(holonData,doc.Id);
-                        
-                        holons.Add(holon);
-                    }
-                    
-                    result.Result = holons;
-                    result.IsError = false;
-                    result.Message = $"Holons by metadata loaded successfully from Google Cloud Firestore with full property mapping ({holons.Count} holons)";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "No holons found by metadata in Google Cloud Firestore");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from Google Cloud: {ex.Message}", ex);
-            }
-            return result;
-        }
+            => await ReadCanonicalMetadataAsync(metaKey == null ? null : new Dictionary<string,string> {{metaKey,metaValue}}, MetaKeyValuePairMatchMode.All,type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,loadChildrenFromProvider,version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
@@ -103,66 +52,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (!_enableFirestore)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
-                    return result;
-                }
-
-                // Load holons by multiple metadata from Firestore
-                var collection = _firestoreDb.Collection("holons");
-                var query = (Query)collection;
-                
-                // Apply multiple metadata filters
-                foreach (var kvp in metaKeyValuePairs)
-                {
-                    query = query.WhereEqualTo($"metadata.{kvp.Key}", kvp.Value);
-                }
-                
-                var snapshot = await query.GetSnapshotAsync();
-                
-                if (snapshot.Count > 0)
-                {
-                    var holons = new List<IHolon>();
-                    
-                    // Convert ALL Firestore documents to OASIS Holons with FULL property mapping
-                    foreach (var doc in snapshot.Documents)
-                    {
-                        var holonData = doc.ConvertTo<Dictionary<string, object>>();
-                    var holon = DecodeHolon(holonData,doc.Id);
-                        
-                        holons.Add(holon);
-                    }
-                    
-                    result.Result = holons;
-                    result.IsError = false;
-                    result.Message = $"Holons by multiple metadata loaded successfully from Google Cloud Firestore with full property mapping ({holons.Count} holons)";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "No holons found by multiple metadata in Google Cloud Firestore");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons by multiple metadata from Google Cloud: {ex.Message}", ex);
-            }
-            return result;
-        }
+            => await ReadCanonicalMetadataAsync(metaKeyValuePairs,metaKeyValuePairMatchMode,type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,loadChildrenFromProvider,version);
 
     }
 }

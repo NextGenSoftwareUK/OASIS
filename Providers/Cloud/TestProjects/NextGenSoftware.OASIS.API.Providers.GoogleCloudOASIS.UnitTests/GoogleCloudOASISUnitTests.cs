@@ -13,6 +13,18 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
         private GoogleCloudOASIS _provider = null!;
 
         [TestMethod]
+        public async Task MetadataQueriesValidateBeforeActivationAndPreserveCause()
+        {
+            var provider=new FailedActivationProvider();
+            Assert.IsInstanceOfType((await provider.LoadHolonsByMetaDataAsync((string)null,"x")).Exception,typeof(System.ArgumentException));
+            Assert.IsInstanceOfType((await provider.LoadHolonsByMetaDataAsync(" ","x")).Exception,typeof(System.ArgumentException));
+            Assert.IsInstanceOfType((await provider.LoadHolonsByMetaDataAsync("key","x",version:1)).Exception,typeof(System.NotSupportedException));
+            Assert.AreEqual(0,provider.Activations);
+            var failed=await provider.LoadHolonsByMetaDataAsync("key","x");
+            Assert.AreSame(provider.Cause,failed.Exception);Assert.AreEqual("owned-code",failed.ErrorCode);
+        }
+
+        [TestMethod]
         public async Task ParentQueriesValidateIdentityDepthVersionAndPreserveActivationCause()
         {
             var provider=new FailedActivationProvider();
