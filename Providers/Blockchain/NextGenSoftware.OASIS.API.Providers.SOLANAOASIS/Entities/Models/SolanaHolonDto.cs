@@ -7,6 +7,12 @@ public class SolanaHolonDto : SolanaBaseDto
 {
     public string Name { get; set; }
     public string Description { get; set; }
+    public Guid ParentHolonId { get; set; }
+    public NextGenSoftware.OASIS.API.Core.Enums.HolonType HolonType { get; set; }
+    public string CustomHolonType { get; set; }
+    public Guid ModifiedByAvatarId { get; set; }
+    public Guid DeletedByAvatarId { get; set; }
+    public DateTime DeletedDate { get; set; }
     public DateTime CreatedDate { get; set; }
     public DateTime ModifiedDate { get; set; }
     public bool IsActive { get; set; }
