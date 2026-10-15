@@ -11,6 +11,22 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
 public class CosmosStreamOwnershipTests
 {
     [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task MissingItemRequiresReadableParentContainer(bool missingContainer)
+    {
+        var response=new TrackedResponse(HttpStatusCode.NotFound);response.SetContent("{}");
+        var container=new Mock<Container>();
+        container.Setup(c=>c.ReadItemStreamAsync(It.IsAny<string>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(response);
+        var cause=new CosmosException("owned missing container",HttpStatusCode.NotFound,0,"owned",0);
+        if(missingContainer) container.Setup(c=>c.ReadContainerAsync(It.IsAny<ContainerRequestOptions>(),It.IsAny<CancellationToken>())).ThrowsAsync(cause);
+        else container.Setup(c=>c.ReadContainerAsync(It.IsAny<ContainerRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(new Mock<ContainerResponse>().Object);
+        var client=new CosmosDbClient(container.Object);
+        if(missingContainer) Assert.AreSame(cause,await Assert.ThrowsExceptionAsync<CosmosException>(()=>client.ReadDocumentAsync("owned",null)));
+        else Assert.IsNull(await client.ReadDocumentAsync("owned",null));
+        Assert.IsTrue(response.Disposed);
+    }
+
+    [DataTestMethod]
     [DataRow("unique")] [DataRow("duplicate")] [DataRow("error")]
     public void SelectorsReadAllPagesAndNeverHideDuplicateOrLaterFailure(string mode)
     {
