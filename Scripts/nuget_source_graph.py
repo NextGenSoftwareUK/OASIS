@@ -58,6 +58,12 @@ class Graph:
             self.inputs[str(root)] = self.git(root, "rev-parse", f"{commit}^{{tree}}")
             return root, commit, relative, True
         entry = self.git(root, "ls-tree", commit, "--", relative)
+        if entry.startswith("160000 commit "):
+            # The directory itself can be a gitlink (for projects at a child
+            # repository root). Compare content, not merge/commit identity.
+            child_root, child_commit, child_relative = self.child_location(
+                root / relative, entry.split()[2], "")
+            return child_root, child_commit, child_relative, True
         if not entry and required:
             raise ValueError(f"Input absent from committed source: {path}")
         key = str(Path(path).resolve().relative_to(self.root.parent)).replace("\\", "/")
