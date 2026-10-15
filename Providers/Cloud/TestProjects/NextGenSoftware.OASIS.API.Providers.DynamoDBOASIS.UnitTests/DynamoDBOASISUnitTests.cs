@@ -7,6 +7,42 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
     [TestClass]
     public class DynamoDBOASISProviderTests
     {
+        private sealed class PartialWriter : DynamoDBOASIS
+        {
+            public int Writes;
+            public readonly Exception Cause=new DynamoDBMutationReconciliationException("OasisHolons","owned-second-key",new System.IO.IOException("owned lost reply"));
+            public PartialWriter():base("owned-key","owned-secret","us-east-1") {}
+            public override Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>> SaveHolonAsync(
+                NextGenSoftware.OASIS.API.Core.Interfaces.IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
+            {
+                Writes++;
+                return Task.FromResult(Writes==1 ? new NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> {Result=holon,IsSaved=true}
+                    :new NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> {IsError=true,Exception=Cause,Message="owned uncertain write"});
+            }
+        }
+
+        [DataTestMethod]
+        [DataRow(false)] [DataRow(true)]
+        public async Task ImportRetainsAcknowledgedIdentitiesAndStopsAfterUncertainty(bool synchronous)
+        {
+            var provider=new PartialWriter();
+            var rows=Enumerable.Range(0,3).Select(_=>new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=Guid.NewGuid()}).ToArray();
+            var result=synchronous ? provider.Import(rows):await provider.ImportAsync(rows);
+            Assert.IsTrue(result.IsError);Assert.IsFalse(result.Result);Assert.IsFalse(result.IsSaved);
+            var partial=(DynamoDBPartialMutationException)result.Exception;
+            Assert.AreSame(provider.Cause,partial.InnerException);
+            Assert.AreEqual(rows[0].Id,partial.AcknowledgedRecordIds.Single());Assert.AreEqual(2,provider.Writes);
+        }
+
+        [TestMethod]
+        public async Task BatchPreflightRejectsNullAndDuplicateBeforeAnyWrites()
+        {
+            var provider=new PartialWriter();var row=new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=Guid.NewGuid()};
+            Assert.IsTrue((await provider.SaveHolonsAsync(new[] {row,row})).IsError);
+            Assert.IsTrue((await provider.SaveHolonsAsync(new NextGenSoftware.OASIS.API.Core.Interfaces.IHolon[] {row,null!})).IsError);
+            Assert.AreEqual(0,provider.Writes);
+        }
+
         [DataTestMethod]
         [DataRow(false)] [DataRow(true)]
         public async Task QueryPaginationIncludesLaterPagesAndDoesNotHideLaterFailure(bool fail)
