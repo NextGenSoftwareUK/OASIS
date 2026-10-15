@@ -18,6 +18,7 @@ public class GoogleNativeDetailTests
         Assert.AreEqual(0,(await db.Collection("avatarDetails").Limit(1).GetSnapshotAsync()).Count,"Refusing existing test data.");
         var provider=new GoogleCloudOASIS(projectId:project,enableStorage:false,enableFirestore:true,enableBigQuery:false);
         var ids=new List<Guid>();
+        var holonId=Guid.NewGuid();
         try {
             var active=await provider.ActivateProviderAsync();Assert.IsFalse(active.IsError,active.Message);
             var empty=await provider.LoadAllAvatarDetailsAsync();Assert.IsFalse(empty.IsError,empty.Message);Assert.AreEqual(0,empty.Result.Count());
@@ -37,8 +38,14 @@ public class GoogleNativeDetailTests
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadAvatarDetailAsync(Guid.NewGuid())).ErrorCode);
             Assert.AreEqual(2,(await provider.LoadAllAvatarDetailsAsync()).Result.Count());
             await VerifyV2Async(provider,detail);
+            var holon=new Holon {Id=holonId,IsActive=true,Name="owned holon",ParentHolonId=detail.Id,CreatedByAvatarId=detail.Id,
+                MetaData=new Dictionary<string,object> {{"owned-field","owned-value"}}};
+            var written=await provider.SaveHolonAsync(holon,saveChildren:false);Assert.IsFalse(written.IsError,written.Message);
+            var read=await provider.LoadHolonAsync(holonId,loadChildren:false);Assert.IsFalse(read.IsError,read.Message);
+            Assert.AreEqual(holonId,read.Result.Id);Assert.AreEqual(detail.Id,read.Result.ParentHolonId);Assert.AreEqual(detail.Id,read.Result.CreatedByAvatarId);
+            Assert.AreEqual("owned-value",read.Result.MetaData["owned-field"]);
         }
-        finally {foreach(var id in ids) await db.Collection("avatarDetails").Document(id.ToString()).DeleteAsync();await provider.DeActivateProviderAsync();}
+        finally {foreach(var id in ids) await db.Collection("avatarDetails").Document(id.ToString()).DeleteAsync();await db.Collection("holons").Document(holonId.ToString()).DeleteAsync();await provider.DeActivateProviderAsync();}
     }
 
     private static async Task VerifyV2Async(GoogleCloudOASIS google,AvatarDetail detail)
