@@ -167,7 +167,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
-                var avatarInfo = JsonConvert.SerializeObject(avatar);
+                var avatarInfo = SerializePrivateStorage("avatar",avatar);
                 var avatarEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
                 var avatarId = avatar.AvatarId.ToString();
 
@@ -205,7 +205,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
             try
             {
-                var avatarDetailInfo = JsonConvert.SerializeObject(avatar);
+                var avatarDetailInfo = SerializePrivateStorage("avatar-detail",avatar);
                 var avatarDetailEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
                 var avatarDetailId = avatar.Id.ToString();
 
@@ -243,7 +243,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             string errorMessage = "Error in SaveAvatarDetailAsync method in EthereumOASIS while saving and avatar detail. Reason: ";
             try
             {
-                var avatarDetailInfo = JsonConvert.SerializeObject(avatar);
+                var avatarDetailInfo = SerializePrivateStorage("avatar-detail",avatar);
                 var avatarDetailEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
                 var avatarDetailId = avatar.Id.ToString();
 

@@ -5,7 +5,7 @@ $work=Join-Path $taskRoot 'TestResults/EthereumCurrent'
 New-Item -ItemType Directory -Force -Path $work | Out-Null
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 $owned=$null
-$names=@('LOCAL_CHAIN_ID','ETHEREUMOASIS_TEST_RPC','ETHEREUMOASIS_TEST_PRIVATE_KEY','ETHEREUMOASIS_TEST_CHAIN_ID','ETHEREUMOASIS_TEST_FIXTURE_JSON')
+$names=@('LOCAL_CHAIN_ID','ETHEREUMOASIS_TEST_RPC','ETHEREUMOASIS_TEST_PRIVATE_KEY','ETHEREUMOASIS_TEST_CHAIN_ID','ETHEREUMOASIS_TEST_FIXTURE_JSON','OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY')
 $previous=@{}
 foreach($name in $names){$previous[$name]=[Environment]::GetEnvironmentVariable($name)}
 try {
@@ -36,6 +36,17 @@ try {
     # Public Hardhat deterministic DEVELOPMENT key. Never use/fund on a public chain.
     $env:ETHEREUMOASIS_TEST_PRIVATE_KEY='0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80'
     $env:ETHEREUMOASIS_TEST_FIXTURE_JSON=Join-Path $work 'reject-second-holon.json'
+    $keyPath=Join-Path $work 'storage-key.dpapi'
+    if(!(Test-Path -LiteralPath $keyPath)){
+        $key=[Security.Cryptography.RandomNumberGenerator]::GetBytes(32)
+        try { [IO.File]::WriteAllBytes($keyPath,[Security.Cryptography.ProtectedData]::Protect($key,$null,[Security.Cryptography.DataProtectionScope]::CurrentUser)) }
+        finally { [Security.Cryptography.CryptographicOperations]::ZeroMemory($key) }
+    }
+    $key=[Security.Cryptography.ProtectedData]::Unprotect([IO.File]::ReadAllBytes($keyPath),$null,[Security.Cryptography.DataProtectionScope]::CurrentUser)
+    try {
+        if($key.Length -ne 32){throw 'Retained storage key is invalid; refusing replacement.'}
+        $env:OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY=[Convert]::ToBase64String($key)
+    } finally { [Security.Cryptography.CryptographicOperations]::ZeroMemory($key) }
     $started=[DateTime]::UtcNow
     & dotnet test $project --no-build --no-restore /m:2 /nr:false --filter FullyQualifiedName~EthereumOASISIntegrationTests --logger 'trx;LogFileName=ethereum-native-current.trx' --results-directory $work -v:q
     if($LASTEXITCODE){throw 'Actual local Ethereum verification failed.'}
@@ -43,7 +54,7 @@ try {
     if($report.LastWriteTimeUtc -lt $started){throw 'Native report is stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 14 -or [int]$counts.passed -ne 14 -or [int]$counts.notExecuted -ne 0){throw 'Expected fourteen native passing cases, no skips.'}
+    if([int]$counts.total -ne 18 -or [int]$counts.passed -ne 18 -or [int]$counts.notExecuted -ne 0){throw 'Expected eighteen native passing cases, no skips.'}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
     foreach($name in $names){[Environment]::SetEnvironmentVariable($name,$previous[$name])}

@@ -67,7 +67,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 {
                     var holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
                     var holonId = holon.Id.ToString();
-                    var holonEntityInfo = JsonConvert.SerializeObject(holon);
+                    var holonEntityInfo = SerializePrivateStorage("holon",holon);
                     
                     var createHolonResult = await _nextGenSoftwareOasisService
                         .CreateHolonRequestAndWaitForReceiptAsync(holonEntityId, holonId, holonEntityInfo);
@@ -233,7 +233,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                var holonEntityResult = JsonConvert.DeserializeObject<Holon>(holonDto.ReturnValue1.Info);
+                var holonEntityResult = DeserializePrivateStorage<Holon>("holon",holonDto.ReturnValue1.EntityId,holonDto.ReturnValue1.Info);
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Result = holonEntityResult;
@@ -266,7 +266,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                var holonEntityResult = JsonConvert.DeserializeObject<Holon>(holonDto.ReturnValue1.Info);
+                var holonEntityResult = DeserializePrivateStorage<Holon>("holon",holonDto.ReturnValue1.EntityId,holonDto.ReturnValue1.Info);
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Result = holonEntityResult;
@@ -325,7 +325,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                         if (holonDto != null && holonDto.ReturnValue1 != null)
                         {
                             // Parse the holon data from the contract response
-                            var holon = JsonConvert.DeserializeObject<Holon>(holonDto.ReturnValue1.Info);
+                            var holon = DeserializePrivateStorage<Holon>("holon",holonDto.ReturnValue1.EntityId,holonDto.ReturnValue1.Info);
                             
                             if (holon != null)
                             {
