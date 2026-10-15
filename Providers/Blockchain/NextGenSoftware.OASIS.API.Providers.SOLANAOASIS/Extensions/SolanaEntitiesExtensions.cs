@@ -11,6 +11,12 @@ public static class SolanaEntitiesExtensions
             Id = avatarDetailDto.Id,
             Address = avatarDetailDto.Address,
             Mobile = avatarDetailDto.Mobile,
+            Username = avatarDetailDto.Username,
+            Email = avatarDetailDto.Email,
+            DOB = avatarDetailDto.DOB,
+            CreatedDate = avatarDetailDto.CreatedDate,
+            XP = avatarDetailDto.XP,
+            Karma = avatarDetailDto.Karma,
             Achievements = avatarDetailDto.Achievements,
             Attributes = avatarDetailDto.Attributes,
             Aura = avatarDetailDto.Aura,
@@ -31,7 +37,7 @@ public static class SolanaEntitiesExtensions
             Stats = avatarDetailDto.Stats,
             SuperPowers = avatarDetailDto.SuperPowers,
             Version = avatarDetailDto.Version,
-            IsActive = avatarDetailDto.IsDeleted,
+            IsActive = !avatarDetailDto.IsDeleted,
             PreviousVersionId = avatarDetailDto.PreviousVersionId
         };
     }
@@ -48,7 +54,7 @@ public static class SolanaEntitiesExtensions
             Password = avatarDto.Password,
             Username = avatarDto.UserName,
             Version = avatarDto.Version,
-            IsActive = avatarDto.IsDeleted,
+            IsActive = !avatarDto.IsDeleted,
             PreviousVersionId = avatarDto.PreviousVersionId
         };
     }
