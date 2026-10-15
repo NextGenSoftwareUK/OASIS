@@ -7,6 +7,33 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
     [TestClass]
     public class DynamoDBOASISProviderTests
     {
+        [DataTestMethod]
+        [DataRow(false)]
+        [DataRow(true)]
+        public async Task IdentityQueryReadsPastDeletedPageAndRejectsLaterDuplicate(bool duplicate)
+        {
+            var avatar=new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=Guid.NewGuid(),Username="owned-user"};
+            Dictionary<string,Amazon.DynamoDBv2.Model.AttributeValue> Row(bool deleted) => new() {
+                ["id"]=new() {S=avatar.Id.ToString()}, ["is_deleted"]=new() {BOOL=deleted},
+                ["data_json"]=new() {S=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(avatar)}
+            };
+            int calls=0;
+            Func<Amazon.DynamoDBv2.Model.QueryRequest,Task<Amazon.DynamoDBv2.Model.QueryResponse>> query=request=> {
+                calls++;
+                if(calls>1) Assert.AreEqual("next",request.ExclusiveStartKey["id"].S);
+                return Task.FromResult(new Amazon.DynamoDBv2.Model.QueryResponse {
+                    Items=calls==1 ? new() {Row(true)} : duplicate ? new() {Row(false),Row(false)} : new() {Row(false)},
+                    LastEvaluatedKey=calls==1 ? new() {["id"]=new() {S="next"}} : new()
+                });
+            };
+            var task=(Task<NextGenSoftware.OASIS.API.Core.Holons.Avatar>)typeof(DynamoDBOASIS)
+                .GetMethod("QueryUniqueAvatarAsync",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!
+                .Invoke(null,new object[] {query,"username-index","username","owned-user"})!;
+            if(duplicate) await Assert.ThrowsExceptionAsync<NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException>(async()=>await task);
+            else Assert.AreEqual(avatar.Id,(await task).Id);
+            Assert.AreEqual(2,calls);
+        }
+
         [TestMethod]
         public void StorageSerializerRetainsOwnedInventoryAndProgress()
         {
