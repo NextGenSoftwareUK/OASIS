@@ -84,7 +84,7 @@ public partial class IPFSOASIS : IAvatarTombstoneStorageProvider
         catch(Exception cause)
         {
             var failure=acknowledged.Count>0 && cause is not IPFSRecordPublicationException
-                ? new IPFSRecordPublicationException(acknowledged[0],cause):cause;
+                ? new IPFSRecordPublicationException(acknowledged,cause):cause;
             OASISErrorHandling.HandleError(ref result,"IPFS avatar deletion failed: "+cause.Message,failure);
             if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
         }
