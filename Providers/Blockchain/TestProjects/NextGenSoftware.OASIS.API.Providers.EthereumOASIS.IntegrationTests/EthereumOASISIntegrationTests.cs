@@ -1026,12 +1026,16 @@ public class EthereumOASISIntegrationTests
                 foreach(var stored in new[] {nativeAvatar,backupAvatar})
                 {
                     Assert.IsNotNull(stored); Assert.AreNotEqual(DateTime.MinValue,stored.DeletedDate); Assert.AreEqual(avatar.Email,stored.Email);
+                    Assert.IsFalse(stored.IsActive);
                 }
                 foreach(var stored in new[] {nativeDetail,backupDetail})
                 {
                     Assert.IsNotNull(stored); Assert.AreNotEqual(DateTime.MinValue,stored.DeletedDate);
                     Assert.AreEqual(57L,Convert.ToInt64(stored.XP)); Assert.AreEqual(29L,Convert.ToInt64(stored.Karma));
+                    Assert.IsFalse(stored.IsActive);
                 }
+                Assert.AreEqual(nativeAvatar.DeletedDate,nativeDetail.DeletedDate);
+                Assert.AreEqual(backupAvatar.DeletedDate,backupDetail.DeletedDate);
                 // Diagnostic evidence, NOT an assertion of identical replicated state.
                 Console.WriteLine($"Soft-delete state comparison primary={primary}: Ethereum avatar={nativeAvatar.DeletedDate:O} active={nativeAvatar.IsActive}, detail={nativeDetail.DeletedDate:O} active={nativeDetail.IsActive}; SQLite avatar={backupAvatar.DeletedDate:O} active={backupAvatar.IsActive}, detail={backupDetail.DeletedDate:O} active={backupDetail.IsActive}");
             }
