@@ -99,6 +99,16 @@ public class GoogleNativeDetailTests
             Assert.AreEqual(0,(await provider.LoadHolonAsync(holonId,loadChildren:false,loadChildrenFromProvider:true)).Result.Children.Count());
             var flat=await provider.LoadAllHolonsAsync(loadChildren:false,loadChildrenFromProvider:true);
             Assert.IsTrue(flat.Result.All(row=>row.Children.Count()==0));
+            var deleted=await provider.DeleteAvatarAsync(avatarId);Assert.IsFalse(deleted.IsError,deleted.Message);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadAvatarAsync(avatarId)).ErrorCode);
+            var tombstone=await db.Collection("avatars").Document(avatarId.ToString()).GetSnapshotAsync();
+            var stored=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<Avatar>(tombstone.GetValue<string>("data_json"));
+            Assert.IsFalse(stored.IsActive);Assert.AreEqual(DateTimeKind.Utc,stored.DeletedDate.Kind);
+            Assert.AreEqual("profile-value",stored.MetaData["profile-field"]);
+            var repeated=await provider.DeleteAvatarAsync(avatarId);Assert.IsFalse(repeated.IsError,repeated.Message);
+            Assert.AreEqual(tombstone.UpdateTime,(await db.Collection("avatars").Document(avatarId.ToString()).GetSnapshotAsync()).UpdateTime);
+            Assert.IsFalse((await provider.DeleteAvatarAsync(avatarId,softDelete:false)).IsError);
+            Assert.IsFalse((await db.Collection("avatars").Document(avatarId.ToString()).GetSnapshotAsync()).Exists);
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadHolonAsync(Guid.NewGuid(),loadChildren:false)).ErrorCode);
         }
         finally {foreach(var id in ids) await db.Collection("avatarDetails").Document(id.ToString()).DeleteAsync();await db.Collection("holons").Document(holonId.ToString()).DeleteAsync();await db.Collection("holons").Document(childId.ToString()).DeleteAsync();await db.Collection("avatars").Document(avatarId.ToString()).DeleteAsync();await db.Collection("avatars").Document(duplicateAvatarId.ToString()).DeleteAsync();await provider.DeActivateProviderAsync();}
