@@ -30,29 +30,38 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var seenNativeKeys=new HashSet<int>();
             var seenReferences=new HashSet<IHolon>(ReferenceEqualityComparer.Instance);
             var nodes=new List<IHolon>();
+            var assignments=new List<(IHolon Source,Guid Id,Guid Parent)>();
             var settings=new JsonSerializerSettings { ContractResolver=new StoredNodeResolver() };
             IHolon Visit(IHolon source,int depth,Guid? parent)
             {
                 if(source == null) throw new ArgumentException("Selected Ethereum graph contains a null holon.");
                 if(!seenReferences.Add(source)) throw new ArgumentException("Selected Ethereum graph repeats a reference or contains a cycle.");
-                if(source.Id == Guid.Empty) source.Id=Guid.NewGuid();
-                if(!seenIds.Add(source.Id)) throw new ArgumentException("Selected Ethereum graph contains duplicate GUIDs.");
-                if(!seenNativeKeys.Add(Core.Utilities.HashUtility.GetNumericHash(source.Id.ToString())))
+                var id=source.Id == Guid.Empty ? Guid.NewGuid() : source.Id;
+                if(!seenIds.Add(id)) throw new ArgumentException("Selected Ethereum graph contains duplicate GUIDs.");
+                if(!seenNativeKeys.Add(Core.Utilities.HashUtility.GetNumericHash(id.ToString())))
                     throw new ArgumentException("Selected Ethereum graph contains colliding numeric storage keys.");
                 if(parent.HasValue && source.ParentHolonId != Guid.Empty && source.ParentHolonId != parent.Value)
                     throw new ArgumentException("Selected Ethereum child has a conflicting parent GUID.");
-                if(parent.HasValue) source.ParentHolonId=parent.Value;
                 var copy=JsonConvert.DeserializeObject<Core.Holons.Holon>(JsonConvert.SerializeObject(source,settings),new StoredHolonConverter());
+                copy.Id=id;
+                copy.ParentHolonId=parent ?? source.ParentHolonId;
+                assignments.Add((source,id,copy.ParentHolonId));
                 copy.Children=new List<IHolon>();
                 nodes.Add(copy);
                 if(saveChildren && (maxDepth == 0 || depth < maxDepth) && (recursive || depth == initialDepth))
-                    foreach(var child in source.Children ?? Enumerable.Empty<IHolon>()) copy.Children.Add(Visit(child,depth+1,source.Id));
+                    foreach(var child in source.Children ?? Enumerable.Empty<IHolon>()) copy.Children.Add(Visit(child,depth+1,id));
                 return copy;
             }
             var selectedRoots=sourceRoots.Select(root=>Visit(root,initialDepth,null)).ToList();
             // Materialize every encrypted payload before the first native transaction.
             var payloads=nodes.AsEnumerable().Reverse().ToDictionary(node=>node.Id,node=>SerializePrivateStorage("holon",node));
             var encoded=nodes.Select(node=>(Record:node,Payload:payloads[node.Id])).ToList();
+            // Publish allocated identities only after validation AND encoding succeed.
+            foreach(var assignment in assignments)
+            {
+                assignment.Source.Id=assignment.Id;
+                assignment.Source.ParentHolonId=assignment.Parent;
+            }
             return (selectedRoots,encoded);
         }
     }
