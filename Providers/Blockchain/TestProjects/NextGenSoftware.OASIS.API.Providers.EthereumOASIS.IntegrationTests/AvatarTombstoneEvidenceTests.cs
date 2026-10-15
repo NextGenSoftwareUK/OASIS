@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -14,6 +15,43 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests;
 [TestClass]
 public class AvatarTombstoneEvidenceTests
 {
+    public class RejectAnyStorageCall : DispatchProxy
+    {
+        public int Calls {get;private set;}
+        protected override object? Invoke(MethodInfo? method,object?[]? args)
+        {
+            Calls++;
+            throw new InvalidOperationException("Guard must reject before provider method invocation.");
+        }
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)]
+    [DataRow(false,true)]
+    [DataRow(true,false)]
+    [DataRow(true,true)]
+    public async Task TombstoneDispatchRejectsForgedPayloadOrUnsupportedCapabilityBeforeStorageCall(bool asynchronous,bool committed)
+    {
+        var snapshot=new AvatarTombstone(Guid.NewGuid(),DateTime.UtcNow);
+        StorageOperationRequest request=new() {Operation="ApplyAvatarTombstone",AvatarId=snapshot.AvatarId,Payload=snapshot};
+        if(committed)
+        {
+            var evidence=new OASISResult<bool> {Result=true};
+            AvatarTombstoneEvidence.Attach(evidence,snapshot);
+            var prepare=typeof(OASISHyperDrive).GetMethod("CommittedReplicationRequest",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(bool));
+            request=(StorageOperationRequest)prepare.Invoke(null,new object[] {new StorageOperationRequest {Operation="DeleteAvatar",SoftDelete=true},evidence})!;
+        }
+        var dna=new OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings()}};
+        var router=new OASISHyperDrive(new ProviderManager(null,dna));
+        var provider=DispatchProxy.Create<IOASISStorageProvider,RejectAnyStorageCall>();
+        var dispatch=typeof(OASISHyperDrive).GetMethod(asynchronous ? "RouteStorageOperationAsync":"RouteStorageOperation",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(bool));
+        var invoked=dispatch.Invoke(router,new object[] {request,provider});
+        var result=asynchronous ? await (Task<OASISResult<bool>>)invoked! : (OASISResult<bool>)invoked!;
+        Assert.IsTrue(result.IsError);
+        Assert.AreEqual(committed ? "HYPERDRIVE_TOMBSTONE_CAPABILITY_REQUIRED":"HYPERDRIVE_PAYLOAD_INVALID",result.ErrorCode);
+        Assert.AreEqual(0,((RejectAnyStorageCall)provider).Calls);
+    }
+
     [DataTestMethod]
     [DataRow("DeleteAvatar")]
     [DataRow("DeleteAvatarByUsername")]
