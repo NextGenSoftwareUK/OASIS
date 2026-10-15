@@ -11,9 +11,11 @@ internal sealed class Web3AcceptedWriteProxy : IAsyncDisposable
     private readonly HttpListener listener=new();
     private readonly HttpClient upstream=new() {Timeout=TimeSpan.FromSeconds(10)};
     private readonly Task loop;
+    private readonly Func<string,Task>? beforeSubmission;
     internal ConcurrentQueue<string> AcceptedHashes {get;}=new();
-    internal Web3AcceptedWriteProxy()
+    internal Web3AcceptedWriteProxy(Func<string,Task>? beforeSubmission=null)
     {
+        this.beforeSubmission=beforeSubmission;
         listener.Prefixes.Add("http://127.0.0.1:18546/");listener.Start();loop=RunAsync();
     }
     private async Task RunAsync()
@@ -28,6 +30,8 @@ internal sealed class Web3AcceptedWriteProxy : IAsyncDisposable
             {
                 using var reader=new StreamReader(context.Request.InputStream,Encoding.UTF8);
                 var body=await reader.ReadToEndAsync();var request=JObject.Parse(body);
+                if((string?)request["method"]=="eth_sendRawTransaction" && beforeSubmission!=null)
+                    await beforeSubmission((string)request["params"]![0]!);
                 using var response=await upstream.PostAsync("http://127.0.0.1:18545/",new StringContent(body,Encoding.UTF8,"application/json"));
                 var content=await response.Content.ReadAsByteArrayAsync();
                 if((string?)request["method"]=="eth_sendRawTransaction")
