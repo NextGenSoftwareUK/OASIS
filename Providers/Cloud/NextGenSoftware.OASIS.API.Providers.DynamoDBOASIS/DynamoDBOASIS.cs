@@ -77,7 +77,10 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
 
         private async Task EnsureTableAsync(string tableName, List<KeySchemaElement> keys, List<AttributeDefinition> attrs, List<GlobalSecondaryIndex>? gsis = null)
         {
-            try { await _client.DescribeTableAsync(tableName); return; } catch (ResourceNotFoundException) { }
+            bool exists;
+            try { await _client.DescribeTableAsync(tableName); exists=true; } catch (ResourceNotFoundException) { exists=false; }
+            if (!exists)
+            {
             var req = new CreateTableRequest
             {
                 TableName = tableName,
@@ -87,13 +90,22 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             };
             if (gsis != null) req.GlobalSecondaryIndexes = gsis;
             await _client.CreateTableAsync(req);
-            // Wait until table is ACTIVE
+            }
+            await WaitForTableActiveAsync(() => _client.DescribeTableAsync(tableName), () => Task.Delay(1000));
+        }
+
+        private static async Task WaitForTableActiveAsync(Func<Task<DescribeTableResponse>> describe, Func<Task> delay)
+        {
             for (int i = 0; i < 30; i++)
             {
-                await Task.Delay(1000);
-                var desc = await _client.DescribeTableAsync(tableName);
-                if (desc.Table.TableStatus == TableStatus.ACTIVE) break;
+                var desc = await describe();
+                if (desc?.Table == null) throw new InvalidOperationException("DynamoDB table description is missing.");
+                if (desc.Table.TableStatus == TableStatus.ACTIVE) return;
+                if (desc.Table.TableStatus != TableStatus.CREATING && desc.Table.TableStatus != TableStatus.UPDATING)
+                    throw new InvalidOperationException($"DynamoDB table is not available: {desc.Table.TableStatus}.");
+                if(i<29) await delay();
             }
+            throw new TimeoutException("DynamoDB table did not become ACTIVE within the readiness observation window.");
         }
 
         // ─── Activation ───────────────────────────────────────────────────────────
