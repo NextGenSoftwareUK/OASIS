@@ -1,6 +1,7 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Diagnostics;
+using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
@@ -248,6 +249,33 @@ public partial class Web3NativeStorageTests
                 Assert.AreEqual(tombstone.DeletedAtUtc,storedAvatar.DeletedDate);Assert.AreEqual(tombstone.DeletedAtUtc,storedDetail.DeletedDate);
                 Assert.AreEqual(tombstone.DeletedByAvatarId.ToString(),storedAvatar.DeletedByAvatarId);
                 Assert.AreEqual(storedAvatar.DeletedByAvatarId,storedDetail.DeletedByAvatarId);
+            }
+            foreach(var asynchronous in new[] {false,true})
+            {
+                var id=Guid.NewGuid();
+                var avatar=new Avatar {Id=id,IsActive=true,Username="routed-replica-commit-"+id.ToString("N"),AvatarType=new EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User)};
+                var detail=new AvatarDetail {Id=id,IsActive=true,XP=94};
+                foreach(IOASISStorageProvider provider in new IOASISStorageProvider[] {healthySqlite,polygon})
+                {Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);Assert.IsFalse((await provider.SaveAvatarDetailAsync(detail)).IsError);}
+                var handle=await executor.BeginAsync("local-fixture-bearer",user,"sqlite-replica-commit-"+asynchronous,new string('a',64),"local routed replica post-commit fixture",policy);
+                var context=new PreparedStorageExecution(handle,"sqlite-replica-commit",new Dictionary<Core.Enums.ProviderType,string> {{Core.Enums.ProviderType.PolygonOASIS,sdk.SigningAddress}},new[] {Core.Enums.ProviderType.SQLLiteDBOASIS});
+                var request=new Core.StorageOperationRequest {Operation="DeleteAvatar",AvatarId=id,SoftDelete=true,PreferredProvider=Core.Enums.ProviderType.PolygonOASIS,PreparedExecution=context};
+                var deleted=asynchronous ? await router.RouteRequestAsync<bool>(request):router.RouteRequest<bool>(request);
+                Assert.IsFalse(deleted.IsError,deleted.Message);Assert.IsTrue(deleted.Result);Assert.IsTrue(deleted.IsWarning);
+                var diagnostic=router.LastReplicationDiagnostic;Assert.AreEqual(1,diagnostic.FailedCount);
+                var failure=diagnostic.Attempts.Single();Assert.AreEqual(Core.Enums.ProviderType.SQLLiteDBOASIS,failure.Provider);
+                Assert.IsFalse(failure.Succeeded);Assert.IsTrue(failure.ReconciliationRequired);Assert.AreEqual(0,failure.OriginalTransactionIds.Count);
+                var serialized=Newtonsoft.Json.Linq.JObject.Parse(deleted.MetaData["hyperDriveReplicationDiagnostic"])["Attempts"]!.Single();
+                Assert.IsTrue(serialized["ReconciliationRequired"]!.Value<bool>());Assert.AreEqual(0,serialized["OriginalTransactionIds"]!.Count());
+                Assert.IsTrue(Core.Helpers.AvatarTombstoneEvidence.TryGet(deleted,out var tombstone));
+                using var control=new SqlContext(db.Database.GetDbConnection().ConnectionString);
+                var storedAvatar=await control.Avatars.AsNoTracking().SingleAsync(row=>row.Id==id.ToString());
+                var storedDetail=await control.AvatarDetails.AsNoTracking().SingleAsync(row=>row.Id==id.ToString());
+                Assert.IsFalse(storedAvatar.IsActive);Assert.IsFalse(storedDetail.IsActive);
+                Assert.AreEqual(tombstone.DeletedAtUtc,storedAvatar.DeletedDate);Assert.AreEqual(tombstone.DeletedAtUtc,storedDetail.DeletedDate);
+                var attempts=(await store.GetAsync(handle.OperationId,default)).ProviderAttempts;
+                Assert.AreEqual(2,attempts.Count);Assert.AreEqual(1,attempts.Count(a=>a.Provider=="PolygonOASIS" && a.NativePreparation!=null));
+                Assert.AreEqual(1,attempts.Count(a=>a.Provider=="SQLLiteDBOASIS" && a.NativePreparation==null));
             }
         }
         finally {deletion.Context.Dispose();deletion.Dispose();}

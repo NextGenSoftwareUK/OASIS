@@ -191,6 +191,40 @@ public sealed class HyperDriveProviderExecutionTests
         public string OriginalTransactionId => "original-controlled-transaction";
     }
 
+    private sealed class ReconciliationEvidenceException(string id,Exception? inner=null) : Exception("do not infer identity from this message",inner),INativeMutationReconciliationRequired
+    { public string OriginalTransactionId=>id; }
+
+    [Theory]
+    [InlineData(false,false)] [InlineData(true,false)] [InlineData(false,true)]
+    public async Task ReplicationDiagnosticsRetainStructuredUncertaintyWithoutInventingTransactionIds(bool synchronous,bool explicitReplication)
+    {
+        var primary=CreateActiveProvider();var replica=CreateActiveProvider(ProviderType.LocalFileOASIS,"uncertain-replica");
+        var holon=new Holon {Id=Guid.NewGuid()};
+        var cause=new AggregateException(new IOException("ordinary error without identity"),
+            new ReconciliationEvidenceException(""),new ReconciliationEvidenceException("tx-a",new ReconciliationEvidenceException("tx-b")),
+            new ReconciliationEvidenceException("tx-a"));
+        primary.Setup(p=>p.SaveHolon(holon,true,true,0,true,false)).Returns(new OASISResult<IHolon>(holon){IsSaved=true});
+        primary.Setup(p=>p.SaveHolonAsync(holon,true,true,0,true,false)).ReturnsAsync(new OASISResult<IHolon>(holon){IsSaved=true});
+        replica.Setup(p=>p.SaveHolon(holon,true,true,0,true,false)).Returns(new OASISResult<IHolon>{IsError=true,Exception=cause,Message="unknown replica outcome"});
+        replica.Setup(p=>p.SaveHolonAsync(holon,true,true,0,true,false)).ReturnsAsync(new OASISResult<IHolon>{IsError=true,Exception=cause,Message="unknown replica outcome"});
+        var dna=CreateDna(HyperDriveModes.V2);dna.OASIS.SubscriptionConfig.PlanType="Gold";
+        var manager=new ProviderManager(null,dna){IsAutoReplicationEnabled=true,IsAutoFailOverEnabled=false,IsAutoLoadBalanceEnabled=false};
+        manager.RegisterProvider(primary.Object);manager.RegisterProvider(replica.Object);
+        manager.SetAndReplaceAutoReplicationListForProviders(new[] {new EnumValue<ProviderType>(ProviderType.MongoDBOASIS),new EnumValue<ProviderType>(ProviderType.LocalFileOASIS)}).IsError.Should().BeFalse();
+        var router=new OASISHyperDrive(manager);var request=new StorageOperationRequest {Operation="SaveHolon",Payload=holon,PreferredProvider=ProviderType.MongoDBOASIS};
+        Dictionary<string,string> metadata;
+        if(explicitReplication) {var result=await router.ReplicateRequestAsync<IHolon>(request);result.IsWarning.Should().BeTrue();metadata=result.MetaData;}
+        else {var result=synchronous ? router.RouteRequest<IHolon>(request):await router.RouteRequestAsync<IHolon>(request);result.IsError.Should().BeFalse();result.IsSaved.Should().BeTrue();result.IsWarning.Should().BeTrue();metadata=result.MetaData;}
+        var diagnostic=router.LastReplicationDiagnostic;
+        var failure=diagnostic.Attempts.Single(a=>a.Provider==ProviderType.LocalFileOASIS);
+        failure.Succeeded.Should().BeFalse();failure.ReconciliationRequired.Should().BeTrue();failure.OriginalTransactionIds.Should().Equal("tx-a","tx-b");
+        var json=JObject.Parse(metadata["hyperDriveReplicationDiagnostic"]);
+        var serialized=json["Attempts"]!.Single(a=>a["Provider"]!.Value<int>()==(int)ProviderType.LocalFileOASIS)!;
+        serialized["ReconciliationRequired"]!.Value<bool>().Should().BeTrue();serialized["OriginalTransactionIds"]!.Values<string>().Should().Equal("tx-a","tx-b");
+        Core.Helpers.NativeMutationReconciliation.OriginalTransactionIds(new IOException("tx-fake")).Should().BeEmpty();
+        Core.Helpers.NativeMutationReconciliation.OriginalTransactionIds(new ReconciliationEvidenceException("")).Should().BeEmpty();
+    }
+
     [Theory]
     [InlineData(false, false, 0)] [InlineData(true, false, 0)]
     [InlineData(false, true, 0)] [InlineData(true, true, 0)]
