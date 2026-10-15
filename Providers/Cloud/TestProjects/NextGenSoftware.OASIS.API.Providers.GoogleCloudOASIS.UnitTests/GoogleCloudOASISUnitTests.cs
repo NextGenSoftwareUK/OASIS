@@ -13,6 +13,18 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
         private GoogleCloudOASIS _provider = null!;
 
         [TestMethod]
+        public void NearbyValidatesMicrodegreesBeforeActivationAndPreservesCause()
+        {
+            var provider=new FailedActivationProvider();
+            var network=(NextGenSoftware.OASIS.API.Core.Interfaces.IOASISNETProvider)provider;
+            Assert.IsInstanceOfType(network.GetAvatarsNearMe(90000001,0,1).Exception,typeof(System.ArgumentOutOfRangeException));
+            Assert.IsInstanceOfType(network.GetHolonsNearMe(0,0,-1,HolonType.All).Exception,typeof(System.ArgumentOutOfRangeException));
+            Assert.AreEqual(0,provider.Activations);
+            var failed=network.GetAvatarsNearMe(-33000000,151000000,100);
+            Assert.AreSame(provider.Cause,failed.Exception);Assert.AreEqual("owned-code",failed.ErrorCode);
+        }
+
+        [TestMethod]
         public async Task TombstoneCapabilityRejectsNullBeforeActivationAndPreservesFailure()
         {
             var provider=new FailedActivationProvider();
