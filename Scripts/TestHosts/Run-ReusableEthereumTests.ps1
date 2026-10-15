@@ -5,7 +5,7 @@ $work=Join-Path $taskRoot 'TestResults/EthereumCurrent'
 New-Item -ItemType Directory -Force -Path $work | Out-Null
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 $owned=$null
-$names=@('LOCAL_CHAIN_ID','ETHEREUMOASIS_TEST_RPC','ETHEREUMOASIS_TEST_PRIVATE_KEY','ETHEREUMOASIS_TEST_CHAIN_ID','ETHEREUMOASIS_TEST_FIXTURE_JSON','OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY')
+$names=@('LOCAL_CHAIN_ID','ETHEREUMOASIS_TEST_RPC','ETHEREUMOASIS_TEST_PRIVATE_KEY','ETHEREUMOASIS_TEST_CHAIN_ID','ETHEREUMOASIS_TEST_FIXTURE_JSON','OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY','OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY','WEB3CORE_NATIVE_FIXTURE')
 $previous=@{}
 foreach($name in $names){$previous[$name]=[Environment]::GetEnvironmentVariable($name)}
 try {
@@ -24,12 +24,17 @@ try {
     foreach($relative in @(
         'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj',
         'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj',
+        'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj',
+        'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolygonOASIS/NextGenSoftware.OASIS.API.Providers.PolygonOASIS.csproj',
         'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EthereumOASIS/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.csproj')) {
         & dotnet build (Join-Path $taskRoot $relative) --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
         if($LASTEXITCODE){throw "Producer build failed: $relative"}
     }
     & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
     if($LASTEXITCODE){throw 'Consumer build failed.'}
+    $web3Project=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests.csproj'
+    & dotnet build $web3Project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
+    if($LASTEXITCODE){throw 'Web3Core consumer build failed.'}
     $env:LOCAL_CHAIN_ID='31337'
     $owned=Start-Process -FilePath $node -ArgumentList @($cli,'node','--hostname','127.0.0.1','--port','18545','--config',(Join-Path $runtime 'hardhat.config.cjs')) -WorkingDirectory $runtime -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $work 'evm-current.log') -RedirectStandardError (Join-Path $work 'evm-current.err')
     $deadline=[DateTime]::UtcNow.AddSeconds(20)
@@ -57,6 +62,8 @@ try {
         $env:OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY=[Convert]::ToBase64String($key)
     } finally { [Security.Cryptography.CryptographicOperations]::ZeroMemory($key) }
     $started=[DateTime]::UtcNow
+    $env:OASIS_WEB3CORE_STORAGE_ENCRYPTION_KEY=$env:OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY
+    $env:WEB3CORE_NATIVE_FIXTURE=Join-Path $taskRoot 'TestResults/Web3CoreCurrent/web3-storage.json'
     & dotnet test $project --no-build --no-restore /m:2 /nr:false --filter FullyQualifiedName~EthereumOASISIntegrationTests --logger 'trx;LogFileName=ethereum-native-current.trx' --results-directory $work -v:q
     if($LASTEXITCODE){throw 'Actual local Ethereum verification failed.'}
     $report=Get-Item -LiteralPath (Join-Path $work 'ethereum-native-current.trx')
@@ -66,6 +73,14 @@ try {
     if([int]$counts.total -ne 91 -or [int]$counts.passed -ne 91 -or [int]$counts.notExecuted -ne 0){throw 'Expected ninety-one native passing cases, no skips.'}
     & $node (Join-Path $PSScriptRoot 'verify-web3core-pages.cjs')
     if($LASTEXITCODE){throw 'Web3Core native page verification failed.'}
+    $web3Started=[DateTime]::UtcNow
+    & dotnet test $web3Project --no-build --no-restore /m:2 /nr:false --filter FullyQualifiedName~Web3NativeStorageTests --logger 'trx;LogFileName=web3-native-current.trx' --results-directory (Join-Path $taskRoot 'TestResults/Web3CoreCurrent') -v:q
+    if($LASTEXITCODE){throw 'Web3Core native C# storage verification failed.'}
+    $web3Report=Get-Item -LiteralPath (Join-Path $taskRoot 'TestResults/Web3CoreCurrent/web3-native-current.trx')
+    if($web3Report.LastWriteTimeUtc -lt $web3Started){throw 'Web3Core native report is stale.'}
+    [xml]$web3Trx=Get-Content -LiteralPath $web3Report.FullName
+    $web3Counts=$web3Trx.TestRun.ResultSummary.Counters
+    if([int]$web3Counts.total -ne 1 -or [int]$web3Counts.passed -ne 1 -or [int]$web3Counts.notExecuted -ne 0){throw 'Expected one native Web3Core scenario, no skips.'}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
     foreach($name in $names){[Environment]::SetEnvironmentVariable($name,$previous[$name])}

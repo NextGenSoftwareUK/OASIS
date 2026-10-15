@@ -60,7 +60,7 @@ public partial class Web3CoreOASISBaseProvider
             if (string.IsNullOrWhiteSpace(_hostURI) || string.IsNullOrWhiteSpace(_chainPrivateKey) || string.IsNullOrWhiteSpace(_contractAddress))
                 throw new InvalidOperationException("The EVM provider requires an RPC URI, private key and deployed contract address.");
 
-            var account = new Account(_chainPrivateKey);
+            var account = new Account(_chainPrivateKey,_expectedChainId);
             _web3Client = new Nethereum.Web3.Web3(account, _hostURI);
             HexBigInteger remoteChainId = await _web3Client.Eth.ChainId.SendRequestAsync().WaitAsync(TimeSpan.FromSeconds(10));
             if (_expectedChainId.HasValue && remoteChainId.Value != _expectedChainId.Value)
@@ -70,7 +70,7 @@ public partial class Web3CoreOASISBaseProvider
             if (string.IsNullOrWhiteSpace(contractCode) || contractCode == "0x" || contractCode == "0x0")
                 throw new InvalidOperationException($"No contract bytecode was found at configured address '{_contractAddress}'.");
 
-            _web3CoreOASIS = new(_chainPrivateKey, _hostURI, _contractAddress, Web3CoreOASISBaseProviderHelper.Abi);
+            _web3CoreOASIS = new(_chainPrivateKey, _hostURI, _contractAddress, Web3CoreOASISBaseProviderHelper.Abi,_expectedChainId);
             IsProviderActivated = true;
             result.Result = true;
         }

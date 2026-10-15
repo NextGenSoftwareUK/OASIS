@@ -8,8 +8,12 @@ namespace NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
 public sealed class PolygonOASIS : Web3CoreOASISBaseProvider, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider, IOASISNFTProvider
 {
     public PolygonOASIS(string hostUri, string chainPrivateKey, string contractAddress)
-        : base(hostUri, chainPrivateKey, contractAddress, 137)
+        : this(hostUri,chainPrivateKey,contractAddress,137) {}
+
+    public PolygonOASIS(string hostUri,string chainPrivateKey,string contractAddress,System.Numerics.BigInteger chainId)
+        : base(hostUri,chainPrivateKey,contractAddress,chainId)
     {
+        if(chainId<=0) throw new System.ArgumentOutOfRangeException(nameof(chainId));
         this.ProviderName = "PolygonOASIS";
         this.ProviderDescription = "Polygon Provider";
         this.ProviderType = new(Core.Enums.ProviderType.PolygonOASIS);
