@@ -141,6 +141,12 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                     ?? new InvalidOperationException(saved?.Message ?? "DNA pointer persistence returned no result."));
         }
 
+        private async Task PublishAcknowledgedRecordAsync(string recordCid, HolonResume record)
+        {
+            try { ReplaceIndexEntry(recordCid, record); await SaveLookupToFile(_idLookup); }
+            catch (Exception cause) { throw new IPFSRecordPublicationException(recordCid, cause); }
+        }
+
         public async Task<IAvatar> SaveAvatarToFile(IAvatar avatar)
         {
             //If we have a previous version of this avatar saved, then add a pointer back to the previous version.
@@ -163,10 +169,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             dico.email = avatar.Email;
             dico.HolonType = HolonType.Avatar;
 
-            ReplaceIndexEntry(fsn.Id,dico);
 
 
-            await SaveLookupToFile(_idLookup);
+            await PublishAcknowledgedRecordAsync(fsn.Id,dico);
 
             return avatar;
         }
@@ -191,9 +196,8 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             dico.ParentHolonId = holon.ParentHolonId;
             dico.HolonType = holon.HolonType;
 
-            ReplaceIndexEntry(fsn.Id,dico);
 
-            string id = await SaveLookupToFile(_idLookup);
+            await PublishAcknowledgedRecordAsync(fsn.Id,dico);
 
             return holon;
         }
@@ -220,10 +224,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             dico.email = avatarDetail.Email;
             dico.HolonType = HolonType.AvatarDetail;
 
-            ReplaceIndexEntry(fsn.Id,dico);
 
 
-            await SaveLookupToFile(_idLookup);
+            await PublishAcknowledgedRecordAsync(fsn.Id,dico);
 
             return avatarDetail;
         }
