@@ -11,7 +11,7 @@ try {
     $freeBefore=(Get-PSDrive C).Free
     $binary=Join-Path $env:USERPROFILE '.cache/oasis-runtimes/kubo-0.43.1/ipfs.exe'
     if(!(Test-Path -LiteralPath $binary) -or (Get-FileHash -LiteralPath $binary -Algorithm SHA256).Hash -ne 'FD0D46DF76F455D938713C98C7FCA5FA117B74C934C9FC0D37730FDB33313651'){throw 'Retained pinned Kubo required; no download attempted.'}
-    foreach($port in @(18547,18548)){if(Get-NetTCPConnection -State Listen -LocalPort $port -ErrorAction SilentlyContinue){throw 'Owned IPFS port occupied; refusing duplicate daemon.'}}
+    foreach($port in @(18547,18548,18549)){if(Get-NetTCPConnection -State Listen -LocalPort $port -ErrorAction SilentlyContinue){throw 'Owned IPFS test port occupied; refusing duplicate daemon or ambiguous outage fixture.'}}
     $env:IPFS_PATH=Join-Path $work 'repo'
     if(!(Test-Path -LiteralPath (Join-Path $env:IPFS_PATH 'config'))){
         if(Test-Path -LiteralPath $env:IPFS_PATH){throw 'Existing incomplete repository requires inspection; no reset.'}
@@ -35,6 +35,9 @@ try {
     $env:OASIS_IPFS_TEST_DNA_PATH=Join-Path $work 'owned-dna.json'
     $project=Join-Path $taskRoot 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests.csproj'
     $providerProject=Join-Path $taskRoot 'Providers/Network/NextGenSoftware.OASIS.API.Providers.IPFSOASIS/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.csproj'
+    $localProject=Join-Path $taskRoot 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj'
+    & dotnet build $localProject --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
+    if($LASTEXITCODE){throw 'Local file provider build failed.'}
     & dotnet build $providerProject --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
     if($LASTEXITCODE){throw 'Provider build failed.'}
     & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
