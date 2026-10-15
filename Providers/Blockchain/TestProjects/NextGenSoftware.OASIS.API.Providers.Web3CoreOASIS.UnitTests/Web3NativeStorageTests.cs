@@ -71,6 +71,17 @@ public partial class Web3NativeStorageTests
             var all=provider.LoadHolonsByMetaData(pairs,Core.Enums.MetaKeyValuePairMatchMode.All);Assert.IsFalse(all.IsError,all.Message);Assert.IsFalse(all.Result.Any());
             Assert.AreEqual(root.Id,provider.LoadHolonsByMetaData("biome","park").Result.Single().Id);
             Assert.IsInstanceOfType((await provider.LoadHolonsByMetaDataAsync(" ","no")).Exception,typeof(ArgumentException));
+            var search=await provider.SearchAsync(new Core.Objects.Search.SearchParams {
+                SearchOnlyForCurrentAvatar=false,FilterByMetaData=new Dictionary<string,string> {{"biome","park"}},
+                SearchGroups=new() {new Core.Objects.Search.SearchTextGroup {SearchQuery="owned root",SearchHolons=true,HolonType=Core.Enums.HolonType.All}}});
+            Assert.IsFalse(search.IsError,search.Message);Assert.IsTrue(search.IsLoaded);Assert.AreEqual(1,search.Result.NumberOfResults);
+            Assert.AreEqual(root.Id,search.Result.SearchResultHolons.Single().Id);Assert.AreEqual(0,search.Result.SearchResultAvatars.Count);
+            Assert.AreEqual(child.Id,search.Result.SearchResultHolons.Single().Children.Single().Id);
+            var avatarSearch=provider.Search(new Core.Objects.Search.SearchParams {SearchOnlyForCurrentAvatar=false,
+                SearchGroups=new() {new Core.Objects.Search.SearchTextGroup {SearchQuery="owned-private",SearchAvatars=true,HolonType=Core.Enums.HolonType.All}}});
+            Assert.IsFalse(avatarSearch.IsError,avatarSearch.Message);Assert.AreEqual(avatar.Id,avatarSearch.Result.SearchResultAvatars.Single().Id);
+            Assert.AreEqual(0,avatarSearch.Result.SearchResultHolons.Count);
+            Assert.IsInstanceOfType((await provider.SearchAsync(null!)).Exception,typeof(ArgumentNullException));
             for(var index=0;index<128;index++)
             {
                 var result=await provider.SaveAvatarAsync(new Avatar {Id=Guid.NewGuid(),IsActive=true,Username="owned-"+index});
