@@ -27,84 +27,63 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-            string errorMessage = "Error occured in ActivateProviderAsync method in AzureCosmosDBOASIS Provider. Reason:";
-
+            await lifecycleGate.WaitAsync();
+            var result=new OASISResult<bool>();
             try
             {
-                if (dbClientFactory == null)
+                if(IsProviderActivated) return new OASISResult<bool>(true);
+                ArgumentNullException.ThrowIfNull(serviceEndpoint);
+                if(string.IsNullOrWhiteSpace(authKey) || string.IsNullOrWhiteSpace(databaseName)
+                    || collectionNames==null || new[] {"avatarItems","avatarDetailItems","holonItems"}.Any(name=>!collectionNames.Contains(name)))
+                    throw new ArgumentException("Cosmos activation requires credentials, database and all three OASIS containers.");
+                var options=new CosmosClientOptions {ConnectionMode=ConnectionMode.Gateway};
+                if(serviceEndpoint.IsLoopback)
+                    options.HttpClientFactory=()=>new HttpClient(new HttpClientHandler {ServerCertificateCustomValidationCallback=HttpClientHandler.DangerousAcceptAnyServerCertificateValidator});
+                var client=new CosmosClient(serviceEndpoint.ToString(),authKey,options);
+                dbClientFactory=new CosmosDbClientFactory(client,databaseName,collectionNames);
+                var setup=await dbClientFactory.EnsureDbSetupAsync();
+                if(setup.IsError || !setup.Result)
                 {
-                    var clientOptions = new CosmosClientOptions
-                    {
-                        ConnectionMode = ConnectionMode.Gateway
-                    };
-
-                    if (serviceEndpoint.IsLoopback)
-                    {
-                        clientOptions.HttpClientFactory = () => new HttpClient(
-                            new HttpClientHandler
-                            {
-                                ServerCertificateCustomValidationCallback =
-                                    HttpClientHandler.DangerousAcceptAnyServerCertificateValidator
-                            });
-                    }
-
-                    var cosmosClient = new CosmosClient(serviceEndpoint.ToString(), authKey, clientOptions);
-                    dbClientFactory = new CosmosDbClientFactory(cosmosClient, databaseName, collectionNames);
-                    OASISResult<bool> ensureDbSetupResult = await dbClientFactory.EnsureDbSetupAsync();
-
-                    if (ensureDbSetupResult.IsError || !ensureDbSetupResult.Result)
-                    {
-                        dbClientFactory.Dispose();
-                        dbClientFactory = null;
-                        IsProviderActivated = false;
-                        return ensureDbSetupResult;
-                    }
-                    else
-                    {
-                        avatarRepository = new AvatarRepository(dbClientFactory);
-                        holonRepository = new HolonRepository(dbClientFactory);
-                        avatarDetailRepository = new AvatarDetailRepository(dbClientFactory);
-                    }
-
-                    IsProviderActivated = true;
-                    result.Result = true;
-                    result.IsError = false;
-                    result.Message = "Azure Cosmos DB provider activated successfully.";
+                    if(!setup.IsError) OASISErrorHandling.HandleError(ref setup,"Cosmos setup did not acknowledge readiness.");
+                    var cleanup=ReleaseCosmosClients();
+                    if(cleanup.IsError)
+                        OASISErrorHandling.HandleError(ref setup,"Cosmos setup and cleanup failed.",new AggregateException(setup.Exception ?? new InvalidOperationException(setup.Message),cleanup.Exception));
+                    return setup;
                 }
+                avatarRepository=new AvatarRepository(dbClientFactory);
+                avatarDetailRepository=new AvatarDetailRepository(dbClientFactory);
+                holonRepository=new HolonRepository(dbClientFactory);
+                IsProviderActivated=true;result.Result=true;
             }
-            catch (Exception ex)
+            catch(Exception cause)
             {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}.",ex);
+                var cleanup=ReleaseCosmosClients();
+                var error=cleanup.IsError ? new AggregateException("Cosmos activation and cleanup failed.",cause,cleanup.Exception):cause;
+                OASISErrorHandling.HandleError(ref result,error.Message,error);
             }
+            finally {lifecycleGate.Release();}
+            return result;
+        }
 
+        private OASISResult<bool> ReleaseCosmosClients()
+        {
+            var factory=dbClientFactory;
+            dbClientFactory=null;avatarRepository=null;avatarDetailRepository=null;holonRepository=null;
+            IsProviderActivated=false;
+            var result=new OASISResult<bool>();
+            try {factory?.Dispose();result.Result=true;}
+            catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
             return result;
         }
 
         public override OASISResult<bool> DeActivateProvider()
-        {
-            dbClientFactory?.Dispose();
-            dbClientFactory = null;
-            avatarRepository = null;
-            avatarDetailRepository = null;
-            holonRepository = null;
-
-            IsProviderActivated = false;
-            return new OASISResult<bool>(true);
-            //return base.DeActivateProvider();
-        }
+            => DeActivateProviderAsync().GetAwaiter().GetResult();
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
-            dbClientFactory?.Dispose();
-            dbClientFactory = null;
-            avatarRepository = null;
-            avatarDetailRepository = null;
-            holonRepository = null;
-
-            IsProviderActivated = false;
-            return new OASISResult<bool>(true);
-            //return await base.DeActivateProviderAsync();
+            await lifecycleGate.WaitAsync();
+            try {return ReleaseCosmosClients();}
+            finally {lifecycleGate.Release();}
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
