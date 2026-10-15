@@ -233,7 +233,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                var holonEntityResult = DeserializePrivateStorage<Holon>("holon",holonDto.ReturnValue1.EntityId,holonDto.ReturnValue1.Info);
+                var holonEntityResult = DeserializePrivateStorage<Holon>("holon",holonDto.ReturnValue1.EntityId,holonDto.ReturnValue1.Info,id);
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Result = holonEntityResult;
@@ -266,7 +266,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     return result;
                 }
 
-                var holonEntityResult = DeserializePrivateStorage<Holon>("holon",holonDto.ReturnValue1.EntityId,holonDto.ReturnValue1.Info);
+                var holonEntityResult = DeserializePrivateStorage<Holon>("holon",holonDto.ReturnValue1.EntityId,holonDto.ReturnValue1.Info,id);
                 result.IsError = false;
                 result.IsLoaded = true;
                 result.Result = holonEntityResult;

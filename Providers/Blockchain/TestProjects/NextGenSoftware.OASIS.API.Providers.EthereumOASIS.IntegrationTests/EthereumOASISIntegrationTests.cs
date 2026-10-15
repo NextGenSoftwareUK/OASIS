@@ -85,6 +85,34 @@ public class EthereumOASISIntegrationTests
     }
 
     [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task GuidHashCollisionCannotReturnAnotherPrivateRecord(bool synchronous)
+    {
+        var storedId = Guid.Parse("00005f42-0000-0000-0000-000000000000");
+        var otherId = Guid.Parse("00017b6d-0000-0000-0000-000000000000");
+        Assert.AreNotEqual(storedId,otherId);
+        Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(storedId.ToString()),
+            NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(otherId.ToString()));
+        var (provider, _) = await CreateActivatedProviderAsync();
+        Assert.IsFalse((await provider.SaveHolonAsync(new CoreHolon { Id=storedId,Name="collision fixture" })).IsError);
+        Assert.IsFalse((await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=storedId,Username="collision fixture" })).IsError);
+        Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=storedId,Username="collision fixture" })).IsError);
+        var holon = synchronous ? provider.LoadHolon(otherId) : await provider.LoadHolonAsync(otherId);
+        var avatar = synchronous ? provider.LoadAvatar(otherId) : await provider.LoadAvatarAsync(otherId);
+        var detail = synchronous ? provider.LoadAvatarDetail(otherId) : await provider.LoadAvatarDetailAsync(otherId);
+        Assert.IsTrue(holon.IsError); Assert.IsNull(holon.Result); Assert.IsFalse(holon.IsLoaded);
+        Assert.IsTrue(avatar.IsError); Assert.IsNull(avatar.Result); Assert.IsFalse(avatar.IsLoaded);
+        Assert.IsTrue(detail.IsError); Assert.IsNull(detail.Result); Assert.IsFalse(detail.IsLoaded);
+        Assert.IsInstanceOfType(holon.Exception,typeof(InvalidDataException));
+        Assert.IsInstanceOfType(avatar.Exception,typeof(InvalidDataException));
+        Assert.IsInstanceOfType(detail.Exception,typeof(InvalidDataException));
+        Assert.AreEqual(storedId,(await provider.LoadHolonAsync(storedId)).Result.Id);
+        Assert.AreEqual(storedId,(await provider.LoadAvatarAsync(storedId)).Result.Id);
+        Assert.AreEqual(storedId,(await provider.LoadAvatarDetailAsync(storedId)).Result.Id);
+    }
+
+    [DataTestMethod]
     [DataRow(false,false)]
     [DataRow(true,false)]
     [DataRow(false,true)]

@@ -29,13 +29,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return codec.Encrypt(PrivateStorageContext(kind,HashUtility.GetNumericHash(record.Id.ToString())),JsonConvert.SerializeObject(record));
         }
 
-        private static T DeserializePrivateStorage<T>(string kind,BigInteger entityId,string ciphertext) where T : class,IHolonBase
+        private static T DeserializePrivateStorage<T>(string kind,BigInteger entityId,string ciphertext,Guid? expectedId = null) where T : class,IHolonBase
         {
             if (string.IsNullOrEmpty(ciphertext) && entityId == 0) return null;
             using var codec = OpenPrivateStorageCodec();
             var record = JsonConvert.DeserializeObject<T>(codec.Decrypt(PrivateStorageContext(kind,entityId),ciphertext));
             if (record == null || HashUtility.GetNumericHash(record.Id.ToString()) != entityId)
                 throw new InvalidDataException("Encrypted Ethereum record identity does not match its storage key.");
+            if (expectedId.HasValue && record.Id != expectedId.Value)
+                throw new InvalidDataException("Encrypted Ethereum record identity does not match the requested GUID; numeric storage key collision.");
             return record;
         }
     }
