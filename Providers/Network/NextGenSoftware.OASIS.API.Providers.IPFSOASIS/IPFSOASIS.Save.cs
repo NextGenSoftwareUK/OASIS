@@ -86,13 +86,14 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
         {
-            return LoadAllAvatarDetailsAsync().Result;
+            return LoadAllAvatarDetailsAsync(version).GetAwaiter().GetResult();
         }
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version=0)
         {
-            var records=await ReadIndexedCollectionAsync<AvatarDetail>("avatar-detail",entry=>true,version);
-            return new OASISResult<IEnumerable<IAvatarDetail>>(records) {IsLoaded=true};
+            var read=await ReadPrivateCollectionResultAsync<AvatarDetail>("avatar-detail",version);
+            var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<AvatarDetail>,IEnumerable<IAvatarDetail>>(read);
+            result.Result=read.Result; return result;
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail Avatar)
