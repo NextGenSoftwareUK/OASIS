@@ -13,6 +13,18 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
         private GoogleCloudOASIS _provider = null!;
 
         [TestMethod]
+        public async Task FirestoreWriteAttemptRetainsCauseWithoutInventingCommitIdentity()
+        {
+            var cause=new System.IO.IOException("owned lost reply");
+            System.Func<Task<int>> operation=()=>Task.FromException<int>(cause);
+            var method=typeof(GoogleCloudOASIS).GetMethod("ObserveFirestoreMutationAsync",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!.MakeGenericMethod(typeof(int));
+            var task=(Task<int>)method.Invoke(null,new object[] {operation,"projects/owned/databases/(default)/documents/avatarDetails/owned"})!;
+            var error=await Assert.ThrowsExceptionAsync<GoogleFirestoreMutationReconciliationException>(async()=>await task);
+            Assert.AreSame(cause,error.InnerException);Assert.AreEqual(string.Empty,error.OriginalTransactionId);
+            Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(error));
+        }
+
+        [TestMethod]
         public async Task DetailGuidAndListRetainOriginalActivationFailure()
         {
             var provider=new FailedActivationProvider();
