@@ -79,6 +79,11 @@ public class CosmosNativeStorageTests
             var collection=provider.LoadAllHolons(loadChildrenFromProvider:true);
             Assert.IsFalse(collection.IsError,collection.Message);Assert.AreEqual(2,collection.Result.Count());
             Assert.AreEqual(childId,collection.Result.Single(row=>row.Id==holonId).Children.Single().Id);
+            var parentRead=await provider.LoadHolonsForParentAsync(holonId);
+            Assert.IsFalse(parentRead.IsError,parentRead.Message);Assert.IsTrue(parentRead.IsLoaded);
+            Assert.AreEqual(childId,parentRead.Result.Single().Id);
+            var emptyParent=provider.LoadHolonsForParent(Guid.NewGuid().ToString());
+            Assert.IsFalse(emptyParent.IsError,emptyParent.Message);Assert.IsTrue(emptyParent.IsLoaded);Assert.IsFalse(emptyParent.Result.Any());
             var depthLimited=await provider.LoadAllHolonsAsync(maxChildDepth:1,curentChildDepth:1,loadChildrenFromProvider:true);
             Assert.IsFalse(depthLimited.IsError,depthLimited.Message);
             Assert.IsFalse(depthLimited.Result.Single(row=>row.Id==holonId).Children.Any());
