@@ -460,6 +460,34 @@ public class EthereumOASISIntegrationTests
         await provider.DeActivateProviderAsync();
     }
 
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task MetadataQueriesReadEncryptedNativeFieldsWithAllAndAnySemantics(bool synchronous)
+    {
+        var (provider,address)=await CreateActivatedProviderAsync();
+        var first=new CoreHolon { Id=Guid.NewGuid(),Name="first metadata",MetaData=new Dictionary<string,object> { ["Region"]="park",["Count"]=5,["Enabled"]=true } };
+        var second=new CoreHolon { Id=Guid.NewGuid(),Name="second metadata",MetaData=new Dictionary<string,object> { ["Region"]="park",["Count"]=9 } };
+        foreach(var row in new[] {first,second}) Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);
+        async Task<OASISResult<IEnumerable<IHolon>>> Read(Dictionary<string,string> query,MetaKeyValuePairMatchMode mode=MetaKeyValuePairMatchMode.All,int version=0)
+            => synchronous ? provider.LoadHolonsByMetaData(query,mode,loadChildren:false,version:version)
+                : await provider.LoadHolonsByMetaDataAsync(query,mode,loadChildren:false,version:version);
+        var single=synchronous ? provider.LoadHolonsByMetaData("Region","park",loadChildren:false) : await provider.LoadHolonsByMetaDataAsync("Region","park",loadChildren:false);
+        Assert.IsFalse(single.IsError,single.Message); Assert.IsTrue(single.IsLoaded); Assert.AreEqual(2,single.Result.Count());
+        var query=new Dictionary<string,string> { ["Region"]="park",["Count"]="5" };
+        var all=await Read(query); Assert.IsFalse(all.IsError,all.Message); Assert.AreEqual(first.Id,all.Result.Single().Id);
+        var any=await Read(query,MetaKeyValuePairMatchMode.Any); Assert.IsFalse(any.IsError,any.Message); Assert.AreEqual(2,any.Result.Count());
+        var boolean=await Read(new Dictionary<string,string> { ["Enabled"]="True" }); Assert.IsFalse(boolean.IsError,boolean.Message); Assert.AreEqual(first.Id,boolean.Result.Single().Id);
+        var absent=await Read(new Dictionary<string,string> { ["region"]="park" }); Assert.IsFalse(absent.IsError,absent.Message); Assert.AreEqual(0,absent.Result.Count());
+        var history=await Read(query,version:1); Assert.IsTrue(history.IsError); Assert.IsInstanceOfType(history.Exception,typeof(NotSupportedException));
+        var empty=await Read(new Dictionary<string,string>()); Assert.IsTrue(empty.IsError); Assert.IsInstanceOfType(empty.Exception,typeof(ArgumentException));
+        var invalid=await Read(query,(MetaKeyValuePairMatchMode)99); Assert.IsTrue(invalid.IsError); Assert.IsInstanceOfType(invalid.Exception,typeof(ArgumentOutOfRangeException));
+        var service=new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        await service.CreateHolonRequestAndWaitForReceiptAsync(NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(second.Id.ToString()),second.Id.ToString(),"corrupt payload");
+        var corrupt=await Read(query); Assert.IsTrue(corrupt.IsError); Assert.IsNull(corrupt.Result); Assert.IsFalse(corrupt.IsLoaded); Assert.IsNotNull(corrupt.Exception);
+        await provider.DeActivateProviderAsync();
+    }
+
     [TestMethod]
     public async Task Holon_SaveLoadRoundTrip_UsesDisposableEvmChain()
     {

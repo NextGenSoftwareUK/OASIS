@@ -204,49 +204,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         //}
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var response = await _httpClient.GetAsync($"{_apiBaseUrl}/holons/search?metaKey={Uri.EscapeDataString(metaKey)}&metaValue={Uri.EscapeDataString(metaValue)}&type={type}&version={version}");
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var holons = System.Text.Json.JsonSerializer.Deserialize<List<Holon>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
-                    if (holons != null)
-                    {
-                        result.Result = holons.Cast<IHolon>();
-                        result.IsError = false;
-                        result.Message = $"Successfully loaded {holons.Count} holons by metadata from Ethereum";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize holons from Ethereum API");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Ethereum API error: {response.StatusCode} - {response.ReasonPhrase}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata from Ethereum: {ex.Message}", ex);
-            }
-            return result;
-        }
+            => await LoadHolonsByMetaDataAsync(new Dictionary<string,string> { [metaKey ?? string.Empty]=metaValue },
+                MetaKeyValuePairMatchMode.All,type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,loadChildrenFromProvider,version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
@@ -255,55 +214,28 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            var result = new OASISResult<IEnumerable<IHolon>>();
+            var result=new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var searchRequest = new
-                {
-                    metaKeyValuePairs = metaKeyValuePairs,
-                    metaKeyValuePairMatchMode = metaKeyValuePairMatchMode.ToString(),
-                    type = type.ToString(),
-                    version = version
-                };
-
-                var jsonContent = Newtonsoft.Json.JsonConvert.SerializeObject(searchRequest);
-                var content = new StringContent(jsonContent, System.Text.Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync($"{_apiBaseUrl}/holons/search-multiple", content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var holons = System.Text.Json.JsonSerializer.Deserialize<List<Holon>>(responseContent, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
-                    if (holons != null)
-                    {
-                        result.Result = holons.Cast<IHolon>();
-                        result.IsError = false;
-                        result.Message = $"Successfully loaded {holons.Count} holons by multiple metadata from Ethereum";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize holons from Ethereum API");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Ethereum API error: {response.StatusCode} - {response.ReasonPhrase}");
-                }
+                if(metaKeyValuePairs == null || metaKeyValuePairs.Count == 0)
+                    throw new ArgumentException("At least one metadata key/value pair is required.",nameof(metaKeyValuePairs));
+                if(metaKeyValuePairs.Any(pair=>string.IsNullOrWhiteSpace(pair.Key) || pair.Value == null))
+                    throw new ArgumentException("Metadata keys must be nonempty and query values nonnull.",nameof(metaKeyValuePairs));
+                if(metaKeyValuePairMatchMode != MetaKeyValuePairMatchMode.All && metaKeyValuePairMatchMode != MetaKeyValuePairMatchMode.Any)
+                    throw new ArgumentOutOfRangeException(nameof(metaKeyValuePairMatchMode));
+                var query=metaKeyValuePairs.ToArray();
+                var stored=await LoadAllHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,loadChildrenFromProvider,version);
+                if(stored.IsError) return stored;
+                bool Matches(IHolon row,KeyValuePair<string,string> pair)
+                    => row.MetaData != null && row.MetaData.TryGetValue(pair.Key,out var value) && value != null
+                        && string.Equals(Convert.ToString(value,System.Globalization.CultureInfo.InvariantCulture),pair.Value,StringComparison.Ordinal);
+                result.Result=stored.Result.Where(row=>metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All
+                    ? query.All(pair=>Matches(row,pair)) : query.Any(pair=>Matches(row,pair))).ToList();
+                result.IsLoaded=true;
             }
-            catch (Exception ex)
+            catch(Exception cause)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons by multiple metadata from Ethereum: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result,$"Ethereum native metadata query failed: {cause.Message}",cause);
             }
             return result;
         }
