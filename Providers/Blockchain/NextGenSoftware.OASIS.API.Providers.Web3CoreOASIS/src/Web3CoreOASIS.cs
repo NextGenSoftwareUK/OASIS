@@ -16,29 +16,12 @@ public sealed class Web3CoreOASIS
     private readonly string _contractAddress;
     private readonly string _abi;
 
-    private async Task<TransactionReceipt> SendAndWaitForReceiptAsync(Function function, params object[] functionInput)
-    {
-        string transactionHash = await function.SendTransactionAsync(
-            _web3.TransactionManager.Account.Address,
-            gas: new HexBigInteger(3_000_000),
-            value: null,
-            functionInput);
-
-        using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(60));
-        while (!timeout.IsCancellationRequested)
-        {
-            TransactionReceipt? receipt = await _web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transactionHash);
-            if (receipt is not null)
-            {
-                if (!receipt.Succeeded())
-                    throw new InvalidOperationException($"EVM transaction '{transactionHash}' reverted.");
-                return receipt;
-            }
-            await Task.Delay(100, timeout.Token);
-        }
-
-        throw new TimeoutException($"Timed out waiting for EVM transaction '{transactionHash}' to be mined.");
-    }
+    private Task<TransactionReceipt> SendAndWaitForReceiptAsync(Function function, params object[] functionInput)
+        => Web3TransactionOutcome.SubmitAndObserveAsync(
+            ()=>function.SendTransactionAsync(_web3.TransactionManager.Account.Address,
+                gas:new HexBigInteger(3_000_000),value:null,functionInput),
+            hash=>_web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(hash),
+            TimeSpan.FromSeconds(60),TimeSpan.FromMilliseconds(100));
 
     public Web3CoreOASIS(string accountPrivateKey, string blockchainUrl, string contractAddress, string abi)
     {
