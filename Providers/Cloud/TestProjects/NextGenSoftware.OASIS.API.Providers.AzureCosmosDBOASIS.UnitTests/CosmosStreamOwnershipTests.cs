@@ -57,6 +57,26 @@ public class CosmosStreamOwnershipTests
         container.VerifyNoOtherCalls();
     }
 
+    [DataTestMethod]
+    [DataRow(false,"{}")] [DataRow(true,"{}")]
+    [DataRow(false,"{\"Documents\":null}")] [DataRow(true,"{\"Documents\":null}")]
+    [DataRow(false,"{\"Documents\":[null]}")] [DataRow(true,"{\"Documents\":[null]}")]
+    [DataRow(false,"{\"Documents\":[42]}")] [DataRow(true,"{\"Documents\":[42]}")]
+    public void MalformedLaterQueryPageNeverReturnsPartialSuccess(bool selector,string malformed)
+    {
+        var first=new TrackedResponse(HttpStatusCode.OK);first.SetContent("{\"Documents\":[{\"id\":\"owned\"}]}");
+        var second=new TrackedResponse(HttpStatusCode.OK);second.SetContent(malformed);
+        var pages=new Queue<ResponseMessage>(new[] {first,second});
+        var iterator=new Mock<FeedIterator>();
+        iterator.SetupSequence(i=>i.HasMoreResults).Returns(true).Returns(true).Returns(false);
+        iterator.Setup(i=>i.ReadNextAsync(It.IsAny<CancellationToken>())).Returns(()=>Task.FromResult(pages.Dequeue()));
+        var container=new Mock<Container>();
+        container.Setup(c=>c.GetItemQueryStreamIterator(It.IsAny<QueryDefinition>(),It.IsAny<string>(),It.IsAny<QueryRequestOptions>())).Returns(iterator.Object);
+        var client=new CosmosDbClient(container.Object);
+        Assert.ThrowsException<InvalidDataException>(()=> {if(selector) client.ReadDocumentByField("Username","owned");else client.ReadAllDocuments();});
+        Assert.IsTrue(first.Disposed);Assert.IsTrue(second.Disposed);
+    }
+
     private sealed class TrackedResponse(HttpStatusCode status) : ResponseMessage(status)
     {
         public bool Disposed;

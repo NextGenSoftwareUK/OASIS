@@ -76,8 +76,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                 if(!response.IsSuccessStatusCode)
                     throw new CosmosException(response.ErrorMessage ?? "Query failed",response.StatusCode,(int)response.StatusCode,response.Headers.ActivityId,response.Headers.RequestCharge);
                 using var reader=new StreamReader(response.Content);
-                var obj=JObject.Parse(reader.ReadToEnd());
-                if(obj["Documents"] is not JArray docs) throw new InvalidDataException("Cosmos query response lacks a Documents array.");
+                var docs=DecodeQueryDocuments(reader.ReadToEnd());
                 foreach(var doc in docs)
                 {
                     if(match!=null) throw new StorageIdentityAmbiguousException();
@@ -99,15 +98,18 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                     throw new CosmosException(response.ErrorMessage ?? "Query failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
                 using var reader = new StreamReader(response.Content);
                 var content = reader.ReadToEnd();
-                var obj = JObject.Parse(content);
-                var docs = obj["Documents"] as JArray;
-                if (docs != null)
-                {
-                    foreach (var doc in docs)
-                        list.Add(doc.ToString());
-                }
+                foreach (var doc in DecodeQueryDocuments(content))
+                    list.Add(doc.ToString());
             }
             return list;
+        }
+
+        private static JArray DecodeQueryDocuments(string content)
+        {
+            var obj=JObject.Parse(content);
+            if(obj["Documents"] is not JArray docs) throw new InvalidDataException("Cosmos query response lacks a Documents array.");
+            if(docs.Any(doc=>doc is not JObject)) throw new InvalidDataException("Cosmos query response contains a non-object document.");
+            return docs;
         }
 
         public async Task<string> CreateDocumentAsync(object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
