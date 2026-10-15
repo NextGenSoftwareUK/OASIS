@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+IPFS typed index follow-up: canonical record kind separates avatar/detail/holon records sharing a GUID; current-entry replacement and single-record selection no longer mutate/select another kind. Focused24/24 tests pass. Entity encryption, collection/version/interface parity and native V2 publication/recovery are still incomplete.
+
 IPFS index encryption follow-up: shared AES-GCM/gzip codec now protects lookup publication/read, requiring separately persisted OASIS_IPFS_STORAGE_ENCRYPTION_KEY and rejecting plaintext/wrong-key content. Focused20/20 tests pass. Entity/list encryption and identity/type binding remain unfinished; no full privacy/native V2 certification or deployment.
 
 IPFS publication follow-up: unused password copy removed from lookup DTO; failed/missing pointer-save result now exposes acknowledged CID reconciliation evidence instead of success. Focused15/15 tests pass. Entity blobs are not yet whole-record encrypted, and atomic root publication/native V2/recovery remain incomplete.
