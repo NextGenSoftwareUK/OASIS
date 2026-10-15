@@ -290,8 +290,8 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             string json = "";
             _idLookup = await LoadLookupToJson();
 
-            HolonResume avatarDico = _idLookup.Values.FirstOrDefault(predicate);
-            string avatarAddress = _idLookup.FirstOrDefault(a => a.Value.Id == avatarDico.Id).Key;
+            var selected=FindIndexEntry("avatar",predicate);
+            string avatarAddress=selected.Key;
 
             json = await LoadStringToJson(avatarAddress);
             IAvatar avatar = JsonConvert.DeserializeObject<Avatar>(json);
@@ -304,8 +304,8 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             string json = "";
             _idLookup = await LoadLookupToJson();
 
-            HolonResume avatarDico = _idLookup.Values.FirstOrDefault(predicate);
-            string avatarAddress = _idLookup.FirstOrDefault(a => a.Value.Id == avatarDico.Id).Key;
+            var selected=FindIndexEntry("avatar-detail",predicate);
+            string avatarAddress=selected.Key;
 
             json = await LoadStringToJson(avatarAddress);
             IAvatarDetail avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(json);
@@ -319,8 +319,8 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             string json = "";
             _idLookup = await LoadLookupToJson();
 
-            HolonResume avatarDico = _idLookup.Values.FirstOrDefault(predicate);
-            string avatarAddress = _idLookup.FirstOrDefault(a => a.Value.Id == avatarDico.Id).Key;
+            var selected=FindIndexEntry("holon",predicate);
+            string avatarAddress=selected.Key;
 
             json = await LoadStringToJson(avatarAddress);
             IHolon holon = JsonConvert.DeserializeObject<Holon>(json);

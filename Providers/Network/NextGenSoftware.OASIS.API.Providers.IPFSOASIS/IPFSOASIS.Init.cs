@@ -145,16 +145,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         {
             //If we have a previous version of this avatar saved, then add a pointer back to the previous version.
             _idLookup = await LoadLookupToJson();
-            HolonResume dico = _idLookup.Values.FirstOrDefault(a => a.Id == avatar.Id);
-
-            // in case there is no element in _idlookup dictionary
-            if (dico == null)
-                dico = new HolonResume();
-
-
-            if (_idLookup.Count(a => a.Value.Id == avatar.Id) > 0)
-                avatar.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] =
-                    _idLookup.FirstOrDefault(a => a.Value.Id == avatar.Id).Key;
+            if(avatar.Id==Guid.Empty) throw new ArgumentException("IPFS entity identity must be nonempty.");
+            var previous=FindIndexEntry("avatar",row=>row.Id==avatar.Id,true);
+            var dico=new HolonResume {RecordKind="avatar"};
+            if(previous.Value != null)
+                avatar.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS]=previous.Key;
 
             string json = JsonConvert.SerializeObject(avatar);
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
@@ -164,14 +159,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
             dico.Id = avatar.Id;
             dico.login = avatar.Username;
-            dico.ProviderUniqueStorageKey = avatar.ProviderUniqueStorageKey;
+            dico.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType,string>(avatar.ProviderUniqueStorageKey);
             dico.email = avatar.Email;
             dico.HolonType = HolonType.Avatar;
 
-            if (_idLookup.Count == 0)
-                _idLookup.Add(fsn.Id, dico);
-            else
-                _idLookup[fsn.Id] = dico;
+            ReplaceIndexEntry(fsn.Id,dico);
 
 
             await SaveLookupToFile(_idLookup);
@@ -183,15 +175,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         {
             //If we have a previous version of this avatar saved, then add a pointer back to the previous version.
             _idLookup = await LoadLookupToJson();
-            HolonResume dico = _idLookup.Values.FirstOrDefault(a => a.Id == holon.Id);
-
-            // in case there is no element in _idlookup dictionary
-            if (dico == null)
-                dico = new HolonResume();
-
-            if (_idLookup.Count(a => a.Value.Id == holon.Id) > 0)
-                holon.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] =
-                    _idLookup.FirstOrDefault(a => a.Value.Id == holon.Id).Key;
+            if(holon.Id==Guid.Empty) throw new ArgumentException("IPFS entity identity must be nonempty.");
+            var previous=FindIndexEntry("holon",row=>row.Id==holon.Id,true);
+            var dico=new HolonResume {RecordKind="holon"};
+            if(previous.Value != null)
+                holon.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS]=previous.Key;
 
             string json = JsonConvert.SerializeObject(holon);
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
@@ -199,14 +187,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
             // we store just values that we will use as a filter of search in other methods.
             dico.Id = holon.Id;
-            dico.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey;
+            dico.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType,string>(holon.ProviderUniqueStorageKey);
             dico.ParentHolonId = holon.ParentHolonId;
             dico.HolonType = holon.HolonType;
 
-            if (_idLookup.Count == 0)
-                _idLookup.Add(fsn.Id, dico);
-            else
-                _idLookup[fsn.Id] = dico;
+            ReplaceIndexEntry(fsn.Id,dico);
 
             string id = await SaveLookupToFile(_idLookup);
 
@@ -217,16 +202,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         {
             //If we have a previous version of this avatar saved, then add a pointer back to the previous version.
             _idLookup = await LoadLookupToJson();
-            HolonResume dico = _idLookup.Values.FirstOrDefault(a => a.Id == avatarDetail.Id);
-
-            // in case there is no element in _idlookup dictionary
-            if (dico == null)
-                dico = new HolonResume();
-
-
-            if (_idLookup.Count(a => a.Value.Id == avatarDetail.Id) > 0)
-                avatarDetail.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] =
-                    _idLookup.FirstOrDefault(a => a.Value.Id == avatarDetail.Id).Key;
+            if(avatarDetail.Id==Guid.Empty) throw new ArgumentException("IPFS entity identity must be nonempty.");
+            var previous=FindIndexEntry("avatar-detail",row=>row.Id==avatarDetail.Id,true);
+            var dico=new HolonResume {RecordKind="avatar-detail"};
+            if(previous.Value != null)
+                avatarDetail.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS]=previous.Key;
 
             string json = JsonConvert.SerializeObject(avatarDetail);
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
@@ -236,14 +216,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
             dico.Id = avatarDetail.Id;
             dico.login = avatarDetail.Username;           
-            dico.ProviderUniqueStorageKey = avatarDetail.ProviderUniqueStorageKey;
+            dico.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType,string>(avatarDetail.ProviderUniqueStorageKey);
             dico.email = avatarDetail.Email;
             dico.HolonType = HolonType.AvatarDetail;
 
-            if (_idLookup.Count == 0)
-                _idLookup.Add(fsn.Id, dico);
-            else
-                _idLookup[fsn.Id] = dico;
+            ReplaceIndexEntry(fsn.Id,dico);
 
 
             await SaveLookupToFile(_idLookup);
