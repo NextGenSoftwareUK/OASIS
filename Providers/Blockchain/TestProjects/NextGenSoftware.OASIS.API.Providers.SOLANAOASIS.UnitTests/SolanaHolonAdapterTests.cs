@@ -16,6 +16,54 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 public class SolanaHolonAdapterTests
 {
     [DataTestMethod]
+    [DataRow(false,0,3)]
+    [DataRow(true,1,3)]
+    [DataRow(true,2,5)]
+    public async Task SelectedGraphUsesStableSiblingDepthAndAssignsParentIdentities(bool recursive,int depth,int expected)
+    {
+        var repository=new RecordsRepository {AllowAllWrites=true}; var provider=new ActiveProvider(repository);
+        var root=new NextGenSoftware.OASIS.API.Core.Holons.Holon();
+        var first=new NextGenSoftware.OASIS.API.Core.Holons.Holon(); var second=new NextGenSoftware.OASIS.API.Core.Holons.Holon();
+        first.Children=new List<IHolon> {new NextGenSoftware.OASIS.API.Core.Holons.Holon()};
+        second.Children=new List<IHolon> {new NextGenSoftware.OASIS.API.Core.Holons.Holon()};
+        root.Children=new List<IHolon> {first,second};
+        var result=await provider.SaveHolonAsync(root,recursive:recursive,maxChildDepth:depth);
+        Assert.IsFalse(result.IsError,result.Message); Assert.IsTrue(result.IsSaved);
+        Assert.AreEqual(expected,repository.WriteCalls); Assert.AreNotEqual(Guid.Empty,root.Id);
+        Assert.AreEqual(root.Id,first.ParentHolonId); Assert.AreEqual(root.Id,second.ParentHolonId);
+        Assert.AreEqual(expected,repository.Written.Select(record=>record.Id).Distinct().Count());
+        if(expected==5) {Assert.AreEqual(first.Id,first.Children.Single().ParentHolonId); Assert.AreEqual(second.Id,second.Children.Single().ParentHolonId);}
+    }
+
+    [DataTestMethod]
+    [DataRow("cycle")]
+    [DataRow("duplicate")]
+    [DataRow("parent")]
+    [DataRow("enumeration")]
+    [DataRow("reference")]
+    public async Task EntireSelectedGraphIsValidatedBeforeAnyWrite(string scenario)
+    {
+        var repository=new RecordsRepository {AllowAllWrites=true}; var provider=new ActiveProvider(repository);
+        var root=new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=Guid.NewGuid()};
+        var child=new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=scenario=="duplicate" ? root.Id:Guid.NewGuid()};
+        root.Children=new List<IHolon> {scenario=="cycle" ? root:child};
+        if(scenario=="parent") child.ParentHolonId=Guid.NewGuid();
+        if(scenario=="reference")
+        {
+            child.ProviderUniqueStorageKey[ProviderType.SolanaOASIS]="old-signature";
+            repository.Records=new[] {(new SolanaHolonDto {Id=Guid.NewGuid()},"old-signature")};
+        }
+        IEnumerable<IHolon> Source()
+        {
+            yield return root;
+            if(scenario=="enumeration") throw new InvalidOperationException("Owned enumeration failure");
+        }
+        var result=await provider.SaveHolonsAsync(Source());
+        Assert.IsTrue(result.IsError); Assert.AreEqual(0,repository.WriteCalls); Assert.AreEqual(scenario=="reference" ? 1:0,repository.Reads);
+        Assert.IsFalse(root.ProviderUniqueStorageKey.ContainsKey(ProviderType.SolanaOASIS));
+    }
+
+    [DataTestMethod]
     [DataRow(false,false)]
     [DataRow(false,true)]
     [DataRow(true,false)]
@@ -158,6 +206,8 @@ public class SolanaHolonAdapterTests
         public (SolanaHolonDto Record,string Signature)[] Records=Array.Empty<(SolanaHolonDto,string)>();
         public int Reads;
         public bool AllowPartialWrite;
+        public bool AllowAllWrites;
+        public List<SolanaBaseDto> Written=new();
         public int WriteCalls;
         public Exception WriteCause=new System.IO.IOException("Owned second write rejection");
         public Task<IReadOnlyList<(T Record,string Signature)>> GetAllAsync<T>() where T:SolanaBaseDto,new()
@@ -171,8 +221,10 @@ public class SolanaHolonAdapterTests
         }
         public Task<string> CreateAsync<T>(T entity) where T:SolanaBaseDto,new()
         {
-            if(!AllowPartialWrite) throw new InvalidOperationException("Unexpected write");
+            if(!AllowPartialWrite && !AllowAllWrites) throw new InvalidOperationException("Unexpected write");
             WriteCalls++;
+            Written.Add(entity);
+            if(AllowAllWrites) return Task.FromResult("owned-committed-"+WriteCalls);
             if(WriteCalls==1) return Task.FromResult("owned-first-committed-signature");
             throw WriteCause;
         }

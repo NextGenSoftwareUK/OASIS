@@ -27,6 +27,7 @@ public class SolanaAvatarUpdateTests
             ? new SolanaAvatarDetailDto { Id = existingId, Version = 5, Karma = 1 }
             : new SolanaAvatarDto { Id = existingId, Version = 5, Email = "old@example.invalid" } };
         typeof(SolanaOASIS).GetField("_solanaRepository", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(provider, repository);
+        typeof(SolanaOASIS).GetProperty("IsProviderActivated")!.SetValue(provider,true);
         if (detail)
         {
             var avatar = new AvatarDetail { Id = identity, Karma = 999, XP = 321, Version = 1 };
@@ -72,6 +73,7 @@ public class SolanaAvatarUpdateTests
         var repository = new CapturingRepository { Existing = new SolanaHolonDto {
             Id = mismatch ? Guid.NewGuid() : holon.Id, Name = "old", Version = 8 } };
         typeof(SolanaOASIS).GetField("_solanaRepository", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(provider, repository);
+        typeof(SolanaOASIS).GetProperty("IsProviderActivated")!.SetValue(provider,true);
         var isError = bulk
             ? (await provider.SaveHolonsAsync(new[] { holon }, saveChildren:false)).IsError
             : (await provider.SaveHolonAsync(holon, saveChildren:false)).IsError;

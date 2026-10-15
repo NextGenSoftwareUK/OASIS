@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+Solana graph-write follow-up: single/batch saves share selected-graph planning with stable sibling depths, pre-mutation identity/reference checks and committed-signature replay fencing. Full unit suite97/97 passes. Encryption/signing whole-plan preflight, continueOnError/embedded/cache semantics, CAS and native-chain verification remain incomplete.
+
 Solana write follow-up (2026-10-15): invalid identity/version preflight and committed-partial-batch replay fence implemented; full unit suite89/89 passes. Controlled failure tests invoke actual V2 replay predicate, not a live validator. Complete graph-write semantics and live native verification remain open.
 
 Search follow-up: Solana now uses authenticated collections plus Ethereum's extracted shared StoredRecordSearch evaluator/validation. Solana unit81/81 and actual Ethereum native91/91 pass. Wallet/history search, full DTO/field/query semantics, private indexing, result redaction and live Solana finality remain incomplete.
