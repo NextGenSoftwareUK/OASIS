@@ -143,6 +143,12 @@ public sealed class Web3CoreOASIS
         return receipt.Succeeded();
     }
 
+    public Task<TransactionReceipt> DeleteHolonCheckedAsync(uint entityId,byte[] externalId,byte[] expectedHash)
+    {
+        var function=_web3.Eth.GetContract(_abi,_contractAddress).GetFunction("deleteHolonChecked");
+        return SendAndWaitForReceiptAsync(function,entityId,externalId,expectedHash);
+    }
+
     public async Task<EntityOASIS> GetAvatarByIdAsync(uint entityId)
     {
         Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
