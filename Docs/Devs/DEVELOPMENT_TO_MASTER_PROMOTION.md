@@ -59,7 +59,9 @@ python3 Scripts/validate_railway_dependency_manifest.py --require-gitlinks
 
 Run the required WEB4-WEB10 publishes described in [Railway dependency pins](./RAILWAY_DEPENDENCY_PINS.md) before opening the parent pull request.
 
-## Staging release-candidate process (planned enhancement)
+## Staging release-candidate process (gate implementation in progress)
+
+The owner has now requested enforcement. See [Railway staging gate implementation and proof checklist](RAILWAY_STAGING_GATE.md). Live staging/production push autodeploys have been disabled; dev is unchanged. The new gated workflow freezes an exact CI-tested master candidate, stages it, requires native GitHub approval by dellams, rechecks staging and promotes the same source SHA. It remains blocked from live proof by scoped-token provisioning and staging data/payment isolation; do not claim end-to-end completion. The numbered intended sequence below is the target contract, not a claim that every acceptance item has passed.
 
 Staging is a Railway **environment**, not an additional long-lived Git branch. Do not create `staging` branches
 in the parent or every component repository. Keep the existing `Development → master` parent and
@@ -94,12 +96,7 @@ updates together. Other isolation recommendations above remain recommendations r
 change the owner's environment settings. Review configuration parity without printing secret values, and validate migrations against representative
 sanitized data with a documented rollback/forward-recovery plan.
 
-**Not implemented by this documentation:** the current process above merges `master` and then verifies staging and
-production. Its existing Railway triggers do not yet provide this pre-production staging gate. Follow-up work must
-add candidate-SHA staging deployment, environment-isolation/parity checks, required acceptance evidence, an explicit
-production approval/dispatch boundary, and release/rollback audit linkage. Review the existing Railway auto-deploy
-triggers before enabling this sequence so merging `master` cannot bypass staging acceptance. Until then, do not claim
-that an existing staging environment automatically gates production. No new branches or workflow changes are made here.
+**Transition status:** the old merge-then-parallel-deploy triggers are now disabled for staging/production. The gate implementation and owner setup/proof requirements are recorded in the linked runbook. Source-SHA promotion is not byte-identical OCI artifact promotion. No running deployment was stopped, no production data/payment credentials were changed, and no owner approval was simulated.
 
 ## Existing automation
 
