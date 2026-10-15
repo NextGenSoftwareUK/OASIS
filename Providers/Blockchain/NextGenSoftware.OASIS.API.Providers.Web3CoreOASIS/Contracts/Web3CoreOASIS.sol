@@ -165,6 +165,11 @@ contract Web3CoreOASIS is ERC721, Ownable, IWeb3CoreOASIS {
         return avatars[entityId];
     }
 
+    // The all-zero mapping value is structured absence; transport/revert errors stay errors.
+    function lookupAvatar(uint256 entityId) external view returns (EntityOASIS memory) { return avatars[entityId]; }
+    function lookupAvatarDetail(uint256 entityId) external view returns (EntityOASIS memory) { return avatarDetails[entityId]; }
+    function lookupHolon(uint256 entityId) external view returns (EntityOASIS memory) { return holons[entityId]; }
+
     function getAvatarDetailById(uint256 entityId) public view returns (EntityOASIS memory) {
         require(avatarDetails[entityId].ExternalId != bytes32(0), ENTITY_NOT_EXIST);
         return avatarDetails[entityId];

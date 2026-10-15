@@ -57,39 +57,7 @@ public partial class Web3CoreOASISBaseProvider
     }
 
     public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
-    {
-        OASISResult<IAvatarDetail> result = new();
-        string errorMessage = "Error in LoadAvatarDetailAsync method in Web3CoreOASIS while loading an avatar detail. Reason: ";
-
-        if (_web3CoreOASIS is null)
-        {
-            OASISErrorHandling.HandleError(
-                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            return result;
-        }
-
-        try
-        {
-            int avatarDetailEntityId = HashUtility.GetNumericHash(id.ToString());
-            if(id==Guid.Empty) throw new ArgumentException("A nonempty Web3Core identity is required.",nameof(id));
-            if(version!=0) throw new NotSupportedException("Web3Core historical storage reads are not implemented.");
-            EntityOASIS detailInfo = await _web3CoreOASIS.GetAvatarDetailByIdAsync((uint)avatarDetailEntityId);
-
-            result.IsError = false;
-            result.Result = DecodePrivateRecord<AvatarDetail>("detail",id,detailInfo);
-            result.IsLoaded = true;
-        }
-        catch (RpcResponseException ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-
-        return result;
-    }
+        => await ReadPrivateGuidAsync<IAvatarDetail>(id,version,index=>_web3CoreOASIS.GetAvatarDetailByIdAsync(index),row=>DecodePrivateEntity<AvatarDetail>("detail",row));
 
     public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
     {
@@ -185,7 +153,7 @@ public partial class Web3CoreOASISBaseProvider
 
     public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
-        throw new Exception();
+        return LoadHolonAsync(id,loadChildren,recursive,maxChildDepth,continueOnError,loadChildrenFromProvider,version).GetAwaiter().GetResult();
     }
 
     public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -235,39 +203,7 @@ public partial class Web3CoreOASISBaseProvider
     }
 
     public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    {
-        OASISResult<IHolon> result = new();
-        string errorMessage = "Error in LoadHolonAsync method in Web3CoreOASIS while loading holon. Reason: ";
-
-        if (_web3CoreOASIS is null)
-        {
-            OASISErrorHandling.HandleError(
-                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            return result;
-        }
-
-        try
-        {
-            int holonEntityId = HashUtility.GetNumericHash(id.ToString());
-            if(id==Guid.Empty) throw new ArgumentException("A nonempty Web3Core identity is required.",nameof(id));
-            if(version!=0) throw new NotSupportedException("Web3Core historical storage reads are not implemented.");
-            EntityOASIS holonInfo = await _web3CoreOASIS.GetHolonByIdAsync((uint)holonEntityId);
-
-            result.Result = DecodePrivateRecord<Holon>("holon",id,holonInfo);
-            result.IsError = false;
-            result.IsLoaded = true;
-        }
-        catch (RpcResponseException ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-
-        return result;
-    }
+        => await ReadPrivateGuidAsync<IHolon>(id,version,index=>_web3CoreOASIS.GetHolonByIdAsync(index),row=>DecodePrivateEntity<Holon>("holon",row));
 
     public async Task<OASISResult<IHolon>> LoadHolonByProviderKeyAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {

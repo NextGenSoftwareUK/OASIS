@@ -13,6 +13,26 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
 public partial class Web3CoreOASISBaseProvider
 {
+    private async Task<OASISResult<T>> ReadPrivateGuidAsync<T>(Guid id,int version,Func<uint,Task<EntityOASIS>> load,Func<EntityOASIS,T> decode) where T:IHolonBase
+    {
+        var result=new OASISResult<T>();
+        try
+        {
+            if(id==Guid.Empty) throw new ArgumentException("A nonempty Web3Core identity is required.",nameof(id));
+            if(version!=0) throw new NotSupportedException("Web3Core historical storage reads are not implemented.");
+            if(_web3CoreOASIS==null) throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
+            var entity=await load((uint)Core.Utilities.HashUtility.GetNumericHash(id.ToString()));
+            if(entity!=null && entity.EntityId==0 && entity.ExternalId?.Length==32 && entity.ExternalId.All(value=>value==0) && entity.Info?.Length==0)
+            {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Web3Core record not found.";return result;}
+            var record=decode(entity);
+            if(record.Id!=id) throw new System.IO.InvalidDataException("Web3Core payload differs from requested full GUID.");
+            if(!record.IsActive) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Web3Core record not active.";return result;}
+            result.Result=record;result.IsLoaded=true;
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
+    }
+
     private async Task<OASISResult<IEnumerable<T>>> ReadPrivateCollectionAsync<T>(string kind,Func<EntityOASIS,T> decode,int version) where T:IHolonBase
     {
         var result=new OASISResult<IEnumerable<T>>();

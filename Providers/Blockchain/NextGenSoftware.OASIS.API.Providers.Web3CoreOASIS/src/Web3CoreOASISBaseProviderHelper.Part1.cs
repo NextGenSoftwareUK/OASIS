@@ -825,6 +825,114 @@ internal static partial class Web3CoreOASISBaseProviderHelper
   {
     ""inputs"": [
       {
+        ""internalType"": ""uint256"",
+        ""name"": ""entityId"",
+        ""type"": ""uint256""
+      }
+    ],
+    ""name"": ""lookupAvatar"",
+    ""outputs"": [
+      {
+        ""components"": [
+          {
+            ""internalType"": ""uint256"",
+            ""name"": ""EntityId"",
+            ""type"": ""uint256""
+          },
+          {
+            ""internalType"": ""bytes32"",
+            ""name"": ""ExternalId"",
+            ""type"": ""bytes32""
+          },
+          {
+            ""internalType"": ""bytes"",
+            ""name"": ""Info"",
+            ""type"": ""bytes""
+          }
+        ],
+        ""internalType"": ""struct EntityOASIS"",
+        ""name"": """",
+        ""type"": ""tuple""
+      }
+    ],
+    ""stateMutability"": ""view"",
+    ""type"": ""function""
+  },
+  {
+    ""inputs"": [
+      {
+        ""internalType"": ""uint256"",
+        ""name"": ""entityId"",
+        ""type"": ""uint256""
+      }
+    ],
+    ""name"": ""lookupAvatarDetail"",
+    ""outputs"": [
+      {
+        ""components"": [
+          {
+            ""internalType"": ""uint256"",
+            ""name"": ""EntityId"",
+            ""type"": ""uint256""
+          },
+          {
+            ""internalType"": ""bytes32"",
+            ""name"": ""ExternalId"",
+            ""type"": ""bytes32""
+          },
+          {
+            ""internalType"": ""bytes"",
+            ""name"": ""Info"",
+            ""type"": ""bytes""
+          }
+        ],
+        ""internalType"": ""struct EntityOASIS"",
+        ""name"": """",
+        ""type"": ""tuple""
+      }
+    ],
+    ""stateMutability"": ""view"",
+    ""type"": ""function""
+  },
+  {
+    ""inputs"": [
+      {
+        ""internalType"": ""uint256"",
+        ""name"": ""entityId"",
+        ""type"": ""uint256""
+      }
+    ],
+    ""name"": ""lookupHolon"",
+    ""outputs"": [
+      {
+        ""components"": [
+          {
+            ""internalType"": ""uint256"",
+            ""name"": ""EntityId"",
+            ""type"": ""uint256""
+          },
+          {
+            ""internalType"": ""bytes32"",
+            ""name"": ""ExternalId"",
+            ""type"": ""bytes32""
+          },
+          {
+            ""internalType"": ""bytes"",
+            ""name"": ""Info"",
+            ""type"": ""bytes""
+          }
+        ],
+        ""internalType"": ""struct EntityOASIS"",
+        ""name"": """",
+        ""type"": ""tuple""
+      }
+    ],
+    ""stateMutability"": ""view"",
+    ""type"": ""function""
+  },
+  {
+    ""inputs"": [
+      {
         ""internalType"": ""address"",
         ""name"": ""to"",
         ""type"": ""address""
