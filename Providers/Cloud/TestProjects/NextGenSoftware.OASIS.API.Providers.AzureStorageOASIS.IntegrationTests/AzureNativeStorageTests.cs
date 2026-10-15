@@ -27,6 +27,13 @@ public class AzureNativeStorageTests
             var loaded=await provider.LoadAvatarAsync(id);
             Assert.IsFalse(loaded.IsError,loaded.Message);Assert.AreEqual("Actual",loaded.Result.FirstName);Assert.AreEqual("full profile",loaded.Result.Description);
             Assert.AreEqual(id,(await provider.LoadAvatarByUsernameAsync(avatar.Username)).Result.Id);
+            Assert.AreEqual(1,(await provider.LoadAllAvatarsAsync()).Result.Count());
+            avatar.Username="updated-native";
+            Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadAvatarByUsernameAsync("owned-native")).ErrorCode);
+            Assert.AreEqual(id,(await provider.LoadAvatarByUsernameAsync("UPDATED-NATIVE")).Result.Id);
+            Assert.IsFalse((await provider.SaveAvatarAsync(new Avatar {Id=Guid.NewGuid(),Username=avatar.Username,Email=avatar.Email})).IsError);
+            Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,(await provider.LoadAvatarByEmailAsync(avatar.Email)).ErrorCode);
             var detail=new AvatarDetail {Id=id,Username=avatar.Username,Email=avatar.Email,XP=321,Karma=29};
             detail.Inventory.Add(new InventoryItem {Id=Guid.NewGuid(),Name="owned seed"});
             var saved=await provider.SaveAvatarDetailAsync(detail);Assert.IsFalse(saved.IsError,saved.Message);
