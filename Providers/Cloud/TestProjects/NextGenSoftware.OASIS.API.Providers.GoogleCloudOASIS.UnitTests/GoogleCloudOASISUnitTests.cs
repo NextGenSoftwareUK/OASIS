@@ -12,6 +12,22 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
     {
         private GoogleCloudOASIS _provider = null!;
 
+        [DataTestMethod]
+        [DataRow(System.DateTimeKind.Local)]
+        [DataRow(System.DateTimeKind.Utc)]
+        [DataRow(System.DateTimeKind.Unspecified)]
+        public void FirestoreDateConversionUsesUtcForExistingDetailInputs(System.DateTimeKind kind)
+        {
+            var input=new System.DateTime(2026,10,15,1,2,3,kind);
+            var method=typeof(GoogleCloudOASIS).GetMethod("ToFirestoreTimestamp",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!;
+            var timestamp=(Google.Cloud.Firestore.Timestamp)method.Invoke(null,new object[] {input})!;
+            var expected=kind==System.DateTimeKind.Local ? input.ToUniversalTime():System.DateTime.SpecifyKind(input,System.DateTimeKind.Utc);
+            Assert.AreEqual(expected,timestamp.ToDateTime());
+            Assert.AreEqual(System.DateTimeKind.Utc,timestamp.ToDateTime().Kind);
+            var empty=(Google.Cloud.Firestore.Timestamp)method.Invoke(null,new object[] {default(System.DateTime)})!;
+            Assert.AreEqual(System.DateTime.UnixEpoch,empty.ToDateTime());
+        }
+
         [TestInitialize]
         public void Setup()
         {
