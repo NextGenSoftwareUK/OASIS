@@ -62,6 +62,14 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         private static string Ser(object o) => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(o);
         private static T? Des<T>(string? json) => json == null ? default : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<T>(json);
 
+        private static Dictionary<string, AttributeValue> WithOptionalIdentityIndexes(Dictionary<string, AttributeValue> item)
+        {
+            // DynamoDB GSI key attributes cannot contain empty strings. Missing selectors belong to the sparse index's absent set.
+            foreach(var key in new[] {"username", "email"})
+                if(item.TryGetValue(key,out var value) && string.IsNullOrEmpty(value.S)) item.Remove(key);
+            return item;
+        }
+
         // ─── Table creation helpers ───────────────────────────────────────────────
 
         private async Task EnsureTableAsync(string tableName, List<KeySchemaElement> keys, List<AttributeDefinition> attrs, List<GlobalSecondaryIndex>? gsis = null)
@@ -155,14 +163,14 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 await _client.PutItemAsync(new PutItemRequest
                 {
                     TableName = "OasisAvatars",
-                    Item = new Dictionary<string, AttributeValue>
+                    Item = WithOptionalIdentityIndexes(new Dictionary<string, AttributeValue>
                     {
                         ["id"] = new AttributeValue { S = avatar.Id.ToString() },
                         ["username"] = new AttributeValue { S = avatar.Username ?? "" },
                         ["email"] = new AttributeValue { S = avatar.Email ?? "" },
                         ["is_deleted"] = new AttributeValue { BOOL = avatar.IsDeleted },
                         ["data_json"] = new AttributeValue { S = Ser(avatar) }
-                    }
+                    })
                 });
                 result.Result = avatar; result.IsError = false; result.Message = $"DynamoDBOASIS: Avatar '{avatar.Username}' saved.";
             }
@@ -339,13 +347,13 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 await _client.PutItemAsync(new PutItemRequest
                 {
                     TableName = "OasisAvatarDetails",
-                    Item = new Dictionary<string, AttributeValue>
+                    Item = WithOptionalIdentityIndexes(new Dictionary<string, AttributeValue>
                     {
                         ["id"] = new AttributeValue { S = d.Id.ToString() },
                         ["username"] = new AttributeValue { S = d.Username ?? "" },
                         ["email"] = new AttributeValue { S = d.Email ?? "" },
                         ["data_json"] = new AttributeValue { S = Ser(d) }
-                    }
+                    })
                 });
                 result.Result = d; result.IsError = false; result.Message = "DynamoDBOASIS: AvatarDetail saved.";
             }
