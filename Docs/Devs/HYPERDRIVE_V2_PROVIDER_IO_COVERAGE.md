@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+Solana scalar follow-up: avatar profile and supported detail contact scalar mapping now has serialized round-trip coverage; unit suite66/66 passes. Retained native log confirms zero vote-switch proof stake at slot508; no consensus-state reset performed. Full complex DTO parity and live finality remain incomplete.
+
 Solana selector follow-up: avatar/detail GUID/email/username loads now use authenticated collection reads with terminal duplicate-identity handling and cause/code preservation. Dead synthetic avatar parsers removed. Full unit project63/63 passes; selector tests are controlled boundary evidence, not refreshed native-chain support. Full DTO/query/index/history/recovery interfaces remain incomplete.
 
 Solana collection follow-up: avatar/avatar-detail enumeration now scans actual finalized signer history and decrypts typed records instead of generating synthetic accounts; full unit project51/51 passes. Pagination/version/error/tombstone cases use controlled RPC responses, not native-chain evidence. Available-history retention completeness, scalable indexes, remaining query/parser fabrication and live finality remain open; do not equate this scan with fully supported arbitrary collection queries.
