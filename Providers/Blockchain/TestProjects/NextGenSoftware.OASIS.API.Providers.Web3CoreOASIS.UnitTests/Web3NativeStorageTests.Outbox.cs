@@ -29,7 +29,6 @@ public partial class Web3NativeStorageTests
         try
         {
             var store=new MongoUsageOutboxStore(uri,database);await store.InitializeAsync(default);
-            var prepared=(NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeStorageProvider)provider;
             var user=Guid.NewGuid().ToString();var options=new Web4UsageLedgerOptions {Service="WEB4",PersistenceTimeout=TimeSpan.FromSeconds(5)};
             var executor=new Web4UsageExecution(new FixtureAuthority(user),store,options);
             var policy=new UsageEndpointPolicy {MeterCategory="api.request",ReservedUnits=1,EstimatedCostUsd=0,PricingCatalogueVersion="local-test"};
@@ -38,6 +37,11 @@ public partial class Web3NativeStorageTests
             var field=typeof(Web3CoreOASISBaseProvider).GetField("_web3CoreOASIS",flags)!;var original=field.GetValue(provider);
             var address=(string)typeof(Web3CoreOASISBaseProvider).GetField("_contractAddress",flags)!.GetValue(provider)!;
             var id=Guid.NewGuid();var numeric=(uint)Core.Utilities.HashUtility.GetNumericHash(id.ToString());var beforeSubmissionChecks=0;
+            var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {
+                HyperDriveMode=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2,StorageProviders=new NextGenSoftware.OASIS.API.DNA.StorageProviderSettings(),
+                SubscriptionConfig=new NextGenSoftware.OASIS.API.DNA.SubscriptionConfig {PlanType="Gold"}}};
+            var manager=new Core.Managers.ProviderManager(null,dna);manager.RegisterProvider(provider);
+            var router=new Core.Managers.OASISHyperDrive.OASISHyperDrive(manager);
             await using(var proxy=new Web3AcceptedWriteProxy(async signed=>
             {
                 var reopened=new MongoUsageOutboxStore(uri,database);
@@ -55,14 +59,20 @@ public partial class Web3NativeStorageTests
                 field.SetValue(provider,sdk);
                 try
                 {
-                    var result=await prepared.ExecutePreparedStorageAsync(()=>provider.SaveAvatarDetailAsync(new AvatarDetail {Id=id,IsActive=true,XP=872}),handle,"owned-native-outbox",sdk.SigningAddress);
+                    var preparation=new PreparedStorageExecution(handle,"owned-native-outbox",new Dictionary<Core.Enums.ProviderType,string> {{Core.Enums.ProviderType.PolygonOASIS,sdk.SigningAddress}},Array.Empty<Core.Enums.ProviderType>());
+                    var request=new Core.StorageOperationRequest {Operation="SaveAvatarDetail",PreferredProvider=Core.Enums.ProviderType.PolygonOASIS,
+                        Payload=new AvatarDetail {Id=id,IsActive=true,XP=872},PreparedExecution=preparation};
+                    Assert.IsFalse(Newtonsoft.Json.JsonConvert.SerializeObject(request).Contains("PreparedExecution"));
+                    Assert.IsFalse(System.Text.Json.JsonSerializer.Serialize(request).Contains("PreparedExecution"));
+                    Assert.IsNull(Newtonsoft.Json.JsonConvert.DeserializeObject<Core.StorageOperationRequest>("{\"PreparedExecution\":{}}")!.PreparedExecution);
+                    var result=await router.RouteRequestAsync<Core.Interfaces.IAvatarDetail>(request);
                     Assert.IsTrue(result.IsError);Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception));
                     Assert.AreEqual(1,beforeSubmissionChecks);Assert.AreEqual(1,proxy.AcceptedHashes.Count);
                     var reopened=new MongoUsageOutboxStore(uri,database);var persisted=await reopened.GetAsync(handle.OperationId,default);
                     var attempt=persisted.ProviderAttempts.Single();
                     Assert.AreEqual(proxy.AcceptedHashes.Single(),attempt.ProviderRequestId);
                     Assert.AreEqual(attempt.ProviderRequestId,((Web3MutationReconciliationException)result.Exception).OriginalTransactionId);
-                    Assert.AreEqual("PolygonOASIS",attempt.Provider);Assert.AreEqual("owned-native-outbox.storage.1",attempt.ClientRequestId);
+                    Assert.AreEqual("PolygonOASIS",attempt.Provider);Assert.AreEqual("owned-native-outbox.route.1.storage.1",attempt.ClientRequestId);
                     var entity=await native.GetAvatarDetailByIdAsync(numeric);
                     Assert.AreEqual(872L,provider.DecodePrivateEntity<AvatarDetail>("detail",entity).XP);
                     var calldata=new Nethereum.Web3.Web3("http://127.0.0.1:18545").Eth.GetContract(Web3CoreOASISBaseProviderHelper.Abi,address).GetFunction("upsertAvatarDetailChecked")
@@ -82,6 +92,13 @@ public partial class Web3NativeStorageTests
                     Assert.AreEqual(1,(await reopened.GetAsync(handle.OperationId,default)).ProviderAttempts.Count);
                     await VerifyFreshRecoveryProcessAsync(handle.OperationId,address,calldata);
                     Assert.AreEqual(acceptedBeforeRecovery,proxy.AcceptedHashes.Count);
+                    var methodsBeforeDenied=proxy.Methods.Count;
+                    request.Payload=new AvatarDetail {Id=Guid.NewGuid(),IsActive=true,XP=999};
+                    request.PreparedExecution=new PreparedStorageExecution(handle,"unlisted-provider",new Dictionary<Core.Enums.ProviderType,string>(),Array.Empty<Core.Enums.ProviderType>());
+                    manager.IsAutoFailOverEnabled=true;
+                    var deniedRoute=router.RouteRequest<Core.Interfaces.IAvatarDetail>(request);
+                    Assert.IsTrue(deniedRoute.IsError);Assert.AreEqual(PreparedStorageExecution.RejectedCode,deniedRoute.ErrorCode);
+                    Assert.AreEqual(methodsBeforeDenied,proxy.Methods.Count,"Unlisted provider must be rejected before native IO.");
                     var methodsBeforeWrongChain=proxy.Methods.Count;
                     var receiptsBeforeWrongChain=proxy.Methods.Count(method=>method=="eth_getTransactionReceipt");
                     proxy.ReportedChainId="0x1";
@@ -110,11 +127,14 @@ public partial class Web3NativeStorageTests
             var sdkCurrent=(Web3CoreOASIS)field.GetValue(provider)!;
             var rpc=new Nethereum.Web3.Web3("http://127.0.0.1:18545");
             var nonceBefore=await rpc.Eth.Transactions.GetTransactionCount.SendRequestAsync(sdkCurrent.SigningAddress,Nethereum.RPC.Eth.DTOs.BlockParameter.CreatePending());
-            var denied=await provider.ExecutePreparedStorageAsync(()=>provider.SaveAvatarDetailAsync(new AvatarDetail {Id=deniedId,IsActive=true,XP=999}),
-                rejectedHandle,"rejected-owner",sdkCurrent.SigningAddress);
+            var deniedRequest=new Core.StorageOperationRequest {Operation="SaveAvatarDetail",PreferredProvider=Core.Enums.ProviderType.PolygonOASIS,
+                Payload=new AvatarDetail {Id=deniedId,IsActive=true,XP=999},PreparedExecution=new PreparedStorageExecution(rejectedHandle,"rejected-owner",
+                    new Dictionary<Core.Enums.ProviderType,string> {{Core.Enums.ProviderType.PolygonOASIS,sdkCurrent.SigningAddress}},Array.Empty<Core.Enums.ProviderType>())};
+            var denied=await router.RouteRequestAsync<Core.Interfaces.IAvatarDetail>(deniedRequest);
             Assert.IsTrue(denied.IsError);Assert.IsFalse(denied.IsSaved);Assert.IsNull(denied.Result);
             var ownershipError=denied.Exception as UsageProtocolException;Assert.IsNotNull(ownershipError);
             Assert.AreEqual("PROVIDER_ATTEMPT_ALREADY_STARTED",ownershipError.Code);
+            Assert.AreEqual(PreparedStorageExecution.RejectedCode,denied.ErrorCode);
             Assert.IsFalse(Core.Helpers.NativeMutationReconciliation.IsRequired(ownershipError));
             Assert.IsTrue(Web3CoreOASISBaseProvider.IsPrivateRecordAbsent(await native.GetAvatarDetailByIdAsync(deniedKey)));
             Assert.AreEqual(nonceBefore.Value,(await rpc.Eth.Transactions.GetTransactionCount.SendRequestAsync(sdkCurrent.SigningAddress,Nethereum.RPC.Eth.DTOs.BlockParameter.CreatePending())).Value);
