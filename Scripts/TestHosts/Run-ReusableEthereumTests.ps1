@@ -43,7 +43,7 @@ try {
     if($report.LastWriteTimeUtc -lt $started){throw 'Native report is stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 10 -or [int]$counts.passed -ne 10 -or [int]$counts.notExecuted -ne 0){throw 'Expected ten native passing cases, no skips.'}
+    if([int]$counts.total -ne 11 -or [int]$counts.passed -ne 11 -or [int]$counts.notExecuted -ne 0){throw 'Expected eleven native passing cases, no skips.'}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
     foreach($name in $names){[Environment]::SetEnvironmentVariable($name,$previous[$name])}

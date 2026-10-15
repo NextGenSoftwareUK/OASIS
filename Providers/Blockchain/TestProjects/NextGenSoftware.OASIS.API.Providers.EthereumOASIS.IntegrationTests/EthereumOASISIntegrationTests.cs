@@ -183,6 +183,44 @@ public class EthereumOASISIntegrationTests
         StringAssert.Contains(activation.Message, "does not match configured chain ID");
     }
 
+    [TestMethod]
+    public async Task RepeatedStorageSavesUpdateOneIdentityRatherThanAppendDuplicates()
+    {
+        var (provider,contract) = await CreateActivatedProviderAsync();
+        var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),contract);
+        var holon = new CoreHolon { Id = Guid.NewGuid(), Name = "before repeated save" };
+        Assert.IsFalse((await provider.SaveHolonAsync(holon,saveChildren:false)).IsError);
+        holon.Name = "after repeated save";
+        Assert.IsFalse((await provider.SaveHolonAsync(holon,saveChildren:false)).IsError);
+        Assert.AreEqual(holon.Name,(await provider.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Name);
+        Assert.AreEqual(BigInteger.One,await service.GetHolonsCountQueryAsync());
+        var avatarId = Guid.NewGuid().ToString();
+        await service.CreateAvatarRequestAndWaitForReceiptAsync(201,avatarId,"avatar-before");
+        await service.CreateAvatarRequestAndWaitForReceiptAsync(201,avatarId,"avatar-after");
+        Assert.AreEqual("avatar-after",(await service.GetAvatarByIdQueryAsync(201)).ReturnValue1.Info);
+        Assert.AreEqual(BigInteger.One,await service.GetAvatarsCountQueryAsync());
+        await service.CreateAvatarDetailRequestAndWaitForReceiptAsync(202,avatarId,"detail-before");
+        await service.CreateAvatarDetailRequestAndWaitForReceiptAsync(202,avatarId,"detail-after");
+        Assert.AreEqual("detail-after",(await service.GetAvatarDetailByIdQueryAsync(202)).ReturnValue1.Info);
+        Assert.AreEqual(BigInteger.One,await service.GetAvatarDetailsCountQueryAsync());
+        foreach(var attempt in new Func<Task<Nethereum.RPC.Eth.DTOs.TransactionReceipt>>[] {
+            () => service.CreateHolonRequestAndWaitForReceiptAsync(
+                NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(holon.Id.ToString()),Guid.NewGuid().ToString(),"wrong identity"),
+            () => service.CreateAvatarRequestAndWaitForReceiptAsync(201,Guid.NewGuid().ToString(),"wrong identity"),
+            () => service.CreateAvatarDetailRequestAndWaitForReceiptAsync(202,Guid.NewGuid().ToString(),"wrong identity")
+        })
+        {
+            Exception? collision = null;
+            try { await attempt(); } catch(Exception error) { collision=error; }
+            Assert.IsNotNull(collision,"a reused numeric key must not overwrite a different public identity");
+            StringAssert.Contains(collision.ToString(),"OASIS identity collision");
+        }
+        Assert.AreEqual(holon.Name,(await provider.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Name);
+        Assert.AreEqual("avatar-after",(await service.GetAvatarByIdQueryAsync(201)).ReturnValue1.Info);
+        Assert.AreEqual("detail-after",(await service.GetAvatarDetailByIdQueryAsync(202)).ReturnValue1.Info);
+        await provider.DeActivateProviderAsync();
+    }
+
     [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]

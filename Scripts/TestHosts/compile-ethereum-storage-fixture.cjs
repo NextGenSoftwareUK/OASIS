@@ -26,6 +26,6 @@ fs.writeFileSync(path.join(folder,'default-storage.json'),JSON.stringify({compil
   optimizerRuns:200,abi:native.abi,bytecode:native.evm.bytecode.object}));
 const deployedSource=fs.readFileSync(path.join(root,'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EthereumOASIS/ContractDefinition/NextGenSoftwareOASISDeploymentBase.cs'),'utf8');
 const embedded=deployedSource.match(/public static string BYTECODE = "([0-9a-fA-F]+)"/);
-if(!embedded || embedded[1]!==native.evm.bytecode.object)
+if((!embedded || embedded[1]!==native.evm.bytecode.object) && !process.argv.includes('--emit-candidate'))
   throw new Error('Embedded Ethereum deployment bytecode differs from pinned source compilation. Regenerate/review it before tests or deployment.');
 console.log('Compiled retained solc fixture; no network or dependency install.');
