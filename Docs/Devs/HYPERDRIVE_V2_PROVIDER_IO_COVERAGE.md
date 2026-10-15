@@ -1,6 +1,12 @@
 # HyperDrive V2 provider-I/O coverage
 
-## Current Ethereum/Solana verification delta — 2026-10-14
+## Current evidence summary — supersedes historical entries below
+
+As of the latest 2026-10-14 local runs: Ethereum native suite91/91, focused tombstone evidence/guard suite17/17, SQLite direct suite278/278, Mongo/SQLite real V2 matrix4/4 plus replica initialization1/1, and Mongo deletion serialization3/3; zero skips in these runs. Counts are selected test cases, not proof of every API route/interface/provider. Ethereum now encrypts private storage and implements native identity checks, owner/version guards, query/graph work and exact committed tombstones; older plaintext/count statements below are historical. Mongo, SQLite and Ethereum implement committed lifecycle-only tombstone application, preserving replica-local statistics. Latest exact chronology and remaining gates are in `HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md`.
+
+No provider is certified fully complete. Hosted endpoint coverage, durable native reconciliation, private query indexes and full relevant interfaces remain incomplete. Solana current finalized-read refresh remains unproven; retained stalled ledger is preserved without resets. Original CosmosBlockChain/Hashgraph/Sui/TRON requirements remain, but follow the human priority order below.
+
+## Historical Ethereum/Solana verification delta — 2026-10-14
 
 Ethereum current real local-EVM/SQLite suite is10/10 zero skips6s (`TestResults/EthereumCurrent/ethereum-native-current.trx`): selected sync/async flat-holon replication both directions, actual round-robin metrics3/3, pre-submission transport-outage failover to SQLite, real first-commit/second-rejection partial-write fencing with zero backup execution, and native UpdateHolon regression. Wrong avatar-detail loop bound fixed in source/new embedded deployment, with pinned source-to-bytecode guard; existing deployed contracts are NOT changed. Existing cached Hardhat/solc/bundled Node, no paid gas. Receipt uncertainty/partial-result fixes are implemented, but no full interface, privacy, pre-receipt signed journal, native fee/billing or hosted certification. Plaintext JSON and remaining contract/query gaps remain priorities, not completed features.
 
