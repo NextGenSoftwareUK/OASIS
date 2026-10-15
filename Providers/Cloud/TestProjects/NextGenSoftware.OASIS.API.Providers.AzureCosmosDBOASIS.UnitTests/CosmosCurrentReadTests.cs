@@ -10,6 +10,29 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
 public class CosmosCurrentReadTests
 {
     [TestMethod]
+    public async Task CollectionsValidateVersionAndPreserveActivationFailure()
+    {
+        var provider=new Provider(true);
+        Assert.IsInstanceOfType((await provider.LoadAllAvatarsAsync(1)).Exception,typeof(NotSupportedException));
+        Assert.IsInstanceOfType(provider.LoadAllAvatarDetails(1).Exception,typeof(NotSupportedException));
+        Assert.AreEqual(0,provider.Activations);
+        Assert.AreSame(provider.Cause,(await provider.LoadAllAvatarDetailsAsync()).Exception);
+        Assert.AreSame(provider.Cause,provider.LoadAllAvatars().Exception);
+    }
+
+    [TestMethod]
+    public async Task CollectionsFilterInactiveAndReturnSuccessfulEmptyResult()
+    {
+        var provider=new Provider(false);var repository=new Mock<IAvatarRepository>();
+        repository.Setup(r=>r.GetList()).Returns(new List<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar> {new Avatar {IsActive=false}});
+        typeof(AzureCosmosDBOASIS).GetField("avatarRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,repository.Object);
+        var empty=await provider.LoadAllAvatarsAsync();
+        Assert.IsFalse(empty.IsError);Assert.IsTrue(empty.IsLoaded);Assert.AreEqual(0,empty.Result.Count());
+        var cause=new IOException("owned collection failure");repository.Setup(r=>r.GetList()).Throws(cause);
+        Assert.AreSame(cause,provider.LoadAllAvatars().Exception);
+    }
+
+    [TestMethod]
     public async Task SaveValidatesBeforeActivationAndPreservesOriginalActivationFailure()
     {
         var provider=new Provider(true);
