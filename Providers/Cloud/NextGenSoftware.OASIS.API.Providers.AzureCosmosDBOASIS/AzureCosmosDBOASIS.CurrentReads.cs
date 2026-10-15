@@ -15,6 +15,28 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
 
 public partial class AzureCosmosDBOASIS
 {
+    private async Task<OASISResult<T>> ReadCurrentSelectorAsync<T>(Func<IRepository<T>> repository,string selector,Func<T,string> field,int version) where T:IHolonBase
+    {
+        var result=new OASISResult<T>();
+        try
+        {
+            if(string.IsNullOrWhiteSpace(selector)) throw new ArgumentException("A nonempty Cosmos identity selector is required.",nameof(selector));
+            var loaded=await ReadCurrentListAsync(repository,version);
+            if(loaded.IsError)
+            {
+                result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>,T>(loaded);
+                if(loaded.Exception is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
+                return result;
+            }
+            var matches=loaded.Result.Where(row=>string.Equals(field(row),selector,StringComparison.OrdinalIgnoreCase)).Take(2).ToArray();
+            if(matches.Length>1) throw new StorageIdentityAmbiguousException();
+            if(matches.Length==0) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Cosmos record selector not found.";}
+            else {result.Result=matches[0];result.IsLoaded=true;}
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;}
+        return result;
+    }
+
     private async Task<OASISResult<IEnumerable<IHolon>>> ExportCurrentOwnedAsync(Guid owner,int version)
     {
         var result=new OASISResult<IEnumerable<IHolon>>();
@@ -38,13 +60,9 @@ public partial class AzureCosmosDBOASIS
         var result=new OASISResult<IEnumerable<IHolon>>();
         try
         {
-            if(string.IsNullOrWhiteSpace(selector)) throw new ArgumentException("A nonempty avatar selector is required.",nameof(selector));
-            var loaded=await ReadCurrentListAsync<IAvatar>(()=>avatarRepository,version);
-            if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IAvatar>,IEnumerable<IHolon>>(loaded);
-            var matches=loaded.Result.Where(row=>string.Equals(email ? row.Email:row.Username,selector,StringComparison.OrdinalIgnoreCase)).Take(2).ToArray();
-            if(matches.Length>1) throw new StorageIdentityAmbiguousException();
-            if(matches.Length==0) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Cosmos export avatar not found.";return result;}
-            return await ExportCurrentOwnedAsync(matches[0].Id,version);
+            var loaded=await ReadCurrentSelectorAsync<IAvatar>(()=>avatarRepository,selector,row=>email ? row.Email:row.Username,version);
+            if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(loaded);
+            return await ExportCurrentOwnedAsync(loaded.Result.Id,version);
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;}
         return result;
