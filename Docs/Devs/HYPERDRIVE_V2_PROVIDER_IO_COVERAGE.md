@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+Solana follow-up: full existing unit project40/40 passes (2s) after blockhash/pre-submission mutation fixes. Retained read-only validator inspection returns finalized slot505, no recent finalized signatures and no new submissions; live refresh remains unproven. Account enumeration and parser fabrication identified in source remains an implementation gap, not supported functionality.
+
 As of the latest 2026-10-14 local runs: Ethereum native suite91/91, focused tombstone evidence/guard suite17/17, SQLite direct suite278/278, Mongo/SQLite real V2 matrix4/4 plus replica initialization1/1, and Mongo deletion serialization3/3; zero skips in these runs. Counts are selected test cases, not proof of every API route/interface/provider. Ethereum now encrypts private storage and implements native identity checks, owner/version guards, query/graph work and exact committed tombstones; older plaintext/count statements below are historical. Mongo, SQLite and Ethereum implement committed lifecycle-only tombstone application, preserving replica-local statistics. Latest exact chronology and remaining gates are in `HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md`.
 
 No provider is certified fully complete. Hosted endpoint coverage, durable native reconciliation, private query indexes and full relevant interfaces remain incomplete. Solana current finalized-read refresh remains unproven; retained stalled ledger is preserved without resets. Original CosmosBlockChain/Hashgraph/Sui/TRON requirements remain, but follow the human priority order below.
