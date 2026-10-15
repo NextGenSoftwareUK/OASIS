@@ -7,6 +7,22 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
     [TestClass]
     public class DynamoDBOASISProviderTests
     {
+        [TestMethod]
+        public void StorageSerializerRetainsOwnedInventoryAndProgress()
+        {
+            var detail=new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail {Id=Guid.NewGuid(),XP=321,Karma=29};
+            var item=new NextGenSoftware.OASIS.API.Core.Objects.InventoryItem {Id=Guid.NewGuid(),Name="owned seed"};
+            detail.Inventory.Add(item);
+            var flags=System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic;
+            var json=(string)typeof(DynamoDBOASIS).GetMethod("Ser",flags)!.Invoke(null,new object[] {detail})!;
+            var loaded=(NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail)typeof(DynamoDBOASIS).GetMethod("Des",flags)!
+                .MakeGenericMethod(typeof(NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail)).Invoke(null,new object[] {json})!;
+            Assert.AreEqual(item.Id,loaded.Inventory.Single().Id);
+            Assert.AreEqual(item.Name,loaded.Inventory.Single().Name);
+            Assert.AreEqual(321,loaded.XP); Assert.AreEqual(29L,loaded.Karma);
+            Assert.IsNotNull(loaded.Stats); Assert.IsNotNull(loaded.Skills);
+        }
+
         private DynamoDBOASIS _provider;
 
         [TestInitialize]
@@ -18,7 +34,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
         [TestMethod]
         public void ProviderType_ShouldBeDynamoDBOASIS()
         {
-            Assert.AreEqual(ProviderType.DynamoDBOASIS, _provider.ProviderType);
+            Assert.AreEqual(ProviderType.DynamoDBOASIS, _provider.ProviderType.Value);
         }
 
         [TestMethod]
@@ -41,11 +57,9 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
         }
 
         [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
+        public void ProviderImplementsStorageInterface()
         {
-            var version = _provider.GetProviderVersion();
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
+            Assert.IsInstanceOfType(_provider, typeof(NextGenSoftware.OASIS.API.Core.Interfaces.IOASISStorageProvider));
         }
 
         [TestCleanup]

@@ -33,6 +33,7 @@
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.400.15" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj" />
     <None Update="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 </Project>
