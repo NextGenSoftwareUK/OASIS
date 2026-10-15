@@ -102,13 +102,14 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             OASISResult<IHolon> result = new OASISResult<IHolon>();
             try
             {
+                ArgumentNullException.ThrowIfNull(holon);
+                if(maxChildDepth<0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
                 if (!IsProviderActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
-                        return result;
+                        return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IHolon>(activateResult);
                     }
                 }
 
@@ -159,6 +160,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 await ObserveFirestoreMutationAsync(()=>docRef.SetAsync(holonData),docRef.Path);
                 
                 result.Result = holon;
+                result.IsSaved = true;
                 result.IsError = false;
                 result.Message = "Holon saved successfully to Google Cloud Firestore with full property mapping";
             }

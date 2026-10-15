@@ -21,6 +21,7 @@ public class GoogleNativeDetailTests
         var holonId=Guid.NewGuid();
         var childId=Guid.NewGuid();
         var avatarId=Guid.NewGuid();var duplicateAvatarId=Guid.NewGuid();
+        var importedIds=new[] {Guid.NewGuid(),Guid.NewGuid()};
         try {
             var active=await provider.ActivateProviderAsync();Assert.IsFalse(active.IsError,active.Message);
             Assert.AreEqual(0,(await provider.LoadAllAvatarsAsync()).Result.Count());
@@ -134,13 +135,18 @@ public class GoogleNativeDetailTests
             Assert.AreEqual(detailTombstone.UpdateTime,(await db.Collection("avatarDetails").Document(avatarId.ToString()).GetSnapshotAsync()).UpdateTime);
             Assert.IsFalse((await provider.DeleteAvatarAsync(avatarId.ToString(),softDelete:false)).IsError);
             Assert.IsFalse((await db.Collection("avatars").Document(avatarId.ToString()).GetSnapshotAsync()).Exists);
+            var imported=await provider.ImportAsync(importedIds.Select(id=>new Holon {Id=id,IsActive=true,Name="owned imported",
+                MetaData=new Dictionary<string,object> {{"import-field","import-value"}}}));
+            Assert.IsFalse(imported.IsError,imported.Message);Assert.IsTrue(imported.Result);Assert.IsTrue(imported.IsSaved);
+            foreach(var importedId in importedIds)
+                Assert.AreEqual("import-value",(await provider.LoadHolonAsync(importedId,loadChildren:false)).Result.MetaData["import-field"]);
             Assert.IsFalse((await db.Collection("avatarDetails").Document(avatarId.ToString()).GetSnapshotAsync()).Exists);
             Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
             Assert.IsFalse((await provider.DeleteAvatarByEmailAsync("OWNED-AVATAR@EXAMPLE.INVALID",softDelete:false)).IsError);
             Assert.IsFalse((await db.Collection("avatars").Document(avatarId.ToString()).GetSnapshotAsync()).Exists);
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadHolonAsync(Guid.NewGuid(),loadChildren:false)).ErrorCode);
         }
-        finally {foreach(var id in ids) await db.Collection("avatarDetails").Document(id.ToString()).DeleteAsync();await db.Collection("holons").Document(holonId.ToString()).DeleteAsync();await db.Collection("holons").Document(childId.ToString()).DeleteAsync();await db.Collection("avatars").Document(avatarId.ToString()).DeleteAsync();await db.Collection("avatars").Document(duplicateAvatarId.ToString()).DeleteAsync();await provider.DeActivateProviderAsync();}
+        finally {foreach(var id in ids) await db.Collection("avatarDetails").Document(id.ToString()).DeleteAsync();foreach(var id in importedIds) await db.Collection("holons").Document(id.ToString()).DeleteAsync();await db.Collection("holons").Document(holonId.ToString()).DeleteAsync();await db.Collection("holons").Document(childId.ToString()).DeleteAsync();await db.Collection("avatars").Document(avatarId.ToString()).DeleteAsync();await db.Collection("avatars").Document(duplicateAvatarId.ToString()).DeleteAsync();await provider.DeActivateProviderAsync();}
     }
 
     private static async Task VerifyV2Async(GoogleCloudOASIS google,AvatarDetail detail)
