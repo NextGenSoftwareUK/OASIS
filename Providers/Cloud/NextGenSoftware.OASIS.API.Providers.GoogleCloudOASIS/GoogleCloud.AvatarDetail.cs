@@ -285,49 +285,14 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
         // Additional missing methods with full object mapping
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-            try
+            if (!Guid.TryParse(providerKey, out var id) || id == Guid.Empty)
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (!_enableFirestore)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
-                    return result;
-                }
-
-                // Load holon from Firestore by provider key
-                var docRef = _firestoreDb.Collection("holons").WhereEqualTo("providerKey", providerKey).Limit(1);
-                var snapshot = await docRef.GetSnapshotAsync();
-                
-                if (snapshot.Count > 0)
-                {
-                    var doc = snapshot.Documents.First();
-                    var holonData = doc.ConvertTo<Dictionary<string, object>>();
-                    var holon = DecodeHolon(holonData,doc.Id);
-                    
-                    result.Result = holon;
-                    result.IsError = false;
-                    result.Message = "Holon loaded successfully from Google Cloud Firestore by provider key with full property mapping";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Holon not found in Google Cloud Firestore by provider key");
-                }
+                var invalid = new OASISResult<IHolon>();
+                var cause = new ArgumentException("A nonempty GUID Firestore holon storage key is required.", nameof(providerKey));
+                OASISErrorHandling.HandleError(ref invalid, cause.Message, cause);
+                return invalid;
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holon from Google Cloud by provider key: {ex.Message}", ex);
-            }
-            return result;
+            return await LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
         }
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)

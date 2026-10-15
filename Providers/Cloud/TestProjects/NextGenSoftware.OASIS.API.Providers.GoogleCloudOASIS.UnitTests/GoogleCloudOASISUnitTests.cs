@@ -13,6 +13,19 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
         private GoogleCloudOASIS _provider = null!;
 
         [TestMethod]
+        public async Task HolonStorageKeyUsesGuidValidationAndPreservesActivationCause()
+        {
+            var provider = new FailedActivationProvider();
+            foreach (var key in new[] { "", "not-a-guid", System.Guid.Empty.ToString() })
+                Assert.IsInstanceOfType((await provider.LoadHolonAsync(key)).Exception, typeof(System.ArgumentException));
+            Assert.AreEqual(0, provider.Activations);
+            var failed = await provider.LoadHolonAsync(System.Guid.NewGuid().ToString());
+            Assert.AreSame(provider.Cause, failed.Exception);
+            Assert.AreEqual("owned-code", failed.ErrorCode);
+            Assert.AreEqual(1, provider.Activations);
+        }
+
+        [TestMethod]
         public async Task HolonGuidValidationPrecedesActivationAndRetainsOriginalFailure()
         {
             var provider=new FailedActivationProvider();
