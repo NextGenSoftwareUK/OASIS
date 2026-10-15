@@ -894,6 +894,35 @@ public sealed class MongoSqliteRealProviderRoutingTests
             {
                 await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
             }
+            var invalidBulkRoot = new Holon { Id = Guid.NewGuid(), Name = "owned-invalid-bulk-root" };
+            var invalidBulkChild = new Holon { Id = Guid.NewGuid(), Name = "owned-invalid-bulk-child", ParentHolonId = invalidBulkRoot.Id };
+            invalidBulkRoot.Children = new List<IHolon> { invalidBulkChild };
+            foreach (var invalidRoots in new[] {
+                new IHolon[] { invalidBulkRoot, invalidBulkRoot },
+                new IHolon[] { invalidBulkRoot, new Holon { Id = invalidBulkRoot.Id } },
+                new IHolon[] { invalidBulkRoot, invalidBulkChild },
+                new IHolon[] { invalidBulkRoot, null }
+            })
+            {
+                var invalidBulkManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true, IsAutoReplicationEnabled = true };
+                invalidBulkManager.RegisterProvider(failureMongo);
+                invalidBulkManager.RegisterProvider(sqlite);
+                var invalidBulkProviders = new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) };
+                invalidBulkManager.SetAndReplaceAutoFailOverListForProviders(invalidBulkProviders).IsError.Should().BeFalse();
+                invalidBulkManager.SetAndReplaceAutoReplicationListForProviders(invalidBulkProviders).IsError.Should().BeFalse();
+                var invalidBulkRouter = new OASISHyperDrive(invalidBulkManager);
+                var invalidRequest = new StorageOperationRequest { Operation = "SaveHolons", Payload = invalidRoots,
+                    PreferredProvider = ProviderType.MongoDBOASIS, SaveChildren = true, Recursive = true, ChildrenFromProvider = true };
+                var invalidBulk = synchronous ? invalidBulkRouter.RouteRequest<IEnumerable<IHolon>>(invalidRequest)
+                    : await invalidBulkRouter.RouteRequestAsync<IEnumerable<IHolon>>(invalidRequest);
+                invalidBulk.IsError.Should().BeTrue();
+                invalidBulk.ErrorCode.Should().Be("HYPERDRIVE_PAYLOAD_INVALID");
+                invalidBulk.Exception.Should().BeAssignableTo<ArgumentException>();
+                (invalidBulkManager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0).Should().Be(0);
+                foreach (var store in new IOASISStorageProvider[] { mongo, sqlite })
+                foreach (var node in new[] { invalidBulkRoot, invalidBulkChild })
+                    (await store.LoadHolonAsync(node.Id,loadChildren:false)).Result.Should().BeNull();
+            }
             var healthyBulk = synchronous ? failureMongo.SaveHolons(rejectedImportBatch,saveChildren:true,saveChildrenOnProvider:true)
                 : await failureMongo.SaveHolonsAsync(rejectedImportBatch,saveChildren:true,saveChildrenOnProvider:true);
             healthyBulk.IsError.Should().BeFalse(healthyBulk.Message);
