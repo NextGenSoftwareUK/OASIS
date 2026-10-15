@@ -22,6 +22,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             OASISResult<bool> result = new();
             Core.Objects.AvatarTombstone committedTombstone=null;
+            var persistenceEntered=false;
+            var deletionEntities = new HashSet<object>();
             try
             {
             OASISResult<AvatarModel> avatarResult = new();
@@ -39,7 +41,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
             string errorMessage = "Error occured in DeleteAsync method in AvatarRepository in Sqllite Provider.";
             using var dbContextTransaction = await _dbContext.Database.BeginTransactionAsync();
-            var deletionEntities = new HashSet<object>();
             try
             {
                 if (softDelete)
@@ -115,7 +116,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                         result.Result = true;
                     }
                 }
-                if (!result.IsError) await _dbContext.SaveChangesAsync();
+                if (!result.IsError)
+                {
+                    persistenceEntered=true;
+                    await _dbContext.SaveChangesAsync();
+                }
             }
             catch (Exception ex)
             {
@@ -128,6 +133,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 result.Result = false;
                 await dbContextTransaction.RollbackAsync();
+                persistenceEntered=false; // No commit was attempted; explicit rollback completed.
                 DetachFailedAvatarDeletion(id.ToString(), deletionEntities);
             }
             else
@@ -141,6 +147,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             catch (Exception ex)
             {
                 result.Result = false;
+                if(result.Exception != null && !ReferenceEquals(result.Exception,ex))
+                    ex=new AggregateException("SQLite deletion and transaction handling failed.",result.Exception,ex);
+                try {DetachFailedAvatarDeletion(id.ToString(),deletionEntities);}
+                catch(Exception cleanup) {ex=new AggregateException("SQLite failure cleanup also failed.",ex,cleanup);}
+                if(persistenceEntered) ex=new SqliteMutationReconciliationException(id,ex);
                 OASISErrorHandling.HandleError(ref result, "SQLite avatar deletion lookup or transaction failed.", ex);
                 return result;
             }
