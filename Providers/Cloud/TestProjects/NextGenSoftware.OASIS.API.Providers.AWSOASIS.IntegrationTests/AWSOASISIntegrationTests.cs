@@ -205,5 +205,15 @@ public class AWSOASISIntegrationTests
         var allPages=await _provider.LoadHolonsForParentAsync(parent,loadChildren:false);
         Assert.IsFalse(allPages.IsError,allPages.Message);
         CollectionAssert.AreEquivalent(children.Select(c=>c.Id).ToArray(),allPages.Result.Select(c=>c.Id).ToArray());
+        var grandchild=new Holon {Id=Guid.NewGuid(),ParentHolonId=children[0].Id,Name="owned-grandchild"};
+        Assert.IsFalse((await _provider.SaveHolonAsync(grandchild,saveChildren:false)).IsError);
+        var graph=await _provider.LoadHolonsForParentAsync(parent,loadChildrenFromProvider:true);
+        Assert.IsFalse(graph.IsError,graph.Message);
+        Assert.AreEqual(grandchild.Id,graph.Result.Single(row=>row.Id==children[0].Id).Children.Single().Id);
+        var truncated=_provider.LoadHolonsForParent(parent,loadChildrenFromProvider:true,maxChildDepth:1,curentChildDepth:1);
+        Assert.IsFalse(truncated.IsError,truncated.Message);
+        Assert.IsTrue(truncated.Result.All(row=>row.Children.Count==0));
+        Assert.IsTrue((await _provider.LoadAllHolonsAsync(maxChildDepth:-1)).IsError);
+        Assert.IsInstanceOfType(_provider.LoadHolonsForParent(parent,version:1).Exception,typeof(NotSupportedException));
     }
 }
