@@ -29,6 +29,7 @@ public partial class Web3NativeStorageTests
         try
         {
             var store=new MongoUsageOutboxStore(uri,database);await store.InitializeAsync(default);
+            var prepared=(NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeStorageProvider)provider;
             var user=Guid.NewGuid().ToString();var options=new Web4UsageLedgerOptions {Service="WEB4",PersistenceTimeout=TimeSpan.FromSeconds(5)};
             var executor=new Web4UsageExecution(new FixtureAuthority(user),store,options);
             var policy=new UsageEndpointPolicy {MeterCategory="api.request",ReservedUnits=1,EstimatedCostUsd=0,PricingCatalogueVersion="local-test"};
@@ -54,7 +55,7 @@ public partial class Web3NativeStorageTests
                 field.SetValue(provider,sdk);
                 try
                 {
-                    var result=await provider.ExecutePreparedStorageAsync(()=>provider.SaveAvatarDetailAsync(new AvatarDetail {Id=id,IsActive=true,XP=872}),handle,"owned-native-outbox",sdk.SigningAddress);
+                    var result=await prepared.ExecutePreparedStorageAsync(()=>provider.SaveAvatarDetailAsync(new AvatarDetail {Id=id,IsActive=true,XP=872}),handle,"owned-native-outbox",sdk.SigningAddress);
                     Assert.IsTrue(result.IsError);Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception));
                     Assert.AreEqual(1,beforeSubmissionChecks);Assert.AreEqual(1,proxy.AcceptedHashes.Count);
                     var reopened=new MongoUsageOutboxStore(uri,database);var persisted=await reopened.GetAsync(handle.OperationId,default);

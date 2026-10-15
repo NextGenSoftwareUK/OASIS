@@ -11,7 +11,7 @@ using Nethereum.RPC.Eth.DTOs;
 
 namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
-public partial class Web3CoreOASISBaseProvider
+public partial class Web3CoreOASISBaseProvider : NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeStorageProvider
 {
     /// <summary>Verify retained original evidence against trusted mutation context, then inspect only its receipt. Never submits or settles.</summary>
     public async Task<OASISResult<TransactionReceipt>> GetPreparedNativeReceiptAsync(UsageProviderAttempt attempt,string expectedCalldata,CancellationToken token=default)

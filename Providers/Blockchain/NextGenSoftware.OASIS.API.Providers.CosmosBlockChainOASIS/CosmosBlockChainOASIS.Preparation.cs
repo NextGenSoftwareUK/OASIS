@@ -8,7 +8,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
 
-public partial class CosmosBlockChainOASIS
+public partial class CosmosBlockChainOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeStorageProvider
 {
     /// <summary>Read only: verify persisted original signed identity before native fee recovery lookup.</summary>
     public async Task<NextGenSoftware.OASIS.Common.OASISResult<JsonElement>> GetPreparedNativeFeeReceiptAsync(
