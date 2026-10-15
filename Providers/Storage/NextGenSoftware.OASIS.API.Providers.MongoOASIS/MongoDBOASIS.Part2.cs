@@ -93,36 +93,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         //    return new OASISResult<IHolon>(DataHelper.ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(_holonRepository.GetHolonByMetaData(metaKey, metaValue))).Result);
         //}
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return new OASISResult<IEnumerable<IHolon>>(DataHelper.ConvertMongoEntitysToOASISHolons(await _holonRepository.GetAllHolonsForParentAsync(id, type), loadChildrenFromProvider));
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => ReadHolonCollectionGraphAsync(type,id,null,null,MetaKeyValuePairMatchMode.All,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version,false);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return new OASISResult<IEnumerable<IHolon>>(DataHelper.ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolonsForParent(id, type), loadChildrenFromProvider));
-        }
+            => ReadHolonCollectionGraphAsync(type,id,null,null,MetaKeyValuePairMatchMode.All,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version,true).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISResult<IEnumerable<Holon>> repoResult = await _holonRepository.GetAllHolonsForParentAsync(providerKey, type);
-
-            if (repoResult.IsError)
-            {
-                result.IsError = true;
-                result.Message = repoResult.Message;
-            }
-            else
-                result.Result = DataHelper.ConvertMongoEntitysToOASISHolons(repoResult.Result, loadChildrenFromProvider);
-
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => ReadHolonCollectionGraphAsync(type,null,providerKey ?? string.Empty,null,MetaKeyValuePairMatchMode.All,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version,false);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return new OASISResult<IEnumerable<IHolon>>(DataHelper.ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolonsForParent(providerKey, type), loadChildrenFromProvider));
-        }
+            => ReadHolonCollectionGraphAsync(type,null,providerKey ?? string.Empty,null,MetaKeyValuePairMatchMode.All,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version,true).GetAwaiter().GetResult();
 
         //public override OASISResult<IEnumerable<IHolon>> LoadHolonsByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         //{
@@ -146,97 +127,22 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         //}
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            //return new OASISResult<IEnumerable<IHolon>>(DataHelper.ConvertMongoEntitysToOASISHolons(_holonRepository.GetHolonsByMetaData(metaKey, metaValue, type), loadChildrenFromProvider));
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            => ReadHolonCollectionGraphAsync(type,null,null,new Dictionary<string,string> {{metaKey ?? string.Empty,metaValue}},MetaKeyValuePairMatchMode.All,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version,true).GetAwaiter().GetResult();
 
-            if (_holonRepository == null)
-            {
-                result.IsError = true;
-                result.Message = "MongoDBOASIS provider is not fully initialised (holonRepository is null). Provider may be activating or was concurrently deactivated — OASIS Hyperdrive will retry.";
-                return result;
-            }
-
-            OASISResult<IEnumerable<Holon>> repoResult = _holonRepository.GetHolonsByMetaData(metaKey, metaValue, type, version);
-
-            if (repoResult.IsError)
-            {
-                result.IsError = true;
-                result.Message = repoResult.Message;
-            }
-            else
-                result.Result = DataHelper.ConvertMongoEntitysToOASISHolons(repoResult.Result, loadChildrenFromProvider);
-
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-
-            if (_holonRepository == null)
-            {
-                result.IsError = true;
-                result.Message = "MongoDBOASIS provider is not fully initialised (holonRepository is null). Provider may be activating or was concurrently deactivated — OASIS Hyperdrive will retry.";
-                return result;
-            }
-
-            OASISResult<IEnumerable<Holon>> repoResult = await _holonRepository.GetHolonsByMetaDataAsync(metaKey, metaValue, type, version);
-
-            if (repoResult.IsError)
-            {
-                result.IsError = true;
-                result.Message = repoResult.Message;
-            }
-            else
-                result.Result = DataHelper.ConvertMongoEntitysToOASISHolons(repoResult.Result, loadChildrenFromProvider);
-
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => ReadHolonCollectionGraphAsync(type,null,null,new Dictionary<string,string> {{metaKey ?? string.Empty,metaValue}},MetaKeyValuePairMatchMode.All,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version,false);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            //return new OASISResult<IEnumerable<IHolon>>(DataHelper.ConvertMongoEntitysToOASISHolons(_holonRepository.GetHolonsByMetaData(metaKeyValuePairs, type), loadChildrenFromProvider));
+            => ReadHolonCollectionGraphAsync(type,null,null,metaKeyValuePairs ?? new Dictionary<string,string>(),metaKeyValuePairMatchMode,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version,true).GetAwaiter().GetResult();
 
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISResult<IEnumerable<Holon>> repoResult = _holonRepository.GetHolonsByMetaData(metaKeyValuePairs, metaKeyValuePairMatchMode, type, version);
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => ReadHolonCollectionGraphAsync(type,null,null,metaKeyValuePairs ?? new Dictionary<string,string>(),metaKeyValuePairMatchMode,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version,false);
 
-            if (repoResult.IsError)
-            {
-                result.IsError = true;
-                result.Message = repoResult.Message;
-            }
-            else
-                result.Result = DataHelper.ConvertMongoEntitysToOASISHolons(repoResult.Result, loadChildrenFromProvider);
-
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            OASISResult<IEnumerable<Holon>> repoResult = await _holonRepository.GetHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, version);
-
-            if (repoResult.IsError)
-            {
-                result.IsError = true;
-                result.Message = repoResult.Message;
-            }
-            else
-                result.Result = DataHelper.ConvertMongoEntitysToOASISHolons(repoResult.Result, loadChildrenFromProvider);
-
-            return result;
-        }
-
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return new OASISResult<IEnumerable<IHolon>>(DataHelper.ConvertMongoEntitysToOASISHolons(await _holonRepository.GetAllHolonsAsync(type), loadChildrenFromProvider));
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => ReadHolonCollectionGraphAsync(type,null,null,null,MetaKeyValuePairMatchMode.All,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version,false);
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return new OASISResult<IEnumerable<IHolon>>(DataHelper.ConvertMongoEntitysToOASISHolons(_holonRepository.GetAllHolons(type), loadChildrenFromProvider));
-        }
+            => ReadHolonCollectionGraphAsync(type,null,null,null,MetaKeyValuePairMatchMode.All,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version,true).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
