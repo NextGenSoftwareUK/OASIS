@@ -7,6 +7,18 @@ import "./NFTTransfer.sol";
 
 interface IWeb3CoreOASIS {
 
+    struct AvatarLifecycleRequest {
+        uint256 entityId;
+        bytes32 externalId;
+        bytes32 expectedAvatarHash;
+        bytes32 expectedDetailHash;
+        bool hasDetail;
+        bool hardDelete;
+        bytes avatarInfo;
+        bytes detailInfo;
+    }
+    function applyAvatarLifecycle(AvatarLifecycleRequest memory request) external returns (bool);
+
     function createAvatar(uint256 entityId, bytes32 avatarId, bytes memory info) external returns (uint256);
     function createHolon(uint256 entityId, bytes32 holonId, bytes memory info) external returns (uint256);
     function createAvatarDetail(uint256 entityId, bytes32 avatarId, bytes memory info) external returns (uint256);

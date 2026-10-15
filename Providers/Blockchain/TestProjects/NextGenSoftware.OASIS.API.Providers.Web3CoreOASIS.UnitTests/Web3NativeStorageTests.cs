@@ -114,6 +114,28 @@ public partial class Web3NativeStorageTests
             Assert.AreEqual(generatedRoot.Id,generatedChild.ParentHolonId);
             Assert.AreEqual(generatedChild.Id,(await provider.LoadHolonsForParentAsync(generatedRoot.Id)).Result.Single().Id);
             var native=new Web3CoreOASIS(key,"http://127.0.0.1:18545",receipt.ContractAddress,Web3CoreOASISBaseProviderHelper.Abi,31337);
+            var pairId=(uint)Core.Utilities.HashUtility.GetNumericHash(avatar.Id.ToString());
+            var initialPair=await native.ReadAvatarPairAsync(pairId);
+            var staleRequest=new AvatarLifecycleRequest {EntityId=pairId,ExternalId=Web3CoreOASISBaseProvider.PrivateExternalId(avatar.Id),
+                ExpectedAvatarHash=new byte[32],ExpectedDetailHash=Nethereum.Util.Sha3Keccack.Current.CalculateHash(initialPair.Detail.Info),HasDetail=true,HardDelete=true};
+            await Assert.ThrowsExceptionAsync<Web3MutationReconciliationException>(()=>native.ApplyAvatarLifecycleAsync(staleRequest));
+            var unchangedPair=await native.ReadAvatarPairAsync(pairId);
+            CollectionAssert.AreEqual(initialPair.Avatar.Info,unchangedPair.Avatar.Info);CollectionAssert.AreEqual(initialPair.Detail.Info,unchangedPair.Detail.Info);
+            var softDeleted=await provider.DeleteAvatarByUsernameAsync("ROUTED PROFILE");
+            Assert.IsFalse(softDeleted.IsError,softDeleted.Message);Assert.IsTrue(softDeleted.Result);Assert.IsTrue(softDeleted.IsSaved);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,(await provider.LoadAvatarAsync(avatar.Id)).ErrorCode);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,provider.LoadAvatarDetail(avatar.Id).ErrorCode);
+            var softPair=await native.ReadAvatarPairAsync(pairId);
+            var deletedAvatar=provider.DecodePrivateEntity<Avatar>("avatar",softPair.Avatar);
+            var deletedDetail=provider.DecodePrivateEntity<AvatarDetail>("detail",softPair.Detail);
+            Assert.IsFalse(deletedAvatar.IsActive);Assert.IsFalse(deletedDetail.IsActive);
+            Assert.AreEqual(DateTimeKind.Utc,deletedAvatar.DeletedDate.Kind);Assert.AreEqual(deletedAvatar.DeletedDate,deletedDetail.DeletedDate);
+            Assert.AreEqual(600L,deletedDetail.XP);Assert.AreEqual(504L,deletedDetail.Karma);Assert.AreEqual("routed seed",deletedDetail.Inventory.Single().Name);
+            var repeated=provider.DeleteAvatar(avatar.Id);Assert.IsFalse(repeated.IsError,repeated.Message);Assert.IsTrue(repeated.Result);Assert.IsFalse(repeated.IsSaved);
+            var repeatedPair=await native.ReadAvatarPairAsync(pairId);CollectionAssert.AreEqual(softPair.Avatar.Info,repeatedPair.Avatar.Info);CollectionAssert.AreEqual(softPair.Detail.Info,repeatedPair.Detail.Info);
+            var hardDeleted=await provider.DeleteAvatarAsync(avatar.Id.ToString().ToUpperInvariant(),softDelete:false);
+            Assert.IsFalse(hardDeleted.IsError,hardDeleted.Message);Assert.IsTrue(hardDeleted.Result);
+            var removed=await native.ReadAvatarPairAsync(pairId);Assert.IsTrue(Web3CoreOASISBaseProvider.IsPrivateRecordAbsent(removed.Avatar));Assert.IsTrue(Web3CoreOASISBaseProvider.IsPrivateRecordAbsent(removed.Detail));
             var beforeCycle=await native.GetHolonsCountAsync();
             var cycle=new Holon {IsActive=true};cycle.Children=new List<Core.Interfaces.IHolon> {cycle};
             var invalid=await provider.SaveHolonAsync(cycle);

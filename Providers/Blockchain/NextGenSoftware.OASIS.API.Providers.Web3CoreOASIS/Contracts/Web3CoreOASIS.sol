@@ -35,6 +35,30 @@ contract Web3CoreOASIS is ERC721, Ownable, IWeb3CoreOASIS {
 
     address private admin;
 
+    function applyAvatarLifecycle(AvatarLifecycleRequest memory request) external onlyOwner returns (bool) {
+        uint256 id = request.entityId;
+        require(request.externalId != bytes32(0) && avatars[id].ExternalId == request.externalId, "Avatar identity changed");
+        require(keccak256(avatars[id].Info) == request.expectedAvatarHash, "Avatar payload changed");
+        bool hasDetail = avatarDetails[id].ExternalId != bytes32(0);
+        require(hasDetail == request.hasDetail, "Avatar detail presence changed");
+        if (hasDetail) {
+            require(avatarDetails[id].ExternalId == request.externalId, "Avatar detail identity changed");
+            require(keccak256(avatarDetails[id].Info) == request.expectedDetailHash, "Avatar detail payload changed");
+        } else {
+            require(request.expectedDetailHash == bytes32(0) && request.detailInfo.length == 0, "Unexpected avatar detail payload");
+        }
+        if (request.hardDelete) {
+            delete avatars[id]; avatarIds.remove(id); totalAvatarsCount--;
+            if (hasDetail) {delete avatarDetails[id]; avatarDetailIds.remove(id); totalAvatarDetailsCount--;}
+        } else {
+            require(request.avatarInfo.length > 0, "Avatar tombstone required");
+            if (hasDetail) require(request.detailInfo.length > 0, "Avatar detail tombstone required");
+            avatars[id].Info = request.avatarInfo;
+            if (hasDetail) avatarDetails[id].Info = request.detailInfo;
+        }
+        return true;
+    }
+
     constructor() ERC721('Web3CoreOASIS', 'MNFT') Ownable(msg.sender) {
         admin = msg.sender;
         totalAvatarsCount = 0;

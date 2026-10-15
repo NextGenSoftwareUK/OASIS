@@ -13,6 +13,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
 public partial class Web3CoreOASISBaseProvider
 {
+    internal static bool IsPrivateRecordAbsent(EntityOASIS entity)
+        =>entity!=null && entity.EntityId==0 && entity.ExternalId?.Length==32 && entity.ExternalId.All(value=>value==0) && entity.Info?.Length==0;
     private async Task<OASISResult<IEnumerable<IHolon>>> ExportPrivateOwnedAsync(Guid owner,int version)
     {
         var result=new OASISResult<IEnumerable<IHolon>>();
@@ -99,7 +101,7 @@ public partial class Web3CoreOASISBaseProvider
             if(version!=0) throw new NotSupportedException("Web3Core historical storage reads are not implemented.");
             if(_web3CoreOASIS==null) throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
             var entity=await load((uint)Core.Utilities.HashUtility.GetNumericHash(id.ToString()));
-            if(entity!=null && entity.EntityId==0 && entity.ExternalId?.Length==32 && entity.ExternalId.All(value=>value==0) && entity.Info?.Length==0)
+            if(IsPrivateRecordAbsent(entity))
             {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Web3Core record not found.";return result;}
             var record=decode(entity);
             if(record.Id!=id) throw new System.IO.InvalidDataException("Web3Core payload differs from requested full GUID.");
