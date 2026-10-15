@@ -535,7 +535,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IHolon>
                 {
                     IsError = true,
-                    Message = "Something went wrong! please try again later"
+                    ErrorCode = OASISResultErrorCodes.RecordNotFound,
+                    Message = "Holon not found."
                 };
             }
             catch (Exception ex)
@@ -585,7 +586,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 return new OASISResult<IHolon>
                 {
                     IsError = true,
-                    Message = "Something went wrong! please try again later"
+                    ErrorCode = OASISResultErrorCodes.RecordNotFound,
+                    Message = "Holon not found."
                 };
             }
             catch (Exception ex)
@@ -639,6 +641,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     return new OASISResult<IHolon>
                     {
                         IsError = true,
+                        ErrorCode = OASISResultErrorCodes.RecordNotFound,
                         Message = "Holon not found"
                     };
                 }
@@ -694,6 +697,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     return new OASISResult<IHolon>
                     {
                         IsError = true,
+                        ErrorCode = OASISResultErrorCodes.RecordNotFound,
                         Message = "Holon not found"
                     };
                 }
