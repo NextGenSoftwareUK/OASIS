@@ -13,6 +13,22 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
         private GoogleCloudOASIS _provider = null!;
 
         [TestMethod]
+        public async Task GraphPreflightRejectsCyclesWithoutPublishingIdsOrActivating()
+        {
+            var provider=new FailedActivationProvider();
+            var root=new NextGenSoftware.OASIS.API.Core.Holons.Holon();
+            root.Children=new System.Collections.Generic.List<IHolon> {root};
+            var failed=await provider.SaveHolonAsync(root);
+            Assert.IsTrue(failed.IsError);Assert.IsInstanceOfType(failed.Exception,typeof(System.ArgumentException));
+            Assert.AreEqual(System.Guid.Empty,root.Id);Assert.AreEqual(0,provider.Activations);
+            var child=new NextGenSoftware.OASIS.API.Core.Holons.Holon {ParentHolonId=System.Guid.NewGuid()};
+            root.Children=new System.Collections.Generic.List<IHolon> {child};
+            Assert.IsTrue((await provider.SaveHolonAsync(root)).IsError);
+            Assert.AreEqual(System.Guid.Empty,root.Id);Assert.AreEqual(System.Guid.Empty,child.Id);
+            Assert.AreEqual(0,provider.Activations);
+        }
+
+        [TestMethod]
         public async Task BatchPreflightAndUncertaintyPreserveAcknowledgedIds()
         {
             var provider=new BatchProbeProvider();
