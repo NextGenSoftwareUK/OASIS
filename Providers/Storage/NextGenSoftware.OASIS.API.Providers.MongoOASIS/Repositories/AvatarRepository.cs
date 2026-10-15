@@ -641,6 +641,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
         public async Task<OASISResult<bool>> DeleteAsync(string providerKey, bool softDelete = true)
         {
+            var invalid=ValidateDeletionNativeKey(providerKey);
+            if(invalid!=null) return invalid;
             var result = new OASISResult<bool>();
             try
             {
@@ -660,6 +662,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
         public OASISResult<bool> Delete(string providerKey, bool softDelete = true)
         {
+            var invalid=ValidateDeletionNativeKey(providerKey);
+            if(invalid!=null) return invalid;
             var result = new OASISResult<bool>();
             try
             {
