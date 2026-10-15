@@ -1,6 +1,12 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+using Solnet.Rpc;
+using Solnet.Rpc.Types;
+using Solnet.Wallet.Utilities;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests;
 
@@ -12,6 +18,9 @@ public sealed class SOLANAOASISIntegrationTests
     [TestInitialize]
     public async Task Setup()
     {
+        // Refuse to reach a validator without the separately persisted private-storage key.
+        var storageKey = PersistedPrivateKeyValueBackend.ResolveEnvironmentKey("OASIS_SOLANA_STORAGE_ENCRYPTION_KEY");
+        CryptographicOperations.ZeroMemory(storageKey);
         string rpc = Environment.GetEnvironmentVariable("SOLANA_RPC_URL")
             ?? throw new InvalidOperationException("SOLANA_RPC_URL must identify a running Solana validator.");
         string privateKey = Environment.GetEnvironmentVariable("SOLANA_PRIVATE_KEY")
@@ -42,6 +51,20 @@ public sealed class SOLANAOASISIntegrationTests
         Assert.IsTrue(save.Result.ProviderUniqueStorageKey.TryGetValue(ProviderType.SolanaOASIS, out string? signature));
         Assert.IsFalse(string.IsNullOrWhiteSpace(signature));
 
+        var rpc = ClientFactory.GetClient(Environment.GetEnvironmentVariable("SOLANA_RPC_URL")!);
+        var statuses = await rpc.GetSignatureStatusesAsync(new List<string> { signature! }, true);
+        Assert.IsTrue(statuses.WasSuccessful);
+        Assert.AreEqual(1, statuses.Result.Value.Count);
+        Assert.IsNotNull(statuses.Result.Value[0]);
+        Assert.IsNull(statuses.Result.Value[0].Error);
+        Assert.AreEqual("finalized", statuses.Result.Value[0].ConfirmationStatus);
+        var native = await rpc.GetTransactionAsync(signature!, Commitment.Finalized);
+        Assert.IsTrue(native.WasSuccessful);
+        Assert.IsNotNull(native.Result);
+        var memo = Encoding.UTF8.GetString(Encoders.Base58.DecodeData(native.Result.Transaction.Message.Instructions[^1].Data));
+        StringAssert.StartsWith(memo, "oasis-aes256gcm-gzip-v2:");
+        Assert.IsFalse(memo.Contains(holon.Name));
+
         var load = await _provider.LoadHolonAsync(signature!, loadChildren: false);
         Assert.IsFalse(load.IsError, load.Message);
         Assert.AreEqual(holon.Id, load.Result.Id);
@@ -51,7 +74,7 @@ public sealed class SOLANAOASISIntegrationTests
     [TestCleanup]
     public async Task Cleanup()
     {
-        if (_provider.IsProviderActivated)
+        if (_provider?.IsProviderActivated == true)
             await _provider.DeActivateProviderAsync();
     }
 }
