@@ -15,6 +15,7 @@ try {
     $cli=Join-Path $runtime 'node_modules/hardhat/internal/cli/cli.js'
     if(!(Test-Path -LiteralPath $node) -or !(Test-Path -LiteralPath $cli)){throw 'Existing Node/Hardhat runtime required; no download attempted.'}
     if(Get-NetTCPConnection -State Listen -LocalPort 18545 -ErrorAction SilentlyContinue){throw 'Owned EVM port already active; refusing duplicate service.'}
+    if(Get-NetTCPConnection -State Listen -LocalPort 18546 -ErrorAction SilentlyContinue){throw 'Owned simulated-outage port is occupied; refusing unrelated endpoint.'}
     & $node (Join-Path $PSScriptRoot 'compile-ethereum-storage-fixture.cjs')
     if($LASTEXITCODE){throw 'Cached Solidity fixture build failed.'}
     $project=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests.csproj'
@@ -42,7 +43,7 @@ try {
     if($report.LastWriteTimeUtc -lt $started){throw 'Native report is stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 7 -or [int]$counts.passed -ne 7 -or [int]$counts.notExecuted -ne 0){throw 'Expected seven native passing cases, no skips.'}
+    if([int]$counts.total -ne 9 -or [int]$counts.passed -ne 9 -or [int]$counts.notExecuted -ne 0){throw 'Expected nine native passing cases, no skips.'}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
     foreach($name in $names){[Environment]::SetEnvironmentVariable($name,$previous[$name])}

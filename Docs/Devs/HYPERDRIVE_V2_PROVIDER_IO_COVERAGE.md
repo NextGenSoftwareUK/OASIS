@@ -1,5 +1,11 @@
 # HyperDrive V2 provider-I/O coverage
 
+## Current Ethereum/Solana verification delta — 2026-10-14
+
+Ethereum current real local-EVM/SQLite suite is9/9 zero skips6s (`TestResults/EthereumCurrent/ethereum-native-current.trx`): selected sync/async flat-holon replication both directions, actual round-robin metrics3/3, pre-submission transport-outage failover to SQLite, and real first-commit/second-rejection partial-write fencing with zero backup execution. Existing cached Hardhat/solc/bundled Node, no paid gas. Receipt uncertainty/partial-result fixes are implemented, but no full interface, privacy, pre-receipt signed journal, native fee/billing or hosted certification. Plaintext JSON and active contract/query gaps remain priorities, not completed features.
+
+Solana implemented encrypted memo codec using the extracted existing AES-GCM implementation, selected DTO/update fixes, finalized-status observation/native identity fencing, typed-field-preserving tombstones and stricter native memo read checks. Earlier real create/update/tombstone/history1/1 passed; newer read validation live refresh remains unproven. Retained local Agave4.3.0 ledger later stalled finalized root505 with native FailedSwitchThreshold/LockedOut evidence. Runner now refuses new test writes unless root advances. Ledger/keys/runtime preserved; no reset/warp/consensus-file removal. Latest26 focused unit cases pass, not live certification. Native uncertain-history reconciliation, query/index/full mapping and durable recovery remain open. Detailed chronology/caveats in HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md. Other priority providers and original Cosmos/Hedera/Sui/TRON obligations remain in scope.
+
 ## Solana source audit: blocking privacy and persistence gaps — 2026-10-14
 
 Following the human priority order, resumed Solana source review after Mongo graph rollback/replay work. This is source evidence, not a fresh live-chain certification:
