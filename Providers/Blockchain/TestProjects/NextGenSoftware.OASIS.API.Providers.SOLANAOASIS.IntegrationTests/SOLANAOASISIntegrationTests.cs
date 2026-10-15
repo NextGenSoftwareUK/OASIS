@@ -46,7 +46,7 @@ public sealed class SOLANAOASISIntegrationTests
         };
 
         var save = await _provider.SaveHolonAsync(holon, saveChildren: false);
-        Assert.IsFalse(save.IsError, save.Message);
+        Assert.IsFalse(save.IsError, $"{save.Message} {save.Exception}");
         Assert.IsNotNull(save.Result);
         Assert.IsTrue(save.Result.ProviderUniqueStorageKey.TryGetValue(ProviderType.SolanaOASIS, out string? signature));
         Assert.IsFalse(string.IsNullOrWhiteSpace(signature));
