@@ -111,137 +111,19 @@ public partial class Web3CoreOASISBaseProvider
     //}
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    {
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/holons/for-parent/{id}?type={type}&version={version}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                var holons = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Holon>>(content);
-                
-                if (holons != null)
-                {
-                    result.Result = holons.Cast<IHolon>();
-                    result.IsError = false;
-                    result.Message = $"Successfully loaded {holons.Count} holons for parent from Web3Core";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to deserialize holons from Web3Core API");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, $"Web3Core API error: {response.StatusCode} - {response.ReasonPhrase}");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent from Web3Core: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ReadPrivateParentAsync(id.ToString(),type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    {
-        return LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-    }
+        => ReadPrivateParentAsync(id.ToString(),type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version).GetAwaiter().GetResult();
 
     public async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentByProviderKeyAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    {
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/holons/for-parent-by-provider-key/{Uri.EscapeDataString(providerKey)}?type={type}&version={version}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                var holons = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Holon>>(content);
-                
-                if (holons != null)
-                {
-                    result.Result = holons.Cast<IHolon>();
-                    result.IsError = false;
-                    result.Message = $"Successfully loaded {holons.Count} holons for parent by provider key from Web3Core";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to deserialize holons from Web3Core API");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, $"Web3Core API error: {response.StatusCode} - {response.ReasonPhrase}");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by provider key from Web3Core: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ReadPrivateParentAsync(providerKey,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    {
-        return LoadHolonsForParentByProviderKeyAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-    }
+        => ReadPrivateParentAsync(providerKey,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    {
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/holons/for-parent-by-provider-key/{Uri.EscapeDataString(providerKey)}?type={type}&version={version}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                var holons = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Holon>>(content);
-                
-                if (holons != null)
-                {
-                    result.Result = holons.Cast<IHolon>();
-                    result.IsError = false;
-                    result.Message = $"Successfully loaded {holons.Count} holons for parent by provider key from Web3Core";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to deserialize holons from Web3Core API");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, $"Web3Core API error: {response.StatusCode} - {response.ReasonPhrase}");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent by provider key from Web3Core: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ReadPrivateParentAsync(providerKey,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
     //public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParentByCustomKey(string customKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     //{
@@ -254,62 +136,16 @@ public partial class Web3CoreOASISBaseProvider
     //}
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    {
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            // Web3Core is a blockchain provider, not a storage provider
-            // Return empty result as blockchain providers don't store holons by metadata
-            result.Result = new List<IHolon>();
-            result.IsError = false;
-            result.Message = "Web3Core blockchain provider does not support metadata-based holon queries";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ReadPrivateMetadataAsync(metaKey==null ? null:new Dictionary<string,string> {{metaKey,metaValue}},MetaKeyValuePairMatchMode.All,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    {
-        return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-    }
+        => ReadPrivateMetadataAsync(metaKey==null ? null:new Dictionary<string,string> {{metaKey,metaValue}},MetaKeyValuePairMatchMode.All,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    {
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            // Web3Core is a blockchain provider, not a storage provider
-            // Return empty result as blockchain providers don't store holons by metadata
-            result.Result = new List<IHolon>();
-            result.IsError = false;
-            result.Message = "Web3Core blockchain provider does not support metadata-based holon queries";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ReadPrivateMetadataAsync(metaKeyValuePairs,metaKeyValuePairMatchMode,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
     public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    {
-        return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-    }
+        => ReadPrivateMetadataAsync(metaKeyValuePairs,metaKeyValuePairMatchMode,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version).GetAwaiter().GetResult();
 
     public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
     {
