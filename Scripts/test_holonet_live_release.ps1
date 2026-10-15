@@ -27,11 +27,17 @@ $tools = @{
 foreach ($name in $tools.Keys) {
     $path = Join-Path $resources $name
     if (-not (Test-Path -LiteralPath $path) -or (Get-FileHash -LiteralPath $path -Algorithm SHA256).Hash -ine $tools[$name]) {
-        throw "Bundled $name differs from the official Holochain 0.7.0 release digest."
+        throw "Bundled $name differs from its pinned official Holochain release digest."
     }
 }
-$hc = Join-Path $resources 'hc-0.7.0.exe'
-$conductor = Join-Path $resources 'holochain-0.7.0.exe'
+# The default release path is 0.7.1. Versioned 0.7.0 binaries above are
+# retained only for the explicitly selected compatibility lifecycle cases.
+$hc = Join-Path $resources 'hc.exe'
+$conductor = Join-Path $resources 'holochain.exe'
+foreach ($binary in @($hc, $conductor)) {
+    $version = (& $binary --version) -join "`n"
+    if ($LASTEXITCODE -ne 0 -or $version -notmatch '\b0\.7\.1\b') { throw 'Default release tools must report Holochain/hc 0.7.1.' }
+}
 $fixture = Join-Path $ResultsDirectory 'holonet-live-fixture'
 if (Test-Path -LiteralPath $fixture) { throw 'Conductor fixture already exists; reconcile the prior run rather than reusing state.' }
 New-Item -ItemType Directory -Path $fixture | Out-Null
