@@ -108,7 +108,7 @@ contract NextGenSoftwareOASIS {
                 return true;
             }
         }
-        return false;
+        revert("OASIS record not found");
     }
 
     function UpdateAvatarDetail(
@@ -121,7 +121,7 @@ contract NextGenSoftwareOASIS {
                 return true;
             }
         }
-        return false;
+        revert("OASIS record not found");
     }
 
     function UpdateHolon(
@@ -134,7 +134,7 @@ contract NextGenSoftwareOASIS {
                 return true;
             }
         }
-        return false;
+        revert("OASIS record not found");
     }
 
     function DeleteAvatar(uint256 entityId) public onlyStorageOwner returns (bool) {
@@ -147,7 +147,7 @@ contract NextGenSoftwareOASIS {
                 return true;
             }
         }
-        return false;
+        revert("OASIS record not found");
     }
     
     function DeleteAvatarDetail(uint256 entityId) public onlyStorageOwner returns (bool) {
@@ -160,7 +160,7 @@ contract NextGenSoftwareOASIS {
                 return true;
             }
         }
-        return false;
+        revert("OASIS record not found");
     }
     
     function DeleteHolon(uint256 entityId) public onlyStorageOwner returns (bool) {
@@ -173,7 +173,7 @@ contract NextGenSoftwareOASIS {
                 return true;
             }
         }
-        return false;
+        revert("OASIS record not found");
     }
     
     function GetAvatarById(uint256 entityId) public view returns (Avatar memory)
