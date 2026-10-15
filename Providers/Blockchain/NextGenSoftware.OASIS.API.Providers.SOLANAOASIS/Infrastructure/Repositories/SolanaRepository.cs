@@ -1,16 +1,24 @@
 ﻿namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories;
 
-public class SolanaRepository(Account oasisAccount, IRpcClient rpcClient) : ISolanaRepository
+public class SolanaRepository(Account oasisAccount, IRpcClient rpcClient, Func<byte[]> storageKeyResolver) : ISolanaRepository
 {
+    public SolanaRepository(Account oasisAccount, IRpcClient rpcClient) : this(oasisAccount, rpcClient, null) { }
+    private const string MemoIdentity = "oasis/solana/private-memo/v1";
+    private NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.EncryptedRecordCodec OpenCodec()
+    {
+        var key = storageKeyResolver != null ? storageKeyResolver()
+            : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend.ResolveEnvironmentKey("OASIS_SOLANA_STORAGE_ENCRYPTION_KEY");
+        try { return new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.EncryptedRecordCodec(key, compress:true); }
+        finally { if (key != null) System.Security.Cryptography.CryptographicOperations.ZeroMemory(key); }
+    }
     public async Task<string> CreateAsync<T>(T entity)
         where T : SolanaBaseDto, new()
     {
+        var serializedEntity = EncodeEntity(entity);
         var blockHash = await rpcClient.GetLatestBlockHashAsync();
 
         if (blockHash.Result != null)
         {
-            var serializedEntity = EncodeEntity(entity);
-
             var entityTransactionBytes = new TransactionBuilder()
                 .SetRecentBlockHash(blockHash.Result.Value.Blockhash)
                 .SetFeePayer(oasisAccount)
@@ -34,11 +42,10 @@ public class SolanaRepository(Account oasisAccount, IRpcClient rpcClient) : ISol
     public async Task<string> UpdateAsync<T>(T entity)
         where T : SolanaBaseDto, new()
     {
-        var blockHash = await rpcClient.GetLatestBlockHashAsync();
-
         entity.Version++;
         entity.PreviousVersionId = entity.Id;
         var serializedEntity = EncodeEntity(entity);
+        var blockHash = await rpcClient.GetLatestBlockHashAsync();
 
         var entityUpdateTransactionBytes = new TransactionBuilder()
             .SetRecentBlockHash(blockHash.Result.Value.Blockhash)
@@ -133,28 +140,16 @@ public class SolanaRepository(Account oasisAccount, IRpcClient rpcClient) : ISol
         return deserializedEntity;
     }
 
-    private static string EncodeEntity<T>(T entity)
+    private string EncodeEntity<T>(T entity)
     {
-        byte[] json = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(entity));
-        using var output = new System.IO.MemoryStream();
-        using (var gzip = new System.IO.Compression.GZipStream(
-                   output, System.IO.Compression.CompressionLevel.SmallestSize, leaveOpen: true))
-            gzip.Write(json, 0, json.Length);
-        return $"oasis:gzip:{Convert.ToBase64String(output.ToArray())}";
+        using var codec = OpenCodec();
+        return codec.Encrypt(MemoIdentity, JsonConvert.SerializeObject(entity));
     }
 
-    private static string DecodeEntity(byte[] transactionData)
+    private string DecodeEntity(byte[] transactionData)
     {
-        string content = Encoding.UTF8.GetString(transactionData);
-        const string prefix = "oasis:gzip:";
-        if (!content.StartsWith(prefix, StringComparison.Ordinal))
-            return content;
-
-        byte[] compressed = Convert.FromBase64String(content[prefix.Length..]);
-        using var input = new System.IO.MemoryStream(compressed);
-        using var gzip = new System.IO.Compression.GZipStream(input, System.IO.Compression.CompressionMode.Decompress);
-        using var reader = new System.IO.StreamReader(gzip, Encoding.UTF8);
-        return reader.ReadToEnd();
+        using var codec = OpenCodec();
+        return codec.Decrypt(MemoIdentity, new UTF8Encoding(false,true).GetString(transactionData));
     }
 
     private static TransactionInstruction SetComputeUnitLimit(uint units)
