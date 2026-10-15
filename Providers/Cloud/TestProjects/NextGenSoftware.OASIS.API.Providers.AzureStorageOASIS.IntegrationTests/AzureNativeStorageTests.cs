@@ -69,6 +69,16 @@ public class AzureNativeStorageTests
             var imported=await provider.ImportAsync(importedRows);
             Assert.IsFalse(imported.IsError,imported.Message);Assert.IsTrue(imported.Result);Assert.IsTrue(imported.IsSaved);
             foreach(var row in importedRows) Assert.AreEqual(row.Name,(await provider.LoadHolonAsync(row.Id,loadChildren:false)).Result.Name);
+            var child=new Holon {Id=Guid.NewGuid(),ParentHolonId=holon.Id,Name="owned child"};
+            var grandchild=new Holon {Id=Guid.NewGuid(),ParentHolonId=child.Id,Name="owned grandchild"};
+            Assert.IsFalse((await provider.SaveHolonAsync(child,saveChildren:false)).IsError);
+            Assert.IsFalse((await provider.SaveHolonAsync(grandchild,saveChildren:false)).IsError);
+            var children=await provider.LoadHolonsForParentAsync(holon.Id,loadChildrenFromProvider:true);
+            Assert.IsFalse(children.IsError,children.Message);
+            Assert.AreEqual(child.Id,children.Result.Single().Id);Assert.AreEqual(grandchild.Id,children.Result.Single().Children.Single().Id);
+            var byKey=provider.LoadHolonsForParent(holon.Id.ToString(),loadChildren:false);
+            Assert.IsFalse(byKey.IsError,byKey.Message);Assert.AreEqual(child.Id,byKey.Result.Single().Id);Assert.AreEqual(0,byKey.Result.Single().Children.Count);
+            Assert.IsInstanceOfType(provider.LoadAllHolons(version:1).Exception,typeof(NotSupportedException));
         }
         finally {
             await provider.DeActivateProviderAsync();
