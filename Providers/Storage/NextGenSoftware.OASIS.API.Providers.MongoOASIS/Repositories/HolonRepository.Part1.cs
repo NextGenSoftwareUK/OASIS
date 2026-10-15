@@ -120,56 +120,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             }
         }
 
-        public async Task<OASISResult<Holon>> AddAsync(Holon holon)
-        {
-            OASISResult<Holon> result = new OASISResult<Holon>();
-
-            try
-            {
-                if (holon.HolonId == Guid.Empty)
-                    holon.HolonId = Guid.NewGuid();
-
-                //holon.IsNewHolon = false;
-                holon.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.MongoDBOASIS);
-
-                PrepareNativeHolonIdentity(holon);
-                await _dbContext.Holon.InsertOneAsync(holon);
-                result.Result = holon;
-            }
-            catch (Exception ex)
-            {
-                result.IsError = true;
-                result.Message = $"Error saving holon with id {holon.Id} and name {holon.Name} in AddAsync method in MongoDBOASIS Provider. Reason: {ex.ToString()}";
-                result.Exception = ex;
-            }
-
-            return result;
-        }
+        public Task<OASISResult<Holon>> AddAsync(Holon holon)
+            => SaveNativeHolonAsync(holon,false,false);
 
         public OASISResult<Holon> Add(Holon holon)
-        {
-            OASISResult<Holon> result = new OASISResult<Holon>();
-
-            try
-            {
-                if (holon.HolonId == Guid.Empty)
-                    holon.HolonId = Guid.NewGuid();
-
-                holon.CreatedProviderType = new EnumValue<ProviderType>(ProviderType.MongoDBOASIS);
-
-                PrepareNativeHolonIdentity(holon);
-                _dbContext.Holon.InsertOne(holon);
-                result.Result = holon;
-            }
-            catch (Exception ex)
-            {
-                result.IsError = true;
-                result.Message = $"Error saving holon with id {holon.Id} and name {holon.Name} in Add method in MongoDBOASIS Provider. Reason: {ex.ToString()}";
-                result.Exception = ex;
-            }
-
-            return result;
-        }
+            => SaveNativeHolonAsync(holon,false,true).GetAwaiter().GetResult();
 
         private static void PrepareNativeHolonIdentity(Holon holon)
         {

@@ -271,106 +271,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             return result;
         }
 
-        public async Task<OASISResult<Holon>> UpdateAsync(Holon holon)
-        {
-            OASISResult<Holon> result = new OASISResult<Holon>();
-
-            try
-            {
-                // If the caller did not supply the MongoDB ObjectId (_id), look it up by HolonId
-                // so that ReplaceOneAsync does not try to write _id: null onto the existing document
-                // (MongoDB rejects this with error code 66 "immutable field _id was altered").
-                // This happens when stateless REST/JS clients construct a holon from scratch — they
-                // know the OASIS GUID (HolonId) but have no way to know the internal MongoDB _id.
-                if (string.IsNullOrEmpty(holon.Id))
-                {
-                    Holon originalHolon = await GetHolonAsync(holon.HolonId);
-                    if (originalHolon != null)
-                        holon.Id = originalHolon.Id;
-                }
-
-                // Old code (kept for reference — was previously commented out and never ran):
-                // if (holon.Id == null)
-                // {
-                //     //Holon originalHolon = await GetHolonAsync(holon.HolonId);
-                //     //if (originalHolon != null)
-                //     //{
-                //     //    holon.Id = originalHolon.Id;
-                //     //    holon.CreatedByAvatarId = originalHolon.CreatedByAvatarId;
-                //     //    holon.CreatedDate = originalHolon.CreatedDate;
-                //     //    holon.HolonType = originalHolon.HolonType;
-                //     //    holon.ParentZome = originalHolon.ParentZome;
-                //     //    holon.ParentZomeId = originalHolon.ParentZomeId;
-                //     //    holon.ParentMoon = originalHolon.ParentMoon;
-                //     //    holon.ParentPlanet = originalHolon.ParentPlanet;
-                //     //    holon.ParentMoonId = originalHolon.ParentMoonId;
-                //     //    holon.ParentPlanetId = originalHolon.ParentPlanetId;
-                //     //    holon.Children = originalHolon.Children;
-                //     //    holon.DeletedByAvatarId = originalHolon.DeletedByAvatarId;
-                //     //    holon.DeletedDate = originalHolon.DeletedDate;
-                //     //    holon.MetaData = originalHolon.MetaData;
-                //     //    //TODO: Needs more thought!
-                //     //}
-                // }
-
-                var replaceResult = await _dbContext.Holon.ReplaceOneAsync(
-                    filter: g => g.HolonId == holon.HolonId,
-                    replacement: holon);
-
-                if (!replaceResult.IsAcknowledged || replaceResult.MatchedCount == 0)
-                {
-                    result.IsError = true;
-                    result.Message = $"Cannot update holon {holon.HolonId}: no persisted document matched the supplied ID.";
-                    return result;
-                }
-
-                result.Result = holon;
-            }
-            catch (Exception ex)
-            {
-                result.IsError = true;
-                result.Message = $"Error saving holon with id {holon.Id} and name {holon.Name} in Update method in MongoDBOASIS Provider. Reason: {ex.ToString()}";
-            }
-
-            return result;
-        }
+        public Task<OASISResult<Holon>> UpdateAsync(Holon holon)
+            => SaveNativeHolonAsync(holon,true,false);
 
         public OASISResult<Holon> Update(Holon holon)
-        {
-            OASISResult<Holon> result = new OASISResult<Holon>();
-
-            try
-            {
-                // If the caller did not supply the MongoDB ObjectId (_id), look it up by HolonId
-                // so that ReplaceOne does not try to write _id: null (MongoDB rejects code 66).
-                if (string.IsNullOrEmpty(holon.Id))
-                {
-                    Holon originalHolon = GetHolon(holon.HolonId);
-                    if (originalHolon != null)
-                        holon.Id = originalHolon.Id;
-                }
-
-                var replaceResult = _dbContext.Holon.ReplaceOne(
-                    filter: g => g.HolonId == holon.HolonId,
-                    replacement: holon);
-
-                if (!replaceResult.IsAcknowledged || replaceResult.MatchedCount == 0)
-                {
-                    result.IsError = true;
-                    result.Message = $"Cannot update holon {holon.HolonId}: no persisted document matched the supplied ID.";
-                    return result;
-                }
-
-                result.Result = holon;
-            }
-            catch (Exception ex)
-            {
-                result.IsError = true;
-                result.Message = $"Error saving holon with id {holon.Id} and name {holon.Name} in Update method in MongoDBOASIS Provider. Reason: {ex.ToString()}";
-            }
-
-            return result;
-        }
+            => SaveNativeHolonAsync(holon,true,true).GetAwaiter().GetResult();
 
         //public async Task<OASISResult<IHolon>> DeleteAsync(Guid id, Guid avatarId, bool softDelete = true)
         //{
