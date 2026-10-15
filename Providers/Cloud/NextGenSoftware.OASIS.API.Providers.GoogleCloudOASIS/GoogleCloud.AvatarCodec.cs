@@ -13,6 +13,34 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 
 public partial class GoogleCloudOASIS
 {
+    private async Task<OASISResult<bool>> DeleteCanonicalAvatarAsync(Guid id,bool softDelete)
+    {
+        var result=new OASISResult<bool>();
+        try
+        {
+            if(id==Guid.Empty) throw new ArgumentException("A nonempty avatar identity is required.");
+            var ready=await EnsureDetailStoreAsync(0);
+            if(ready.IsError) return ready;
+            var reference=_firestoreDb.Collection("avatars").Document(id.ToString());
+            var snapshot=await reference.GetSnapshotAsync();
+            if(!snapshot.Exists) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Firestore avatar not found.";return result;}
+            var avatar=DecodeAvatar(snapshot.ConvertTo<Dictionary<string,object>>(),snapshot.Id);
+            var condition=Google.Cloud.Firestore.Precondition.LastUpdated(snapshot.UpdateTime.Value);
+            if(softDelete)
+            {
+                if(!avatar.IsActive) {result.Result=true;return result;}
+                avatar.IsActive=false;
+                avatar.DeletedDate=DateTime.UtcNow;
+                var update=new Dictionary<string,object> { ["isActive"]=false,["data_json"]=OasisJson.Serialize(avatar) };
+                await ObserveFirestoreMutationAsync(()=>reference.UpdateAsync(update,condition),reference.Path);
+            }
+            else await ObserveFirestoreMutationAsync(()=>reference.DeleteAsync(condition),reference.Path);
+            result.Result=true;result.IsSaved=true;
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
+    }
+
     private static Avatar DecodeAvatar(Dictionary<string,object> fields,string documentId)
     {
         if(!fields.TryGetValue("data_json",out var value) || value is not string json)

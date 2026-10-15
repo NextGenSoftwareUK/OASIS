@@ -81,57 +81,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             return SaveAvatarDetailAsync(avatarDetail).Result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-        {
-            OASISResult<bool> result = new OASISResult<bool>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (!_enableFirestore)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
-                    return result;
-                }
-
-                // Delete avatar from Firestore
-                var docRef = _firestoreDb.Collection("avatars").Document(id.ToString());
-                
-                if (softDelete)
-                {
-                    // Soft delete - mark as deleted
-                    var updateData = new Dictionary<string, object>
-                    {
-                        ["IsDeleted"] = true,
-                        ["DeletedDate"] = Timestamp.FromDateTime(DateTime.UtcNow),
-                        ["DeletedByAvatarId"] = Guid.Empty
-                    };
-                    await docRef.UpdateAsync(updateData);
-                }
-                else
-                {
-                    // Hard delete - remove document
-                    await docRef.DeleteAsync();
-                }
-                
-                result.Result = true;
-                result.IsError = false;
-                result.Message = $"Avatar {(softDelete ? "soft" : "hard")} deleted successfully from Google Cloud Firestore";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error deleting avatar from Google Cloud: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+            => DeleteCanonicalAvatarAsync(id,softDelete);
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
         {
