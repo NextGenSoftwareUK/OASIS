@@ -264,4 +264,8 @@ contract NextGenSoftwareOASIS {
     function GetHolonsCount() public view returns (uint256 count) {
         return holons.length;
     }
+
+    function GetHolonAt(uint256 index) public view returns (Holon memory) {
+        return holons[index];
+    }
 }

@@ -522,115 +522,55 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                if (version != 0) throw new NotSupportedException("Ethereum collection history is not implemented; only current version 0 is supported.");
+                if (maxChildDepth < 0 || curentChildDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth),"Child depth values must be nonnegative.");
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError) throw new InvalidOperationException(activation.Message,activation.Exception);
                 }
-
-                // Load all holons from Ethereum smart contract
-                // Real Ethereum implementation: Query smart contract for all holons
-                try
+                var block = new Nethereum.RPC.Eth.DTOs.BlockParameter(await Web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync());
+                var count = await _nextGenSoftwareOasisService.GetHolonsCountQueryAsync(block);
+                var records = new List<IHolon>();
+                var identities = new HashSet<Guid>();
+                for (BigInteger index = 0; index < count; index++)
                 {
-                    if (Web3Client == null || _nextGenSoftwareOasisService == null)
+                    var row = (await _nextGenSoftwareOasisService.ContractHandler
+                        .QueryDeserializingToObjectAsync<ContractDefinition.GetHolonAtFunction,ContractDefinition.GetHolonByIdOutputDTO>(
+                            new ContractDefinition.GetHolonAtFunction { Index=index },block)).ReturnValue1;
+                    if (row == null || !Guid.TryParseExact(row.HolonId,"D",out var id))
+                        throw new InvalidDataException("Ethereum holon has an invalid public GUID.");
+                    var holon = DeserializePrivateStorage<Holon>("holon",row.EntityId,row.Info,id);
+                    if (holon == null || !identities.Add(holon.Id))
+                        throw new InvalidDataException("Ethereum holon collection contains a missing or duplicate identity.");
+                    records.Add(holon);
+                }
+                var children = records.ToLookup(row=>row.ParentHolonId);
+                IHolon Project(IHolon source,int depth,HashSet<Guid> path)
+                {
+                    if (!path.Add(source.Id)) throw new InvalidDataException("Ethereum persisted holon graph contains a cycle.");
+                    // Each returned root owns its graph; projecting one root must not trim another.
+                    var copy = JsonConvert.DeserializeObject<Holon>(JsonConvert.SerializeObject(source),new StoredHolonConverter());
+                    copy.Children = new List<IHolon>();
+                    if (loadChildren && (maxChildDepth == 0 || depth < maxChildDepth) && (recursive || depth == curentChildDepth))
                     {
-                        OASISErrorHandling.HandleError(ref result, "Ethereum Web3 client or service not initialized");
-                        return result;
-                    }
-
-                    var holons = new List<IHolon>();
-                    
-                    // Query smart contract for all holons
-                    var contract = Web3Client.Eth.GetContract(_abi ?? "", ContractAddress ?? _contractAddress);
-                    
-                    try
-                    {
-                        // Query the contract for all holons
-                        var getAllHolonsFunction = contract.GetFunction("getAllHolons");
-                        if (getAllHolonsFunction != null)
+                        var selected = loadChildrenFromProvider ? children[source.Id] : source.Children ?? Enumerable.Empty<IHolon>();
+                        foreach (var child in selected)
                         {
-                            var allHolonsData = await getAllHolonsFunction.CallAsync<List<object>>();
-                            
-                            if (allHolonsData != null && allHolonsData.Any())
-                            {
-                                foreach (var holonData in allHolonsData)
-                                {
-                                    var holonJson = holonData.ToString();
-                                    var holon = JsonConvert.DeserializeObject<Holon>(holonJson);
-                                    if (holon != null)
-                                    {
-                                        holons.Add(holon);
-                                    }
-                                }
-                            }
-                        }
-                        else
-                        {
-                            // If the contract doesn't have a getAllHolons method,
-                            // fallback: use events to retrieve all holons
-                            // Query contract events for holon creation events
-                            try
-                            {
-                                var holonCreatedEvent = Web3Client.Eth.GetContract(_contractAddress, _abi).GetEvent("HolonCreated");
-                                var filter = holonCreatedEvent.CreateFilterInput(Nethereum.RPC.Eth.DTOs.BlockParameter.CreateEarliest(), Nethereum.RPC.Eth.DTOs.BlockParameter.CreateLatest());
-                                var events = await holonCreatedEvent.GetAllChangesAsync<Nethereum.RPC.Eth.DTOs.FilterLog>(filter);
-                                
-                                var eventHolons = new List<IHolon>();
-                                foreach (var evt in events)
-                                {
-                                    try
-                                    {
-                                        // FilterLog does not expose decoded event; indexed string is hashed in topics - skip or decode from event ABI if available
-                                        var holonId = "";
-                                        if (string.IsNullOrEmpty(holonId)) continue;
-                                        var holonResult = await LoadHolonAsync(holonId, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
-                                        if (!holonResult.IsError && holonResult.Result != null)
-                                        {
-                                            if (type == HolonType.All || holonResult.Result.HolonType == type)
-                                            {
-                                                eventHolons.Add(holonResult.Result);
-                                            }
-                                        }
-                                    }
-                                    catch
-                                    {
-                                        if (continueOnError) continue;
-                                        throw;
-                                    }
-                                }
-                                
-                                result.Result = eventHolons;
-                                result.IsError = false;
-                                result.Message = $"Loaded {eventHolons.Count} holons from contract events (using fallback method)";
-                            }
-                            catch (Exception fallbackEx)
-                            {
-                                OASISErrorHandling.HandleError(ref result, $"Failed to load holons using fallback method: {fallbackEx.Message}. Consider implementing 'getAllHolons' method in your smart contract.", fallbackEx);
-                            }
+                            if (child == null) throw new InvalidDataException("Ethereum persisted holon graph contains a null child.");
+                            copy.Children.Add(Project(child,depth+1,path));
                         }
                     }
-                    catch (Exception contractEx)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Error querying Ethereum smart contract for all holons. Error: {contractEx.Message}", contractEx);
-                        return result;
-                    }
-                    
-                    result.Result = holons;
-                    result.IsError = false;
-                    result.Message = $"Successfully loaded {holons.Count} holons from Ethereum smart contract";
+                    path.Remove(source.Id);
+                    return copy;
                 }
-                catch (Exception ex)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading all holons from Ethereum: {ex.Message}", ex);
-                }
+                result.Result = records.Where(row=>type == HolonType.All || row.HolonType == type)
+                    .Select(row=>Project(row,curentChildDepth,new HashSet<Guid>())).ToList();
+                result.IsLoaded = true;
             }
-            catch (Exception ex)
+            catch (Exception error)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading all holons from Ethereum: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result,$"Error loading native Ethereum holons: {error.Message}",error);
             }
             return result;
         }
