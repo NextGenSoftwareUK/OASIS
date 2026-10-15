@@ -549,7 +549,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var requestTransaction = _nextGenSoftwareOasisService
                     .CreateAvatarRequestAndWaitForReceiptAsync(avatarEntityId, avatarId, avatarInfo).Result;
 
-                if (requestTransaction.HasErrors() is true)
+                if (!StorageReceiptSucceeded(requestTransaction))
                 {
                     OASISErrorHandling.HandleError(ref result, 
                         string.Concat(errorMessage, $"Creating of Avatar (Id): {avatar.AvatarId}, failed! Transaction performing is failure!"));
