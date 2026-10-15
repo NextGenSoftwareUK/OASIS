@@ -94,14 +94,13 @@ Offered to `holochain/android-service-runtime`; reply to any review comments, or
 - [#150](https://github.com/holochain/android-service-runtime/pull/150): Tauri service plugin network config for 0.7
 - [#151](https://github.com/holochain/android-service-runtime/pull/151): iOS support
 
-## 9. Two decisions from the HoloNET testing
+## 9. Decisions from the HoloNET testing: done
 
-1. **Synchronous admin/app methods** (62 of them, e.g. `ListApps()`, `AttachAppInterface()`) return straight away with an empty result;
-   the real result only arrives through events. That's the original design, but it's easy to misuse. Change them to wait for and
-   return the result (like the async ones, and like the zome-call fix), or keep them event-based?
-2. **Report the Holochain bug upstream?** `list_capability_grants` with `include_revoked: false` returns no grants at all
-   (`if !include_revoked { continue; }` in `holochain/src/conductor/conductor.rs`). Claude can open an issue or a one-line fix PR on
-   `holochain/holochain`.
+1. **Synchronous methods now wait for and return the result** (you chose this, 2026-10-14). 66 methods; events still fire.
+   Behaviour change for anyone relying on the old immediate return; noted in the CHANGELOG for 4.1.0.
+2. **Holochain capability-grants bug**: already reported upstream
+   ([holochain/holochain#5950](https://github.com/holochain/holochain/issues/5950)) and fixed in **Holochain 0.7.1**
+   (released 2026-10-14). HoloNET's workaround is correct on 0.7.0 and 0.7.1.
 
 ---
 
