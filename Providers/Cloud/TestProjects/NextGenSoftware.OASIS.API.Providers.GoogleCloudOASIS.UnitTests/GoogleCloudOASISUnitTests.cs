@@ -13,6 +13,18 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
         private GoogleCloudOASIS _provider = null!;
 
         [TestMethod]
+        public async Task HolonGuidValidationPrecedesActivationAndRetainsOriginalFailure()
+        {
+            var provider=new FailedActivationProvider();
+            Assert.IsInstanceOfType((await provider.LoadHolonAsync(System.Guid.Empty)).Exception,typeof(System.ArgumentException));
+            Assert.IsInstanceOfType((await provider.LoadHolonAsync(System.Guid.NewGuid(),version:1)).Exception,typeof(System.NotSupportedException));
+            Assert.IsInstanceOfType((await provider.LoadHolonAsync(System.Guid.NewGuid(),maxChildDepth:-1)).Exception,typeof(System.ArgumentOutOfRangeException));
+            Assert.AreEqual(0,provider.Activations);
+            var failed=await provider.LoadHolonAsync(System.Guid.NewGuid());
+            Assert.AreSame(provider.Cause,failed.Exception);Assert.AreEqual("owned-code",failed.ErrorCode);
+        }
+
+        [TestMethod]
         public async Task FirestoreWriteAttemptRetainsCauseWithoutInventingCommitIdentity()
         {
             var cause=new System.IO.IOException("owned lost reply");
