@@ -10,6 +10,46 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests;
 
 public class IPFSLifecycleTests
 {
+    [Theory]
+    [InlineData("null-entry")]
+    [InlineData("empty-id")]
+    [InlineData("unknown-kind")]
+    [InlineData("missing-key")]
+    [InlineData("mismatched-key")]
+    [InlineData("invalid-cid")]
+    public void InvalidIndexEntryCannotMasqueradeAsAbsence(string scenario)
+    {
+        var row=new HolonResume {Id=Guid.NewGuid(),RecordKind="holon",ProviderUniqueStorageKey=new() {
+            [NextGenSoftware.OASIS.API.Core.Enums.ProviderType.IPFSOASIS]="index-key"}};
+        if(scenario=="empty-id") row.Id=Guid.Empty;
+        if(scenario=="unknown-kind") row.RecordKind="unknown";
+        if(scenario=="missing-key") row.ProviderUniqueStorageKey.Clear();
+        if(scenario=="mismatched-key") row.ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.IPFSOASIS]="different-key";
+        var json=Newtonsoft.Json.JsonConvert.SerializeObject(new Dictionary<string,HolonResume?> {{"index-key",scenario=="null-entry" ? null:row}});
+        var parse=typeof(IPFSOASIS).GetMethod("DeserializeLookup",BindingFlags.Static|BindingFlags.NonPublic)!;
+        Assert.IsType<System.IO.InvalidDataException>(Assert.Throws<TargetInvocationException>(()=>parse.Invoke(null,new object[] {json})).InnerException);
+    }
+
+    [Fact]
+    public void RepeatedJsonCidPropertyIsRejectedInsteadOfOverwriting()
+    {
+        var parse=typeof(IPFSOASIS).GetMethod("DeserializeLookup",BindingFlags.Static|BindingFlags.NonPublic)!;
+        Assert.IsType<Newtonsoft.Json.JsonReaderException>(Assert.Throws<TargetInvocationException>(()=>parse.Invoke(null,new object[] {"{\"same-cid\":null,\"same-cid\":null}"})).InnerException);
+    }
+
+    [Fact]
+    public void DuplicateTypedIdentitiesAreTerminalBeforeReadingAnyBlob()
+    {
+        var id=Guid.NewGuid();
+        var records=new Dictionary<string,HolonResume>();
+        foreach(var key in new[] {"first-cid","second-cid"}) records.Add(key,new HolonResume {Id=id,RecordKind="holon",
+            ProviderUniqueStorageKey=new() {[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.IPFSOASIS]=key}});
+        var parse=typeof(IPFSOASIS).GetMethod("DeserializeLookup",BindingFlags.Static|BindingFlags.NonPublic)!;
+        var json=Newtonsoft.Json.JsonConvert.SerializeObject(records);
+        Assert.IsType<NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException>(
+            Assert.Throws<TargetInvocationException>(()=>parse.Invoke(null,new object[] {json})).InnerException);
+    }
+
     [Fact]
     public void PublicationFailureCapturesImmutableCompleteReceipts()
     {
