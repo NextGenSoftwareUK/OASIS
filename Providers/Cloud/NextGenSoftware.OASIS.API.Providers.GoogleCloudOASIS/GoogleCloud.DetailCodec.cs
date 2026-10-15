@@ -4,11 +4,39 @@ using System.IO;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+using System.Linq;
+using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 
 public partial class GoogleCloudOASIS
 {
+    private async Task<OASISResult<IAvatarDetail>> ReadCanonicalDetailSelectorAsync(string field,string selector,int version)
+    {
+        var result=new OASISResult<IAvatarDetail>();
+        try {
+            if(string.IsNullOrWhiteSpace(selector)) throw new ArgumentException("A nonblank avatar selector is required.");
+            if(version!=0) throw new NotSupportedException("Firestore detail selectors currently support latest version (0) only.");
+            if(!IsProviderActivated) {
+                var active=await ActivateProviderAsync();
+                if(active.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IAvatarDetail>(active);
+            }
+            if(!_enableFirestore) throw new InvalidOperationException("Firestore is not enabled.");
+            var snapshot=await _firestoreDb.Collection("avatarDetails").WhereEqualTo(field,selector).WhereEqualTo("isActive",true).Limit(2).GetSnapshotAsync();
+            var matches=snapshot.Documents.Select(doc=>DecodeAvatarDetail(doc.ConvertTo<Dictionary<string,object>>(),doc.Id)).ToList();
+            if(matches.Count>1) throw new StorageIdentityAmbiguousException();
+            if(matches.Count==0) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="No Firestore detail matches selector.";}
+            else {result.Result=matches[0];result.IsLoaded=true;}
+        }
+        catch(Exception cause) {
+            OASISErrorHandling.HandleError(ref result,cause.Message,cause);
+            if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
+        }
+        return result;
+    }
+
     private static Dictionary<string,object> EncodeAvatarDetail(IAvatarDetail detail)
     {
         ArgumentNullException.ThrowIfNull(detail);
