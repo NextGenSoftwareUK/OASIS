@@ -89,72 +89,35 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
-                        return result;
+            var result = new OASISResult<IEnumerable<IHolon>>();
+            var saved = new List<IHolon>();
+            var failures=new List<Exception>();
+            try {
+                ArgumentNullException.ThrowIfNull(holons);
+                var planned=holons.ToList();
+                if(planned.Count==0 || maxChildDepth<0 || curentChildDepth<0 || planned.Any(row=>row==null)) throw new ArgumentException("Invalid batch nodes or depth.");
+                foreach(var row in planned) if(row.Id==Guid.Empty) row.Id=Guid.NewGuid();
+                if(planned.Select(row=>row.Id).Distinct().Count()!=planned.Count) throw new ArgumentException("Duplicate batch identities.");
+                foreach(var row in planned) NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(row);
+                foreach(var row in planned) {
+                    var written=await SaveHolonAsync(row,saveChildren,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider);
+                    if(written.IsError || written.Result==null) {
+                        if(!result.IsError) result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(written);
+                        result.IsError=true;
+                        failures.Add(written.Exception ?? new InvalidOperationException(written.Message ?? "Firestore item returned no acknowledgement."));
+                        if(!continueOnError || NativeMutationReconciliation.IsRequired(written.Exception)) break;
                     }
+                    else saved.Add(written.Result);
                 }
-
-                if (!_enableFirestore)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
-                    return result;
+                result.Result=saved;result.IsSaved=failures.Count==0;
+                if(failures.Count>0) {
+                    var cause=failures.Count==1 ? failures[0]:new AggregateException(failures);
+                    result.Exception=saved.Count>0 ? new GoogleFirestorePartialMutationException(saved.Select(row=>row.Id),cause):cause;
                 }
-
-                var savedHolons = new List<IHolon>();
-                
-                // Save ALL holons to Google Cloud Firestore with FULL property mapping
-                foreach (var holon in holons)
-                {
-                    var docRef = _firestoreDb.Collection("holons").Document(holon.Id.ToString());
-                    var holonData = new Dictionary<string, object>
-                    {
-                        ["id"] = holon.Id.ToString(),
-                        ["name"] = holon.Name,
-                        ["description"] = holon.Description,
-                        ["holonType"] = holon.HolonType.ToString(),
-                        ["createdDate"] = Timestamp.FromDateTime(holon.CreatedDate),
-                        ["modifiedDate"] = Timestamp.FromDateTime(holon.ModifiedDate),
-                        ["version"] = holon.Version,
-                        ["isActive"] = holon.IsActive,
-                        // Map ALL Holon properties
-                        ["parentId"] = holon.ParentHolonId.ToString(),
-                        ["providerKey"] = holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS],
-                        ["previousVersionId"] = holon.PreviousVersionId.ToString(),
-                        ["nextVersionId"] = holon.VersionId.ToString(),
-                        ["isChanged"] = holon.IsChanged,
-                        ["isNew"] = holon.IsNewHolon,
-                        ["isDeleted"] = !holon.IsActive,
-                        ["deletedByAvatarId"] = holon.DeletedByAvatarId.ToString(),
-                        ["deletedDate"] = holon.DeletedDate != DateTime.MinValue ? Timestamp.FromDateTime(holon.DeletedDate) : null,
-                        ["createdByAvatarId"] = holon.CreatedByAvatarId.ToString(),
-                        ["modifiedByAvatarId"] = holon.ModifiedByAvatarId.ToString(),
-                        // Map Google Cloud specific data
-                        ["googleCloudProjectId"] = _projectId,
-                        ["googleCloudBucketName"] = _bucketName,
-                        ["googleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
-                        ["googleCloudBigQueryDatasetId"] = _bigQueryDatasetId
-                    };
-                    
-                    holonData["data_json"]=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(holon);
-                    await ObserveFirestoreMutationAsync(()=>docRef.SetAsync(holonData),docRef.Path);
-                    savedHolons.Add(holon);
-                }
-                
-                result.Result = savedHolons;
-                result.IsError = false;
-                result.Message = $"Holons saved successfully to Google Cloud Firestore with full property mapping ({savedHolons.Count} holons)";
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error saving holons to Google Cloud: {ex.Message}", ex);
+            catch(Exception cause) {
+                result.Exception=saved.Count>0 ? new GoogleFirestorePartialMutationException(saved.Select(row=>row.Id),cause):cause;
+                result.IsSaved=false;OASISErrorHandling.HandleError(ref result,cause.Message);
             }
             return result;
         }

@@ -13,6 +13,35 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
         private GoogleCloudOASIS _provider = null!;
 
         [TestMethod]
+        public async Task BatchPreflightAndUncertaintyPreserveAcknowledgedIds()
+        {
+            var provider=new BatchProbeProvider();
+            var one=new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=System.Guid.NewGuid()};
+            Assert.IsTrue((await provider.SaveHolonsAsync(new[] {one,one})).IsError);
+            Assert.AreEqual(0,provider.Writes);
+            var two=new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=System.Guid.NewGuid()};
+            var three=new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=System.Guid.NewGuid()};
+            var failed=await provider.SaveHolonsAsync(new[] {one,two,three},continueOnError:true);
+            Assert.IsTrue(failed.IsError);Assert.IsFalse(failed.IsSaved);Assert.AreEqual(2,provider.Writes);
+            var partial=(GoogleFirestorePartialMutationException)failed.Exception;
+            Assert.AreEqual(one.Id,partial.AcknowledgedRecordIds[0]);Assert.AreSame(provider.Cause,partial.InnerException);
+            Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(partial));
+        }
+
+        private sealed class BatchProbeProvider : GoogleCloudOASIS
+        {
+            public int Writes;
+            public readonly System.Exception Cause=new GoogleFirestoreMutationReconciliationException("owned/path",new System.IO.IOException("owned lost reply"));
+            public BatchProbeProvider():base(enableStorage:false,enableFirestore:false,enableBigQuery:false) {}
+            public override Task<NextGenSoftware.OASIS.Common.OASISResult<IHolon>> SaveHolonAsync(IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
+            {
+                Writes++;
+                return Task.FromResult(Writes==1 ? new NextGenSoftware.OASIS.Common.OASISResult<IHolon> {Result=holon,IsSaved=true}
+                    : new NextGenSoftware.OASIS.Common.OASISResult<IHolon> {IsError=true,Exception=Cause,Message=Cause.Message});
+            }
+        }
+
+        [TestMethod]
         public async Task ExportsValidateScopeAndPreserveStorageErrors()
         {
             var provider=new FailedActivationProvider();
