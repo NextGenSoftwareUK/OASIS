@@ -736,6 +736,40 @@ public class EthereumOASISIntegrationTests
         await provider.DeActivateProviderAsync();
     }
 
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task FailedGraphPlanningDoesNotPublishAllocatedIdsOrParentLinks(bool synchronous)
+    {
+        var (provider,address)=await CreateActivatedProviderAsync();
+        var account=new Account(PrivateKey,ChainId);
+        var web3=new Web3(account,Host);
+        var before=await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(account.Address);
+        var root=new CoreHolon(); var child=new CoreHolon(); root.Children.Add(child); root.Children.Add(null!);
+        var invalid=synchronous ? provider.SaveHolon(root) : await provider.SaveHolonAsync(root);
+        Assert.IsTrue(invalid.IsError); Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",invalid.ErrorCode);
+        Assert.AreEqual(Guid.Empty,root.Id); Assert.AreEqual(Guid.Empty,child.Id); Assert.AreEqual(Guid.Empty,child.ParentHolonId);
+        root.Children.RemoveAt(1);
+        var key=Environment.GetEnvironmentVariable("OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY");
+        try
+        {
+            Environment.SetEnvironmentVariable("OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY",null);
+            var missingKey=synchronous ? provider.SaveHolon(root) : await provider.SaveHolonAsync(root);
+            Assert.IsTrue(missingKey.IsError); Assert.IsFalse(missingKey.IsSaved); Assert.IsNull(missingKey.Result);
+            Assert.AreEqual(Guid.Empty,root.Id); Assert.AreEqual(Guid.Empty,child.Id); Assert.AreEqual(Guid.Empty,child.ParentHolonId);
+        }
+        finally { Environment.SetEnvironmentVariable("OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY",key); }
+        var after=await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(account.Address);
+        Assert.AreEqual(before.Value,after.Value);
+        Assert.AreEqual(BigInteger.Zero,await new NextGenSoftwareOASISService(web3,address).GetHolonsCountQueryAsync());
+        // The same input can be repaired and saved without retaining phantom allocations.
+        var saved=synchronous ? provider.SaveHolon(root) : await provider.SaveHolonAsync(root);
+        Assert.IsFalse(saved.IsError,saved.Message); Assert.IsTrue(saved.IsSaved);
+        Assert.AreNotEqual(Guid.Empty,root.Id); Assert.AreNotEqual(Guid.Empty,child.Id); Assert.AreEqual(root.Id,child.ParentHolonId);
+        Assert.AreEqual(child.Id,saved.Result.Children.Single().Id);
+        await provider.DeActivateProviderAsync();
+    }
+
     [TestMethod]
     public async Task Holon_SaveLoadRoundTrip_UsesDisposableEvmChain()
     {
