@@ -2,6 +2,8 @@
 
 ## Current acceptance summary
 
+Staging-gate expansion is now implemented in source and awaiting hosted/live proof: [runbook and owner setup](RAILWAY_STAGING_GATE.md). Live push autodeploys are disabled for seven staging/seven production services; dev unchanged. Protected GitHub production environment requires dellams approval, master-only, no administrator bypass. Eleven local gate tests pass. Owner-scoped Railway token creation is denied by the available login, and a read-only audit found staging shares production DNA/payment credentials (including a live-mode Stripe key). Gate preflight deliberately blocks until isolated staging data/test credentials are configured. No production approval/deployment or universal end-to-end claim is made for this new gate.
+
 Verification expansion requested: the [end-to-end proof ledger](RELEASE_END_TO_END_PROOF.md) tracks integrated master run38671614947 with publication disabled. This is additional proof work, not a reopening or duplication of completed public uploads. The universal all-products/upload/staging-gate/device claim remains unproved until the ledger's explicit boundaries are resolved.
 
 - Published releases are complete as inventoried below; no repeat uploads are required.

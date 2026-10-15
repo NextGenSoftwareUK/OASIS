@@ -1,0 +1,116 @@
+name: Gated Railway release
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate:
+        description: Full master commit SHA with successful exact-source CI
+        required: true
+        type: string
+  workflow_run:
+    workflows: [OASIS CI/CD Pipeline]
+    branches: [master]
+    types: [completed]
+
+permissions:
+  contents: read
+  actions: read
+
+# Hold the staging candidate stable even while production awaits human review.
+# A second candidate must not replace its staged evidence underneath an approval.
+concurrency:
+  group: oasis-controlled-railway-release
+  cancel-in-progress: false
+
+jobs:
+  freeze:
+    if: github.ref == 'refs/heads/master' && (github.event_name == 'workflow_dispatch' || github.event.workflow_run.conclusion == 'success')
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - name: Test fail-closed orchestration contracts
+        run: python3 -B -m unittest discover -s Scripts -p test_railway_release_gate.py
+      - name: Freeze the exact CI-tested candidate
+        env:
+          GH_TOKEN: ${{ github.token }}
+          CANDIDATE: ${{ inputs.candidate || github.event.workflow_run.head_sha }}
+        run: python3 -B Scripts/railway_release_gate.py freeze --candidate "$CANDIDATE" --output evidence/candidate.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        with:
+          name: frozen-railway-candidate
+          path: evidence/candidate.json
+          if-no-files-found: error
+          retention-days: 30
+
+  staging:
+    needs: freeze
+    environment: oasis-staging-gated
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: frozen-railway-candidate
+          path: evidence
+      - name: Deploy exact candidate and accept staging
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+        run: python3 -B Scripts/railway_release_gate.py staging --candidate evidence/candidate.json --output evidence/staging.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: railway-staging-evidence
+          path: evidence/staging.json
+          if-no-files-found: warn
+          retention-days: 30
+      - name: Publish approval evidence summary
+        run: |
+          python3 - <<'PY' >> "$GITHUB_STEP_SUMMARY"
+          import json
+          r=json.load(open('evidence/staging.json'))
+          print('## Staging accepted; production requires dellams approval')
+          print('Candidate: `' + r['candidate']['candidate'] + '`')
+          print('Source tree: `' + r['candidate']['tree'] + '`')
+          print('Ten HTTPS/JSON contract checks passed across seven exact-source deployments.')
+          print('Review railway-staging-evidence before approving. Acceptance excludes paid provider work and physical devices.')
+          PY
+
+  production:
+    needs: [freeze, staging]
+    # Native GitHub required-reviewer protection releases secrets only after approval.
+    environment: oasis-production-gated
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: frozen-railway-candidate
+          path: evidence
+      - uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8
+        with:
+          name: railway-staging-evidence
+          path: evidence
+      - name: Revalidate staging after approval, promote exact source and accept production
+        env:
+          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+          RAILWAY_STAGING_TOKEN: ${{ secrets.RAILWAY_STAGING_TOKEN }}
+        run: python3 -B Scripts/railway_release_gate.py production --candidate evidence/candidate.json --evidence evidence/staging.json --output evidence/production.json
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7
+        if: always()
+        with:
+          name: railway-production-evidence
+          path: evidence/production.json
+          if-no-files-found: warn
+          retention-days: 30
