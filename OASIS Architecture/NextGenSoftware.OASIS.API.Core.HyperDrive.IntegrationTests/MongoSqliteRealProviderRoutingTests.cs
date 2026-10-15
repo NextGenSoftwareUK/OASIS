@@ -1113,7 +1113,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 await (Task)redirect.Invoke(failureEngine, new object[] { ProviderType.SQLLiteDBOASIS, ProviderType.MongoDBOASIS })!;
                 await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
                     { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("times",1) },
-                    { "data", new BsonDocument { { "failCommands", new BsonArray { "aggregate" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                    { "data", new BsonDocument { { "failCommands", new BsonArray { "find" } }, { "appName", failureApp }, { "errorCode", 2 } } }
                 });
                 var searchFailureRequest = new StorageOperationRequest { Operation = "Search", LoadChildren = false,
                     PreferredProvider = ProviderType.SQLLiteDBOASIS, SearchParams = new SearchParams { SearchOnlyForCurrentAvatar = false,
