@@ -122,7 +122,7 @@ public class GoogleNativeDetailTests
                 Google.Api.Gax.Grpc.RetrySettings.FromConstantBackoff(1,TimeSpan.Zero,_=>false));
             var client=new Google.Cloud.Firestore.V1.FirestoreClientBuilder {
                 Endpoint="127.0.0.1:18083",ChannelCredentials=Grpc.Core.ChannelCredentials.Insecure,
-                Settings=new Google.Cloud.Firestore.V1.FirestoreSettings {GetDocumentSettings=settings}}.Build();
+                Settings=new Google.Cloud.Firestore.V1.FirestoreSettings {GetDocumentSettings=settings,CommitSettings=settings}}.Build();
             var unreachable=FirestoreDb.Create("oasis-google-native",client);
             try {
                 field.SetValue(google,unreachable);
@@ -136,6 +136,15 @@ public class GoogleNativeDetailTests
                     Assert.AreEqual(Core.Enums.ProviderType.LocalFileOASIS,manager.LastFailoverDiagnostic.SelectedProvider);
                     Assert.AreEqual(before+1,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
                 }
+                var failedId=Guid.NewGuid();
+                var secondaryBefore=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests;
+                var failed=await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarDetail>(
+                    new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {Operation="SaveAvatarDetail",PreferredProvider=Core.Enums.ProviderType.GoogleCloudOASIS,
+                        Payload=new AvatarDetail {Id=failedId,IsActive=true,Karma=888}});
+                Assert.IsTrue(failed.IsError);
+                Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(failed.Exception));
+                Assert.AreEqual(secondaryBefore,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
+                Assert.IsNull((await local.LoadAvatarDetailAsync(failedId)).Result);
             }
             finally {field.SetValue(google,healthy);}
         }
