@@ -12,6 +12,19 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
     {
         private GoogleCloudOASIS _provider = null!;
 
+        [TestMethod]
+        public async Task DetailGuidAndListRetainOriginalActivationFailure()
+        {
+            var provider=new FailedActivationProvider();
+            Assert.IsInstanceOfType((await provider.LoadAvatarDetailAsync(System.Guid.Empty)).Exception,typeof(System.ArgumentException));
+            Assert.IsInstanceOfType((await provider.LoadAllAvatarDetailsAsync(version:1)).Exception,typeof(System.NotSupportedException));
+            Assert.AreEqual(0,provider.Activations);
+            var one=await provider.LoadAvatarDetailAsync(System.Guid.NewGuid());
+            var all=await provider.LoadAllAvatarDetailsAsync();
+            Assert.AreSame(provider.Cause,one.Exception);Assert.AreSame(provider.Cause,all.Exception);
+            Assert.AreEqual("owned-code",one.ErrorCode);Assert.AreEqual("owned-code",all.ErrorCode);Assert.AreEqual(2,provider.Activations);
+        }
+
         private sealed class FailedActivationProvider : GoogleCloudOASIS
         {
             public int Activations;
