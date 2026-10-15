@@ -378,7 +378,7 @@ public partial class SolanaOASIS
         bool recursive = true, int maxChildDepth = 0, bool continueOnError = true,
         bool loadChildrenFromProvider = false, int version = 0)
     {
-        return LoadHolonAsync(providerKey).Result;
+        return LoadHolonAsync(providerKey,loadChildren,recursive,maxChildDepth,continueOnError,loadChildrenFromProvider,version).Result;
     }
 
     public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true,
@@ -388,11 +388,36 @@ public partial class SolanaOASIS
         var result = new OASISResult<IHolon>();
         try
         {
+            if(string.IsNullOrWhiteSpace(providerKey)) throw new ArgumentException("A Solana storage signature is required.",nameof(providerKey));
+            if(maxChildDepth<0 || version<0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
+            if(version!=0 && loadChildrenFromProvider && loadChildren)
+                throw new NotSupportedException("Solana historical provider-child graph reads require a versioned index.");
+            if(!IsProviderActivated)
+            {
+                var activation=await ActivateProviderAsync();
+                if(activation.IsError) throw new InvalidOperationException(activation.Message,activation.Exception);
+            }
             var solanaHolonDto = await _solanaRepository.GetAsync<SolanaHolonDto>(providerKey);
-
+            if(version!=0 && solanaHolonDto.Version!=version) throw new KeyNotFoundException("Solana signature does not reference the requested record version.");
+            var holon=solanaHolonDto.GetHolon();
+            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS]=providerKey;
+            var graphRecords=new List<IHolon> {holon};
+            if(loadChildren && loadChildrenFromProvider)
+            {
+                var stored=await _solanaRepository.GetAllAsync<SolanaHolonDto>();
+                foreach(var entry in stored)
+                {
+                    if(entry.Record.Id==holon.Id) continue;
+                    var child=entry.Record.GetHolon();
+                    child.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS]=entry.Signature;
+                    graphRecords.Add(child);
+                }
+            }
+            var project=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphProjection.Create(graphRecords,loadChildren,recursive,maxChildDepth,0,loadChildrenFromProvider,
+                source=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<Core.Holons.Holon>(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(source)));
+            result.Result=project(holon);
             result.IsLoaded = true;
             result.IsError = false;
-            result.Result = solanaHolonDto.GetHolon();
         }
         catch (Exception e)
         {
