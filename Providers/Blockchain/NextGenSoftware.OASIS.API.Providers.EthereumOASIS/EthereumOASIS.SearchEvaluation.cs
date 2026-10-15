@@ -43,6 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 {
                     object selection=avatar ? group.AvatarSearchParams : group.HolonSearchParams;
                     var json=JObject.FromObject(record);
+                    foreach(var credential in new[] {"Password","JwtToken","RefreshToken","RefreshTokens","ResetToken","VerificationToken"}) json.Remove(credential);
                     var flags=selection?.GetType().GetProperties().Where(p=>p.PropertyType == typeof(bool) && (bool)p.GetValue(selection)).Select(p=>p.Name).ToList();
                     if(flags?.Contains("SearchAllFields") == true)
                         flags=json.Properties().Where(p=>p.Value is JValue).Select(p=>p.Name).ToList();
@@ -56,9 +57,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                         json["MetaData"]=json["MetaData"]?[metadataKey];
                     if(group is ISearchTextGroup text)
                     {
-                        if(text.SearchIds) flags.Add("Id");
                         if(text.SearchProviderKeys) flags.Add("ProviderUniqueStorageKey");
                         match=flags.Any(name=>json[name]?.ToString().Contains(text.SearchQuery,StringComparison.OrdinalIgnoreCase) == true);
+                        if(text.SearchIds)
+                            match |= json.Descendants().OfType<JValue>().Any(value=>Guid.TryParse(value.ToString(),out _)
+                                && value.ToString().Contains(text.SearchQuery,StringComparison.OrdinalIgnoreCase));
                     }
                     else if(group is ISearchNumberGroup number)
                         match=flags.Any(name=>decimal.TryParse(json[name]?.ToString(),NumberStyles.Number,CultureInfo.InvariantCulture,out var value) && CompareSearch(value.CompareTo(number.Number),number.NumberOperator));
