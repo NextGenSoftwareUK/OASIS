@@ -280,7 +280,14 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             {
                 if (softDelete)
                 {
-                    var loaded = await LoadAvatarAsync(id); if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: Avatar '{id}' not found."); return result; }
+                    var loaded = await LoadAvatarAsync(id);
+                    if (loaded.IsError || loaded.Result == null)
+                    {
+                        result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,bool>(loaded);
+                        result.Result=false; result.IsSaved=false;
+                        if(!result.IsError) OASISErrorHandling.HandleError(ref result,$"DynamoDBOASIS: Avatar '{id}' not found.");
+                        return result;
+                    }
                     var av = (Avatar)loaded.Result; av.DeletedDate = DateTime.UtcNow;
                     await _client.UpdateItemAsync(new UpdateItemRequest
                     {
@@ -301,10 +308,23 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string u, bool softDelete = true) { var a = await LoadAvatarByUsernameAsync(u); if (a.IsError || a.Result == null) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not found."); return r; } return await DeleteAvatarAsync(a.Result.Id, softDelete); }
-        public override OASISResult<bool> DeleteAvatarByUsername(string u, bool softDelete = true) => DeleteAvatarByUsernameAsync(u, softDelete).Result;
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool softDelete = true) { var a = await LoadAvatarByEmailAsync(e); if (a.IsError || a.Result == null) { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "Not found."); return r; } return await DeleteAvatarAsync(a.Result.Id, softDelete); }
-        public override OASISResult<bool> DeleteAvatarByEmail(string e, bool softDelete = true) => DeleteAvatarByEmailAsync(e, softDelete).Result;
+        private async Task<OASISResult<bool>> DeleteSelectedAvatarAsync(Task<OASISResult<IAvatar>> lookup, bool softDelete)
+        {
+            var selected=await lookup;
+            if(selected.IsError || selected.Result==null)
+            {
+                var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,bool>(selected);
+                result.Result=false;
+                result.IsSaved=false;
+                if(!result.IsError) OASISErrorHandling.HandleError(ref result,"DynamoDBOASIS: Avatar not found.");
+                return result;
+            }
+            return await DeleteAvatarAsync(selected.Result.Id,softDelete);
+        }
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string u, bool softDelete = true) => DeleteSelectedAvatarAsync(LoadAvatarByUsernameAsync(u),softDelete);
+        public override OASISResult<bool> DeleteAvatarByUsername(string u, bool softDelete = true) => DeleteAvatarByUsernameAsync(u, softDelete).GetAwaiter().GetResult();
+        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string e, bool softDelete = true) => DeleteSelectedAvatarAsync(LoadAvatarByEmailAsync(e),softDelete);
+        public override OASISResult<bool> DeleteAvatarByEmail(string e, bool softDelete = true) => DeleteAvatarByEmailAsync(e, softDelete).GetAwaiter().GetResult();
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string pk, bool softDelete = true) { if (Guid.TryParse(pk, out Guid id)) return await DeleteAvatarAsync(id, softDelete); return await DeleteAvatarByUsernameAsync(pk, softDelete); }
         public override OASISResult<bool> DeleteAvatar(string pk, bool softDelete = true) => DeleteAvatarAsync(pk, softDelete).Result;
 

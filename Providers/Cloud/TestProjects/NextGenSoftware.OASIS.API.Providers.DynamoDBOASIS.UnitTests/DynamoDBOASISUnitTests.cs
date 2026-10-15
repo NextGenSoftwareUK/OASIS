@@ -7,6 +7,34 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
     [TestClass]
     public class DynamoDBOASISProviderTests
     {
+        private sealed class FailedIdentityProvider : DynamoDBOASIS
+        {
+            public readonly NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException Cause=new();
+            public int Deletes;
+            public FailedIdentityProvider():base("owned-key","owned-secret","us-east-1") { }
+            private Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>> Failure()
+                => Task.FromResult(new NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar> {
+                    IsError=true,Exception=Cause,ErrorCode=NextGenSoftware.OASIS.Common.OASISResultErrorCodes.AmbiguousIdentity,Message="owned duplicate identity"});
+            public override Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>> LoadAvatarByUsernameAsync(string u,int version=0)=>Failure();
+            public override Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar>> LoadAvatarByEmailAsync(string e,int version=0)=>Failure();
+            public override Task<NextGenSoftware.OASIS.Common.OASISResult<bool>> DeleteAvatarAsync(Guid id,bool softDelete=true) {
+                Deletes++; throw new InvalidOperationException("Delete must not execute after lookup failure.");
+            }
+        }
+
+        [DataTestMethod]
+        [DataRow(false,false)] [DataRow(false,true)] [DataRow(true,false)] [DataRow(true,true)]
+        public async Task SelectorDeletePreservesTerminalIdentityFailure(bool synchronous,bool email)
+        {
+            var provider=new FailedIdentityProvider();
+            var result=synchronous ? (email ? provider.DeleteAvatarByEmail("owned"):provider.DeleteAvatarByUsername("owned"))
+                : await (email ? provider.DeleteAvatarByEmailAsync("owned"):provider.DeleteAvatarByUsernameAsync("owned"));
+            Assert.IsTrue(result.IsError); Assert.IsFalse(result.Result); Assert.IsFalse(result.IsSaved);
+            Assert.AreSame(provider.Cause,result.Exception); Assert.AreEqual("owned duplicate identity",result.Message);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.AmbiguousIdentity,result.ErrorCode);
+            Assert.AreEqual(0,provider.Deletes);
+        }
+
         [DataTestMethod]
         [DataRow(false)]
         [DataRow(true)]
