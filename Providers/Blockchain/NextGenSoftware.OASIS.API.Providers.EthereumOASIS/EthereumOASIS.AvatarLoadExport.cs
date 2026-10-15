@@ -95,155 +95,19 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return LoadAllAvatarDetailsAsync(version).Result;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
-        {
-            var response = new OASISResult<IAvatar>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
+        public override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+            => LoadProviderIdentityAsync(providerKey,version,id=>LoadAvatarAsync(id,version));
 
-                // Query avatar by provider key from Ethereum smart contract
-                // Real Ethereum implementation: Query smart contract for avatar by provider key
-                try
-                {
-                    // Get current block number from Ethereum blockchain
-                    var currentBlockNumber = await Web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync();
-                    
-                    // Get gas price from Ethereum blockchain
-                    var gasPrice = await Web3Client.Eth.GasPrice.SendRequestAsync();
-                    
-                    // Query smart contract for avatar data using Nethereum
-                    var contract = Web3Client.Eth.GetContract(_abi, _contractAddress);
-                    var getAvatarByProviderKeyFunction = contract.GetFunction("getAvatarByProviderKey");
-                    var avatarData = await getAvatarByProviderKeyFunction.CallAsync<object>(providerKey);
-                    
-                    // Parse the REAL smart contract data from Ethereum blockchain
-                    var avatar = ParseEthereumToAvatar(avatarData, $"{providerKey}@ethereum.local");
-                    if (avatar == null)
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Failed to parse avatar data from Ethereum smart contract");
-                        return response;
-                    }
-                    
-                        response.Result = avatar;
-                        response.IsError = false;
-                    response.Message = "Avatar loaded successfully by provider key from Ethereum blockchain";
-                }
-                catch (Exception ex)
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Error loading avatar by provider key from Ethereum: {ex.Message}", ex);
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by provider key from Ethereum: {ex.Message}");
-            }
-            return response;
-        }
-
-        public async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyVersionAsync(string providerKey, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var response = await _httpClient.GetAsync($"{_apiBaseUrl}/avatars/by-provider-key/{Uri.EscapeDataString(providerKey)}?version={version}");
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var avatar = System.Text.Json.JsonSerializer.Deserialize<Avatar>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
-                    if (avatar != null)
-                    {
-                        result.Result = avatar;
-                        result.IsError = false;
-                        result.Message = "Avatar loaded successfully by provider key from Ethereum";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize avatar from Ethereum API");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Ethereum API error: {response.StatusCode} - {response.ReasonPhrase}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key from Ethereum: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyVersionAsync(string providerKey, int version = 0)
+            => LoadAvatarByProviderKeyAsync(providerKey,version);
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
             return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
         }
 
-        public async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsByVersionAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IAvatar>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var response = await _httpClient.GetAsync($"{_apiBaseUrl}/avatars/all?version={version}");
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var content = await response.Content.ReadAsStringAsync();
-                    var avatars = System.Text.Json.JsonSerializer.Deserialize<List<Avatar>>(content, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
-                    
-                    if (avatars != null)
-                    {
-                        result.Result = avatars.Select(a => (IAvatar)a).ToList();
-                        result.IsError = false;
-                        result.Message = $"Successfully loaded {avatars.Count} avatars from Ethereum";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to deserialize avatars from Ethereum API");
-                    }
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Ethereum API error: {response.StatusCode} - {response.ReasonPhrase}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading all avatars from Ethereum: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsByVersionAsync(int version = 0)
+            => LoadAllAvatarsAsync(version);
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {

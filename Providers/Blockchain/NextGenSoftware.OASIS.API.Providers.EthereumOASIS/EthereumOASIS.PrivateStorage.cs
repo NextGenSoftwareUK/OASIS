@@ -26,6 +26,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         {
             ArgumentNullException.ThrowIfNull(record);
             using var codec = OpenPrivateStorageCodec();
+            record.ProviderUniqueStorageKey ??= new System.Collections.Generic.Dictionary<Core.Enums.ProviderType,string>();
+            record.ProviderUniqueStorageKey[Core.Enums.ProviderType.EthereumOASIS] = record.Id.ToString();
             return codec.Encrypt(PrivateStorageContext(kind,HashUtility.GetNumericHash(record.Id.ToString())),JsonConvert.SerializeObject(record));
         }
 
