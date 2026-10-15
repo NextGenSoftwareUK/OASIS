@@ -391,6 +391,46 @@ public class EthereumOASISIntegrationTests
         await provider.DeActivateProviderAsync();
     }
 
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task MissingNativeMutationCannotProduceSuccessfulReceipt(bool populated)
+    {
+        var (provider,address) = await CreateActivatedProviderAsync();
+        var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        if(populated)
+        {
+            await service.CreateHolonRequestAndWaitForReceiptAsync(901,"retained","holon");
+            await service.CreateAvatarRequestAndWaitForReceiptAsync(901,"retained","avatar");
+            await service.CreateAvatarDetailRequestAndWaitForReceiptAsync(901,"retained","detail");
+        }
+        foreach(var attempt in new Func<Task<Nethereum.RPC.Eth.DTOs.TransactionReceipt>>[] {
+            ()=>service.UpdateHolonRequestAndWaitForReceiptAsync(902,"missing"),
+            ()=>service.UpdateAvatarRequestAndWaitForReceiptAsync(902,"missing"),
+            ()=>service.UpdateAvatarDetailRequestAndWaitForReceiptAsync(902,"missing"),
+            ()=>service.DeleteHolonRequestAndWaitForReceiptAsync(902),
+            ()=>service.DeleteAvatarRequestAndWaitForReceiptAsync(902),
+            ()=>service.DeleteAvatarDetailRequestAndWaitForReceiptAsync(902)
+        })
+        {
+            Exception? rejection = null;
+            try { var receipt=await attempt(); Assert.AreEqual(BigInteger.Zero,receipt.Status.Value,"Missing mutation must not succeed"); }
+            catch(Exception error) when(error is not AssertFailedException) { rejection=error; }
+            if(rejection != null && populated) StringAssert.Contains(rejection.ToString(),"OASIS record not found");
+        }
+        var expected = populated ? BigInteger.One : BigInteger.Zero;
+        Assert.AreEqual(expected,await service.GetHolonsCountQueryAsync());
+        Assert.AreEqual(expected,await service.GetAvatarsCountQueryAsync());
+        Assert.AreEqual(expected,await service.GetAvatarDetailsCountQueryAsync());
+        if(populated)
+        {
+            Assert.AreEqual("holon",(await service.GetHolonByIdQueryAsync(901)).ReturnValue1.Info);
+            Assert.AreEqual("avatar",(await service.GetAvatarByIdQueryAsync(901)).ReturnValue1.Info);
+            Assert.AreEqual("detail",(await service.GetAvatarDetailByIdQueryAsync(901)).ReturnValue1.Info);
+        }
+        await provider.DeActivateProviderAsync();
+    }
+
     [TestMethod]
     public async Task RepeatedStorageSavesUpdateOneIdentityRatherThanAppendDuplicates()
     {
