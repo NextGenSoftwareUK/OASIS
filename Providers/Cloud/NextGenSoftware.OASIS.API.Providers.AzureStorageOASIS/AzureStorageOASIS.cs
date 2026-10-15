@@ -31,7 +31,6 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
         private readonly BlobServiceClient _serviceClient;
         private readonly string _holonContainer;
         private readonly string _avatarContainer;
-        private bool _isActivated;
 
         public AzureStorageOASIS(
             string connectionString,
@@ -59,13 +58,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 await holons.CreateIfNotExistsAsync(PublicAccessType.None);
                 var avatars = _serviceClient.GetBlobContainerClient(_avatarContainer);
                 await avatars.CreateIfNotExistsAsync(PublicAccessType.None);
-                _isActivated = true; result.Result = true; result.Message = "AzureStorageOASIS activated.";
+                IsProviderActivated = true; result.Result = true; result.Message = "AzureStorageOASIS activated.";
             }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
+            catch (Exception ex) { IsProviderActivated=false; result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
         }
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() { _isActivated = false; return new OASISResult<bool>(true); }
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync() { IsProviderActivated = false; return new OASISResult<bool>(true); }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         // ─── Helpers ─────────────────────────────────────────────────────────────
@@ -83,10 +82,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
         }
 
         private static T? Deserialise<T>(string json) =>
-            JsonSerializer.Deserialize<T>(json, new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+            NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<T>(json);
 
         private static string Serialise<T>(T obj) =>
-            JsonSerializer.Serialize(obj, new JsonSerializerOptions { WriteIndented = false });
+            NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(obj);
 
         // ─── Holons ──────────────────────────────────────────────────────────────
 
@@ -261,12 +260,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 var blob = _serviceClient.GetBlobContainerClient(_avatarContainer).GetBlobClient(providerKey);
                 if (!await blob.ExistsAsync()) { OASISErrorHandling.HandleError(ref result, $"AzureStorageOASIS: Avatar blob '{providerKey}' not found."); return result; }
                 var json = await ReadBlobAsync(blob);
-                var doc = JsonDocument.Parse(json);
-                var avatar = new Avatar();
+                var avatar = Deserialise<Avatar>(json) ?? throw new InvalidDataException("Azure avatar record is null.");
+                if(avatar.Id==Guid.Empty) throw new InvalidDataException("Azure avatar record has no identity.");
+                avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = providerKey;
-                avatar.Username = doc.RootElement.TryGetProperty("username", out var u) ? u.GetString() : "";
-                avatar.Email = doc.RootElement.TryGetProperty("email", out var e) ? e.GetString() : "";
-                if (doc.RootElement.TryGetProperty("id", out var id) && Guid.TryParse(id.GetString(), out var guid)) avatar.Id = guid;
                 result.Result = avatar;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
@@ -306,8 +303,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
-                var key = avatar.Id != Guid.Empty ? avatar.Id.ToString() : $"username:{avatar.Username}";
-                var json = Serialise(new { id = avatar.Id, username = avatar.Username, email = avatar.Email });
+                if(avatar.Id==Guid.Empty) avatar.Id=Guid.NewGuid();
+                var key = avatar.Id.ToString();
+                var json = Serialise(avatar);
                 var container = _serviceClient.GetBlobContainerClient(_avatarContainer);
                 var blob = container.GetBlobClient(key);
                 using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
