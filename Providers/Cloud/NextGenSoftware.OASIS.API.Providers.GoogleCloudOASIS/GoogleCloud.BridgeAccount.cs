@@ -68,43 +68,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     foreach (var doc in snapshot.Documents)
                     {
                         var holonData = doc.ConvertTo<Dictionary<string, object>>();
-                        var holon = new Holon
-                        {
-                            Id = Guid.Parse(doc.Id),
-                            Name = holonData.GetValueOrDefault("name")?.ToString(),
-                            Description = holonData.GetValueOrDefault("description")?.ToString(),
-                            HolonType = Enum.TryParse<HolonType>(holonData.GetValueOrDefault("holonType")?.ToString(), out var holonType) ? holonType : HolonType.Holon,
-                            CreatedDate = ((Timestamp)holonData.GetValueOrDefault("createdDate")).ToDateTime(),
-                            ModifiedDate = ((Timestamp)holonData.GetValueOrDefault("modifiedDate")).ToDateTime(),
-                            Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
-                            IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
-                            // Map ALL Holon properties
-                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : Guid.Empty,
-                            ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.GoogleCloudOASIS] = holonData.GetValueOrDefault("providerKey")?.ToString() ?? "" },
-                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : Guid.Empty,
-                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : Guid.Empty,
-                            IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
-                            IsNewHolon = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
-                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : Guid.Empty,
-                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : DateTime.MinValue,
-                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : Guid.Empty,
-                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : Guid.Empty,
-                            // Map Google Cloud specific data to custom properties
-                            MetaData = new Dictionary<string, object>
-                            {
-                                ["GoogleCloudProjectId"] = _projectId,
-                                ["GoogleCloudBucketName"] = _bucketName,
-                                ["GoogleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
-                                ["GoogleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
-                                ["GoogleCloudDocumentId"] = doc.Id,
-                                ["GoogleCloudDocumentPath"] = doc.Reference.Path,
-                                ["GoogleCloudCreateTime"] = doc.CreateTime,
-                                ["GoogleCloudUpdateTime"] = doc.UpdateTime,
-                                ["GoogleCloudReadTime"] = doc.ReadTime,
-                                ["AvatarEmail"] = avatarEmail,
-                                ["ExportType"] = "AvatarData"
-                            }
-                        };
+                    var holon = DecodeHolon(holonData,doc.Id);
                         
                         holons.Add(holon);
                     }
@@ -163,42 +127,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     foreach (var doc in snapshot.Documents)
                     {
                         var holonData = doc.ConvertTo<Dictionary<string, object>>();
-                        var holon = new Holon
-                        {
-                            Id = Guid.Parse(doc.Id),
-                            Name = holonData.GetValueOrDefault("name")?.ToString(),
-                            Description = holonData.GetValueOrDefault("description")?.ToString(),
-                            HolonType = Enum.TryParse<HolonType>(holonData.GetValueOrDefault("holonType")?.ToString(), out var holonType) ? holonType : HolonType.Holon,
-                            CreatedDate = ((Timestamp)holonData.GetValueOrDefault("createdDate")).ToDateTime(),
-                            ModifiedDate = ((Timestamp)holonData.GetValueOrDefault("modifiedDate")).ToDateTime(),
-                            Version = Convert.ToInt32(holonData.GetValueOrDefault("version") ?? 1),
-                            IsActive = Convert.ToBoolean(holonData.GetValueOrDefault("isActive") ?? true),
-                            // Map ALL Holon properties
-                            ParentHolonId = holonData.GetValueOrDefault("parentId") != null ? Guid.Parse(holonData.GetValueOrDefault("parentId").ToString()) : Guid.Empty,
-                            ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.GoogleCloudOASIS] = holonData.GetValueOrDefault("providerKey")?.ToString() ?? "" },
-                            PreviousVersionId = holonData.GetValueOrDefault("previousVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("previousVersionId").ToString()) : Guid.Empty,
-                            VersionId = holonData.GetValueOrDefault("nextVersionId") != null ? Guid.Parse(holonData.GetValueOrDefault("nextVersionId").ToString()) : Guid.Empty,
-                            IsChanged = Convert.ToBoolean(holonData.GetValueOrDefault("isChanged") ?? false),
-                            IsNewHolon = Convert.ToBoolean(holonData.GetValueOrDefault("isNew") ?? false),
-                            DeletedByAvatarId = holonData.GetValueOrDefault("deletedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("deletedByAvatarId").ToString()) : Guid.Empty,
-                            DeletedDate = holonData.GetValueOrDefault("deletedDate") != null ? ((Timestamp)holonData.GetValueOrDefault("deletedDate")).ToDateTime() : DateTime.MinValue,
-                            CreatedByAvatarId = holonData.GetValueOrDefault("createdByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("createdByAvatarId").ToString()) : Guid.Empty,
-                            ModifiedByAvatarId = holonData.GetValueOrDefault("modifiedByAvatarId") != null ? Guid.Parse(holonData.GetValueOrDefault("modifiedByAvatarId").ToString()) : Guid.Empty,
-                            // Map Google Cloud specific data to custom properties
-                            MetaData = new Dictionary<string, object>
-                            {
-                                ["GoogleCloudProjectId"] = _projectId,
-                                ["GoogleCloudBucketName"] = _bucketName,
-                                ["GoogleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
-                                ["GoogleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
-                                ["GoogleCloudDocumentId"] = doc.Id,
-                                ["GoogleCloudDocumentPath"] = doc.Reference.Path,
-                                ["GoogleCloudCreateTime"] = doc.CreateTime,
-                                ["GoogleCloudUpdateTime"] = doc.UpdateTime,
-                                ["GoogleCloudReadTime"] = doc.ReadTime,
-                                ["ExportType"] = "AllData"
-                            }
-                        };
+                    var holon = DecodeHolon(holonData,doc.Id);
                         
                         holons.Add(holon);
                     }
