@@ -65,6 +65,17 @@ public class IPFSNativeStorageTests
             Assert.Empty(Assert.Single((await provider.LoadHolonsForParentAsync(parentKey,loadChildren:false,loadChildrenFromProvider:true)).Result).Children);
             Assert.Empty(Assert.Single((await provider.LoadHolonsForParentAsync(parentKey,maxChildDepth:1,curentChildDepth:1,loadChildrenFromProvider:true)).Result).Children);
             Assert.Throws<ArgumentOutOfRangeException>(()=>provider.LoadHolonsForParent(parentKey,maxChildDepth:-1));
+            var loadedRoot=await provider.LoadHolonAsync(id,loadChildrenFromProvider:true);
+            Assert.False(loadedRoot.IsError,loadedRoot.Message);
+            Assert.Equal(grandchild.Id,Assert.Single(Assert.Single(loadedRoot.Result.Children).Children).Id);
+            var shallow=provider.LoadHolon(parentKey,recursive:false,loadChildrenFromProvider:true);
+            Assert.False(shallow.IsError,shallow.Message);
+            Assert.Empty(Assert.Single(shallow.Result.Children).Children);
+            Assert.Empty(provider.LoadHolon(id,loadChildren:false,loadChildrenFromProvider:true).Result.Children);
+            var historical=provider.LoadHolon(parentKey,version:1);
+            Assert.True(historical.IsError); Assert.IsType<NotSupportedException>(historical.Exception);
+            var missing=await provider.LoadHolonAsync(Guid.NewGuid(),loadChildren:false);
+            Assert.True(missing.IsError); Assert.Null(missing.Result);
             foreach(var cid in new[] {avatar.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],detail.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],holon.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress})
             {
                 var raw=await provider.IPFSClient.FileSystem.ReadAllTextAsync((Cid)cid);
