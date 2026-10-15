@@ -1,0 +1,17 @@
+name: Railway release gate contracts
+on:
+  push:
+    branches: [Development, master]
+    paths: ['Scripts/railway_release_gate*', 'Scripts/test_railway_release_gate.py', '.github/workflows/railway-*']
+  pull_request:
+    paths: ['Scripts/railway_release_gate*', 'Scripts/test_railway_release_gate.py', '.github/workflows/railway-*']
+permissions:
+  contents: read
+jobs:
+  contracts:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          persist-credentials: false
+      - run: python3 -B -m unittest discover -s Scripts -p test_railway_release_gate.py
