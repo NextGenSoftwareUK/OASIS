@@ -224,7 +224,7 @@ public partial class Web3NativeStorageTests
                         var entity=await ((Web3CoreOASIS)healthy!).GetAvatarDetailByIdAsync((uint)Core.Utilities.HashUtility.GetNumericHash(id.ToString()));
                         var committed=polygon.DecodePrivateEntity<AvatarDetail>("detail",entity);
                         Assert.AreEqual(id,committed.Id);Assert.AreEqual(734L,committed.XP);Assert.AreEqual(91L,committed.Karma);
-                        Assert.AreEqual(string.Empty,((Web3MutationReconciliationException)saved.Exception).OriginalTransactionId,"Lost submission hash must not be invented.");
+                        Assert.AreEqual(proxy.AcceptedHashes.Last(),((Web3MutationReconciliationException)saved.Exception).OriginalTransactionId,"Retain the hash of the exact signed bytes despite lost submission response.");
                         foreach(var operation in new[] {"SaveAvatar","SaveHolon","DeleteHolon","DeleteAvatar"})
                         {
                             var fixtureId=Guid.NewGuid();var numeric=(uint)Core.Utilities.HashUtility.GetNumericHash(fixtureId.ToString());

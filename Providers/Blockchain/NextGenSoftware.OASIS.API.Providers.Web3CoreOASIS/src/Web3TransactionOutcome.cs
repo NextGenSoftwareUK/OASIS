@@ -22,14 +22,17 @@ public sealed class Web3MutationReconciliationException : Exception, INativeMuta
 internal static class Web3TransactionOutcome
 {
     internal static async Task<TransactionReceipt> SubmitAndObserveAsync(Func<Task<string>> submit,
-        Func<string,Task<TransactionReceipt>> observe,TimeSpan window,TimeSpan interval)
+        Func<string,Task<TransactionReceipt>> observe,TimeSpan window,TimeSpan interval,string preparedHash=null)
     {
         ArgumentNullException.ThrowIfNull(submit);ArgumentNullException.ThrowIfNull(observe);
         if(window<=TimeSpan.Zero || interval<=TimeSpan.Zero) throw new ArgumentOutOfRangeException(nameof(window));
-        string hash=null;TransactionReceipt receipt=null;
+        string hash=preparedHash;TransactionReceipt receipt=null;
         try
         {
-            hash=await submit();
+            var returnedHash=await submit();
+            if(preparedHash!=null && !string.Equals(preparedHash,returnedHash,StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("EVM submission identity differs from original signed transaction.");
+            hash=returnedHash;
             if(string.IsNullOrWhiteSpace(hash)) throw new InvalidOperationException("EVM submission returned no transaction hash.");
             using var timeout=new CancellationTokenSource(window);
             while(true)

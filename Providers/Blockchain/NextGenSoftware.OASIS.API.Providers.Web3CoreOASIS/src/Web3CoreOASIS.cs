@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System;
 using System.Numerics;
 using System.Threading;
+using Nethereum.Hex.HexConvertors.Extensions;
 
 namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
@@ -73,12 +74,19 @@ public sealed class Web3CoreOASIS
         }
     }
 
-    private Task<TransactionReceipt> SendAndWaitForReceiptAsync(Function function, params object[] functionInput)
-        => Web3TransactionOutcome.SubmitAndObserveAsync(
-            ()=>function.SendTransactionAsync(_web3.TransactionManager.Account.Address,
-                gas:new HexBigInteger(3_000_000),value:null,functionInput),
+    private async Task<TransactionReceipt> SendAndWaitForReceiptAsync(Function function, params object[] functionInput)
+    {
+        var input=new TransactionInput {From=_web3.TransactionManager.Account.Address,To=_contractAddress,
+            Gas=new HexBigInteger(3_000_000),Data=function.GetData(functionInput)};
+        var signed=await _web3.TransactionManager.SignTransactionAsync(input);
+        var bytes=signed.HexToByteArray();
+        if(bytes.Length==0) throw new InvalidOperationException("EVM signer returned empty signed transaction.");
+        var hash="0x"+Convert.ToHexString(Nethereum.Util.Sha3Keccack.Current.CalculateHash(bytes)).ToLowerInvariant();
+        return await Web3TransactionOutcome.SubmitAndObserveAsync(
+            ()=>_web3.Eth.Transactions.SendRawTransaction.SendRequestAsync(signed),
             hash=>_web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(hash),
-            TimeSpan.FromSeconds(60),TimeSpan.FromMilliseconds(100));
+            TimeSpan.FromSeconds(60),TimeSpan.FromMilliseconds(100),hash);
+    }
 
     public Web3CoreOASIS(string accountPrivateKey, string blockchainUrl, string contractAddress, string abi,BigInteger? chainId=null)
     {
