@@ -21,7 +21,7 @@ using Holon = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
 {
     [BsonDiscriminator("OAPPDNA")]
-    [BsonIgnoreExtraElements()]
+    [BsonIgnoreExtraElements(Inherited = true)]
     public partial class HolonBase : IHolonBase, ISupportInitialize// Equvilant to the HolonBase object in OASIS.API.Core.
     {
         [BsonId]  
