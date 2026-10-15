@@ -375,42 +375,16 @@ public partial class Web3CoreOASISBaseProvider
 
     public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
     {
-        var result = new OASISResult<IAvatar>();
+        var result=new OASISResult<IAvatar>();
         try
         {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/avatars/{id}?version={version}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                var avatar = Newtonsoft.Json.JsonConvert.DeserializeObject<Avatar>(content);
-                
-                if (avatar != null)
-                {
-                    result.Result = avatar;
-                    result.IsError = false;
-                    result.Message = "Avatar loaded successfully from Web3Core";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to deserialize avatar from Web3Core API");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, $"Web3Core API error: {response.StatusCode} - {response.ReasonPhrase}");
-            }
+            if(id==Guid.Empty) throw new ArgumentException("A nonempty Web3Core avatar identity is required.",nameof(id));
+            if(version!=0) throw new NotSupportedException("Web3Core historical storage reads are not implemented.");
+            if(_web3CoreOASIS==null) throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
+            var entity=await _web3CoreOASIS.GetAvatarByIdAsync((uint)HashUtility.GetNumericHash(id.ToString()));
+            result.Result=DecodePrivateRecord<Avatar>("avatar",id,entity);result.IsLoaded=true;
         }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading avatar from Web3Core: {ex.Message}", ex);
-        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
     }
 

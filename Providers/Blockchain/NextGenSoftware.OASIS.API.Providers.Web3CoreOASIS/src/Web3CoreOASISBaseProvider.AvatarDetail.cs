@@ -71,12 +71,13 @@ public partial class Web3CoreOASISBaseProvider
         try
         {
             int avatarDetailEntityId = HashUtility.GetNumericHash(id.ToString());
+            if(id==Guid.Empty) throw new ArgumentException("A nonempty Web3Core identity is required.",nameof(id));
+            if(version!=0) throw new NotSupportedException("Web3Core historical storage reads are not implemented.");
             EntityOASIS detailInfo = await _web3CoreOASIS.GetAvatarDetailByIdAsync((uint)avatarDetailEntityId);
 
             result.IsError = false;
+            result.Result = DecodePrivateRecord<AvatarDetail>("detail",id,detailInfo);
             result.IsLoaded = true;
-            result.Result = Newtonsoft.Json.JsonConvert.DeserializeObject<AvatarDetail>(System.Text.Encoding.UTF8.GetString(detailInfo.Info))
-                ?? throw new InvalidOperationException();
         }
         catch (RpcResponseException ex)
         {
@@ -248,10 +249,11 @@ public partial class Web3CoreOASISBaseProvider
         try
         {
             int holonEntityId = HashUtility.GetNumericHash(id.ToString());
+            if(id==Guid.Empty) throw new ArgumentException("A nonempty Web3Core identity is required.",nameof(id));
+            if(version!=0) throw new NotSupportedException("Web3Core historical storage reads are not implemented.");
             EntityOASIS holonInfo = await _web3CoreOASIS.GetHolonByIdAsync((uint)holonEntityId);
 
-            result.Result = Newtonsoft.Json.JsonConvert.DeserializeObject<Holon>(System.Text.Encoding.UTF8.GetString(holonInfo.Info))
-                ?? throw new InvalidOperationException();
+            result.Result = DecodePrivateRecord<Holon>("holon",id,holonInfo);
             result.IsError = false;
             result.IsLoaded = true;
         }
