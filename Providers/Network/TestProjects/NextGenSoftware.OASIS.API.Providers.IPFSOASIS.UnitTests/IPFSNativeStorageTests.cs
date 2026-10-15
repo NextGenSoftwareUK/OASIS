@@ -49,6 +49,14 @@ public class IPFSNativeStorageTests
             Assert.Equal(detail.XP,stats.Result.XP); Assert.Equal(detail.Karma,stats.Result.Karma); Assert.Equal(holon.Name,stored.Result.Name);
             Assert.Single((await provider.LoadAllAvatarsAsync()).Result); Assert.Single((await provider.LoadAllAvatarDetailsAsync()).Result);
             Assert.Single((await provider.LoadAllHolonsAsync(HolonType.All)).Result);
+            var child=new Holon {Id=Guid.NewGuid(),ParentHolonId=id,Name="owned-native-child",HolonType=HolonType.Holon};
+            await provider.SaveHolonToFile(child);
+            ownedCids.Add(child.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]); ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+            var parentKey=holon.ProviderUniqueStorageKey[ProviderType.IPFSOASIS];
+            Assert.Equal(child.Id,Assert.Single((await provider.LoadHolonsForParentAsync(parentKey,loadChildren:false)).Result).Id);
+            Assert.Equal(child.Id,Assert.Single(provider.LoadHolonsForParent(parentKey,loadChildren:false).Result).Id);
+            Assert.Empty((await provider.LoadHolonsForParentAsync(child.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],loadChildren:false)).Result);
+            Assert.Throws<NotSupportedException>(()=>provider.LoadHolonsForParent(parentKey,version:1));
             foreach(var cid in new[] {avatar.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],detail.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],holon.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress})
             {
                 var raw=await provider.IPFSClient.FileSystem.ReadAllTextAsync((Cid)cid);

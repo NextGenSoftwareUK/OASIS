@@ -34,6 +34,9 @@ try {
     $env:OASIS_IPFS_TEST_RPC='http://127.0.0.1:18547'
     $env:OASIS_IPFS_TEST_DNA_PATH=Join-Path $work 'owned-dna.json'
     $project=Join-Path $taskRoot 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests.csproj'
+    $providerProject=Join-Path $taskRoot 'Providers/Network/NextGenSoftware.OASIS.API.Providers.IPFSOASIS/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.csproj'
+    & dotnet build $providerProject --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
+    if($LASTEXITCODE){throw 'Provider build failed.'}
     & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
     if($LASTEXITCODE){throw 'Consumer build failed.'}
     $owned=Start-Process -FilePath $binary -ArgumentList @('daemon','--offline') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $work 'daemon-current.log') -RedirectStandardError (Join-Path $work 'daemon-current.err')
