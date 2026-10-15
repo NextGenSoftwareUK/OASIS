@@ -80,6 +80,26 @@ public class AWSOASISIntegrationTests
                 }
             }
             finally {field.SetValue(_provider,healthy);}
+            // Healthy primary absence is authoritative; a distinct stale secondary is not a failover target.
+            var missingId=Guid.NewGuid();
+            try {
+                Assert.IsFalse((await local.SaveHolonAsync(new Holon {Id=missingId,Name="stale-secondary"},saveChildren:false)).IsError);
+                var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests;
+                foreach(var asynchronous in new[] {false,true}) {
+                    var request=new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {
+                        Operation="LoadHolon",HolonId=missingId,PreferredProvider=Core.Enums.ProviderType.AWSOASIS};
+                    var read=asynchronous ? await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request)
+                        :router.RouteRequest<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request);
+                    Assert.IsNull(read.Result);
+                    Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,read.ErrorCode);
+                }
+                Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
+                var avatar=await _provider.LoadAvatarAsync(missingId);
+                var detail=await _provider.LoadAvatarDetailAsync(missingId);
+                Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,avatar.ErrorCode);
+                Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,detail.ErrorCode);
+            }
+            finally {await local.DeleteHolonAsync(missingId);}
         }
         finally {await local.DeleteHolonAsync(id); await local.DeActivateProviderAsync();}
     }
