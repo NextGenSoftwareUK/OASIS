@@ -53,7 +53,7 @@ public partial class Web3NativeStorageTests
             Assert.AreEqual(avatar.Id,provider.LoadAvatarDetailByUsername(avatar.Username.ToUpperInvariant()).Result.Id);
             Assert.AreEqual(avatar.Id,(await provider.LoadAvatarByProviderKeyAsync(avatar.Id.ToString().ToUpperInvariant())).Result.Id);
             Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,provider.LoadAvatarByEmail("absent@example.invalid").ErrorCode);
-            var root=new Holon {Id=Guid.NewGuid(),IsActive=true,Name="owned root",IsNewHolon=true,MetaData=new Dictionary<string,object> {{"biome","park"}}};
+            var root=new Holon {Id=Guid.NewGuid(),IsActive=true,Name="owned root",CreatedByAvatarId=avatar.Id,IsNewHolon=true,MetaData=new Dictionary<string,object> {{"biome","park"}}};
             var child=new Holon {Id=Guid.NewGuid(),IsActive=true,Name="owned child",ParentHolonId=root.Id,IsNewHolon=true};
             foreach(var row in new[] {root,child}) {var result=await provider.SaveHolonAsync(row,saveChildren:false);Assert.IsFalse(result.IsError,result.Message);}
             child.Name="updated child";
@@ -82,6 +82,15 @@ public partial class Web3NativeStorageTests
             Assert.IsFalse(avatarSearch.IsError,avatarSearch.Message);Assert.AreEqual(avatar.Id,avatarSearch.Result.SearchResultAvatars.Single().Id);
             Assert.AreEqual(0,avatarSearch.Result.SearchResultHolons.Count);
             Assert.IsInstanceOfType((await provider.SearchAsync(null!)).Exception,typeof(ArgumentNullException));
+            var export=await provider.ExportAllDataForAvatarByUsernameAsync(avatar.Username.ToUpperInvariant());
+            Assert.IsFalse(export.IsError,export.Message);Assert.IsTrue(export.IsLoaded);Assert.AreEqual(root.Id,export.Result.Single().Id);
+            Assert.AreEqual(child.Id,export.Result.Single().Children.Single().Id);
+            Assert.AreEqual(root.Id,provider.ExportAllDataForAvatarByEmail(avatar.Email.ToUpperInvariant()).Result.Single().Id);
+            Assert.AreEqual(2,(await provider.ExportAllAsync()).Result.Count());
+            var importedChild=new Holon {IsActive=true,Name="imported child"};
+            var importedRoot=new Holon {IsActive=true,Name="imported root",Children=new List<Core.Interfaces.IHolon> {importedChild}};
+            var imported=await provider.ImportAsync(new[] {importedRoot});Assert.IsFalse(imported.IsError,imported.Message);Assert.IsTrue(imported.Result);Assert.IsTrue(imported.IsSaved);
+            Assert.AreNotEqual(Guid.Empty,importedRoot.Id);Assert.AreEqual(importedChild.Id,(await provider.LoadHolonsForParentAsync(importedRoot.Id)).Result.Single().Id);
             for(var index=0;index<128;index++)
             {
                 var result=await provider.SaveAvatarAsync(new Avatar {Id=Guid.NewGuid(),IsActive=true,Username="owned-"+index});
