@@ -19,8 +19,10 @@ public class GoogleNativeDetailTests
         var provider=new GoogleCloudOASIS(projectId:project,enableStorage:false,enableFirestore:true,enableBigQuery:false);
         var ids=new List<Guid>();
         var holonId=Guid.NewGuid();
+        var childId=Guid.NewGuid();
         try {
             var active=await provider.ActivateProviderAsync();Assert.IsFalse(active.IsError,active.Message);
+            var emptyHolons=await provider.LoadAllHolonsAsync();Assert.IsFalse(emptyHolons.IsError,emptyHolons.Message);Assert.AreEqual(0,emptyHolons.Result.Count());
             var empty=await provider.LoadAllAvatarDetailsAsync();Assert.IsFalse(empty.IsError,empty.Message);Assert.AreEqual(0,empty.Result.Count());
             var detail=new AvatarDetail {Id=Guid.NewGuid(),IsActive=true,Username="owned-user",Email="owned@example.invalid",XP=321,Karma=29,
                 MetaData=new Dictionary<string,object> {{"owned-field","owned-value"}}};
@@ -47,9 +49,21 @@ public class GoogleNativeDetailTests
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadHolonAsync(Guid.NewGuid().ToString(),loadChildren:false)).ErrorCode);
             Assert.AreEqual(holonId,read.Result.Id);Assert.AreEqual(detail.Id,read.Result.ParentHolonId);Assert.AreEqual(detail.Id,read.Result.CreatedByAvatarId);
             Assert.AreEqual("owned-value",read.Result.MetaData["owned-field"]);
+            var allHolons=await provider.LoadAllHolonsAsync(loadChildren:false);
+            Assert.IsFalse(allHolons.IsError,allHolons.Message);Assert.AreEqual(holonId,allHolons.Result.Single().Id);
+            var otherType=holon.HolonType==NextGenSoftware.OASIS.API.Core.Enums.HolonType.Avatar
+                ? NextGenSoftware.OASIS.API.Core.Enums.HolonType.AvatarDetail : NextGenSoftware.OASIS.API.Core.Enums.HolonType.Avatar;
+            Assert.AreEqual(0,(await provider.LoadAllHolonsAsync(otherType)).Result.Count());
+            var child=new Holon {Id=childId,IsActive=true,Name="owned child",ParentHolonId=holonId};
+            Assert.IsFalse((await provider.SaveHolonAsync(child,saveChildren:false)).IsError);
+            var graph=await provider.LoadAllHolonsAsync(loadChildrenFromProvider:true,maxChildDepth:1);
+            Assert.IsFalse(graph.IsError,graph.Message);
+            Assert.AreEqual(childId,graph.Result.Single(row=>row.Id==holonId).Children.Single().Id);
+            var flat=await provider.LoadAllHolonsAsync(loadChildren:false,loadChildrenFromProvider:true);
+            Assert.IsTrue(flat.Result.All(row=>row.Children.Count()==0));
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadHolonAsync(Guid.NewGuid(),loadChildren:false)).ErrorCode);
         }
-        finally {foreach(var id in ids) await db.Collection("avatarDetails").Document(id.ToString()).DeleteAsync();await db.Collection("holons").Document(holonId.ToString()).DeleteAsync();await provider.DeActivateProviderAsync();}
+        finally {foreach(var id in ids) await db.Collection("avatarDetails").Document(id.ToString()).DeleteAsync();await db.Collection("holons").Document(holonId.ToString()).DeleteAsync();await db.Collection("holons").Document(childId.ToString()).DeleteAsync();await provider.DeActivateProviderAsync();}
     }
 
     private static async Task VerifyV2Async(GoogleCloudOASIS google,AvatarDetail detail)
