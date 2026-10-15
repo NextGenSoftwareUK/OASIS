@@ -23,6 +23,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
         manager.SetAndReplaceAutoFailOverListForProviders(providers).IsError.Should().BeFalse();
         manager.SetAndReplaceAutoReplicationListForProviders(providers).IsError.Should().BeFalse();
         var router=new OASISHyperDrive(manager);
+        await VerifyMongoInvalidAvatarDeleteKeyAsync(mongo,sqlite,manager,router,synchronous);
         var avatars=database.GetCollection<BsonDocument>("Avatar");var details=database.GetCollection<BsonDocument>("AvatarDetail");
         foreach(var state in new[] {"missingAvatar","missingDetail","deletedAvatar","deletedDetail","pairMissingDetail","pairDeletedDetail"})
         {
@@ -74,6 +75,38 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             }
         }
         await VerifyMongoSoftDeleteFieldRetentionAsync(mongo,synchronous,database);
+    }
+
+    private static async Task VerifyMongoInvalidAvatarDeleteKeyAsync(MongoDBOASIS mongo,SQLLiteDBOASIS sqlite,ProviderManager manager,OASISHyperDrive router,bool synchronous)
+    {
+        var id=Guid.NewGuid();var name="invalid-native-key-"+id.ToString("N");
+        var avatar=new Avatar {Id=id,Username=name,Email=name+"@test.local",IsActive=true,AvatarType=new EnumValue<AvatarType>(AvatarType.User)};
+        try
+        {
+            var saved=await sqlite.SaveAvatarAsync(avatar);saved.IsError.Should().BeFalse(saved.Message);
+            (await sqlite.SaveAvatarDetailAsync(new AvatarDetail {Id=id,Username=name,Email=avatar.Email,Karma=37,XP=29})).IsError.Should().BeFalse();
+            var key=saved.Result.ProviderUniqueStorageKey[ProviderType.SQLLiteDBOASIS];
+            ObjectId.TryParse(key,out _).Should().BeFalse("the SQLite key is deliberately invalid for Mongo");
+            (await sqlite.LoadAvatarByProviderKeyAsync(key)).Result.Id.Should().Be(id,"prove this key could target the stale SQLite copy");
+            foreach(var invalid in new string?[] {key,"not-an-object-id"," ",string.Empty,null})
+            foreach(var soft in new[] {false,true})
+            {
+                var before=manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0;
+                var request=new StorageOperationRequest {Operation="DeleteAvatarByProviderKey",ProviderKey=invalid,SoftDelete=soft,PreferredProvider=ProviderType.MongoDBOASIS};
+                var result=synchronous ? router.RouteRequest<bool>(request):await router.RouteRequestAsync<bool>(request);
+                result.IsError.Should().BeTrue();result.Result.Should().BeFalse();result.IsDeleted.Should().BeFalse();
+                result.ErrorCode.Should().Be(string.IsNullOrWhiteSpace(invalid) ? "HYPERDRIVE_PROVIDER_KEY_REQUIRED":"HYPERDRIVE_PAYLOAD_INVALID");
+                (manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0).Should().Be(before);
+                var direct=synchronous ? mongo.DeleteAvatar(invalid,soft):await mongo.DeleteAvatarAsync(invalid,soft);
+                direct.IsError.Should().BeTrue();direct.ErrorCode.Should().Be("HYPERDRIVE_PAYLOAD_INVALID");direct.Exception.Should().BeOfType<ArgumentException>();
+                (await sqlite.LoadAvatarAsync(id)).Result.DeletedDate.Should().Be(DateTime.MinValue);
+                var detail=(await sqlite.LoadAvatarDetailAsync(id)).Result;detail.DeletedDate.Should().Be(DateTime.MinValue);detail.Karma.Should().Be(37);detail.XP.Should().Be(29);
+            }
+        }
+        finally
+        {
+            if((await sqlite.LoadAvatarAsync(id)).Result!=null) (await sqlite.DeleteAvatarAsync(id,softDelete:false)).IsError.Should().BeFalse();
+        }
     }
 
     private static async Task VerifyMongoSoftDeleteFieldRetentionAsync(MongoDBOASIS mongo,bool synchronous,IMongoDatabase database)

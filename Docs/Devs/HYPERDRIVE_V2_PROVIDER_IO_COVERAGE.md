@@ -2,6 +2,20 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+### Priority Mongo/SQLite contract audit (2026-10-15)
+
+Current requested priority remains MongoDB/SQLite, Ethereum/Solana, IPFS, AWS/Azure/GoogleCloud/CosmosDB, Polygon/Arbitrum, Neo4j, remaining chains, SOLID/ActivityPub. No provider is fully certified. Latest detailed native regression results and unresolved release gates are in [current release gates](./HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md).
+
+| Contract/surface | Authoritative finding | Completion meaning |
+|---|---|---|
+| Mongo central storage | MongoDBOASIS derives OASISStorageProviderBase and declares IOASISDBStorageProvider; shipping Mongo driver3.12.0 exercised against retained real Mongo8.3.11/SQLite V2 matrix | Selected real read/write/failover/replication evidence, NOT all-interface certification |
+| Local wallet-key storage | IOASISLocalStorageProvider explicitly documents local-only wallet/private-key persistence; SQLite declares it, Mongo does not | Intentional capability separation, not a missing Mongo interface to add blindly |
+| Central avatar wallet DTO | Mongo DataHelper maps Avatar.ProviderWallets; this is distinct from the local-key-storage interface | Does NOT certify key encryption/redaction/custody; central plaintext credential boundary audit remains open |
+| Wallet transaction convenience methods | Core Objects/Wallet/ProviderWallet.cs still throws NotImplementedException in SendToken/SendNFT sync/async | Shared value-object/API gap, not proof a particular chain SDK is implemented or tested; must route through real approved transaction/billing execution, not bypass it |
+| Mongo DB version control | IsVersionControlEnabled is declared in MongoDBOASIS.Part1.cs; current provider source has no implementation consuming it | History remains OPEN. Filtering the stored Version is not version creation/history. Do not conflate WEB4 holon IDs with WEB5 STARNETHolonID semantics or claim enabling this flag implements history |
+
+Core34483f01 now treats owned request-validation errors as terminal instead of hiding them behind failover exhaustion. Controlled Core guard suite338/338 (including38 new cases) and real Mongo/SQLite matrix4/4 passed. Native invalid-key regression proves a SQLite-native key (verified to resolve the stale SQL avatar) is invalid for Mongo and must not delete through fallback. This does not establish full hosted-route acceptance; seven API publishes, hosted admission/recovery/settlement and remaining provider interfaces remain required.
+
 IPFS entity encryption follow-up: private avatar/detail/holon writers and typed readers now use kind+GUID-bound authenticated encryption; current typed collections decrypt and validate inner IDs. Focused30/30 tests pass. Raw content APIs stay raw by explicit design. Native readback, atomic/concurrent publication, graph/version/interface parity and V2 certification remain incomplete.
 
 IPFS typed index follow-up: canonical record kind separates avatar/detail/holon records sharing a GUID; current-entry replacement and single-record selection no longer mutate/select another kind. Focused24/24 tests pass. Entity encryption, collection/version/interface parity and native V2 publication/recovery are still incomplete.

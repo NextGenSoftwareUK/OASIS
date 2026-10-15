@@ -1,4 +1,5 @@
 using System;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
@@ -19,6 +20,13 @@ public partial class AvatarRepository
 
     private static OASISResult<bool> MissingDeletionIdentity() => new() {IsError=true,
         ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="Avatar deletion selector matched no persisted identity."};
+
+    private static OASISResult<bool> ValidateDeletionNativeKey(string providerKey)
+    {
+        if(ObjectId.TryParse(providerKey,out _)) return null;
+        var cause=new ArgumentException("A valid native Mongo ObjectId is required for avatar deletion.",nameof(providerKey));
+        return new OASISResult<bool> {IsError=true,ErrorCode="HYPERDRIVE_PAYLOAD_INVALID",Exception=cause,Message=cause.Message};
+    }
 
     private static void HandleDeletionSessionFailure(ref OASISResult<bool> result,Exception cause)
     {

@@ -21,7 +21,7 @@ using Newtonsoft.Json.Linq;
 
 namespace NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive;
 
-public sealed class HyperDriveProviderExecutionTests
+public sealed partial class HyperDriveProviderExecutionTests
 {
     [Theory]
     [InlineData(false)]
