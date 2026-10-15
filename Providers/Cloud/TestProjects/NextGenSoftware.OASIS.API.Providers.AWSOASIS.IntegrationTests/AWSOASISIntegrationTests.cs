@@ -222,6 +222,14 @@ public class AWSOASISIntegrationTests
         var noChildren=await _provider.LoadHolonAsync(children[0].Id,loadChildren:false,loadChildrenFromProvider:true);
         Assert.AreEqual(0,noChildren.Result.Children.Count);
         Assert.IsInstanceOfType(_provider.LoadHolon(children[0].Id,version:1).Exception,typeof(NotSupportedException));
+        children[0].MetaData=new Dictionary<string,object> {{"owned-marker",marker},{"amount",1.5m}};
+        Assert.IsFalse((await _provider.SaveHolonAsync(children[0],saveChildren:false)).IsError);
+        var metadata=await _provider.LoadHolonsByMetaDataAsync("owned-marker",marker,loadChildrenFromProvider:true);
+        Assert.IsFalse(metadata.IsError,metadata.Message);
+        Assert.AreEqual(children[0].Id,metadata.Result.Single().Id);
+        Assert.AreEqual(grandchild.Id,metadata.Result.Single().Children.Single().Id);
+        var invalid=_provider.LoadHolonsByMetaData("owned-marker",marker,version:1);
+        Assert.IsTrue(invalid.IsError);Assert.IsInstanceOfType(invalid.Exception,typeof(NotSupportedException));
         var truncated=_provider.LoadHolonsForParent(parent,loadChildrenFromProvider:true,maxChildDepth:1,curentChildDepth:1);
         Assert.IsFalse(truncated.IsError,truncated.Message);
         Assert.IsTrue(truncated.Result.All(row=>row.Children.Count==0));
