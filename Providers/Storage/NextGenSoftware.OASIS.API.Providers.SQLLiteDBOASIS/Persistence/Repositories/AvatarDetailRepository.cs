@@ -325,9 +325,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
         public OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetailEntity)
         {
+            var persistenceEntered=false;
+            var recordId=Guid.Empty;
             try
             {
-                var idStr = avatarDetailEntity.Id.ToString();
+                ArgumentNullException.ThrowIfNull(avatarDetailEntity);
+                recordId=avatarDetailEntity.Id;
+                var idStr = recordId.ToString();
                 var existing = _dbContext.AvatarDetails
                     .Include(a => a.InventoryItems)
                     .Include(a => a.Stats)
@@ -372,6 +376,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                         }
                     }
 
+                    persistenceEntered=true;
                     _dbContext.SaveChanges();
                     return new OASISResult<IAvatarDetail>
                     {
@@ -384,6 +389,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                 var newModel = new AvatarDetailModel(avatarDetailEntity);
                 _dbContext.AvatarDetails.Add(newModel);
+                persistenceEntered=true;
                 _dbContext.SaveChanges();
                 return new OASISResult<IAvatarDetail>
                 {
@@ -395,22 +401,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
-                DetachFailedDetailWrites(avatarDetailEntity.Id.ToString());
+                var cause=DetailSaveFailure(recordId,persistenceEntered,ex);
                 return new OASISResult<IAvatarDetail>
                 {
                     IsSaved = false,
                     IsError = true,
-                    Exception = ex,
-                    Message = ex.Message
+                    Exception = cause,
+                    Message = cause.Message
                 };
             }
         }
 
         public async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail AvatarDetailEntity)
         {
+            var persistenceEntered=false;
+            var recordId=Guid.Empty;
             try
             {
-                var idStr = AvatarDetailEntity.Id.ToString();
+                ArgumentNullException.ThrowIfNull(AvatarDetailEntity);
+                recordId=AvatarDetailEntity.Id;
+                var idStr = recordId.ToString();
                 var existing = await _dbContext.AvatarDetails
                     .Include(a => a.InventoryItems)
                     .Include(a => a.Stats)
@@ -458,6 +468,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                         }
                     }
 
+                    persistenceEntered=true;
                     await _dbContext.SaveChangesAsync();
                     return new OASISResult<IAvatarDetail>
                     {
@@ -470,6 +481,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                 var newModel = new AvatarDetailModel(AvatarDetailEntity);
                 _dbContext.AvatarDetails.Add(newModel);
+                persistenceEntered=true;
                 await _dbContext.SaveChangesAsync();
                 return new OASISResult<IAvatarDetail>
                 {
@@ -481,15 +493,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
-                DetachFailedDetailWrites(AvatarDetailEntity.Id.ToString());
+                var cause=DetailSaveFailure(recordId,persistenceEntered,ex);
                 return new OASISResult<IAvatarDetail>
                 {
                     IsSaved = false,
                     IsError = true,
-                    Exception = ex,
-                    Message = ex.Message
+                    Exception = cause,
+                    Message = cause.Message
                 };
             }
+        }
+
+        private Exception DetailSaveFailure(Guid id,bool persistenceEntered,Exception cause)
+        {
+            try {DetachFailedDetailWrites(id.ToString());}
+            catch(Exception cleanup) {cause=new AggregateException("SQLite failure cleanup also failed.",cause,cleanup);}
+            return persistenceEntered ? new SqliteMutationReconciliationException(id,cause):cause;
         }
 
         private void DetachFailedDetailWrites(string id)
