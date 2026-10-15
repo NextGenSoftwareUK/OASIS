@@ -426,6 +426,40 @@ public class EthereumOASISIntegrationTests
         await provider.DeActivateProviderAsync();
     }
 
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task SingleNativeHolonReadHonorsGraphFlagsAndRejectsFakeHistory(bool synchronous)
+    {
+        var (provider,_) = await CreateActivatedProviderAsync();
+        var root=new CoreHolon { Id=Guid.NewGuid(),Name="single root" };
+        var child=new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=root.Id,Name="single child" };
+        var grandchild=new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=child.Id,Name="single grandchild" };
+        child.Children.Add(grandchild); root.Children.Add(child);
+        foreach(var row in new[] {root,child,grandchild}) Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);
+        async Task<OASISResult<IHolon>> Read(bool load=true,bool recursive=true,int max=0,bool native=false,int version=0)
+            => synchronous ? provider.LoadHolon(root.Id,load,recursive,max,loadChildrenFromProvider:native,version:version)
+                : await provider.LoadHolonAsync(root.Id,load,recursive,max,loadChildrenFromProvider:native,version:version);
+        foreach(var native in new[] {false,true})
+        {
+            var full=await Read(native:native); Assert.IsFalse(full.IsError,full.Message); Assert.IsTrue(full.IsLoaded);
+            Assert.AreEqual(grandchild.Id,full.Result.Children.Single().Children.Single().Id);
+            var flat=await Read(load:false,native:native); Assert.IsFalse(flat.IsError,flat.Message); Assert.AreEqual(0,flat.Result.Children.Count);
+            var direct=await Read(recursive:false,native:native); Assert.IsFalse(direct.IsError,direct.Message); Assert.AreEqual(0,direct.Result.Children.Single().Children.Count);
+            var depth=await Read(max:1,native:native); Assert.IsFalse(depth.IsError,depth.Message); Assert.AreEqual(0,depth.Result.Children.Single().Children.Count);
+        }
+        var versioned=await Read(version:1); Assert.IsTrue(versioned.IsError); Assert.IsNull(versioned.Result); Assert.IsInstanceOfType(versioned.Exception,typeof(NotSupportedException));
+        var invalid=await Read(max:-1); Assert.IsTrue(invalid.IsError); Assert.IsNull(invalid.Result); Assert.IsInstanceOfType(invalid.Exception,typeof(ArgumentOutOfRangeException));
+        // Provider-linked children must be loaded even when absent in the root's embedded payload.
+        root.Children.Clear(); Assert.IsFalse((await provider.SaveHolonAsync(root,saveChildren:false)).IsError);
+        Assert.AreEqual(0,(await Read()).Result.Children.Count);
+        Assert.AreEqual(grandchild.Id,(await Read(native:true)).Result.Children.Single().Children.Single().Id);
+        var key=synchronous ? provider.LoadHolon(root.Id.ToString(),loadChildrenFromProvider:true)
+            : await provider.LoadHolonAsync(root.Id.ToString(),loadChildrenFromProvider:true);
+        Assert.IsFalse(key.IsError,key.Message); Assert.AreEqual(child.Id,key.Result.Children.Single().Id);
+        await provider.DeActivateProviderAsync();
+    }
+
     [TestMethod]
     public async Task Holon_SaveLoadRoundTrip_UsesDisposableEvmChain()
     {
