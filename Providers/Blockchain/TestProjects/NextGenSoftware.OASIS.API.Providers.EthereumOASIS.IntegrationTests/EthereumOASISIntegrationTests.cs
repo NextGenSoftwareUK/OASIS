@@ -488,6 +488,36 @@ public class EthereumOASISIntegrationTests
         await provider.DeActivateProviderAsync();
     }
 
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task CustomKeyQueriesHaveOneStoredMeaningAndRejectDuplicateParents(bool synchronous)
+    {
+        var (provider,_) = await CreateActivatedProviderAsync();
+        var unrelatedId=Guid.NewGuid();
+        var customKey=unrelatedId.ToString();
+        var parent=new CoreHolon { Id=Guid.NewGuid(),Name="custom parent",MetaData=new Dictionary<string,object> { ["CustomKey"]=customKey } };
+        var child=new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=parent.Id,Name="custom child" };
+        var unrelated=new CoreHolon { Id=unrelatedId,Name="must not win provider-key fallback" };
+        foreach(var row in new[] {parent,child,unrelated}) Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);
+        var loaded=synchronous ? provider.LoadHolonByCustomKey(customKey) : await provider.LoadHolonByCustomKeyAsync(customKey);
+        Assert.IsFalse(loaded.IsError,loaded.Message); Assert.IsTrue(loaded.IsLoaded); Assert.AreEqual(parent.Id,loaded.Result.Id);
+        var children=synchronous ? provider.LoadHolonsForParentByCustomKey(customKey,loadChildren:false)
+            : await provider.LoadHolonsForParentByCustomKeyAsync(customKey,loadChildren:false);
+        Assert.IsFalse(children.IsError,children.Message); Assert.IsTrue(children.IsLoaded); Assert.AreEqual(child.Id,children.Result.Single().Id);
+        var missing=await provider.LoadHolonByCustomKeyAsync("absent-custom-key"); Assert.IsTrue(missing.IsError); Assert.IsInstanceOfType(missing.Exception,typeof(KeyNotFoundException));
+        var blank=await provider.LoadHolonsForParentByCustomKeyAsync(" "); Assert.IsTrue(blank.IsError); Assert.IsInstanceOfType(blank.Exception,typeof(ArgumentException));
+        var history=await provider.LoadHolonByCustomKeyAsync(customKey,version:1); Assert.IsTrue(history.IsError); Assert.IsInstanceOfType(history.Exception,typeof(NotSupportedException));
+        Assert.IsFalse((await provider.SaveHolonAsync(new CoreHolon { Id=Guid.NewGuid(),MetaData=new Dictionary<string,object> { ["CustomKey"]=customKey } },saveChildren:false)).IsError);
+        var duplicate=synchronous ? provider.LoadHolonByCustomKey(customKey) : await provider.LoadHolonByCustomKeyAsync(customKey);
+        Assert.IsTrue(duplicate.IsError); Assert.IsNull(duplicate.Result); Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,duplicate.ErrorCode);
+        var duplicateParent=synchronous ? provider.LoadHolonsForParentByCustomKey(customKey) : await provider.LoadHolonsForParentByCustomKeyAsync(customKey);
+        Assert.IsTrue(duplicateParent.IsError); Assert.IsNull(duplicateParent.Result); Assert.IsFalse(duplicateParent.IsLoaded);
+        Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,duplicateParent.ErrorCode);
+        Assert.IsInstanceOfType(duplicateParent.Exception,typeof(StorageIdentityAmbiguousException));
+        await provider.DeActivateProviderAsync();
+    }
+
     [TestMethod]
     public async Task Holon_SaveLoadRoundTrip_UsesDisposableEvmChain()
     {

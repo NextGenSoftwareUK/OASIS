@@ -35,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         }
 
         private static async Task<OASISResult<T>> FindStoredIdentityAsync<T>(string value,Func<T,string> select,
-            Func<Task<OASISResult<IEnumerable<T>>>> load) where T : class
+            Func<Task<OASISResult<IEnumerable<T>>>> load,StringComparison comparison = StringComparison.OrdinalIgnoreCase) where T : class
         {
             var result = new OASISResult<T>();
             try
@@ -50,7 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
                 if (stored.Result == null) throw new InvalidOperationException("Native identity collection returned no result.");
                 // Equality matches account identity semantics, not substring/search matching.
-                var matches = stored.Result.Where(row=>string.Equals(select(row),value,StringComparison.OrdinalIgnoreCase)).Take(2).ToList();
+                var matches = stored.Result.Where(row=>string.Equals(select(row),value,comparison)).Take(2).ToList();
                 if (matches.Count > 1) throw new StorageIdentityAmbiguousException();
                 if (matches.Count == 0) throw new KeyNotFoundException("No stored Ethereum identity matches the requested field.");
                 result.Result = matches[0];
