@@ -2,6 +2,8 @@
 
 ## Current acceptance summary
 
+Verification expansion requested: the [end-to-end proof ledger](RELEASE_END_TO_END_PROOF.md) tracks integrated master run38671614947 with publication disabled. This is additional proof work, not a reopening or duplication of completed public uploads. The universal all-products/upload/staging-gate/device claim remains unproved until the ledger's explicit boundaries are resolved.
+
 - Published releases are complete as inventoried below; no repeat uploads are required.
 - PR481 is merged as master `96142cb57df6f0e615bb669af1d43ad45ae04576`; all fourteen staging/production deployments reached SUCCESS/SLEEPING at that SHA.
 - Fresh bounded GET verification returned HTTP200 on all fourteen canonical Swagger documents and both WEB6 health/MCP/A2A discovery sets (twenty checks). WEB6's deployed canonical paths are `/swagger/v2/swagger.json` and `/v1/health`; the earlier `/health` and `/swagger/v1/swagger.json` 404 probes were not valid availability checks. No endpoint code/configuration change was needed for these twenty successful checks. This proves availability, not every authenticated or physical-device contract.
