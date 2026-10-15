@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 using System.Threading.Tasks;
@@ -12,6 +14,35 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 
 public partial class GoogleCloudOASIS
 {
+    private Task<OASISResult<IEnumerable<IHolon>>> ReadCanonicalParentHolonsAsync(string key,HolonType type,bool children,bool recursive,int depth,int initialDepth,bool continueOnError,bool fromProvider,int version)
+    {
+        if (Guid.TryParse(key,out var id) && id != Guid.Empty)
+            return ReadCanonicalParentHolonsAsync(id,type,children,recursive,depth,initialDepth,continueOnError,fromProvider,version);
+        var invalid = new OASISResult<IEnumerable<IHolon>>();
+        var cause = new ArgumentException("A nonempty GUID Firestore parent storage key is required.",nameof(key));
+        OASISErrorHandling.HandleError(ref invalid,cause.Message,cause);
+        return Task.FromResult(invalid);
+    }
+
+    private async Task<OASISResult<IEnumerable<IHolon>>> ReadCanonicalParentHolonsAsync(Guid id,HolonType type,bool children,bool recursive,int depth,int initialDepth,bool continueOnError,bool fromProvider,int version)
+    {
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if(id==Guid.Empty) throw new ArgumentException("A nonempty parent identity is required.",nameof(id));
+            if(depth<0 || initialDepth<0) throw new ArgumentOutOfRangeException(nameof(depth));
+            var loaded = await LoadAllHolonsAsync(loadChildren:false,version:version);
+            if(loaded.IsError) return loaded;
+            var records = loaded.Result.ToList();
+            var project = HolonGraphProjection.Create(records,children,recursive,depth,initialDepth,fromProvider,
+                source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
+            result.Result = records.Where(row=>row.ParentHolonId==id && (type==HolonType.All || row.HolonType==type)).Select(project).ToList();
+            result.IsLoaded = true;
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
+    }
+
     private async Task<OASISResult<IHolon>> ReadCanonicalHolonByIdAsync(Guid id,bool children,bool recursive,int depth,bool fromProvider,int version)
     {
         var result=new OASISResult<IHolon>();
