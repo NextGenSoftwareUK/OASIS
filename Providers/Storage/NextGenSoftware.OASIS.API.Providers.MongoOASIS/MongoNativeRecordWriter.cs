@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using MongoDB.Bson;
+using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -26,13 +27,14 @@ internal static class MongoNativeRecordWriter
                 if(updating) throw new ArgumentException("A public record identity is required for update.");
                 holon.HolonId=Guid.NewGuid();
             }
-            FilterDefinition<T> expected=null;
+            BsonDocument observed=null;
+            BsonDocument expected=null;
+            var raw=records.Database.GetCollection<BsonDocument>(records.CollectionNamespace.CollectionName,records.Settings);
             if(updating)
             {
                 // Compare exact persisted BSON, not a reserialized domain object. Nested
                 // avatar state can normalize during mapping and cause a false CAS conflict.
                 var lookup=Builders<T>.Filter.Where(row=>row.HolonId==holon.HolonId && row.DeletedDate==DateTime.MinValue);
-                var raw=records.Database.GetCollection<BsonDocument>(records.CollectionNamespace.CollectionName);
                 var rendered=lookup.Render(new RenderArgs<T>(records.DocumentSerializer,records.Settings.SerializerRegistry));
                 var query=raw.Find(rendered).Limit(2);
                 var originals=synchronous ? query.ToList():await query.ToListAsync().ConfigureAwait(false);
@@ -48,17 +50,31 @@ internal static class MongoNativeRecordWriter
                     return new OASISResult<T> {IsError=true,ErrorCode=StorageLifecycleConflictException.ErrorCode,Exception=conflict,Message=conflict.Message};
                 }
                 holon.Id=originalId;
-                // Each literal field equality is part of one atomic replacement predicate.
-                expected=new BsonDocumentFilterDefinition<T>(new BsonDocument(original
-                    .Select(field=>new BsonElement(field.Name,new BsonDocument("$eq",field.Value)))));
+                observed=original;
+                // Whole-document equality also detects newly added fields. $literal keeps
+                // arbitrary metadata/unknown field values out of Mongo expression syntax.
+                expected=new BsonDocument {{"_id",nativeId},{"$expr",new BsonDocument("$eq",new BsonArray {
+                    "$$ROOT",new BsonDocument("$literal",observed)})}};
             }
             if(!updating && (overwriteCreationProvider || holon.CreatedProviderType==null)) holon.CreatedProviderType=new EnumValue<ProviderType>(ProviderType.MongoDBOASIS);
             PrepareIdentity(holon);
             var collection=records.WithWriteConcern(WriteConcern.WMajority.With(journal:true));
+            BsonDocument replacement=null;
+            if(updating)
+            {
+                replacement=holon.ToBsonDocument(records.DocumentSerializer);
+                var mapped=new HashSet<string>(BsonClassMap.LookupClassMap(typeof(T)).AllMemberMaps.Select(member=>member.ElementName),StringComparer.Ordinal);
+                mapped.Add("_t");
+                // Retain top-level schema fields this CLR model cannot express. Known
+                // fields still obey replacement semantics; nested schema evolution is separate.
+                foreach(var field in observed)
+                    if(!mapped.Contains(field.Name) && !replacement.Contains(field.Name)) replacement.Add(field.Name,field.Value.DeepClone());
+            }
             entered=true;
             if(updating)
             {
-                var replaced=synchronous ? collection.ReplaceOne(expected,holon):await collection.ReplaceOneAsync(expected,holon).ConfigureAwait(false);
+                var writer=raw.WithWriteConcern(WriteConcern.WMajority.With(journal:true));
+                var replaced=synchronous ? writer.ReplaceOne(expected,replacement):await writer.ReplaceOneAsync(expected,replacement).ConfigureAwait(false);
                 if(!replaced.IsAcknowledged) throw new InvalidDataException("Mongo record update was not acknowledged.");
                 if(replaced.MatchedCount==0)
                 {

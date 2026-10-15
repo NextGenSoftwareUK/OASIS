@@ -75,6 +75,24 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                     (await avatars.Find(row=>row.HolonId==id).SingleAsync()).FirstName.Should().Be("native profile write completed");
                     (await sqlite.LoadAvatarAsync(id)).Result.FirstName.Should().Be("retained SQLite profile");
                 }
+                if(updating)
+                {
+                    await admin.RunCommandAsync<BsonDocument>(new BsonDocument {{"configureFailPoint","failCommand"},{"mode","off"}});
+                    var key=detail ? (await details.Find(row=>row.HolonId==id).SingleAsync()).Id:(await avatars.Find(row=>row.HolonId==id).SingleAsync()).Id;
+                    await VerifyMongoUnknownFieldRetentionAsync(database,detail ? "AvatarDetail":"Avatar",key,async ()=>
+                    {
+                        if(detail)
+                        {
+                            var saved=synchronous ? healthy.SaveAvatarDetail(state):await healthy.SaveAvatarDetailAsync(state);
+                            saved.IsError.Should().BeFalse(saved.Message);
+                        }
+                        else
+                        {
+                            var saved=synchronous ? healthy.SaveAvatar(avatar):await healthy.SaveAvatarAsync(avatar);
+                            saved.IsError.Should().BeFalse(saved.Message);
+                        }
+                    });
+                }
             }
             finally
             {
