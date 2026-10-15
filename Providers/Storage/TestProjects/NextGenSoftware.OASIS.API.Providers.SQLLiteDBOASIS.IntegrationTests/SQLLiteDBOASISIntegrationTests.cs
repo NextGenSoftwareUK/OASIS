@@ -699,7 +699,7 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         var rejected = synchronous ? provider.SaveProviderWallets(batch) : await provider.SaveProviderWalletsAsync(batch);
         rejected.IsError.Should().BeTrue();
         rejected.Result.Should().BeFalse();
-        rejected.Exception.Should().BeOfType<DbUpdateException>().Which.InnerException.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        rejected.Exception.Should().BeOfType<SqliteMutationReconciliationException>().Which.InnerException.Should().BeOfType<DbUpdateException>().Which.InnerException.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
         control.Database.ExecuteSqlRaw("DROP TRIGGER reject_second_wallet;");
         avatars[0].FirstName = "unrelated-success";
         (await provider.SaveAvatarAsync(avatars[0])).IsError.Should().BeFalse();
@@ -770,7 +770,9 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         var rejected = await provider.SaveProviderWalletsForAvatarByIdAsync(avatar.Id, Wallets("rejected"));
         rejected.IsError.Should().BeTrue();
         rejected.Result.Should().BeFalse();
-        rejected.Exception.Should().BeOfType<DbUpdateException>().Which.InnerException.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+        var failure=rejected.Exception.Should().BeOfType<SqliteMutationReconciliationException>().Which;
+        failure.RecordId.Should().Be(avatar.Id);
+        failure.InnerException.Should().BeOfType<DbUpdateException>().Which.InnerException.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
         control.Database.ExecuteSqlRaw("DROP TRIGGER reject_wallet;");
         avatar.FirstName = "unrelated-success";
         (await provider.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
