@@ -7,6 +7,26 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
     [TestClass]
     public class DynamoDBOASISProviderTests
     {
+        [DataTestMethod]
+        [DataRow("ACTIVE")]
+        [DataRow("CREATING")]
+        [DataRow("DELETING")]
+        public async Task TableReadinessNeverClaimsSuccessAfterTimeoutOrTerminalState(string status)
+        {
+            int observations=0,delays=0;
+            Func<Task<Amazon.DynamoDBv2.Model.DescribeTableResponse>> describe=()=> {
+                observations++;
+                return Task.FromResult(new Amazon.DynamoDBv2.Model.DescribeTableResponse {
+                    Table=new Amazon.DynamoDBv2.Model.TableDescription {TableStatus=status}});
+            };
+            Func<Task> delay=()=> {delays++;return Task.CompletedTask;};
+            var task=(Task)typeof(DynamoDBOASIS).GetMethod("WaitForTableActiveAsync",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!
+                .Invoke(null,new object[] {describe,delay})!;
+            if(status=="CREATING") {await Assert.ThrowsExceptionAsync<TimeoutException>(()=>task); Assert.AreEqual(30,observations); Assert.AreEqual(29,delays);}
+            else if(status=="DELETING") {await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>task); Assert.AreEqual(1,observations); Assert.AreEqual(0,delays);}
+            else {await task;Assert.AreEqual(1,observations);Assert.AreEqual(0,delays);}
+        }
+
         private sealed class FailedIdentityProvider : DynamoDBOASIS
         {
             public readonly NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException Cause=new();
