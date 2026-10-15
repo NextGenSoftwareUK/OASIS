@@ -185,6 +185,7 @@ public class AWSOASISIntegrationTests
         var loaded = await _provider.LoadHolonAsync(holon.Id);
         var search = await _provider.SearchAsync(new SearchParams
         {
+            SearchOnlyForCurrentAvatar=false,
             SearchGroups = [new SearchTextGroup { SearchQuery = marker }]
         });
 
@@ -230,6 +231,13 @@ public class AWSOASISIntegrationTests
         Assert.AreEqual(grandchild.Id,metadata.Result.Single().Children.Single().Id);
         var invalid=_provider.LoadHolonsByMetaData("owned-marker",marker,version:1);
         Assert.IsTrue(invalid.IsError);Assert.IsInstanceOfType(invalid.Exception,typeof(NotSupportedException));
+        var filtered=await _provider.SearchAsync(new SearchParams {SearchOnlyForCurrentAvatar=false,FilterByMetaData=new Dictionary<string,string> {{"owned-marker",marker}}});
+        Assert.IsFalse(filtered.IsError,filtered.Message);
+        Assert.AreEqual(children[0].Id,filtered.Result.SearchResultHolons.Single().Id);
+        Assert.AreEqual(1,filtered.Result.NumberOfResults);
+        Assert.AreEqual(grandchild.Id,filtered.Result.SearchResultHolons.Single().Children.Single().Id);
+        var badSearch=await _provider.SearchAsync(new SearchParams {SearchOnlyForCurrentAvatar=false},version:1);
+        Assert.IsTrue(badSearch.IsError);Assert.IsInstanceOfType(badSearch.Exception,typeof(NotSupportedException));
         var truncated=_provider.LoadHolonsForParent(parent,loadChildrenFromProvider:true,maxChildDepth:1,curentChildDepth:1);
         Assert.IsFalse(truncated.IsError,truncated.Message);
         Assert.IsTrue(truncated.Result.All(row=>row.Children.Count==0));
