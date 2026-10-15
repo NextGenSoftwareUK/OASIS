@@ -665,15 +665,42 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
 
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons) { var s = await SaveHolonsAsync(holons); return new OASISResult<bool> { Result = !s.IsError, IsError = s.IsError, Message = s.Message }; }
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync();
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => await LoadAllHolonsAsync(loadChildrenFromProvider:true,version:version);
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0) { var all = await LoadAllHolonsAsync(); var h = all.Result?.Where(x => x.CreatedByAvatarId == avatarId).ToList() ?? new List<IHolon>(); return new OASISResult<IEnumerable<IHolon>> { Result = h, IsError = false, Message = $"DynamoDBOASIS: {h.Count} holon(s)." }; }
+        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
+        {
+            var result=new OASISResult<IEnumerable<IHolon>>();
+            try {
+                if(avatarId==Guid.Empty) throw new ArgumentException("A nonempty avatar identity is required.");
+                var loaded=await LoadAllHolonsAsync(loadChildrenFromProvider:true,version:version);
+                if(loaded.IsError) return loaded;
+                result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IEnumerable<IHolon>>(loaded);
+                result.Result=loaded.Result.Where(row=>row.CreatedByAvatarId==avatarId).ToList();
+            }
+            catch(Exception cause) {result.Exception=cause;OASISErrorHandling.HandleError(ref result,cause.Message);}
+            return result;
+        }
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string u, int version = 0) { var a = await LoadAvatarByUsernameAsync(u); if (a.IsError || a.Result == null) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "Not found."); return r; } return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version); }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string u, int version = 0) => ExportSelectedAvatarAsync(u,false,version);
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string u, int version = 0) => ExportAllDataForAvatarByUsernameAsync(u, version).Result;
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string e, int version = 0) { var a = await LoadAvatarByEmailAsync(e); if (a.IsError || a.Result == null) { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "Not found."); return r; } return await ExportAllDataForAvatarByIdAsync(a.Result.Id, version); }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string e, int version = 0) => ExportSelectedAvatarAsync(e,true,version);
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string e, int version = 0) => ExportAllDataForAvatarByEmailAsync(e, version).Result;
 
         public bool IsVersionControlEnabled { get; set; } = false;
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> ExportSelectedAvatarAsync(string selector,bool email,int version)
+        {
+            var result=new OASISResult<IEnumerable<IHolon>>();
+            try {
+                if(string.IsNullOrWhiteSpace(selector)) throw new ArgumentException("A nonblank avatar selector is required.");
+                ValidateGraphRead(0,0,version);
+                var selected=email ? await LoadAvatarByEmailAsync(selector,version):await LoadAvatarByUsernameAsync(selector,version);
+                if(selected.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(selected);
+                if(selected.Result==null) {OASISErrorHandling.HandleError(ref result,"DynamoDBOASIS: No avatar matches export selector.");return result;}
+                return await ExportAllDataForAvatarByIdAsync(selected.Result.Id,version);
+            }
+            catch(Exception cause) {result.Exception=cause;OASISErrorHandling.HandleError(ref result,cause.Message);}
+            return result;
+        }
     }
 }
