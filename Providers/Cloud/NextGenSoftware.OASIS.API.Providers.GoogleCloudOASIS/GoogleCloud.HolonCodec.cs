@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 
 public partial class GoogleCloudOASIS
 {
-    private async Task<OASISResult<IHolon>> ReadCanonicalHolonByIdAsync(Guid id,int depth,int version)
+    private async Task<OASISResult<IHolon>> ReadCanonicalHolonByIdAsync(Guid id,bool children,bool recursive,int depth,bool fromProvider,int version)
     {
         var result=new OASISResult<IHolon>();
         try {
@@ -23,7 +23,21 @@ public partial class GoogleCloudOASIS
             var document=await _firestoreDb.Collection("holons").Document(id.ToString()).GetSnapshotAsync();
             var holon=document.Exists ? DecodeHolon(document.ConvertTo<Dictionary<string,object>>(),document.Id):null;
             if(holon==null || !holon.IsActive) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Firestore holon not found.";}
-            else {result.Result=holon;result.IsLoaded=true;}
+            else
+            {
+                IEnumerable<IHolon> records = new[] { holon };
+                if (children && fromProvider)
+                {
+                    var loaded = await LoadAllHolonsAsync(loadChildren:false,version:version);
+                    if (loaded.IsError)
+                        return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IHolon>(loaded);
+                    records = loaded.Result;
+                }
+                var project = HolonGraphProjection.Create(records,children,recursive,depth,0,fromProvider,
+                    source => OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
+                result.Result=project(holon);
+                result.IsLoaded=true;
+            }
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
