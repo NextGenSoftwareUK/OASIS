@@ -158,7 +158,7 @@ public partial class Web3CoreOASISBaseProvider
             int avatarDetailEntityId = HashUtility.GetNumericHash(avatarDetail.Id.ToString());
             string avatarDetailId = avatarDetail.Id.ToString();
 
-            await _web3CoreOASIS.CreateAvatarAsync(
+            await _web3CoreOASIS.CreateAvatarDetailAsync(
                 (uint)avatarDetailEntityId, Encoding.UTF8.GetBytes(avatarDetailId), Encoding.UTF8.GetBytes(avatarDetailInfo));
 
             result.Result = avatarDetail;
