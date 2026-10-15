@@ -91,12 +91,12 @@ public partial class Web3CoreOASISBaseProvider
 
         try
         {
-            string avatarInfo = Newtonsoft.Json.JsonConvert.SerializeObject(avatar);
+            string avatarInfo = EncodePrivateRecord("avatar",avatar);
             int avatarEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
             string avatarId = avatar.AvatarId.ToString();
 
             await _web3CoreOASIS.CreateAvatarAsync(
-                (uint)avatarEntityId, Encoding.UTF8.GetBytes(avatarId), Encoding.UTF8.GetBytes(avatarInfo));
+                (uint)avatarEntityId, PrivateExternalId(avatar.Id), Encoding.UTF8.GetBytes(avatarInfo));
 
             result.Result = avatar;
             result.IsError = false;
@@ -154,12 +154,12 @@ public partial class Web3CoreOASISBaseProvider
 
         try
         {
-            string avatarDetailInfo = Newtonsoft.Json.JsonConvert.SerializeObject(avatarDetail);
+            string avatarDetailInfo = EncodePrivateRecord("detail",avatarDetail);
             int avatarDetailEntityId = HashUtility.GetNumericHash(avatarDetail.Id.ToString());
             string avatarDetailId = avatarDetail.Id.ToString();
 
             await _web3CoreOASIS.CreateAvatarDetailAsync(
-                (uint)avatarDetailEntityId, Encoding.UTF8.GetBytes(avatarDetailId), Encoding.UTF8.GetBytes(avatarDetailInfo));
+                (uint)avatarDetailEntityId, PrivateExternalId(avatarDetail.Id), Encoding.UTF8.GetBytes(avatarDetailInfo));
 
             result.Result = avatarDetail;
             result.IsError = false;
@@ -198,9 +198,9 @@ public partial class Web3CoreOASISBaseProvider
 
         try
         {
-            string holonInfo = Newtonsoft.Json.JsonConvert.SerializeObject(holon);
+            string holonInfo = EncodePrivateRecord("holon",holon);
             int holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
-            byte[] holonId = holon.Id.ToByteArray();
+            byte[] holonId = PrivateExternalId(holon.Id);
 
             if (holon.IsNewHolon)
                 await _web3CoreOASIS.CreateHolonAsync((uint)holonEntityId, holonId, Encoding.UTF8.GetBytes(holonInfo));
