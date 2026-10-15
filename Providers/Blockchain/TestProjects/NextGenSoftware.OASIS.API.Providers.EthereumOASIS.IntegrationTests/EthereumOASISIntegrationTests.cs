@@ -770,6 +770,35 @@ public class EthereumOASISIntegrationTests
         await provider.DeActivateProviderAsync();
     }
 
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task PlannedChildCachesAreConsistentWithoutErasingManagerReferences(bool synchronous)
+    {
+        var (provider,_) = await CreateActivatedProviderAsync();
+        var stale=Guid.NewGuid();
+        var root=new CoreHolon { ChildIdListCache=stale.ToString(),AllChildIdListCache=stale.ToString(),ChildrenIds=new List<Guid> {stale} };
+        var child=new CoreHolon(); var grandchild=new CoreHolon(); root.Children.Add(child); child.Children.Add(grandchild);
+        var saved=synchronous ? provider.SaveHolon(root,saveChildren:true) : await provider.SaveHolonAsync(root,saveChildren:true);
+        Assert.IsFalse(saved.IsError,saved.Message);
+        var loaded=await provider.LoadHolonAsync(root.Id);
+        Assert.IsFalse(loaded.IsError,loaded.Message);
+        Assert.AreEqual(child.Id.ToString(),loaded.Result.ChildIdListCache);
+        Assert.AreEqual(child.Id+","+grandchild.Id,loaded.Result.AllChildIdListCache);
+        Assert.AreEqual(grandchild.Id.ToString(),loaded.Result.Children.Single().ChildIdListCache);
+        CollectionAssert.AreEqual(new[] {child.Id},((CoreHolon)loaded.Result).ChildrenIds.ToArray());
+        var managerReference=Guid.NewGuid();
+        var managerRoot=new CoreHolon { Id=Guid.NewGuid(),ChildIdListCache=managerReference.ToString(),AllChildIdListCache=managerReference.ToString(),ChildrenIds=new List<Guid> {managerReference} };
+        var separate=synchronous ? provider.SaveHolon(managerRoot,saveChildren:false) : await provider.SaveHolonAsync(managerRoot,saveChildren:false);
+        Assert.IsFalse(separate.IsError,separate.Message);
+        var referenced=await provider.LoadHolonAsync(managerRoot.Id);
+        Assert.AreEqual(0,referenced.Result.Children.Count);
+        Assert.AreEqual(managerReference.ToString(),referenced.Result.ChildIdListCache);
+        Assert.AreEqual(managerReference.ToString(),referenced.Result.AllChildIdListCache);
+        CollectionAssert.AreEqual(new[] {managerReference},((CoreHolon)referenced.Result).ChildrenIds.ToArray());
+        await provider.DeActivateProviderAsync();
+    }
+
     [TestMethod]
     public async Task Holon_SaveLoadRoundTrip_UsesDisposableEvmChain()
     {
