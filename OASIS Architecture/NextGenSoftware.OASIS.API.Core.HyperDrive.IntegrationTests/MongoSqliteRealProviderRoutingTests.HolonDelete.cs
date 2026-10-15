@@ -52,6 +52,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
     private static async Task VerifyMongoHolonDeleteWriteConcernAsync(MongoDBOASIS fault,MongoDBOASIS healthy,SQLLiteDBOASIS sqlite,
         OASISDNA dna,IMongoDatabase admin,string app,bool synchronous,IMongoCollection<API.Providers.MongoDBOASIS.Entities.Holon> records)
     {
+        await VerifyMongoHolonReadsAreNonMutatingAsync(fault,healthy,sqlite,dna,admin,app,synchronous,records);
         var manager=new ProviderManager(null,dna){IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=true};
         manager.RegisterProvider(fault);manager.RegisterProvider(sqlite);
         var providers=new[] {new EnumValue<ProviderType>(ProviderType.MongoDBOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)};
