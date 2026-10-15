@@ -225,6 +225,28 @@ public class GoogleNativeDetailTests
                     new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.GoogleCloudOASIS),
                     new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.SQLLiteDBOASIS)}).IsError);
                 var router=new Core.Managers.OASISHyperDrive.OASISHyperDrive(manager);
+                var profile=new Avatar {Id=id,IsActive=true,Username="owned-"+id,Email=id+"@example.invalid",FirstName="replicated profile",
+                    AvatarType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User),
+                    MetaData=new Dictionary<string,object> {{"replicated-field","replicated-value"}}};
+                var profileRequest=new Core.StorageOperationRequest {Operation="SaveAvatar",Payload=profile,PreferredProvider=primary};
+                var profileSaved=asynchronous ? await router.RouteRequestAsync<Core.Interfaces.IAvatar>(profileRequest):router.RouteRequest<Core.Interfaces.IAvatar>(profileRequest);
+                Assert.IsFalse(profileSaved.IsError,profileSaved.Message);Assert.IsFalse(profileSaved.IsWarning,profileSaved.Message);
+                foreach(var store in new Core.Interfaces.IOASISStorageProvider[] {google,sqlite})
+                {
+                    var read=await store.LoadAvatarAsync(id);Assert.IsFalse(read.IsError,read.Message);
+                    Assert.AreEqual("replicated profile",read.Result.FirstName);Assert.AreEqual("replicated-value",read.Result.MetaData["replicated-field"].ToString());
+                }
+                var holon=new Holon {Id=id,IsActive=true,Name="replicated holon",ParentHolonId=Guid.NewGuid(),CreatedByAvatarId=id,
+                    MetaData=new Dictionary<string,object> {{"replicated-holon","retained-value"}}};
+                var holonRequest=new Core.StorageOperationRequest {Operation="SaveHolon",Payload=holon,SaveChildren=false,PreferredProvider=primary};
+                var holonSaved=asynchronous ? await router.RouteRequestAsync<Core.Interfaces.IHolon>(holonRequest):router.RouteRequest<Core.Interfaces.IHolon>(holonRequest);
+                Assert.IsFalse(holonSaved.IsError,holonSaved.Message);Assert.IsFalse(holonSaved.IsWarning,holonSaved.Message);
+                foreach(var store in new Core.Interfaces.IOASISStorageProvider[] {google,sqlite})
+                {
+                    var read=await store.LoadHolonAsync(id,loadChildren:false);Assert.IsFalse(read.IsError,read.Message);
+                    Assert.AreEqual(holon.ParentHolonId,read.Result.ParentHolonId);Assert.AreEqual(id,read.Result.CreatedByAvatarId);
+                    Assert.AreEqual("retained-value",read.Result.MetaData["replicated-holon"].ToString());
+                }
                 var request=new Core.StorageOperationRequest {Operation="DeleteAvatar",AvatarId=id,SoftDelete=true,PreferredProvider=primary};
                 var deleted=asynchronous ? await router.RouteRequestAsync<bool>(request):router.RouteRequest<bool>(request);
                 Assert.IsFalse(deleted.IsError,deleted.Message);Assert.IsFalse(deleted.IsWarning,deleted.Message);Assert.IsTrue(deleted.Result);
@@ -247,7 +269,7 @@ public class GoogleNativeDetailTests
         }
         finally
         {
-            foreach(var id in ids) {await db.Collection("avatars").Document(id.ToString()).DeleteAsync();await db.Collection("avatarDetails").Document(id.ToString()).DeleteAsync();}
+            foreach(var id in ids) {await db.Collection("avatars").Document(id.ToString()).DeleteAsync();await db.Collection("avatarDetails").Document(id.ToString()).DeleteAsync();await db.Collection("holons").Document(id.ToString()).DeleteAsync();}
             await sqlite.DeActivateProviderAsync();sqlite.Dispose();
             if(verified && File.Exists(path)) File.Delete(path);
         }
