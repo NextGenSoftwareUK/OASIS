@@ -14,6 +14,7 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 {
@@ -102,61 +103,40 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         }
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-        {
-            var result = new OASISResult<ISearchResults>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Azure Cosmos DB provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var searchResults = new SearchResults();
-                var holons = new List<IHolon>();
-                var avatars = new List<IAvatar>();
-                
-                // Extract search query from SearchGroups
-                string searchQuery = null;
-                if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
-                {
-                    var firstGroup = searchParams.SearchGroups.First();
-                    if (firstGroup is ISearchTextGroup textGroup)
-                        searchQuery = textGroup.SearchQuery;
-                }
-
-                if (!string.IsNullOrEmpty(searchQuery))
-                {
-                    // Search holons - using synchronous method or basic filtering
-                    var holonSearchResult = holonRepository.GetList().Where(h => h.Name.Contains(searchQuery) || h.Description.Contains(searchQuery));
-                    holons.AddRange(holonSearchResult);
-
-                    // Search avatars - using synchronous method or basic filtering
-                    var avatarSearchResult = avatarRepository.GetList().Where(a => a.Username.Contains(searchQuery) || a.Email.Contains(searchQuery));
-                    avatars.AddRange(avatarSearchResult);
-                }
-                
-                searchResults.SearchResultHolons = holons;
-                searchResults.SearchResultAvatars = avatars;
-                
-                result.Result = searchResults;
-                result.IsError = false;
-                result.Message = $"Search completed successfully in Azure Cosmos DB with full property mapping ({holons.Count} holons, {avatars.Count} avatars)";
+    {
+        var search=searchParams;
+        var children=loadChildren;
+        var maxDepth=maxChildDepth;
+        var result=new OASISResult<ISearchResults>();
+        try {
+            StoredRecordSearch.Validate(search,version,maxDepth);
+            var groups=search.SearchGroups ?? new List<ISearchGroupBase>();
+            var wantsAvatars=groups.Count==0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
+            var wantsHolons=groups.Count==0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);
+            var avatars=new List<IAvatar>();var holons=new List<IHolon>();
+            if(wantsAvatars) {
+                var loaded=await LoadAllAvatarsAsync(version);
+                if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IAvatar>,ISearchResults>(loaded);
+                avatars=loaded.Result.ToList();
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error searching in Azure Cosmos DB: {ex.Message}", ex);
+            if(wantsHolons || search.ParentId!=Guid.Empty) {
+                var loaded=await LoadAllHolonsAsync(HolonType.All,children,recursive,maxDepth,0,continueOnError,true,version);
+                if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,ISearchResults>(loaded);
+                holons=loaded.Result.ToList();
             }
-            return result;
+            var found=new SearchResults();
+            found.SearchResultAvatars.AddRange(avatars.Where(row=>StoredRecordSearch.Matches(row,true,search,holons)));
+            if(wantsHolons) found.SearchResultHolons.AddRange(holons.Where(row=>StoredRecordSearch.Matches(row,false,search,holons)));
+            found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
+            result.Result=found;result.IsLoaded=true;
         }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
+    }
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
+            return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).GetAwaiter().GetResult();
         }
 
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
