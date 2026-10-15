@@ -6,6 +6,6 @@ public sealed class SolanaTransactionReconciliationException : Exception, INativ
 {
     public string OriginalTransactionId { get; }
     public SolanaTransactionReconciliationException(string signature, Exception cause)
-        : base("Submitted Solana transaction requires reconciliation before replay.", cause)
+        : base($"Submitted Solana transaction {signature} requires reconciliation before replay.", cause)
         => OriginalTransactionId = signature;
 }

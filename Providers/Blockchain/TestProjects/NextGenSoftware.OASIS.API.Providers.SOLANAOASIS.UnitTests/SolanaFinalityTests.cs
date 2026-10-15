@@ -39,6 +39,7 @@ public class SolanaFinalityTests
         proxy.LostReply = true;
         var error = await Assert.ThrowsExceptionAsync<SolanaTransactionReconciliationException>(() => Submit(new SolanaRepository(null!, rpc), bytes));
         Assert.AreEqual(Encoders.Base58.EncodeData(bytes.AsSpan(1,64).ToArray()), error.OriginalTransactionId);
+        StringAssert.Contains(error.Message, error.OriginalTransactionId);
         Assert.IsInstanceOfType(error.InnerException, typeof(IOException));
         Assert.IsTrue(NativeMutationReconciliation.IsRequired(error));
         Assert.AreEqual(1, proxy.Sends);
