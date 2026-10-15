@@ -94,20 +94,30 @@ Offered to `holochain/android-service-runtime`; reply to any review comments, or
 - [#150](https://github.com/holochain/android-service-runtime/pull/150): Tauri service plugin network config for 0.7
 - [#151](https://github.com/holochain/android-service-runtime/pull/151): iOS support
 
+## 9. Two decisions from the HoloNET testing
+
+1. **Synchronous admin/app methods** (62 of them, e.g. `ListApps()`, `AttachAppInterface()`) return straight away with an empty result;
+   the real result only arrives through events. That's the original design, but it's easy to misuse. Change them to wait for and
+   return the result (like the async ones, and like the zome-call fix), or keep them event-based?
+2. **Report the Holochain bug upstream?** `list_capability_grants` with `include_revoked: false` returns no grants at all
+   (`if !include_revoked { continue; }` in `holochain/src/conductor/conductor.rs`). Claude can open an issue or a one-line fix PR on
+   `holochain/holochain`.
+
 ---
 
 ## Status: HoloNET test coverage (measured 2026-10-14)
 
 Not 100% yet. Honest numbers:
 
-- **89 automated tests, all passing live against a real Holochain 0.7.0 conductor**, repeatably
-  (71 run offline; the 18 live ones report as **skipped** without a conductor, instead of silently "passing" as before).
-- **HoloNET.Client line coverage: 52.8%** (branches 47.7%) with the conductor; **5.2%** offline-only.
-- Writing tests for untested paths found **six real bugs**, now fixed in `holochain-client-csharp` `main` (`9109f80`),
+- **93 automated tests, all passing live against a real Holochain 0.7.0 conductor** on a fresh sandbox
+  (72 run offline; the 21 live ones report as **skipped** without a conductor, instead of silently "passing" as before).
+- **HoloNET.Client line coverage: 54.9%** (branches 49.6%) with the conductor; **5.2%** offline-only.
+- Writing tests for untested paths found **nine real bugs**, now fixed in `holochain-client-csharp` `main` (`9109f80`, `9691416`),
   so they'll ship in 4.1.0:
   `app_info` rejected by 0.7; `app_info` responses crashing; `list_app_interfaces` crashing; the synchronous
   `CallZomeFunction` always returning null; **every HoloNET client sharing one DNA** (creating one client overwrote
-  the others' settings); and a thread-safety crash in shared signing credentials.
+  the others' settings); a thread-safety crash in shared signing credentials; `AddAgentInfoAsync` never completing; no way to add admin interfaces;
+  and capability grants always listing empty (that one is a **Holochain 0.7.0 conductor bug**, worked around in HoloNET).
 - Not covered by design: countersigning and `GetCompatibleCells` (only in Holochain's `unstable-*` builds).
 - No Unity test project for HoloNET yet; the TestHarness is a manual demo app.
 
