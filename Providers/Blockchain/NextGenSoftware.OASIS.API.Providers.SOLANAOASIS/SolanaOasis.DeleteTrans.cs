@@ -76,18 +76,7 @@ public partial class SolanaOASIS
                 if (holonResult.Result.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.SolanaOASIS) &&
                     holonResult.Result.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS, out var providerKey))
                 {
-                    var deleteSuccess = await _solanaRepository.DeleteAsync(providerKey);
-                    if (deleteSuccess)
-                    {
-                        result.Result = holonResult.Result;
-                        result.IsDeleted = true;
-                        result.IsError = false;
-                        result.Message = "Holon deleted successfully from Solana";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to delete holon from Solana repository");
-                    }
+                    return await DeleteHolonAsync(providerKey);
                 }
                 else
                 {
@@ -112,17 +101,20 @@ public partial class SolanaOASIS
 
         try
         {
-            if (await _solanaRepository.DeleteAsync(providerKey))
-            {
-                result.IsDeleted = true;
-                result.DeletedCount = 1;
-            }
-            else
-                result.IsError = true;
+            var stored = await _solanaRepository.GetAsync<SolanaHolonDto>(providerKey);
+            stored.IsDeleted = true;
+            stored.Version = checked(stored.Version + 1);
+            stored.PreviousVersionId = stored.Id;
+            var deleted = stored.GetHolon();
+            var tombstone = await _solanaRepository.CreateTombstoneAsync(providerKey);
+            deleted.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = tombstone;
+            result.Result = deleted;
+            result.IsDeleted = true;
+            result.DeletedCount = 1;
         }
         catch (Exception e)
         {
-            OASISErrorHandling.HandleError(ref result, e.Message);
+            OASISErrorHandling.HandleError(ref result, e.Message, e);
         }
 
         return result;

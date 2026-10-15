@@ -95,5 +95,6 @@ public class SolanaAvatarUpdateTests
         public Task<string> UpdateAsync<T>(T entity) where T : SolanaBaseDto, new() { Updated = entity; return Task.FromResult("new-signature"); }
         public Task<string> CreateAsync<T>(T entity) where T : SolanaBaseDto, new() => throw new InvalidOperationException("Unexpected create");
         public Task<bool> DeleteAsync(string reference) => throw new InvalidOperationException("Unexpected delete");
+        public Task<string> CreateTombstoneAsync(string reference) => throw new InvalidOperationException("Unexpected tombstone");
     }
 }
