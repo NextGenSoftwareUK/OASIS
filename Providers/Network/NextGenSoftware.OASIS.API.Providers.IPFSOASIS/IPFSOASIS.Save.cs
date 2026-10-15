@@ -289,7 +289,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-			return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
+			return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).GetAwaiter().GetResult();
         }
 
 		public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)

@@ -16,6 +16,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests;
 
@@ -63,7 +64,8 @@ public class IPFSNativeStorageTests
             Assert.Equal(inventoryId,item.Id); Assert.Equal(5,item.Quantity); Assert.Equal("Our World",item.GameSource);
             Assert.Single((await provider.LoadAllAvatarsAsync()).Result); Assert.Single((await provider.LoadAllAvatarDetailsAsync()).Result);
             Assert.Single((await provider.LoadAllHolonsAsync(HolonType.All)).Result);
-            var child=new Holon {Id=Guid.NewGuid(),ParentHolonId=id,Name="owned-native-child",HolonType=HolonType.Holon};
+            var child=new Holon {Id=Guid.NewGuid(),ParentHolonId=id,Name="owned-native-child",HolonType=HolonType.Holon,
+                MetaData=new Dictionary<string,object> {{"biome","owned-park"}}};
             await provider.SaveHolonToFile(child);
             ownedCids.Add(child.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]); ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
             var parentKey=holon.ProviderUniqueStorageKey[ProviderType.IPFSOASIS];
@@ -79,6 +81,20 @@ public class IPFSNativeStorageTests
             Assert.Empty(Assert.Single((await provider.LoadHolonsForParentAsync(parentKey,loadChildren:false,loadChildrenFromProvider:true)).Result).Children);
             Assert.Empty(Assert.Single((await provider.LoadHolonsForParentAsync(parentKey,maxChildDepth:1,curentChildDepth:1,loadChildrenFromProvider:true)).Result).Children);
             Assert.Throws<ArgumentOutOfRangeException>(()=>provider.LoadHolonsForParent(parentKey,maxChildDepth:-1));
+            var query=new SearchParams {SearchOnlyForCurrentAvatar=false,MetaKeyValuePairMatchMode=MetaKeyValuePairMatchMode.All,
+                SearchGroups=new() {new SearchTextGroup {SearchHolons=true,HolonType=HolonType.All,SearchQuery="owned-native-child",HolonSearchParams=new SearchHolonParams {Name=true}}}};
+            var searched=await provider.SearchAsync(query);
+            Assert.False(searched.IsError,searched.Message); Assert.Equal(1,searched.Result.NumberOfResults);
+            Assert.Equal(child.Id,Assert.Single(searched.Result.SearchResultHolons).Id);
+            Assert.Equal(grandchild.Id,Assert.Single(searched.Result.SearchResultHolons[0].Children).Id);
+            var noChildren=provider.Search(query,loadChildren:false);
+            Assert.False(noChildren.IsError,noChildren.Message); Assert.Empty(Assert.Single(noChildren.Result.SearchResultHolons).Children);
+            Assert.IsType<NotSupportedException>(provider.Search(query,version:1).Exception);
+            query.FilterByMetaData=new Dictionary<string,string> {{"biome","owned-park"}};
+            Assert.Equal(child.Id,Assert.Single((await provider.SearchAsync(query,loadChildren:false)).Result.SearchResultHolons).Id);
+            query.FilterByMetaData["biome"]="not-this-park";
+            var noMatch=await provider.SearchAsync(query);
+            Assert.False(noMatch.IsError,noMatch.Message); Assert.Equal(0,noMatch.Result.NumberOfResults);
             var loadedRoot=await provider.LoadHolonAsync(id,loadChildrenFromProvider:true);
             Assert.False(loadedRoot.IsError,loadedRoot.Message);
             Assert.Equal(grandchild.Id,Assert.Single(Assert.Single(loadedRoot.Result.Children).Children).Id);
