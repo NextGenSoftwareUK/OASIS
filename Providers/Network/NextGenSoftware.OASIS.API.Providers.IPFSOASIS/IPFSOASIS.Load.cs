@@ -319,25 +319,26 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         /*** Templates****/
 
-        public async Task<OASISResult<IAvatar>> LoadAvatarTemplateAsync(Func<HolonResume,bool> predicate, int version=0)
+        public async Task<OASISResult<IAvatar>> LoadAvatarTemplateAsync(Func<HolonResume,bool> predicate, int version=0, bool validSelector=true)
         {
-            var read=await ReadIndexedEntityAsync<Avatar>("avatar",predicate,version);
+            var read=await ReadIndexedEntityAsync<Avatar>("avatar",predicate,version,validSelector);
             var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Avatar,IAvatar>(read);
             result.Result=read.Result; return result;
         }
 
-        public async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailTemplateAsync(Func<HolonResume,bool> predicate, int version=0)
+        public async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailTemplateAsync(Func<HolonResume,bool> predicate, int version=0, bool validSelector=true)
         {
-            var read=await ReadIndexedEntityAsync<AvatarDetail>("avatar-detail",predicate,version);
+            var read=await ReadIndexedEntityAsync<AvatarDetail>("avatar-detail",predicate,version,validSelector);
             var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<AvatarDetail,IAvatarDetail>(read);
             result.Result=read.Result; return result;
         }
 
-        private async Task<OASISResult<T>> ReadIndexedEntityAsync<T>(string kind,Func<HolonResume,bool> predicate,int version) where T:class,IHolonBase
+        private async Task<OASISResult<T>> ReadIndexedEntityAsync<T>(string kind,Func<HolonResume,bool> predicate,int version,bool validSelector) where T:class,IHolonBase
         {
             var result=new OASISResult<T>();
             try
             {
+                if(!validSelector) throw new ArgumentException("A nonempty IPFS entity selector is required.");
                 if(version!=0) throw new NotSupportedException("Historical IPFS entity reads are not implemented.");
                 var snapshot=await LoadLookupToJson();
                 var matches=snapshot.Where(entry=>entry.Value?.RecordKind==kind && predicate(entry.Value)).Take(2).ToList();
