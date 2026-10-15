@@ -118,6 +118,15 @@ public class CosmosNativeStorageTests
             var deleted=await provider.DeleteHolonAsync(childId);
             Assert.IsFalse(deleted.IsError,deleted.Message);Assert.IsTrue(deleted.IsSaved);Assert.AreEqual(childId,deleted.Result.Id);
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,provider.LoadHolon(childId).ErrorCode);
+            var softDeleted=await provider.DeleteAvatarByEmailAsync(avatar.Email.ToUpperInvariant());
+            Assert.IsFalse(softDeleted.IsError,softDeleted.Message);Assert.IsTrue(softDeleted.Result);Assert.IsTrue(softDeleted.IsSaved);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,provider.LoadAvatar(avatarId).ErrorCode);
+            var avatarStore=new Infrastructure.AvatarRepository((Infrastructure.ICosmosDbClientFactory)factoryField.GetValue(provider)!);
+            var tombstone=await avatarStore.GetByIdAsync(avatarId.ToString());
+            Assert.IsFalse(tombstone.IsActive);Assert.AreEqual(DateTimeKind.Utc,tombstone.DeletedDate.Kind);
+            var repeated=provider.DeleteAvatar(avatarId);Assert.IsFalse(repeated.IsError,repeated.Message);Assert.IsTrue(repeated.Result);Assert.IsFalse(repeated.IsSaved);
+            var hardDeleted=await provider.DeleteAvatarAsync(avatarId,softDelete:false);
+            Assert.IsFalse(hardDeleted.IsError,hardDeleted.Message);Assert.IsTrue(hardDeleted.Result);Assert.IsTrue(hardDeleted.IsSaved);
         }
         finally
         {
