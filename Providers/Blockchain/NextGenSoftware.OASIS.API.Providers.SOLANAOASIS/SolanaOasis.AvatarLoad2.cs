@@ -408,81 +408,9 @@ public partial class SolanaOASIS
         return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
     }//
 
-    public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true,
+    public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true,
         bool recursive = true, int maxChildDepth = 0, bool continueOnError = true,
         bool loadChildrenFromProvider = false, int version = 0)
-    {
-        var result = new OASISResult<IHolon>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
-            }
-
-            // Load holon by ID from Solana blockchain
-            // Real Solana implementation: Query program accounts and find holon with matching ID
-            try
-            {
-                var accounts = await _rpcClient.GetProgramAccountsAsync(_oasisSolanaAccount.PublicKey);
-                
-                if (accounts.WasSuccessful && accounts.Result != null)
-                {
-                    foreach (var account in accounts.Result)
-                    {
-                        try
-                        {
-                            // Parse account data to check if it's a holon with matching ID
-                            var accountData = account.Account.Data;
-                            if (accountData != null && accountData.Count > 0)
-                            {
-                                var accountDataString = accountData is IReadOnlyList<byte> bytes ? Encoding.UTF8.GetString(bytes.ToArray()) : string.Join("", (IEnumerable<string>)accountData);
-                                var holonDto = JsonConvert.DeserializeObject<Entities.Models.SolanaHolonDto>(accountDataString);
-                                
-                                if (holonDto != null && holonDto.Id == id)
-                                {
-                                    holonDto.PublicKey = account.PublicKey;
-                                    holonDto.AccountInfo = account.Account;
-                                    holonDto.Lamports = account.Account.Lamports;
-                                    holonDto.Owner = account.Account.Owner;
-                                    
-                                    var holon = holonDto.GetHolon();
-                                    if (holon != null)
-                                    {
-                                        result.Result = holon;
-                                        result.IsError = false;
-                                        result.IsLoaded = true;
-                                        result.Message = "Holon loaded successfully by ID from Solana";
-                                        return result;
-                                    }
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            // Continue searching other accounts
-                            continue;
-                        }
-                    }
-                }
-                
-                OASISErrorHandling.HandleError(ref result, "Holon not found by ID in Solana");
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error querying Solana program accounts: {ex.Message}", ex);
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading holon by ID from Solana: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => FindStoredIdentityAsync(id!=Guid.Empty,()=>LoadAllHolonsAsync(Core.Enums.HolonType.All,loadChildren,recursive,maxChildDepth,0,continueOnError,loadChildrenFromProvider,version),row=>row.Id==id);
 
 }
