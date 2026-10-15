@@ -30,7 +30,7 @@ public class GoogleNativeDetailTests
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);Assert.AreSame(retainedDb,dbField.GetValue(provider));
             Assert.AreEqual(0,(await provider.LoadAllAvatarsAsync()).Result.Count());
             var avatar=new Avatar {Id=avatarId,IsActive=true,Username="owned-avatar",Email="owned-avatar@example.invalid",FirstName="Owned",
-                MetaData=new Dictionary<string,object> {{"profile-field","profile-value"}}};
+                MetaData=new Dictionary<string,object> {{"profile-field","profile-value"},{"Latitude",-33.0},{"Longitude",151.0}}};
             var avatarSaved=await provider.SaveAvatarAsync(avatar);Assert.IsFalse(avatarSaved.IsError,avatarSaved.Message);Assert.IsTrue(avatarSaved.IsSaved);
             var avatarRead=await provider.LoadAvatarAsync(avatarId);Assert.IsFalse(avatarRead.IsError,avatarRead.Message);
             Assert.AreEqual("Owned",avatarRead.Result.FirstName);Assert.AreEqual("profile-value",avatarRead.Result.MetaData["profile-field"]);
@@ -67,7 +67,7 @@ public class GoogleNativeDetailTests
             await VerifySqliteDeleteReplicationAsync(provider,db);
             await VerifyNativePartialBatchAsync(db);
             var holon=new Holon {Id=holonId,IsActive=true,Name="owned holon",ParentHolonId=detail.Id,CreatedByAvatarId=avatarId,
-                MetaData=new Dictionary<string,object> {{"owned-field","owned-value"}}};
+                MetaData=new Dictionary<string,object> {{"owned-field","owned-value"},{"Latitude",-33.0},{"Longitude",151.0}}};
             var written=await provider.SaveHolonAsync(holon,saveChildren:false);Assert.IsFalse(written.IsError,written.Message);
             var read=await provider.LoadHolonAsync(holonId,loadChildren:false);Assert.IsFalse(read.IsError,read.Message);
             var keyRead=await provider.LoadHolonAsync(holonId.ToString(),loadChildren:false);
@@ -92,6 +92,16 @@ public class GoogleNativeDetailTests
             var otherType=holon.HolonType==NextGenSoftware.OASIS.API.Core.Enums.HolonType.Avatar
                 ? NextGenSoftware.OASIS.API.Core.Enums.HolonType.AvatarDetail : NextGenSoftware.OASIS.API.Core.Enums.HolonType.Avatar;
             Assert.AreEqual(0,(await provider.LoadAllHolonsAsync(otherType)).Result.Count());
+            var network=(Core.Interfaces.IOASISNETProvider)provider;
+            var nearAvatars=network.GetAvatarsNearMe(-33000000,151000000,100);
+            Assert.IsFalse(nearAvatars.IsError,nearAvatars.Message);Assert.AreEqual(avatarId,nearAvatars.Result.Single().Id);
+            var nearHolons=network.GetHolonsNearMe(-33000000,151000000,100,Core.Enums.HolonType.All);
+            Assert.IsFalse(nearHolons.IsError,nearHolons.Message);Assert.AreEqual(holonId,nearHolons.Result.Single().Id);
+            Assert.IsFalse(nearHolons.Result.Single().MetaData.ContainsKey("Distance"));
+            Assert.AreEqual(0,network.GetHolonsNearMe(0,0,100,Core.Enums.HolonType.All).Result.Count());
+            Assert.AreEqual(0,network.GetHolonsNearMe(-33001000,151000000,50,Core.Enums.HolonType.All).Result.Count());
+            Assert.AreEqual(holonId,network.GetHolonsNearMe(-33001000,151000000,200,Core.Enums.HolonType.All).Result.Single().Id);
+            Assert.AreEqual(0,network.GetHolonsNearMe(-33000000,151000000,100,otherType).Result.Count());
             var child=new Holon {Id=childId,IsActive=true,Name="owned child",ParentHolonId=holonId};
             Assert.IsFalse((await provider.SaveHolonAsync(child,saveChildren:false)).IsError);
             var parentRows=await provider.LoadHolonsForParentAsync(holonId,loadChildrenFromProvider:true);
