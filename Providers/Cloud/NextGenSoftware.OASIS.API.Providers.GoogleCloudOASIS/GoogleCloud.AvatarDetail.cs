@@ -138,51 +138,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             return DeleteAvatarAsync(id, softDelete).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (!_enableFirestore)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
-                    return result;
-                }
-
-                // Load holon from Firestore
-                var docRef = _firestoreDb.Collection("holons").Document(id.ToString());
-                var snapshot = await docRef.GetSnapshotAsync();
-                
-                if (snapshot.Exists)
-                {
-                    var holonData = snapshot.ConvertTo<Dictionary<string, object>>();
-                    var holon = DecodeHolon(holonData,id.ToString());
-                    
-                    result.Result = holon;
-                    result.IsError = false;
-                    result.Message = "Holon loaded successfully from Google Cloud Firestore with full property mapping";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Holon not found in Google Cloud Firestore");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holon from Google Cloud: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id,bool loadChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool loadChildrenFromProvider=false,int version=0)
+            => ReadCanonicalHolonByIdAsync(id,maxChildDepth,version);
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
