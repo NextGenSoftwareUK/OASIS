@@ -20,80 +20,16 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
     public partial class AzureCosmosDBOASIS
     {
         public override OASISResult<IHolon> DeleteHolon(Guid id)
-        {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-            string reason = "unknown";
-            string errorMessage = $"An error occured deleting the holon with id {id}";
-
-            try
-            {
-                holonRepository.DeleteAsync(id).Wait();
-                result.IsSaved = true;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
-            }
-
-            return result;
-        }
+            => DeleteCurrentHolonAsync(id.ToString()).GetAwaiter().GetResult();
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
-        {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-            string reason = "unknown";
-            string errorMessage = $"An error occured deleting the holon with providerKey {providerKey}";
-
-            try
-            {
-                holonRepository.DeleteAsync(providerKey).Wait();
-                result.IsSaved = true;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
-            }
-
-            return result;
-        }
+            => DeleteCurrentHolonAsync(providerKey).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
-        {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-            string reason = "unknown";
-            string errorMessage = $"An error occured deleting the holon with id {id}";
-
-            try
-            {
-                await holonRepository.DeleteAsync(id);
-                result.IsSaved = true;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
-            }
-
-            return result;
-        }
+            => await DeleteCurrentHolonAsync(id.ToString());
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
-        {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-            string reason = "unknown";
-            string errorMessage = $"An error occured deleting the holon with providerKey {providerKey}";
-
-            try
-            {
-                await holonRepository.DeleteAsync(providerKey);
-                result.IsSaved = true;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}.");
-            }
-
-            return result;
-        }
+            => await DeleteCurrentHolonAsync(providerKey);
 
         public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
             => ReadNearbyAsync(geoLat,geoLong,radiusInMeters,()=>LoadAllAvatarsAsync()).GetAwaiter().GetResult();
