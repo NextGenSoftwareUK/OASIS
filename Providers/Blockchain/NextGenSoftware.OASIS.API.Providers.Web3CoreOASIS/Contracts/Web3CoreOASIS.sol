@@ -129,6 +129,29 @@ contract Web3CoreOASIS is ERC721, Ownable, IWeb3CoreOASIS {
         return true;
     }
 
+    function upsertAvatarChecked(uint256 entityId, bytes32 externalId, bool expectedPresent, bytes32 expectedHash, bytes memory info) external onlyOwner returns (bool) {
+        checkExpected(avatars[entityId], expectedPresent, expectedHash);
+        if (upsert(avatars, avatarIds, entityId, externalId, info)) totalAvatarsCount++;
+        return true;
+    }
+
+    function upsertAvatarDetailChecked(uint256 entityId, bytes32 externalId, bool expectedPresent, bytes32 expectedHash, bytes memory info) external onlyOwner returns (bool) {
+        checkExpected(avatarDetails[entityId], expectedPresent, expectedHash);
+        if (upsert(avatarDetails, avatarDetailIds, entityId, externalId, info)) totalAvatarDetailsCount++;
+        return true;
+    }
+
+    function upsertHolonChecked(uint256 entityId, bytes32 externalId, bool expectedPresent, bytes32 expectedHash, bytes memory info) external onlyOwner returns (bool) {
+        checkExpected(holons[entityId], expectedPresent, expectedHash);
+        if (upsert(holons, holonIds, entityId, externalId, info)) totalHolonsCount++;
+        return true;
+    }
+
+    function checkExpected(EntityOASIS storage record, bool expectedPresent, bytes32 expectedHash) private view {
+        require((record.ExternalId != bytes32(0)) == expectedPresent, "Storage presence conflict");
+        require(keccak256(record.Info) == expectedHash, "Storage payload conflict");
+    }
+
     function upsert(mapping(uint256 => EntityOASIS) storage records, EnumerableSet.UintSet storage ids,
         uint256 entityId, bytes32 externalId, bytes memory info) private returns (bool created) {
         require(externalId != bytes32(0), "External identity required");
