@@ -98,6 +98,15 @@ public class AzureNativeStorageTests
             var any=await provider.LoadHolonsByMetaDataAsync(new Dictionary<string,string> {{"owned-kind","missing"},{"amount","1.5"}},Core.Enums.MetaKeyValuePairMatchMode.Any);
             Assert.IsFalse(any.IsError,any.Message);Assert.AreEqual(child.Id,any.Result.Single().Id);
             Assert.IsTrue((await provider.LoadHolonsByMetaDataAsync((string)null!,"seed")).IsError);
+            var searched=await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+                SearchOnlyForCurrentAvatar=false,FilterByMetaData=new Dictionary<string,string> {{"owned-kind","seed"}}});
+            Assert.IsFalse(searched.IsError,searched.Message);Assert.AreEqual(1,searched.Result.NumberOfResults);
+            Assert.AreEqual(child.Id,searched.Result.SearchResultHolons.Single().Id);
+            Assert.AreEqual(grandchild.Id,searched.Result.SearchResultHolons.Single().Children.Single().Id);
+            var text=provider.Search(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+                SearchOnlyForCurrentAvatar=false,SearchGroups=new() {new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup {SearchQuery="owned grandchild",SearchHolons=true}}});
+            Assert.IsFalse(text.IsError,text.Message);Assert.AreEqual(grandchild.Id,text.Result.SearchResultHolons.Single().Id);
+            Assert.IsInstanceOfType((await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {SearchOnlyForCurrentAvatar=false},version:1)).Exception,typeof(NotSupportedException));
         }
         finally {
             await provider.DeActivateProviderAsync();
