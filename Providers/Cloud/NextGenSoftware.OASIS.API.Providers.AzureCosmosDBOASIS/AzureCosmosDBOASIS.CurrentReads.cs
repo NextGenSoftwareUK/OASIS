@@ -15,6 +15,21 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
 
 public partial class AzureCosmosDBOASIS
 {
+    private async Task<OASISResult<IHolon>> DeleteCurrentHolonAsync(string key)
+    {
+        var result=await ReadCurrentKeyAsync<IHolon>(()=>holonRepository,key,0);
+        if(result.IsError) return result;
+        var record=result.Result;
+        result.Result=null;result.IsLoaded=false;
+        try
+        {
+            await holonRepository.DeleteAsync(record.Id.ToString());
+            result.Result=record;result.IsSaved=true;
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
+    }
+
     private async Task<OASISResult<T>> ReadCurrentSelectorAsync<T>(Func<IRepository<T>> repository,string selector,Func<T,string> field,int version) where T:IHolonBase
     {
         var result=new OASISResult<T>();

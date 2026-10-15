@@ -128,18 +128,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 
         public async Task DeleteAsync(string providerKey)
         {
-            try
-            {
-                var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
-                var partitionKey = ResolvePartitionKey(providerKey);
-                await cosmosDbClient.DeleteDocumentAsync(providerKey, partitionKey);
-            }
-            catch (CosmosException e)
-            {
-                if (e.StatusCode == HttpStatusCode.NotFound)
-                    throw new EntityNotFoundException();
-                throw;
-            }
+            if(!Guid.TryParse(providerKey,out var id) || id==Guid.Empty) throw new ArgumentException("A nonempty Cosmos GUID key is required.",nameof(providerKey));
+            var key=id.ToString();
+            var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
+            await cosmosDbClient.DeleteDocumentAsync(key, ResolvePartitionKey(key));
         }
 
         public abstract string CollectionName { get; }
