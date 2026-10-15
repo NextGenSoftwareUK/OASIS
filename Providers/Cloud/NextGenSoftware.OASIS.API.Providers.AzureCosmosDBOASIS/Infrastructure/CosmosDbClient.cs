@@ -44,6 +44,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         {
             var pk = partitionKey ?? PartitionKey.None;
             using var response = await _container.ReadItemStreamAsync(documentId, pk, null, cancellationToken);
+            var substatus=response.Headers.Get("x-ms-substatus");
+            if(response.StatusCode==System.Net.HttpStatusCode.NotFound && (string.IsNullOrEmpty(substatus) || substatus=="0"))
+            {
+                // Item absence is authoritative only while the parent container remains readable.
+                await _container.ReadContainerAsync(cancellationToken:cancellationToken);
+                return null;
+            }
             if (!response.IsSuccessStatusCode)
                 throw new CosmosException(response.ErrorMessage ?? "Read failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
             using var reader = new StreamReader(response.Content);

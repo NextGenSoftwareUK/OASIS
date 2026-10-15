@@ -58,8 +58,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                         dbClientFactory.Dispose();
                         dbClientFactory = null;
                         IsProviderActivated = false;
-                        OASISErrorHandling.HandleError(ref result, $"{errorMessage} Error returned from EnsureDbSetupAsync: {ensureDbSetupResult.Message}.");
-                        return result;
+                        return ensureDbSetupResult;
                     }
                     else
                     {
@@ -76,7 +75,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}.");
+                OASISErrorHandling.HandleError(ref result, $"{errorMessage} {ex}.",ex);
             }
 
             return result;

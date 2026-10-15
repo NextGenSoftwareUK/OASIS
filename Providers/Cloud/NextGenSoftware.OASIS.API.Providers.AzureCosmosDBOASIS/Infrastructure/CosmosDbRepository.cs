@@ -34,12 +34,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                 var json = await cosmosDbClient.ReadDocumentAsync(id, partitionKey);
                 return json == null ? default : DeserializeEntity(json,id);
             }
-            catch (CosmosException e)
-            {
-                if (e.StatusCode == HttpStatusCode.NotFound)
-                    throw new EntityNotFoundException();
-                throw;
-            }
+            catch (CosmosException) { throw; }
         }
 
         public T GetByField(string fieldName, string fieldValue, int version = 0)
@@ -50,12 +45,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                 var json = cosmosDbClient.ReadDocumentByField(fieldName, fieldValue, version);
                 return json == null ? default : DeserializeEntity(json);
             }
-            catch (CosmosException e)
-            {
-                if (e.StatusCode == HttpStatusCode.NotFound)
-                    throw new EntityNotFoundException();
-                throw;
-            }
+            catch (CosmosException) { throw; }
         }
 
         public List<T> GetList()
@@ -69,12 +59,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                     list.Add(DeserializeEntity(json));
                 return list;
             }
-            catch (CosmosException e)
-            {
-                if (e.StatusCode == HttpStatusCode.NotFound)
-                    throw new EntityNotFoundException();
-                throw;
-            }
+            catch (CosmosException) { throw; }
         }
 
         public async Task<T> AddAsync(T entity)
