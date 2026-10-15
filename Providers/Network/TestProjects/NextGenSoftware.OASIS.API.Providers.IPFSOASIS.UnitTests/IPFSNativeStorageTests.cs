@@ -1,0 +1,81 @@
+using System;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using Ipfs;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.DNA;
+using Xunit;
+
+namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests;
+
+public class IPFSNativeStorageTests
+{
+    [Fact]
+    public async Task RealOfflineDaemonRetainsEncryptedSameGuidRecordsAndIndex()
+    {
+        const string endpoint="http://127.0.0.1:18547";
+        if(Environment.GetEnvironmentVariable("OASIS_IPFS_TEST_RPC")!=endpoint) throw new InvalidOperationException("Owned reusable IPFS runner required.");
+        var path=Environment.GetEnvironmentVariable("OASIS_IPFS_TEST_DNA_PATH") ?? throw new InvalidOperationException("Owned fixture path required.");
+        if(Path.GetFileName(path)!="owned-dna.json" || File.Exists(path)) throw new InvalidOperationException("Existing or unexpected fixture requires inspection.");
+        var resolve=typeof(OASISDNAManager).GetMethod("ResolveEffectiveOASISDNAPath",BindingFlags.Static|BindingFlags.NonPublic)!;
+        Assert.Equal(Path.GetFullPath(path),(string)resolve.Invoke(null,new object[] {path})!);
+        var priorDna=OASISDNAManager.OASISDNA; var priorPath=OASISDNAManager.OASISDNAPath;
+        var dna=new OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {StorageProviders=new StorageProviderSettings {
+            IPFSOASIS=new IPFSOASISSettings {ConnectionString=endpoint}}}};
+        var provider=new IPFSOASIS(dna,path);
+        var ownedCids=new HashSet<string>(StringComparer.Ordinal);
+        var verified=false;
+        try
+        {
+            var activated=await provider.ActivateProviderAsync(); Assert.False(activated.IsError,activated.Message);
+            var id=Guid.NewGuid();
+            var avatar=new Avatar {Id=id,Username="owned-native-avatar",Email="owned@example.invalid",Password="synthetic-not-a-user-secret"};
+            var detail=new AvatarDetail {Id=id,Username=avatar.Username,Email=avatar.Email,XP=321,Karma=29};
+            var holon=new Holon {Id=id,Name="owned-native-holon",HolonType=HolonType.Holon};
+            await provider.SaveAvatarToFile(avatar);
+            ownedCids.Add(avatar.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]); ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+            await provider.SaveAvatarDetailToFile(detail);
+            ownedCids.Add(detail.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]); ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+            await provider.SaveHolonToFile(holon);
+            ownedCids.Add(holon.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]); ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+            var profile=await provider.LoadAvatarTemplateAsync(row=>row.Id==id);
+            var stats=await provider.LoadAvatarDetailTemplateAsync(row=>row.Id==id);
+            var stored=await provider.LoadHolonTemplateAsync(row=>row.Id==id);
+            Assert.Equal(avatar.Email,profile.Result.Email); Assert.Equal(avatar.Password,profile.Result.Password);
+            Assert.Equal(detail.XP,stats.Result.XP); Assert.Equal(detail.Karma,stats.Result.Karma); Assert.Equal(holon.Name,stored.Result.Name);
+            Assert.Single((await provider.LoadAllAvatarsAsync()).Result); Assert.Single((await provider.LoadAllAvatarDetailsAsync()).Result);
+            Assert.Single((await provider.LoadAllHolonsAsync(HolonType.All)).Result);
+            foreach(var cid in new[] {avatar.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],detail.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],holon.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress})
+            {
+                var raw=await provider.IPFSClient.FileSystem.ReadAllTextAsync((Cid)cid);
+                Assert.StartsWith("oasis-aes256gcm-gzip-v2:",raw); Assert.DoesNotContain(avatar.Email,raw); Assert.DoesNotContain(avatar.Password,raw); Assert.DoesNotContain(id.ToString(),raw);
+            }
+            await provider.DeActivateProviderAsync();
+            var version=await new Ipfs.Http.IpfsClient(endpoint).VersionAsync(); Assert.NotEmpty(version);
+            verified=true;
+        }
+        finally
+        {
+            var cleaned=false;
+            try
+            {
+                if(verified)
+                {
+                    var client=new Ipfs.Http.IpfsClient(endpoint);
+                    foreach(var cid in ownedCids) Assert.Contains((await client.Pin.RemoveAsync((Cid)cid)).Select(value=>value.ToString()),value=>value==cid);
+                    cleaned=true;
+                }
+            }
+            finally
+            {
+                await provider.DeActivateProviderAsync();
+                OASISDNAManager.OASISDNA=priorDna; OASISDNAManager.OASISDNAPath=priorPath;
+                if(cleaned && File.Exists(path)) File.Delete(path);
+            }
+        }
+    }
+}
