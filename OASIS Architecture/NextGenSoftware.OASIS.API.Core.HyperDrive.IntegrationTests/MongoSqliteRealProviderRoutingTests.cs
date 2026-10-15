@@ -895,6 +895,43 @@ public sealed class MongoSqliteRealProviderRoutingTests
             {
                 await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
             }
+            var abortedGraph = new Holon { Id = Guid.NewGuid(), Name = "owned-v2-aborted-graph" };
+            var abortedChild = new Holon { Id = Guid.NewGuid(), Name = "owned-v2-aborted-child", ParentHolonId = abortedGraph.Id };
+            abortedGraph.Children = new List<IHolon> { abortedChild };
+            try
+            {
+                var graphFailManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true, IsAutoReplicationEnabled = true };
+                graphFailManager.RegisterProvider(failureMongo);
+                graphFailManager.RegisterProvider(sqlite);
+                var graphFailProviders = new[] { new EnumValue<ProviderType>(ProviderType.MongoDBOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) };
+                graphFailManager.SetAndReplaceAutoFailOverListForProviders(graphFailProviders).IsError.Should().BeFalse();
+                graphFailManager.SetAndReplaceAutoReplicationListForProviders(graphFailProviders).IsError.Should().BeFalse();
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                    { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("skip",1) },
+                    { "data", new BsonDocument { { "failCommands", new BsonArray { "insert" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                });
+                var graphFailRouter = new OASISHyperDrive(graphFailManager);
+                var graphFailRequest = new StorageOperationRequest { Operation = "SaveHolon", Payload = abortedGraph,
+                    PreferredProvider = ProviderType.MongoDBOASIS, SaveChildren = true, Recursive = true, ChildrenFromProvider = true };
+                var recoveredGraph = synchronous ? graphFailRouter.RouteRequest<IHolon>(graphFailRequest)
+                    : await graphFailRouter.RouteRequestAsync<IHolon>(graphFailRequest);
+                recoveredGraph.IsError.Should().BeFalse(recoveredGraph.Message);
+                recoveredGraph.IsWarning.Should().BeTrue("the still-rejecting Mongo replica must not be reported as repaired");
+                recoveredGraph.Result.Should().NotBeNull();
+                foreach (var node in new[] { abortedGraph, abortedChild })
+                {
+                    var survivingNode = await sqlite.LoadHolonAsync(node.Id,loadChildren:false);
+                    survivingNode.Result.Should().NotBeNull("the successful backup must contain the complete graph");
+                    survivingNode.Result.ParentHolonId.Should().Be(node.ParentHolonId);
+                    (await mongo.LoadHolonAsync(node.Id,loadChildren:false)).Result.Should().BeNull("both failed Mongo graph transactions must roll back");
+                }
+                graphFailManager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests.Should().Be(1);
+                graphFailManager.PerformanceMonitor.GetMetrics(ProviderType.MongoDBOASIS).TotalRequests.Should().Be(2);
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+            }
             var rejectedInsertHolon = new Holon { Id = Guid.NewGuid(), Name = "owned-holon-insert-rejected" };
             try
             {
