@@ -14,6 +14,7 @@ internal sealed class Web3AcceptedWriteProxy : IAsyncDisposable
     private readonly Func<string,Task>? beforeSubmission;
     internal ConcurrentQueue<string> AcceptedHashes {get;}=new();
     internal ConcurrentQueue<string> Methods {get;}=new();
+    internal string? ReportedChainId {get;set;}
     internal Web3AcceptedWriteProxy(Func<string,Task>? beforeSubmission=null)
     {
         this.beforeSubmission=beforeSubmission;
@@ -32,6 +33,13 @@ internal sealed class Web3AcceptedWriteProxy : IAsyncDisposable
                 using var reader=new StreamReader(context.Request.InputStream,Encoding.UTF8);
                 var body=await reader.ReadToEndAsync();var request=JObject.Parse(body);
                 Methods.Enqueue((string)request["method"]!);
+                if((string?)request["method"]=="eth_chainId" && ReportedChainId!=null)
+                {
+                    var wrongChain=new JObject { ["jsonrpc"]="2.0",["id"]=request["id"]!.DeepClone(),["result"]=ReportedChainId };
+                    var fault=Encoding.UTF8.GetBytes(wrongChain.ToString(Newtonsoft.Json.Formatting.None));
+                    context.Response.StatusCode=200;context.Response.ContentType="application/json";context.Response.ContentLength64=fault.Length;
+                    await context.Response.OutputStream.WriteAsync(fault);continue;
+                }
                 if((string?)request["method"]=="eth_sendRawTransaction" && beforeSubmission!=null)
                     await beforeSubmission((string)request["params"]![0]!);
                 using var response=await upstream.PostAsync("http://127.0.0.1:18545/",new StringContent(body,Encoding.UTF8,"application/json"));
