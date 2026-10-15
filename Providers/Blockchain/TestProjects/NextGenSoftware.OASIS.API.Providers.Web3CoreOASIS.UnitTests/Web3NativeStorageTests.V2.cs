@@ -176,6 +176,35 @@ public partial class Web3NativeStorageTests
                 Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,(await polygon.LoadAvatarAsync(id)).ErrorCode);
                 Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,(await polygon.LoadAvatarDetailAsync(id)).ErrorCode);
             }
+            manager.IsAutoReplicationEnabled=false;manager.IsAutoFailOverEnabled=true;
+            var conflictId=Guid.NewGuid();
+            foreach(var store in new IOASISStorageProvider[] {polygon,sqlite})
+            {
+                Assert.IsFalse((await store.SaveAvatarAsync(new Avatar {Id=conflictId,IsActive=true,Username="preserved backup",FirstName="unchanged",AvatarType=new EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User)})).IsError);
+                Assert.IsFalse((await store.SaveAvatarDetailAsync(new AvatarDetail {Id=conflictId,IsActive=true,XP=321,Karma=87})).IsError);
+            }
+            Assert.IsFalse((await polygon.DeleteAvatarAsync(conflictId)).IsError);
+            var conflictKey=(uint)Core.Utilities.HashUtility.GetNumericHash(conflictId.ToString());
+            var beforeConflict=await ((Web3CoreOASIS)healthy!).ReadAvatarPairAsync(conflictKey);
+            foreach(var asynchronous in new[] {false,true})
+            {
+                var backupCalls=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests;
+                var avatarRequest=new Core.StorageOperationRequest {Operation="SaveAvatar",PreferredProvider=Core.Enums.ProviderType.PolygonOASIS,
+                    Payload=new Avatar {Id=conflictId,IsActive=true,Username="must not overwrite backup",FirstName="wrong"}};
+                var detailRequest=new Core.StorageOperationRequest {Operation="SaveAvatarDetail",PreferredProvider=Core.Enums.ProviderType.PolygonOASIS,
+                    Payload=new AvatarDetail {Id=conflictId,IsActive=true,XP=9999,Karma=9999}};
+                var ar=asynchronous ? await router.RouteRequestAsync<IAvatar>(avatarRequest):router.RouteRequest<IAvatar>(avatarRequest);
+                var dr=asynchronous ? await router.RouteRequestAsync<IAvatarDetail>(detailRequest):router.RouteRequest<IAvatarDetail>(detailRequest);
+                Assert.IsTrue(ar.IsError);Assert.IsTrue(dr.IsError);Assert.IsFalse(ar.IsSaved);Assert.IsFalse(dr.IsSaved);
+                Assert.AreEqual(Core.Helpers.StorageLifecycleConflictException.ErrorCode,ar.ErrorCode);Assert.AreEqual(ar.ErrorCode,dr.ErrorCode);
+                Assert.IsInstanceOfType(ar.Exception,typeof(Core.Helpers.StorageLifecycleConflictException));
+                Assert.IsInstanceOfType(dr.Exception,typeof(Core.Helpers.StorageLifecycleConflictException));
+                Assert.AreEqual(backupCalls,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests);
+                var backup=await sqlite.LoadAvatarAsync(conflictId);Assert.IsTrue(backup.Result.IsActive);Assert.AreEqual("unchanged",backup.Result.FirstName);
+                var detail=await sqlite.LoadAvatarDetailAsync(conflictId);Assert.IsTrue(detail.Result.IsActive);Assert.AreEqual(321L,detail.Result.XP);Assert.AreEqual(87L,detail.Result.Karma);
+                var afterConflict=await ((Web3CoreOASIS)healthy!).ReadAvatarPairAsync(conflictKey);
+                CollectionAssert.AreEqual(beforeConflict.Avatar.Info,afterConflict.Avatar.Info);CollectionAssert.AreEqual(beforeConflict.Detail.Info,afterConflict.Detail.Info);
+            }
             verified=true;
         }
         finally {await sqlite.DeActivateProviderAsync();sqlite.Dispose();if(verified && File.Exists(path)) File.Delete(path);}
