@@ -14,6 +14,26 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS;
 
 public partial class AzureStorageOASIS
 {
+    private async Task<OASISResult<IAvatar>> ReadSelectedAvatarAsync(string selector,bool email,int version)
+    {
+        var result=new OASISResult<IAvatar>();
+        try {
+            ValidateDetailVersion(version);
+            if(string.IsNullOrWhiteSpace(selector)) throw new ArgumentException("A nonblank avatar selector is required.");
+            var loaded=await LoadAllAvatarsAsync(version);
+            if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IAvatar>,IAvatar>(loaded);
+            var matches=loaded.Result.Where(row=>string.Equals(email ? row.Email:row.Username,selector,StringComparison.OrdinalIgnoreCase)).Take(2).ToList();
+            if(matches.Count>1) throw new StorageIdentityAmbiguousException();
+            if(matches.Count==0) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="No Azure avatar matches selector.";}
+            else {result.Result=matches[0];result.IsLoaded=true;}
+        }
+        catch(Exception cause) {
+            OASISErrorHandling.HandleError(ref result,cause.Message,cause);
+            if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
+        }
+        return result;
+    }
+
     private static void ValidateDetailVersion(int version)
     {
         if(version!=0) throw new NotSupportedException("Azure detail storage currently retains only the latest version (0).");
