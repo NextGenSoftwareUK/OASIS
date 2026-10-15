@@ -504,6 +504,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         public OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)
         {
             HolonModel holon = null;
+            var persistenceEntered = false;
             try
             {
                 holon = _dbContext.Holons.FirstOrDefault(p => p.Id == id.ToString());
@@ -520,6 +521,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                         _dbContext.Holons.Remove(holon);
                     }
 
+                    persistenceEntered = true;
                     _dbContext.SaveChanges();
                     return new OASISResult<IHolon>
                     {
@@ -538,7 +540,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
-                if (holon != null) _dbContext.Entry(holon).State = EntityState.Detached;
+                ex = HolonSaveFailure(holon == null ? new List<HolonModel>() : new List<HolonModel> {holon}, persistenceEntered, ex);
                 return new OASISResult<IHolon>
                 {
                     IsError = true,
@@ -551,6 +553,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         public async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id, bool softDelete = true)
         {
             HolonModel holon = null;
+            var persistenceEntered = false;
             try
             {
                 holon = await _dbContext.Holons.Where(p => p.Id == id.ToString()).FirstOrDefaultAsync();
@@ -567,6 +570,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                         _dbContext.Holons.Remove(holon);
                     }
 
+                    persistenceEntered = true;
                     await _dbContext.SaveChangesAsync();
                     return new OASISResult<IHolon>
                     {
@@ -586,7 +590,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
-                if (holon != null) _dbContext.Entry(holon).State = EntityState.Detached;
+                ex = HolonSaveFailure(holon == null ? new List<HolonModel>() : new List<HolonModel> {holon}, persistenceEntered, ex);
                 return new OASISResult<IHolon>
                 {
                     IsError = true,
@@ -599,6 +603,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         public OASISResult<IHolon> DeleteHolon(string providerKey, bool softDelete = true)
         {
             HolonModel holonEntity = null;
+            var persistenceEntered = false;
             try
             {
                 holonEntity = _dbContext.Holons
@@ -616,6 +621,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         _dbContext.Holons.Remove(holonEntity);
                     }
+                    persistenceEntered = true;
                     _dbContext.SaveChanges();
                     
                     var holon = GetHolonFromEntity(holonEntity);
@@ -639,7 +645,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
-                if (holonEntity != null) _dbContext.Entry(holonEntity).State = EntityState.Detached;
+                ex = HolonSaveFailure(holonEntity == null ? new List<HolonModel>() : new List<HolonModel> {holonEntity}, persistenceEntered, ex);
                 return new OASISResult<IHolon>
                 {
                     IsError = true,
@@ -652,6 +658,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         public async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey, bool softDelete = true)
         {
             HolonModel holonEntity = null;
+            var persistenceEntered = false;
             try
             {
                 holonEntity = await _dbContext.Holons
@@ -669,6 +676,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         _dbContext.Holons.Remove(holonEntity);
                     }
+                    persistenceEntered = true;
                     await _dbContext.SaveChangesAsync();
                     
                     var holon = GetHolonFromEntity(holonEntity);
@@ -692,7 +700,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
-                if (holonEntity != null) _dbContext.Entry(holonEntity).State = EntityState.Detached;
+                ex = HolonSaveFailure(holonEntity == null ? new List<HolonModel>() : new List<HolonModel> {holonEntity}, persistenceEntered, ex);
                 return new OASISResult<IHolon>
                 {
                     IsError = true,
@@ -820,7 +828,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             var owned = ids.ToHashSet(StringComparer.Ordinal);
             foreach (var entry in _dbContext.ChangeTracker.Entries<HolonModel>()
-                .Where(entry => owned.Contains(entry.Entity.Id) && (entry.State == EntityState.Added || entry.State == EntityState.Modified)).ToList())
+                .Where(entry => owned.Contains(entry.Entity.Id) && (entry.State == EntityState.Added || entry.State == EntityState.Modified || entry.State == EntityState.Deleted)).ToList())
                 entry.State = EntityState.Detached;
         }
     }
