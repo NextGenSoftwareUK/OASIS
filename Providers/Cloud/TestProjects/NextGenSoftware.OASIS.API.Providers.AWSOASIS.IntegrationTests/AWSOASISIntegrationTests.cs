@@ -78,6 +78,15 @@ public class AWSOASISIntegrationTests
                     Assert.AreEqual(Core.Enums.ProviderType.LocalFileOASIS,manager.LastFailoverDiagnostic.SelectedProvider);
                     Assert.AreEqual(before+1,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
                 }
+                var attemptedId=Guid.NewGuid();
+                var secondaryBefore=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests;
+                var failedWrite=await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(
+                    new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {Operation="SaveHolon",SaveChildren=false,
+                        Payload=new Holon {Id=attemptedId,Name="must-not-replay"},PreferredProvider=Core.Enums.ProviderType.AWSOASIS});
+                Assert.IsTrue(failedWrite.IsError);
+                Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(failedWrite.Exception));
+                Assert.AreEqual(secondaryBefore,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
+                Assert.IsNull((await local.LoadHolonAsync(attemptedId,loadChildren:false)).Result);
             }
             finally {field.SetValue(_provider,healthy);}
             // Healthy primary absence is authoritative; a distinct stale secondary is not a failover target.
