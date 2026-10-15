@@ -19,10 +19,25 @@ public partial class Web3NativeStorageTests
         public override ValueTask<int> SavedChangesAsync(SaveChangesCompletedEventData data,int result,CancellationToken token=default)
             =>ValueTask.FromException<int>(cause);
     }
-    private sealed class CommitFaultContext(string connection,AfterCommitFault interceptor) : SqlContext(connection)
+    private sealed class CommitFaultContext(string connection,IInterceptor interceptor) : SqlContext(connection)
     {
         protected override void OnConfiguring(DbContextOptionsBuilder options)
         {base.OnConfiguring(options);options.AddInterceptors(interceptor);}
+    }
+    private sealed class AfterTransactionCommitFault(IOException cause) : DbTransactionInterceptor
+    {
+        public override void TransactionCommitted(System.Data.Common.DbTransaction transaction,TransactionEndEventData data)=>throw cause;
+        public override Task TransactionCommittedAsync(System.Data.Common.DbTransaction transaction,TransactionEndEventData data,CancellationToken token=default)
+            =>Task.FromException(cause);
+    }
+    private sealed class DeleteCommitFaultSqlite : SQLLiteDBOASIS.SQLLiteDBOASIS,IOASISStorageProvider
+    {
+        public CommitFaultContext Context {get;}
+        private readonly DetailRepository repository;
+        public DeleteCommitFaultSqlite(string connection,IOException cause) : base(connection)
+        {Context=new(connection,new AfterTransactionCommitFault(cause));repository=new(Context);}
+        public new OASISResult<bool> DeleteAvatarDetail(Guid id,bool softDelete=true)=>repository.DeleteAvatarDetail(id,softDelete);
+        public new Task<OASISResult<bool>> DeleteAvatarDetailAsync(Guid id,bool softDelete=true)=>repository.DeleteAvatarDetailAsync(id,softDelete);
     }
     private sealed class CommitFaultSqlite : SQLLiteDBOASIS.SQLLiteDBOASIS
     {
@@ -151,5 +166,48 @@ public partial class Web3NativeStorageTests
             }
         }
         finally {faulty.Context.Dispose();faulty.Dispose();}
+        var deletionCause=new IOException("Owned notification failure AFTER actual SQLite transaction commit.");
+        var deletion=new DeleteCommitFaultSqlite(db.Database.GetDbConnection().ConnectionString,deletionCause);
+        try
+        {
+            Assert.IsFalse((await deletion.ActivateProviderAsync()).IsError);
+            var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {
+                HyperDriveMode=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2,StorageProviders=new NextGenSoftware.OASIS.API.DNA.StorageProviderSettings(),
+                SubscriptionConfig=new NextGenSoftware.OASIS.API.DNA.SubscriptionConfig {PlanType="Gold"}}};
+            var manager=new Core.Managers.ProviderManager(null,dna) {IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=true};
+            manager.RegisterProvider(deletion);manager.RegisterProvider(polygon);
+            var providers=new[] {new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.SQLLiteDBOASIS),new EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.PolygonOASIS)};
+            Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(providers).IsError);
+            Assert.IsFalse(manager.SetAndReplaceAutoReplicationListForProviders(providers).IsError);
+            var router=new Core.Managers.OASISHyperDrive.OASISHyperDrive(manager);
+            var sdk=(Web3CoreOASIS)typeof(Web3CoreOASISBaseProvider).GetField("_web3CoreOASIS",flags)!.GetValue(polygon)!;
+            foreach(var asynchronous in new[] {false,true})
+            foreach(var soft in new[] {false,true})
+            {
+                var detail=new AvatarDetail {Id=Guid.NewGuid(),IsActive=true,XP=81};
+                detail.Inventory.Add(new Core.Objects.InventoryItem {Id=Guid.NewGuid(),Name="detail deletion dependent"});
+                Assert.IsFalse((await healthySqlite.SaveAvatarDetailAsync(detail)).IsError);
+                Assert.IsFalse((await polygon.SaveAvatarDetailAsync(detail)).IsError);
+                var handle=await executor.BeginAsync("local-fixture-bearer",user,$"sqlite-detail-delete-commit-{asynchronous}-{soft}",new string('a',64),"local post-commit deletion fixture",policy);
+                var context=new PreparedStorageExecution(handle,"sqlite-detail-delete-commit",new Dictionary<Core.Enums.ProviderType,string> {{Core.Enums.ProviderType.PolygonOASIS,sdk.SigningAddress}},new[] {Core.Enums.ProviderType.SQLLiteDBOASIS});
+                var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.PolygonOASIS)?.TotalRequests ?? 0;
+                var request=new Core.StorageOperationRequest {Operation="DeleteAvatarDetail",AvatarId=detail.Id,SoftDelete=soft,PreferredProvider=Core.Enums.ProviderType.SQLLiteDBOASIS,PreparedExecution=context};
+                var result=asynchronous ? await router.RouteRequestAsync<bool>(request):router.RouteRequest<bool>(request);
+                Assert.IsTrue(result.IsError);Assert.IsFalse(result.Result);Assert.IsFalse(result.IsDeleted);
+                var failure=result.Exception as SQLLiteDBOASIS.SqliteMutationReconciliationException;Assert.IsNotNull(failure);
+                Assert.AreSame(deletionCause,failure.InnerException);Assert.AreEqual(detail.Id,failure.RecordId);
+                Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(failure));
+                Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.PolygonOASIS)?.TotalRequests ?? 0);
+                using var control=new SqlContext(db.Database.GetDbConnection().ConnectionString);
+                var stored=await control.AvatarDetails.AsNoTracking().SingleOrDefaultAsync(row=>row.Id==detail.Id.ToString());
+                if(soft) {Assert.IsNotNull(stored);Assert.IsFalse(stored.IsActive);Assert.AreNotEqual(DateTime.MinValue,stored.DeletedDate);}
+                else Assert.IsNull(stored);
+                var untouched=await polygon.LoadAvatarDetailAsync(detail.Id);Assert.IsFalse(untouched.IsError,untouched.Message);
+                Assert.IsTrue(untouched.Result.IsActive);Assert.AreEqual(81L,untouched.Result.XP);
+                var attempt=(await store.GetAsync(handle.OperationId,default)).ProviderAttempts.Single();
+                Assert.AreEqual("SQLLiteDBOASIS",attempt.Provider);Assert.IsNull(attempt.NativePreparation);
+            }
+        }
+        finally {deletion.Context.Dispose();deletion.Dispose();}
     }
 }

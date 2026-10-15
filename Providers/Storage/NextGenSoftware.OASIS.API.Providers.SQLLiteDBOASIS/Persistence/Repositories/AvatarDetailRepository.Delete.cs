@@ -13,6 +13,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         public OASISResult<bool> DeleteAvatarDetail(Guid id, bool softDelete = true)
         {
             var affected = new HashSet<object>();
+            var persistenceEntered = false;
             try
             {
                 using var transaction = _dbContext.Database.BeginTransaction();
@@ -25,13 +26,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     new AvatarRepository(_dbContext).RemoveAvatarDetailDependents(detail, affected);
                     _dbContext.Remove(detail);
                 }
+                persistenceEntered = true;
                 _dbContext.SaveChanges();
                 transaction.Commit();
                 return new OASISResult<bool> { Result = true, IsDeleted = true };
             }
             catch (Exception exception)
             {
-                DetachRejectedDetailDeletion(affected);
+                exception = DetailDeletionFailure(id, affected, persistenceEntered, exception);
                 return new OASISResult<bool> { IsError = true, Exception = exception, Message = exception.Message };
             }
         }
@@ -39,6 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         public async Task<OASISResult<bool>> DeleteAvatarDetailAsync(Guid id, bool softDelete = true)
         {
             var affected = new HashSet<object>();
+            var persistenceEntered = false;
             try
             {
                 using var transaction = await _dbContext.Database.BeginTransactionAsync();
@@ -51,15 +54,23 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     await new AvatarRepository(_dbContext).RemoveAvatarDetailDependentsAsync(detail, affected);
                     _dbContext.Remove(detail);
                 }
+                persistenceEntered = true;
                 await _dbContext.SaveChangesAsync();
                 await transaction.CommitAsync();
                 return new OASISResult<bool> { Result = true, IsDeleted = true };
             }
             catch (Exception exception)
             {
-                DetachRejectedDetailDeletion(affected);
+                exception = DetailDeletionFailure(id, affected, persistenceEntered, exception);
                 return new OASISResult<bool> { IsError = true, Exception = exception, Message = exception.Message };
             }
+        }
+
+        private Exception DetailDeletionFailure(Guid id, HashSet<object> affected, bool persistenceEntered, Exception cause)
+        {
+            try { DetachRejectedDetailDeletion(affected); }
+            catch (Exception cleanup) { cause = new AggregateException("SQLite failure cleanup also failed.", cause, cleanup); }
+            return persistenceEntered ? new SqliteMutationReconciliationException(id, cause) : cause;
         }
 
         private static OASISResult<bool> MissingDetail() => new OASISResult<bool> {
