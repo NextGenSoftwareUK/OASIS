@@ -43,6 +43,9 @@ public class IPFSNativeStorageTests
             var avatar=new Avatar {Id=id,Username="owned-native-avatar",Email="owned@example.invalid",Password="synthetic-not-a-user-secret"};
             var detail=new AvatarDetail {Id=id,Username=avatar.Username,Email=avatar.Email,XP=321,Karma=29};
             var holon=new Holon {Id=id,Name="owned-native-holon",HolonType=HolonType.Holon};
+            avatar.ProviderUniqueStorageKey=null!; avatar.PreviousVersionProviderUniqueStorageKey=null!;
+            detail.ProviderUniqueStorageKey=null!; detail.PreviousVersionProviderUniqueStorageKey=null!;
+            holon.ProviderUniqueStorageKey=null!; holon.PreviousVersionProviderUniqueStorageKey=null!;
             await provider.SaveAvatarToFile(avatar);
             ownedCids.Add(avatar.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]); ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
             await provider.SaveAvatarDetailToFile(detail);
