@@ -40,17 +40,21 @@ public partial class IPFSOASIS : IAvatarTombstoneStorageProvider
             {
                 var avatar=await ReadPrivateRecordAsync<Avatar>(selected.Key,"avatar",id);
                 var detail=details.Count==0 ? null:await ReadPrivateRecordAsync<AvatarDetail>(details[0].Key,"avatar-detail",id);
+                if(avatar.DeletedDate!=default && (avatar.IsActive || avatar.DeletedDate.Kind!=DateTimeKind.Utc))
+                    throw new StorageLifecycleConflictException("Existing IPFS avatar deletion timestamp conflicts with its active/UTC state; reconcile before deletion.");
+                if(detail!=null && detail.DeletedDate!=default && (detail.IsActive || detail.DeletedDate.Kind!=DateTimeKind.Utc))
+                    throw new StorageLifecycleConflictException("Existing IPFS detail deletion timestamp conflicts with its active/UTC state; reconcile before deletion.");
                 if(avatar.DeletedDate!=default && !avatar.IsActive)
                 {
                     if(detail!=null && (detail.IsActive || detail.DeletedDate!=avatar.DeletedDate || detail.DeletedByAvatarId!=avatar.DeletedByAvatarId))
-                        throw new InvalidOperationException("Existing IPFS avatar/detail lifecycle states disagree; reconcile before deletion.");
+                        throw new StorageLifecycleConflictException("Existing IPFS avatar/detail lifecycle states disagree; reconcile before deletion.");
                     tombstone=new AvatarTombstone(id,avatar.DeletedDate,avatar.DeletedByAvatarId);
                     if(exact!=null && (exact.DeletedAtUtc!=tombstone.DeletedAtUtc || exact.DeletedByAvatarId!=tombstone.DeletedByAvatarId))
-                        throw new InvalidOperationException("Committed IPFS tombstone conflicts with the requested replica state.");
+                        throw new StorageLifecycleConflictException("Committed IPFS tombstone conflicts with the requested replica state.");
                     result.Result=true; AvatarTombstoneEvidence.Attach(result,tombstone); return result;
                 }
                 if(detail!=null && detail.DeletedDate!=default)
-                    throw new InvalidOperationException("Existing IPFS detail tombstone conflicts with active avatar lifecycle.");
+                    throw new StorageLifecycleConflictException("Existing IPFS detail tombstone conflicts with active avatar lifecycle.");
                 tombstone=exact ?? new AvatarTombstone(id,DateTime.UtcNow,AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty);
                 async Task Prepare(IHolonBase entity,string previous,HolonResume entry)
                 {
@@ -87,6 +91,7 @@ public partial class IPFSOASIS : IAvatarTombstoneStorageProvider
                 ? new IPFSRecordPublicationException(acknowledged,cause):cause;
             OASISErrorHandling.HandleError(ref result,"IPFS avatar deletion failed: "+cause.Message,failure);
             if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
+            if(cause is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
         }
         return result;
     }
