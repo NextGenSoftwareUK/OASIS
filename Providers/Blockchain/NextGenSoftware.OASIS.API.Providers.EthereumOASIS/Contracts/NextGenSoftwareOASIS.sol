@@ -8,6 +8,7 @@ import "./Core/Entities/Holon.sol";
 
 contract NextGenSoftwareOASIS {
     address public immutable storageOwner;
+    uint256 public constant storageProtocolVersion = 2;
 
     modifier onlyStorageOwner() {
         require(msg.sender == storageOwner, "OASIS storage owner required");

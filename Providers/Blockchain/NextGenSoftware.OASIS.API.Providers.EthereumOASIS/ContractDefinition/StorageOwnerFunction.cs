@@ -5,4 +5,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.ContractDefinition
 {
     [Function("storageOwner", "address")]
     public sealed class StorageOwnerFunction : FunctionMessage { }
+
+    [Function("storageProtocolVersion", "uint256")]
+    public sealed class StorageProtocolVersionFunction : FunctionMessage { }
 }
