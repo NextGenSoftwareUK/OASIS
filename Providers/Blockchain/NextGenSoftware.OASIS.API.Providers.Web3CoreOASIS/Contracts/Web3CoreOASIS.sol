@@ -176,6 +176,12 @@ contract Web3CoreOASIS is ERC721, Ownable, IWeb3CoreOASIS {
         return true;
     }
 
+    function deleteHolonChecked(uint256 entityId, bytes32 externalId, bytes32 expectedHash) external onlyOwner returns (bool) {
+        require(externalId != bytes32(0) && holons[entityId].ExternalId == externalId, "Holon identity conflict");
+        require(keccak256(holons[entityId].Info) == expectedHash, "Holon payload conflict");
+        return deleteHolon(entityId);
+    }
+
     function deleteHolon(uint256 entityId) public onlyOwner returns (bool) {
         require(holons[entityId].ExternalId != bytes32(0), ENTITY_NOT_EXIST);
         delete holons[entityId];

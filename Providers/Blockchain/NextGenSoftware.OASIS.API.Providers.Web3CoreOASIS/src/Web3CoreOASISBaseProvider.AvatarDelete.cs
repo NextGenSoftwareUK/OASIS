@@ -139,104 +139,40 @@ public partial class Web3CoreOASISBaseProvider
         => await DeletePrivateAvatarSelectorAsync(avatarUsername,false,softDelete);
 
     public override OASISResult<IHolon> DeleteHolon(Guid id)
-    {
-        return DeleteHolonAsync(id).Result;
-    }
+        => DeleteHolonAsync(id).GetAwaiter().GetResult();
 
     public override OASISResult<IHolon> DeleteHolon(string providerKey)
-    {
-        return DeleteHolonAsync(providerKey).Result;
-    }
+        => DeleteHolonAsync(providerKey).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
     {
-        OASISResult<IHolon> result = new();
-        string errorMessage = "Error in DeleteHolonAsync method in Web3CoreOASIS while deleting holon. Reason: ";
-
-        if (_web3CoreOASIS is null)
-        {
-            OASISErrorHandling.HandleError(
-                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            return result;
-        }
-
+        var result=new OASISResult<IHolon>();
         try
         {
-            OASISResult<IHolon> holonToDeleteResult = await LoadHolonAsync(id);
-            if (holonToDeleteResult.IsError)
-            {
-                OASISErrorHandling.HandleError(
-                    ref result, string.Concat(errorMessage, holonToDeleteResult.Message), holonToDeleteResult.Exception);
-                return result;
-            }
-
-            int holonEntityId = HashUtility.GetNumericHash(id.ToString());
-            bool isDeleted = await _web3CoreOASIS.DeleteHolonAsync((uint)holonEntityId);
-
-            result.Result = holonToDeleteResult.Result;
-            result.IsError = false;
-            result.IsSaved = true;
+            if(id==Guid.Empty) throw new ArgumentException("A nonempty Web3Core holon identity is required.",nameof(id));
+            if(_web3CoreOASIS==null) throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
+            var key=(uint)HashUtility.GetNumericHash(id.ToString());
+            var stored=await _web3CoreOASIS.GetHolonByIdAsync(key);
+            if(IsPrivateRecordAbsent(stored))
+            {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Web3Core holon not found.";return result;}
+            var holon=DecodePrivateRecord<Holon>("holon",id,stored);
+            await _web3CoreOASIS.DeleteHolonCheckedAsync(key,PrivateExternalId(id),Nethereum.Util.Sha3Keccack.Current.CalculateHash(stored.Info));
+            result.Result=holon;result.IsSaved=true;result.IsDeleted=true;result.DeletedCount=1;
         }
-        catch (RpcResponseException ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
     }
 
     public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+        => DeleteHolonByProviderKeyAsync(providerKey);
+
+    public Task<OASISResult<IHolon>> DeleteHolonByProviderKeyAsync(string providerKey)
     {
-        return DeleteHolonByProviderKeyAsync(providerKey);
-    }
-
-    public async Task<OASISResult<IHolon>> DeleteHolonByProviderKeyAsync(string providerKey)
-    {
-        var result = new OASISResult<IHolon>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            // Load holon by provider key first
-            var holonResult = await LoadHolonAsync(providerKey);
-            if (holonResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key: {holonResult.Message}");
-                return result;
-            }
-
-            if (holonResult.Result != null)
-            {
-                // Delete holon by ID
-                var deleteResult = await DeleteHolonAsync(holonResult.Result.Id);
-                if (deleteResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error deleting holon: {deleteResult.Message}");
-                    return result;
-                }
-
-                result.Result = holonResult.Result;
-                result.IsError = false;
-                result.Message = "Holon deleted successfully by provider key from Web3Core";
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "Holon not found by provider key");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error deleting holon by provider key from Web3Core: {ex.Message}", ex);
-        }
-        return result;
+        if(Guid.TryParse(providerKey,out var id) && id!=Guid.Empty) return DeleteHolonAsync(id);
+        var result=new OASISResult<IHolon>();
+        var cause=new ArgumentException("A Web3Core provider key must be a nonempty GUID.",nameof(providerKey));
+        OASISErrorHandling.HandleError(ref result,cause.Message,cause);
+        return Task.FromResult(result);
     }
 
     public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
