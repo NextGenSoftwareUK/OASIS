@@ -76,6 +76,17 @@ public class IPFSNativeStorageTests
             Assert.True(historical.IsError); Assert.IsType<NotSupportedException>(historical.Exception);
             var missing=await provider.LoadHolonAsync(Guid.NewGuid(),loadChildren:false);
             Assert.True(missing.IsError); Assert.Null(missing.Result);
+            var snapshot=await provider.LoadLookupToJson();
+            var snapshotReader=typeof(IPFSOASIS).GetMethod("ReadIndexSnapshotAsync",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(Holon));
+            var currentRoot=dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
+            try
+            {
+                // A captured index is authoritative even if the configured root changes afterward.
+                dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress="not-a-cid";
+                var read=(Task<List<Holon>>)snapshotReader.Invoke(provider,new object[] {snapshot,"holon",new Func<HolonResume,bool>(row=>row.ParentHolonId==child.Id)})!;
+                Assert.Equal(grandchild.Id,Assert.Single(await read).Id);
+            }
+            finally {dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress=currentRoot;}
             foreach(var cid in new[] {avatar.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],detail.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],holon.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress})
             {
                 var raw=await provider.IPFSClient.FileSystem.ReadAllTextAsync((Cid)cid);
