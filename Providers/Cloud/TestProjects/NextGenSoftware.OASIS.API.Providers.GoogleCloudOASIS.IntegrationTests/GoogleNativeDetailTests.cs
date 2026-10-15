@@ -67,6 +67,22 @@ public class GoogleNativeDetailTests
                 Assert.IsFalse(read.IsError,read.Message);counts[read.Result.Karma]=counts.GetValueOrDefault(read.Result.Karma)+1;
             }
             Assert.AreEqual(3,counts[29]);Assert.AreEqual(3,counts[999]);
+            foreach(var strategy in Enum.GetValues<Core.Enums.LoadBalancingStrategy>())
+            foreach(var asynchronous in new[] {false,true}) {
+                var googleBefore=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.GoogleCloudOASIS).TotalRequests;
+                var localBefore=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests;
+                var request=new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {Operation="LoadAvatarDetail",AvatarId=detail.Id};
+                var read=asynchronous ? await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarDetail>(request,strategy)
+                    :router.RouteRequest<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarDetail>(request,strategy);
+                Assert.IsFalse(read.IsError,read.Message);
+                var decision=manager.LastProviderSelectionDiagnostic;
+                Assert.AreEqual(strategy,decision.RequestedStrategy);Assert.AreEqual(2,decision.Candidates.Count);
+                Assert.IsTrue(decision.SelectedProvider==Core.Enums.ProviderType.GoogleCloudOASIS || decision.SelectedProvider==Core.Enums.ProviderType.LocalFileOASIS);
+                var choseGoogle=decision.SelectedProvider==Core.Enums.ProviderType.GoogleCloudOASIS;
+                Assert.AreEqual(choseGoogle ? 29L:999L,read.Result.Karma);
+                Assert.AreEqual(googleBefore+(choseGoogle ? 1:0),manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.GoogleCloudOASIS).TotalRequests);
+                Assert.AreEqual(localBefore+(choseGoogle ? 0:1),manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
+            }
             manager.IsAutoLoadBalanceEnabled=false;manager.IsAutoReplicationEnabled=true;
             Assert.IsFalse(manager.SetAndReplaceAutoReplicationListForProviders(providers).IsError);
             int amount=400;
@@ -82,6 +98,21 @@ public class GoogleNativeDetailTests
                 Assert.AreEqual(value.Karma,native.Result.Karma);Assert.AreEqual(value.Karma,secondary.Result.Karma);
                 Assert.AreEqual(detail.Inventory[0].Id,native.Result.Inventory.Single().Id);Assert.AreEqual(detail.Inventory[0].Id,secondary.Result.Inventory.Single().Id);
             }
+            manager.IsAutoReplicationEnabled=false;manager.IsAutoFailOverEnabled=true;
+            Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(providers).IsError);
+            var missing=Guid.NewGuid();
+            try {
+                Assert.IsFalse((await local.SaveAvatarDetailAsync(new AvatarDetail {Id=missing,IsActive=true,Karma=999})).IsError);
+                var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests;
+                foreach(var asynchronous in new[] {false,true}) {
+                    var request=new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {Operation="LoadAvatarDetail",AvatarId=missing,PreferredProvider=Core.Enums.ProviderType.GoogleCloudOASIS};
+                    var read=asynchronous ? await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarDetail>(request)
+                        :router.RouteRequest<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarDetail>(request);
+                    Assert.IsNull(read.Result);Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,read.ErrorCode);
+                }
+                Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
+            }
+            finally {await local.DeleteAvatarDetailAsync(missing,softDelete:false);}
         }
         finally {await local.DeleteAvatarDetailAsync(detail.Id,softDelete:false);await local.DeActivateProviderAsync();}
     }
