@@ -1,5 +1,17 @@
 # OASIS release inventory
 
+## Current acceptance summary
+
+- Published releases are complete as inventoried below; no repeat uploads are required.
+- PR481 is merged as master `96142cb57df6f0e615bb669af1d43ad45ae04576`; all fourteen staging/production deployments reached SUCCESS/SLEEPING at that SHA.
+- Fresh bounded GET verification returned HTTP200 on all fourteen canonical Swagger documents and both WEB6 health/MCP/A2A discovery sets (twenty checks). WEB6's deployed canonical paths are `/swagger/v2/swagger.json` and `/v1/health`; the earlier `/health` and `/swagger/v1/swagger.json` 404 probes were not valid availability checks. No endpoint code/configuration change was needed for these twenty successful checks. This proves availability, not every authenticated or physical-device contract.
+- Child-root content-tree follow-up `1aa8cb4671ce54123028115b1dde421116fe8494`: eight local regressions pass. Hosted publication-disabled preview [38663267084](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/38663267084) and exact CI [38662798687](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/38662798687) are running; usage protocol [38662798573](https://github.com/NextGenSoftwareUK/OASIS/actions/runs/38662798573) succeeded. Checked follow-up promotion remains required.
+- Heartbeat instructions now reference these current milestones, not the obsolete PR481 merge task. Unity Cloud remains blocked on owner-provided access documented in [the access guide](OURWORLD_UNITY_CLOUD_ACCESS.md).
+
+## Historical evidence log
+
+The dated entries below describe the state at each checkpoint. Their pending statements are superseded by the current acceptance summary where explicitly resolved.
+
 Status snapshot: 14 October 2026 heartbeat verification. This inventory distinguishes verified current publications from historical candidates. Bulk NuGet is uploaded and publicly indexed; the earlier 79/140 audit counts below are historical, not remaining unpublished totals. Planner changes are promoted to master; endpoint acceptance, remaining reliability review, documentation reconciliation and OurWorld Cloud access remain outstanding. Entries below are chronological evidence, not a current pending-work list.
 
 15 October 00:55 UTC heartbeat: confirmed and fixed the child-root gitlink fingerprint edge case. Recording a project directory that is itself a submodule previously retained its raw commit ID alongside its content-tree fingerprint, so an equal-content merge could incorrectly select a new version. The graph now records that child directory through the existing child content-tree owner. Regression coverage explicitly requires equal trees/different commits to compare unchanged and different trees to compare changed; all eight Python source/provenance tests pass locally. This follow-up requires hosted verification and checked promotion; the earlier master deployment evidence does not cover it. No package publication was dispatched.
