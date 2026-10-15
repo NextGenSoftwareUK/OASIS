@@ -16,6 +16,39 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 public class SolanaHolonAdapterTests
 {
     [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task ExportUsesAuthenticStoredIdentitiesAndOwnerScope(bool synchronous)
+    {
+        var owner=Guid.NewGuid(); var root=new SolanaHolonDto {Id=Guid.NewGuid(),Name="stored export root",CreatedByAvatarId=owner,HolonType=HolonType.Holon};
+        var child=new SolanaHolonDto {Id=Guid.NewGuid(),Name="stored export child",ParentHolonId=root.Id,HolonType=HolonType.Holon};
+        var linked=new SolanaHolonDto {Id=Guid.NewGuid(),Name="direct owner link",ParentHolonId=owner,HolonType=HolonType.Holon};
+        var unrelated=new SolanaHolonDto {Id=Guid.NewGuid(),Name="unrelated",HolonType=HolonType.Holon};
+        var repository=new RecordsRepository {Records=new[] {(root,"root-receipt"),(child,"child-receipt"),(linked,"linked-receipt"),(unrelated,"unrelated-receipt")}};
+        var provider=new ActiveProvider(repository);
+        Assert.IsTrue(provider.ExportAllDataForAvatarById(Guid.Empty).IsError);
+        Assert.IsTrue(provider.ExportAll(version:1).IsError);
+        Assert.IsTrue((await provider.ExportAllDataForAvatarByUsernameAsync(" ")).IsError);
+        Assert.IsTrue((await provider.ExportAllDataForAvatarByEmailAsync("email",version:1)).IsError);
+        Assert.AreEqual(0,repository.Reads);
+        var owned=synchronous ? provider.ExportAllDataForAvatarById(owner):await provider.ExportAllDataForAvatarByIdAsync(owner);
+        Assert.IsFalse(owned.IsError,owned.Message); Assert.IsTrue(owned.IsLoaded); Assert.AreEqual(2,owned.Result.Count());
+        var loaded=owned.Result.Single(row=>row.Id==root.Id);
+        Assert.AreEqual(child.Id,loaded.Children.Single().Id); Assert.AreEqual("root-receipt",loaded.ProviderUniqueStorageKey[ProviderType.SolanaOASIS]);
+        var all=synchronous ? provider.ExportAll():await provider.ExportAllAsync();
+        Assert.IsFalse(all.IsError,all.Message); Assert.AreEqual(4,all.Result.Count()); Assert.AreEqual(2,repository.Reads);
+    }
+
+    [TestMethod]
+    public async Task ExportRetainsRepositoryFailureInsteadOfReturningPartialSuccess()
+    {
+        var cause=new System.IO.IOException("owned authentic history failure");
+        var repository=new RecordsRepository {ReadCause=cause}; var provider=new ActiveProvider(repository);
+        var result=await provider.ExportAllAsync();
+        Assert.IsTrue(result.IsError); Assert.IsNull(result.Result); Assert.AreSame(cause,result.Exception);
+    }
+
+    [DataTestMethod]
     [DataRow(false,false)]
     [DataRow(false,true)]
     [DataRow(true,false)]
@@ -231,6 +264,7 @@ public class SolanaHolonAdapterTests
     {
         public (SolanaHolonDto Record,string Signature)[] Records=Array.Empty<(SolanaHolonDto,string)>();
         public int Reads;
+        public Exception? ReadCause;
         public bool AllowPartialWrite;
         public bool AllowAllWrites;
         public bool ContinueAfterOneFailure;
@@ -240,6 +274,7 @@ public class SolanaHolonAdapterTests
         public Task<IReadOnlyList<(T Record,string Signature)>> GetAllAsync<T>() where T:SolanaBaseDto,new()
         {
             Reads++;
+            if(ReadCause!=null) throw ReadCause;
             return Task.FromResult<IReadOnlyList<(T Record,string Signature)>>(Records.Select(entry=>((T)(SolanaBaseDto)entry.Record,entry.Signature)).ToList());
         }
         public Task<T> GetAsync<T>(string reference) where T:SolanaBaseDto,new()
