@@ -10,6 +10,51 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests;
 
 public class IPFSLifecycleTests
 {
+    private static void StorageKey(IPFSOASIS provider,Func<byte[]> resolver)
+        => typeof(IPFSOASIS).GetField("_storageKeyResolver",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,resolver);
+    private static string TransformIndex(IPFSOASIS provider,string method,string value)
+        => (string)typeof(IPFSOASIS).GetMethod(method,BindingFlags.Instance|BindingFlags.NonPublic)!.Invoke(provider,new object[] {value})!;
+
+    [Fact]
+    public void PrivateIndexRoundTripDoesNotPublishSearchValuesInPlaintext()
+    {
+        var key=System.Security.Cryptography.RandomNumberGenerator.GetBytes(32);
+        var provider=new IPFSOASIS(Settings("http://127.0.0.1:1")); StorageKey(provider,()=> (byte[])key.Clone());
+        var id=Guid.NewGuid();
+        var json=Newtonsoft.Json.JsonConvert.SerializeObject(new Dictionary<string,HolonResume> {{"owned-cid",new HolonResume {Id=id,login="actual-user",email="fixture@example.invalid"}}});
+        var envelope=TransformIndex(provider,"ProtectIndex",json);
+        Assert.StartsWith("oasis-aes256gcm-gzip-v2:",envelope);
+        Assert.DoesNotContain("actual-user",envelope); Assert.DoesNotContain("fixture@example.invalid",envelope); Assert.DoesNotContain(id.ToString(),envelope);
+        Assert.Equal(json,TransformIndex(provider,"UnprotectIndex",envelope));
+    }
+
+    [Theory]
+    [InlineData("wrong-key")]
+    [InlineData("plaintext")]
+    [InlineData("corrupt")]
+    public void PrivateIndexRejectsWrongKeyPlaintextAndMalformedEnvelope(string scenario)
+    {
+        var key=System.Security.Cryptography.RandomNumberGenerator.GetBytes(32);
+        var provider=new IPFSOASIS(Settings("http://127.0.0.1:1")); StorageKey(provider,()=> (byte[])key.Clone());
+        var envelope=TransformIndex(provider,"ProtectIndex","{}");
+        if(scenario=="wrong-key") StorageKey(provider,()=>System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
+        if(scenario=="plaintext") envelope="{}";
+        if(scenario=="corrupt") envelope="oasis-aes256gcm-gzip-v2:bad";
+        var error=Assert.Throws<TargetInvocationException>(()=>TransformIndex(provider,"UnprotectIndex",envelope));
+        if(scenario=="corrupt") Assert.IsType<FormatException>(error.InnerException);
+        else Assert.IsAssignableFrom<System.Security.Cryptography.CryptographicException>(error.InnerException);
+    }
+
+    [Fact]
+    public async Task MissingIndexKeyFailsBeforeIpfsClientAccessOrRootMutation()
+    {
+        var dna=Settings("http://127.0.0.1:1"); var provider=new IPFSOASIS(dna);
+        StorageKey(provider,()=>throw new InvalidOperationException("Owned missing storage key"));
+        var error=await Assert.ThrowsAsync<InvalidOperationException>(()=>provider.SaveLookupToFile(new Dictionary<string,HolonResume>()));
+        Assert.Equal("Owned missing storage key",error.Message); Assert.Null(provider.IPFSClient);
+        Assert.Null(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+    }
+
     [Theory]
     [InlineData("missing")]
     [InlineData("false")]

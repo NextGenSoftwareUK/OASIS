@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+IPFS index encryption follow-up: shared AES-GCM/gzip codec now protects lookup publication/read, requiring separately persisted OASIS_IPFS_STORAGE_ENCRYPTION_KEY and rejecting plaintext/wrong-key content. Focused20/20 tests pass. Entity/list encryption and identity/type binding remain unfinished; no full privacy/native V2 certification or deployment.
+
 IPFS publication follow-up: unused password copy removed from lookup DTO; failed/missing pointer-save result now exposes acknowledged CID reconciliation evidence instead of success. Focused15/15 tests pass. Entity blobs are not yet whole-record encrypted, and atomic root publication/native V2/recovery remain incomplete.
 
 IPFS index integrity follow-up: lookup errors no longer initialize an empty replacement index; retained cache preserved and invalid content rejected. Holon save failures propagate. Focused10/10 boundary tests pass; private encryption, concurrent/durable index publication and live V2/interface gates remain open.

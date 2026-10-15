@@ -104,7 +104,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 return _idLookup;
             }
             if(IPFSClient == null) throw new InvalidOperationException("An active IPFS client is required to read the configured lookup root.");
-            var json=await LoadStringToJson(address);
+            var json=UnprotectIndex(await LoadStringToJson(address));
             var loaded=DeserializeLookup(json);
             _idLookup=loaded;
             return _idLookup;
@@ -123,7 +123,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public async Task<string> SaveLookupToFile(Dictionary<string, HolonResume> idLookup)
         {
-            string json = JsonConvert.SerializeObject(idLookup);
+            string json = ProtectIndex(JsonConvert.SerializeObject(idLookup));
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
 
             var previousRoot=_OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
