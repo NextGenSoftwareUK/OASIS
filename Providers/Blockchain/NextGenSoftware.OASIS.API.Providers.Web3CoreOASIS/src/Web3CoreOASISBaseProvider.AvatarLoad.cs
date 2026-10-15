@@ -53,136 +53,17 @@ public partial class Web3CoreOASISBaseProvider
 {
     public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(HolonType Type)
     {
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            var response = _httpClient.GetAsync($"{_apiBaseUrl}/network/holons/nearby?type={Type}").Result;
-
-            if (response.IsSuccessStatusCode)
-            {
-                var content = response.Content.ReadAsStringAsync().Result;
-                var holons = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Holon>>(content);
-                
-                if (holons != null)
-                {
-                    result.Result = holons.Cast<IHolon>();
-                    result.IsError = false;
-                    result.Message = $"Successfully loaded {holons?.Count ?? 0} holons near you from Web3Core";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to deserialize holons from Web3Core API");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, $"Web3Core API error: {response.StatusCode} - {response.ReasonPhrase}");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error getting holons near you from Web3Core: {ex.Message}", ex);
-        }
+        var result=new OASISResult<IEnumerable<IHolon>>();
+        var cause=new NotSupportedException("Web3Core nearby lookup requires explicit microdegree coordinates and a metre radius.");
+        OASISErrorHandling.HandleError(ref result,cause.Message,cause);
         return result;
     }
 
-    public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
-    {
-        var result = new OASISResult<IEnumerable<IAvatar>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
+    public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat,long geoLong,int radiusInMeters)
+        => ReadNearbyAsync(geoLat,geoLong,radiusInMeters,()=>LoadAllAvatarsAsync()).GetAwaiter().GetResult();
 
-            var allAvatarsResult = LoadAllAvatars();
-            if (allAvatarsResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {allAvatarsResult.Message}");
-                return result;
-            }
-            
-            var nearbyAvatars = new List<IAvatar>();
-            foreach (var avatar in allAvatarsResult.Result)
-            {
-                var meta = avatar.MetaData;
-                if (meta != null && meta.ContainsKey("Latitude") && meta.ContainsKey("Longitude"))
-                {
-                    if (double.TryParse(meta["Latitude"]?.ToString(), out double avatarLat) &&
-                        double.TryParse(meta["Longitude"]?.ToString(), out double avatarLong))
-                    {
-                        double distance = NextGenSoftware.OASIS.API.Core.Helpers.GeoHelper.CalculateDistance(geoLat, geoLong, avatarLat, avatarLong);
-                        if (distance <= radiusInMeters)
-                            nearbyAvatars.Add(avatar);
-                    }
-                }
-            }
-            
-            result.Result = nearbyAvatars;
-            result.IsError = false;
-            result.Message = $"Successfully loaded {nearbyAvatars.Count} avatars within {radiusInMeters}m of ({geoLat}, {geoLong}) from Web3Core";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error getting avatars near you from Web3Core: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
-    {
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            var allHolonsResult = LoadAllHolons(Type);
-            if (allHolonsResult.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons: {allHolonsResult.Message}");
-                return result;
-            }
-            
-            var nearbyHolons = new List<IHolon>();
-            foreach (var holon in allHolonsResult.Result)
-            {
-                var meta = holon.MetaData;
-                if (meta != null && meta.ContainsKey("Latitude") && meta.ContainsKey("Longitude"))
-                {
-                    if (double.TryParse(meta["Latitude"]?.ToString(), out double holonLat) &&
-                        double.TryParse(meta["Longitude"]?.ToString(), out double holonLong))
-                    {
-                        double distance = NextGenSoftware.OASIS.API.Core.Helpers.GeoHelper.CalculateDistance(geoLat, geoLong, holonLat, holonLong);
-                        if (distance <= radiusInMeters)
-                            nearbyHolons.Add(holon);
-                    }
-                }
-            }
-            
-            result.Result = nearbyHolons;
-            result.IsError = false;
-            result.Message = $"Successfully loaded {nearbyHolons.Count} holons of type {Type} within {radiusInMeters}m of ({geoLat}, {geoLong}) from Web3Core";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error getting holons near you from Web3Core: {ex.Message}", ex);
-        }
-        return result;
-    }
-
-    // distance helpers moved to GeoHelper for reuse
+    public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat,long geoLong,int radiusInMeters,HolonType Type)
+        => ReadNearbyAsync(geoLat,geoLong,radiusInMeters,()=>LoadAllHolonsAsync(Type,loadChildren:false)).GetAwaiter().GetResult();
 
     public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
     {
