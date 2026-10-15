@@ -7,6 +7,12 @@ import "./Core/Entities/Avatar.sol";
 import "./Core/Entities/Holon.sol";
 
 contract NextGenSoftwareOASIS {
+    address public immutable storageOwner;
+
+    modifier onlyStorageOwner() {
+        require(msg.sender == storageOwner, "OASIS storage owner required");
+        _;
+    }
     
     Avatar[] private avatars;
     AvatarDetail[] private avatarDetails;
@@ -17,6 +23,7 @@ contract NextGenSoftwareOASIS {
     uint256 private totalHolonsCount;
     
     constructor() {
+        storageOwner = msg.sender;
         totalAvatarsCount = 0;
         totalAvatarDetailsCount = 0;
         totalHolonsCount = 0;
@@ -26,7 +33,7 @@ contract NextGenSoftwareOASIS {
         uint256 entityId,
         string memory avatarId,
         string memory info
-    ) public returns (uint256) {
+    ) public onlyStorageOwner returns (uint256) {
         // Provider Save operations use this ABI for create and update. Keep one row per identity.
         for (uint256 i = 0; i < totalAvatarsCount; i++) {
             if (avatars[i].EntityId == entityId) {
@@ -49,7 +56,7 @@ contract NextGenSoftwareOASIS {
         uint256 entityId,
         string memory holonId,
         string memory info
-    ) public returns (uint256) {
+    ) public onlyStorageOwner returns (uint256) {
         for (uint256 i = 0; i < totalHolonsCount; i++) {
             if (holons[i].EntityId == entityId) {
                 require(keccak256(bytes(holons[i].HolonId)) == keccak256(bytes(holonId)), "OASIS identity collision");
@@ -72,7 +79,7 @@ contract NextGenSoftwareOASIS {
         uint256 entityId,
         string memory avatarId,
         string memory info
-    ) public returns (uint256) {
+    ) public onlyStorageOwner returns (uint256) {
         for (uint256 i = 0; i < totalAvatarDetailsCount; i++) {
             if (avatarDetails[i].EntityId == entityId) {
                 require(keccak256(bytes(avatarDetails[i].AvatarId)) == keccak256(bytes(avatarId)), "OASIS identity collision");
@@ -94,7 +101,7 @@ contract NextGenSoftwareOASIS {
     function UpdateAvatar(
         uint256 entityId,
         string memory info
-    ) public returns (bool) {
+    ) public onlyStorageOwner returns (bool) {
         for (uint256 i = 0; i < totalAvatarsCount; i++) {
             if (avatars[i].EntityId == entityId) {
                 avatars[i].Info = info;
@@ -107,7 +114,7 @@ contract NextGenSoftwareOASIS {
     function UpdateAvatarDetail(
         uint256 entityId,
         string memory info
-    ) public returns (bool) {
+    ) public onlyStorageOwner returns (bool) {
         for (uint256 i = 0; i < totalAvatarDetailsCount; i++) {
             if (avatarDetails[i].EntityId == entityId) {
                 avatarDetails[i].Info = info;
@@ -120,7 +127,7 @@ contract NextGenSoftwareOASIS {
     function UpdateHolon(
         uint256 entityId,
         string memory info
-    ) public returns (bool) {
+    ) public onlyStorageOwner returns (bool) {
         for (uint256 i = 0; i < totalHolonsCount; i++) {
             if (holons[i].EntityId == entityId) {
                 holons[i].Info = info;
@@ -130,7 +137,7 @@ contract NextGenSoftwareOASIS {
         return false;
     }
 
-    function DeleteAvatar(uint256 entityId) public returns (bool) {
+    function DeleteAvatar(uint256 entityId) public onlyStorageOwner returns (bool) {
         require(totalAvatarsCount > 0);
         for (uint256 i = 0; i < totalAvatarsCount; i++) {
             if (avatars[i].EntityId == entityId) {
@@ -143,7 +150,7 @@ contract NextGenSoftwareOASIS {
         return false;
     }
     
-    function DeleteAvatarDetail(uint256 entityId) public returns (bool) {
+    function DeleteAvatarDetail(uint256 entityId) public onlyStorageOwner returns (bool) {
         require(totalAvatarDetailsCount > 0);
         for (uint256 i = 0; i < totalAvatarDetailsCount; i++) {
             if (avatarDetails[i].EntityId == entityId) {
@@ -156,7 +163,7 @@ contract NextGenSoftwareOASIS {
         return false;
     }
     
-    function DeleteHolon(uint256 entityId) public returns (bool) {
+    function DeleteHolon(uint256 entityId) public onlyStorageOwner returns (bool) {
         require(totalHolonsCount > 0);
         for (uint256 i = 0; i < totalHolonsCount; i++) {
             if (holons[i].EntityId == entityId) {
