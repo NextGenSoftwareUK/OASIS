@@ -138,74 +138,9 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
 
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
-            OASISResult<bool> result = new OASISResult<bool>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (!_enableFirestore)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
-                    return result;
-                }
-
-                var importedHolons = new List<IHolon>();
-                
-                // Import ALL holons to Google Cloud Firestore with FULL property mapping
-                foreach (var holon in holons)
-                {
-                    var docRef = _firestoreDb.Collection("holons").Document(holon.Id.ToString());
-                    var holonData = new Dictionary<string, object>
-                    {
-                        ["id"] = holon.Id.ToString(),
-                        ["name"] = holon.Name,
-                        ["description"] = holon.Description,
-                        ["holonType"] = holon.HolonType.ToString(),
-                        ["createdDate"] = Timestamp.FromDateTime(holon.CreatedDate),
-                        ["modifiedDate"] = Timestamp.FromDateTime(holon.ModifiedDate),
-                        ["version"] = holon.Version,
-                        ["isActive"] = holon.IsActive,
-                        // Map ALL Holon properties
-                        ["parentId"] = holon.ParentHolonId.ToString(),
-                        ["providerKey"] = holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS],
-                        ["previousVersionId"] = holon.PreviousVersionId.ToString(),
-                        ["nextVersionId"] = holon.VersionId.ToString(),
-                        ["isChanged"] = holon.IsChanged,
-                        ["isNew"] = holon.IsNewHolon,
-                        ["isDeleted"] = !holon.IsActive,
-                        ["deletedByAvatarId"] = holon.DeletedByAvatarId.ToString(),
-                        ["deletedDate"] = holon.DeletedDate != DateTime.MinValue ? Timestamp.FromDateTime(holon.DeletedDate) : null,
-                        ["createdByAvatarId"] = holon.CreatedByAvatarId.ToString(),
-                        ["modifiedByAvatarId"] = holon.ModifiedByAvatarId.ToString(),
-                        // Map Google Cloud specific data
-                        ["googleCloudProjectId"] = _projectId,
-                        ["googleCloudBucketName"] = _bucketName,
-                        ["googleCloudFirestoreDatabaseId"] = _firestoreDatabaseId,
-                        ["googleCloudBigQueryDatasetId"] = _bigQueryDatasetId,
-                        ["importedDate"] = Timestamp.FromDateTime(DateTime.UtcNow)
-                    };
-                    
-                    holonData["data_json"]=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(holon);
-                    await ObserveFirestoreMutationAsync(()=>docRef.SetAsync(holonData),docRef.Path);
-                    importedHolons.Add(holon);
-                }
-                
-                result.Result = true;
-                result.IsError = false;
-                result.Message = $"Holons imported successfully to Google Cloud Firestore with full property mapping ({importedHolons.Count} holons)";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error importing holons to Google Cloud: {ex.Message}", ex);
-            }
+            var saved=await SaveHolonsAsync(holons,continueOnError:false);
+            var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,bool>(saved);
+            result.Result=!saved.IsError && saved.IsSaved;
             return result;
         }
 
