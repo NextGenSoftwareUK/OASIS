@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Utilities;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 {
@@ -18,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var row=(await _nextGenSoftwareOasisService.GetAvatarByIdQueryAsync(key,block)).ReturnValue1;
             var avatar=DeserializePrivateStorage<Avatar>("avatar",row.EntityId,row.Info,id);
             if(supplied == null && avatar.DeletedDate != DateTime.MinValue)
-                throw new InvalidOperationException("Ethereum avatar was already soft deleted.");
+                throw new StorageLifecycleConflictException("Ethereum avatar was already soft deleted.");
             AvatarDetail detail=null;
             string detailInfo=null;
             if(await _nextGenSoftwareOasisService.GetAvatarDetailsCountQueryAsync(block) > 0)
@@ -38,7 +39,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 foreach(var record in new Core.Interfaces.IHolonBase[] {avatar,detail})
                     if(record != null && record.DeletedDate != DateTime.MinValue
                         && (record.DeletedDate != tombstone.DeletedAtUtc || record.DeletedByAvatarId != tombstone.DeletedByAvatarId))
-                        throw new InvalidOperationException("Ethereum replica has a conflicting committed tombstone.");
+                        throw new StorageLifecycleConflictException("Ethereum replica has a conflicting committed tombstone.");
                 if(Matches(avatar) && (detail == null || Matches(detail))) return (null,tombstone,true);
             }
             avatar.DeletedDate=tombstone.DeletedAtUtc; avatar.DeletedByAvatarId=tombstone.DeletedByAvatarId; avatar.IsActive=false;

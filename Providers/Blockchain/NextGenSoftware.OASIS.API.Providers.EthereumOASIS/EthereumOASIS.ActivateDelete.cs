@@ -415,6 +415,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                if(ex is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
             }
             return result;
         }
