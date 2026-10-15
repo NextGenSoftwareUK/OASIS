@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 var docRef = _firestoreDb.Collection("avatarDetails").Document(avatarDetail.Id.ToString());
                 var avatarDetailData = EncodeAvatarDetail(avatarDetail);
                 
-                await docRef.SetAsync(avatarDetailData);
+                await ObserveFirestoreMutationAsync(()=>docRef.SetAsync(avatarDetailData),docRef.Path);
                 
                 result.Result = avatarDetail;
                 result.IsSaved = true;

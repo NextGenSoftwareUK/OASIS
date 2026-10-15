@@ -13,6 +13,12 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 
 public partial class GoogleCloudOASIS
 {
+    private static async Task<T> ObserveFirestoreMutationAsync<T>(Func<Task<T>> operation,string documentPath)
+    {
+        try {return await operation();}
+        catch(Exception cause) {throw new GoogleFirestoreMutationReconciliationException(documentPath,cause);}
+    }
+
     private async Task<OASISResult<bool>> EnsureDetailStoreAsync(int version)
     {
         if(version!=0) throw new NotSupportedException("Firestore detail reads currently support latest version (0) only.");
