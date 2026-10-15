@@ -86,6 +86,22 @@ public sealed class SOLANAOASISIntegrationTests
         var historical = await _provider.LoadHolonAsync(signature!,loadChildren:false);
         Assert.IsFalse(historical.IsError, historical.Message);
         Assert.AreEqual(load.Result.Name, historical.Result.Name);
+        var deletion = await _provider.DeleteHolonAsync(updatedSignature);
+        Assert.IsFalse(deletion.IsError, deletion.Message);
+        Assert.IsTrue(deletion.IsDeleted);
+        Assert.IsNotNull(deletion.Result);
+        var tombstoneSignature = deletion.Result.ProviderUniqueStorageKey[ProviderType.SolanaOASIS];
+        Assert.AreNotEqual(updatedSignature, tombstoneSignature);
+        var tombstone = await _provider.LoadHolonAsync(tombstoneSignature,loadChildren:false);
+        Assert.IsFalse(tombstone.IsError,tombstone.Message);
+        Assert.AreEqual(holon.Id,tombstone.Result.Id);
+        Assert.AreEqual(holon.Name,tombstone.Result.Name);
+        Assert.AreEqual(holon.Description,tombstone.Result.Description);
+        Assert.AreEqual(updated.Result.Version + 1,tombstone.Result.Version);
+        Assert.IsFalse(tombstone.Result.IsActive);
+        var preDeletion = await _provider.LoadHolonAsync(updatedSignature,loadChildren:false);
+        Assert.IsFalse(preDeletion.IsError,preDeletion.Message);
+        Assert.AreEqual(updated.Result.Version,preDeletion.Result.Version);
     }
 
     [TestCleanup]
