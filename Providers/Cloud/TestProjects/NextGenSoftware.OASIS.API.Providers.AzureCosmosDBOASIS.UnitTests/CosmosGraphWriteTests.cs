@@ -12,6 +12,7 @@ public class CosmosGraphWriteTests
     private static AzureCosmosDBOASIS Provider(IHolonRepository repository)
     {
         var provider=new AzureCosmosDBOASIS(new Uri("https://localhost:8081"),"unused","owned",new List<string>());
+        provider.IsProviderActivated=true;
         typeof(AzureCosmosDBOASIS).GetField("holonRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,repository);
         return provider;
     }

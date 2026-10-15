@@ -9,6 +9,28 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
 
 public partial class AzureCosmosDBOASIS
 {
+    private async Task<OASISResult<T>> SaveCurrentRecordAsync<T>(T record,Func<IRepository<T>> repository) where T:IHolonBase
+    {
+        var result=new OASISResult<T>();
+        try
+        {
+            ArgumentNullException.ThrowIfNull(record);
+            NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(record);
+            if(!IsProviderActivated)
+            {
+                var activation=await ActivateProviderAsync();
+                if(activation.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,T>(activation);
+                if(!activation.Result) throw new InvalidOperationException("Cosmos activation did not acknowledge readiness.");
+            }
+            var store=repository() ?? throw new InvalidOperationException("Cosmos repository was not initialized.");
+            var saved=await store.UpsertAsync(record);
+            if(saved==null) throw new CosmosMutationReconciliationException(record.Id.ToString(),new System.IO.InvalidDataException("Cosmos save returned no acknowledged record."));
+            result.Result=saved;result.IsSaved=true;
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
+    }
+
     private Task<OASISResult<T>> ReadCurrentKeyAsync<T>(Func<IRepository<T>> repository,string key,int version,int depth=0) where T:IHolonBase
     {
         if(Guid.TryParse(key,out var id) && id!=Guid.Empty) return ReadCurrentIdAsync(repository,id,version,depth);

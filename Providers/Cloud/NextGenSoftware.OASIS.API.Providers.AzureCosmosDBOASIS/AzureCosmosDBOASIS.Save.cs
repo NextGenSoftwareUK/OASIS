@@ -23,33 +23,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             => SaveAvatarAsync(avatar).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
-        {
-            try
-            {
-                IAvatar objAvatar = await avatarRepository.UpsertAsync(avatar);
-                return new OASISResult<IAvatar> { IsSaved = true, IsError = false, Result = objAvatar };
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IAvatar> { IsSaved = false, IsError=true, Message = ex.Message, Exception = ex };
-            }
-        }
+            => await SaveCurrentRecordAsync<IAvatar>(avatar,()=>avatarRepository);
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
             => SaveAvatarDetailAsync(avatarDetail).GetAwaiter().GetResult();
 
         public async override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
-        {
-            try
-            {
-                IAvatarDetail objAvatar = await avatarDetailRepository.UpsertAsync(avatarDetail);
-                return new OASISResult<IAvatarDetail> { IsSaved = true, Result = objAvatar };
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IAvatarDetail> { IsSaved = false, IsError = true, Message = ex.Message, Exception = ex };
-            }
-        }
+            => await SaveCurrentRecordAsync<IAvatarDetail>(avatarDetail,()=>avatarDetailRepository);
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonAsync(holon,saveChildren,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider).GetAwaiter().GetResult();
@@ -67,8 +47,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
                     if(!graph.IsError) converted.Result=holon;
                     return converted;
                 }
-                IHolon objHolon = await holonRepository.UpsertAsync(holon);
-                return new OASISResult<IHolon> { IsSaved = true, Result = objHolon };
+                return await SaveCurrentRecordAsync<IHolon>(holon,()=>holonRepository);
             }
             catch (Exception ex)
             {

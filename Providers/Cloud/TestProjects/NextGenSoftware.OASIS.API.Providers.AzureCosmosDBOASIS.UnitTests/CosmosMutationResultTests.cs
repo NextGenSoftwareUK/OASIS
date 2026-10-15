@@ -14,6 +14,7 @@ public class CosmosMutationResultTests
     public async Task SyncAndAsyncSaveWrappersRetainExactUncertainCause()
     {
         var provider=new AzureCosmosDBOASIS(new Uri("https://localhost:8081"),"unused","owned",new List<string>());
+        provider.IsProviderActivated=true;
         var cause=new CosmosMutationReconciliationException("owned-id",new IOException("owned lost reply"));
         var avatar=new Mock<IAvatarRepository>();var detail=new Mock<IAvatarDetailRepository>();var holon=new Mock<IHolonRepository>();
         avatar.Setup(r=>r.UpsertAsync(It.IsAny<IAvatar>())).ThrowsAsync(cause);
