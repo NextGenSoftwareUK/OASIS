@@ -286,7 +286,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
             => LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
-        { var r = new OASISResult<ISearchResults>(); OASISErrorHandling.HandleError(ref r, "AzureStorageOASIS: Full-text search not supported."); return await Task.FromResult(r); }
+        { return await ReadSearchAsync(searchParams,loadChildren,recursive,maxChildDepth,continueOnError,version); }
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
             => SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
 
