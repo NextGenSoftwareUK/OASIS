@@ -125,9 +125,9 @@ public partial class Web3NativeStorageTests
                     var failedId=Guid.NewGuid();
                     var request=new Core.StorageOperationRequest {Operation="SaveAvatarDetail",Payload=new AvatarDetail {Id=failedId,IsActive=true,XP=888},PreferredProvider=Core.Enums.ProviderType.PolygonOASIS};
                     var saved=asynchronous ? await router.RouteRequestAsync<IAvatarDetail>(request):router.RouteRequest<IAvatarDetail>(request);
-                    Assert.IsTrue(saved.IsError);Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(saved.Exception));
-                    Assert.AreEqual(before+3,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests);
-                    Assert.IsNull((await sqlite.LoadAvatarDetailAsync(failedId)).Result);
+                    Assert.IsFalse(saved.IsError,saved.Message);Assert.AreEqual(failedId,saved.Result.Id);
+                    Assert.AreEqual(before+4,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests);
+                    Assert.AreEqual(888L,(await sqlite.LoadAvatarDetailAsync(failedId)).Result.XP);
                 }
             }
             finally {field.SetValue(polygon,healthy);}
