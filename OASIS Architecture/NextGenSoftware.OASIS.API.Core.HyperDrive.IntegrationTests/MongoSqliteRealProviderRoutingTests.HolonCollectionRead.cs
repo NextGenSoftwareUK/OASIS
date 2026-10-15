@@ -90,6 +90,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 var expected=type!=HolonType.Zome && parentFilter!=child.Id ? new[] {root.Id}:Array.Empty<Guid>();
                 found.Result.SearchResultHolons.Select(hit=>hit.Id).Should().Equal(expected,"All is a wildcard and parent/type restrictions must still apply");
             }
+            await VerifyMongoSearchExecutionAsync(mongo,router,synchronous,root);
             var missing=synchronous ? mongo.LoadHolonsForParent(ObjectId.GenerateNewId().ToString(),loadChildren:true,loadChildrenFromProvider:true)
                 :await mongo.LoadHolonsForParentAsync(ObjectId.GenerateNewId().ToString(),loadChildren:true,loadChildrenFromProvider:true);
             missing.IsError.Should().BeFalse();missing.IsLoaded.Should().BeTrue();missing.Result.Should().BeEmpty();

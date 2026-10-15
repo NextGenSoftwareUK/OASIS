@@ -54,8 +54,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         //}
 
 
-        public async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams)
+        public Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams)
+            => SearchCoreAsync(searchParams, false);
+
+        private async Task<OASISResult<ISearchResults>> SearchCoreAsync(ISearchParams searchParams, bool synchronous)
         {
+            async Task<List<T>> Read<T>(IMongoCollection<T> collection, FilterDefinition<T> filter)
+            {
+                return synchronous ? collection.Find(filter).ToList()
+                    : await collection.Find(filter).ToListAsync().ConfigureAwait(false);
+            }
             OASISResult<ISearchResults> result = new OASISResult<ISearchResults>();
             List<Avatar> avatars = new List<Avatar>();
             List<Holon> holons = new List<Holon>();
@@ -81,40 +89,28 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                             if (searchTextGroup.AvatarSearchParams.FirstName || searchTextGroup.AvatarSearchParams.SearchAllFields)
                             {
                                 avatarFilter = Builders<Avatar>.Filter.Regex("FirstName", new BsonRegularExpression("/" + Regex.Escape(searchTextGroup.SearchQuery.ToLower()) + "/i"));
-                                groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                             }
 
                             if (searchTextGroup.AvatarSearchParams.LastName || searchTextGroup.AvatarSearchParams.SearchAllFields)
                             {
                                 avatarFilter = Builders<Avatar>.Filter.Regex("LastName", new BsonRegularExpression("/" + Regex.Escape(searchTextGroup.SearchQuery.ToLower()) + "/i"));
-                                groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                             }
 
                             if (searchTextGroup.AvatarSearchParams.Username || searchTextGroup.AvatarSearchParams.SearchAllFields)
                             {
-                                var collection = _dbContext.MongoDB.GetCollection<Avatar>("Avatar");
-
-                                if (searchTextGroup.HolonType == HolonType.All)
-                                {
-                                    var query = from doc in collection.AsQueryable<Avatar>()
-                                                where doc.Username.ToLower().Contains(searchTextGroup.SearchQuery.ToLower())
-                                                select doc;
-                                    groupAvatars.AddRange(query.ToList());
-                                }
-                                else
-                                {
-                                    var query = from doc in collection.AsQueryable<Avatar>()
-                                                where doc.Username.ToLower().Contains(searchTextGroup.SearchQuery.ToLower())
-                                                where doc.HolonType == searchTextGroup.HolonType
-                                                select doc;
-                                    groupAvatars.AddRange(query.ToList());
-                                }
+                                avatarFilter = Builders<Avatar>.Filter.Regex(row => row.Username,
+                                    new BsonRegularExpression(Regex.Escape(searchTextGroup.SearchQuery), "i"));
+                                if (searchTextGroup.HolonType != HolonType.All)
+                                    avatarFilter &= Builders<Avatar>.Filter.Eq(row => row.HolonType, searchTextGroup.HolonType);
+                                groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                             }
 
                             if (searchTextGroup.AvatarSearchParams.Email || searchTextGroup.AvatarSearchParams.SearchAllFields)
                             {
                                 avatarFilter = Builders<Avatar>.Filter.Regex("Email", new BsonRegularExpression("/" + Regex.Escape(searchTextGroup.SearchQuery.ToLower()) + "/i"));
-                                groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                             }
                         }
 
@@ -131,7 +127,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                             if (searchTextGroup.HolonSearchParams.Description || searchTextGroup.HolonSearchParams.SearchAllFields)
                                 fields.Add(Builders<Holon>.Filter.Regex(row => row.Description, text));
                             if (fields.Count != 0)
-                                groupHolons.AddRange(await _dbContext.Holon.Find(filter & Builders<Holon>.Filter.Or(fields)).ToListAsync().ConfigureAwait(false));
+                                groupHolons.AddRange(await Read(_dbContext.Holon, filter & Builders<Holon>.Filter.Or(fields)).ConfigureAwait(false));
                         }
                     }
 
@@ -146,32 +142,32 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.EqualTo)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.CreatedDate == searchDateGroup.Date);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.NotEqualTo)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.CreatedDate != searchDateGroup.Date);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.LessThan)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.CreatedDate < searchDateGroup.Date);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.LessThanOrEqualTo)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.CreatedDate <= searchDateGroup.Date);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.GreaterThan)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.CreatedDate > searchDateGroup.Date);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.GreaterThanOrEqualTo)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.CreatedDate >= searchDateGroup.Date);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                             }
 
@@ -180,32 +176,32 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.EqualTo)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.ModifiedDate == searchDateGroup.Date);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.NotEqualTo)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.ModifiedDate != searchDateGroup.Date);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.LessThan)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.ModifiedDate < searchDateGroup.Date);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.LessThanOrEqualTo)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.ModifiedDate <= searchDateGroup.Date);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.GreaterThan)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.ModifiedDate > searchDateGroup.Date);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.GreaterThanOrEqualTo)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.ModifiedDate >= searchDateGroup.Date);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                             }
 
@@ -214,32 +210,32 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.EqualTo)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.DeletedDate == searchDateGroup.Date);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.NotEqualTo)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.DeletedDate != searchDateGroup.Date);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.LessThan)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.DeletedDate < searchDateGroup.Date);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.LessThanOrEqualTo)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.DeletedDate <= searchDateGroup.Date);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.GreaterThan)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.DeletedDate > searchDateGroup.Date);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.GreaterThanOrEqualTo)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.DeletedDate >= searchDateGroup.Date);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                             }
                         }
@@ -251,32 +247,32 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.EqualTo)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.CreatedDate == searchDateGroup.Date);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.NotEqualTo)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.CreatedDate != searchDateGroup.Date);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.LessThan)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.CreatedDate < searchDateGroup.Date);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.LessThanOrEqualTo)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.CreatedDate <= searchDateGroup.Date);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.GreaterThan)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.CreatedDate > searchDateGroup.Date);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.GreaterThanOrEqualTo)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.CreatedDate >= searchDateGroup.Date);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                             }
 
@@ -285,32 +281,32 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.EqualTo)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.ModifiedDate == searchDateGroup.Date);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.NotEqualTo)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.ModifiedDate != searchDateGroup.Date);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.LessThan)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.ModifiedDate < searchDateGroup.Date);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.LessThanOrEqualTo)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.ModifiedDate <= searchDateGroup.Date);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.GreaterThan)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.ModifiedDate > searchDateGroup.Date);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.GreaterThanOrEqualTo)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.ModifiedDate >= searchDateGroup.Date);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                             }
 
@@ -319,32 +315,32 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.EqualTo)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.DeletedDate == searchDateGroup.Date);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.NotEqualTo)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.DeletedDate != searchDateGroup.Date);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.LessThan)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.DeletedDate < searchDateGroup.Date);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.LessThanOrEqualTo)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.DeletedDate <= searchDateGroup.Date);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.GreaterThan)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.DeletedDate > searchDateGroup.Date);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                                 else if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.GreaterThanOrEqualTo)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.DeletedDate >= searchDateGroup.Date);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                             }
                         }
@@ -361,32 +357,32 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 if (searchNumberGroup.NumberOperator == Core.Enums.SearchOperatorType.EqualTo)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.Version == searchNumberGroup.Number);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                                 else if (searchNumberGroup.NumberOperator == Core.Enums.SearchOperatorType.NotEqualTo)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.Version != searchNumberGroup.Number);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                                 else if (searchNumberGroup.NumberOperator == Core.Enums.SearchOperatorType.LessThan)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.Version < searchNumberGroup.Number);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                                 else if (searchNumberGroup.NumberOperator == Core.Enums.SearchOperatorType.LessThanOrEqualTo)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.Version <= searchNumberGroup.Number);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                                 else if (searchNumberGroup.NumberOperator == Core.Enums.SearchOperatorType.GreaterThan)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.Version > searchNumberGroup.Number);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                                 else if (searchNumberGroup.NumberOperator == Core.Enums.SearchOperatorType.GreaterThanOrEqualTo)
                                 {
                                     avatarFilter = Builders<Avatar>.Filter.Where(x => x.Version >= searchNumberGroup.Number);
-                                    groupAvatars.AddRange(await _dbContext.Avatar.FindAsync(avatarFilter).Result.ToListAsync());
+                                    groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
                                 }
                             }
                         }
@@ -398,32 +394,32 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 if (searchNumberGroup.NumberOperator == Core.Enums.SearchOperatorType.EqualTo)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.Version == searchNumberGroup.Number);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                                 else if (searchNumberGroup.NumberOperator == Core.Enums.SearchOperatorType.NotEqualTo)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.Version != searchNumberGroup.Number);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                                 else if (searchNumberGroup.NumberOperator == Core.Enums.SearchOperatorType.LessThan)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.Version < searchNumberGroup.Number);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                                 else if (searchNumberGroup.NumberOperator == Core.Enums.SearchOperatorType.LessThanOrEqualTo)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.Version <= searchNumberGroup.Number);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                                 else if (searchNumberGroup.NumberOperator == Core.Enums.SearchOperatorType.GreaterThan)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.Version > searchNumberGroup.Number);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                                 else if (searchNumberGroup.NumberOperator == Core.Enums.SearchOperatorType.GreaterThanOrEqualTo)
                                 {
                                     holonFilter = Builders<Holon>.Filter.Where(x => x.Version >= searchNumberGroup.Number);
-                                    groupHolons.AddRange(await _dbContext.Holon.FindAsync(holonFilter).Result.ToListAsync());
+                                    groupHolons.AddRange(await Read(_dbContext.Holon, holonFilter).ConfigureAwait(false));
                                 }
                             }
                         }
@@ -514,7 +510,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
         public OASISResult<ISearchResults> Search(ISearchParams searchParams)
         {
-            return SearchAsync(searchParams).Result;
+            return SearchCoreAsync(searchParams, true).GetAwaiter().GetResult();
 
 
             //OASISResult<ISearchResults> result = new OASISResult<ISearchResults>();
