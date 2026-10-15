@@ -437,16 +437,16 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
         { var saved=await SaveHolonsAsync(holons,continueOnError:false);var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,bool>(saved);result.Result=!saved.IsError && saved.IsSaved;return result; }
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
-            => await LoadHolonsForParentAsync(avatarId, version: version);
+            => await ExportOwnedHolonsAsync(avatarId,version);
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
-            => await LoadHolonsForParentAsync($"username:{avatarUsername}", version: version);
+            => await ExportSelectedAvatarAsync(avatarUsername,false,version);
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
-            => await LoadHolonsForParentAsync($"email:{avatarEmailAddress}", version: version);
+            => await ExportSelectedAvatarAsync(avatarEmailAddress,true,version);
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-            => await LoadAllHolonsAsync(version: version);
+            => await LoadAllHolonsAsync(loadChildrenFromProvider:true,version: version);
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).Result;
 
         // ─── IOASISNETProvider ────────────────────────────────────────────────────

@@ -14,6 +14,34 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS;
 
 public partial class AzureStorageOASIS
 {
+    private async Task<OASISResult<IEnumerable<IHolon>>> ExportOwnedHolonsAsync(Guid owner,int version)
+    {
+        var result=new OASISResult<IEnumerable<IHolon>>();
+        try {
+            if(owner==Guid.Empty) throw new ArgumentException("A nonempty avatar identity is required.");
+            var loaded=await LoadAllHolonsAsync(loadChildrenFromProvider:true,version:version);
+            if(loaded.IsError) return loaded;
+            result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IEnumerable<IHolon>>(loaded);
+            result.Result=loaded.Result.Where(row=>row.CreatedByAvatarId==owner || row.ParentHolonId==owner).ToList();
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
+    }
+
+    private async Task<OASISResult<IEnumerable<IHolon>>> ExportSelectedAvatarAsync(string selector,bool email,int version)
+    {
+        var result=new OASISResult<IEnumerable<IHolon>>();
+        try {
+            ValidateDetailVersion(version);
+            if(string.IsNullOrWhiteSpace(selector)) throw new ArgumentException("A nonblank avatar selector is required.");
+            var loaded=email ? await LoadAvatarByEmailAsync(selector,version):await LoadAvatarByUsernameAsync(selector,version);
+            if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(loaded);
+            return await ExportOwnedHolonsAsync(loaded.Result.Id,version);
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
+    }
+
     private async Task<OASISResult<ISearchResults>> ReadSearchAsync(ISearchParams search,bool children,bool recursive,int maxDepth,bool continueOnError,int version)
     {
         var result=new OASISResult<ISearchResults>();

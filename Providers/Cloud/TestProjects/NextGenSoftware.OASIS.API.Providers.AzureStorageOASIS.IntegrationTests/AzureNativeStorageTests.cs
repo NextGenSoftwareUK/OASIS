@@ -107,6 +107,17 @@ public class AzureNativeStorageTests
                 SearchOnlyForCurrentAvatar=false,SearchGroups=new() {new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup {SearchQuery="owned grandchild",SearchHolons=true}}});
             Assert.IsFalse(text.IsError,text.Message);Assert.AreEqual(grandchild.Id,text.Result.SearchResultHolons.Single().Id);
             Assert.IsInstanceOfType((await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {SearchOnlyForCurrentAvatar=false},version:1)).Exception,typeof(NotSupportedException));
+            var exportOwner=new Avatar {Id=Guid.NewGuid(),Username="owned-export",Email="export@example.invalid"};
+            Assert.IsFalse((await provider.SaveAvatarAsync(exportOwner)).IsError);
+            var exportRoot=new Holon {Id=Guid.NewGuid(),CreatedByAvatarId=exportOwner.Id,Name="owned export root"};
+            var exportChild=new Holon {Id=Guid.NewGuid(),ParentHolonId=exportRoot.Id,Name="owned export child"};
+            Assert.IsFalse((await provider.SaveHolonAsync(exportRoot,saveChildren:false)).IsError);
+            Assert.IsFalse((await provider.SaveHolonAsync(exportChild,saveChildren:false)).IsError);
+            var exported=await provider.ExportAllDataForAvatarByUsernameAsync("OWNED-EXPORT");
+            Assert.IsFalse(exported.IsError,exported.Message);Assert.AreEqual(exportRoot.Id,exported.Result.Single().Id);
+            Assert.AreEqual(exportChild.Id,exported.Result.Single().Children.Single().Id);
+            Assert.IsTrue(provider.ExportAllDataForAvatarById(Guid.Empty).IsError);
+            Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,(await provider.ExportAllDataForAvatarByEmailAsync(avatar.Email)).ErrorCode);
         }
         finally {
             await provider.DeActivateProviderAsync();
