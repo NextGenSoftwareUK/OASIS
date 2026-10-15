@@ -19,6 +19,7 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
     public async Task<string> CreateAsync<T>(T entity)
         where T : SolanaBaseDto, new()
     {
+        ValidateStorageEntity(entity);
         var serializedEntity = EncodeEntity(entity);
         var blockHash = await GetWritableBlockHashAsync();
         var entityTransactionBytes = new TransactionBuilder()
@@ -34,6 +35,7 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
     public async Task<string> UpdateAsync<T>(T entity)
         where T : SolanaBaseDto, new()
     {
+        ValidateStorageEntity(entity);
         var nextVersion=checked(entity.Version + 1);
         var snapshot=Newtonsoft.Json.Linq.JObject.FromObject(entity);
         snapshot["Version"]=nextVersion;
@@ -104,6 +106,13 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
         if(record.Id == Guid.Empty || record.Version < 0)
             throw new InvalidOperationException("Solana storage record has invalid identity/version.");
         return record;
+    }
+
+    private static void ValidateStorageEntity(SolanaBaseDto entity)
+    {
+        ArgumentNullException.ThrowIfNull(entity);
+        if(entity.Id==Guid.Empty || entity.Version<0)
+            throw new ArgumentException("Solana storage requires a nonempty identity and nonnegative version.",nameof(entity));
     }
 
     private async Task<string> ReadStoredRecordAsync(string signature)
