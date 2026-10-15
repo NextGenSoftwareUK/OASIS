@@ -944,6 +944,7 @@ public class EthereumOASISIntegrationTests
         Assert.AreEqual(currentDetail,(await service.GetAvatarDetailByIdQueryAsync(key)).ReturnValue1.Info);
         var repeated=synchronous ? provider.DeleteAvatar(id) : await provider.DeleteAvatarAsync(id);
         Assert.IsTrue(repeated.IsError); Assert.IsFalse(repeated.Result);
+        Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode,repeated.ErrorCode);
         await provider.DeActivateProviderAsync();
     }
 
@@ -1046,6 +1047,17 @@ public class EthereumOASISIntegrationTests
                 Assert.AreEqual(actor,nativeDetail.DeletedByAvatarId); Assert.AreEqual(actor,backupDetail.DeletedByAvatarId);
                 Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.AvatarTombstoneEvidence.TryGet(deleted,out var evidence));
                 Assert.AreEqual(nativeAvatar.DeletedDate,evidence.DeletedAtUtc);
+                if(primary==ProviderType.EthereumOASIS)
+                {
+                    manager.IsAutoFailOverEnabled=true;
+                    Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(new[] {new EnumValue<ProviderType>(ProviderType.EthereumOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)}).IsError);
+                    var beforeBackup=manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests;
+                    var rejected=synchronous ? router.RouteRequest<bool>(request):await router.RouteRequestAsync<bool>(request);
+                    Assert.IsTrue(rejected.IsError); Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode,rejected.ErrorCode);
+                    Assert.AreEqual(beforeBackup,manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests);
+                    Assert.AreEqual(backupAvatar.DeletedDate,(await sqlite.LoadAvatarAsync(id)).Result.DeletedDate);
+                    manager.IsAutoFailOverEnabled=false;
+                }
                 Console.WriteLine($"Soft-delete state comparison primary={primary}: Ethereum avatar={nativeAvatar.DeletedDate:O} active={nativeAvatar.IsActive}, detail={nativeDetail.DeletedDate:O} active={nativeDetail.IsActive}; SQLite avatar={backupAvatar.DeletedDate:O} active={backupAvatar.IsActive}, detail={backupDetail.DeletedDate:O} active={backupDetail.IsActive}");
             }
         }
@@ -1129,6 +1141,7 @@ public class EthereumOASISIntegrationTests
         var conflict=new AvatarTombstone(id,snapshot.DeletedAtUtc.AddTicks(1),actor);
         var rejected=synchronous ? replica.ApplyAvatarTombstone(conflict) : await replica.ApplyAvatarTombstoneAsync(conflict);
         Assert.IsTrue(rejected.IsError); Assert.IsFalse(rejected.Result);
+        Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode,rejected.ErrorCode);
         Assert.AreEqual(before.Value,(await native.Eth.Transactions.GetTransactionCount.SendRequestAsync(signer)).Value);
         Assert.AreEqual(snapshot.DeletedAtUtc,(await replica.LoadAvatarAsync(id)).Result.DeletedDate);
         Assert.IsTrue((await replica.ApplyAvatarTombstoneAsync(new AvatarTombstone(Guid.NewGuid(),snapshot.DeletedAtUtc))).IsError);

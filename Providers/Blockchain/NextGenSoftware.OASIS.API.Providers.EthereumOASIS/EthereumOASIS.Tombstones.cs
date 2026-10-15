@@ -33,6 +33,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             catch(Exception cause)
             {
                 OASISErrorHandling.HandleError(ref result,$"Ethereum committed tombstone application failed: {cause.Message}",cause);
+                if(cause is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
             }
             return result;
         }

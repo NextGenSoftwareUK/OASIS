@@ -99,6 +99,7 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
             var conflict=synchronous ? repository.ApplyAvatarTombstone(new AvatarTombstone(id,tombstone.DeletedAtUtc.AddTicks(1)))
                 : await repository.ApplyAvatarTombstoneAsync(new AvatarTombstone(id,tombstone.DeletedAtUtc.AddTicks(1)));
             conflict.IsError.Should().BeTrue();
+            conflict.ErrorCode.Should().Be(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode);
         }
         finally {control.Database.ExecuteSqlRaw("DROP TRIGGER reject_tombstone_repeat;");}
         context.SaveChanges();

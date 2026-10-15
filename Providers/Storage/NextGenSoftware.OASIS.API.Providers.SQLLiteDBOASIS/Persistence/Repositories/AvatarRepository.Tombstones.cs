@@ -38,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     bool Conflicts(DateTime deleted,string by) => deleted != DateTime.MinValue
                         && (deleted != tombstone.DeletedAtUtc || TombstoneActor(by) != tombstone.DeletedByAvatarId);
                     if(Conflicts(avatar.DeletedDate,avatar.DeletedByAvatarId) || detail != null && Conflicts(detail.DeletedDate,detail.DeletedByAvatarId))
-                        throw new InvalidOperationException("SQLite replica has a conflicting committed tombstone.");
+                        throw new StorageLifecycleConflictException("SQLite replica has a conflicting committed tombstone.");
                     var already=avatar.DeletedDate==tombstone.DeletedAtUtc && TombstoneActor(avatar.DeletedByAvatarId)==tombstone.DeletedByAvatarId && !avatar.IsActive
                         && (detail == null || detail.DeletedDate==tombstone.DeletedAtUtc && TombstoneActor(detail.DeletedByAvatarId)==tombstone.DeletedByAvatarId && !detail.IsActive);
                     if(!already)
@@ -79,7 +79,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     result.IsWarning=true; result.WarningCount++; result.Exception=cause;
                     result.Message="SQLite tombstone committed but tracker synchronization failed: "+cause.Message;
                 }
-                else OASISErrorHandling.HandleError(ref result,"SQLite committed tombstone application failed: "+cause.Message,cause);
+                else
+                {
+                    OASISErrorHandling.HandleError(ref result,"SQLite committed tombstone application failed: "+cause.Message,cause);
+                    if(cause is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
+                }
             }
             return result;
         }
