@@ -295,16 +295,30 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 		public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
 		{
 			var result = new OASISResult<bool>();
+            var acknowledged=new List<string>();
 			try
 			{
-				foreach (var holon in holons)
-					await SaveHolonToFile(holon);
+                if(holons==null) throw new ArgumentNullException(nameof(holons));
+                var planned=holons.ToList();
+                if(planned.Any(row=>row==null || row.Id==Guid.Empty))
+                    throw new ArgumentException("Every imported holon requires a nonempty identity.",nameof(holons));
+                if(planned.GroupBy(row=>row.Id).Any(group=>group.Count()>1))
+                    throw new ArgumentException("Duplicate imported holon identities are not allowed.",nameof(holons));
+                foreach(var holon in planned)
+                {
+                    var saved=await SaveHolonToFile(holon);
+                    acknowledged.Add(saved.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS]);
+                }
 				result.Result = true;
+                result.IsSaved=true;
 				result.Message = "Holons imported into IPFS successfully.";
 			}
 			catch (Exception ex)
 			{
-				OASISErrorHandling.HandleError(ref result, $"Error importing holons into IPFS: {ex.Message}");
+                if(ex is IPFSRecordPublicationException publication)
+                    acknowledged.AddRange(publication.AcknowledgedRecordCids);
+                var failure=acknowledged.Count>0 ? new IPFSRecordPublicationException(acknowledged,ex):ex;
+				OASISErrorHandling.HandleError(ref result, $"Error importing holons into IPFS: {ex.Message}",failure);
 			}
 			return result;
 		}
@@ -331,7 +345,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
 		public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
 		{
-			return ImportAsync(holons).Result;
+			return ImportAsync(holons).GetAwaiter().GetResult();
 		}
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)

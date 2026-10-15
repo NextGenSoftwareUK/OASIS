@@ -113,6 +113,29 @@ public class IPFSNativeStorageTests
             Assert.Equal(3,provider.ExportAll().Result.Count());
             Assert.IsType<NotSupportedException>(provider.ExportAll(version:1).Exception);
             Assert.IsType<ArgumentException>(provider.ExportAllDataForAvatarById(Guid.Empty).Exception);
+            var preImportRoot=dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
+            var invalidImport=await provider.ImportAsync(new IHolon[] {new Holon {Id=Guid.NewGuid()},new Holon()});
+            Assert.True(invalidImport.IsError); Assert.IsType<ArgumentException>(invalidImport.Exception);
+            Assert.Equal(preImportRoot,dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+            var duplicateImport=provider.Import(new IHolon[] {new Holon {Id=id},new Holon {Id=id}});
+            Assert.True(duplicateImport.IsError); Assert.IsType<ArgumentException>(duplicateImport.Exception);
+            Assert.Equal(preImportRoot,dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+            var firstImport=new Holon {Id=Guid.NewGuid(),Name="owned-partial-import"};
+            var secondImport=new Holon {Id=Guid.NewGuid(),Name="must-not-be-stored"};
+            var resolver=typeof(IPFSOASIS).GetField("_storageKeyResolver",BindingFlags.Instance|BindingFlags.NonPublic)!;
+            var previousResolver=resolver.GetValue(provider); var importCalls=0;
+            var importCause=new System.IO.IOException("owned second import encryption failure");
+            resolver.SetValue(provider,new Func<byte[]>(()=>++importCalls==5 ? throw importCause:Convert.FromBase64String(Environment.GetEnvironmentVariable("OASIS_IPFS_STORAGE_ENCRYPTION_KEY")!)));
+            NextGenSoftware.OASIS.Common.OASISResult<bool> partialImport;
+            try {partialImport=await provider.ImportAsync(new IHolon[] {firstImport,secondImport});}
+            finally {resolver.SetValue(provider,previousResolver);}
+            Assert.True(partialImport.IsError); Assert.Equal(5,importCalls);
+            var importFailure=Assert.IsType<IPFSRecordPublicationException>(partialImport.Exception);
+            Assert.Same(importCause,importFailure.InnerException);
+            Assert.Equal(firstImport.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],Assert.Single(importFailure.AcknowledgedRecordCids));
+            ownedCids.Add(importFailure.RecordCid); ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+            Assert.False((await provider.LoadHolonAsync(firstImport.Id,loadChildren:false)).IsError);
+            Assert.True((await provider.LoadHolonAsync(secondImport.Id,loadChildren:false)).IsError);
             var loadedRoot=await provider.LoadHolonAsync(id,loadChildrenFromProvider:true);
             Assert.False(loadedRoot.IsError,loadedRoot.Message);
             Assert.Equal(grandchild.Id,Assert.Single(Assert.Single(loadedRoot.Result.Children).Children).Id);
