@@ -91,6 +91,8 @@ public class EthereumOASISIntegrationTests
         Assert.IsFalse(empty.IsError,empty.Message); Assert.IsTrue(empty.IsLoaded); Assert.AreEqual(0,empty.Result.Count());
         var first = new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=Guid.NewGuid(),Username="native first",Karma=12,XP=34 };
         var second = new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=Guid.NewGuid(),Username="native second",Karma=56,XP=78 };
+        var item=new NextGenSoftware.OASIS.API.Core.Objects.InventoryItem {Id=Guid.NewGuid(),Name="native oak seed",Quantity=5,GameSource="Our World"};
+        first.Inventory.Add(item);
         Assert.IsFalse((await provider.SaveAvatarDetailAsync(first)).IsError);
         Assert.IsFalse((await provider.SaveAvatarDetailAsync(second)).IsError);
         var loaded = synchronous ? provider.LoadAllAvatarDetails() : await provider.LoadAllAvatarDetailsAsync();
@@ -98,6 +100,9 @@ public class EthereumOASISIntegrationTests
         Assert.AreEqual(2,loaded.Result.Count());
         Assert.AreEqual(first.Karma,loaded.Result.Single(row=>row.Id == first.Id).Karma);
         Assert.AreEqual(second.XP,loaded.Result.Single(row=>row.Id == second.Id).XP);
+        var inventory=loaded.Result.Single(row=>row.Id==first.Id).Inventory;
+        Assert.AreEqual(1,inventory.Count); Assert.IsInstanceOfType<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>(inventory[0]);
+        Assert.AreEqual(item.Id,inventory[0].Id); Assert.AreEqual(5,inventory[0].Quantity); Assert.AreEqual("Our World",inventory[0].GameSource);
         var history = synchronous ? provider.LoadAllAvatarDetails(1) : await provider.LoadAllAvatarDetailsAsync(1);
         Assert.IsTrue(history.IsError); Assert.IsNull(history.Result); Assert.IsInstanceOfType(history.Exception,typeof(NotSupportedException));
         var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);

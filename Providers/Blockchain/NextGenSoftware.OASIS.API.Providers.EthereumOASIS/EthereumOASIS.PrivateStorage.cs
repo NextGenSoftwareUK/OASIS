@@ -36,7 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             if (string.IsNullOrEmpty(ciphertext) && entityId == 0)
                 throw new System.Collections.Generic.KeyNotFoundException("No Ethereum record exists at the requested storage identity.");
             using var codec = OpenPrivateStorageCodec();
-            var record = JsonConvert.DeserializeObject<T>(codec.Decrypt(PrivateStorageContext(kind,entityId),ciphertext),new StoredHolonConverter());
+            var record = JsonConvert.DeserializeObject<T>(codec.Decrypt(PrivateStorageContext(kind,entityId),ciphertext),new StoredHolonConverter(),new StoredInventoryItemConverter());
             if (record == null || HashUtility.GetNumericHash(record.Id.ToString()) != entityId)
                 throw new InvalidDataException("Encrypted Ethereum record identity does not match its storage key.");
             if (expectedId.HasValue && record.Id != expectedId.Value)
@@ -48,6 +48,12 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         {
             public override IHolon Create(Type objectType) => new Core.Holons.Holon();
             public override bool CanConvert(Type objectType) => objectType == typeof(IHolon);
+        }
+
+        private sealed class StoredInventoryItemConverter : Newtonsoft.Json.Converters.CustomCreationConverter<IInventoryItem>
+        {
+            public override IInventoryItem Create(Type objectType) => new Core.Objects.InventoryItem();
+            public override bool CanConvert(Type objectType) => objectType == typeof(IInventoryItem);
         }
     }
 }

@@ -19,6 +19,13 @@ try {
     & $node (Join-Path $PSScriptRoot 'compile-ethereum-storage-fixture.cjs')
     if($LASTEXITCODE){throw 'Cached Solidity fixture build failed.'}
     $project=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests.csproj'
+    foreach($relative in @(
+        'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj',
+        'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj',
+        'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EthereumOASIS/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.csproj')) {
+        & dotnet build (Join-Path $taskRoot $relative) --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
+        if($LASTEXITCODE){throw "Producer build failed: $relative"}
+    }
     & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
     if($LASTEXITCODE){throw 'Consumer build failed.'}
     $env:LOCAL_CHAIN_ID='31337'
