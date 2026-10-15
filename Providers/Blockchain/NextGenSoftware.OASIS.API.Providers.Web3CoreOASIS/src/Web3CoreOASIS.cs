@@ -218,9 +218,9 @@ file static class Web3CoreOASISHelper
     public const string DeleteAvatarFuncName = "deleteAvatar";
     public const string DeleteAvatarDetailFuncName = "deleteAvatarDetail";
     public const string DeleteHolonFuncName = "deleteHolon";
-    public const string GetAvatarByIdFuncName = "getAvatarById";
-    public const string GetAvatarDetailByIdFuncName = "getAvatarDetailById";
-    public const string GetHolonByIdFuncName = "getHolonById";
+    public const string GetAvatarByIdFuncName = "lookupAvatar";
+    public const string GetAvatarDetailByIdFuncName = "lookupAvatarDetail";
+    public const string GetHolonByIdFuncName = "lookupHolon";
     public const string GetAvatarsCountFuncName = "getAvatarsCount";
     public const string GetAvatarDetailsCountFuncName = "getAvatarDetailsCount";
     public const string GetHolonsCountFuncName = "getHolonsCount";
