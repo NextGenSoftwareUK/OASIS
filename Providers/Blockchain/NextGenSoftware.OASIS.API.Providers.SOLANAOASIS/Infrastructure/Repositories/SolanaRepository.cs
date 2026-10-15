@@ -65,6 +65,8 @@ public class SolanaRepository(Account oasisAccount, IRpcClient rpcClient, Func<b
         var transactionContent = await ReadStoredRecordAsync(transactionHashReference);
         var deserializedEntity = JsonConvert.DeserializeObject<Newtonsoft.Json.Linq.JObject>(transactionContent)
             ?? throw new InvalidOperationException("Finalized Solana memo has no record content.");
+        if(deserializedEntity.Value<string>("RecordKind") is not ("oasis.avatar.v1" or "oasis.avatar-detail.v1" or "oasis.holon.v1"))
+            throw new InvalidOperationException("Solana tombstone requires a canonical typed storage record.");
 
         var identity = deserializedEntity["Id"]?.ToObject<Guid?>();
         var version = deserializedEntity.Value<int?>("Version");
@@ -90,10 +92,18 @@ public class SolanaRepository(Account oasisAccount, IRpcClient rpcClient, Func<b
         where T : SolanaBaseDto, new()
     {
         var transactionContent = await ReadStoredRecordAsync(transactionHashReference);
-        var deserializedEntity = JsonConvert.DeserializeObject<T>(transactionContent)
-            ?? throw new InvalidOperationException("Finalized Solana memo has no record content.");
+        return DeserializeStoredRecord<T>(transactionContent);
+    }
 
-        return deserializedEntity;
+    private static T DeserializeStoredRecord<T>(string content) where T : SolanaBaseDto,new()
+    {
+        var document=Newtonsoft.Json.Linq.JObject.Parse(content);
+        if(document.Value<string>("RecordKind") != new T().RecordKind)
+            throw new InvalidOperationException("Solana storage record kind does not match the requested type; untyped historical memos require explicit review.");
+        var record=document.ToObject<T>() ?? throw new InvalidOperationException("Finalized Solana memo has no record content.");
+        if(record.Id == Guid.Empty || record.Version < 0)
+            throw new InvalidOperationException("Solana storage record has invalid identity/version.");
+        return record;
     }
 
     private async Task<string> ReadStoredRecordAsync(string signature)
