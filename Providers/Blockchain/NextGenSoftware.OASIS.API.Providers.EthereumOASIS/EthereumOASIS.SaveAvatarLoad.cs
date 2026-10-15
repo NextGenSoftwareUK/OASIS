@@ -64,7 +64,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var requestTransaction = _nextGenSoftwareOasisService
                     .CreateHolonRequestAndWaitForReceiptAsync(holonEntityId, holonId, holonInfo).Result;
 
-                if (requestTransaction.HasErrors() is true)
+                if (!StorageReceiptSucceeded(requestTransaction))
                 {
                     OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Creating of Holon (Id): {holon.Id}, failed! Transaction performing is failure!"));
                     return result;
@@ -103,7 +103,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var requestTransaction = await _nextGenSoftwareOasisService
                     .CreateHolonRequestAndWaitForReceiptAsync(holonEntityId, holonId, holonInfo);
 
-                if (requestTransaction.HasErrors() is true)
+                if (!StorageReceiptSucceeded(requestTransaction))
                 {
                     OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, $"Creating of Holon (Id): {holon.Id}, failed! Transaction performing is failure!"));
                     return result;
@@ -134,6 +134,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             string errorMessage = "Error in SaveHolons method in EthereumOASIS while saving holons. Reason: ";
 
+            var committed = new List<string>();
+            var saved = new List<IHolon>();
             try
             {
                 foreach (var holon in holons)
@@ -145,17 +147,21 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     var createHolonResult = _nextGenSoftwareOasisService
                         .CreateHolonRequestAndWaitForReceiptAsync(holonEntityId, holonId, holonEntityInfo).Result;
 
-                    if (createHolonResult.HasErrors() is true)
+                    if (!StorageReceiptSucceeded(createHolonResult))
                     {
-                        OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, createHolonResult.Logs));
+                        OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "Receipt is missing, reverted or lacks success status/identity."));
                         if(!continueOnError)
                             break;
                     }
+                    else
+                    {
+                        committed.Add(createHolonResult.TransactionHash);
+                        saved.Add(holon);
+                    }
                 }
 
-                result.Result = holons;
-                result.IsError = false;
-                result.IsSaved = true;
+                result.Result = saved;
+                result.IsSaved = !result.IsError;
             }
             catch (RpcResponseException ex)
             {
@@ -166,6 +172,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
             }
             
+            FencePartialStorageWrite(result, committed);
             return result;
         }
 
