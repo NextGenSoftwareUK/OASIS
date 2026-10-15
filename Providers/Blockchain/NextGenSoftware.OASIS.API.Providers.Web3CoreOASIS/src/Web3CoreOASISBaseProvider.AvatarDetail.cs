@@ -60,96 +60,16 @@ public partial class Web3CoreOASISBaseProvider
         => await ReadPrivateGuidAsync<IAvatarDetail>(id,version,index=>_web3CoreOASIS.GetAvatarDetailByIdAsync(index),row=>DecodePrivateEntity<AvatarDetail>("detail",row));
 
     public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
-    {
-        var result = new OASISResult<IAvatarDetail>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/avatar-details/by-email/{Uri.EscapeDataString(avatarEmail)}?version={version}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                var avatarDetail = Newtonsoft.Json.JsonConvert.DeserializeObject<AvatarDetail>(content);
-                
-                if (avatarDetail != null)
-                {
-                    result.Result = avatarDetail;
-                    result.IsError = false;
-                    result.Message = "Avatar detail loaded successfully by email from Web3Core";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to deserialize avatar detail from Web3Core API");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, $"Web3Core API error: {response.StatusCode} - {response.ReasonPhrase}");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by email from Web3Core: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ReadPrivateSelectorAsync<IAvatarDetail>(avatarEmail,row=>row.Email,()=>LoadAllAvatarDetailsAsync(version));
 
     public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
-    {
-        return LoadAvatarDetailByEmailAsync(avatarEmail, version).Result;
-    }
+        => ReadPrivateSelectorAsync<IAvatarDetail>(avatarEmail,row=>row.Email,()=>LoadAllAvatarDetailsAsync(version)).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
-    {
-        var result = new OASISResult<IAvatarDetail>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/avatar-details/by-username/{Uri.EscapeDataString(avatarUsername)}?version={version}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                var avatarDetail = Newtonsoft.Json.JsonConvert.DeserializeObject<AvatarDetail>(content);
-                
-                if (avatarDetail != null)
-                {
-                    result.Result = avatarDetail;
-                    result.IsError = false;
-                    result.Message = "Avatar detail loaded successfully by username from Web3Core";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to deserialize avatar detail from Web3Core API");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, $"Web3Core API error: {response.StatusCode} - {response.ReasonPhrase}");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail by username from Web3Core: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ReadPrivateSelectorAsync<IAvatarDetail>(avatarUsername,row=>row.Username,()=>LoadAllAvatarDetailsAsync(version));
 
     public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
-    {
-        return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
-    }
+        => ReadPrivateSelectorAsync<IAvatarDetail>(avatarUsername,row=>row.Username,()=>LoadAllAvatarDetailsAsync(version)).GetAwaiter().GetResult();
 
     public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
@@ -157,45 +77,7 @@ public partial class Web3CoreOASISBaseProvider
     }
 
     public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    {
-        var result = new OASISResult<IHolon>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/holons/by-provider-key/{Uri.EscapeDataString(providerKey)}?version={version}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                var holon = Newtonsoft.Json.JsonConvert.DeserializeObject<Holon>(content);
-                
-                if (holon != null)
-                {
-                    result.Result = holon;
-                    result.IsError = false;
-                    result.Message = "Holon loaded successfully by provider key from Web3Core";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to deserialize holon from Web3Core API");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, $"Web3Core API error: {response.StatusCode} - {response.ReasonPhrase}");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key from Web3Core: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ReadPrivateKeyAsync<IHolon>(providerKey,id=>LoadHolonAsync(id,loadChildren,recursive,maxChildDepth,continueOnError,loadChildrenFromProvider,version));
 
     public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     {
@@ -206,45 +88,7 @@ public partial class Web3CoreOASISBaseProvider
         => await ReadPrivateGuidAsync<IHolon>(id,version,index=>_web3CoreOASIS.GetHolonByIdAsync(index),row=>DecodePrivateEntity<Holon>("holon",row));
 
     public async Task<OASISResult<IHolon>> LoadHolonByProviderKeyAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    {
-        var result = new OASISResult<IHolon>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/holons/by-provider-key/{Uri.EscapeDataString(providerKey)}?version={version}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                var holon = Newtonsoft.Json.JsonConvert.DeserializeObject<Holon>(content);
-                
-                if (holon != null)
-                {
-                    result.Result = holon;
-                    result.IsError = false;
-                    result.Message = "Holon loaded successfully by provider key from Web3Core";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to deserialize holon from Web3Core API");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, $"Web3Core API error: {response.StatusCode} - {response.ReasonPhrase}");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key from Web3Core: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ReadPrivateKeyAsync<IHolon>(providerKey,id=>LoadHolonAsync(id,loadChildren,recursive,maxChildDepth,continueOnError,loadChildrenFromProvider,version));
 
     //public override OASISResult<IHolon> LoadHolonByCustomKey(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
     //{

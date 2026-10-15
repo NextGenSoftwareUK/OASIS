@@ -251,141 +251,21 @@ public partial class Web3CoreOASISBaseProvider
 
 
     public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
-    {
-        var result = new OASISResult<IAvatar>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/avatars/by-email/{Uri.EscapeDataString(avatarEmail)}?version={version}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                var avatar = Newtonsoft.Json.JsonConvert.DeserializeObject<Avatar>(content);
-                
-                if (avatar != null)
-                {
-                    result.Result = avatar;
-                    result.IsError = false;
-                    result.Message = "Avatar loaded successfully by email from Web3Core";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to deserialize avatar from Web3Core API");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, $"Web3Core API error: {response.StatusCode} - {response.ReasonPhrase}");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from Web3Core: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ReadPrivateSelectorAsync<IAvatar>(avatarEmail,row=>row.Email,()=>LoadAllAvatarsAsync(version));
 
     public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
-    {
-        return LoadAvatarByEmailAsync(avatarEmail, version).Result;
-    }
+        => ReadPrivateSelectorAsync<IAvatar>(avatarEmail,row=>row.Email,()=>LoadAllAvatarsAsync(version)).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
-    {
-        var result = new OASISResult<IAvatar>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/avatars/by-provider-key/{Uri.EscapeDataString(providerKey)}?version={version}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                var avatar = Newtonsoft.Json.JsonConvert.DeserializeObject<Avatar>(content);
-                
-                if (avatar != null)
-                {
-                    result.Result = avatar;
-                    result.IsError = false;
-                    result.Message = "Avatar loaded successfully by provider key from Web3Core";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to deserialize avatar from Web3Core API");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, $"Web3Core API error: {response.StatusCode} - {response.ReasonPhrase}");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key from Web3Core: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ReadPrivateKeyAsync<IAvatar>(providerKey,id=>LoadAvatarAsync(id,version));
 
     public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
-    {
-        return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
-    }
+        => ReadPrivateKeyAsync<IAvatar>(providerKey,id=>LoadAvatarAsync(id,version)).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
-    {
-        var result = new OASISResult<IAvatar>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/avatars/by-username/{Uri.EscapeDataString(avatarUsername)}?version={version}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                var avatar = Newtonsoft.Json.JsonConvert.DeserializeObject<Avatar>(content);
-                
-                if (avatar != null)
-                {
-                    result.Result = avatar;
-                    result.IsError = false;
-                    result.Message = "Avatar loaded successfully by username from Web3Core";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to deserialize avatar from Web3Core API");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, $"Web3Core API error: {response.StatusCode} - {response.ReasonPhrase}");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from Web3Core: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ReadPrivateSelectorAsync<IAvatar>(avatarUsername,row=>row.Username,()=>LoadAllAvatarsAsync(version));
 
     public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
-    {
-        return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
-    }
+        => ReadPrivateSelectorAsync<IAvatar>(avatarUsername,row=>row.Username,()=>LoadAllAvatarsAsync(version)).GetAwaiter().GetResult();
 
 }
