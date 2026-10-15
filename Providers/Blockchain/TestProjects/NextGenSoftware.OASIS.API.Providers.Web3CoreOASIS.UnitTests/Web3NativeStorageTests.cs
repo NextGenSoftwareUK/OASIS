@@ -41,6 +41,10 @@ public partial class Web3NativeStorageTests
             var detailRead=await provider.LoadAvatarDetailAsync(detail.Id);Assert.IsFalse(detailRead.IsError,detailRead.Message);
             Assert.AreEqual(321L,detailRead.Result.XP);Assert.AreEqual(29L,detailRead.Result.Karma);Assert.AreEqual("owned seed",detailRead.Result.Inventory.Single().Name);
             avatar.FirstName="updated native profile";
+            Assert.IsFalse(avatar.IsNewHolon);Assert.AreEqual(avatar.Id.ToString(),avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.PolygonOASIS]);
+            Assert.IsFalse(detail.IsNewHolon);Assert.AreEqual(detail.Id.ToString(),detail.ProviderUniqueStorageKey[Core.Enums.ProviderType.PolygonOASIS]);
+            Assert.IsInstanceOfType((await provider.SaveAvatarAsync(null!)).Exception,typeof(ArgumentNullException));
+            Assert.IsInstanceOfType(provider.SaveAvatarDetail(null!).Exception,typeof(ArgumentNullException));
             Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
             Assert.AreEqual("updated native profile",(await provider.LoadAvatarAsync(avatar.Id)).Result.FirstName);
             detail.XP=444;
