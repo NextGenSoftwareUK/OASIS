@@ -165,6 +165,15 @@ public class AzureNativeStorageTests
                     Assert.AreEqual(Core.Enums.ProviderType.LocalFileOASIS,manager.LastFailoverDiagnostic.SelectedProvider);
                     Assert.AreEqual(before+1,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
                 }
+                var failedId=Guid.NewGuid();
+                var secondaryBefore=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests;
+                var failed=await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(
+                    new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {Operation="SaveHolon",Payload=new Holon {Id=failedId,Name="must-not-replay"},
+                        SaveChildren=false,PreferredProvider=Core.Enums.ProviderType.AzureStorageOASIS});
+                Assert.IsTrue(failed.IsError);
+                Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(failed.Exception));
+                Assert.AreEqual(secondaryBefore,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
+                Assert.IsNull((await local.LoadHolonAsync(failedId,loadChildren:false)).Result);
             }
             finally {field.SetValue(azure,healthy);}
         }
