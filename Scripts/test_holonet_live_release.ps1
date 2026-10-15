@@ -50,7 +50,7 @@ $legacyBlob = (& git hash-object $legacy).Trim()
 if ($LASTEXITCODE -ne 0 -or $legacyBlob -ne '4069c5da8349f7a866f46fd0bc9a17e4dcef70c0') { throw 'Legacy hApp rejection fixture differs from the reviewed Git blob.' }
 $ResultsDirectory = (Resolve-Path -LiteralPath $ResultsDirectory).Path
 $saved = @{}
-$names = @('HOLONET_LIVE_ADMIN_URI', 'HOLONET_LIVE_HAPP_PATH', 'HOLONET_LIVE_CLONE_HAPP_PATH', 'HOLONET_LIVE_MEMPROOFS_HAPP_PATH')
+$names = @('HOLONET_LIVE_ADMIN_URI', 'HOLONET_LIVE_HAPP_PATH', 'HOLONET_LIVE_CLONE_HAPP_PATH', 'HOLONET_LIVE_MEMPROOFS_HAPP_PATH', 'HOLONET_LIVE_HC_BIN')
 foreach ($name in $names) { $saved[$name] = [Environment]::GetEnvironmentVariable($name) }
 $process = $null
 Push-Location $fixture
@@ -102,10 +102,11 @@ try {
     if (-not $ready) { throw 'Hosted conductor did not become ready within 60 seconds.' }
     $env:HOLONET_LIVE_ADMIN_URI = 'ws://127.0.0.1:65464'
     $env:HOLONET_LIVE_HAPP_PATH = $Happ
+    $env:HOLONET_LIVE_HC_BIN = $hc
     # Complementary partitions: auto-start owns its conductors and must run only after this one exits.
     & dotnet test $Project --configuration $Configuration --filter 'FullyQualifiedName!~LiveConductorAutoStartTests' --logger 'trx;LogFileName=holonet-app-authentication.trx' --results-directory $ResultsDirectory --nologo
     if ($LASTEXITCODE -ne 0) { throw 'HoloNET live release tests failed.' }
-    Assert-CompleteTestReport (Join-Path $ResultsDirectory 'holonet-app-authentication.trx') 1187
+    Assert-CompleteTestReport (Join-Path $ResultsDirectory 'holonet-app-authentication.trx') 1188
 }
 finally {
     if ($process) {
