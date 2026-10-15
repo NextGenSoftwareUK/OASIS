@@ -39,6 +39,15 @@ public class CosmosCurrentReadTests
         var missing=provider.LoadHolonsForParent(Guid.NewGuid().ToString());
         Assert.IsFalse(missing.IsError,missing.Message);Assert.IsTrue(missing.IsLoaded);Assert.IsFalse(missing.Result.Any());
         Assert.IsInstanceOfType((await provider.LoadHolonsForParentAsync("invalid")).Exception,typeof(ArgumentException));
+        root.MetaData=new Dictionary<string,object> {{"biome","park"}};
+        var pairs=new Dictionary<string,string> {{"biome","park"},{"missing","no"}};
+        var any=await provider.LoadHolonsByMetaDataAsync(pairs,NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.Any,loadChildrenFromProvider:true);
+        Assert.IsFalse(any.IsError,any.Message);Assert.IsTrue(any.IsLoaded);Assert.AreEqual(root.Id,any.Result.Single().Id);
+        Assert.AreEqual(child.Id,any.Result.Single().Children.Single().Id);
+        var every=provider.LoadHolonsByMetaData(pairs,NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All);
+        Assert.IsFalse(every.IsError,every.Message);Assert.IsFalse(every.Result.Any());
+        var single=provider.LoadHolonsByMetaData("biome","park");Assert.AreEqual(root.Id,single.Result.Single().Id);
+        Assert.IsInstanceOfType((await provider.LoadHolonsByMetaDataAsync(" ","value")).Exception,typeof(ArgumentException));
         Assert.IsInstanceOfType((await provider.LoadAllHolonsAsync(curentChildDepth:-1)).Exception,typeof(ArgumentOutOfRangeException));
     }
 

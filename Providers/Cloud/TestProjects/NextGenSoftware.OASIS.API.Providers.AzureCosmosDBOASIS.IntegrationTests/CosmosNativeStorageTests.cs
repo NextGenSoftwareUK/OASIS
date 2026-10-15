@@ -84,6 +84,12 @@ public class CosmosNativeStorageTests
             Assert.AreEqual(childId,parentRead.Result.Single().Id);
             var emptyParent=provider.LoadHolonsForParent(Guid.NewGuid().ToString());
             Assert.IsFalse(emptyParent.IsError,emptyParent.Message);Assert.IsTrue(emptyParent.IsLoaded);Assert.IsFalse(emptyParent.Result.Any());
+            var pairs=new Dictionary<string,string> {{"owned-field","owned-value"},{"missing","no"}};
+            var metadata=await provider.LoadHolonsByMetaDataAsync(pairs,Core.Enums.MetaKeyValuePairMatchMode.Any,loadChildrenFromProvider:true);
+            Assert.IsFalse(metadata.IsError,metadata.Message);Assert.IsTrue(metadata.IsLoaded);
+            Assert.AreEqual(holonId,metadata.Result.Single().Id);Assert.AreEqual(childId,metadata.Result.Single().Children.Single().Id);
+            var allMetadata=provider.LoadHolonsByMetaData(pairs,Core.Enums.MetaKeyValuePairMatchMode.All);
+            Assert.IsFalse(allMetadata.IsError,allMetadata.Message);Assert.IsFalse(allMetadata.Result.Any());
             var depthLimited=await provider.LoadAllHolonsAsync(maxChildDepth:1,curentChildDepth:1,loadChildrenFromProvider:true);
             Assert.IsFalse(depthLimited.IsError,depthLimited.Message);
             Assert.IsFalse(depthLimited.Result.Single(row=>row.Id==holonId).Children.Any());
