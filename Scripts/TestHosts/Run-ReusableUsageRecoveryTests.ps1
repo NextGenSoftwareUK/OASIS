@@ -1,6 +1,7 @@
 #Requires -Version 7.0
-param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect)
+param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners)
 $ErrorActionPreference='Stop'
+if($Web3PreparedOwners -and ($SuiMintOwner -or $ReconcileControlledMintOwner -or $HederaPreparedOwners -or $MongoProjection -or $MongoTransactions -or $MongoV2 -or $SuiPreparedLedger -or $CosmosPreparedOwners -or $CosmosFull -or $AuthorityLedger -or $SuiPreparedInspect)){throw 'Choose Web3 prepared owner verification or one other suite.'}
 if($SuiPreparedInspect -and ($SuiMintOwner -or $ReconcileControlledMintOwner -or $HederaPreparedOwners -or $MongoProjection -or $MongoTransactions -or $MongoV2 -or $SuiPreparedLedger -or $CosmosPreparedOwners -or $CosmosFull -or $AuthorityLedger)){throw 'Read-only prepared inspection requires its own exclusive mode.'}
 if($AuthorityLedger -and ($SuiMintOwner -or $ReconcileControlledMintOwner -or $HederaPreparedOwners -or $MongoProjection -or $MongoTransactions -or $MongoV2 -or $SuiPreparedLedger -or $CosmosPreparedOwners -or $CosmosFull)){throw 'Choose authority ledger or one provider verification suite.'}
 if($CosmosFull -and !$CosmosPreparedOwners){throw 'CosmosFull requires the owned CosmosPreparedOwners environment.'}
@@ -21,7 +22,7 @@ New-Item -ItemType Directory -Force -Path $work | Out-Null
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 $owned=$null
 $prior=@{}
-foreach($name in 'OASIS_OWNED_RECOVERY_REPLICA_URI','SUBSCRIPTION_TEST_MONGODB_URI','OASIS_HEDERA_SDK_BRIDGE','OASIS_MONGO_REPLICA_SET_CONNECTION'){$prior[$name]=[Environment]::GetEnvironmentVariable($name)}
+foreach($name in 'OASIS_OWNED_RECOVERY_REPLICA_URI','SUBSCRIPTION_TEST_MONGODB_URI','OASIS_HEDERA_SDK_BRIDGE','OASIS_MONGO_REPLICA_SET_CONNECTION','OASIS_WEB3_PREPARED_OUTBOX_REQUIRED'){$prior[$name]=[Environment]::GetEnvironmentVariable($name)}
 try{
     if($MongoV2){
         foreach($relative in @(
@@ -54,7 +55,12 @@ try{
     $project=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core/Tests/SubscriptionUsage/SubscriptionUsage.Tests.csproj'
     & dotnet test $project --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --filter FullyQualifiedName~OwnedReplicaInitializationTests --logger 'trx;LogFileName=owned-replica-init-current.trx' --results-directory $work -v:q
     if($LASTEXITCODE -ne 0){throw 'Owned replica initialization failed.'}
-    if($AuthorityLedger){
+    if($Web3PreparedOwners){
+        $env:OASIS_WEB3_PREPARED_OUTBOX_REQUIRED='1'
+        & (Join-Path $PSScriptRoot 'Run-ReusableEthereumTests.ps1')
+        $proof=Join-Path $taskRoot 'TestResults/Web3CoreCurrent/web3-native-current.trx'
+        if(!(Get-Content -LiteralPath $proof -Raw).Contains('WEB3_REAL_OUTBOX_VERIFIED')){throw 'Real Web3 outbox verification did not execute.'}
+    }elseif($AuthorityLedger){
         $ledgerProject=Join-Path $taskRoot 'ONODE/Tests/SubscriptionLedger.ProtocolTests/SubscriptionLedger.ProtocolTests.csproj'
         $ledgerStarted=[DateTime]::UtcNow
         & dotnet test $ledgerProject --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --logger 'trx;LogFileName=authority-ledger-current.trx' --results-directory $work -v:q
