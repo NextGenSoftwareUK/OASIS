@@ -35,6 +35,19 @@ try {
     if(!$ready -or !$nativeId){throw 'Validator did not become healthy; original process will not be restarted.'}
     $genesis=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body '{"jsonrpc":"2.0","id":1,"method":"getGenesisHash"}' -TimeoutSec 3
     if($genesis.result -ne 'HXfgJ8CoRQ7RcgETc178DX2FwbSQQK6nCCTNc5YwGRi2'){throw 'Retained ledger genesis differs; refusing writes.'}
+    $slotBody='{"jsonrpc":"2.0","id":1,"method":"getSlot","params":[{"commitment":"finalized"}]}'
+    $initialRoot=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body $slotBody -TimeoutSec 3
+    if($null -eq $initialRoot.result -or $initialRoot.error){throw 'Finalized slot lookup failed; refusing writes.'}
+    if(!$InspectRecent){
+        $rootAdvanced=$false
+        for($observation=0;$observation -lt 20;$observation++){
+            Start-Sleep -Milliseconds 500
+            $currentRoot=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body $slotBody -TimeoutSec 3
+            if($null -eq $currentRoot.result -or $currentRoot.error){throw 'Finalized slot observation failed; refusing writes.'}
+            if([long]$currentRoot.result -gt [long]$initialRoot.result){$rootAdvanced=$true;break}
+        }
+        if(!$rootAdvanced){throw "Validator finalized root did not advance from $($initialRoot.result); no test transaction submitted. Inspect retained consensus state without resetting it."}
+    }
     Add-Type -Path (Join-Path (Split-Path $project) 'bin/Debug/net10.0/Solnet.Wallet.dll')
     $secret=[byte[]](Get-Content -LiteralPath '\\wsl.localhost\Ubuntu\var\tmp\oasis-solana\fixture-keypair.json' -Raw | ConvertFrom-Json)
     $env:SOLANA_PRIVATE_KEY=[Solnet.Wallet.Utilities.Encoders]::Base58.EncodeData($secret)
@@ -46,7 +59,7 @@ try {
         $recent=Invoke-RestMethod -Uri $env:SOLANA_RPC_URL -Method Post -ContentType 'application/json' -Body $body -TimeoutSec 5
         if($recent.error){throw 'Read-only native signature inspection failed.'}
         if($null -eq $recent.result){throw 'Native signature inspection omitted its result.'}
-        @{Count=@($recent.result).Count;Transactions=@($recent.result | Select-Object signature,slot,confirmationStatus,err)} | ConvertTo-Json -Depth 5 -Compress | Write-Output
+        @{FinalizedSlot=$initialRoot.result;Count=@($recent.result).Count;Transactions=@($recent.result | Select-Object signature,slot,confirmationStatus,err)} | ConvertTo-Json -Depth 5 -Compress | Write-Output
         return
     }
     $testStarted=[DateTime]::UtcNow
