@@ -21,6 +21,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         public async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
             OASISResult<bool> result = new();
+            Core.Objects.AvatarTombstone committedTombstone=null;
             try
             {
             OASISResult<AvatarModel> avatarResult = new();
@@ -56,8 +57,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             //avatarResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
                             var deletedAt = DateTime.UtcNow;
+                            committedTombstone=new Core.Objects.AvatarTombstone(id,deletedAt,TombstoneActor(avatarResult.Result.DeletedByAvatarId));
                             avatarResult.Result.DeletedDate = deletedAt;
                             avatarResult.Result.IsActive = false;
+                            avatarResult.Result.DeletedByAvatarId=committedTombstone.DeletedByAvatarId.ToString();
                             //_dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
                             //this.eFContext.AvatarEntities.Where(x => x.HolonId == avatarResult.Result.HolonId);
 
@@ -73,6 +76,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                                 avatarDetailResult.Result.DeletedDate = deletedAt;
                                 avatarDetailResult.Result.IsActive = false;
+                                avatarDetailResult.Result.DeletedByAvatarId=committedTombstone.DeletedByAvatarId.ToString();
                                 //_dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
                                 _dbContext.Avatars.Where(x => x.Id == avatarResult.Result.Id);
                                 result.Result = true;
@@ -127,7 +131,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 DetachFailedAvatarDeletion(id.ToString(), deletionEntities);
             }
             else
+            {
                 await dbContextTransaction.CommitAsync();
+                if(softDelete && result.Result) AvatarTombstoneEvidence.Attach(result,committedTombstone);
+            }
 
             return result;
             }
