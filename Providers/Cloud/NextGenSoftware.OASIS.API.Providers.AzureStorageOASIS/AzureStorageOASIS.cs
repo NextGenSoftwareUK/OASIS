@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -121,12 +122,35 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             var saved = new List<IHolon>();
-            foreach (var h in holons)
-            {
-                var r = await SaveHolonAsync(h, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-                if (!r.IsError && r.Result != null) saved.Add(r.Result);
+            var failures=new List<Exception>();
+            try {
+                ArgumentNullException.ThrowIfNull(holons);
+                var planned=holons.ToList();
+                if(planned.Count==0 || maxChildDepth<0 || curentChildDepth<0 || planned.Any(row=>row==null)) throw new ArgumentException("Invalid batch nodes or depth.");
+                foreach(var row in planned) if(row.Id==Guid.Empty) row.Id=Guid.NewGuid();
+                if(planned.Select(row=>row.Id).Distinct().Count()!=planned.Count) throw new ArgumentException("Duplicate batch identities.");
+                foreach(var row in planned) Serialise(row);
+                foreach(var row in planned) {
+                    var written=await SaveHolonAsync(row,saveChildren,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider);
+                    if(written.IsError || written.Result==null) {
+                        if(!result.IsError) result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IHolon,IEnumerable<IHolon>>(written);
+                        result.IsError=true;
+                        failures.Add(written.Exception ?? new InvalidOperationException(written.Message ?? "Azure item returned no acknowledgement."));
+                        if(!continueOnError || NativeMutationReconciliation.IsRequired(written.Exception)) break;
+                    }
+                    else saved.Add(written.Result);
+                }
+                result.Result=saved;result.IsSaved=failures.Count==0;
+                if(failures.Count>0) {
+                    var cause=failures.Count==1 ? failures[0]:new AggregateException(failures);
+                    result.Exception=saved.Count>0 ? new AzureBlobPartialMutationException(saved.Select(row=>row.Id),cause):cause;
+                }
             }
-            result.Result = saved; return result;
+            catch(Exception cause) {
+                result.Exception=saved.Count>0 ? new AzureBlobPartialMutationException(saved.Select(row=>row.Id),cause):cause;
+                result.IsSaved=false;OASISErrorHandling.HandleError(ref result,cause.Message);
+            }
+            return result;
         }
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
@@ -394,7 +418,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
 
         // ─── Import / Export ──────────────────────────────────────────────────────
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
-        { var r = new OASISResult<bool>(); OASISErrorHandling.HandleError(ref r, "AzureStorageOASIS: Use SaveHolonsAsync for bulk import."); return await Task.FromResult(r); }
+        { var saved=await SaveHolonsAsync(holons,continueOnError:false);var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,bool>(saved);result.Result=!saved.IsError && saved.IsSaved;return result; }
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).Result;
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
             => await LoadHolonsForParentAsync(avatarId, version: version);
