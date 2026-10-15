@@ -25,6 +25,17 @@ public partial class Web3NativeStorageTests
             CollectionAssert.AreEqual(second,(await read()).Info);
             await Assert.ThrowsExceptionAsync<Web3MutationReconciliationException>(()=>native.UpsertCheckedAsync(kind,numeric,external,true,firstHash,first));
             CollectionAssert.AreEqual(second,(await read()).Info);
+            var concurrent=new byte[] {5,6};
+            Func<Task<EntityOASIS>> interleavedRead=async ()=>
+            {
+                var observed=await read();
+                await native.UpsertCheckedAsync(kind,numeric,external,true,Nethereum.Util.Sha3Keccack.Current.CalculateHash(observed.Info),concurrent);
+                return observed;
+            };
+            var method=typeof(Web3CoreOASIS).GetMethod("UpsertObservedAsync",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+            var raced=(Task<Nethereum.RPC.Eth.DTOs.TransactionReceipt>)method.Invoke(native,new object[] {kind,numeric,external,first,interleavedRead})!;
+            await Assert.ThrowsExceptionAsync<Web3MutationReconciliationException>(()=>raced);
+            CollectionAssert.AreEqual(concurrent,(await read()).Info);
             // Exact synthetic fixture cleanup; these bytes are contract-only, not encrypted application data.
             if(kind=="avatar") await native.DeleteAvatarAsync(numeric);
             else if(kind=="detail") await native.DeleteAvatarDetailAsync(numeric);
