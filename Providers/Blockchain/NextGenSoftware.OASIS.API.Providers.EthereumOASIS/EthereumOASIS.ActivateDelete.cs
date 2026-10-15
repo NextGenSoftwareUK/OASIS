@@ -304,23 +304,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var avatarResult = await LoadAvatarByEmailAsync(avatarEmail);
                 if (avatarResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {avatarResult.Message}",avatarResult.Exception);
+                    result.ErrorCode=avatarResult.ErrorCode;
                     return result;
                 }
 
                 if (avatarResult.Result != null)
                 {
                     // Delete avatar by ID
-                    var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
-                    if (deleteResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
-                        return result;
-                    }
-
-                    result.Result = deleteResult.Result;
-                    result.IsError = false;
-                    result.Message = $"Avatar deleted successfully by email from Ethereum";
+                    return await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
                 }
                 else
                 {
@@ -358,23 +350,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var avatarResult = await LoadAvatarByUsernameAsync(avatarUsername);
                 if (avatarResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {avatarResult.Message}",avatarResult.Exception);
+                    result.ErrorCode=avatarResult.ErrorCode;
                     return result;
                 }
 
                 if (avatarResult.Result != null)
                 {
                     // Delete avatar by ID
-                    var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
-                    if (deleteResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
-                        return result;
-                    }
-
-                    result.Result = deleteResult.Result;
-                    result.IsError = false;
-                    result.Message = $"Avatar deleted successfully by username from Ethereum";
+                    return await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
                 }
                 else
                 {
@@ -401,9 +385,15 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     if(activation.IsError) throw new InvalidOperationException(activation.Message,activation.Exception);
                 }
                 var avatarEntityId = HashUtility.GetNumericHash(id.ToString());
-                var requestTransaction = softDelete ? await SoftDeleteStoredAvatarAsync(id)
-                    : await Web3Client.Eth.GetContractHandler(ContractAddress)
-                        .SendRequestAndWaitForReceiptAsync(new ContractDefinition.DeleteAvatarByIdentityFunction { EntityId=avatarEntityId, Identity=id.ToString() });
+                Core.Objects.AvatarTombstone tombstone=null;
+                Nethereum.RPC.Eth.DTOs.TransactionReceipt requestTransaction;
+                if(softDelete)
+                {
+                    var deletion=await SoftDeleteStoredAvatarAsync(id);
+                    requestTransaction=deletion.Receipt; tombstone=deletion.Tombstone;
+                }
+                else requestTransaction=await Web3Client.Eth.GetContractHandler(ContractAddress)
+                    .SendRequestAndWaitForReceiptAsync(new ContractDefinition.DeleteAvatarByIdentityFunction { EntityId=avatarEntityId, Identity=id.ToString() });
 
                 if (!StorageReceiptSucceeded(requestTransaction))
                 {
@@ -416,6 +406,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 result.IsSaved = true;
                 result.IsDeleted = true;
                 result.DeletedCount = 1;
+                if(tombstone != null) AvatarTombstoneEvidence.Attach(result,tombstone);
             }
             catch (RpcResponseException ex)
             {
@@ -451,26 +442,18 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
 
                 // Load avatar by provider key first
-                var avatarResult = await LoadAvatarAsync(Guid.Parse(providerKey));
+                var avatarResult = await LoadAvatarByProviderKeyAsync(providerKey);
                 if (avatarResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {avatarResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by provider key: {avatarResult.Message}",avatarResult.Exception);
+                    result.ErrorCode=avatarResult.ErrorCode;
                     return result;
                 }
 
                 if (avatarResult.Result != null)
                 {
                     // Delete avatar by ID
-                    var deleteResult = await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
-                    if (deleteResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Error deleting avatar: {deleteResult.Message}");
-                        return result;
-                    }
-
-                    result.Result = deleteResult.Result;
-                    result.IsError = false;
-                    result.Message = $"Avatar deleted successfully by provider key from Ethereum";
+                    return await DeleteAvatarAsync(avatarResult.Result.Id, softDelete);
                 }
                 else
                 {

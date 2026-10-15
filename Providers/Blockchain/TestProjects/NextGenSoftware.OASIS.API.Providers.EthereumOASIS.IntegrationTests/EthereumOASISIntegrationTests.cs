@@ -1043,6 +1043,59 @@ public class EthereumOASISIntegrationTests
         finally { sqlite.Dispose(); File.Delete(path); await ethereum.DeActivateProviderAsync(); }
     }
 
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task EthereumAppliesExactCommittedTombstoneWithoutOverwritingReplicaProfile(bool synchronous)
+    {
+        var (primary,_) = await CreateActivatedProviderAsync();
+        var (replica,address)=await CreateActivatedProviderAsync();
+        var id=Guid.NewGuid(); var actor=Guid.NewGuid();
+        foreach(var provider in new[] {primary,replica})
+        {
+            Assert.IsFalse((await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=id,Username=provider==primary?"primary name":"replica name",IsActive=true,DeletedByAvatarId=actor})).IsError);
+            Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail {Id=id,XP=provider==primary?11:22,Karma=provider==primary?33:44,IsActive=true})).IsError);
+        }
+        var deleted=synchronous ? primary.DeleteAvatar(id) : await primary.DeleteAvatarAsync(id);
+        Assert.IsFalse(deleted.IsError,deleted.Message);
+        Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.AvatarTombstoneEvidence.TryGet(deleted,out var snapshot));
+        Assert.AreEqual(id,snapshot.AvatarId); Assert.AreEqual(actor,snapshot.DeletedByAvatarId);
+        var applied=synchronous ? replica.ApplyAvatarTombstone(snapshot) : await replica.ApplyAvatarTombstoneAsync(snapshot);
+        Assert.IsFalse(applied.IsError,applied.Message); Assert.IsTrue(applied.Result); Assert.IsTrue(applied.IsSaved);
+        var profile=(await replica.LoadAvatarAsync(id)).Result; var detail=(await replica.LoadAvatarDetailAsync(id)).Result;
+        Assert.AreEqual("replica name",profile.Username); Assert.AreEqual(22L,Convert.ToInt64(detail.XP)); Assert.AreEqual(44L,Convert.ToInt64(detail.Karma));
+        Assert.AreEqual(snapshot.DeletedAtUtc,profile.DeletedDate); Assert.AreEqual(snapshot.DeletedAtUtc,detail.DeletedDate);
+        Assert.AreEqual(actor,profile.DeletedByAvatarId); Assert.AreEqual(actor,detail.DeletedByAvatarId);
+        Assert.IsFalse(profile.IsActive); Assert.IsFalse(detail.IsActive);
+        var native=new Web3(new Account(PrivateKey,ChainId),Host);
+        var signer=new Account(PrivateKey,ChainId).Address;
+        var before=await native.Eth.Transactions.GetTransactionCount.SendRequestAsync(signer);
+        var repeated=synchronous ? replica.ApplyAvatarTombstone(snapshot) : await replica.ApplyAvatarTombstoneAsync(snapshot);
+        Assert.IsFalse(repeated.IsError,repeated.Message); Assert.IsTrue(repeated.Result); Assert.IsFalse(repeated.IsSaved);
+        var conflict=new AvatarTombstone(id,snapshot.DeletedAtUtc.AddTicks(1),actor);
+        var rejected=synchronous ? replica.ApplyAvatarTombstone(conflict) : await replica.ApplyAvatarTombstoneAsync(conflict);
+        Assert.IsTrue(rejected.IsError); Assert.IsFalse(rejected.Result);
+        Assert.AreEqual(before.Value,(await native.Eth.Transactions.GetTransactionCount.SendRequestAsync(signer)).Value);
+        Assert.AreEqual(snapshot.DeletedAtUtc,(await replica.LoadAvatarAsync(id)).Result.DeletedDate);
+        Assert.IsTrue((await replica.ApplyAvatarTombstoneAsync(new AvatarTombstone(Guid.NewGuid(),snapshot.DeletedAtUtc))).IsError);
+        await primary.DeActivateProviderAsync(); await replica.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(0)]
+    [DataRow(1)]
+    [DataRow(2)]
+    public async Task DeletionSelectorsRetainCommittedTombstoneEvidence(int selector)
+    {
+        var (provider,_) = await CreateActivatedProviderAsync(); var id=Guid.NewGuid();
+        Assert.IsFalse((await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=id,Username="selector tombstone",Email="selector@example.invalid"})).IsError);
+        var result=selector==0 ? await provider.DeleteAvatarByEmailAsync("selector@example.invalid")
+            : selector==1 ? await provider.DeleteAvatarByUsernameAsync("selector tombstone") : await provider.DeleteAvatarAsync(id.ToString());
+        Assert.IsFalse(result.IsError,result.Message);
+        Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.AvatarTombstoneEvidence.TryGet(result,out var snapshot)); Assert.AreEqual(id,snapshot.AvatarId);
+        await provider.DeActivateProviderAsync();
+    }
+
     [TestMethod]
     public async Task Holon_SaveLoadRoundTrip_UsesDisposableEvmChain()
     {
