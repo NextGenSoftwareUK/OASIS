@@ -265,6 +265,67 @@ public class EthereumOASISIntegrationTests
         await provider.DeActivateProviderAsync();
     }
 
+    [DataTestMethod]
+    [DataRow(false,false)]
+    [DataRow(true,false)]
+    [DataRow(false,true)]
+    [DataRow(true,true)]
+    public async Task V2AmbiguousNativeIdentityCannotFallThroughToUniqueBackup(bool synchronous,bool details)
+    {
+        var (ethereum,_) = await CreateActivatedProviderAsync();
+        var folder=Path.GetDirectoryName(Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_FIXTURE_JSON"))!;
+        var path=Path.Combine(folder,"v2-identity.db");
+        if(File.Exists(path)) throw new InvalidOperationException("Existing identity fixture requires inspection; refusing overwrite.");
+        using var sqlite=new SQLiteProvider($"Data Source={path};Pooling=False");
+        try
+        {
+            Assert.IsFalse((await sqlite.ActivateProviderAsync()).IsError);
+            const string username="v2-duplicate-identity",email="v2-duplicate@example.invalid";
+            for(var index=0;index<2;index++)
+            {
+                if(details) Assert.IsFalse((await ethereum.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=Guid.NewGuid(),Username=username,Email=email })).IsError);
+                else Assert.IsFalse((await ethereum.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=Guid.NewGuid(),Username=username,Email=email })).IsError);
+            }
+            var backupId=Guid.NewGuid();
+            if(details) Assert.IsFalse((await sqlite.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=backupId,Username=username,Email=email })).IsError);
+            else
+            {
+                var saved=await sqlite.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=backupId,Username=username,Email=email,AvatarType=new EnumValue<AvatarType>(AvatarType.User) });
+                Assert.IsFalse(saved.IsError,saved.Message);
+            }
+            var dna=new OASISDNA { OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS { HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings() } };
+            dna.OASIS.SubscriptionConfig.PlanType="Gold";
+            var manager=new ProviderManager(null,dna) { IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=true };
+            manager.RegisterProvider(ethereum); manager.RegisterProvider(sqlite);
+            var stores=new[] {new EnumValue<ProviderType>(ProviderType.EthereumOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)};
+            Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(stores).IsError);
+            Assert.IsFalse(manager.SetAndReplaceAutoReplicationListForProviders(stores).IsError);
+            var router=new OASISHyperDrive(manager);
+            foreach(var byEmail in new[] {false,true})
+            {
+                var request=new StorageOperationRequest { Operation=details ? byEmail?"LoadAvatarDetailByEmail":"LoadAvatarDetailByUsername" : byEmail?"LoadAvatarByEmail":"LoadAvatarByUsername",
+                    Username=username,Email=email,PreferredProvider=ProviderType.EthereumOASIS };
+                if(details)
+                {
+                    var result=synchronous ? router.RouteRequest<IAvatarDetail>(request) : await router.RouteRequestAsync<IAvatarDetail>(request);
+                    Assert.IsTrue(result.IsError); Assert.IsNull(result.Result);
+                    Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,result.ErrorCode);
+                }
+                else
+                {
+                    var result=synchronous ? router.RouteRequest<IAvatar>(request) : await router.RouteRequestAsync<IAvatar>(request);
+                    Assert.IsTrue(result.IsError); Assert.IsNull(result.Result);
+                    Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,result.ErrorCode);
+                }
+            }
+            Assert.AreEqual(2L,manager.PerformanceMonitor.GetMetrics(ProviderType.EthereumOASIS).TotalRequests);
+            Assert.AreEqual(0L,manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0L);
+            if(details) Assert.AreEqual(backupId,(await sqlite.LoadAvatarDetailByUsernameAsync(username)).Result.Id);
+            else Assert.AreEqual(backupId,(await sqlite.LoadAvatarByUsernameAsync(username)).Result.Id);
+        }
+        finally { sqlite.Dispose(); File.Delete(path); await ethereum.DeActivateProviderAsync(); }
+    }
+
     [TestMethod]
     public async Task Holon_SaveLoadRoundTrip_UsesDisposableEvmChain()
     {
