@@ -26,14 +26,7 @@ public class SolanaRepository(Account oasisAccount, IRpcClient rpcClient, Func<b
                 .AddInstruction(MemoProgram.NewMemoV2(serializedEntity))
                 .Build(oasisAccount);
 
-            var transactionResult = await rpcClient.SendTransactionAsync(entityTransactionBytes);
-            if (!transactionResult.WasSuccessful || transactionResult.HttpStatusCode != HttpStatusCode.OK)
-                throw new Exception(
-                    $"{transactionResult.RawRpcResponse} Reason: Transaction processing failed, entity Id: {entity.Id}");
-
-            // Wait for transaction creating is done on provider side...
-            await Task.Delay(3000);
-            return transactionResult.Result;
+            return await SubmitAndConfirmAsync(entityTransactionBytes);
         }
         else
             return "";
@@ -54,14 +47,7 @@ public class SolanaRepository(Account oasisAccount, IRpcClient rpcClient, Func<b
             .AddInstruction(MemoProgram.NewMemoV2(serializedEntity))
             .Build(oasisAccount);
 
-        var transactionResult = await rpcClient.SendTransactionAsync(entityUpdateTransactionBytes);
-        if (!transactionResult.WasSuccessful || transactionResult.HttpStatusCode != HttpStatusCode.OK)
-            throw new Exception(
-                $"{transactionResult.RawRpcResponse} Reason: Transaction processing failed, updating entity Id: {entity.Id}");
-
-        // Wait for transaction creating is done on provider side...
-        await Task.Delay(3000);
-        return transactionResult.Result;
+        return await SubmitAndConfirmAsync(entityUpdateTransactionBytes);
     }
 
     public async Task<bool> DeleteAsync(string transactionHashReference)
@@ -102,13 +88,7 @@ public class SolanaRepository(Account oasisAccount, IRpcClient rpcClient, Func<b
             .AddInstruction(MemoProgram.NewMemoV2(serializedEntity))
             .Build(oasisAccount);
 
-        var transactionResult = await rpcClient.SendTransactionAsync(entityDeleteUpdateTransactionBytes);
-        if (!transactionResult.WasSuccessful || transactionResult.HttpStatusCode != HttpStatusCode.OK)
-            throw new Exception(
-                $"{transactionResult.RawRpcResponse} Reason: transaction processing failed, entity Id: {deserializedEntity.Id}");
-
-        // Wait for transaction creating is done on provider side...
-        await Task.Delay(3000);
+        await SubmitAndConfirmAsync(entityDeleteUpdateTransactionBytes);
         return true;
     }
 
@@ -138,6 +118,35 @@ public class SolanaRepository(Account oasisAccount, IRpcClient rpcClient, Func<b
                                      $"{entityTransactionQueryResult.RawRpcResponse} Reason: No content found for hash {transactionHashReference}.");
 
         return deserializedEntity;
+    }
+
+    private async Task<string> SubmitAndConfirmAsync(byte[] signedTransaction)
+    {
+        // This repository builds one-signer transactions; preserve its actual native
+        // identity before broadcast, including when the RPC response is lost.
+        if (signedTransaction == null || signedTransaction.Length < 65 || signedTransaction[0] != 1)
+            throw new ArgumentException("Expected a one-signature Solana transaction.");
+        var signature = Encoders.Base58.EncodeData(signedTransaction.AsSpan(1,64).ToArray());
+        try
+        {
+            var submitted = await rpcClient.SendTransactionAsync(signedTransaction);
+            if (!submitted.WasSuccessful || submitted.HttpStatusCode != HttpStatusCode.OK || submitted.Result != signature)
+                throw new InvalidOperationException("Solana submission did not acknowledge the signed transaction: " + submitted.RawRpcResponse);
+            // Bounded status reads only; never rebroadcast. A missing/pending status
+            // is not proof of failure or permission to replay on another provider.
+            for (var attempt = 0; attempt < 30; attempt++)
+            {
+                var statuses = await rpcClient.GetSignatureStatusesAsync(new List<string> { signature }, true);
+                if (!statuses.WasSuccessful || statuses.Result?.Value == null || statuses.Result.Value.Count != 1)
+                    throw new InvalidOperationException("Solana status response was unavailable or malformed.");
+                var status = statuses.Result.Value[0];
+                if (status?.Error != null) throw new InvalidOperationException("Solana transaction reports native execution error: " + status.Error);
+                if (status?.ConfirmationStatus == "finalized") return signature;
+                if (attempt < 29) await Task.Delay(500);
+            }
+            throw new TimeoutException("Solana transaction has not reached finalized status within the observation window.");
+        }
+        catch (Exception error) { throw new SolanaTransactionReconciliationException(signature, error); }
     }
 
     private string EncodeEntity<T>(T entity)
