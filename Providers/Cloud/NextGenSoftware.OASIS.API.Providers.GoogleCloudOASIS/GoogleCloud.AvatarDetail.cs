@@ -225,55 +225,25 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
+            var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (!_enableFirestore)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
-                    return result;
-                }
-
-                // Load all holons from Firestore
-                var query = _firestoreDb.Collection("holons");
-                var snapshot = await query.GetSnapshotAsync();
-                
-                if (snapshot.Count > 0)
-                {
-                    var holons = new List<IHolon>();
-                    
-                    // Convert ALL Firestore documents to OASIS Holons with FULL property mapping
-                    foreach (var doc in snapshot.Documents)
-                    {
-                        var holonData = doc.ConvertTo<Dictionary<string, object>>();
-                    var holon = DecodeHolon(holonData,doc.Id);
-                        
-                        holons.Add(holon);
-                    }
-                    
-                    result.Result = holons;
-                    result.IsError = false;
-                    result.Message = $"Holons loaded successfully from Google Cloud Firestore with full property mapping ({holons.Count} holons)";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "No holons found in Google Cloud Firestore");
-                }
+                if (maxChildDepth < 0 || curentChildDepth < 0)
+                    throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
+                var ready = await EnsureDetailStoreAsync(version);
+                if (ready.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, IEnumerable<IHolon>>(ready);
+                var snapshot = await _firestoreDb.Collection("holons").GetSnapshotAsync();
+                var records = snapshot.Documents.Select(doc => DecodeHolon(doc.ConvertTo<Dictionary<string, object>>(), doc.Id))
+                    .Where(row => row.IsActive).Cast<IHolon>().ToList();
+                var project = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphProjection.Create(
+                    records, loadChildren, recursive, maxChildDepth, curentChildDepth, loadChildrenFromProvider,
+                    source => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<Holon>(
+                        NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(source)));
+                result.Result = records.Where(row => type == HolonType.All || row.HolonType == type).Select(project).ToList();
+                result.IsLoaded = true;
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons from Google Cloud: {ex.Message}", ex);
-            }
+            catch (Exception cause) { OASISErrorHandling.HandleError(ref result, cause.Message, cause); }
             return result;
         }
 
