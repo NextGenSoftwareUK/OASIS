@@ -56,6 +56,18 @@ public class CosmosCurrentReadTests
         Assert.AreEqual(root.Id,search.Result.SearchResultHolons.Single().Id);Assert.AreEqual(0,search.Result.SearchResultAvatars.Count);
         Assert.AreEqual(child.Id,search.Result.SearchResultHolons.Single().Children.Single().Id);
         Assert.IsInstanceOfType(provider.Search(null!).Exception,typeof(ArgumentNullException));
+        var avatarId=Guid.NewGuid();root.CreatedByAvatarId=avatarId;
+        var avatars=new Mock<IAvatarRepository>();
+        var owner=new Avatar {Id=avatarId,IsActive=true,Username="export-owner",Email="owner@example.invalid"};
+        avatars.Setup(r=>r.GetList()).Returns(new List<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar> {owner});
+        typeof(AzureCosmosDBOASIS).GetField("avatarRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,avatars.Object);
+        var exported=await provider.ExportAllDataForAvatarByUsernameAsync("EXPORT-OWNER");
+        Assert.IsFalse(exported.IsError,exported.Message);Assert.IsTrue(exported.IsLoaded);
+        Assert.AreEqual(root.Id,exported.Result.Single().Id);Assert.AreEqual(child.Id,exported.Result.Single().Children.Single().Id);
+        Assert.AreEqual(root.Id,provider.ExportAllDataForAvatarByEmail("OWNER@EXAMPLE.INVALID").Result.Single().Id);
+        Assert.AreEqual(3,provider.ExportAll().Result.Count());
+        avatars.Setup(r=>r.GetList()).Returns(new List<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar> {owner,new Avatar {Id=Guid.NewGuid(),IsActive=true,Username=owner.Username}});
+        Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,(await provider.ExportAllDataForAvatarByUsernameAsync(owner.Username)).ErrorCode);
         Assert.IsInstanceOfType((await provider.LoadAllHolonsAsync(curentChildDepth:-1)).Exception,typeof(ArgumentOutOfRangeException));
     }
 

@@ -67,7 +67,7 @@ public class CosmosNativeStorageTests
             Assert.AreEqual(detail.Inventory[0].Id,detailRead.Result.Inventory.Single().Id);
             await VerifyV2RoutingAsync(provider,avatar,detail,holonId);
             var child=new Holon {Id=childId,IsActive=true,Name="owned child"};
-            var root=new Holon {Id=holonId,IsActive=true,Name="owned root",Children=new List<IHolon> {child},
+            var root=new Holon {Id=holonId,IsActive=true,Name="owned root",CreatedByAvatarId=avatarId,Children=new List<IHolon> {child},
                 MetaData=new Dictionary<string,object> {{"owned-field","owned-value"}}};
             Assert.IsTrue((await provider.DeActivateProviderAsync()).Result);
             var graph=await provider.SaveHolonAsync(root);Assert.IsFalse(graph.IsError,graph.Message);
@@ -95,6 +95,11 @@ public class CosmosNativeStorageTests
                 SearchGroups=new() {new Core.Objects.Search.SearchTextGroup {SearchQuery="owned root",SearchHolons=true}}});
             Assert.IsFalse(search.IsError,search.Message);Assert.AreEqual(1,search.Result.NumberOfResults);
             Assert.AreEqual(holonId,search.Result.SearchResultHolons.Single().Id);Assert.AreEqual(0,search.Result.SearchResultAvatars.Count);
+            var exported=await provider.ExportAllDataForAvatarByUsernameAsync(avatar.Username.ToUpperInvariant());
+            Assert.IsFalse(exported.IsError,exported.Message);Assert.IsTrue(exported.IsLoaded);
+            Assert.AreEqual(holonId,exported.Result.Single().Id);Assert.AreEqual(childId,exported.Result.Single().Children.Single().Id);
+            Assert.AreEqual(holonId,provider.ExportAllDataForAvatarByEmail(avatar.Email.ToUpperInvariant()).Result.Single().Id);
+            Assert.AreEqual(2,(await provider.ExportAllAsync()).Result.Count());
             var depthLimited=await provider.LoadAllHolonsAsync(maxChildDepth:1,curentChildDepth:1,loadChildrenFromProvider:true);
             Assert.IsFalse(depthLimited.IsError,depthLimited.Message);
             Assert.IsFalse(depthLimited.Result.Single(row=>row.Id==holonId).Children.Any());

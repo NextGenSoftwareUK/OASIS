@@ -186,136 +186,28 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Azure Cosmos DB provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Export all holons created by the avatar ID
-                var holons = holonRepository.GetList().Where(h => h.CreatedByAvatarId == avatarId);
-                result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Successfully exported {holons.Count()} holons for avatar {avatarId} from Azure Cosmos DB";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by ID from Azure Cosmos DB: {ex.Message}", ex);
-            }
-            return result;
-        }
+            => await ExportCurrentOwnedAsync(avatarId,version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0)
-        {
-            return ExportAllDataForAvatarByIdAsync(avatarId, version).Result;
-        }
+            => ExportCurrentOwnedAsync(avatarId,version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Azure Cosmos DB provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Export all holons created by the avatar username
-                var holons = holonRepository.GetList().Where(h => h.CreatedByAvatar.Username == avatarUsername);
-                result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Successfully exported {holons.Count()} holons for avatar {avatarUsername} from Azure Cosmos DB";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by username from Azure Cosmos DB: {ex.Message}", ex);
-            }
-            return result;
-        }
+            => await ExportCurrentSelectorAsync(avatarUsername,false,version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0)
-        {
-            return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
-        }
+            => ExportCurrentSelectorAsync(avatarUsername,false,version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Azure Cosmos DB provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Export all holons created by the avatar email
-                var holons = holonRepository.GetList().Where(h => h.CreatedByAvatar.Email == avatarEmailAddress);
-                result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Successfully exported {holons.Count()} holons for avatar {avatarEmailAddress} from Azure Cosmos DB";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by email from Azure Cosmos DB: {ex.Message}", ex);
-            }
-            return result;
-        }
+            => await ExportCurrentSelectorAsync(avatarEmailAddress,true,version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0)
-        {
-            return ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).Result;
-        }
+            => ExportCurrentSelectorAsync(avatarEmailAddress,true,version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Azure Cosmos DB provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Export all holons
-                var holons = holonRepository.GetList();
-                result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Successfully exported {holons.Count()} holons from Azure Cosmos DB";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting all data from Azure Cosmos DB: {ex.Message}", ex);
-            }
-            return result;
-        }
+            => await ReadCurrentHolonsAsync(HolonType.All,true,true,0,0,true,version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
-        {
-            return ExportAllAsync(version).Result;
-        }
+            => ReadCurrentHolonsAsync(HolonType.All,true,true,0,0,true,version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => await ReadCurrentMetadataAsync(metaKey==null ? null : new Dictionary<string,string> {{metaKey,metaValue}},MetaKeyValuePairMatchMode.All,type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
