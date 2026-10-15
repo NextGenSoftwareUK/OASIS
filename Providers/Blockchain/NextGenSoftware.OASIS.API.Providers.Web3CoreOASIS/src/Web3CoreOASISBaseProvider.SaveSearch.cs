@@ -95,7 +95,7 @@ public partial class Web3CoreOASISBaseProvider
             int avatarEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
             string avatarId = avatar.AvatarId.ToString();
 
-            await _web3CoreOASIS.CreateAvatarAsync(
+            await _web3CoreOASIS.UpsertAvatarAsync(
                 (uint)avatarEntityId, PrivateExternalId(avatar.Id), Encoding.UTF8.GetBytes(avatarInfo));
 
             result.Result = avatar;
@@ -158,7 +158,7 @@ public partial class Web3CoreOASISBaseProvider
             int avatarDetailEntityId = HashUtility.GetNumericHash(avatarDetail.Id.ToString());
             string avatarDetailId = avatarDetail.Id.ToString();
 
-            await _web3CoreOASIS.CreateAvatarDetailAsync(
+            await _web3CoreOASIS.UpsertAvatarDetailAsync(
                 (uint)avatarDetailEntityId, PrivateExternalId(avatarDetail.Id), Encoding.UTF8.GetBytes(avatarDetailInfo));
 
             result.Result = avatarDetail;
@@ -202,10 +202,7 @@ public partial class Web3CoreOASISBaseProvider
             int holonEntityId = HashUtility.GetNumericHash(holon.Id.ToString());
             byte[] holonId = PrivateExternalId(holon.Id);
 
-            if (holon.IsNewHolon)
-                await _web3CoreOASIS.CreateHolonAsync((uint)holonEntityId, holonId, Encoding.UTF8.GetBytes(holonInfo));
-            else if (!await _web3CoreOASIS.UpdateHolonAsync((uint)holonEntityId, Encoding.UTF8.GetBytes(holonInfo)))
-                throw new InvalidOperationException($"The EVM update transaction for holon '{holon.Id}' failed.");
+            await _web3CoreOASIS.UpsertHolonAsync((uint)holonEntityId, holonId, Encoding.UTF8.GetBytes(holonInfo));
 
             holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
             holon.ProviderUniqueStorageKey[ProviderType.Value] = holon.Id.ToString();
