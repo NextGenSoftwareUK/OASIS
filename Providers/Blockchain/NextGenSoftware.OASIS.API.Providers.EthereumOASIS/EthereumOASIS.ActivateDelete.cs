@@ -95,6 +95,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                         throw new InvalidOperationException($"No contract bytecode was found at configured address '{ContractAddress}'.");
 
                     _nextGenSoftwareOasisService = new NextGenSoftwareOASISService(Web3Client, ContractAddress);
+                    var owner = await _nextGenSoftwareOasisService.ContractHandler
+                        .QueryAsync<ContractDefinition.StorageOwnerFunction,string>(new ContractDefinition.StorageOwnerFunction())
+                        .WaitAsync(TimeSpan.FromSeconds(10));
+                    if (!string.Equals(owner,_oasisAccount.Address,StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException("Configured Ethereum signer does not own the storage contract.");
                 }
                 else
                     throw new InvalidOperationException("EthereumOASIS requires an RPC URI, private key, and positive chain ID.");
@@ -105,7 +110,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 Web3Client = null;
                 _nextGenSoftwareOasisService = null;
                 IsProviderActivated = false;
-                OASISErrorHandling.HandleError(ref result, $"Error occured in ActivateProviderAsync in EthereumOASIS Provider. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"Error occured in ActivateProviderAsync in EthereumOASIS Provider. Reason: {ex}", ex);
             }
 
             if (!result.IsError)

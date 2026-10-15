@@ -184,6 +184,25 @@ public class EthereumOASISIntegrationTests
     }
 
     [TestMethod]
+    public async Task ActivationRejectsSignerThatDoesNotOwnStorageWithoutSubmission()
+    {
+        var (owner,contract) = await CreateActivatedProviderAsync();
+        var unrelatedKey = Nethereum.Signer.EthECKey.GenerateKey().GetPrivateKey();
+        var unrelated = new Account(unrelatedKey,ChainId);
+        var reader = new Web3(Host);
+        var nonceBefore = await reader.Eth.Transactions.GetTransactionCount.SendRequestAsync(unrelated.Address);
+        var provider = new EthereumOASIS(Host,unrelatedKey,ChainId,contract);
+        var activation = await provider.ActivateProviderAsync();
+        Assert.IsTrue(activation.IsError);
+        Assert.IsFalse(provider.IsProviderActivated);
+        Assert.IsNotNull(activation.Exception);
+        StringAssert.Contains(activation.Message,"does not own the storage contract");
+        var nonceAfter = await reader.Eth.Transactions.GetTransactionCount.SendRequestAsync(unrelated.Address);
+        Assert.AreEqual(nonceBefore.Value,nonceAfter.Value);
+        await owner.DeActivateProviderAsync();
+    }
+
+    [TestMethod]
     public async Task StorageMutationsRejectAnUnrelatedNativeAccount()
     {
         var (provider,address) = await CreateActivatedProviderAsync();
