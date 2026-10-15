@@ -38,6 +38,77 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         storedAvatar.DeletedDate.Should().BeOnOrAfter(before).And.BeOnOrBefore(after);
         storedAvatar.Email.Should().Be(avatar.Email);
         storedDetail.XP.Should().Be(43); storedDetail.Karma.Should().Be(17);
+        NextGenSoftware.OASIS.API.Core.Helpers.AvatarTombstoneEvidence.TryGet(deleted,out var evidence).Should().BeTrue();
+        evidence.AvatarId.Should().Be(id); evidence.DeletedAtUtc.Should().Be(storedAvatar.DeletedDate);
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task CommittedTombstonePatchPreservesProfileAndUnrelatedDirtyState(bool synchronous)
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var id=Guid.NewGuid(); var unrelatedId=Guid.NewGuid();
+        foreach(var key in new[] {id,unrelatedId})
+        {
+            (await provider.SaveAvatarAsync(new Avatar {Id=key,Username=key.ToString(),Email="preserved@test.invalid",IsActive=true,
+                AvatarType=new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User)})).IsError.Should().BeFalse();
+            (await provider.SaveAvatarDetailAsync(new AvatarDetail {Id=key,XP=73,Karma=19,IsActive=true})).IsError.Should().BeFalse();
+        }
+        using var context=new DataContext(TestConnectionString);
+        var tracked=context.Avatars.Single(row=>row.Id==id.ToString());
+        var unrelated=context.Avatars.Single(row=>row.Id==unrelatedId.ToString()); unrelated.Email="uncommitted@test.invalid";
+        var repository=new AvatarRepository(context);
+        var tombstone=new AvatarTombstone(id,DateTime.UtcNow,Guid.NewGuid());
+        var applied=synchronous ? repository.ApplyAvatarTombstone(tombstone) : await repository.ApplyAvatarTombstoneAsync(tombstone);
+        applied.IsError.Should().BeFalse(applied.Message); applied.Result.Should().BeTrue(); applied.IsSaved.Should().BeTrue();
+        tracked.DeletedDate.Should().Be(tombstone.DeletedAtUtc); tracked.IsActive.Should().BeFalse();
+        using var control=new DataContext(TestConnectionString);
+        var avatar=control.Avatars.AsNoTracking().Single(row=>row.Id==id.ToString());
+        var detail=control.AvatarDetails.AsNoTracking().Single(row=>row.Id==id.ToString());
+        avatar.Email.Should().Be("preserved@test.invalid"); detail.XP.Should().Be(73); detail.Karma.Should().Be(19);
+        avatar.DeletedDate.Should().Be(tombstone.DeletedAtUtc); detail.DeletedDate.Should().Be(tombstone.DeletedAtUtc);
+        avatar.DeletedByAvatarId.Should().Be(tombstone.DeletedByAvatarId.ToString()); detail.DeletedByAvatarId.Should().Be(avatar.DeletedByAvatarId);
+        control.Avatars.AsNoTracking().Single(row=>row.Id==unrelatedId.ToString()).Email.Should().Be("preserved@test.invalid");
+        context.Entry(unrelated).State.Should().Be(EntityState.Modified);
+        control.Database.ExecuteSqlRaw("CREATE TRIGGER reject_tombstone_repeat BEFORE UPDATE ON AvatarDetail BEGIN SELECT RAISE(ABORT, 'owned duplicate patch write'); END;");
+        try
+        {
+            var repeated=synchronous ? repository.ApplyAvatarTombstone(tombstone) : await repository.ApplyAvatarTombstoneAsync(tombstone);
+            repeated.IsError.Should().BeFalse(repeated.Message); repeated.Result.Should().BeTrue(); repeated.IsSaved.Should().BeFalse();
+            var conflict=synchronous ? repository.ApplyAvatarTombstone(new AvatarTombstone(id,tombstone.DeletedAtUtc.AddTicks(1)))
+                : await repository.ApplyAvatarTombstoneAsync(new AvatarTombstone(id,tombstone.DeletedAtUtc.AddTicks(1)));
+            conflict.IsError.Should().BeTrue();
+        }
+        finally {control.Database.ExecuteSqlRaw("DROP TRIGGER reject_tombstone_repeat;");}
+        context.SaveChanges();
+        control.Avatars.AsNoTracking().Single(row=>row.Id==id.ToString()).DeletedDate.Should().Be(tombstone.DeletedAtUtc);
+        control.Avatars.AsNoTracking().Single(row=>row.Id==unrelatedId.ToString()).Email.Should().Be("uncommitted@test.invalid");
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public async Task TombstoneDetailFailureRollsBackTheAvatarPatch(bool synchronous)
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse(); var id=Guid.NewGuid();
+        (await provider.SaveAvatarAsync(new Avatar {Id=id,Username="rollback patch",IsActive=true,
+            AvatarType=new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User)})).IsError.Should().BeFalse();
+        (await provider.SaveAvatarDetailAsync(new AvatarDetail {Id=id,IsActive=true})).IsError.Should().BeFalse();
+        using var control=new DataContext(TestConnectionString);
+        control.Database.ExecuteSqlRaw("CREATE TRIGGER reject_tombstone_detail BEFORE UPDATE ON AvatarDetail BEGIN SELECT RAISE(ABORT, 'owned pair patch rejection'); END;");
+        try
+        {
+            var tombstone=new AvatarTombstone(id,DateTime.UtcNow);
+            var failed=synchronous ? provider.ApplyAvatarTombstone(tombstone) : await provider.ApplyAvatarTombstoneAsync(tombstone);
+            failed.IsError.Should().BeTrue(); failed.Result.Should().BeFalse(); failed.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+            NextGenSoftware.OASIS.API.Core.Helpers.AvatarTombstoneEvidence.TryGet(failed,out _).Should().BeFalse();
+            control.Avatars.AsNoTracking().Single(row=>row.Id==id.ToString()).DeletedDate.Should().Be(DateTime.MinValue);
+            control.AvatarDetails.AsNoTracking().Single(row=>row.Id==id.ToString()).DeletedDate.Should().Be(DateTime.MinValue);
+        }
+        finally {control.Database.ExecuteSqlRaw("DROP TRIGGER reject_tombstone_detail;");}
     }
 
     [Theory]

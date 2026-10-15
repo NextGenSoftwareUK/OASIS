@@ -15,6 +15,37 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests;
 public class AvatarTombstoneEvidenceTests
 {
     [DataTestMethod]
+    [DataRow("DeleteAvatar")]
+    [DataRow("DeleteAvatarByUsername")]
+    [DataRow("DeleteAvatarByEmail")]
+    [DataRow("DeleteAvatarByProviderKey")]
+    public async Task ExplicitSoftDeleteReplicationRequiresCommittedPrimaryEvidence(string operation)
+    {
+        var dna=new OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings()}};
+        var router=new OASISHyperDrive(new ProviderManager(null,dna));
+        var result=await router.ReplicateRequestAsync<bool>(new StorageOperationRequest {Operation=operation,SoftDelete=true,AvatarId=Guid.NewGuid()});
+        Assert.IsTrue(result.IsError);
+        Assert.AreEqual("HYPERDRIVE_TOMBSTONE_EVIDENCE_REQUIRED",result.ErrorCode);
+    }
+
+    [TestMethod]
+    public void ReplicationUsesCommittedStateAndNeverReplaysAnUnprovenSoftDelete()
+    {
+        var request=new StorageOperationRequest {Operation="DeleteAvatar",SoftDelete=true,AvatarId=Guid.NewGuid()};
+        var result=new OASISResult<bool> {Result=true};
+        var method=typeof(OASISHyperDrive).GetMethod("CommittedReplicationRequest",BindingFlags.Static|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(bool));
+        Assert.IsNull(method.Invoke(null,new object[] {request,result}));
+        var snapshot=new AvatarTombstone(request.AvatarId,DateTime.UtcNow,Guid.NewGuid());
+        AvatarTombstoneEvidence.Attach(result,snapshot);
+        var committed=(StorageOperationRequest)method.Invoke(null,new object[] {request,result})!;
+        Assert.AreEqual("ApplyAvatarTombstone",committed.Operation);
+        Assert.AreEqual(snapshot.AvatarId,committed.AvatarId);
+        Assert.AreSame(snapshot,committed.GetType().GetProperty("Tombstone")!.GetValue(committed));
+        request.SoftDelete=false;
+        Assert.AreSame(request,method.Invoke(null,new object[] {request,result}));
+    }
+
+    [DataTestMethod]
     [DataRow("empty-id")]
     [DataRow("local-time")]
     [DataRow("unspecified-time")]

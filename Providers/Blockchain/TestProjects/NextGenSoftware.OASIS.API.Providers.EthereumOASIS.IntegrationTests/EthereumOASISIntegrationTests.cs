@@ -991,7 +991,7 @@ public class EthereumOASISIntegrationTests
     [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]
-    public async Task V2SoftDeletePropagatesLogicalMarkersAndReportsStateComparison(bool synchronous)
+    public async Task V2SoftDeletePropagatesExactCommittedState(bool synchronous)
     {
         var (ethereum,_) = await CreateActivatedProviderAsync();
         var path=Path.Combine(Path.GetDirectoryName(Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_FIXTURE_JSON"))!,"v2-soft-delete.db");
@@ -1008,8 +1008,8 @@ public class EthereumOASISIntegrationTests
             var router=new OASISHyperDrive(manager);
             foreach(var primary in new[] {ProviderType.EthereumOASIS,ProviderType.SQLLiteDBOASIS})
             {
-                var id=Guid.NewGuid();
-                var avatar=new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=id,Username="v2 deletion fixture",Email="delete@example.invalid",IsActive=true,AvatarType=new EnumValue<AvatarType>(AvatarType.User)};
+                var id=Guid.NewGuid(); var actor=Guid.NewGuid();
+                var avatar=new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=id,Username="v2 deletion fixture",Email="delete@example.invalid",IsActive=true,DeletedByAvatarId=actor,AvatarType=new EnumValue<AvatarType>(AvatarType.User)};
                 var detail=new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail {Id=id,Username=avatar.Username,XP=57,Karma=29,IsActive=true};
                 foreach(var store in new IOASISStorageProvider[] {ethereum,sqlite})
                 {
@@ -1036,11 +1036,60 @@ public class EthereumOASISIntegrationTests
                 }
                 Assert.AreEqual(nativeAvatar.DeletedDate,nativeDetail.DeletedDate);
                 Assert.AreEqual(backupAvatar.DeletedDate,backupDetail.DeletedDate);
-                // Diagnostic evidence, NOT an assertion of identical replicated state.
+                Assert.AreEqual(nativeAvatar.DeletedDate,backupAvatar.DeletedDate);
+                Assert.AreEqual(actor,nativeAvatar.DeletedByAvatarId); Assert.AreEqual(actor,backupAvatar.DeletedByAvatarId);
+                Assert.AreEqual(actor,nativeDetail.DeletedByAvatarId); Assert.AreEqual(actor,backupDetail.DeletedByAvatarId);
+                Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.AvatarTombstoneEvidence.TryGet(deleted,out var evidence));
+                Assert.AreEqual(nativeAvatar.DeletedDate,evidence.DeletedAtUtc);
                 Console.WriteLine($"Soft-delete state comparison primary={primary}: Ethereum avatar={nativeAvatar.DeletedDate:O} active={nativeAvatar.IsActive}, detail={nativeDetail.DeletedDate:O} active={nativeDetail.IsActive}; SQLite avatar={backupAvatar.DeletedDate:O} active={backupAvatar.IsActive}, detail={backupDetail.DeletedDate:O} active={backupDetail.IsActive}");
             }
         }
         finally { sqlite.Dispose(); File.Delete(path); await ethereum.DeActivateProviderAsync(); }
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task V2TombstoneReplicaFailurePreservesPrimaryAndRollsBackReplicaPair(bool synchronous)
+    {
+        var (ethereum,_) = await CreateActivatedProviderAsync();
+        var path=Path.Combine(Path.GetDirectoryName(Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_FIXTURE_JSON"))!,"v2-tombstone-failure.db");
+        if(File.Exists(path)) throw new InvalidOperationException("Existing failure fixture requires inspection.");
+        using var sqlite=new SQLiteProvider($"Data Source={path};Pooling=False");
+        try
+        {
+            Assert.IsFalse((await sqlite.ActivateProviderAsync()).IsError);
+            var id=Guid.NewGuid();
+            foreach(var store in new IOASISStorageProvider[] {ethereum,sqlite})
+            {
+                Assert.IsFalse((await store.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=id,Username="replica failure",IsActive=true,AvatarType=new EnumValue<AvatarType>(AvatarType.User)})).IsError);
+                Assert.IsFalse((await store.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail {Id=id,Username="replica failure",IsActive=true,XP=57})).IsError);
+            }
+            using var control=new Microsoft.Data.Sqlite.SqliteConnection($"Data Source={path};Pooling=False");
+            await control.OpenAsync();
+            using(var command=control.CreateCommand())
+            {
+                command.CommandText="CREATE TRIGGER reject_tombstone BEFORE UPDATE ON AvatarDetail BEGIN SELECT RAISE(ABORT, 'owned tombstone failure'); END;";
+                await command.ExecuteNonQueryAsync();
+            }
+            var dna=new OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings()}};
+            dna.OASIS.SubscriptionConfig.PlanType="Gold";
+            var manager=new ProviderManager(null,dna) {IsAutoReplicationEnabled=true};
+            manager.RegisterProvider(ethereum); manager.RegisterProvider(sqlite);
+            Assert.IsFalse(manager.SetAndReplaceAutoReplicationListForProviders(new[] {new EnumValue<ProviderType>(ProviderType.EthereumOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)}).IsError);
+            var router=new OASISHyperDrive(manager);
+            var request=new StorageOperationRequest {Operation="DeleteAvatar",AvatarId=id,SoftDelete=true,PreferredProvider=ProviderType.EthereumOASIS};
+            var result=synchronous ? router.RouteRequest<bool>(request) : await router.RouteRequestAsync<bool>(request);
+            Assert.IsFalse(result.IsError,result.Message); Assert.IsTrue(result.Result); Assert.IsTrue(result.IsWarning,result.Message);
+            Assert.IsFalse((await ethereum.LoadAvatarAsync(id)).Result.IsActive);
+            Assert.IsFalse((await ethereum.LoadAvatarDetailAsync(id)).Result.IsActive);
+            var backup=(await sqlite.LoadAvatarAsync(id)).Result;
+            var detail=(await sqlite.LoadAvatarDetailAsync(id)).Result;
+            Assert.AreEqual(DateTime.MinValue,backup.DeletedDate); Assert.IsTrue(backup.IsActive);
+            Assert.AreEqual(DateTime.MinValue,detail.DeletedDate); Assert.IsTrue(detail.IsActive);
+            Assert.AreEqual(57L,Convert.ToInt64(detail.XP));
+        }
+        finally {sqlite.Dispose(); File.Delete(path); await ethereum.DeActivateProviderAsync();}
     }
 
     [DataTestMethod]
