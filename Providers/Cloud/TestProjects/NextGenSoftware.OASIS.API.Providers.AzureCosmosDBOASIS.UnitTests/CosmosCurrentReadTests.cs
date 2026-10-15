@@ -10,6 +10,23 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
 public class CosmosCurrentReadTests
 {
     [TestMethod]
+    public async Task DeleteRetainsUncertainOutcomeAndReturnsOnlyAcknowledgedRecord()
+    {
+        var provider=new Provider(false);var repository=new Mock<IHolonRepository>();
+        var id=Guid.NewGuid();var record=new Holon {Id=id,IsActive=true};
+        repository.Setup(r=>r.GetByIdAsync(id.ToString())).ReturnsAsync(record);
+        var cause=new CosmosMutationReconciliationException(id.ToString(),new IOException("owned lost delete reply"));
+        repository.Setup(r=>r.DeleteAsync(id.ToString())).ThrowsAsync(cause);
+        typeof(AzureCosmosDBOASIS).GetField("holonRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,repository.Object);
+        var failed=provider.DeleteHolon(id);
+        Assert.AreSame(cause,failed.Exception);Assert.IsTrue(failed.IsError);Assert.IsFalse(failed.IsSaved);Assert.IsNull(failed.Result);
+        Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(failed.Exception));
+        repository.Setup(r=>r.DeleteAsync(id.ToString())).Returns(Task.CompletedTask);
+        var saved=await provider.DeleteHolonAsync(id.ToString());Assert.IsFalse(saved.IsError,saved.Message);Assert.IsTrue(saved.IsSaved);Assert.AreSame(record,saved.Result);
+        Assert.IsInstanceOfType((await provider.DeleteHolonAsync("invalid")).Exception,typeof(ArgumentException));
+    }
+
+    [TestMethod]
     public async Task HolonGraphReadsRespectChildrenAndProviderSource()
     {
         var root=new Holon {Id=Guid.NewGuid(),IsActive=true,HolonType=NextGenSoftware.OASIS.API.Core.Enums.HolonType.Park};
