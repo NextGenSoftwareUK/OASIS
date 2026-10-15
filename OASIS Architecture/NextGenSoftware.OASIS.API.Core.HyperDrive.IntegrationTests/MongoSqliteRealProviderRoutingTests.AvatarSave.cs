@@ -20,6 +20,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
     private static async Task VerifyMongoAvatarSaveWriteConcernAsync(MongoDBOASIS fault,MongoDBOASIS healthy,SQLLiteDBOASIS sqlite,
         OASISDNA dna,IMongoDatabase admin,string app,bool synchronous,IMongoDatabase database)
     {
+        await VerifyMongoAvatarDeletionPreflightAsync(healthy,sqlite,dna,synchronous,database);
         var manager=new ProviderManager(null,dna){IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=true};
         manager.RegisterProvider(fault);manager.RegisterProvider(sqlite);
         var providers=new[] {new EnumValue<ProviderType>(ProviderType.MongoDBOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)};
