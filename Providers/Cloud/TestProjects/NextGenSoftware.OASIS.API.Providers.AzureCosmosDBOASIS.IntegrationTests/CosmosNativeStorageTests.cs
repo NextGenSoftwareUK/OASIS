@@ -47,7 +47,9 @@ public class CosmosNativeStorageTests
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,provider.LoadHolon(missingId,loadChildren:false).ErrorCode);
             var avatar=new Avatar {Id=avatarId,IsActive=true,Username="owned-cosmos",Email="owned-cosmos@example.invalid",FirstName="Owned",
                 MetaData=new Dictionary<string,object> {{"owned-field","owned-value"}}};
+            Assert.IsTrue((await provider.DeActivateProviderAsync()).Result);
             var saved=await provider.SaveAvatarAsync(avatar);Assert.IsFalse(saved.IsError,saved.Message);
+            Assert.IsTrue(saved.IsSaved);Assert.IsTrue(provider.IsProviderActivated);
             var read=await provider.LoadAvatarAsync(avatarId);Assert.IsFalse(read.IsError,read.Message);
             Assert.AreEqual("Owned",read.Result.FirstName);Assert.AreEqual("owned-value",read.Result.MetaData["owned-field"].ToString());
             Assert.IsTrue((await provider.DeActivateProviderAsync()).Result);Assert.IsFalse(provider.IsProviderActivated);
@@ -56,14 +58,18 @@ public class CosmosNativeStorageTests
             Assert.AreEqual(avatarId,(await provider.LoadAvatarByEmailAsync(avatar.Email)).Result.Id);
             var detail=new AvatarDetail {Id=avatarId,IsActive=true,Username=avatar.Username,Email=avatar.Email,XP=321,Karma=29};
             detail.Inventory.Add(new InventoryItem {Id=Guid.NewGuid(),Name="owned native seed"});
+            Assert.IsTrue((await provider.DeActivateProviderAsync()).Result);
             var detailSaved=await provider.SaveAvatarDetailAsync(detail);Assert.IsFalse(detailSaved.IsError,detailSaved.Message);
+            Assert.IsTrue(detailSaved.IsSaved);Assert.IsTrue(provider.IsProviderActivated);
             var detailRead=await provider.LoadAvatarDetailAsync(avatarId);Assert.IsFalse(detailRead.IsError,detailRead.Message);
             Assert.AreEqual(321,detailRead.Result.XP);Assert.AreEqual(29L,detailRead.Result.Karma);
             Assert.AreEqual(detail.Inventory[0].Id,detailRead.Result.Inventory.Single().Id);
             var child=new Holon {Id=childId,IsActive=true,Name="owned child"};
             var root=new Holon {Id=holonId,IsActive=true,Name="owned root",Children=new List<IHolon> {child},
                 MetaData=new Dictionary<string,object> {{"owned-field","owned-value"}}};
+            Assert.IsTrue((await provider.DeActivateProviderAsync()).Result);
             var graph=await provider.SaveHolonAsync(root);Assert.IsFalse(graph.IsError,graph.Message);
+            Assert.IsTrue(graph.IsSaved);Assert.IsTrue(provider.IsProviderActivated);
             var childRead=await provider.LoadHolonAsync(childId,loadChildren:false);Assert.IsFalse(childRead.IsError,childRead.Message);
             Assert.AreEqual(holonId,childRead.Result.ParentHolonId);
         }
