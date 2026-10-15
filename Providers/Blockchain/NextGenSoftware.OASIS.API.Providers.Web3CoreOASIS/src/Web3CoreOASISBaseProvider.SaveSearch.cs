@@ -54,128 +54,48 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 public partial class Web3CoreOASISBaseProvider
 {
     public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
-    {
-        ArgumentNullException.ThrowIfNull(avatar);
+        => SaveAvatarAsync(avatar).GetAwaiter().GetResult();
 
-        OASISResult<IAvatar> result = new();
-
-        try
-        {
-            Task<OASISResult<IAvatar>> saveAvatarTask = SaveAvatarAsync(avatar);
-            saveAvatarTask.Wait();
-
-            if (saveAvatarTask.IsCompletedSuccessfully)
-                result = saveAvatarTask.Result;
-            else
-                OASISErrorHandling.HandleError(ref result, saveAvatarTask.Exception?.Message ?? string.Empty, saveAvatarTask.Exception ?? new());
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, ex.Message, ex);
-        }
-
-        return result;
-    }
-
-    public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
-    {
-        ArgumentNullException.ThrowIfNull(avatar);
-
-        OASISResult<IAvatar> result = new();
-        string errorMessage = "Error in SaveAvatarAsync method in Web3CoreOASIS while saving avatar. Reason: ";
-
-        if (_web3CoreOASIS is null)
-        {
-            OASISErrorHandling.HandleError(
-                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            return result;
-        }
-
-        try
-        {
-            string avatarInfo = EncodePrivateRecord("avatar",avatar);
-            int avatarEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
-            string avatarId = avatar.AvatarId.ToString();
-
-            await _web3CoreOASIS.UpsertAvatarAsync(
-                (uint)avatarEntityId, PrivateExternalId(avatar.Id), Encoding.UTF8.GetBytes(avatarInfo));
-
-            result.Result = avatar;
-            result.IsError = false;
-            result.IsSaved = true;
-        }
-        catch (RpcResponseException ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-
-        return result;
-    }
+    public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
+        => SavePrivateProfileAsync<IAvatar>(avatar,"avatar",row=>OasisJson.Deserialize<Avatar>(OasisJson.Serialize(row)),
+            (id,key,payload)=>_web3CoreOASIS.UpsertAvatarAsync(id,key,payload));
 
     public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
+        => SaveAvatarDetailAsync(avatarDetail).GetAwaiter().GetResult();
+
+    public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
+        => SavePrivateProfileAsync<IAvatarDetail>(avatarDetail,"detail",row=>OasisJson.Deserialize<AvatarDetail>(OasisJson.Serialize(row)),
+            (id,key,payload)=>_web3CoreOASIS.UpsertAvatarDetailAsync(id,key,payload));
+
+    private async Task<OASISResult<T>> SavePrivateProfileAsync<T>(T source,string kind,Func<T,T> clone,
+        Func<uint,byte[],byte[],Task<TransactionReceipt>> submit) where T:class,IHolonBase
     {
-        ArgumentNullException.ThrowIfNull(avatarDetail);
-
-        OASISResult<IAvatarDetail> result = new();
-
+        var result=new OASISResult<T>();
+        Guid acknowledged=Guid.Empty;string transaction=null;
         try
         {
-            Task<OASISResult<IAvatarDetail>> saveAvatarDetailTask = SaveAvatarDetailAsync(avatarDetail);
-            saveAvatarDetailTask.Wait();
-
-            if (saveAvatarDetailTask.IsCompletedSuccessfully)
-                result = saveAvatarDetailTask.Result;
-            else
-                OASISErrorHandling.HandleError(ref result, saveAvatarDetailTask.Exception?.Message ?? string.Empty, saveAvatarDetailTask.Exception ?? new());
+            ArgumentNullException.ThrowIfNull(source);
+            var originalId=source.Id;
+            var snapshot=clone(source);
+            snapshot.Id=originalId==Guid.Empty ? Guid.NewGuid():originalId;
+            snapshot.IsNewHolon=false;
+            snapshot.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
+            snapshot.ProviderUniqueStorageKey[ProviderType.Value]=snapshot.Id.ToString();
+            var payload=Encoding.UTF8.GetBytes(EncodePrivateRecord(kind,snapshot));
+            if(_web3CoreOASIS==null) throw new InvalidOperationException(Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
+            var receipt=await submit((uint)HashUtility.GetNumericHash(snapshot.Id.ToString()),PrivateExternalId(snapshot.Id),payload);
+            acknowledged=snapshot.Id;transaction=receipt.TransactionHash;
+            if(source.Id!=originalId) throw new InvalidOperationException("Caller profile identity changed during acknowledged Web3Core write.");
+            source.Id=snapshot.Id;
+            source.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
+            source.ProviderUniqueStorageKey[ProviderType.Value]=snapshot.Id.ToString();source.IsNewHolon=false;
+            result.Result=source;result.IsSaved=true;
         }
-        catch (Exception ex)
+        catch(Exception cause)
         {
-            OASISErrorHandling.HandleError(ref result, ex.Message, ex);
+            var error=acknowledged==Guid.Empty ? cause:new Web3PartialMutationException(new[] {acknowledged},new[] {transaction},cause);
+            OASISErrorHandling.HandleError(ref result,error.Message,error);
         }
-
-        return result;
-    }
-
-    public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
-    {
-        ArgumentNullException.ThrowIfNull(avatarDetail);
-
-        OASISResult<IAvatarDetail> result = new();
-        string errorMessage = "Error in SaveAvatarDetailAsync method in Web3CoreOASIS while saving and avatar detail. Reason: ";
-
-        if (_web3CoreOASIS is null)
-        {
-            OASISErrorHandling.HandleError(
-                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            return result;
-        }
-
-        try
-        {
-            string avatarDetailInfo = EncodePrivateRecord("detail",avatarDetail);
-            int avatarDetailEntityId = HashUtility.GetNumericHash(avatarDetail.Id.ToString());
-            string avatarDetailId = avatarDetail.Id.ToString();
-
-            await _web3CoreOASIS.UpsertAvatarDetailAsync(
-                (uint)avatarDetailEntityId, PrivateExternalId(avatarDetail.Id), Encoding.UTF8.GetBytes(avatarDetailInfo));
-
-            result.Result = avatarDetail;
-            result.IsError = false;
-            result.IsSaved = true;
-        }
-        catch (RpcResponseException ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-
         return result;
     }
 
