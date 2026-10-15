@@ -10,6 +10,33 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
 public class CosmosCurrentReadTests
 {
     [TestMethod]
+    public async Task HolonGraphReadsRespectChildrenAndProviderSource()
+    {
+        var root=new Holon {Id=Guid.NewGuid(),IsActive=true,HolonType=NextGenSoftware.OASIS.API.Core.Enums.HolonType.Park};
+        var child=new Holon {Id=Guid.NewGuid(),IsActive=true,ParentHolonId=root.Id,HolonType=NextGenSoftware.OASIS.API.Core.Enums.HolonType.InventoryItem};
+        var grandchild=new Holon {Id=Guid.NewGuid(),IsActive=true,ParentHolonId=child.Id};
+        var repository=new Mock<IHolonRepository>();
+        repository.Setup(r=>r.GetList()).Returns(new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> {root,child,grandchild});
+        repository.Setup(r=>r.GetByIdAsync(root.Id.ToString())).ReturnsAsync(root);
+        var provider=new Provider(false);
+        typeof(AzureCosmosDBOASIS).GetField("holonRepository",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.SetValue(provider,repository.Object);
+        var all=await provider.LoadAllHolonsAsync(loadChildrenFromProvider:true);
+        Assert.IsFalse(all.IsError,all.Message);Assert.AreEqual(3,all.Result.Count());
+        var projected=all.Result.Single(r=>r.Id==root.Id);
+        Assert.AreEqual(child.Id,projected.Children.Single().Id);Assert.AreEqual(grandchild.Id,projected.Children.Single().Children.Single().Id);
+        var shallow=provider.LoadHolon(root.Id.ToString(),recursive:false,loadChildrenFromProvider:true);
+        Assert.IsFalse(shallow.IsError,shallow.Message);Assert.AreEqual(1,shallow.Result.Children.Count());
+        Assert.IsTrue(shallow.Result.Children.Single().Children==null || !shallow.Result.Children.Single().Children.Any());
+        var flat=await provider.LoadHolonAsync(root.Id,loadChildren:false);
+        Assert.IsFalse(flat.IsError,flat.Message);Assert.IsTrue(flat.Result.Children==null || !flat.Result.Children.Any());
+        Assert.IsTrue(root.Children==null || !root.Children.Any());
+        var typed=await provider.LoadAllHolonsAsync(type:NextGenSoftware.OASIS.API.Core.Enums.HolonType.Park,loadChildrenFromProvider:true);
+        Assert.IsFalse(typed.IsError,typed.Message);Assert.AreEqual(1,typed.Result.Count());
+        Assert.AreEqual(child.Id,typed.Result.Single().Children.Single().Id);
+        Assert.IsInstanceOfType((await provider.LoadAllHolonsAsync(curentChildDepth:-1)).Exception,typeof(ArgumentOutOfRangeException));
+    }
+
+    [TestMethod]
     public async Task CollectionsValidateVersionAndPreserveActivationFailure()
     {
         var provider=new Provider(true);
