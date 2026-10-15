@@ -34,10 +34,13 @@ public partial class Web3NativeStorageTests
     {
         public CommitFaultContext Context {get;}
         private readonly DetailRepository repository;
+        private readonly SQLLiteDBOASIS.Persistence.Repositories.AvatarRepository avatars;
         public DeleteCommitFaultSqlite(string connection,IOException cause) : base(connection)
-        {Context=new(connection,new AfterTransactionCommitFault(cause));repository=new(Context);}
+        {Context=new(connection,new AfterTransactionCommitFault(cause));repository=new(Context);avatars=new(Context);}
         public new OASISResult<bool> DeleteAvatarDetail(Guid id,bool softDelete=true)=>repository.DeleteAvatarDetail(id,softDelete);
         public new Task<OASISResult<bool>> DeleteAvatarDetailAsync(Guid id,bool softDelete=true)=>repository.DeleteAvatarDetailAsync(id,softDelete);
+        public override OASISResult<bool> DeleteAvatar(Guid id,bool softDelete=true)=>avatars.DeleteAvatar(id,softDelete);
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id,bool softDelete=true)=>avatars.DeleteAvatarAsync(id,softDelete);
     }
     private sealed class CommitFaultSqlite : SQLLiteDBOASIS.SQLLiteDBOASIS
     {
@@ -183,15 +186,22 @@ public partial class Web3NativeStorageTests
             var sdk=(Web3CoreOASIS)typeof(Web3CoreOASISBaseProvider).GetField("_web3CoreOASIS",flags)!.GetValue(polygon)!;
             foreach(var asynchronous in new[] {false,true})
             foreach(var soft in new[] {false,true})
+            foreach(var pair in new[] {false,true})
             {
                 var detail=new AvatarDetail {Id=Guid.NewGuid(),IsActive=true,XP=81};
                 detail.Inventory.Add(new Core.Objects.InventoryItem {Id=Guid.NewGuid(),Name="detail deletion dependent"});
                 Assert.IsFalse((await healthySqlite.SaveAvatarDetailAsync(detail)).IsError);
                 Assert.IsFalse((await polygon.SaveAvatarDetailAsync(detail)).IsError);
-                var handle=await executor.BeginAsync("local-fixture-bearer",user,$"sqlite-detail-delete-commit-{asynchronous}-{soft}",new string('a',64),"local post-commit deletion fixture",policy);
+                if(pair)
+                {
+                    var avatar=new Avatar {Id=detail.Id,IsActive=true,Username="delete-pair-"+detail.Id.ToString("N"),AvatarType=new EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User)};
+                    Assert.IsFalse((await healthySqlite.SaveAvatarAsync(avatar)).IsError);
+                    Assert.IsFalse((await polygon.SaveAvatarAsync(avatar)).IsError);
+                }
+                var handle=await executor.BeginAsync("local-fixture-bearer",user,$"sqlite-detail-delete-commit-{asynchronous}-{soft}-{pair}",new string('a',64),"local post-commit deletion fixture",policy);
                 var context=new PreparedStorageExecution(handle,"sqlite-detail-delete-commit",new Dictionary<Core.Enums.ProviderType,string> {{Core.Enums.ProviderType.PolygonOASIS,sdk.SigningAddress}},new[] {Core.Enums.ProviderType.SQLLiteDBOASIS});
                 var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.PolygonOASIS)?.TotalRequests ?? 0;
-                var request=new Core.StorageOperationRequest {Operation="DeleteAvatarDetail",AvatarId=detail.Id,SoftDelete=soft,PreferredProvider=Core.Enums.ProviderType.SQLLiteDBOASIS,PreparedExecution=context};
+                var request=new Core.StorageOperationRequest {Operation=pair ? "DeleteAvatar":"DeleteAvatarDetail",AvatarId=detail.Id,SoftDelete=soft,PreferredProvider=Core.Enums.ProviderType.SQLLiteDBOASIS,PreparedExecution=context};
                 var result=asynchronous ? await router.RouteRequestAsync<bool>(request):router.RouteRequest<bool>(request);
                 Assert.IsTrue(result.IsError);Assert.IsFalse(result.Result);Assert.IsFalse(result.IsDeleted);
                 var failure=result.Exception as SQLLiteDBOASIS.SqliteMutationReconciliationException;Assert.IsNotNull(failure);
@@ -202,6 +212,14 @@ public partial class Web3NativeStorageTests
                 var stored=await control.AvatarDetails.AsNoTracking().SingleOrDefaultAsync(row=>row.Id==detail.Id.ToString());
                 if(soft) {Assert.IsNotNull(stored);Assert.IsFalse(stored.IsActive);Assert.AreNotEqual(DateTime.MinValue,stored.DeletedDate);}
                 else Assert.IsNull(stored);
+                if(pair)
+                {
+                    var storedAvatar=await control.Avatars.AsNoTracking().SingleOrDefaultAsync(row=>row.Id==detail.Id.ToString());
+                    if(soft) {Assert.IsNotNull(storedAvatar);Assert.IsFalse(storedAvatar.IsActive);Assert.AreEqual(stored!.DeletedDate,storedAvatar.DeletedDate);}
+                    else Assert.IsNull(storedAvatar);
+                    var nativeAvatar=await polygon.LoadAvatarAsync(detail.Id);Assert.IsFalse(nativeAvatar.IsError,nativeAvatar.Message);
+                    Assert.IsTrue(nativeAvatar.Result.IsActive);
+                }
                 var untouched=await polygon.LoadAvatarDetailAsync(detail.Id);Assert.IsFalse(untouched.IsError,untouched.Message);
                 Assert.IsTrue(untouched.Result.IsActive);Assert.AreEqual(81L,untouched.Result.XP);
                 var attempt=(await store.GetAsync(handle.OperationId,default)).ProviderAttempts.Single();
