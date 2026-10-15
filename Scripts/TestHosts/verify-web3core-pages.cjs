@@ -4,7 +4,7 @@ const assert=require('assert/strict');
 const root=path.resolve(__dirname,'../..');
 const {ethers}=require(path.join(root,'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/node_modules/ethers'));
 async function main(){
-  const provider=new ethers.JsonRpcProvider('http://127.0.0.1:18545');
+  const provider=new ethers.JsonRpcProvider('http://127.0.0.1:18545',undefined,{cacheTimeout:-1,pollingInterval:100});
   assert.equal((await provider.getNetwork()).chainId,31337n,'Refusing non-fixture chain');
   const fixture=JSON.parse(fs.readFileSync(path.join(root,'TestResults/Web3CoreCurrent/web3-storage.json'),'utf8'));
   const signer=await provider.getSigner(0);
