@@ -2,6 +2,10 @@
 
 Status: in progress. Exact-state replication remains a release gate. No dev merge or hosted rollout is authorized by the tests below.
 
+Replica-failure follow-up: real sync/async V2 trigger-injection cases pass; primary Ethereum success is preserved, SQLite pair rolls back completely and a replication warning is surfaced. Native suite now **91/91, zero skips,29s**. Unsupported capability dispatch coverage and broader recovery/policy gates remain outstanding.
+
+Latest local update (supersedes historical pending statements below): SQLite capability and V2 automatic committed-state dispatch are implemented in the working tree. SQLite passed 278/278 tests; real Ethereum/SQLite native tests passed 89/89 with exact timestamp/actor/inactive-state assertions in both primary directions and sync/async paths. Explicit soft-delete command replication is now rejected before quota/provider I/O because it lacks primary commit evidence; focused evidence tests passed 13/13 and both Core framework builds passed. No silent command replay is used for missing evidence or unsupported capabilities. Replica-failure and unsupported-capability dispatch tests, durable recovery and remaining policies are still required. These latest changes are uncommitted and not deployed.
+
 ## Observed defect
 
 V2 replays `DeleteAvatar` on each replica. Each provider independently chooses its deletion timestamp. Ethereum and SQLite now both deactivate the pair with one local UTC timestamp, but replicas still disagree on that timestamp. Passing logical deletion tests does not prove identical committed state.
