@@ -157,6 +157,22 @@ public class EthereumOASISIntegrationTests
     }
 
     [TestMethod]
+    public async Task NativeHolonUpdateDoesNotDependOnAvatarDetailsCount()
+    {
+        var (provider,contract) = await CreateActivatedProviderAsync();
+        var web3 = new Web3(new Account(PrivateKey,ChainId),Host);
+        var service = new NextGenSoftwareOASISService(web3,contract);
+        Assert.AreEqual(BigInteger.Zero,await service.GetAvatarDetailsCountQueryAsync());
+        var identity = new BigInteger(101);
+        var created = await service.CreateHolonRequestAndWaitForReceiptAsync(identity,Guid.NewGuid().ToString(),"before");
+        Assert.AreEqual(BigInteger.One,created.Status.Value);
+        var updated = await service.UpdateHolonRequestAndWaitForReceiptAsync(identity,"after");
+        Assert.AreEqual(BigInteger.One,updated.Status.Value);
+        Assert.AreEqual("after",(await service.GetHolonByIdQueryAsync(identity)).ReturnValue1.Info);
+        await provider.DeActivateProviderAsync();
+    }
+
+    [TestMethod]
     public async Task Activation_RejectsWrongChainId()
     {
         var provider = new EthereumOASIS(Host, PrivateKey, ChainId + 1, "0x0000000000000000000000000000000000000001");
