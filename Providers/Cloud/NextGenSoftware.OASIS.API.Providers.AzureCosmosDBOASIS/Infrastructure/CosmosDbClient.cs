@@ -24,7 +24,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         public async Task<string> ReadDocumentAsync(string documentId, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
         {
             var pk = partitionKey ?? PartitionKey.None;
-            var response = await _container.ReadItemStreamAsync(documentId, pk, null, cancellationToken);
+            using var response = await _container.ReadItemStreamAsync(documentId, pk, null, cancellationToken);
             if (!response.IsSuccessStatusCode)
                 throw new CosmosException(response.ErrorMessage ?? "Read failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
             using var reader = new StreamReader(response.Content);
@@ -43,7 +43,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             using var iterator = _container.GetItemQueryStreamIterator(query);
             if (!iterator.HasMoreResults)
                 return null;
-            var response = iterator.ReadNextAsync().GetAwaiter().GetResult();
+            using var response = iterator.ReadNextAsync().GetAwaiter().GetResult();
             if (!response.IsSuccessStatusCode)
                 throw new CosmosException(response.ErrorMessage ?? "Query failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
             using var reader = new StreamReader(response.Content);
@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             using var iterator = _container.GetItemQueryStreamIterator(query);
             while (iterator.HasMoreResults)
             {
-                var response = iterator.ReadNextAsync().GetAwaiter().GetResult();
+                using var response = iterator.ReadNextAsync().GetAwaiter().GetResult();
                 if (!response.IsSuccessStatusCode)
                     throw new CosmosException(response.ErrorMessage ?? "Query failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
                 using var reader = new StreamReader(response.Content);
@@ -82,9 +82,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
         {
             var jsonDocument = JObject.Parse(OasisJson.Serialize(document));
             jsonDocument["id"] = jsonDocument["Id"]?.ToString();
-            var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonDocument.ToString(Formatting.None)));
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonDocument.ToString(Formatting.None)));
             var pk = partitionKey ?? PartitionKey.None;
-            var response = await _container.CreateItemStreamAsync(stream, pk, null, cancellationToken);
+            using var response = await _container.CreateItemStreamAsync(stream, pk, null, cancellationToken);
             if (!response.IsSuccessStatusCode)
                 throw new CosmosException(response.ErrorMessage ?? "Create failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
             using var reader = new StreamReader(response.Content);
@@ -96,7 +96,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             var jsonDocument = JObject.Parse(OasisJson.Serialize(document));
             jsonDocument["id"] = jsonDocument["Id"]?.ToString();
             using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonDocument.ToString(Formatting.None)));
-            var response = await _container.UpsertItemStreamAsync(stream, partitionKey ?? PartitionKey.None, null, cancellationToken);
+            using var response = await _container.UpsertItemStreamAsync(stream, partitionKey ?? PartitionKey.None, null, cancellationToken);
             if (!response.IsSuccessStatusCode)
                 throw new CosmosException(response.ErrorMessage ?? "Upsert failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
             using var reader = new StreamReader(response.Content);
@@ -108,8 +108,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             var pk = partitionKey ?? PartitionKey.None;
             var jsonDocument = JObject.Parse(OasisJson.Serialize(document));
             jsonDocument["id"] = documentId;
-            var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonDocument.ToString(Formatting.None)));
-            var response = await _container.ReplaceItemStreamAsync(stream, documentId, pk, null, cancellationToken);
+            using var stream = new MemoryStream(Encoding.UTF8.GetBytes(jsonDocument.ToString(Formatting.None)));
+            using var response = await _container.ReplaceItemStreamAsync(stream, documentId, pk, null, cancellationToken);
             if (!response.IsSuccessStatusCode)
                 throw new CosmosException(response.ErrorMessage ?? "Replace failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
         }
