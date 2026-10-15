@@ -40,6 +40,22 @@ public class AWSOASISIntegrationTests
                 counts[read.Result.Name]=counts.GetValueOrDefault(read.Result.Name)+1;
             }
             Assert.AreEqual(3,counts["native-aws"]); Assert.AreEqual(3,counts["native-local"]);
+            foreach(var strategy in Enum.GetValues<Core.Enums.LoadBalancingStrategy>())
+            foreach(var asynchronous in new[] {false,true}) {
+                var awsBefore=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.AWSOASIS).TotalRequests;
+                var localBefore=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests;
+                var request=new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {Operation="LoadHolon",HolonId=id};
+                var read=asynchronous ? await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request,strategy)
+                    :router.RouteRequest<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>(request,strategy);
+                Assert.IsFalse(read.IsError,read.Message);
+                var decision=manager.LastProviderSelectionDiagnostic;
+                Assert.AreEqual(strategy,decision.RequestedStrategy);Assert.AreEqual(2,decision.Candidates.Count);
+                Assert.IsTrue(decision.SelectedProvider==Core.Enums.ProviderType.AWSOASIS || decision.SelectedProvider==Core.Enums.ProviderType.LocalFileOASIS);
+                var choseAws=decision.SelectedProvider==Core.Enums.ProviderType.AWSOASIS;
+                Assert.AreEqual(choseAws ? "native-aws":"native-local",read.Result.Name);
+                Assert.AreEqual(awsBefore+(choseAws ? 1:0),manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.AWSOASIS).TotalRequests);
+                Assert.AreEqual(localBefore+(choseAws ? 0:1),manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
+            }
             manager.IsAutoLoadBalanceEnabled=false; manager.IsAutoReplicationEnabled=true;
             Assert.IsFalse(manager.SetAndReplaceAutoReplicationListForProviders(providers).IsError);
             foreach(var primary in providers)
