@@ -79,6 +79,23 @@ try {
     Remove-Item -LiteralPath $download, $checksumFile -Force
     }
 
+    # Rebuild producers before the test consumer, reusing restored assets and existing outputs.
+    # A missing cache is an explicit setup error; routine verification must not redownload dependencies.
+    $testProject = 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests.csproj'
+    foreach ($project in @(
+        'OASIS Architecture/NextGenSoftware.OASIS.Common/NextGenSoftware.OASIS.Common.csproj',
+        'OASIS Architecture/NextGenSoftware.OASIS.API.DNA/NextGenSoftware.OASIS.API.DNA.csproj',
+        'OASIS Architecture/NextGenSoftware.OASIS.API.Core/NextGenSoftware.OASIS.API.Core.csproj',
+        'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj',
+        'Providers/Storage/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj',
+        'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.csproj',
+        'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AWSOASIS/NextGenSoftware.OASIS.API.Providers.AWSOASIS.csproj',
+        $testProject
+    )) {
+        & dotnet build $project -c Release -f net10.0 --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
+        if ($LASTEXITCODE -ne 0) { throw "Cached producer/consumer build failed: $project. Restore missing dependencies once into the shared cache before retrying." }
+    }
+
     $process = Start-Process java -ArgumentList @(
         "-Djava.library.path=$runtime/DynamoDBLocal_lib",
         '-jar', $jar,
@@ -88,8 +105,8 @@ try {
     Wait-LoopbackPort $Port
 
     $env:DYNAMODB_SERVICE_URL = "http://127.0.0.1:$Port"
-    & dotnet test 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests.csproj' `
-        -c Release /m:2 /nr:false /p:UseSharedCompilation=false --logger 'trx;LogFileName=aws-provider.trx' --results-directory $artifacts -v:minimal
+    & dotnet test $testProject -c Release --no-build --no-restore `
+        /m:2 /nr:false /p:UseSharedCompilation=false --logger 'trx;LogFileName=aws-provider.trx' --results-directory $artifacts -v:minimal
     if ($LASTEXITCODE -ne 0) { throw "AWSOASIS provider evidence failed with exit code $LASTEXITCODE." }
     [xml]$report = Get-Content -LiteralPath (Join-Path $artifacts 'aws-provider.trx') -Raw
     $counters = $report.TestRun.ResultSummary.Counters
