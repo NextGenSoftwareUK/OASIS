@@ -16,6 +16,42 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 public class SolanaHolonAdapterTests
 {
     [DataTestMethod]
+    [DataRow(false,false)]
+    [DataRow(false,true)]
+    [DataRow(true,false)]
+    [DataRow(true,true)]
+    public async Task ImportPreservesCommittedReceiptsAndStopsAfterFailure(bool synchronous,bool uncertain)
+    {
+        var cause=uncertain ? (Exception)new SolanaTransactionReconciliationException("owned-unknown-import-signature",new System.IO.IOException("owned lost reply"))
+            :new System.IO.IOException("owned rejected import");
+        var repository=new RecordsRepository {AllowPartialWrite=true,WriteCause=cause};
+        var provider=new ActiveProvider(repository);
+        var first=new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=Guid.NewGuid()};
+        var second=new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=Guid.NewGuid()};
+        var third=new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=Guid.NewGuid()};
+        var result=synchronous ? provider.Import(new[] {first,second,third}):await provider.ImportAsync(new[] {first,second,third});
+        Assert.IsTrue(result.IsError); Assert.IsFalse(result.Result); Assert.IsFalse(result.IsSaved);
+        var failure=(SolanaPartialMutationException)result.Exception!;
+        Assert.AreSame(cause,failure.InnerException); Assert.AreEqual("owned-first-committed-signature",failure.CommittedSignatures.Single());
+        Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(failure));
+        Assert.AreEqual(2,repository.WriteCalls); Assert.IsFalse(third.ProviderUniqueStorageKey.ContainsKey(ProviderType.SolanaOASIS));
+    }
+
+    [TestMethod]
+    public async Task ImportPreflightsAllNodesAndIncludesSelectedChildren()
+    {
+        var repository=new RecordsRepository {AllowAllWrites=true}; var provider=new ActiveProvider(repository);
+        Assert.IsTrue((await provider.ImportAsync(Array.Empty<IHolon>())).IsError);
+        Assert.IsTrue((await provider.ImportAsync(new IHolon[] {new NextGenSoftware.OASIS.API.Core.Holons.Holon(),null!})).IsError);
+        Assert.AreEqual(0,repository.WriteCalls);
+        var root=new NextGenSoftware.OASIS.API.Core.Holons.Holon();
+        root.Children.Add(new NextGenSoftware.OASIS.API.Core.Holons.Holon());
+        var imported=await provider.ImportAsync(new[] {root});
+        Assert.IsFalse(imported.IsError,imported.Message); Assert.IsTrue(imported.Result); Assert.IsTrue(imported.IsSaved);
+        Assert.AreEqual(2,repository.WriteCalls); Assert.AreEqual(root.Id,root.Children.Single().ParentHolonId);
+    }
+
+    [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]
     public async Task ExportUsesAuthenticStoredIdentitiesAndOwnerScope(bool synchronous)
