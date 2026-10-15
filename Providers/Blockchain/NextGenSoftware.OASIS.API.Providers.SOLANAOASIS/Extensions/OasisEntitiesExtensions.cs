@@ -15,7 +15,7 @@ public static class OasisEntitiesExtensions
             AvatarId = avatar.AvatarId,
             UserName = avatar.Username,
             Version = avatar.Version,
-            IsDeleted = avatar.IsActive,
+            IsDeleted = !avatar.IsActive,
             PreviousVersionId = avatar.PreviousVersionId
         };
     }
@@ -38,7 +38,7 @@ public static class OasisEntitiesExtensions
             DOB = avatarDetail.DOB,
             CreatedDate = avatarDetail.CreatedDate,
             Version = avatarDetail.Version,
-            IsDeleted = avatarDetail.IsActive,
+            IsDeleted = !avatarDetail.IsActive,
             PreviousVersionId = avatarDetail.PreviousVersionId
         };
     }
