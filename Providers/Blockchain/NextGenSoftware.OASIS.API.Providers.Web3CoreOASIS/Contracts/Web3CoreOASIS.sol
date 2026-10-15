@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 
 import "./@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "./@openzeppelin/contracts/access/Ownable.sol";
+import "./@openzeppelin/contracts/utils/structs/EnumerableSet.sol";
 
 import "./IWeb3CoreOASIS.sol";
 import "./EntityOASIS.sol";
@@ -11,6 +12,10 @@ import "./NFTMetadata.sol";
 import "./NFTTransfer.sol";
 
 contract Web3CoreOASIS is ERC721, Ownable, IWeb3CoreOASIS {
+    using EnumerableSet for EnumerableSet.UintSet;
+    EnumerableSet.UintSet private avatarIds;
+    EnumerableSet.UintSet private avatarDetailIds;
+    EnumerableSet.UintSet private holonIds;
 
     string constant ENTITY_NOT_EXIST = "Entity not exist";
     string constant ENTITY_ALREADY_EXIST = "Entity already exist";
@@ -44,6 +49,7 @@ contract Web3CoreOASIS is ERC721, Ownable, IWeb3CoreOASIS {
     ) public onlyOwner returns (uint256) {
         require(avatars[entityId].ExternalId == bytes32(0), ENTITY_ALREADY_EXIST);
         avatars[entityId] = EntityOASIS(entityId, avatarId, info);
+        avatarIds.add(entityId);
         totalAvatarsCount++;
         return totalAvatarsCount;
     }
@@ -55,6 +61,7 @@ contract Web3CoreOASIS is ERC721, Ownable, IWeb3CoreOASIS {
     ) public onlyOwner returns (uint256) {
         require(holons[entityId].ExternalId == bytes32(0), ENTITY_ALREADY_EXIST);
         holons[entityId] = EntityOASIS(entityId, holonId, info);
+        holonIds.add(entityId);
         totalHolonsCount++;
         return totalHolonsCount;
     }
@@ -66,6 +73,7 @@ contract Web3CoreOASIS is ERC721, Ownable, IWeb3CoreOASIS {
     ) public onlyOwner returns (uint256) {
         require(avatarDetails[entityId].ExternalId == bytes32(0), ENTITY_ALREADY_EXIST);
         avatarDetails[entityId] = EntityOASIS(entityId, avatarId, info);
+        avatarDetailIds.add(entityId);
         totalAvatarDetailsCount++;
         return totalAvatarDetailsCount;
     }
@@ -100,6 +108,7 @@ contract Web3CoreOASIS is ERC721, Ownable, IWeb3CoreOASIS {
     function deleteAvatar(uint256 entityId) public onlyOwner returns (bool) {
         require(avatars[entityId].ExternalId != bytes32(0), ENTITY_NOT_EXIST);
         delete avatars[entityId];
+        avatarIds.remove(entityId);
         totalAvatarsCount--;
         return true;
     }
@@ -107,6 +116,7 @@ contract Web3CoreOASIS is ERC721, Ownable, IWeb3CoreOASIS {
     function deleteAvatarDetail(uint256 entityId) public onlyOwner returns (bool) {
         require(avatarDetails[entityId].ExternalId != bytes32(0), ENTITY_NOT_EXIST);
         delete avatarDetails[entityId];
+        avatarDetailIds.remove(entityId);
         totalAvatarDetailsCount--;
         return true;
     }
@@ -114,6 +124,7 @@ contract Web3CoreOASIS is ERC721, Ownable, IWeb3CoreOASIS {
     function deleteHolon(uint256 entityId) public onlyOwner returns (bool) {
         require(holons[entityId].ExternalId != bytes32(0), ENTITY_NOT_EXIST);
         delete holons[entityId];
+        holonIds.remove(entityId);
         totalHolonsCount--;
         return true;
     }
@@ -135,6 +146,30 @@ contract Web3CoreOASIS is ERC721, Ownable, IWeb3CoreOASIS {
 
     function getAvatarsCount() public view returns (uint256 count) {
         return totalAvatarsCount;
+    }
+
+    // Offset pages must be read at one block: delete uses swap-and-pop indexing.
+    function getAvatarsPage(uint256 offset, uint256 limit) external view returns (EntityOASIS[] memory) {
+        return page(avatars, avatarIds, offset, limit);
+    }
+
+    function getAvatarDetailsPage(uint256 offset, uint256 limit) external view returns (EntityOASIS[] memory) {
+        return page(avatarDetails, avatarDetailIds, offset, limit);
+    }
+
+    function getHolonsPage(uint256 offset, uint256 limit) external view returns (EntityOASIS[] memory) {
+        return page(holons, holonIds, offset, limit);
+    }
+
+    function page(mapping(uint256 => EntityOASIS) storage records, EnumerableSet.UintSet storage ids,
+        uint256 offset, uint256 limit) private view returns (EntityOASIS[] memory result) {
+        require(limit > 0 && limit <= 256, "Page limit must be 1..256");
+        uint256 count = ids.length();
+        if (offset >= count) return new EntityOASIS[](0);
+        uint256 length = count - offset;
+        if (length > limit) length = limit;
+        result = new EntityOASIS[](length);
+        for (uint256 i = 0; i < length; i++) result[i] = records[ids.at(offset + i)];
     }
 
     function getAvatarDetailsCount() public view returns (uint256 count) {

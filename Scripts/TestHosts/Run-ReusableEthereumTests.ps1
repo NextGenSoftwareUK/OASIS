@@ -18,6 +18,8 @@ try {
     if(Get-NetTCPConnection -State Listen -LocalPort 18546 -ErrorAction SilentlyContinue){throw 'Owned simulated-outage port is occupied; refusing unrelated endpoint.'}
     & $node (Join-Path $PSScriptRoot 'compile-ethereum-storage-fixture.cjs')
     if($LASTEXITCODE){throw 'Cached Solidity fixture build failed.'}
+    & $node (Join-Path $PSScriptRoot 'compile-web3core-storage.cjs')
+    if($LASTEXITCODE){throw 'Cached Web3Core contract build failed.'}
     $project=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests.csproj'
     foreach($relative in @(
         'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj',
@@ -62,6 +64,8 @@ try {
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
     if([int]$counts.total -ne 91 -or [int]$counts.passed -ne 91 -or [int]$counts.notExecuted -ne 0){throw 'Expected ninety-one native passing cases, no skips.'}
+    & $node (Join-Path $PSScriptRoot 'verify-web3core-pages.cjs')
+    if($LASTEXITCODE){throw 'Web3Core native page verification failed.'}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
     foreach($name in $names){[Environment]::SetEnvironmentVariable($name,$previous[$name])}
