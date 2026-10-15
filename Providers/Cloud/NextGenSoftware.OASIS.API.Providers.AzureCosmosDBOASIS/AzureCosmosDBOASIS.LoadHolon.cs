@@ -198,96 +198,16 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         }
 
         public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
-        {
-            OASISResult<IEnumerable<IAvatarDetail>> result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            string errorMessage = "Error occured in LoadAllAvatarDetails method in AzureCosmosDBOASIS Provider. Reason: ";
-
-            try
-            {
-                var avatarDetailsList = avatarDetailRepository.GetList();
-
-                if (avatarDetailsList == null)
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}No records found.");
-                else
-                {
-                    if (version > 0)
-                        avatarDetailsList = avatarDetailsList.Where(a => a.Version == version).ToList();
-
-                    result.Result = avatarDetailsList;
-                    result.IsLoaded = true;
-                    result.Message = "Avatar details fetched";
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage}{ex}");
-            }
-
-            return result;
-        }
+            => ReadCurrentListAsync<IAvatarDetail>(()=>avatarDetailRepository,version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-        {
-            OASISResult<IEnumerable<IAvatarDetail>> result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            string errorMessage = "Error occured in LoadAllAvatarDetailsAsync method in AzureCosmosDBOASIS Provider. Reason: ";
-
-            try
-            {
-                var avatarDetailsList = avatarDetailRepository.GetList();
-
-                if (avatarDetailsList == null)
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}No records found.");
-                else
-                {
-                    if (version > 0)
-                        avatarDetailsList = avatarDetailsList.Where(a => a.Version == version).ToList();
-
-                    result.Result = avatarDetailsList;
-                    result.IsLoaded = true;
-                    result.Message = "Avatar details fetched asynchronously";
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage}{ex.Message}", ex);
-            }
-
-            return result;
-        }
+            => await ReadCurrentListAsync<IAvatarDetail>(()=>avatarDetailRepository,version);
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
-        {
-            OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
-            string errorMessage = "Error occured in LoadAllAvatarsAsync method in AzureCosmosDBOASIS Provider. Reason: ";
-
-            try
-            {
-                var avatarList = avatarRepository.GetList();
-
-                if (avatarList == null)
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage}No records found.");
-                else
-                {
-                    if (version > 0)
-                        avatarList = avatarList.Where(a => a.Version == version).ToList();
-
-                    result.Result = avatarList;
-                    result.IsLoaded = true;
-                    result.Message = "Avatars fetched";
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"{errorMessage}{ex}");
-            }
-
-            return result;
-        }
+            => ReadCurrentListAsync<IAvatar>(()=>avatarRepository,version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
-        {
-            return LoadAllAvatars(version);
-        }
+            => await ReadCurrentListAsync<IAvatar>(()=>avatarRepository,version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         //public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, int version = 0)

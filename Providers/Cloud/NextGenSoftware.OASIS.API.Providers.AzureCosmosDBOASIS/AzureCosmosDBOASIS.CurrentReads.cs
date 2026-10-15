@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -9,6 +11,27 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
 
 public partial class AzureCosmosDBOASIS
 {
+    private async Task<OASISResult<IEnumerable<T>>> ReadCurrentListAsync<T>(Func<IRepository<T>> repository,int version) where T:IHolonBase
+    {
+        var result=new OASISResult<IEnumerable<T>>();
+        try
+        {
+            if(version!=0) throw new NotSupportedException("Cosmos current-record storage does not implement historical reads.");
+            if(!IsProviderActivated)
+            {
+                var activation=await ActivateProviderAsync();
+                if(activation.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IEnumerable<T>>(activation);
+                if(!activation.Result) throw new InvalidOperationException("Cosmos activation did not acknowledge readiness.");
+            }
+            var store=repository() ?? throw new InvalidOperationException("Cosmos repository was not initialized.");
+            var rows=store.GetList() ?? throw new System.IO.InvalidDataException("Cosmos collection read returned no collection.");
+            result.Result=rows.Where(row=>row.IsActive).ToArray();
+            result.IsLoaded=true;
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
+    }
+
     private async Task<OASISResult<T>> SaveCurrentRecordAsync<T>(T record,Func<IRepository<T>> repository) where T:IHolonBase
     {
         var result=new OASISResult<T>();
