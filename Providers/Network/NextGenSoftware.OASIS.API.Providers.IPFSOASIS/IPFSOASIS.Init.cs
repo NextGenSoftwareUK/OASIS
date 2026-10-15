@@ -129,8 +129,13 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
             var previousRoot=_OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
             _OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress = fsn.Id;
-            var saved=OASISDNAManager.SaveDNA(_OASISDNAPath, _OASISDNA);
-            EnsureIndexPublication(fsn.Id,previousRoot,saved);
+            try
+            {
+                var saved=OASISDNAManager.SaveDNA(_OASISDNAPath, _OASISDNA);
+                EnsureIndexPublication(fsn.Id,previousRoot,saved);
+            }
+            catch(IPFSIndexPublicationException) { throw; }
+            catch(Exception cause) { throw new IPFSIndexPublicationException(fsn.Id,previousRoot,cause); }
 
             return fsn.Id;
         }

@@ -403,50 +403,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             return DeleteAvatarAsync(providerKey, softDelete).Result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-        {
-            OASISResult<bool> result = new OASISResult<bool>();
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+            => DeleteIndexedAvatarAsync(row=>row.Id==id,softDelete,id!=Guid.Empty);
 
-            try
-            {
-                OASISResult<IAvatar> avatar = await LoadAvatarTemplateAsync(a => a.Id == id);
-
-                avatar.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
-                avatar.Result.DeletedDate = DateTime.Now;
-
-                await SaveAvatarToFile(avatar.Result);
-                result.Result = true;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"An error occured in DeleteAvatarAsync in IPFSOASIS Provider. Reason: {ex.ToString()}");
-            }
-
-            return result;
-        }
-
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-        {
-            OASISResult<bool> result = new OASISResult<bool>();
-
-            try
-            {
-                OASISResult<IAvatar> avatar =
-                    await LoadAvatarTemplateAsync(a => a.ProviderUniqueStorageKey.Where(b => b.Value == providerKey).Any());
-
-                avatar.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
-                avatar.Result.DeletedDate = DateTime.Now;
-
-                await SaveAvatarToFile(avatar.Result);
-                result.Result = true;
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"An error occured in DeleteAvatarAsync in IPFSOASIS Provider. Reason: {ex.ToString()}");
-            }
-
-            return result;
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+            => DeleteIndexedAvatarAsync(row=>row.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.IPFSOASIS,out var key) && key==providerKey,softDelete,!string.IsNullOrWhiteSpace(providerKey));
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
