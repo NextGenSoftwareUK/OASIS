@@ -75,7 +75,9 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
             private static bool IsHolonCollection(Type type)
                 => type != typeof(string) && typeof(IEnumerable).IsAssignableFrom(type)
-                   && type.IsGenericType && type.GetGenericArguments().Any(a => typeof(IHolonBase).IsAssignableFrom(a));
+                   && type.IsGenericType && type.GetGenericArguments().Any(a => typeof(IHolonBase).IsAssignableFrom(a)
+                       // Inventory entries are owned values, not navigation edges, despite inheriting holon identity.
+                       && !typeof(IInventoryItem).IsAssignableFrom(a));
         }
     }
 }

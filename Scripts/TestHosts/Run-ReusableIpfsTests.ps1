@@ -35,6 +35,9 @@ try {
     $env:OASIS_IPFS_TEST_DNA_PATH=Join-Path $work 'owned-dna.json'
     $project=Join-Path $taskRoot 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests.csproj'
     $providerProject=Join-Path $taskRoot 'Providers/Network/NextGenSoftware.OASIS.API.Providers.IPFSOASIS/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.csproj'
+    $sharedProject=Join-Path $taskRoot 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj'
+    & dotnet build $sharedProject --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
+    if($LASTEXITCODE){throw 'Shared storage build failed.'}
     $localProject=Join-Path $taskRoot 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj'
     & dotnet build $localProject --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
     if($LASTEXITCODE){throw 'Local file provider build failed.'}
