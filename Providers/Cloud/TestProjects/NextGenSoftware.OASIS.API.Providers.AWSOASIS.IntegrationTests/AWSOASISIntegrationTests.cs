@@ -258,6 +258,10 @@ public class AWSOASISIntegrationTests
         Assert.AreEqual(grandchild.Id,owned.Result.Single().Children.Single().Id);
         Assert.IsInstanceOfType(_provider.ExportAll(version:1).Exception,typeof(NotSupportedException));
         Assert.IsTrue(_provider.ExportAllDataForAvatarById(Guid.Empty).IsError);
+        var importedRows=new[] {new Holon {Id=Guid.NewGuid(),Name="owned-import-one"},new Holon {Id=Guid.NewGuid(),Name="owned-import-two"}};
+        var imported=await _provider.ImportAsync(importedRows);
+        Assert.IsFalse(imported.IsError,imported.Message);Assert.IsTrue(imported.Result);Assert.IsTrue(imported.IsSaved);
+        foreach(var row in importedRows) Assert.AreEqual(row.Name,(await _provider.LoadHolonAsync(row.Id,loadChildren:false)).Result.Name);
         var truncated=_provider.LoadHolonsForParent(parent,loadChildrenFromProvider:true,maxChildDepth:1,curentChildDepth:1);
         Assert.IsFalse(truncated.IsError,truncated.Message);
         Assert.IsTrue(truncated.Result.All(row=>row.Children.Count==0));
