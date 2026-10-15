@@ -34,6 +34,9 @@ public class CosmosNativeStorageTests
         try
         {
             var active=await provider.ActivateProviderAsync();Assert.IsFalse(active.IsError,active.Message);Assert.IsTrue(active.Result);
+            var missingId=Guid.NewGuid().ToString();
+            var nativeReader=new Infrastructure.CosmosDbClient(database.GetContainer("avatarItems"));
+            Assert.IsNull(await nativeReader.ReadDocumentAsync(missingId,new PartitionKey(missingId)));
             var avatar=new Avatar {Id=avatarId,IsActive=true,Username="owned-cosmos",Email="owned-cosmos@example.invalid",FirstName="Owned",
                 MetaData=new Dictionary<string,object> {{"owned-field","owned-value"}}};
             var saved=await provider.SaveAvatarAsync(avatar);Assert.IsFalse(saved.IsError,saved.Message);
