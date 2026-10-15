@@ -187,7 +187,7 @@ public class EthereumOASISIntegrationTests
         var child = new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=root.Id,Name="child",HolonType=HolonType.Holon };
         var grandchild = new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=child.Id,Name="grandchild",HolonType=HolonType.Holon };
         child.Children.Add(grandchild); root.Children.Add(child);
-        foreach(var row in new[] {root,child,grandchild}) Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);
+        foreach(var row in new[] {root,child,grandchild}) Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:true)).IsError);
         foreach(var native in new[] {false,true})
         {
             var all = await Read(native:native); Assert.IsFalse(all.IsError,all.Message); Assert.IsTrue(all.IsLoaded); Assert.AreEqual(3,all.Result.Count());
@@ -437,7 +437,7 @@ public class EthereumOASISIntegrationTests
         var child=new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=root.Id,Name="single child" };
         var grandchild=new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=child.Id,Name="single grandchild" };
         child.Children.Add(grandchild); root.Children.Add(child);
-        foreach(var row in new[] {root,child,grandchild}) Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);
+        foreach(var row in new[] {root,child,grandchild}) Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:true)).IsError);
         async Task<OASISResult<IHolon>> Read(bool load=true,bool recursive=true,int max=0,bool native=false,int version=0)
             => synchronous ? provider.LoadHolon(root.Id,load,recursive,max,loadChildrenFromProvider:native,version:version)
                 : await provider.LoadHolonAsync(root.Id,load,recursive,max,loadChildrenFromProvider:native,version:version);
@@ -663,6 +663,76 @@ public class EthereumOASISIntegrationTests
             Assert.AreEqual(avatar.Id,(await Run(date)).SearchResultAvatars.Single().Id);
         }
         finally { System.Globalization.CultureInfo.CurrentCulture=culture; }
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)]
+    [DataRow(true,false)]
+    [DataRow(false,true)]
+    [DataRow(true,true)]
+    public async Task GraphSaveSelectsNativeRowsBeforeSubmitting(bool synchronous,bool bulk)
+    {
+        foreach(var option in new[] {(false,true,0,0,1),(true,false,0,0,2),(true,true,1,0,2),(true,true,0,0,3),(true,true,1,1,1)})
+        {
+            if(!bulk && option.Item4 != 0) continue;
+            var (provider,address)=await CreateActivatedProviderAsync();
+            var root=new CoreHolon { Name="planned root" };
+            var child=new CoreHolon { Name="planned child" };
+            var grandchild=new CoreHolon { Name="planned grandchild" };
+            child.Children.Add(grandchild); root.Children.Add(child);
+            if(bulk)
+            {
+                var saved=synchronous ? provider.SaveHolons(new[] {root},option.Item1,option.Item2,option.Item3,option.Item4)
+                    : await provider.SaveHolonsAsync(new[] {root},option.Item1,option.Item2,option.Item3,option.Item4);
+                Assert.IsFalse(saved.IsError,saved.Message); Assert.IsTrue(saved.IsSaved); Assert.AreEqual(1,saved.Result.Count());
+            }
+            else
+            {
+                var saved=synchronous ? provider.SaveHolon(root,option.Item1,option.Item2,option.Item3)
+                    : await provider.SaveHolonAsync(root,option.Item1,option.Item2,option.Item3);
+                Assert.IsFalse(saved.IsError,saved.Message); Assert.IsTrue(saved.IsSaved); Assert.AreEqual(root.Id,saved.Result.Id);
+                Assert.AreEqual(root.Id.ToString(),saved.Result.ProviderUniqueStorageKey[ProviderType.EthereumOASIS]);
+            }
+            Assert.AreNotEqual(Guid.Empty,root.Id);
+            var service=new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+            Assert.AreEqual(new BigInteger(option.Item5),await service.GetHolonsCountQueryAsync());
+            var loaded=await provider.LoadHolonAsync(root.Id);
+            Assert.IsFalse(loaded.IsError,loaded.Message); Assert.AreEqual(option.Item5>1?1:0,loaded.Result.Children.Count);
+            if(option.Item5>1)
+            {
+                Assert.AreNotEqual(Guid.Empty,child.Id); Assert.AreEqual(root.Id,child.ParentHolonId);
+                Assert.AreEqual(option.Item5>2?1:0,loaded.Result.Children.Single().Children.Count);
+                Assert.AreEqual(root.Id,(await provider.LoadHolonAsync(child.Id)).Result.ParentHolonId);
+            }
+            else Assert.AreEqual(Guid.Empty,child.Id,"Unselected subtree must not be traversed or allocated");
+            if(option.Item5>2) { Assert.AreNotEqual(Guid.Empty,grandchild.Id); Assert.AreEqual(child.Id,grandchild.ParentHolonId); }
+            else Assert.AreEqual(Guid.Empty,grandchild.Id);
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task InvalidSelectedGraphsSubmitNoNativeTransactions(bool synchronous)
+    {
+        var (provider,address)=await CreateActivatedProviderAsync();
+        var web3=new Web3(new Account(PrivateKey,ChainId),Host);
+        var before=await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(new Account(PrivateKey,ChainId).Address);
+        var cycle=new CoreHolon { Id=Guid.NewGuid() }; cycle.Children.Add(cycle);
+        var duplicate=Guid.NewGuid();
+        var conflict=new CoreHolon { Id=Guid.NewGuid() }; conflict.Children.Add(new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=Guid.NewGuid() });
+        foreach(var roots in new IEnumerable<IHolon>[] {new[] {cycle},new[] {new CoreHolon {Id=duplicate},new CoreHolon {Id=duplicate}},new[] {conflict},new IHolon[] {new CoreHolon {Id=Guid.NewGuid()},null!},
+            new[] {new CoreHolon {Id=Guid.Parse("00005f42-0000-0000-0000-000000000000")},new CoreHolon {Id=Guid.Parse("00017b6d-0000-0000-0000-000000000000")}}})
+        {
+            var result=synchronous ? provider.SaveHolons(roots) : await provider.SaveHolonsAsync(roots);
+            Assert.IsTrue(result.IsError); Assert.IsFalse(result.IsSaved); Assert.IsNull(result.Result);
+            Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",result.ErrorCode); Assert.IsInstanceOfType(result.Exception,typeof(ArgumentException));
+        }
+        var after=await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(new Account(PrivateKey,ChainId).Address);
+        Assert.AreEqual(before.Value,after.Value);
+        Assert.AreEqual(BigInteger.Zero,await new NextGenSoftwareOASISService(web3,address).GetHolonsCountQueryAsync());
         await provider.DeActivateProviderAsync();
     }
 
