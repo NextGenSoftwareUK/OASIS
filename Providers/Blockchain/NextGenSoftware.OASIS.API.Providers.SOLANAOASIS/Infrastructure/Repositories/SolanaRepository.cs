@@ -52,6 +52,12 @@ public class SolanaRepository(Account oasisAccount, IRpcClient rpcClient, Func<b
 
     public async Task<bool> DeleteAsync(string transactionHashReference)
     {
+        await CreateTombstoneAsync(transactionHashReference);
+        return true;
+    }
+
+    public async Task<string> CreateTombstoneAsync(string transactionHashReference)
+    {
         var blockHash = await rpcClient.GetLatestBlockHashAsync();
 
         var entityTransactionQueryResult =
@@ -72,13 +78,17 @@ public class SolanaRepository(Account oasisAccount, IRpcClient rpcClient, Func<b
             Encoders.Base58.DecodeData(entityTransactionQueryResult.Result.Transaction.Message.Instructions[^1]
                 .Data);
         var transactionContent = DecodeEntity(transactionDataBuffer);
-        var deserializedEntity = JsonConvert.DeserializeObject<SolanaAvatarDto>(transactionContent)
+        var deserializedEntity = JsonConvert.DeserializeObject<Newtonsoft.Json.Linq.JObject>(transactionContent)
                                  ?? throw new Exception(
                                      $"{entityTransactionQueryResult.RawRpcResponse} Reason: No content found for hash {transactionHashReference}.");
 
-        deserializedEntity.IsDeleted = true;
-        deserializedEntity.Version++;
-        deserializedEntity.PreviousVersionId = deserializedEntity.Id;
+        var identity = deserializedEntity["Id"]?.ToObject<Guid?>();
+        var version = deserializedEntity.Value<int?>("Version");
+        if (!identity.HasValue || identity.Value == Guid.Empty || !version.HasValue || version.Value < 0)
+            throw new InvalidOperationException("Stored Solana record has invalid identity/version.");
+        deserializedEntity["IsDeleted"] = true;
+        deserializedEntity["Version"] = checked(version.Value + 1);
+        deserializedEntity["PreviousVersionId"] = identity.Value;
         var serializedEntity = EncodeEntity(deserializedEntity);
 
         var entityDeleteUpdateTransactionBytes = new TransactionBuilder()
@@ -88,8 +98,7 @@ public class SolanaRepository(Account oasisAccount, IRpcClient rpcClient, Func<b
             .AddInstruction(MemoProgram.NewMemoV2(serializedEntity))
             .Build(oasisAccount);
 
-        await SubmitAndConfirmAsync(entityDeleteUpdateTransactionBytes);
-        return true;
+        return await SubmitAndConfirmAsync(entityDeleteUpdateTransactionBytes);
     }
 
     public async Task<T> GetAsync<T>(string transactionHashReference)

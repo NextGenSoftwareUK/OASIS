@@ -203,7 +203,7 @@ public partial class SolanaOASIS
         }
         catch (Exception e)
         {
-            OASISErrorHandling.HandleError(ref result, e.Message);
+            OASISErrorHandling.HandleError(ref result, e.Message, e);
         }
 
         return result;
@@ -254,7 +254,7 @@ public partial class SolanaOASIS
         }
         catch (Exception e)
         {
-            OASISErrorHandling.HandleError(ref result, e.Message);
+            OASISErrorHandling.HandleError(ref result, e.Message, e);
         }
 
         return result;
@@ -449,7 +449,7 @@ public partial class SolanaOASIS
         }
         catch (Exception e)
         {
-            OASISErrorHandling.HandleError(ref result, e.Message);
+            OASISErrorHandling.HandleError(ref result, e.Message, e);
         }
 
         return result;
@@ -477,7 +477,7 @@ public partial class SolanaOASIS
         }
         catch (Exception e)
         {
-            OASISErrorHandling.HandleError(ref result, e.Message);
+            OASISErrorHandling.HandleError(ref result, e.Message, e);
         }
 
         return result;
