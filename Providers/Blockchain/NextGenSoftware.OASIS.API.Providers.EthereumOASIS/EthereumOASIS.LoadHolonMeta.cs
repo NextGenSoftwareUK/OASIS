@@ -139,70 +139,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         }
 
 
-        /// <summary>
-        /// Parse Ethereum smart contract response to Avatar object
-        /// </summary>
-        private Avatar ParseEthereumToAvatar(object ethereumData)
-        {
-            try
-            {
-                // Convert Ethereum smart contract response to Avatar
-                var ethereumAddress = GetEthereumProperty(ethereumData, "address") ?? GetEthereumProperty(ethereumData, "account") ?? "ethereum_user";
-                var avatar = new Avatar
-                {
-                    Id = CreateDeterministicGuid($"{this.ProviderType.Value}:{ethereumAddress}"),
-                    Username = GetEthereumProperty(ethereumData, "username") ?? "ethereum_user",
-                    Email = GetEthereumProperty(ethereumData, "email") ?? "user@ethereum.example",
-                    FirstName = GetEthereumProperty(ethereumData, "firstName") ?? "Ethereum",
-                    LastName = GetEthereumProperty(ethereumData, "lastName") ?? "User",
-                    CreatedDate = DateTime.UtcNow,
-                    ModifiedDate = DateTime.UtcNow,
-                    Version = 1,
-                    IsActive = true
-                };
-
-                // Add Ethereum-specific metadata
-                if (ethereumData != null)
-                {
-                    avatar.ProviderMetaData = new Dictionary<Core.Enums.ProviderType, Dictionary<string, string>>();
-                }
-                
-                if (!avatar.ProviderMetaData.ContainsKey(Core.Enums.ProviderType.EthereumOASIS))
-                {
-                    avatar.ProviderMetaData[Core.Enums.ProviderType.EthereumOASIS] = new Dictionary<string, string>();
-                }
-                
-                avatar.ProviderMetaData[Core.Enums.ProviderType.EthereumOASIS]["ethereum_contract_address"] = ContractAddress;
-                avatar.ProviderMetaData[Core.Enums.ProviderType.EthereumOASIS]["ethereum_chain_id"] = ChainId.ToString();
-                avatar.ProviderMetaData[Core.Enums.ProviderType.EthereumOASIS]["ethereum_network"] = HostURI;
-
-                return avatar;
-            }
-            catch (Exception)
-            {
-                return null;
-            }
-        }
-
-        /// <summary>
-        /// Extract property value from Ethereum smart contract response
-        /// </summary>
-        private string GetEthereumProperty(object data, string propertyName)
-        {
-            try
-            {
-                if (data == null) return null;
-                
-                var json = JsonConvert.SerializeObject(data);
-                var jsonObject = JsonConvert.DeserializeObject<dynamic>(json);
-                
-                return jsonObject?[propertyName]?.ToString();
-            }
-            catch
-            {
-                return null;
-            }
-        }
 
         private async Task<OASISResult<ITransactionResponse>> SendTransactionByIdInternalAsync(Guid fromAvatarId, Guid toAvatarId, decimal amount, string token)
         {
@@ -348,51 +284,6 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         }
 
 
-        /// <summary>
-        /// Parse REAL Ethereum smart contract data into Avatar object
-        /// </summary>
-        private static Avatar ParseEthereumToAvatar(object smartContractData, string email)
-        {
-            try
-            {
-                if (smartContractData == null) return null;
-                
-                // Parse the actual smart contract response from Ethereum
-                var dataDict = JsonConvert.DeserializeObject<Dictionary<string, object>>(smartContractData.ToString());
-                if (dataDict == null) return null;
-                
-                var ethereumAddress = dataDict.GetValueOrDefault("address")?.ToString() ?? dataDict.GetValueOrDefault("account")?.ToString() ?? email;
-                var avatar = new Avatar
-                {
-                    Id = dataDict.ContainsKey("id") ? Guid.Parse(dataDict["id"].ToString()) : CreateDeterministicGuid($"{Core.Enums.ProviderType.EthereumOASIS}:{ethereumAddress}"),
-                    Username = dataDict.GetValueOrDefault("username")?.ToString() ?? $"ethereum_user_{email}",
-                    Email = dataDict.GetValueOrDefault("email")?.ToString() ?? email,
-                    FirstName = dataDict.GetValueOrDefault("firstName")?.ToString() ?? "Ethereum",
-                    LastName = dataDict.GetValueOrDefault("lastName")?.ToString() ?? "User",
-                    CreatedDate = dataDict.ContainsKey("createdDate") ? DateTime.Parse(dataDict["createdDate"].ToString()) : DateTime.UtcNow,
-                    ModifiedDate = dataDict.ContainsKey("modifiedDate") ? DateTime.Parse(dataDict["modifiedDate"].ToString()) : DateTime.UtcNow,
-                    AvatarType = new EnumValue<AvatarType>(Enum.TryParse<AvatarType>(dataDict.GetValueOrDefault("avatarType")?.ToString(), out var avatarType) ? avatarType : AvatarType.User),
-                    Description = dataDict.GetValueOrDefault("description")?.ToString() ?? "Avatar loaded from Ethereum blockchain",
-                    ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string> { [Core.Enums.ProviderType.EthereumOASIS] = email },
-                    MetaData = new Dictionary<string, object>
-                    {
-                        ["EthereumEmail"] = email,
-                        ["EthereumContractAddress"] = "0x1234567890123456789012345678901234567890", // Default contract address
-                        ["EthereumNetwork"] = "mainnet", // Default network
-                        ["EthereumSmartContractData"] = smartContractData,
-                        ["ParsedAt"] = DateTime.UtcNow,
-                        ["Provider"] = "EthereumOASIS"
-                    }
-                };
-                
-                return avatar;
-            }
-            catch (Exception ex)
-            {
-                // Log error and return null
-                return null;
-            }
-        }
 
     }
 }
