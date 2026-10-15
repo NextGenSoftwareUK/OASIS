@@ -11,6 +11,29 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
 public class CosmosStreamOwnershipTests
 {
     [DataTestMethod]
+    [DataRow("read")] [DataRow("query")] [DataRow("mutation")]
+    public async Task ServiceErrorsRetainActualSubstatusAndActivity(string operation)
+    {
+        var response=new TrackedResponse(HttpStatusCode.BadRequest);response.SetContent("{}");
+        response.Headers.Set("x-ms-substatus","1002");response.Headers.Set("x-ms-activity-id","owned-activity");
+        var container=new Mock<Container>();
+        container.Setup(c=>c.ReadItemStreamAsync(It.IsAny<string>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(response);
+        container.Setup(c=>c.UpsertItemStreamAsync(It.IsAny<Stream>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(response);
+        var iterator=new Mock<FeedIterator>();iterator.Setup(i=>i.HasMoreResults).Returns(true);
+        iterator.Setup(i=>i.ReadNextAsync(It.IsAny<CancellationToken>())).ReturnsAsync(response);
+        container.Setup(c=>c.GetItemQueryStreamIterator(It.IsAny<QueryDefinition>(),It.IsAny<string>(),It.IsAny<QueryRequestOptions>())).Returns(iterator.Object);
+        var client=new CosmosDbClient(container.Object);
+        var failure=await Assert.ThrowsExceptionAsync<CosmosException>(async()=>
+        {
+            if(operation=="read") await client.ReadDocumentAsync("owned",null);
+            else if(operation=="mutation") await client.UpsertDocumentAsync(new {Id=Guid.NewGuid()},null);
+            else client.ReadAllDocuments();
+        });
+        Assert.AreEqual(HttpStatusCode.BadRequest,failure.StatusCode);Assert.AreEqual(1002,failure.SubStatusCode);
+        Assert.AreEqual("owned-activity",failure.ActivityId);Assert.IsTrue(response.Disposed);
+    }
+
+    [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     public async Task MissingItemRequiresReadableParentContainer(bool missingContainer)
     {

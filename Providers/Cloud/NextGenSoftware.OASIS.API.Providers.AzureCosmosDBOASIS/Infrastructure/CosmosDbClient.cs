@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -18,6 +19,13 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
     {
         private readonly Container _container;
 
+        private static CosmosException CreateServiceException(ResponseMessage response,string message)
+        {
+            var header=response.Headers.Get("x-ms-substatus");
+            var substatus=int.TryParse(header,NumberStyles.Integer,CultureInfo.InvariantCulture,out var value) ? value:0;
+            return new CosmosException(response.ErrorMessage ?? message,response.StatusCode,substatus,response.Headers.ActivityId,response.Headers.RequestCharge);
+        }
+
         public CosmosDbClient(Container container)
         {
             _container = container ?? throw new ArgumentNullException(nameof(container));
@@ -30,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             {
                 response=await operation();
                 if(response.IsSuccessStatusCode) return response;
-                throw new CosmosException(response.ErrorMessage ?? "Mutation failed",response.StatusCode,(int)response.StatusCode,response.Headers.ActivityId,response.Headers.RequestCharge);
+                throw CreateServiceException(response,"Mutation failed");
             }
             catch(Exception cause)
             {
@@ -52,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
                 return null;
             }
             if (!response.IsSuccessStatusCode)
-                throw new CosmosException(response.ErrorMessage ?? "Read failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
+                throw CreateServiceException(response,"Read failed");
             using var reader = new StreamReader(response.Content);
             return await reader.ReadToEndAsync();
         }
@@ -74,7 +82,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             {
                 using var response=iterator.ReadNextAsync().GetAwaiter().GetResult();
                 if(!response.IsSuccessStatusCode)
-                    throw new CosmosException(response.ErrorMessage ?? "Query failed",response.StatusCode,(int)response.StatusCode,response.Headers.ActivityId,response.Headers.RequestCharge);
+                    throw CreateServiceException(response,"Query failed");
                 using var reader=new StreamReader(response.Content);
                 var docs=DecodeQueryDocuments(reader.ReadToEnd());
                 foreach(var doc in docs)
@@ -95,7 +103,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             {
                 using var response = iterator.ReadNextAsync().GetAwaiter().GetResult();
                 if (!response.IsSuccessStatusCode)
-                    throw new CosmosException(response.ErrorMessage ?? "Query failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
+                    throw CreateServiceException(response,"Query failed");
                 using var reader = new StreamReader(response.Content);
                 var content = reader.ReadToEnd();
                 foreach (var doc in DecodeQueryDocuments(content))
@@ -121,7 +129,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             cancellationToken.ThrowIfCancellationRequested();
             using var response = await ObserveMutationAsync(()=>_container.CreateItemStreamAsync(stream, pk, null, cancellationToken),jsonDocument["id"].ToString());
             if (!response.IsSuccessStatusCode)
-                throw new CosmosException(response.ErrorMessage ?? "Create failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
+                throw CreateServiceException(response,"Create failed");
             using var reader = new StreamReader(response.Content);
             return await reader.ReadToEndAsync();
         }
@@ -134,7 +142,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             cancellationToken.ThrowIfCancellationRequested();
             using var response = await ObserveMutationAsync(()=>_container.UpsertItemStreamAsync(stream, partitionKey ?? PartitionKey.None, null, cancellationToken),jsonDocument["id"].ToString());
             if (!response.IsSuccessStatusCode)
-                throw new CosmosException(response.ErrorMessage ?? "Upsert failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
+                throw CreateServiceException(response,"Upsert failed");
             using var reader = new StreamReader(response.Content);
             return await reader.ReadToEndAsync();
         }
@@ -148,7 +156,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             cancellationToken.ThrowIfCancellationRequested();
             using var response = await ObserveMutationAsync(()=>_container.ReplaceItemStreamAsync(stream, documentId, pk, null, cancellationToken),documentId);
             if (!response.IsSuccessStatusCode)
-                throw new CosmosException(response.ErrorMessage ?? "Replace failed", response.StatusCode, (int)response.StatusCode, response.Headers.ActivityId, response.Headers.RequestCharge);
+                throw CreateServiceException(response,"Replace failed");
         }
 
         public async Task DeleteDocumentAsync(string documentId, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
