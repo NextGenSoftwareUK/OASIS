@@ -133,6 +133,11 @@ public static class SolanaEntitiesExtensions
             ParentSuperStar = holonDto.ParentSuperStar,
             ParentStarId = holonDto.ParentStarId,
             ParentStar = holonDto.ParentStar,
+            ParentPlanetId = holonDto.ParentPlanetId,
+            ParentMoonId = holonDto.ParentMoonId,
+            ParentCelestialSpaceId = holonDto.ParentCelestialSpaceId,
+            ParentCelestialBodyId = holonDto.ParentCelestialBodyId,
+            ParentZomeId = holonDto.ParentZomeId,
             Version = holonDto.Version,
             IsActive = !holonDto.IsDeleted,
             PreviousVersionId = holonDto.PreviousVersionId

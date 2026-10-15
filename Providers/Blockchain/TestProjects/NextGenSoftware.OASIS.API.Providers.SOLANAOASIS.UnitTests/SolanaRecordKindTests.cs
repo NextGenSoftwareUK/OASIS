@@ -11,6 +11,23 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 public class SolanaRecordKindTests
 {
     [TestMethod]
+    public void EveryStoredHolonGuidSurvivesSerializedAdapterRoundTrip()
+    {
+        var holon=new NextGenSoftware.OASIS.API.Core.Holons.Holon();
+        var identities=typeof(SolanaHolonDto).GetProperties()
+            .Where(p=>p.PropertyType==typeof(Guid) && p.CanWrite).ToArray();
+        foreach(var property in identities)
+            typeof(NextGenSoftware.OASIS.API.Core.Holons.Holon).GetProperty(property.Name)!.SetValue(holon,Guid.NewGuid());
+        var dto=NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Extensions.OasisEntitiesExtensions.GetSolanaHolonDto(holon);
+        var stored=Read<SolanaHolonDto>(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(dto));
+        var loaded=NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Extensions.SolanaEntitiesExtensions.GetHolon(stored);
+        foreach(var property in identities) {
+            var source=typeof(NextGenSoftware.OASIS.API.Core.Holons.Holon).GetProperty(property.Name)!;
+            Assert.AreEqual(source.GetValue(holon),source.GetValue(loaded),property.Name);
+        }
+    }
+
+    [TestMethod]
     public void EncryptedDetailMemoReconstructsOwnedInventoryAndStats()
     {
         var detail = new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail {Id=Guid.NewGuid(),XP=321,Karma=29};
