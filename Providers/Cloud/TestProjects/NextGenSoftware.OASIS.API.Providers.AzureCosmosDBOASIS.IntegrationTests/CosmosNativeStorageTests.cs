@@ -34,6 +34,11 @@ public class CosmosNativeStorageTests
         try
         {
             var active=await provider.ActivateProviderAsync();Assert.IsFalse(active.IsError,active.Message);Assert.IsTrue(active.Result);
+            var factoryField=typeof(AzureCosmosDBOASIS).GetField("dbClientFactory",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+            var retainedFactory=factoryField.GetValue(provider);
+            foreach(var activation in await Task.WhenAll(provider.ActivateProviderAsync(),provider.ActivateProviderAsync()))
+            {Assert.IsFalse(activation.IsError,activation.Message);Assert.IsTrue(activation.Result);}
+            Assert.AreSame(retainedFactory,factoryField.GetValue(provider));
             var missingId=Guid.NewGuid().ToString();
             var nativeReader=new Infrastructure.CosmosDbClient(database.GetContainer("avatarItems"));
             Assert.IsNull(await nativeReader.ReadDocumentAsync(missingId,new PartitionKey(missingId)));
@@ -45,6 +50,9 @@ public class CosmosNativeStorageTests
             var saved=await provider.SaveAvatarAsync(avatar);Assert.IsFalse(saved.IsError,saved.Message);
             var read=await provider.LoadAvatarAsync(avatarId);Assert.IsFalse(read.IsError,read.Message);
             Assert.AreEqual("Owned",read.Result.FirstName);Assert.AreEqual("owned-value",read.Result.MetaData["owned-field"].ToString());
+            Assert.IsTrue((await provider.DeActivateProviderAsync()).Result);Assert.IsFalse(provider.IsProviderActivated);
+            var reloaded=await provider.LoadAvatarAsync(avatarId);Assert.IsFalse(reloaded.IsError,reloaded.Message);Assert.AreEqual("Owned",reloaded.Result.FirstName);
+            Assert.AreNotSame(retainedFactory,factoryField.GetValue(provider));Assert.IsTrue(provider.IsProviderActivated);
             Assert.AreEqual(avatarId,(await provider.LoadAvatarByEmailAsync(avatar.Email)).Result.Id);
             var detail=new AvatarDetail {Id=avatarId,IsActive=true,Username=avatar.Username,Email=avatar.Email,XP=321,Karma=29};
             detail.Inventory.Add(new InventoryItem {Id=Guid.NewGuid(),Name="owned native seed"});
