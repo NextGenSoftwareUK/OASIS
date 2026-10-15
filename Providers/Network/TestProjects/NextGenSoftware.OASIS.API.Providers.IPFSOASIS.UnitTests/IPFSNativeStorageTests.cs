@@ -88,8 +88,10 @@ public class IPFSNativeStorageTests
             Assert.Empty(provider.LoadHolon(id,loadChildren:false,loadChildrenFromProvider:true).Result.Children);
             var historical=provider.LoadHolon(parentKey,version:1);
             Assert.True(historical.IsError); Assert.IsType<NotSupportedException>(historical.Exception);
-            var missing=await provider.LoadHolonAsync(Guid.NewGuid(),loadChildren:false);
+            var missingId=Guid.NewGuid();
+            var missing=await provider.LoadHolonAsync(missingId,loadChildren:false);
             Assert.True(missing.IsError); Assert.Null(missing.Result);
+            Assert.Null(missing.Exception); Assert.Equal(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,missing.ErrorCode);
             var snapshot=await provider.LoadLookupToJson();
             var snapshotReader=typeof(IPFSOASIS).GetMethod("ReadIndexSnapshotAsync",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(Holon));
             var currentRoot=dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
@@ -138,6 +140,17 @@ public class IPFSNativeStorageTests
                     }
                 }
                 finally {provider.IPFSClient=healthyClient;}
+                Assert.False((await local.SaveHolonAsync(new Holon {Id=missingId,Name="must-not-return-stale-local-copy"},saveChildren:false)).IsError);
+                var localBefore=manager.PerformanceMonitor.GetMetrics(ProviderType.LocalFileOASIS).TotalRequests;
+                foreach(var asynchronous in new[] {false,true})
+                {
+                    var request=new StorageOperationRequest {Operation="LoadHolon",HolonId=missingId,PreferredProvider=ProviderType.IPFSOASIS};
+                    var routed=asynchronous ? await router.RouteRequestAsync<IHolon>(request) : router.RouteRequest<IHolon>(request);
+                    Assert.False(routed.IsError,routed.Message); Assert.Null(routed.Result);
+                    Assert.Equal(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,routed.ErrorCode);
+                }
+                Assert.Equal(localBefore,manager.PerformanceMonitor.GetMetrics(ProviderType.LocalFileOASIS).TotalRequests);
+                Assert.False((await local.DeleteHolonAsync(missingId)).IsError);
                 manager.IsAutoFailOverEnabled=false; manager.IsAutoReplicationEnabled=true;
                 Assert.False(manager.SetAndReplaceAutoReplicationListForProviders(new[] {new EnumValue<ProviderType>(ProviderType.IPFSOASIS),new EnumValue<ProviderType>(ProviderType.LocalFileOASIS)}).IsError);
                 foreach(var primary in new[] {ProviderType.IPFSOASIS,ProviderType.LocalFileOASIS})
