@@ -7,7 +7,7 @@ using AvatarDetail = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.A
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
 {
-    public interface IAvatarRepository
+    public interface IAvatarRepository : NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarTombstoneStorageProvider
     {
         OASISResult<Avatar> Add(Avatar avatar);
         Task<OASISResult<Avatar>> AddAsync(Avatar avatar);
