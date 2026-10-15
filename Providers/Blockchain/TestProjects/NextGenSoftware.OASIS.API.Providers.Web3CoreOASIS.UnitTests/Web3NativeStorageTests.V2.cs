@@ -126,6 +126,38 @@ public partial class Web3NativeStorageTests
                 }
             }
             finally {field.SetValue(polygon,healthy);}
+            manager.IsAutoFailOverEnabled=false;manager.IsAutoReplicationEnabled=true;
+            foreach(var primary in providers)
+            foreach(var asynchronous in new[] {false,true})
+            {
+                var id=Guid.NewGuid();
+                foreach(var store in new IOASISStorageProvider[] {polygon,sqlite})
+                {
+                    Assert.IsFalse((await store.SaveAvatarAsync(new Avatar {Id=id,IsActive=true,Username="V2 lifecycle "+id,Email="retained@example.invalid",AvatarType=new EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User)})).IsError);
+                    var detail=new AvatarDetail {Id=id,IsActive=true,XP=817,Karma=296};
+                    detail.Inventory.Add(new InventoryItem {Id=Guid.NewGuid(),Name="retained lifecycle seed"});
+                    Assert.IsFalse((await store.SaveAvatarDetailAsync(detail)).IsError);
+                }
+                var request=new Core.StorageOperationRequest {Operation="DeleteAvatar",AvatarId=id,SoftDelete=true,PreferredProvider=primary.Value};
+                var deleted=asynchronous ? await router.RouteRequestAsync<bool>(request):router.RouteRequest<bool>(request);
+                Assert.IsFalse(deleted.IsError,deleted.Message);Assert.IsFalse(deleted.IsWarning,deleted.Message);Assert.IsTrue(deleted.Result);
+                Assert.IsTrue(Core.Helpers.AvatarTombstoneEvidence.TryGet(deleted,out var evidence));
+                var pair=await ((Web3CoreOASIS)healthy!).ReadAvatarPairAsync((uint)Core.Utilities.HashUtility.GetNumericHash(id.ToString()));
+                var nativeAvatar=polygon.DecodePrivateEntity<Avatar>("avatar",pair.Avatar);
+                var nativeDetail=polygon.DecodePrivateEntity<AvatarDetail>("detail",pair.Detail);
+                var sqlAvatar=(await sqlite.LoadAvatarAsync(id)).Result;
+                var sqlDetail=(await sqlite.LoadAvatarDetailAsync(id)).Result;
+                foreach(var record in new IHolonBase[] {nativeAvatar,nativeDetail,sqlAvatar,sqlDetail})
+                {
+                    Assert.IsNotNull(record);Assert.IsFalse(record.IsActive);
+                    Assert.AreEqual(evidence.DeletedAtUtc,record.DeletedDate);Assert.AreEqual(evidence.DeletedByAvatarId,record.DeletedByAvatarId);
+                }
+                Assert.AreEqual("retained@example.invalid",nativeAvatar.Email);Assert.AreEqual(nativeAvatar.Email,sqlAvatar.Email);
+                foreach(var detail in new IAvatarDetail[] {nativeDetail,sqlDetail})
+                {Assert.AreEqual(817L,detail.XP);Assert.AreEqual(296L,detail.Karma);Assert.AreEqual("retained lifecycle seed",detail.Inventory.Single().Name);}
+                Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,(await polygon.LoadAvatarAsync(id)).ErrorCode);
+                Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,(await polygon.LoadAvatarDetailAsync(id)).ErrorCode);
+            }
             verified=true;
         }
         finally {await sqlite.DeActivateProviderAsync();sqlite.Dispose();if(verified && File.Exists(path)) File.Delete(path);}
