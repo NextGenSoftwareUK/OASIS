@@ -6,6 +6,14 @@ param(
     [string]$Configuration = 'Release'
 )
 $ErrorActionPreference = 'Stop'
+function Assert-CompleteTestReport([string]$Path, [int]$Minimum) {
+    [xml]$report = Get-Content -LiteralPath $Path -Raw
+    $counters = $report.SelectSingleNode('//*[local-name()="Counters"]')
+    if (-not $counters -or [int]$counters.total -lt $Minimum -or
+        [int]$counters.total -ne [int]$counters.executed -or [int]$counters.executed -ne [int]$counters.passed) {
+        throw "Required report $([IO.Path]::GetFileName($Path)) is incomplete or contains nonpassing tests."
+    }
+}
 if ($env:GITHUB_ACTIONS -ne 'true' -or -not $IsWindows) {
     throw 'This fixture provisions a Windows hosted-runner conductor only; no local installation is allowed.'
 }
@@ -13,6 +21,8 @@ $resources = Join-Path (Split-Path (Split-Path $Project -Parent) -Parent) 'NextG
 $tools = @{
     'hc-0.7.0.exe' = '643ed26e84a7ae72a454bd78b9427b50883fb1306406ba7b5fa4857c61c6b322'
     'holochain-0.7.0.exe' = '5d9bd8cf28c45645158d56198cfec38d04ac4cf620ba89ca37db2f7c46d7b3d2'
+    'hc.exe' = '7b00c9515e9de6af0f5ba0f2ae5b37f27090169de5fa42af0184913129873c42'
+    'holochain.exe' = '59261119a3ad3e51cd33d996be3110d39a5c4d1cc7c34c173a28efec137bb5b1'
 }
 foreach ($name in $tools.Keys) {
     $path = Join-Path $resources $name
@@ -86,8 +96,10 @@ try {
     if (-not $ready) { throw 'Hosted conductor did not become ready within 60 seconds.' }
     $env:HOLONET_LIVE_ADMIN_URI = 'ws://127.0.0.1:65464'
     $env:HOLONET_LIVE_HAPP_PATH = $Happ
-    & dotnet test $Project --configuration $Configuration --logger 'trx;LogFileName=holonet-app-authentication.trx' --results-directory $ResultsDirectory --nologo
+    # Complementary partitions: auto-start owns its conductors and must run only after this one exits.
+    & dotnet test $Project --configuration $Configuration --filter 'FullyQualifiedName!~LiveConductorAutoStartTests' --logger 'trx;LogFileName=holonet-app-authentication.trx' --results-directory $ResultsDirectory --nologo
     if ($LASTEXITCODE -ne 0) { throw 'HoloNET live release tests failed.' }
+    Assert-CompleteTestReport (Join-Path $ResultsDirectory 'holonet-app-authentication.trx') 1187
 }
 finally {
     if ($process) {
@@ -99,4 +111,44 @@ finally {
     }
     foreach ($name in $names) { [Environment]::SetEnvironmentVariable($name, $saved[$name]) }
     Pop-Location
+}
+
+# The upstream lifecycle tests intentionally kill conductor processes. Keep them
+# isolated from the shared-conductor suite, but require their own release report.
+if (@(Get-Process -Name holochain,hc,'holochain-0.7.0','hc-0.7.0' -ErrorAction SilentlyContinue).Count) {
+    throw 'A conductor survived shared-suite teardown; auto-start tests must not run against it.'
+}
+$autoNames = @('HOLONET_LIVE_AUTOSTART','HOLONET_LIVE_EMBEDDED','HOLONET_LIVE_HOLOCHAIN_BIN','HOLONET_LIVE_HC_BIN')
+$autoSaved = @{}
+foreach ($name in $autoNames) { $autoSaved[$name] = [Environment]::GetEnvironmentVariable($name) }
+try {
+    $clientRoot = Split-Path (Split-Path $Project -Parent) -Parent
+    foreach ($version in @('0.7.0','0.7.1')) {
+        # Both tests install this same verified hApp: compatibility is tested, not assumed.
+        $happDirectory = Join-Path $clientRoot ".holochain-test/happ-$($version.Replace('.',''))"
+        New-Item -ItemType Directory -Path $happDirectory -Force | Out-Null
+        $happTarget = Join-Path $happDirectory 'oasis.happ'
+        if (Test-Path -LiteralPath $happTarget) { throw 'Auto-start hApp fixture already exists; refusing to overwrite unknown state.' }
+        Copy-Item -LiteralPath $Happ -Destination $happTarget
+        $extracted = Join-Path ([Environment]::GetFolderPath('ApplicationData')) "NextGenSoftware/HoloNET/$version"
+        New-Item -ItemType Directory -Path $extracted -Force | Out-Null
+        foreach ($binary in @('hc','holochain')) {
+            $sourceName = if ($version -eq '0.7.0') { "$binary-0.7.0.exe" } else { "$binary.exe" }
+            $target = Join-Path $extracted "$binary.exe"
+            if ((Test-Path -LiteralPath $target) -and (Get-FileHash -LiteralPath $target).Hash -ine $tools[$sourceName]) {
+                throw 'Existing extracted conductor differs from the pinned release; refusing overwrite.'
+            }
+            if (-not (Test-Path -LiteralPath $target)) { Copy-Item -LiteralPath (Join-Path $resources $sourceName) -Destination $target }
+        }
+    }
+    $env:HOLONET_LIVE_AUTOSTART = '1'
+    $env:HOLONET_LIVE_EMBEDDED = '1'
+    $env:HOLONET_LIVE_HOLOCHAIN_BIN = Join-Path $extracted 'holochain.exe'
+    $env:HOLONET_LIVE_HC_BIN = Join-Path $extracted 'hc.exe'
+    & dotnet test $Project --configuration $Configuration -p:Embedded=true --filter 'FullyQualifiedName~LiveConductorAutoStartTests' --logger 'trx;LogFileName=holonet-auto-start.trx' --results-directory $ResultsDirectory --nologo
+    if ($LASTEXITCODE -ne 0) { throw 'Isolated HoloNET auto-start release tests failed.' }
+    Assert-CompleteTestReport (Join-Path $ResultsDirectory 'holonet-auto-start.trx') 11
+}
+finally {
+    foreach ($name in $autoNames) { [Environment]::SetEnvironmentVariable($name, $autoSaved[$name]) }
 }
