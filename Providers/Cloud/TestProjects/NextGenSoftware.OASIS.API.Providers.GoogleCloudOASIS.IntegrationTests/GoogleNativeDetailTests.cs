@@ -44,6 +44,7 @@ public class GoogleNativeDetailTests
             var read=await provider.LoadHolonAsync(holonId,loadChildren:false);Assert.IsFalse(read.IsError,read.Message);
             Assert.AreEqual(holonId,read.Result.Id);Assert.AreEqual(detail.Id,read.Result.ParentHolonId);Assert.AreEqual(detail.Id,read.Result.CreatedByAvatarId);
             Assert.AreEqual("owned-value",read.Result.MetaData["owned-field"]);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadHolonAsync(Guid.NewGuid(),loadChildren:false)).ErrorCode);
         }
         finally {foreach(var id in ids) await db.Collection("avatarDetails").Document(id.ToString()).DeleteAsync();await db.Collection("holons").Document(holonId.ToString()).DeleteAsync();await provider.DeActivateProviderAsync();}
     }
