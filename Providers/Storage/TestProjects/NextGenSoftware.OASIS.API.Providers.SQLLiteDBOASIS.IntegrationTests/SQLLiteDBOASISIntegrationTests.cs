@@ -124,6 +124,7 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
             var tombstone=new AvatarTombstone(id,DateTime.UtcNow);
             var failed=synchronous ? provider.ApplyAvatarTombstone(tombstone) : await provider.ApplyAvatarTombstoneAsync(tombstone);
             failed.IsError.Should().BeTrue(); failed.Result.Should().BeFalse(); failed.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
+            Core.Helpers.NativeMutationReconciliation.IsRequired(failed.Exception).Should().BeFalse("the partial pair update was rolled back before commit");
             NextGenSoftware.OASIS.API.Core.Helpers.AvatarTombstoneEvidence.TryGet(failed,out _).Should().BeFalse();
             control.Avatars.AsNoTracking().Single(row=>row.Id==id.ToString()).DeletedDate.Should().Be(DateTime.MinValue);
             control.AvatarDetails.AsNoTracking().Single(row=>row.Id==id.ToString()).DeletedDate.Should().Be(DateTime.MinValue);

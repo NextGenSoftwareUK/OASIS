@@ -21,6 +21,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         public async Task<OASISResult<bool>> ApplyAvatarTombstoneAsync(AvatarTombstone tombstone)
         {
             var result=new OASISResult<bool>();
+            var persistenceEntered=false;
+            var commitEntered=false;
             try
             {
                 ArgumentNullException.ThrowIfNull(tombstone);
@@ -43,6 +45,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                         && (detail == null || detail.DeletedDate==tombstone.DeletedAtUtc && TombstoneActor(detail.DeletedByAvatarId)==tombstone.DeletedByAvatarId && !detail.IsActive);
                     if(!already)
                     {
+                        persistenceEntered=true;
                         if(await _dbContext.Avatars.Where(row=>row.Id==id).ExecuteUpdateAsync(set=>set
                             .SetProperty(row=>row.DeletedDate,tombstone.DeletedAtUtc).SetProperty(row=>row.DeletedByAvatarId,actor).SetProperty(row=>row.IsActive,false)) != 1)
                             throw new InvalidOperationException("SQLite avatar changed during tombstone application.");
@@ -51,11 +54,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             throw new InvalidOperationException("SQLite avatar detail changed during tombstone application.");
                         changed=true;
                     }
+                    commitEntered=true;
                     await transaction.CommitAsync();
                 }
                 catch(Exception cause)
                 {
-                    try { await transaction.RollbackAsync(); }
+                    try
+                    {
+                        await transaction.RollbackAsync();
+                        if(!commitEntered) persistenceEntered=false;
+                    }
                     catch(Exception rollback) { throw new AggregateException("SQLite tombstone application and rollback failed.",cause,rollback); }
                     throw;
                 }
@@ -81,6 +89,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 }
                 else
                 {
+                    if(persistenceEntered || commitEntered)
+                        cause=new SqliteMutationReconciliationException(tombstone.AvatarId,cause);
                     OASISErrorHandling.HandleError(ref result,"SQLite committed tombstone application failed: "+cause.Message,cause);
                     if(cause is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
                 }
