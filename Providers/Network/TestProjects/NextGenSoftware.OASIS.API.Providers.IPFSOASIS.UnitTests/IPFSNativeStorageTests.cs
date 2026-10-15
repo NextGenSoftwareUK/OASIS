@@ -342,6 +342,34 @@ public class IPFSNativeStorageTests
             Assert.True((await provider.LoadAvatarAsync(id)).IsError);
             Assert.True((await provider.LoadAvatarDetailAsync(id)).IsError);
             Assert.False((await provider.LoadHolonAsync(id,loadChildren:false)).IsError);
+            var deletionFixture=new Holon {Id=Guid.NewGuid(),Name="owned holon deletion",IsActive=true};
+            await provider.SaveHolonToFile(deletionFixture);
+            ownedCids.Add(deletionFixture.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]); ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+            var deletedHolon=provider.DeleteHolon(deletionFixture.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]);
+            Assert.False(deletedHolon.IsError,deletedHolon.Message); Assert.True(deletedHolon.IsSaved);
+            Assert.False(deletedHolon.Result.IsActive); Assert.Equal(DateTimeKind.Utc,deletedHolon.Result.DeletedDate.Kind);
+            ownedCids.Add(deletedHolon.Result.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]); ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+            var deletionRoot=dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
+            Assert.False((await provider.DeleteHolonAsync(deletionFixture.Id)).IsError);
+            Assert.Equal(deletionRoot,dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+            Assert.IsType<ArgumentException>(provider.DeleteHolon(Guid.Empty).Exception);
+            Assert.Equal(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,(await provider.DeleteHolonAsync(Guid.NewGuid())).ErrorCode);
+            var deleteFaultFixture=new Holon {Id=Guid.NewGuid(),Name="owned failed holon deletion",IsActive=true};
+            await provider.SaveHolonToFile(deleteFaultFixture);
+            ownedCids.Add(deleteFaultFixture.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]); ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+            var deleteBefore=dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
+            var deleteKeyField=typeof(IPFSOASIS).GetField("_storageKeyResolver",BindingFlags.Instance|BindingFlags.NonPublic)!;
+            var deletePrior=deleteKeyField.GetValue(provider); var deleteCalls=0;
+            var deleteCause=new System.IO.IOException("owned holon delete index encryption failure");
+            deleteKeyField.SetValue(provider,new Func<byte[]>(()=>++deleteCalls==5 ? throw deleteCause:Convert.FromBase64String(Environment.GetEnvironmentVariable("OASIS_IPFS_STORAGE_ENCRYPTION_KEY")!)));
+            NextGenSoftware.OASIS.Common.OASISResult<IHolon> failedDelete;
+            try {failedDelete=await provider.DeleteHolonAsync(deleteFaultFixture.Id);}
+            finally {deleteKeyField.SetValue(provider,deletePrior);}
+            Assert.True(failedDelete.IsError); Assert.Equal(5,deleteCalls);
+            var deleteFailure=Assert.IsType<IPFSRecordPublicationException>(failedDelete.Exception);
+            Assert.Same(deleteCause,deleteFailure.InnerException); ownedCids.Add(deleteFailure.RecordCid);
+            Assert.Equal(deleteBefore,dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+            Assert.True((await provider.LoadHolonAsync(deleteFaultFixture.Id,loadChildren:false)).Result.IsActive);
             await provider.DeActivateProviderAsync();
             var version=await new Ipfs.Http.IpfsClient(endpoint).VersionAsync(); Assert.NotEmpty(version);
             verified=true;
