@@ -10,13 +10,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTest
 [TestClass]
 public class CosmosNativeStorageTests
 {
+    private const string EmulatorKey="C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==";
     [TestMethod]
     public async Task RetainedEmulatorPersistsProfilesInventoryAndGraphThroughOfficialSdk()
     {
         Assert.AreEqual("1",Environment.GetEnvironmentVariable("OASIS_COSMOSDB_NATIVE"));
         const string endpoint="https://127.0.0.1:8081";
         // Public emulator-only key documented by Microsoft; never a hosted-account credential.
-        const string key="C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==";
+        const string key=EmulatorKey;
         const string databaseName="oasis-cosmos-native";
         using var client=new CosmosClient(endpoint,key,new CosmosClientOptions {ConnectionMode=ConnectionMode.Gateway,
             RequestTimeout=TimeSpan.FromSeconds(10),MaxRetryAttemptsOnRateLimitedRequests=0,
@@ -165,8 +166,91 @@ public class CosmosNativeStorageTests
                     Assert.AreEqual("holon-value",holonRead.Result.MetaData["routed-field"].ToString());
                 }
             }
+            await VerifyFailureRoutingAsync(cosmos,sqlite,manager,router,avatar.Id,holonId);
             verified=true;
         }
         finally {await sqlite.DeActivateProviderAsync();sqlite.Dispose();if(verified && File.Exists(path)) File.Delete(path);}
+    }
+    private sealed class DeadlineFactory(CosmosClient client) : Infrastructure.ICosmosDbClientFactory
+    {
+        public Infrastructure.ICosmosDbClient GetClient(string name)
+            =>new DeadlineClient(new Infrastructure.CosmosDbClient(client.GetContainer("oasis-cosmos-native",name)));
+    }
+
+    private sealed class DeadlineClient(Infrastructure.ICosmosDbClient inner) : Infrastructure.ICosmosDbClient
+    {
+        private static async Task<T> Bound<T>(Func<CancellationToken,Task<T>> action,CancellationToken token)
+        {using var deadline=CancellationTokenSource.CreateLinkedTokenSource(token);deadline.CancelAfter(TimeSpan.FromSeconds(2));return await action(deadline.Token);}
+        public Task<string> ReadDocumentAsync(string id,PartitionKey? key,CancellationToken token=default)=>Bound(t=>inner.ReadDocumentAsync(id,key,t),token);
+        public string ReadDocumentByField(string field,string value,int version=0)=>inner.ReadDocumentByField(field,value,version);
+        public List<string> ReadAllDocuments()=>inner.ReadAllDocuments();
+        public Task<string> CreateDocumentAsync(object doc,PartitionKey? key,CancellationToken token=default)=>Bound(t=>inner.CreateDocumentAsync(doc,key,t),token);
+        public Task<string> UpsertDocumentAsync(object doc,PartitionKey? key,CancellationToken token=default)=>Bound(t=>inner.UpsertDocumentAsync(doc,key,t),token);
+        public async Task ReplaceDocumentAsync(string id,object doc,PartitionKey? key,CancellationToken token=default)
+            =>await Bound(async t=>{await inner.ReplaceDocumentAsync(id,doc,key,t);return true;},token);
+        public async Task DeleteDocumentAsync(string id,PartitionKey? key,CancellationToken token=default)
+            =>await Bound(async t=>{await inner.DeleteDocumentAsync(id,key,t);return true;},token);
+    }
+
+    private static async Task VerifyFailureRoutingAsync(AzureCosmosDBOASIS cosmos,IOASISStorageProvider sqlite,
+        Core.Managers.ProviderManager manager,Core.Managers.OASISHyperDrive.OASISHyperDrive router,Guid avatarId,Guid holonId)
+    {
+        manager.IsAutoReplicationEnabled=false;manager.IsAutoFailOverEnabled=true;
+        Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(new[] {
+            new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.AzureCosmosDBOASIS),
+            new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.SQLLiteDBOASIS)}).IsError);
+        var stale=Guid.NewGuid();
+        Assert.IsFalse((await sqlite.SaveAvatarAsync(new Avatar {Id=stale,IsActive=true,Username="stale-"+stale,
+            AvatarType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User)})).IsError);
+        Assert.IsFalse((await sqlite.SaveAvatarDetailAsync(new AvatarDetail {Id=stale,IsActive=true,XP=999})).IsError);
+        Assert.IsFalse((await sqlite.SaveHolonAsync(new Holon {Id=stale,IsActive=true},saveChildren:false)).IsError);
+        foreach(var asynchronous in new[] {false,true})
+        {
+            var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests;
+            var a=new Core.StorageOperationRequest {Operation="LoadAvatar",AvatarId=stale,PreferredProvider=Core.Enums.ProviderType.AzureCosmosDBOASIS};
+            var d=new Core.StorageOperationRequest {Operation="LoadAvatarDetail",AvatarId=stale,PreferredProvider=Core.Enums.ProviderType.AzureCosmosDBOASIS};
+            var h=new Core.StorageOperationRequest {Operation="LoadHolon",HolonId=stale,LoadChildren=false,PreferredProvider=Core.Enums.ProviderType.AzureCosmosDBOASIS};
+            var ar=asynchronous ? await router.RouteRequestAsync<IAvatar>(a):router.RouteRequest<IAvatar>(a);
+            var dr=asynchronous ? await router.RouteRequestAsync<IAvatarDetail>(d):router.RouteRequest<IAvatarDetail>(d);
+            var hr=asynchronous ? await router.RouteRequestAsync<IHolon>(h):router.RouteRequest<IHolon>(h);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,ar.ErrorCode);Assert.IsNull(ar.Result);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,dr.ErrorCode);Assert.IsNull(dr.Result);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,hr.ErrorCode);Assert.IsNull(hr.Result);
+            Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests);
+        }
+        using var failedSdk=new CosmosClient("https://127.0.0.1:8082",EmulatorKey,new CosmosClientOptions {ConnectionMode=ConnectionMode.Gateway,
+            LimitToEndpoint=true,RequestTimeout=TimeSpan.FromSeconds(2),MaxRetryAttemptsOnRateLimitedRequests=0,
+            HttpClientFactory=()=>new HttpClient(new HttpClientHandler {ServerCertificateCustomValidationCallback=HttpClientHandler.DangerousAcceptAnyServerCertificateValidator})});
+        var factory=new DeadlineFactory(failedSdk);
+        var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+        var originals=new Dictionary<System.Reflection.FieldInfo,object>();
+        foreach(var pair in new Dictionary<string,object> {{"avatarRepository",new Infrastructure.AvatarRepository(factory)},
+            {"avatarDetailRepository",new Infrastructure.AvatarDetailRepository(factory)},{"holonRepository",new Infrastructure.HolonRepository(factory)}})
+        {var field=typeof(AzureCosmosDBOASIS).GetField(pair.Key,flags)!;originals[field]=field.GetValue(cosmos)!;field.SetValue(cosmos,pair.Value);}
+        try
+        {
+            foreach(var asynchronous in new[] {false,true})
+            {
+                var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests;
+                var a=new Core.StorageOperationRequest {Operation="LoadAvatar",AvatarId=avatarId,PreferredProvider=Core.Enums.ProviderType.AzureCosmosDBOASIS};
+                var d=new Core.StorageOperationRequest {Operation="LoadAvatarDetail",AvatarId=avatarId,PreferredProvider=Core.Enums.ProviderType.AzureCosmosDBOASIS};
+                var h=new Core.StorageOperationRequest {Operation="LoadHolon",HolonId=holonId,LoadChildren=false,PreferredProvider=Core.Enums.ProviderType.AzureCosmosDBOASIS};
+                var ar=asynchronous ? await router.RouteRequestAsync<IAvatar>(a):router.RouteRequest<IAvatar>(a);
+                Assert.IsFalse(ar.IsError,ar.Message);Assert.AreEqual("routed profile",ar.Result.FirstName);
+                var dr=asynchronous ? await router.RouteRequestAsync<IAvatarDetail>(d):router.RouteRequest<IAvatarDetail>(d);
+                Assert.IsFalse(dr.IsError,dr.Message);Assert.AreEqual(404L,dr.Result.Karma);
+                var hr=asynchronous ? await router.RouteRequestAsync<IHolon>(h):router.RouteRequest<IHolon>(h);
+                Assert.IsFalse(hr.IsError,hr.Message);Assert.AreEqual(holonId,hr.Result.Id);
+                Assert.AreEqual(Core.Enums.ProviderType.SQLLiteDBOASIS,manager.LastFailoverDiagnostic.SelectedProvider);
+                Assert.AreEqual(before+3,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests);
+                var failedId=Guid.NewGuid();
+                var failed=new Core.StorageOperationRequest {Operation="SaveAvatarDetail",Payload=new AvatarDetail {Id=failedId,IsActive=true,XP=888},PreferredProvider=Core.Enums.ProviderType.AzureCosmosDBOASIS};
+                var written=asynchronous ? await router.RouteRequestAsync<IAvatarDetail>(failed):router.RouteRequest<IAvatarDetail>(failed);
+                Assert.IsTrue(written.IsError);Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(written.Exception));
+                Assert.AreEqual(before+3,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests);
+                Assert.IsNull((await sqlite.LoadAvatarDetailAsync(failedId)).Result);
+            }
+        }
+        finally {foreach(var pair in originals) pair.Key.SetValue(cosmos,pair.Value);manager.IsAutoFailOverEnabled=false;}
     }
 }
