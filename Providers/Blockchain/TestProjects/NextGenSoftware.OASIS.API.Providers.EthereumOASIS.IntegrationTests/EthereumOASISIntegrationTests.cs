@@ -71,6 +71,12 @@ public class EthereumOASISIntegrationTests
         Assert.IsFalse(saved.IsError, saved.Message);
         Assert.IsTrue(saved.IsSaved);
 
+        var nativeService = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),provider.ContractAddress);
+        var payload = (await nativeService.GetHolonByIdQueryAsync(
+            NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(holon.Id.ToString()))).ReturnValue1.Info;
+        StringAssert.StartsWith(payload,"oasis-aes256gcm-gzip-v2:");
+        Assert.IsFalse(payload.Contains(holon.Name));
+
         var loaded = await provider.LoadHolonAsync(holon.Id);
         Assert.IsFalse(loaded.IsError, loaded.Message);
         Assert.IsNotNull(loaded.Result);
@@ -181,6 +187,90 @@ public class EthereumOASISIntegrationTests
         Assert.IsTrue(activation.IsError);
         Assert.IsFalse(provider.IsProviderActivated);
         StringAssert.Contains(activation.Message, "does not match configured chain ID");
+    }
+
+    [TestMethod]
+    public async Task PrivateReadsRejectPlaintextAndCrossTypeCiphertext()
+    {
+        var (provider,address) = await CreateActivatedProviderAsync();
+        var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        var holon = new CoreHolon { Id=Guid.NewGuid(),Name="synthetic encrypted source" };
+        Assert.IsFalse((await provider.SaveHolonAsync(holon,saveChildren:false)).IsError);
+        var entityId = NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(holon.Id.ToString());
+        var ciphertext = (await service.GetHolonByIdQueryAsync(entityId)).ReturnValue1.Info;
+        await service.CreateAvatarRequestAndWaitForReceiptAsync(entityId,holon.Id.ToString(),ciphertext);
+        var crossed = await provider.LoadAvatarAsync(holon.Id);
+        Assert.IsTrue(crossed.IsError);
+        Assert.IsNull(crossed.Result);
+        Assert.IsInstanceOfType(crossed.Exception,typeof(System.Security.Cryptography.CryptographicException));
+        var plain = new CoreHolon { Id=Guid.NewGuid(),Name="synthetic plaintext must reject" };
+        await service.CreateHolonRequestAndWaitForReceiptAsync(
+            NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(plain.Id.ToString()),plain.Id.ToString(),Newtonsoft.Json.JsonConvert.SerializeObject(plain));
+        var rejected = await provider.LoadHolonAsync(plain.Id,loadChildren:false);
+        Assert.IsTrue(rejected.IsError);
+        Assert.IsNull(rejected.Result);
+        Assert.IsInstanceOfType(rejected.Exception,typeof(System.Security.Cryptography.CryptographicException));
+        Assert.AreEqual(holon.Name,(await provider.LoadHolonAsync(holon.Id,loadChildren:false)).Result.Name);
+        await provider.DeActivateProviderAsync();
+    }
+
+    [TestMethod]
+    public async Task AvatarAndDetailPayloadsAreEncryptedWithRealNativeReadback()
+    {
+        var (provider,address) = await CreateActivatedProviderAsync();
+        var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        var avatar = new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=Guid.NewGuid(),
+            Username="synthetic-private-avatar",Email="private-avatar@example.invalid",Password="synthetic-password-hash" };
+        var saved = await provider.SaveAvatarAsync(avatar);
+        Assert.IsFalse(saved.IsError,saved.Message);
+        var raw = (await service.GetAvatarByIdQueryAsync(
+            NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(avatar.Id.ToString()))).ReturnValue1.Info;
+        StringAssert.StartsWith(raw,"oasis-aes256gcm-gzip-v2:");
+        Assert.IsFalse(raw.Contains(avatar.Email));
+        Assert.IsFalse(raw.Contains(avatar.Password));
+        var read = await provider.LoadAvatarAsync(avatar.Id);
+        Assert.IsFalse(read.IsError,read.Message);
+        Assert.AreEqual(avatar.Email,read.Result.Email);
+        Assert.AreEqual(avatar.Password,read.Result.Password);
+        var detail = new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=Guid.NewGuid(),
+            Email="private-detail@example.invalid",Karma=654,XP=321 };
+        var savedDetail = await provider.SaveAvatarDetailAsync(detail);
+        Assert.IsFalse(savedDetail.IsError,savedDetail.Message);
+        var rawDetail = (await service.GetAvatarDetailByIdQueryAsync(
+            NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(detail.Id.ToString()))).ReturnValue1.Info;
+        StringAssert.StartsWith(rawDetail,"oasis-aes256gcm-gzip-v2:");
+        Assert.IsFalse(rawDetail.Contains(detail.Email));
+        var readDetail = await provider.LoadAvatarDetailAsync(detail.Id);
+        Assert.IsFalse(readDetail.IsError,readDetail.Message);
+        Assert.AreEqual(detail.Email,readDetail.Result.Email);
+        Assert.AreEqual(detail.Karma,readDetail.Result.Karma);
+        Assert.AreEqual(detail.XP,readDetail.Result.XP);
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task MissingPrivateStorageKeyDoesNotSubmitAnEthereumTransaction(bool synchronous)
+    {
+        var (provider,address) = await CreateActivatedProviderAsync();
+        var web3 = new Web3(new Account(PrivateKey,ChainId),Host);
+        var service = new NextGenSoftwareOASISService(web3,address);
+        var before = await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(new Account(PrivateKey,ChainId).Address);
+        var prior = Environment.GetEnvironmentVariable("OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY");
+        try
+        {
+            Environment.SetEnvironmentVariable("OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY",null);
+            var holon = new CoreHolon { Id=Guid.NewGuid(),Name="must not be published" };
+            var result = synchronous ? provider.SaveHolon(holon,saveChildren:false) : await provider.SaveHolonAsync(holon,saveChildren:false);
+            Assert.IsTrue(result.IsError);
+            Assert.IsFalse(result.IsSaved);
+            Assert.IsNotNull(result.Exception);
+        }
+        finally { Environment.SetEnvironmentVariable("OASIS_ETHEREUM_STORAGE_ENCRYPTION_KEY",prior); }
+        Assert.AreEqual(before.Value,(await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(new Account(PrivateKey,ChainId).Address)).Value);
+        Assert.AreEqual(BigInteger.Zero,await service.GetHolonsCountQueryAsync());
+        await provider.DeActivateProviderAsync();
     }
 
     [TestMethod]
