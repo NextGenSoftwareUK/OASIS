@@ -380,18 +380,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             HolonModel holonEntity = null;
             var graphModels = new List<HolonModel>();
+            var persistenceEntered = false;
             try
             {
                 graphModels = PrepareGraph(new[] { holon }, saveChildren, recursive, maxChildDepth);
                 for (var index = 0; index < graphModels.Count; index++) graphModels[index] = AddOrUpdateHolon(graphModels[index]);
                 holonEntity = graphModels[0];
+                persistenceEntered = true;
                 _dbContext.SaveChanges();
                 return new OASISResult<IHolon>
                     {IsError = false, Result = GetHolonFromEntity(holonEntity), IsSaved = true};
             }
             catch (Exception ex)
             {
-                DetachOwnedFailedWrites(graphModels.Select(model => model.Id));
+                ex = HolonSaveFailure(graphModels, persistenceEntered, ex);
                 return new OASISResult<IHolon>
                 {
                     IsError = true,
@@ -406,18 +408,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             HolonModel holonEntity = null;
             var graphModels = new List<HolonModel>();
+            var persistenceEntered = false;
             try
             {
                 graphModels = PrepareGraph(new[] { holon }, saveChildren, recursive, maxChildDepth);
                 for (var index = 0; index < graphModels.Count; index++) graphModels[index] = AddOrUpdateHolon(graphModels[index]);
                 holonEntity = graphModels[0];
+                persistenceEntered = true;
                 await _dbContext.SaveChangesAsync();
                 return new OASISResult<IHolon>
                     {IsError = false, Result = GetHolonFromEntity(holonEntity), IsSaved = true};
             }
             catch (Exception ex)
             {
-                DetachOwnedFailedWrites(graphModels.Select(model => model.Id));
+                ex = HolonSaveFailure(graphModels, persistenceEntered, ex);
                 return new OASISResult<IHolon>
                 {
                     IsError = true,
@@ -431,6 +435,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true)
         {
             var models = new List<HolonModel>();
+            var persistenceEntered = false;
             try
             {
                 var roots = holons.ToList();
@@ -438,6 +443,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 var rootIds = new HashSet<string>(roots.Select(root => root.Id.ToString()));
                 for (var index = 0; index < models.Count; index++) models[index] = AddOrUpdateHolon(models[index]);
 
+                persistenceEntered = true;
                 _dbContext.SaveChanges();
 
                 return new OASISResult<IEnumerable<IHolon>>
@@ -445,7 +451,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
-                DetachOwnedFailedWrites(models.Select(model => model.Id));
+                ex = HolonSaveFailure(models, persistenceEntered, ex);
                 return new OASISResult<IEnumerable<IHolon>>
                 {
                     IsError = true,
@@ -460,6 +466,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             bool continueOnError = true)
         {
             var models = new List<HolonModel>();
+            var persistenceEntered = false;
             try
             {
                 var roots = holons.ToList();
@@ -467,6 +474,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 var rootIds = new HashSet<string>(roots.Select(root => root.Id.ToString()));
                 for (var index = 0; index < models.Count; index++) models[index] = AddOrUpdateHolon(models[index]);
 
+                persistenceEntered = true;
                 await _dbContext.SaveChangesAsync();
 
                 return new OASISResult<IEnumerable<IHolon>>
@@ -474,7 +482,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             }
             catch (Exception ex)
             {
-                DetachOwnedFailedWrites(models.Select(model => model.Id));
+                ex = HolonSaveFailure(models, persistenceEntered, ex);
                 return new OASISResult<IEnumerable<IHolon>>
                 {
                     IsError = true,
@@ -482,6 +490,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     Exception = ex, Message = ex.Message
                 };
             }
+        }
+
+        private Exception HolonSaveFailure(List<HolonModel> models, bool persistenceEntered, Exception cause)
+        {
+            try { DetachOwnedFailedWrites(models.Select(model => model.Id)); }
+            catch (Exception cleanup) { cause = new AggregateException("SQLite failure cleanup also failed.", cause, cleanup); }
+            return persistenceEntered
+                ? new SqliteMutationReconciliationException(models.Select(model => Guid.Parse(model.Id)), cause)
+                : cause;
         }
 
         public OASISResult<IHolon> DeleteHolon(Guid id, bool softDelete = true)

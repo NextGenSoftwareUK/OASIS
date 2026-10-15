@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
@@ -7,7 +9,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 public sealed class SqliteMutationReconciliationException : Exception,INativeMutationReconciliationRequired
 {
     public Guid RecordId {get;}
+    public IReadOnlyList<Guid> RecordIds {get;}
     public string OriginalTransactionId=>string.Empty; // SQLite exposes no original transaction identity here; never invent one.
     public SqliteMutationReconciliationException(Guid recordId,Exception cause)
-        :base("SQLite detail persistence outcome requires reconciliation before replay.",cause) {RecordId=recordId;}
+        :this(new[] {recordId},cause) {}
+    public SqliteMutationReconciliationException(IEnumerable<Guid> recordIds,Exception cause)
+        :base("SQLite persistence outcome requires reconciliation before replay.",cause)
+    {
+        RecordIds=Array.AsReadOnly(recordIds.Distinct().ToArray());
+        RecordId=RecordIds.FirstOrDefault();
+    }
 }
