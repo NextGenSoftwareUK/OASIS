@@ -385,6 +385,7 @@ jobs:
         uses: actions/checkout@v7
         with:
           repository: holochain-open-dev/holochain-client-csharp
+          ref: e1133056649a67adb5c79b329e7b84876849ce5b
           path: holochain-client-csharp
       - name: Checkout OASIS Holochain hApp source
         uses: actions/checkout@v7

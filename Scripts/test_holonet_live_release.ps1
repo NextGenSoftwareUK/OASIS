@@ -11,8 +11,8 @@ if ($env:GITHUB_ACTIONS -ne 'true' -or -not $IsWindows) {
 }
 $resources = Join-Path (Split-Path (Split-Path $Project -Parent) -Parent) 'NextGenSoftware.Holochain.HoloNET.Client/Resources'
 $tools = @{
-    'hc.exe' = '643ed26e84a7ae72a454bd78b9427b50883fb1306406ba7b5fa4857c61c6b322'
-    'holochain.exe' = '5d9bd8cf28c45645158d56198cfec38d04ac4cf620ba89ca37db2f7c46d7b3d2'
+    'hc-0.7.0.exe' = '643ed26e84a7ae72a454bd78b9427b50883fb1306406ba7b5fa4857c61c6b322'
+    'holochain-0.7.0.exe' = '5d9bd8cf28c45645158d56198cfec38d04ac4cf620ba89ca37db2f7c46d7b3d2'
 }
 foreach ($name in $tools.Keys) {
     $path = Join-Path $resources $name
@@ -20,8 +20,8 @@ foreach ($name in $tools.Keys) {
         throw "Bundled $name differs from the official Holochain 0.7.0 release digest."
     }
 }
-$hc = Join-Path $resources 'hc.exe'
-$conductor = Join-Path $resources 'holochain.exe'
+$hc = Join-Path $resources 'hc-0.7.0.exe'
+$conductor = Join-Path $resources 'holochain-0.7.0.exe'
 $fixture = Join-Path $ResultsDirectory 'holonet-live-fixture'
 if (Test-Path -LiteralPath $fixture) { throw 'Conductor fixture already exists; reconcile the prior run rather than reusing state.' }
 New-Item -ItemType Directory -Path $fixture | Out-Null
