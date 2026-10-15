@@ -1484,6 +1484,45 @@ internal static partial class Web3CoreOASISBaseProviderHelper
         ""type"": ""bytes32""
       },
       {
+        ""internalType"": ""bool"",
+        ""name"": ""expectedPresent"",
+        ""type"": ""bool""
+      },
+      {
+        ""internalType"": ""bytes32"",
+        ""name"": ""expectedHash"",
+        ""type"": ""bytes32""
+      },
+      {
+        ""internalType"": ""bytes"",
+        ""name"": ""info"",
+        ""type"": ""bytes""
+      }
+    ],
+    ""name"": ""upsertAvatarChecked"",
+    ""outputs"": [
+      {
+        ""internalType"": ""bool"",
+        ""name"": """",
+        ""type"": ""bool""
+      }
+    ],
+    ""stateMutability"": ""nonpayable"",
+    ""type"": ""function""
+  },
+  {
+    ""inputs"": [
+      {
+        ""internalType"": ""uint256"",
+        ""name"": ""entityId"",
+        ""type"": ""uint256""
+      },
+      {
+        ""internalType"": ""bytes32"",
+        ""name"": ""externalId"",
+        ""type"": ""bytes32""
+      },
+      {
         ""internalType"": ""bytes"",
         ""name"": ""info"",
         ""type"": ""bytes""
@@ -1513,12 +1552,90 @@ internal static partial class Web3CoreOASISBaseProviderHelper
         ""type"": ""bytes32""
       },
       {
+        ""internalType"": ""bool"",
+        ""name"": ""expectedPresent"",
+        ""type"": ""bool""
+      },
+      {
+        ""internalType"": ""bytes32"",
+        ""name"": ""expectedHash"",
+        ""type"": ""bytes32""
+      },
+      {
+        ""internalType"": ""bytes"",
+        ""name"": ""info"",
+        ""type"": ""bytes""
+      }
+    ],
+    ""name"": ""upsertAvatarDetailChecked"",
+    ""outputs"": [
+      {
+        ""internalType"": ""bool"",
+        ""name"": """",
+        ""type"": ""bool""
+      }
+    ],
+    ""stateMutability"": ""nonpayable"",
+    ""type"": ""function""
+  },
+  {
+    ""inputs"": [
+      {
+        ""internalType"": ""uint256"",
+        ""name"": ""entityId"",
+        ""type"": ""uint256""
+      },
+      {
+        ""internalType"": ""bytes32"",
+        ""name"": ""externalId"",
+        ""type"": ""bytes32""
+      },
+      {
         ""internalType"": ""bytes"",
         ""name"": ""info"",
         ""type"": ""bytes""
       }
     ],
     ""name"": ""upsertHolon"",
+    ""outputs"": [
+      {
+        ""internalType"": ""bool"",
+        ""name"": """",
+        ""type"": ""bool""
+      }
+    ],
+    ""stateMutability"": ""nonpayable"",
+    ""type"": ""function""
+  },
+  {
+    ""inputs"": [
+      {
+        ""internalType"": ""uint256"",
+        ""name"": ""entityId"",
+        ""type"": ""uint256""
+      },
+      {
+        ""internalType"": ""bytes32"",
+        ""name"": ""externalId"",
+        ""type"": ""bytes32""
+      },
+      {
+        ""internalType"": ""bool"",
+        ""name"": ""expectedPresent"",
+        ""type"": ""bool""
+      },
+      {
+        ""internalType"": ""bytes32"",
+        ""name"": ""expectedHash"",
+        ""type"": ""bytes32""
+      },
+      {
+        ""internalType"": ""bytes"",
+        ""name"": ""info"",
+        ""type"": ""bytes""
+      }
+    ],
+    ""name"": ""upsertHolonChecked"",
     ""outputs"": [
       {
         ""internalType"": ""bool"",

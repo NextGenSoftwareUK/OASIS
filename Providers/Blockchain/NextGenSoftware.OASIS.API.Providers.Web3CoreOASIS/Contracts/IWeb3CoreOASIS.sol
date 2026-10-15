@@ -29,6 +29,9 @@ interface IWeb3CoreOASIS {
     function upsertAvatar(uint256 entityId, bytes32 externalId, bytes memory info) external returns (bool);
     function upsertAvatarDetail(uint256 entityId, bytes32 externalId, bytes memory info) external returns (bool);
     function upsertHolon(uint256 entityId, bytes32 externalId, bytes memory info) external returns (bool);
+    function upsertAvatarChecked(uint256 entityId, bytes32 externalId, bool expectedPresent, bytes32 expectedHash, bytes memory info) external returns (bool);
+    function upsertAvatarDetailChecked(uint256 entityId, bytes32 externalId, bool expectedPresent, bytes32 expectedHash, bytes memory info) external returns (bool);
+    function upsertHolonChecked(uint256 entityId, bytes32 externalId, bool expectedPresent, bytes32 expectedHash, bytes memory info) external returns (bool);
 
     function deleteAvatar(uint256 entityId) external returns (bool);
     function deleteAvatarDetail(uint256 entityId) external returns (bool);
