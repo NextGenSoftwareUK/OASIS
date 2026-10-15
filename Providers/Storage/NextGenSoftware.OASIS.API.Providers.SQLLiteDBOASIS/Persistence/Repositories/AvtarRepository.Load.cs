@@ -55,7 +55,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                             //if (AvatarManager.LoggedInAvatar != null)
                             //avatarResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
-                            avatarResult.Result.DeletedDate = DateTime.Now;
+                            var deletedAt = DateTime.UtcNow;
+                            avatarResult.Result.DeletedDate = deletedAt;
+                            avatarResult.Result.IsActive = false;
                             //_dbContext.Avatar.ReplaceOne(filter: g => g.HolonId == avatarResult.Result.HolonId, replacement: avatarResult.Result);
                             //this.eFContext.AvatarEntities.Where(x => x.HolonId == avatarResult.Result.HolonId);
 
@@ -69,7 +71,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                                 //if (AvatarManager.LoggedInAvatar != null)
                                 //    avatarDetailResult.Result.DeletedByAvatarId = AvatarManager.LoggedInAvatar.Id;
 
-                                avatarDetailResult.Result.DeletedDate = DateTime.Now;
+                                avatarDetailResult.Result.DeletedDate = deletedAt;
+                                avatarDetailResult.Result.IsActive = false;
                                 //_dbContext.AvatarDetail.ReplaceOne(filter: g => g.HolonId == avatarDetailResult.Result.HolonId, replacement: avatarDetailResult.Result);
                                 _dbContext.Avatars.Where(x => x.Id == avatarResult.Result.Id);
                                 result.Result = true;
