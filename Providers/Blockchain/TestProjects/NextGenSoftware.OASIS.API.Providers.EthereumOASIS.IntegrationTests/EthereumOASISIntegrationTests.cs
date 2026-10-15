@@ -556,6 +556,38 @@ public class EthereumOASISIntegrationTests
         await provider.DeActivateProviderAsync();
     }
 
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task NativeSearchIsolatesTargetsAndHonorsParentGuidSearch(bool synchronous)
+    {
+        var (provider,address)=await CreateActivatedProviderAsync();
+        var parent=Guid.NewGuid();
+        var row=new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=parent,Name="targeted holon" };
+        var avatar=new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=Guid.NewGuid(),Username="targeted avatar" };
+        Assert.IsFalse((await provider.SaveHolonAsync(row)).IsError); Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+        async Task<OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.Search.ISearchResults>> Run(SearchTextGroup group)
+        {
+            var query=new SearchParams { SearchOnlyForCurrentAvatar=false,SearchGroups=new List<ISearchGroupBase> {group} };
+            return synchronous ? provider.Search(query,loadChildren:false) : await provider.SearchAsync(query,loadChildren:false);
+        }
+        var idGroup=new SearchTextGroup { SearchQuery=parent.ToString(),SearchHolons=true,SearchIds=false,HolonType=HolonType.All };
+        var noIds=await Run(idGroup); Assert.IsFalse(noIds.IsError,noIds.Message); Assert.AreEqual(0,noIds.Result.NumberOfResults);
+        idGroup.SearchIds=true;
+        var ids=await Run(idGroup); Assert.IsFalse(ids.IsError,ids.Message); Assert.AreEqual(row.Id,ids.Result.SearchResultHolons.Single().Id);
+        var service=new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        await service.CreateAvatarRequestAndWaitForReceiptAsync(NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(avatar.Id.ToString()),avatar.Id.ToString(),"corrupt avatar");
+        var holons=await Run(new SearchTextGroup { SearchQuery="targeted",SearchHolons=true,HolonType=HolonType.All });
+        Assert.IsFalse(holons.IsError,holons.Message); Assert.AreEqual(row.Id,holons.Result.SearchResultHolons.Single().Id);
+        var avatars=await Run(new SearchTextGroup { SearchQuery="targeted",SearchAvatars=true,HolonType=HolonType.All });
+        Assert.IsTrue(avatars.IsError); Assert.IsNull(avatars.Result); Assert.IsNotNull(avatars.Exception);
+        Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+        await service.CreateHolonRequestAndWaitForReceiptAsync(NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(row.Id.ToString()),row.Id.ToString(),"corrupt holon");
+        var isolated=await Run(new SearchTextGroup { SearchQuery="targeted",SearchAvatars=true,HolonType=HolonType.All });
+        Assert.IsFalse(isolated.IsError,isolated.Message); Assert.AreEqual(avatar.Id,isolated.Result.SearchResultAvatars.Single().Id);
+        await provider.DeActivateProviderAsync();
+    }
+
     [TestMethod]
     public async Task Holon_SaveLoadRoundTrip_UsesDisposableEvmChain()
     {

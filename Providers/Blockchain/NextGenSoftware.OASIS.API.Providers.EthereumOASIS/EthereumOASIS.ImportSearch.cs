@@ -274,21 +274,36 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     if(group.AvatarSearchParams?.SearchAvatarWalletParams != null)
                         throw new NotSupportedException("Ethereum wallet-field search is not implemented.");
                 }
-                var avatars=await LoadAllAvatarsAsync(version);
-                if(avatars.IsError)
+                if(version != 0) throw new NotSupportedException("Ethereum search history is not implemented; only current version 0 is supported.");
+                if(maxChildDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
+                var groups=searchParams.SearchGroups ?? new List<ISearchGroupBase>();
+                var wantsAvatars=groups.Count == 0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
+                var wantsHolons=groups.Count == 0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);
+                var avatars=new List<IAvatar>();
+                var holons=new List<IHolon>();
+                if(wantsAvatars)
                 {
-                    OASISErrorHandling.HandleError(ref result,avatars.Message,avatars.Exception);
-                    result.ErrorCode=avatars.ErrorCode; return result;
+                    var loaded=await LoadAllAvatarsAsync(version);
+                    if(loaded.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result,loaded.Message,loaded.Exception);
+                        result.ErrorCode=loaded.ErrorCode; return result;
+                    }
+                    avatars=loaded.Result.ToList();
                 }
-                var holons=await LoadAllHolonsAsync(HolonType.All,loadChildren,recursive,maxChildDepth,0,continueOnError,false,version);
-                if(holons.IsError)
+                if(wantsHolons || searchParams.ParentId != Guid.Empty)
                 {
-                    OASISErrorHandling.HandleError(ref result,holons.Message,holons.Exception);
-                    result.ErrorCode=holons.ErrorCode; return result;
+                    var loaded=await LoadAllHolonsAsync(HolonType.All,loadChildren,recursive,maxChildDepth,0,continueOnError,false,version);
+                    if(loaded.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result,loaded.Message,loaded.Exception);
+                        result.ErrorCode=loaded.ErrorCode; return result;
+                    }
+                    holons=loaded.Result.ToList();
                 }
                 var found=new SearchResults();
-                found.SearchResultAvatars.AddRange(avatars.Result.Where(row=>SearchRecordMatches(row,true,searchParams,holons.Result)));
-                found.SearchResultHolons.AddRange(holons.Result.Where(row=>SearchRecordMatches(row,false,searchParams,holons.Result)));
+                found.SearchResultAvatars.AddRange(avatars.Where(row=>SearchRecordMatches(row,true,searchParams,holons)));
+                if(wantsHolons) found.SearchResultHolons.AddRange(holons.Where(row=>SearchRecordMatches(row,false,searchParams,holons)));
                 found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
                 result.Result=found; result.IsLoaded=true;
             }
