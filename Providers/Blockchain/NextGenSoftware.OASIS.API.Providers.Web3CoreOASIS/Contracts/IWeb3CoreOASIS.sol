@@ -26,6 +26,9 @@ interface IWeb3CoreOASIS {
     function getAvatarsCount() external view returns (uint256);
     function getAvatarDetailsCount() external view returns (uint256);
     function getHolonsCount() external view returns (uint256);
+    function getAvatarsPage(uint256 offset, uint256 limit) external view returns (EntityOASIS[] memory);
+    function getAvatarDetailsPage(uint256 offset, uint256 limit) external view returns (EntityOASIS[] memory);
+    function getHolonsPage(uint256 offset, uint256 limit) external view returns (EntityOASIS[] memory);
 
     function mint(address to, string memory metadataJson) external;
     function getTransferHistory(uint256 tokenId) external view returns (NFTTransfer[] memory);
