@@ -88,6 +88,11 @@ try {
     & dotnet test 'Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests.csproj' `
         -c Release /m:2 /nr:false /p:UseSharedCompilation=false --logger 'trx;LogFileName=aws-provider.trx' --results-directory $artifacts -v:minimal
     if ($LASTEXITCODE -ne 0) { throw "AWSOASIS provider evidence failed with exit code $LASTEXITCODE." }
+    [xml]$report = Get-Content -LiteralPath (Join-Path $artifacts 'aws-provider.trx') -Raw
+    $counters = $report.TestRun.ResultSummary.Counters
+    if ([int]$counters.total -ne 4 -or [int]$counters.passed -ne 4 -or [int]$counters.notExecuted -ne 0) {
+        throw 'Expected exactly four passing native AWS tests without skips.'
+    }
 
     [ordered]@{
         generatedAtUtc = [DateTime]::UtcNow.ToString('O')
@@ -95,7 +100,7 @@ try {
         client = 'AWSSDK.DynamoDBv2'
         runtime = 'Official Amazon DynamoDB Local'
         runtimeArchiveSha256 = $actual
-        tests = 2
+        tests = [int]$counters.total
         skipped = 0
         status = 'PASS'
     } | ConvertTo-Json -Depth 4 | Set-Content -Encoding utf8 (Join-Path $artifacts 'summary.json')
