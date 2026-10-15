@@ -26,122 +26,15 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
     public partial class MongoDBOASIS
     {
 
+        // Each bulk request is one mutation unit: failed writes must not leave earlier roots committed.
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            List<IHolon> savedHolons = new List<IHolon>();
-
-            if (holons == null)
-            {
-                result.Message = "Holons is null";
-                result.IsWarning = true;
-                result.IsSaved = false;
-                return result;
-            }
-
-            if (holons.Count() == 0)
-            {
-                result.Message = "Holons collection is empty.";
-                result.IsWarning = true;
-                result.IsSaved = false;
-                return result;
-            }
-
-            // Recursively save all child holons.
-            foreach (IHolon holon in holons)
-            {
-                OASISResult<IHolon> holonResult = SaveHolon(holon, false, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-
-                if (!holonResult.IsError && holonResult.Result != null)
-                {
-                    if (saveChildren && saveChildrenOnProvider && holonResult.Result.Children != null && holonResult.Result.Children.Count() > 0
-                        && (recursive && (maxChildDepth == 0 || curentChildDepth < maxChildDepth)))
-                    {
-                        OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(holonResult.Result.Children, saveChildren, recursive, maxChildDepth, curentChildDepth + 1, continueOnError, saveChildrenOnProvider);
-
-                        if (!saveChildrenResult.IsError && saveChildrenResult.Result != null)
-                            holonResult.Result.Children = saveChildrenResult.Result.ToList();
-                        else
-                        {
-                            result.IsError = true;
-                            result.InnerMessages.Add($"Holon with id {holon.Id} and name {holon.Name} saved but it's children failed to save. Reason: {saveChildrenResult.Message}");
-                        }
-                    }
-
-                    savedHolons.Add(holonResult.Result);
-                }
-                else
-                {
-                    result.IsError = true;
-                    result.InnerMessages.Add($"Holon with id {holon.Id} and name {holon.Name} faild to save. Reason: {holonResult.Message}");
-                }
-            }
-
-            result.Result = savedHolons.ToList();
-
-            if (result.IsError)
-                result.Message = "One or more errors occured saving the holons in the MongoDBOASIS Provider. Please check the InnerMessages property for more infomration.";
-
-            return result;
+            return SaveGraphsAtomicAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, saveChildrenOnProvider).GetAwaiter().GetResult();
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            List<IHolon> savedHolons = new List<IHolon>();
-
-            if (holons == null)
-            {
-                result.Message = "Holons is null";
-                result.IsWarning = true;
-                result.IsSaved = false;
-                return result;
-            }
-
-            if (holons.Count() == 0)
-            {
-                result.Message = "Holons collection is empty.";
-                result.IsWarning = true;
-                result.IsSaved = false;
-                return result;
-            }
-
-            // Recursively save all child holons.
-            foreach (IHolon holon in holons)
-            {
-                OASISResult<IHolon> holonResult = await SaveHolonAsync(holon, false, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider);
-
-                if (!holonResult.IsError && holonResult.Result != null)
-                {
-                    if (saveChildren && saveChildrenOnProvider && holonResult.Result.Children != null && holonResult.Result.Children.Count() > 0
-                        && (recursive && (maxChildDepth == 0 || curentChildDepth < maxChildDepth)))
-                    {
-                        OASISResult<IEnumerable<IHolon>> saveChildrenResult = await SaveHolonsAsync(holonResult.Result.Children, saveChildren, recursive, maxChildDepth, curentChildDepth + 1, continueOnError, saveChildrenOnProvider);
-
-                        if (!saveChildrenResult.IsError && saveChildrenResult.Result != null)
-                            holonResult.Result.Children = saveChildrenResult.Result.ToList();
-                        else
-                        {
-                            result.IsError = true;
-                            result.InnerMessages.Add($"Holon with id {holon.Id} and name {holon.Name} saved but it's children failed to save. Reason: {saveChildrenResult.Message}");
-                        }
-                    }
-
-                    savedHolons.Add(holonResult.Result);
-                }
-                else
-                {
-                    result.IsError = true;
-                    result.InnerMessages.Add($"Holon with id {holon.Id} and name {holon.Name} faild to save. Reason: {holonResult.Message}");
-                }
-            }
-
-            result.Result = savedHolons.ToList();
-
-            if (result.IsError)
-                result.Message = "One or more errors occured saving the holons in the SQLLiteDBOASIS Provider. Please check the InnerMessages property for more infomration.";
-
-            return result;
+            return SaveGraphsAtomicAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, saveChildrenOnProvider);
         }
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)

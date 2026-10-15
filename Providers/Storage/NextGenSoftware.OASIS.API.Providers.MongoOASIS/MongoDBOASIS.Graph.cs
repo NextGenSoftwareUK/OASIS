@@ -12,20 +12,41 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
     {
         private async Task<OASISResult<IHolon>> SaveGraphAtomicAsync(IHolon root, bool recursive, int maxChildDepth)
         {
-            var result = new OASISResult<IHolon>();
+            var saved = await SaveGraphsAtomicAsync(new[] { root }, true, recursive, maxChildDepth, 0, true);
+            return new OASISResult<IHolon> { Result = saved.IsError ? null : saved.Result.Single(),
+                IsError = saved.IsError, IsSaved = saved.IsSaved, Message = saved.Message,
+                Exception = saved.Exception, ErrorCode = saved.ErrorCode };
+        }
+
+        private async Task<OASISResult<IEnumerable<IHolon>>> SaveGraphsAtomicAsync(IEnumerable<IHolon> source,
+            bool saveChildren, bool recursive, int maxChildDepth, int initialDepth, bool mapChildren)
+        {
+            var result = new OASISResult<IEnumerable<IHolon>>();
             var prepared = false;
             try
             {
                 if (maxChildDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
+                if (initialDepth < 0) throw new ArgumentOutOfRangeException(nameof(initialDepth));
+                if (source == null) throw new ArgumentNullException(nameof(source));
+                var roots = source.ToList();
+                foreach (var root in roots)
+                {
+                    var validation = ValidateMongoChildGraph(root);
+                    if (validation != null) throw validation.Exception;
+                }
                 var selected = new List<IHolon>();
+                var identities = new HashSet<Guid>();
+                var references = new HashSet<IHolon>(new HolonReferenceComparer());
                 var pending = new Stack<(IHolon Node, int Depth)>();
-                pending.Push((root, 0));
+                foreach (var root in roots.AsEnumerable().Reverse()) pending.Push((root, initialDepth));
                 while (pending.Count != 0)
                 {
                     var (node, depth) = pending.Pop();
+                    if (!references.Add(node)) throw new ArgumentException("Bulk graph repeats a node.");
                     if (node.Id == Guid.Empty) node.Id = Guid.NewGuid();
+                    if (!identities.Add(node.Id)) throw new ArgumentException("Bulk graph repeats a holon identity.");
                     selected.Add(node);
-                    if (node.Children == null || (depth > 0 && !recursive)
+                    if (!saveChildren || !mapChildren || node.Children == null || (depth > initialDepth && !recursive)
                         || (maxChildDepth != 0 && depth >= maxChildDepth)) continue;
                     foreach (var child in node.Children)
                     {
@@ -38,12 +59,17 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 // Map only after all selected identities and relationships are assigned.
                 var entries = selected.Select(node => DataHelper.ConvertOASISHolonToMongoEntity(node)).ToList();
                 prepared = true;
-                OASISResult<IHolon> response = null;
+                var rootIds = new HashSet<Guid>(roots.Select(root => root.Id));
+                var responses = new List<IHolon>();
                 var saved = await _holonRepository.ImportAtomicAsync(entries, PreserveCreationAuditFields, () =>
                 {
-                    response = DataHelper.ConvertMongoEntityToOASISHolon(new OASISResult<Entities.Holon> { Result = entries[0] }, true);
-                    if (response.IsError || response.Result == null)
-                        throw response.Exception ?? new InvalidOperationException("Mongo graph response conversion failed.");
+                    foreach (var entry in entries.Where(entry => rootIds.Contains(entry.HolonId)))
+                    {
+                        var response = DataHelper.ConvertMongoEntityToOASISHolon(new OASISResult<Entities.Holon> { Result = entry }, mapChildren);
+                        if (response.IsError || response.Result == null)
+                            throw response.Exception ?? new InvalidOperationException("Mongo graph response conversion failed.");
+                        responses.Add(response.Result);
+                    }
                 });
                 if (saved.IsError)
                 {
@@ -53,7 +79,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                     result.ErrorCode = saved.ErrorCode;
                     return result;
                 }
-                result.Result = response.Result;
+                result.Result = responses;
                 result.IsSaved = true;
             }
             catch (Exception error)

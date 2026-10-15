@@ -873,6 +873,33 @@ public sealed class MongoSqliteRealProviderRoutingTests
             {
                 await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
             }
+            var bulkChild = new Holon { Id = Guid.NewGuid(), Name = "owned-bulk-rollback-child", ParentHolonId = rejectedImportBatch[0].Id };
+            rejectedImportBatch[0].Children = new List<IHolon> { bulkChild };
+            var bulkNodes = rejectedImportBatch.Concat(new IHolon[] { bulkChild }).ToList();
+            try
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                    { "configureFailPoint", "failCommand" }, { "mode", new BsonDocument("skip",2) },
+                    { "data", new BsonDocument { { "failCommands", new BsonArray { "insert" } }, { "appName", failureApp }, { "errorCode", 2 } } }
+                });
+                var rejectedBulk = synchronous ? failureMongo.SaveHolons(rejectedImportBatch,saveChildren:true,saveChildrenOnProvider:true)
+                    : await failureMongo.SaveHolonsAsync(rejectedImportBatch,saveChildren:true,saveChildrenOnProvider:true);
+                rejectedBulk.IsError.Should().BeTrue();
+                rejectedBulk.Exception.Should().BeOfType<MongoCommandException>();
+                rejectedBulk.Result.Should().BeNull();
+                foreach (var node in bulkNodes)
+                    (await mongo.LoadHolonAsync(node.Id,loadChildren:false)).Result.Should().BeNull("a rejected bulk write must roll back earlier roots");
+            }
+            finally
+            {
+                await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
+            }
+            var healthyBulk = synchronous ? failureMongo.SaveHolons(rejectedImportBatch,saveChildren:true,saveChildrenOnProvider:true)
+                : await failureMongo.SaveHolonsAsync(rejectedImportBatch,saveChildren:true,saveChildrenOnProvider:true);
+            healthyBulk.IsError.Should().BeFalse(healthyBulk.Message);
+            healthyBulk.Result.Select(node => node.Id).Should().BeEquivalentTo(rejectedImportBatch.Select(node => node.Id));
+            foreach (var node in bulkNodes)
+                (await mongo.LoadHolonAsync(node.Id,loadChildren:false)).Result.Should().NotBeNull();
             // A rejected child insert must roll back the parent in the same graph transaction.
             var partialGraphRoot = new Holon { Id = Guid.NewGuid(), Name = "owned-partial-graph-root" };
             var partialGraphChild = new Holon { Id = Guid.NewGuid(), Name = "owned-partial-graph-child", ParentHolonId = partialGraphRoot.Id };
