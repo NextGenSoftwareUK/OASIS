@@ -3,6 +3,7 @@ $root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $runtime='C:\Users\david\.cache\oasis-runtimes\azurite-3.37.0\node_modules\azurite\dist\src\blob\main.js'
 if(!(Test-Path -LiteralPath $runtime -PathType Leaf)) {throw 'Retained Azurite3.37.0 runtime is missing. Do not silently reinstall.'}
 if(Get-NetTCPConnection -LocalPort 10000 -State Listen -ErrorAction SilentlyContinue) {throw 'Owned Azure fixture port10000 is occupied.'}
+if(Get-NetTCPConnection -LocalPort 10003 -State Listen -ErrorAction SilentlyContinue) {throw 'Reserved Azure outage port10003 is occupied.'}
 $work=Join-Path $root 'TestResults/AzureCurrent'
 New-Item -ItemType Directory -Force $work | Out-Null
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
