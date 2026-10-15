@@ -44,13 +44,13 @@ public sealed class Web3CoreOASIS
             hash=>_web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(hash),
             TimeSpan.FromSeconds(60),TimeSpan.FromMilliseconds(100));
 
-    public Web3CoreOASIS(string accountPrivateKey, string blockchainUrl, string contractAddress, string abi)
+    public Web3CoreOASIS(string accountPrivateKey, string blockchainUrl, string contractAddress, string abi,BigInteger? chainId=null)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(blockchainUrl);
         ArgumentException.ThrowIfNullOrEmpty(contractAddress);
         ArgumentException.ThrowIfNullOrEmpty(abi);
 
-        _web3 = new(new Account(accountPrivateKey), blockchainUrl);
+        _web3 = new(new Account(accountPrivateKey,chainId), blockchainUrl);
         _contractAddress = contractAddress;
         _abi = abi;
     }
