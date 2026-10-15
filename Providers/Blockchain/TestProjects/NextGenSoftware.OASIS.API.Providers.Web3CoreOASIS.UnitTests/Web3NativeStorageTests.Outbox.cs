@@ -81,6 +81,19 @@ public partial class Web3NativeStorageTests
                     Assert.AreEqual(1,(await reopened.GetAsync(handle.OperationId,default)).ProviderAttempts.Count);
                     await VerifyFreshRecoveryProcessAsync(handle.OperationId,address,calldata);
                     Assert.AreEqual(acceptedBeforeRecovery,proxy.AcceptedHashes.Count);
+                    var methodsBeforeWrongChain=proxy.Methods.Count;
+                    var receiptsBeforeWrongChain=proxy.Methods.Count(method=>method=="eth_getTransactionReceipt");
+                    proxy.ReportedChainId="0x1";
+                    try
+                    {
+                        var wrongChain=await provider.GetPreparedNativeReceiptAsync(attempt,calldata);
+                        Assert.IsTrue(wrongChain.IsError);Assert.IsInstanceOfType(wrongChain.Exception,typeof(InvalidDataException));
+                        Assert.IsFalse(wrongChain.IsLoaded);Assert.IsNull(wrongChain.Result);
+                    }
+                    finally {proxy.ReportedChainId=null;}
+                    Assert.AreEqual(methodsBeforeWrongChain+1,proxy.Methods.Count);
+                    Assert.AreEqual(receiptsBeforeWrongChain,proxy.Methods.Count(method=>method=="eth_getTransactionReceipt"));
+                    Assert.AreEqual(acceptedBeforeRecovery,proxy.AcceptedHashes.Count);
                 }
                 finally {field.SetValue(provider,original);}
             }
