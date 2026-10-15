@@ -65,6 +65,10 @@ public partial class Web3NativeStorageTests
             =>holons.SaveHolons(roots,saveChildren,recursive,maxChildDepth,curentChildDepth,continueOnError);
         public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> roots,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,int curentChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
             =>holons.SaveHolonsAsync(roots,saveChildren,recursive,maxChildDepth,curentChildDepth,continueOnError);
+        public override OASISResult<IHolon> DeleteHolon(Guid id)=>holons.DeleteHolon(id,false);
+        public override OASISResult<IHolon> DeleteHolon(string key)=>holons.DeleteHolon(key,false);
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)=>holons.DeleteHolonAsync(id,false);
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string key)=>holons.DeleteHolonAsync(key,false);
     }
     private static async Task VerifySqliteCommitFenceAsync(PolygonOASIS.PolygonOASIS polygon,SQLLiteDBOASIS.SQLLiteDBOASIS healthySqlite,Web3CoreOASIS native,
         Web4UsageExecution executor,string user,UsageEndpointPolicy policy,MongoUsageOutboxStore store)
@@ -169,6 +173,43 @@ public partial class Web3NativeStorageTests
                 }
                 var attempt=(await store.GetAsync(handle.OperationId,default)).ProviderAttempts.Single();
                 Assert.AreEqual("SQLLiteDBOASIS",attempt.Provider);Assert.IsNull(attempt.NativePreparation);
+            }
+            foreach(var asynchronous in new[] {false,true})
+            foreach(var byKey in new[] {false,true})
+            foreach(var soft in new[] {false,true})
+            {
+                var holon=new Holon {Id=Guid.NewGuid(),Name="committed holon deletion",IsActive=true};
+                var key="delete-"+holon.Id.ToString("N");holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SQLLiteDBOASIS]=key;
+                Assert.IsFalse((await healthySqlite.SaveHolonAsync(holon,saveChildren:false)).IsError);
+                Assert.IsFalse((await polygon.SaveHolonAsync(holon,saveChildren:false)).IsError);
+                var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.PolygonOASIS)?.TotalRequests ?? 0;
+                OASISResult<IHolon> result;
+                if(soft)
+                {
+                    var repository=new SQLLiteDBOASIS.Persistence.Repositories.HolonRepository(faulty.Context);
+                    result=byKey ? asynchronous ? await repository.DeleteHolonAsync(key,true):repository.DeleteHolon(key,true)
+                        : asynchronous ? await repository.DeleteHolonAsync(holon.Id,true):repository.DeleteHolon(holon.Id,true);
+                }
+                else
+                {
+                    var handle=await executor.BeginAsync("local-fixture-bearer",user,$"sqlite-holon-delete-{asynchronous}-{byKey}",new string('a',64),"local post-commit holon deletion",policy);
+                    var context=new PreparedStorageExecution(handle,"sqlite-holon-delete",new Dictionary<Core.Enums.ProviderType,string> {{Core.Enums.ProviderType.PolygonOASIS,sdk.SigningAddress}},new[] {Core.Enums.ProviderType.SQLLiteDBOASIS});
+                    var request=new Core.StorageOperationRequest {Operation=byKey ? "DeleteHolonByProviderKey":"DeleteHolon",HolonId=holon.Id,ProviderKey=key,SoftDelete=false,PreferredProvider=Core.Enums.ProviderType.SQLLiteDBOASIS,PreparedExecution=context};
+                    result=asynchronous ? await router.RouteRequestAsync<IHolon>(request):router.RouteRequest<IHolon>(request);
+                    var attempt=(await store.GetAsync(handle.OperationId,default)).ProviderAttempts.Single();Assert.AreEqual("SQLLiteDBOASIS",attempt.Provider);Assert.IsNull(attempt.NativePreparation);
+                }
+                Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsDeleted);Assert.IsNull(result.Result);
+                var failure=result.Exception as SQLLiteDBOASIS.SqliteMutationReconciliationException;Assert.IsNotNull(failure);
+                Assert.AreSame(cause,failure.InnerException);Assert.AreEqual(holon.Id,failure.RecordId);
+                Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(failure));
+                Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.PolygonOASIS)?.TotalRequests ?? 0);
+                using var control=new SqlContext(db.Database.GetDbConnection().ConnectionString);
+                var stored=await control.Holons.AsNoTracking().SingleOrDefaultAsync(row=>row.Id==holon.Id.ToString());
+                if(soft) {Assert.IsNotNull(stored);Assert.IsFalse(stored.IsActive);Assert.AreNotEqual(DateTime.MinValue,stored.DeletedDate);}
+                else Assert.IsNull(stored);
+                var untouched=await polygon.LoadHolonAsync(holon.Id,loadChildren:false);Assert.IsFalse(untouched.IsError,untouched.Message);Assert.IsTrue(untouched.Result.IsActive);
+                // Explicit fixture cleanup only AFTER proving routing left this native copy untouched.
+                Assert.IsFalse((await polygon.DeleteHolonAsync(holon.Id)).IsError);
             }
         }
         finally {faulty.Context.Dispose();faulty.Dispose();}
