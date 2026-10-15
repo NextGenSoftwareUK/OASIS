@@ -59,6 +59,11 @@ public class GoogleNativeDetailTests
             var graph=await provider.LoadAllHolonsAsync(loadChildrenFromProvider:true,maxChildDepth:1);
             Assert.IsFalse(graph.IsError,graph.Message);
             Assert.AreEqual(childId,graph.Result.Single(row=>row.Id==holonId).Children.Single().Id);
+            var singleGraph=await provider.LoadHolonAsync(holonId,loadChildrenFromProvider:true,maxChildDepth:1);
+            Assert.IsFalse(singleGraph.IsError,singleGraph.Message);Assert.AreEqual(childId,singleGraph.Result.Children.Single().Id);
+            var keyGraph=provider.LoadHolon(holonId.ToString(),loadChildrenFromProvider:true,maxChildDepth:1);
+            Assert.IsFalse(keyGraph.IsError,keyGraph.Message);Assert.AreEqual(childId,keyGraph.Result.Children.Single().Id);
+            Assert.AreEqual(0,(await provider.LoadHolonAsync(holonId,loadChildren:false,loadChildrenFromProvider:true)).Result.Children.Count());
             var flat=await provider.LoadAllHolonsAsync(loadChildren:false,loadChildrenFromProvider:true);
             Assert.IsTrue(flat.Result.All(row=>row.Children.Count()==0));
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadHolonAsync(Guid.NewGuid(),loadChildren:false)).ErrorCode);
