@@ -224,154 +224,22 @@ public partial class Web3CoreOASISBaseProvider
     }
 
     public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0)
-    {
-        return LoadAllAvatarDetailsAsync(version).Result;
-    }
+        => ReadPrivateCollectionAsync<IAvatarDetail>("detail",row=>DecodePrivateEntity<AvatarDetail>("detail",row),version).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
-    {
-        var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            // Load all avatar details from Web3Core blockchain
-            var avatarDetailsData = new OASISResult<List<IAvatarDetail>> { Result = new List<IAvatarDetail>() };
-            if (avatarDetailsData.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar details: {avatarDetailsData.Message}");
-                return result;
-            }
-
-            if (avatarDetailsData.Result != null)
-            {
-                var avatarDetails = new List<IAvatarDetail>();
-                foreach (var avatarDetailData in avatarDetailsData.Result)
-                {
-                    var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(avatarDetailData.ToString());
-                    if (avatarDetail != null)
-                    {
-                        avatarDetails.Add(avatarDetail);
-                    }
-                }
-                
-                result.Result = avatarDetails;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {avatarDetails.Count} avatar details from Web3Core";
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "No avatar details found on Web3Core blockchain");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading avatar details from Web3Core: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ReadPrivateCollectionAsync<IAvatarDetail>("detail",row=>DecodePrivateEntity<AvatarDetail>("detail",row),version);
 
     public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
-    {
-        return LoadAllAvatarsAsync(version).Result;
-    }
+        => ReadPrivateCollectionAsync<IAvatar>("avatar",row=>DecodePrivateEntity<Avatar>("avatar",row),version).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version = 0)
-    {
-        var result = new OASISResult<IEnumerable<IAvatar>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            // Load all avatars from Web3Core blockchain
-            var avatarsData = new OASISResult<List<IAvatar>> { Result = new List<IAvatar>() };
-            if (avatarsData.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsData.Message}");
-                return result;
-            }
-
-            if (avatarsData.Result != null)
-            {
-                var avatars = new List<IAvatar>();
-                foreach (var avatarData in avatarsData.Result)
-                {
-                    var avatar = JsonConvert.DeserializeObject<Avatar>(avatarData.ToString());
-                    if (avatar != null)
-                    {
-                        avatars.Add(avatar);
-                    }
-                }
-                
-                result.Result = avatars;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {avatars.Count} avatars from Web3Core";
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, "No avatars found on Web3Core blockchain");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading avatars from Web3Core: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ReadPrivateCollectionAsync<IAvatar>("avatar",row=>DecodePrivateEntity<Avatar>("avatar",row),version);
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    {
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            var response = await _httpClient.GetAsync($"{_apiBaseUrl}/holons/all?type={type}&version={version}");
-
-            if (response.IsSuccessStatusCode)
-            {
-                var content = await response.Content.ReadAsStringAsync();
-                var holons = Newtonsoft.Json.JsonConvert.DeserializeObject<List<Holon>>(content);
-                
-                if (holons != null)
-                {
-                    result.Result = holons.Cast<IHolon>();
-                    result.IsError = false;
-                    result.Message = $"Successfully loaded {holons.Count} holons from Web3Core";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Failed to deserialize holons from Web3Core API");
-                }
-            }
-            else
-            {
-                OASISErrorHandling.HandleError(ref result, $"Web3Core API error: {response.StatusCode} - {response.ReasonPhrase}");
-            }
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading all holons from Web3Core: {ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ReadPrivateHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version);
 
     public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-    {
-        return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
-    }
+        => ReadPrivateHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,version).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
     {

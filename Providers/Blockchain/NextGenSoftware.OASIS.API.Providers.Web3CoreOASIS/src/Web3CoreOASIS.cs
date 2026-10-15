@@ -16,6 +16,27 @@ public sealed class Web3CoreOASIS
     private readonly string _contractAddress;
     private readonly string _abi;
 
+    internal async Task<System.Collections.Generic.List<EntityOASIS>> ReadCollectionAsync(string kind)
+    {
+        var functionName=kind switch {"avatar"=>"getAvatarsPage","detail"=>"getAvatarDetailsPage","holon"=>"getHolonsPage",_=>throw new ArgumentException("Unknown Web3Core collection.",nameof(kind))};
+        var block=new BlockParameter(await _web3.Eth.Blocks.GetBlockNumber.SendRequestAsync());
+        var function=_web3.Eth.GetContract(_abi,_contractAddress).GetFunction(functionName);
+        var records=new System.Collections.Generic.List<EntityOASIS>();
+        var seen=new System.Collections.Generic.HashSet<BigInteger>();
+        const uint limit=128;
+        for(BigInteger offset=0;;offset+=limit)
+        {
+            var page=await function.CallDeserializingToObjectAsync<EntityOASISPageOutput>(block,offset,limit);
+            if(page?.Entities==null || page.Entities.Count>limit) throw new InvalidOperationException("Invalid Web3Core page response.");
+            foreach(var record in page.Entities)
+            {
+                if(record==null || !seen.Add(record.EntityId)) throw new InvalidOperationException("Duplicate/null Web3Core page identity.");
+                records.Add(record);
+            }
+            if(page.Entities.Count<limit) return records;
+        }
+    }
+
     private Task<TransactionReceipt> SendAndWaitForReceiptAsync(Function function, params object[] functionInput)
         => Web3TransactionOutcome.SubmitAndObserveAsync(
             ()=>function.SendTransactionAsync(_web3.TransactionManager.Account.Address,
