@@ -465,24 +465,39 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0)
         {
-            return LoadAllAvatarsAsync().Result;
+            return LoadAllAvatarsAsync(version).GetAwaiter().GetResult();
         }
 
         public override async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarsAsync(int version=0)
         {
-            var records=await ReadIndexedCollectionAsync<Avatar>("avatar",entry=>true,version);
-            return new OASISResult<IEnumerable<IAvatar>>(records) {IsLoaded=true};
+            var read=await ReadPrivateCollectionResultAsync<Avatar>("avatar",version);
+            var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<Avatar>,IEnumerable<IAvatar>>(read);
+            result.Result=read.Result; return result;
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.Holon, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return LoadAllHolonsAsync(type).Result;
+            return LoadAllHolonsAsync(type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,loadChildrenFromProvider,version).GetAwaiter().GetResult();
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type=HolonType.Holon,bool loadChildren=true,bool recursive=true,int maxChildDepth=0,int curentChildDepth=0,bool continueOnError=true,bool loadChildrenFromProvider=false,int version=0)
         {
-            var records=await ReadIndexedCollectionAsync<Holon>("holon",entry=>type==HolonType.All || entry.HolonType==type,version);
-            return new OASISResult<IEnumerable<IHolon>>(records) {IsLoaded=true};
+            var result=new OASISResult<IEnumerable<IHolon>>();
+            try
+            {
+                if(maxChildDepth<0 || curentChildDepth<0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
+                var records=await ReadIndexedCollectionAsync<Holon>("holon",entry=>true,version);
+                var project=HolonGraphProjection.Create(records,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,
+                    source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
+                result.Result=records.Where(row=>type==HolonType.All || row.HolonType==type).Select(project).ToList();
+                result.IsLoaded=true;
+            }
+            catch(Exception cause)
+            {
+                OASISErrorHandling.HandleError(ref result,"IPFS holon collection failed: "+cause.Message,cause);
+                if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
+            }
+            return result;
         }
 
     }

@@ -76,6 +76,18 @@ public partial class IPFSOASIS
         return await ReadIndexSnapshotAsync<T>(lookup,kind,predicate);
     }
 
+    private async Task<OASISResult<IEnumerable<T>>> ReadPrivateCollectionResultAsync<T>(string kind,int version) where T:class,IHolonBase
+    {
+        var result=new OASISResult<IEnumerable<T>>();
+        try {result.Result=await ReadIndexedCollectionAsync<T>(kind,row=>true,version);result.IsLoaded=true;}
+        catch(Exception cause)
+        {
+            OASISErrorHandling.HandleError(ref result,"IPFS collection read failed: "+cause.Message,cause);
+            if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
+        }
+        return result;
+    }
+
     private async Task<List<T>> ReadIndexSnapshotAsync<T>(IReadOnlyDictionary<string,HolonResume> lookup,
         string kind,Func<HolonResume,bool> predicate) where T:class,IHolonBase
     {
