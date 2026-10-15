@@ -391,6 +391,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 
                 if (avatar == null)
                 {
+                    result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
                     result.Message = "No Avatar found in LoadAvatarByEmail method in AzureCOSMOSDBOASIS.";
                 }
                 else
@@ -401,7 +402,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatar method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
+                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatar method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.", ex);
+                if(ex is NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
             }
             return result;
         }
@@ -415,6 +417,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 
                 if (avatar == null)
                 {
+                    result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
                     result.Message = "No Avatar found in LoadAvatarByEmailAsync method in AzureCOSMOSDBOASIS.";
                 }
                 else
@@ -425,7 +428,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarByEmailAsync method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
+                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarByEmailAsync method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.", ex);
+                if(ex is NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
             }
             return result;
         }
@@ -439,6 +443,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 
                 if (avatar == null)
                 {
+                    result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
                     result.Message = "No Avatar found in LoadAvatarByUsername method in AzureCOSMOSDBOASIS.";
                 }
                 else
@@ -449,7 +454,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarByUsername method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
+                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarByUsername method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.", ex);
+                if(ex is NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
             }
             return result;
         }
@@ -497,6 +503,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 
                 if (avatarDetail == null)
                 {
+                    result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
                     result.Message = "No AvatarDetails found in LoadAvatarDetailByEmail method in AzureCOSMOSDBOASIS.";
                 }
                 else
@@ -507,7 +514,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarDetailByEmail method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
+                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarDetailByEmail method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.", ex);
+                if(ex is NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
             }
             return result;
         }
@@ -526,6 +534,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
 
                 if (avatarDetail == null)
                 {
+                    result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
                     result.Message = "No AvatarDetails found in LoadAvatarDetailByUsername method in AzureCOSMOSDBOASIS.";
                 }
                 else
@@ -536,7 +545,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarDetailByUsername method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
+                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarDetailByUsername method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.", ex);
+                if(ex is NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
             }
             return result;
         }
