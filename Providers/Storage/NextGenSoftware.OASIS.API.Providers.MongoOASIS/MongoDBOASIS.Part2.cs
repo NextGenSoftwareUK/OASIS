@@ -51,57 +51,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return DataHelper.ConvertMongoEntitysToOASISAvatarDetails(_avatarRepository.GetAvatarDetails(version));
         }
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                var holonResult = await _holonRepository.GetHolonAsync(id);
-                if (holonResult != null)
-                {
-                    result.Result = DataHelper.ConvertMongoEntityToOASISHolon(holonResult);
-                    result.IsError = false;
-                    result.IsLoaded = true;
-                    result.Message = "Holon loaded successfully from MongoDB";
-                }
-                else
-                {
-                    return new OASISResult<IHolon> { ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Holon not found." };
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holon from MongoDB: {ex.Message}", ex);
-                if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
-            }
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => ReadHolonGraphAsync(id,null,loadChildren,recursive,maxChildDepth,loadChildrenFromProvider,version,false);
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                var holonResult = _holonRepository.GetHolon(id);
-                if (holonResult != null)
-                {
-                    result.Result = DataHelper.ConvertMongoEntityToOASISHolon(holonResult);
-                    result.IsError = false;
-                    result.IsLoaded = true;
-                    result.Message = "Holon loaded successfully from MongoDB";
-                }
-                else
-                {
-                    return new OASISResult<IHolon> { ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Holon not found." };
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holon from MongoDB: {ex.Message}", ex);
-                if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
-            }
-            return result;
-        }
+            => ReadHolonGraphAsync(id,null,loadChildren,recursive,maxChildDepth,loadChildrenFromProvider,version,true).GetAwaiter().GetResult();
 
 
         //public override T LoadHolon<T>(Guid id)
@@ -109,57 +63,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         //    return ConvertMongoEntityToOASISHolon(new OASISResult<Holon>(_holonRepository.GetHolon(id))).Result;
         //}
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                var holonResult = await _holonRepository.GetHolonAsync(providerKey);
-                if (holonResult != null)
-                {
-                    result.Result = DataHelper.ConvertMongoEntityToOASISHolon(holonResult, loadChildrenFromProvider);
-                    result.IsError = false;
-                    result.IsLoaded = true;
-                    result.Message = "Holon loaded successfully from MongoDB by provider key";
-                }
-                else
-                {
-                    return new OASISResult<IHolon> { ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Holon not found." };
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holon from MongoDB by provider key: {ex.Message}", ex);
-                if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
-            }
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => ReadHolonGraphAsync(null,providerKey,loadChildren,recursive,maxChildDepth,loadChildrenFromProvider,version,false);
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                var holonResult = _holonRepository.GetHolon(providerKey);
-                if (holonResult != null)
-                {
-                    result.Result = DataHelper.ConvertMongoEntityToOASISHolon(holonResult, loadChildrenFromProvider);
-                    result.IsError = false;
-                    result.IsLoaded = true;
-                    result.Message = "Holon loaded successfully from MongoDB by provider key";
-                }
-                else
-                {
-                    return new OASISResult<IHolon> { ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Holon not found." };
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holon from MongoDB by provider key: {ex.Message}", ex);
-                if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
-            }
-            return result;
-        }
+            => ReadHolonGraphAsync(null,providerKey,loadChildren,recursive,maxChildDepth,loadChildrenFromProvider,version,true).GetAwaiter().GetResult();
 
         //public override async Task<OASISResult<IHolon>> LoadHolonByCustomKeyAsync(string customKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         //{
