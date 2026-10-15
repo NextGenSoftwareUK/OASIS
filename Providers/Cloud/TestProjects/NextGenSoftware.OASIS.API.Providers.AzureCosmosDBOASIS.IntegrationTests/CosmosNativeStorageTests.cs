@@ -47,9 +47,10 @@ public class CosmosNativeStorageTests
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadAvatarDetailAsync(Guid.Parse(missingId))).ErrorCode);
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,provider.LoadHolon(missingId,loadChildren:false).ErrorCode);
             var avatar=new Avatar {Id=avatarId,IsActive=true,Username="owned-cosmos",Email="owned-cosmos@example.invalid",FirstName="Owned",
-                MetaData=new Dictionary<string,object> {{"owned-field","owned-value"}}};
+                MetaData=new Dictionary<string,object> {{"owned-field","owned-value"},{"Latitude",-33.0009d},{"Longitude",151d}}};
             Assert.IsTrue((await provider.DeActivateProviderAsync()).Result);
             var saved=await provider.SaveAvatarAsync(avatar);Assert.IsFalse(saved.IsError,saved.Message);
+            Assert.AreEqual(avatarId,provider.GetAvatarsNearMe(-33000000,151000000,200).Result.Single().Id);
             Assert.IsTrue(saved.IsSaved);Assert.IsTrue(provider.IsProviderActivated);
             var read=await provider.LoadAvatarAsync(avatarId);Assert.IsFalse(read.IsError,read.Message);
             Assert.AreEqual("Owned",read.Result.FirstName);Assert.AreEqual("owned-value",read.Result.MetaData["owned-field"].ToString());
@@ -68,7 +69,7 @@ public class CosmosNativeStorageTests
             await VerifyV2RoutingAsync(provider,avatar,detail,holonId);
             var child=new Holon {Id=childId,IsActive=true,Name="owned child"};
             var root=new Holon {Id=holonId,IsActive=true,Name="owned root",CreatedByAvatarId=avatarId,Children=new List<IHolon> {child},
-                MetaData=new Dictionary<string,object> {{"owned-field","owned-value"}}};
+                MetaData=new Dictionary<string,object> {{"owned-field","owned-value"},{"Latitude",-33.0009d},{"Longitude",151d}}};
             Assert.IsTrue((await provider.DeActivateProviderAsync()).Result);
             var graph=await provider.SaveHolonAsync(root);Assert.IsFalse(graph.IsError,graph.Message);
             Assert.IsTrue(graph.IsSaved);Assert.IsTrue(provider.IsProviderActivated);
@@ -102,6 +103,9 @@ public class CosmosNativeStorageTests
             Assert.AreEqual(holonId,exported.Result.Single().Id);Assert.AreEqual(childId,exported.Result.Single().Children.Single().Id);
             Assert.AreEqual(holonId,provider.ExportAllDataForAvatarByEmail(avatar.Email.ToUpperInvariant()).Result.Single().Id);
             Assert.AreEqual(2,(await provider.ExportAllAsync()).Result.Count());
+            var nearby=provider.GetHolonsNearMe(-33000000,151000000,200,Core.Enums.HolonType.All);
+            Assert.IsFalse(nearby.IsError,nearby.Message);Assert.IsTrue(nearby.IsLoaded);Assert.AreEqual(holonId,nearby.Result.Single().Id);
+            Assert.IsFalse(provider.GetHolonsNearMe(-33000000,151000000,50,Core.Enums.HolonType.All).Result.Any());
             var depthLimited=await provider.LoadAllHolonsAsync(maxChildDepth:1,curentChildDepth:1,loadChildrenFromProvider:true);
             Assert.IsFalse(depthLimited.IsError,depthLimited.Message);
             Assert.IsFalse(depthLimited.Result.Single(row=>row.Id==holonId).Children.Any());
