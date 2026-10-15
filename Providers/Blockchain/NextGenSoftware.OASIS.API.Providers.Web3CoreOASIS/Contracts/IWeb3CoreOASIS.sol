@@ -33,6 +33,7 @@ interface IWeb3CoreOASIS {
     function deleteAvatar(uint256 entityId) external returns (bool);
     function deleteAvatarDetail(uint256 entityId) external returns (bool);
     function deleteHolon(uint256 entityId) external returns (bool);
+    function deleteHolonChecked(uint256 entityId, bytes32 externalId, bytes32 expectedHash) external returns (bool);
 
     function getAvatarById(uint256 entityId) external view returns (EntityOASIS memory);
     function getAvatarDetailById(uint256 entityId) external view returns (EntityOASIS memory);

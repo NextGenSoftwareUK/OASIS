@@ -523,6 +523,35 @@ internal static partial class Web3CoreOASISBaseProviderHelper
     ""inputs"": [
       {
         ""internalType"": ""uint256"",
+        ""name"": ""entityId"",
+        ""type"": ""uint256""
+      },
+      {
+        ""internalType"": ""bytes32"",
+        ""name"": ""externalId"",
+        ""type"": ""bytes32""
+      },
+      {
+        ""internalType"": ""bytes32"",
+        ""name"": ""expectedHash"",
+        ""type"": ""bytes32""
+      }
+    ],
+    ""name"": ""deleteHolonChecked"",
+    ""outputs"": [
+      {
+        ""internalType"": ""bool"",
+        ""name"": """",
+        ""type"": ""bool""
+      }
+    ],
+    ""stateMutability"": ""nonpayable"",
+    ""type"": ""function""
+  },
+  {
+    ""inputs"": [
+      {
+        ""internalType"": ""uint256"",
         ""name"": ""tokenId"",
         ""type"": ""uint256""
       }
