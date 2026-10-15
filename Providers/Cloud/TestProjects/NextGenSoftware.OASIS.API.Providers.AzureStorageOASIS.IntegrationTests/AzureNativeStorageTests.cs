@@ -54,6 +54,17 @@ public class AzureNativeStorageTests
             var operational=await absentContainer.LoadHolonAsync(Guid.NewGuid(),loadChildren:false);
             Assert.IsTrue(operational.IsError);Assert.IsInstanceOfType(operational.Exception,typeof(Azure.RequestFailedException));
             Assert.AreNotEqual(OASISResultErrorCodes.RecordNotFound,operational.ErrorCode);
+            var deletable=new Avatar {Id=Guid.NewGuid(),Username="owned-delete",Email="delete@example.invalid",FirstName="Preserved"};
+            Assert.IsFalse((await provider.SaveAvatarAsync(deletable)).IsError);
+            var deleted=await provider.DeleteAvatarByUsernameAsync(deletable.Username,softDelete:true);
+            Assert.IsFalse(deleted.IsError,deleted.Message);
+            var retainedBlob=service.GetBlobContainerClient(names[1]).GetBlobClient(deletable.Id.ToString());
+            Assert.IsTrue((await retainedBlob.ExistsAsync()).Value);
+            var retained=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<Avatar>((await retainedBlob.DownloadContentAsync()).Value.Content.ToString());
+            Assert.AreEqual("Preserved",retained.FirstName);Assert.IsTrue(retained.IsDeleted);Assert.IsFalse(retained.IsActive);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadAvatarAsync(deletable.Id)).ErrorCode);
+            Assert.IsFalse((await provider.DeleteAvatarAsync(deletable.Id,softDelete:false)).IsError);
+            Assert.IsFalse((await retainedBlob.ExistsAsync()).Value);
         }
         finally {
             await provider.DeActivateProviderAsync();

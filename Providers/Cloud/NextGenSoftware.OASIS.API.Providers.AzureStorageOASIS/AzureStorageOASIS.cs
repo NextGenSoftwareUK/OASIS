@@ -268,6 +268,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 var avatar = Deserialise<Avatar>(json) ?? throw new InvalidDataException("Azure avatar record is null.");
                 if(avatar.Id==Guid.Empty) throw new InvalidDataException("Azure avatar record has no identity.");
                 if(avatar.Id!=requestedId) throw new InvalidDataException("Azure avatar identity does not match blob key.");
+                if(avatar.IsDeleted) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Azure avatar is deleted.";return result;}
                 avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = providerKey;
                 result.Result = avatar;
@@ -299,7 +300,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 await foreach (var item in container.GetBlobsAsync())
                 {
                     var r = await LoadAvatarByProviderKeyAsync(item.Name, version);
-                    if(r.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IAvatar>>(r);
+                    if(r.IsError) {
+                        if(r.ErrorCode==OASISResultErrorCodes.RecordNotFound && r.Exception==null) continue;
+                        return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IAvatar>>(r);
+                    }
                     if(r.Result==null) throw new InvalidDataException("Azure avatar read returned no record.");
                     if(!r.Result.IsDeleted) avatars.Add(r.Result);
                 }
@@ -349,7 +353,25 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
             var result = new OASISResult<bool>();
-            try { await _serviceClient.GetBlobContainerClient(_avatarContainer).GetBlobClient(id.ToString()).DeleteIfExistsAsync(); result.Result = true; }
+            try {
+                if(id==Guid.Empty) throw new ArgumentException("A nonempty avatar identity is required.");
+                var blob=_serviceClient.GetBlobContainerClient(_avatarContainer).GetBlobClient(id.ToString());
+                var downloaded=(await blob.DownloadContentAsync()).Value;
+                var avatar=Deserialise<Avatar>(downloaded.Content.ToString()) ?? throw new InvalidDataException("Azure avatar record is null.");
+                if(avatar.Id!=id) throw new InvalidDataException("Azure avatar identity does not match blob key.");
+                var condition=new BlobRequestConditions {IfMatch=downloaded.Details.ETag};
+                if(softDelete) {
+                    if(avatar.IsDeleted) {result.Result=true;return result;}
+                    avatar.IsActive=false;avatar.DeletedDate=DateTime.UtcNow;
+                    await blob.UploadAsync(BinaryData.FromString(Serialise(avatar)),new BlobUploadOptions {Conditions=condition});
+                }
+                else await blob.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots,condition);
+                result.Result=true;result.IsDeleted=true;
+            }
+            catch(Azure.RequestFailedException cause) when(cause.Status==412) {
+                result.Exception=cause;OASISErrorHandling.HandleError(ref result,cause.Message);
+                result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
+            }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
         }
@@ -357,16 +379,16 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {
             var result = new OASISResult<bool>();
-            try { await _serviceClient.GetBlobContainerClient(_avatarContainer).GetBlobClient(providerKey).DeleteIfExistsAsync(); result.Result = true; }
+            try { if(!Guid.TryParse(providerKey,out var id) || id==Guid.Empty) throw new ArgumentException("Azure avatar key must be a nonempty GUID.");return await DeleteAvatarAsync(id,softDelete); }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
         }
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => DeleteAvatarAsync(providerKey, softDelete).Result;
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
-            => await DeleteAvatarAsync($"email:{avatarEmail}", softDelete);
+            => await DeleteSelectedAvatarAsync(LoadAvatarByEmailAsync(avatarEmail),softDelete);
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true) => DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-            => await DeleteAvatarAsync($"username:{avatarUsername}", softDelete);
+            => await DeleteSelectedAvatarAsync(LoadAvatarByUsernameAsync(avatarUsername),softDelete);
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) => DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
 
         // ─── Import / Export ──────────────────────────────────────────────────────

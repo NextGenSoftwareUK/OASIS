@@ -14,6 +14,14 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS;
 
 public partial class AzureStorageOASIS
 {
+    private async Task<OASISResult<bool>> DeleteSelectedAvatarAsync(Task<OASISResult<IAvatar>> lookup,bool softDelete)
+    {
+        var loaded=await lookup;
+        if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,bool>(loaded);
+        if(loaded.Result==null) return new OASISResult<bool> {IsError=true,ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="No avatar matches deletion selector."};
+        return await DeleteAvatarAsync(loaded.Result.Id,softDelete);
+    }
+
     private async Task<OASISResult<IAvatar>> ReadSelectedAvatarAsync(string selector,bool email,int version)
     {
         var result=new OASISResult<IAvatar>();
