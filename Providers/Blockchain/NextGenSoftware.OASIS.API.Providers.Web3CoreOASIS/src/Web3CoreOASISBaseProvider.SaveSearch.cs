@@ -49,6 +49,8 @@ using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+
 public partial class Web3CoreOASISBaseProvider
 {
     public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
@@ -267,40 +269,38 @@ public partial class Web3CoreOASISBaseProvider
 
     public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
     {
-        return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).Result;
+        return SearchAsync(searchParams, loadChildren, recursive, maxChildDepth, continueOnError, version).GetAwaiter().GetResult();
     }
 
-    public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
+        public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
     {
-        var result = new OASISResult<ISearchResults>();
-        try
-        {
-            if (!IsProviderActivated)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
+        var search=searchParams;
+        var children=loadChildren;
+        var maxDepth=maxChildDepth;
+        var result=new OASISResult<ISearchResults>();
+        try {
+            StoredRecordSearch.Validate(search,version,maxDepth);
+            var groups=search.SearchGroups ?? new List<ISearchGroupBase>();
+            var wantsAvatars=groups.Count==0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
+            var wantsHolons=groups.Count==0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);
+            var avatars=new List<IAvatar>();var holons=new List<IHolon>();
+            if(wantsAvatars) {
+                var loaded=await LoadAllAvatarsAsync(version);
+                if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IAvatar>,ISearchResults>(loaded);
+                avatars=loaded.Result.ToList();
             }
-
-            if (searchParams == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "Search parameters cannot be null");
-                return result;
+            if(wantsHolons || search.ParentId!=Guid.Empty) {
+                var loaded=await LoadAllHolonsAsync(HolonType.All,children,recursive,maxDepth,0,continueOnError,true,version);
+                if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,ISearchResults>(loaded);
+                holons=loaded.Result.ToList();
             }
-
-            // Web3Core is a blockchain provider, not a storage provider
-            // Return empty search results as blockchain providers don't support full-text search
-            result.Result = new SearchResults
-            {
-                SearchResultAvatars = new List<IAvatar>(),
-                SearchResultHolons = new List<IHolon>()
-            };
-            result.IsError = false;
-            result.Message = "Web3Core blockchain provider does not support search. Use blockchain explorers or indexers for on-chain data queries.";
+            var found=new SearchResults();
+            found.SearchResultAvatars.AddRange(avatars.Where(row=>StoredRecordSearch.Matches(row,true,search,holons)));
+            if(wantsHolons) found.SearchResultHolons.AddRange(holons.Where(row=>StoredRecordSearch.Matches(row,false,search,holons)));
+            found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
+            result.Result=found;result.IsLoaded=true;
         }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error performing search: {ex.Message}", ex);
-        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
     }
 
