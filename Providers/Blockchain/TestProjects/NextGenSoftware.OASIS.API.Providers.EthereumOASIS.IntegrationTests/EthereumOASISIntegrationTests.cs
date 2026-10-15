@@ -80,6 +80,34 @@ public class EthereumOASISIntegrationTests
         Assert.AreEqual(before.Value,after.Value);
     }
 
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task NativeAvatarDetailCollectionReadsEncryptedRowsAndRejectsCorruption(bool synchronous)
+    {
+        var (provider,address) = await CreateActivatedProviderAsync();
+        var empty = synchronous ? provider.LoadAllAvatarDetails() : await provider.LoadAllAvatarDetailsAsync();
+        Assert.IsFalse(empty.IsError,empty.Message); Assert.IsTrue(empty.IsLoaded); Assert.AreEqual(0,empty.Result.Count());
+        var first = new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=Guid.NewGuid(),Username="native first",Karma=12,XP=34 };
+        var second = new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=Guid.NewGuid(),Username="native second",Karma=56,XP=78 };
+        Assert.IsFalse((await provider.SaveAvatarDetailAsync(first)).IsError);
+        Assert.IsFalse((await provider.SaveAvatarDetailAsync(second)).IsError);
+        var loaded = synchronous ? provider.LoadAllAvatarDetails() : await provider.LoadAllAvatarDetailsAsync();
+        Assert.IsFalse(loaded.IsError,loaded.Message); Assert.IsTrue(loaded.IsLoaded);
+        Assert.AreEqual(2,loaded.Result.Count());
+        Assert.AreEqual(first.Karma,loaded.Result.Single(row=>row.Id == first.Id).Karma);
+        Assert.AreEqual(second.XP,loaded.Result.Single(row=>row.Id == second.Id).XP);
+        var history = synchronous ? provider.LoadAllAvatarDetails(1) : await provider.LoadAllAvatarDetailsAsync(1);
+        Assert.IsTrue(history.IsError); Assert.IsNull(history.Result); Assert.IsInstanceOfType(history.Exception,typeof(NotSupportedException));
+        var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        await service.CreateAvatarDetailRequestAndWaitForReceiptAsync(
+            NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(second.Id.ToString()),second.Id.ToString(),"plaintext corruption");
+        var corrupt = synchronous ? provider.LoadAllAvatarDetails() : await provider.LoadAllAvatarDetailsAsync();
+        Assert.IsTrue(corrupt.IsError); Assert.IsFalse(corrupt.IsLoaded); Assert.IsNull(corrupt.Result);
+        Assert.IsNotNull(corrupt.Exception);
+        await provider.DeActivateProviderAsync();
+    }
+
     [TestMethod]
     public async Task Holon_SaveLoadRoundTrip_UsesDisposableEvmChain()
     {

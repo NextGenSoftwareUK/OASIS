@@ -253,6 +253,10 @@ contract NextGenSoftwareOASIS {
         return avatarDetails.length;
     }
 
+    function GetAvatarDetailAt(uint256 index) public view returns (AvatarDetail memory) {
+        return avatarDetails[index];
+    }
+
     function GetHolonsCount() public view returns (uint256 count) {
         return holons.length;
     }
