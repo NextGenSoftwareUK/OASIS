@@ -106,6 +106,55 @@ public sealed class MongoSqliteRealProviderRoutingTests
             conflictResult.IsError.Should().BeTrue();
             (await mongo.LoadAvatarAsync(replicatedDeletionId)).Result.DeletedDate.Should().Be(replicatedSnapshot.DeletedAtUtc);
             (await mongo.ApplyAvatarTombstoneAsync(new AvatarTombstone(Guid.NewGuid(),replicatedSnapshot.DeletedAtUtc))).IsError.Should().BeTrue();
+            var failedReplicaId=Guid.NewGuid();
+            foreach(var store in new IOASISStorageProvider[] {mongo,sqlite})
+            {
+                (await store.SaveAvatarAsync(new Avatar {Id=failedReplicaId,Username="owned rollback replica",IsActive=true,AvatarType=new EnumValue<AvatarType>(AvatarType.User)})).IsError.Should().BeFalse();
+                (await store.SaveAvatarDetailAsync(new AvatarDetail {Id=failedReplicaId,Username="owned rollback replica",IsActive=true,XP=73})).IsError.Should().BeFalse();
+            }
+            var fixtureDatabase=client.GetDatabase(databaseName);
+            await fixtureDatabase.RunCommandAsync<BsonDocument>(new BsonDocument {
+                {"collMod","AvatarDetail"},
+                {"validator",new BsonDocument("$or",new BsonArray {
+                    new BsonDocument("HolonId",new BsonDocument("$ne",failedReplicaId.ToString())),
+                    new BsonDocument("IsActive",true)})},
+                {"validationLevel","strict"},{"validationAction","error"}});
+            try
+            {
+                var failedReplicaRequest=new StorageOperationRequest {Operation="DeleteAvatar",AvatarId=failedReplicaId,SoftDelete=true,PreferredProvider=ProviderType.SQLLiteDBOASIS};
+                var failure=synchronous ? router.RouteRequest<bool>(failedReplicaRequest) : await router.RouteRequestAsync<bool>(failedReplicaRequest);
+                failure.IsError.Should().BeFalse(failure.Message); failure.Result.Should().BeTrue(); failure.IsWarning.Should().BeTrue();
+                var unchangedProfile=(await mongo.LoadAvatarAsync(failedReplicaId)).Result;
+                var unchangedDetail=(await mongo.LoadAvatarDetailAsync(failedReplicaId)).Result;
+                unchangedProfile.IsActive.Should().BeTrue(); unchangedProfile.DeletedDate.Should().Be(DateTime.MinValue);
+                unchangedDetail.IsActive.Should().BeTrue(); unchangedDetail.DeletedDate.Should().Be(DateTime.MinValue);
+                Convert.ToInt64(unchangedDetail.XP).Should().Be(73);
+                (await sqlite.LoadAvatarAsync(failedReplicaId)).Result.IsActive.Should().BeFalse();
+                (await sqlite.LoadAvatarDetailAsync(failedReplicaId)).Result.IsActive.Should().BeFalse();
+            }
+            finally
+            {
+                await fixtureDatabase.RunCommandAsync<BsonDocument>(new BsonDocument {{"collMod","AvatarDetail"},{"validator",new BsonDocument()}});
+            }
+            var uncertainReplicaId=Guid.NewGuid();
+            (await mongo.SaveAvatarAsync(new Avatar {Id=uncertainReplicaId,Username="owned uncertain replica",IsActive=true,AvatarType=new EnumValue<AvatarType>(AvatarType.User)})).IsError.Should().BeFalse();
+            (await mongo.SaveAvatarDetailAsync(new AvatarDetail {Id=uncertainReplicaId,Username="owned uncertain replica",IsActive=true,XP=83})).IsError.Should().BeFalse();
+            var replicaAdmin=client.GetDatabase("admin");
+            await replicaAdmin.RunCommandAsync<BsonDocument>(new BsonDocument {
+                {"configureFailPoint","failCommand"},{"mode",new BsonDocument("times",1)},
+                {"data",new BsonDocument {{"failCommands",new BsonArray {"commitTransaction"}},{"errorCode",2}}}});
+            try
+            {
+                var uncertainSnapshot=new AvatarTombstone(uncertainReplicaId,DateTime.UtcNow,Guid.NewGuid());
+                var uncertainResult=synchronous ? mongo.ApplyAvatarTombstone(uncertainSnapshot) : await mongo.ApplyAvatarTombstoneAsync(uncertainSnapshot);
+                uncertainResult.IsError.Should().BeTrue(); uncertainResult.Result.Should().BeFalse();
+                NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(uncertainResult.Exception).Should().BeTrue();
+                NextGenSoftware.OASIS.API.Core.Helpers.AvatarTombstoneEvidence.TryGet(uncertainResult,out _).Should().BeFalse();
+            }
+            finally
+            {
+                await replicaAdmin.RunCommandAsync<BsonDocument>(new BsonDocument {{"configureFailPoint","failCommand"},{"mode","off"}});
+            }
             var invalidPayloadManager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true, IsAutoReplicationEnabled = true };
             invalidPayloadManager.RegisterProvider(mongo);
             invalidPayloadManager.RegisterProvider(sqlite);

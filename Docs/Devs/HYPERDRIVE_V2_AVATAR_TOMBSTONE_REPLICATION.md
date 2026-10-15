@@ -2,6 +2,8 @@
 
 Status: in progress. Exact-state replication remains a release gate. No dev merge or hosted rollout is authorized by the tests below.
 
+Latest failure-path evidence: current real Mongo/SQLite matrix4/4 (22s) includes validator-induced Mongo detail failure with full replica-pair rollback, primary SQLite success plus replication warning, and native commitTransaction rejection preserving reconciliation-required markers with no committed evidence. Validator/failpoint cleanup runs in finally. These checks do not prove successful-commit/lost-reply recovery or durable reconciliation; those gates remain open.
+
 Latest Mongo capability update: implemented snapshot/majority transactional lifecycle-only application with exact ticks, duplicate/conflict/missing-avatar rejection, optional detail, no-write repeat detection and original uncertain-commit marker. Current real V2 Mongo/SQLite matrix passes4/4 (22s) with exact committed equality in both directions and sync/async, while retaining replica-specific XP101/202 and Karma29. Explicit repeat/conflict/missing tests pass. Older statements that Mongo capability is absent are historical. Failure-injection and durable recovery remain required before broad certification.
 
 Replica-failure follow-up: real sync/async V2 trigger-injection cases pass; primary Ethereum success is preserved, SQLite pair rolls back completely and a replication warning is surfaced. Native suite now **91/91, zero skips,29s**. Unsupported capability dispatch coverage and broader recovery/policy gates remain outstanding.
