@@ -43,35 +43,54 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 {
                     object selection=avatar ? group.AvatarSearchParams : group.HolonSearchParams;
                     var json=JObject.FromObject(record);
-                    foreach(var credential in new[] {"Password","JwtToken","RefreshToken","RefreshTokens","ResetToken","VerificationToken"}) json.Remove(credential);
+                    RemoveSearchCredentials(json);
                     var flags=selection?.GetType().GetProperties().Where(p=>p.PropertyType == typeof(bool) && (bool)p.GetValue(selection)).Select(p=>p.Name).ToList();
                     if(flags?.Contains("SearchAllFields") == true)
-                        flags=json.Properties().Where(p=>p.Value is JValue).Select(p=>p.Name).ToList();
+                        flags=json.Properties().Select(p=>p.Name).ToList();
                     if(flags == null || flags.Count == 0)
                         flags=group is ISearchDateGroup ? new List<string> {"CreatedDate","ModifiedDate"}
                             : group is ISearchNumberGroup ? new List<string> {"Version"}
                             : avatar ? new List<string> {"Username","Email","FirstName","LastName"} : new List<string> {"Name","Description"};
                     // Credentials are never searchable even under an all-fields request.
                     flags.RemoveAll(name=>name is "Password" or "JwtToken" or "RefreshToken" or "ResetToken" or "VerificationToken");
+                    flags=flags.Select(name=>name == "VerifiedDate" ? "Verified" : name).ToList();
                     if(group.HolonSearchParams?.MetaDataKey is string metadataKey && !string.IsNullOrEmpty(metadataKey))
                         json["MetaData"]=json["MetaData"]?[metadataKey];
                     if(group is ISearchTextGroup text)
                     {
                         if(text.SearchProviderKeys) flags.Add("ProviderUniqueStorageKey");
-                        match=flags.Any(name=>json[name]?.ToString().Contains(text.SearchQuery,StringComparison.OrdinalIgnoreCase) == true);
+                        match=flags.SelectMany(name=>SearchValues(json[name])).Any(value=>value.ToString().Contains(text.SearchQuery,StringComparison.OrdinalIgnoreCase));
                         if(text.SearchIds)
                             match |= json.Descendants().OfType<JValue>().Any(value=>Guid.TryParse(value.ToString(),out _)
                                 && value.ToString().Contains(text.SearchQuery,StringComparison.OrdinalIgnoreCase));
                     }
                     else if(group is ISearchNumberGroup number)
-                        match=flags.Any(name=>decimal.TryParse(json[name]?.ToString(),NumberStyles.Number,CultureInfo.InvariantCulture,out var value) && CompareSearch(value.CompareTo(number.Number),number.NumberOperator));
+                        match=flags.SelectMany(name=>SearchValues(json[name])).Any(token=>decimal.TryParse(token.ToString(),NumberStyles.Number,CultureInfo.InvariantCulture,out var value) && CompareSearch(value.CompareTo(number.Number),number.NumberOperator));
                     else if(group is ISearchDateGroup date)
-                        match=flags.Any(name=>DateTime.TryParse(json[name]?.ToString(),CultureInfo.InvariantCulture,DateTimeStyles.RoundtripKind,out var value) && CompareSearch(value.CompareTo(date.Date),date.DateOperator));
+                        match=flags.SelectMany(name=>SearchValues(json[name])).Any(token=>token.Type == JTokenType.Date
+                            && CompareSearch(token.Value<DateTime>().CompareTo(date.Date),date.DateOperator));
                     else throw new NotSupportedException("Unknown Ethereum search group type.");
                 }
                 combined=combined == null ? match : group.PreviousSearchGroupOperator == SearchParamGroupOperator.And ? combined.Value && match : combined.Value || match;
             }
             return combined ?? true;
+        }
+
+        private static IEnumerable<JValue> SearchValues(JToken token)
+            => token is JValue value ? new[] {value} : token is JContainer container ? container.Descendants().OfType<JValue>() : Enumerable.Empty<JValue>();
+
+        private static void RemoveSearchCredentials(JToken token)
+        {
+            if(token is JObject record)
+                foreach(var property in record.Properties().ToList())
+                {
+                    if(new[] {"Password","JwtToken","RefreshToken","RefreshTokens","ResetToken","VerificationToken",
+                        "PrivateKey","PrivateKeys","ProviderPrivateKeys","SecretKey","SigningKey","Mnemonic","SeedPhrase"}
+                        .Contains(property.Name,StringComparer.OrdinalIgnoreCase)) property.Remove();
+                    else RemoveSearchCredentials(property.Value);
+                }
+            else if(token is JArray array)
+                foreach(var child in array) RemoveSearchCredentials(child);
         }
 
         private static bool CompareSearch(int comparison,SearchOperatorType operation) => operation switch

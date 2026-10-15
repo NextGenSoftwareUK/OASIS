@@ -627,6 +627,45 @@ public class EthereumOASISIntegrationTests
         await provider.DeActivateProviderAsync();
     }
 
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task AllFieldsSearchIncludesStructuredValuesButExcludesNestedCredentials(bool synchronous)
+    {
+        var (provider,_) = await CreateActivatedProviderAsync();
+        var secretGuid=Guid.NewGuid();
+        var holon=new CoreHolon { Id=Guid.NewGuid(),MetaData=new Dictionary<string,object> { ["nested"]=new Dictionary<string,object> {
+            ["public"]="deep-public-marker",["pRiVaTeKeY"]="deep-secret-marker",["ResetToken"]=secretGuid.ToString() } } };
+        var verified=new DateTime(2024,7,8,9,10,11,DateTimeKind.Utc);
+        var avatar=new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=Guid.NewGuid(),Username="verified fixture",Password="password-secret-marker",Verified=verified };
+        Assert.IsFalse((await provider.SaveHolonAsync(holon,saveChildren:false)).IsError);
+        Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+        async Task<NextGenSoftware.OASIS.API.Core.Interfaces.Search.ISearchResults> Run(ISearchGroupBase group)
+        {
+            var query=new SearchParams { SearchOnlyForCurrentAvatar=false,SearchGroups=new List<ISearchGroupBase> {group} };
+            var result=synchronous ? provider.Search(query,loadChildren:false) : await provider.SearchAsync(query,loadChildren:false);
+            Assert.IsFalse(result.IsError,result.Message); return result.Result;
+        }
+        SearchTextGroup Text(string value,bool avatars=false)=>new SearchTextGroup { SearchQuery=value,HolonType=HolonType.All,
+            SearchHolons=!avatars,SearchAvatars=avatars,HolonSearchParams=new SearchHolonParams { SearchAllFields=true },
+            AvatarSearchParams=new NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar.SearchAvatarParams { SearchAllFields=true } };
+        Assert.AreEqual(holon.Id,(await Run(Text("deep-public-marker"))).SearchResultHolons.Single().Id);
+        Assert.AreEqual(0,(await Run(Text("deep-secret-marker"))).NumberOfResults);
+        Assert.AreEqual(0,(await Run(Text("password-secret-marker",true))).NumberOfResults);
+        var idQuery=Text(secretGuid.ToString()); idQuery.SearchIds=true;
+        Assert.AreEqual(0,(await Run(idQuery)).NumberOfResults);
+        var culture=System.Globalization.CultureInfo.CurrentCulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentCulture=System.Globalization.CultureInfo.GetCultureInfo("fr-FR");
+            var date=new SearchDateGroup { Date=verified,DateOperator=SearchOperatorType.EqualTo,SearchAvatars=true,HolonType=HolonType.All,
+                AvatarSearchParams=new NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar.SearchAvatarParams { VerifiedDate=true } };
+            Assert.AreEqual(avatar.Id,(await Run(date)).SearchResultAvatars.Single().Id);
+        }
+        finally { System.Globalization.CultureInfo.CurrentCulture=culture; }
+        await provider.DeActivateProviderAsync();
+    }
+
     [TestMethod]
     public async Task Holon_SaveLoadRoundTrip_UsesDisposableEvmChain()
     {
