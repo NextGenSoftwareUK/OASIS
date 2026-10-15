@@ -15,6 +15,30 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS;
 
 public partial class GoogleCloudOASIS
 {
+    private async Task<OASISResult<IEnumerable<IHolon>>> ExportCanonicalOwnedHolonsAsync(Guid owner,int version)
+    {
+        var result=new OASISResult<IEnumerable<IHolon>>();
+        try
+        {
+            if(owner==Guid.Empty) throw new ArgumentException("A nonempty avatar identity is required.");
+            var loaded=await LoadAllHolonsAsync(loadChildren:false,version:version);
+            if(loaded.IsError) return loaded;
+            var records=loaded.Result.ToList();
+            var project=HolonGraphProjection.Create(records,true,true,0,0,true,source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
+            result.Result=records.Where(row=>row.CreatedByAvatarId==owner || row.ParentHolonId==owner).Select(project).ToList();
+            result.IsLoaded=true;
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
+    }
+
+    private async Task<OASISResult<IEnumerable<IHolon>>> ExportCanonicalSelectedAvatarAsync(string selector,bool email,int version)
+    {
+        var loaded=await ReadCanonicalAvatarSelectorAsync(selector,email,version);
+        if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,IEnumerable<IHolon>>(loaded);
+        return await ExportCanonicalOwnedHolonsAsync(loaded.Result.Id,version);
+    }
+
     private async Task<OASISResult<IEnumerable<IHolon>>> ReadCanonicalMetadataAsync(Dictionary<string,string> pairs,MetaKeyValuePairMatchMode mode,
         HolonType type,bool children,bool recursive,int depth,int initialDepth,bool continueOnError,bool fromProvider,int version)
     {

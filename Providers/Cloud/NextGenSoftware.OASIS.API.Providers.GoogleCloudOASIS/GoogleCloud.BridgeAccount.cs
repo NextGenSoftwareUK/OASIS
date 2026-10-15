@@ -35,118 +35,16 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             return ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmail, int version = 0)
-        {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (!_enableFirestore)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
-                    return result;
-                }
-
-                // Export all holons for avatar by email from Google Cloud Firestore
-                var query = _firestoreDb.Collection("holons").WhereEqualTo("createdByEmail", avatarEmail);
-                var snapshot = await query.GetSnapshotAsync();
-                
-                if (snapshot.Count > 0)
-                {
-                    var holons = new List<IHolon>();
-                    
-                    // Convert ALL Firestore documents to OASIS Holons with FULL property mapping
-                    foreach (var doc in snapshot.Documents)
-                    {
-                        var holonData = doc.ConvertTo<Dictionary<string, object>>();
-                    var holon = DecodeHolon(holonData,doc.Id);
-                        
-                        holons.Add(holon);
-                    }
-                    
-                    result.Result = holons;
-                    result.IsError = false;
-                    result.Message = $"Avatar data exported successfully from Google Cloud Firestore by email with full property mapping ({holons.Count} holons)";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "No data found for avatar by email in Google Cloud Firestore");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting avatar data by email from Google Cloud: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmail, int version = 0)
+            => ExportCanonicalSelectedAvatarAsync(avatarEmail,true,version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmail, int version = 0)
         {
             return ExportAllDataForAvatarByEmailAsync(avatarEmail, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
-        {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (!_enableFirestore)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
-                    return result;
-                }
-
-                // Export all holons from Google Cloud Firestore
-                var query = _firestoreDb.Collection("holons");
-                var snapshot = await query.GetSnapshotAsync();
-                
-                if (snapshot.Count > 0)
-                {
-                    var holons = new List<IHolon>();
-                    
-                    // Convert ALL Firestore documents to OASIS Holons with FULL property mapping
-                    foreach (var doc in snapshot.Documents)
-                    {
-                        var holonData = doc.ConvertTo<Dictionary<string, object>>();
-                    var holon = DecodeHolon(holonData,doc.Id);
-                        
-                        holons.Add(holon);
-                    }
-                    
-                    result.Result = holons;
-                    result.IsError = false;
-                    result.Message = $"All data exported successfully from Google Cloud Firestore with full property mapping ({holons.Count} holons)";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "No data found in Google Cloud Firestore");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error exporting all data from Google Cloud: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0)
+            => LoadAllHolonsAsync(loadChildrenFromProvider:true,version:version);
 
         public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0)
         {
