@@ -304,99 +304,30 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            OASISResult<ISearchResults> result = new OASISResult<ISearchResults>();
-            OASISResult<IEnumerable<IAvatar>> avatarsResult = await LoadAllAvatarsAsync();
-            OASISResult<IEnumerable<IHolon>> holonsResult = await LoadAllHolonsAsync();
-            List<IAvatar> avatars = new List<IAvatar>();
-            List<IHolon> holons = new List<IHolon>();
-
-            if (avatarsResult.Result != null && !avatarsResult.IsError)
-                avatars = avatarsResult.Result.ToList();
-            else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in IPFSOASIS in SearchAsync loading the avatars. Reason: {avatarsResult.Message}");
-
-            if (holonsResult.Result != null && !holonsResult.IsError)
-                holons = holonsResult.Result.ToList();
-            else
-                OASISErrorHandling.HandleError(ref result, $"Error occured in IPFSOASIS in SearchAsync loading the holons. Reason: {holonsResult.Message}");
-
-            if (!result.IsError)
+            var result=new OASISResult<ISearchResults>();
+            try
             {
-                foreach (ISearchGroupBase searchGroup in searchParams.SearchGroups)
-                {
-                    ISearchTextGroup searchTextGroup = searchGroup as ISearchTextGroup;
-
-                    if (searchTextGroup != null)
-                    {
-                        // Fallback simple search for current model
-                        if (!string.IsNullOrWhiteSpace(searchTextGroup.SearchQuery))
-                        {
-                            var q = searchTextGroup.SearchQuery.ToLower();
-                            result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
-                                (a.Name ?? string.Empty).ToLower().Contains(q) || (a.Description ?? string.Empty).ToLower().Contains(q)));
-                            result.Result.SearchResultHolons.AddRange(holons.Where(h =>
-                                (h.Name ?? string.Empty).ToLower().Contains(q) || (h.Description ?? string.Empty).ToLower().Contains(q)));
-                        }
-
-                        if (searchTextGroup.SearchAvatars)
-                        {
-                            // Simplified: only name/username/email/description for current model
-                            var qLower = (searchTextGroup.SearchQuery ?? string.Empty).ToLower();
-                            result.Result.SearchResultAvatars.AddRange(avatars.Where(a =>
-                                (a.Name ?? string.Empty).ToLower().Contains(qLower)
-                                || (a.Username ?? string.Empty).ToLower().Contains(qLower)
-                                || (a.Email ?? string.Empty).ToLower().Contains(qLower)
-                                || (a.Description ?? string.Empty).ToLower().Contains(qLower)));
-                        }
-
-                        if (searchTextGroup.SearchHolons)
-                        {
-                            if (searchTextGroup.HolonSearchParams.Name)
-                            {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.Name.Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-
-                            if (searchTextGroup.HolonSearchParams.Description)
-                            {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.Description.Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-
-                            // Search ALL holon properties comprehensively
-                            if (searchTextGroup.HolonSearchParams.HolonType)
-                            {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.HolonType.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.HolonSearchParams.CreatedDate)
-                            {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.CreatedDate.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.HolonSearchParams.ModifiedDate)
-                            {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.ModifiedDate.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            if (searchTextGroup.HolonSearchParams.Version)
-                            {
-                                result.Result.SearchResultHolons.AddRange(holons.Where(a =>
-                                   a.Version.ToString().Contains(searchTextGroup.SearchQuery)).ToList());
-                            }
-                            // Simplified: only name/description/holontype/date for current model
-                            var qLower = (searchTextGroup.SearchQuery ?? string.Empty).ToLower();
-                            result.Result.SearchResultHolons.AddRange(holons.Where(h =>
-                                (h.Name ?? string.Empty).ToLower().Contains(qLower)
-                                || (h.Description ?? string.Empty).ToLower().Contains(qLower)
-                                || h.HolonType.ToString().ToLower().Contains(qLower)
-                                || h.CreatedDate.ToString().ToLower().Contains(qLower)
-                                || h.ModifiedDate.ToString().ToLower().Contains(qLower)));
-                        }
-                    }
-                }
+                StoredRecordSearch.Validate(searchParams,version,maxChildDepth);
+                var groups=searchParams.SearchGroups ?? new List<ISearchGroupBase>();
+                var wantsAvatars=groups.Count==0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
+                var wantsHolons=groups.Count==0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);
+                var snapshot=await LoadLookupToJson();
+                var avatars=wantsAvatars ? await ReadIndexSnapshotAsync<Avatar>(snapshot,"avatar",row=>true):new List<Avatar>();
+                var holons=wantsHolons || searchParams.ParentId!=Guid.Empty
+                    ? await ReadIndexSnapshotAsync<Holon>(snapshot,"holon",row=>true):new List<Holon>();
+                var project=HolonGraphProjection.Create(holons,loadChildren,recursive,maxChildDepth,0,true,
+                    source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
+                var found=new SearchResults();
+                found.SearchResultAvatars.AddRange(avatars.Where(row=>StoredRecordSearch.Matches(row,true,searchParams,holons)));
+                if(wantsHolons) found.SearchResultHolons.AddRange(holons.Where(row=>StoredRecordSearch.Matches(row,false,searchParams,holons)).Select(project));
+                found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
+                result.Result=found; result.IsLoaded=true;
             }
-
+            catch(Exception cause)
+            {
+                OASISErrorHandling.HandleError(ref result,"IPFS private search failed: "+cause.Message,cause);
+                if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
+            }
             return result;
         }
 
