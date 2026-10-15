@@ -72,6 +72,22 @@ class ReleaseGateContracts(unittest.TestCase):
                 with self.assertRaises(ValueError):
                     gate.assert_current(item, "not-a-real-token")
 
+    def test_accounting_cannot_silently_use_production_default(self):
+        import json
+        values = {'OASIS_DNA_JSON': json.dumps({'OASIS': {'StorageProviders': {'MongoDBOASIS': {'DBName': 'staging'}}}})}
+        with self.assertRaisesRegex(ValueError, 'accounting'):
+            gate.validate_staging_variables(values, 'staging', 'staging_accounting')
+        values['SUBSCRIPTION_MONGODB_DATABASE'] = 'staging_accounting'
+        gate.validate_staging_variables(values, 'staging', 'staging_accounting')
+
+    def test_database_identity_must_match_reviewed_staging_user(self):
+        import json
+        values = {'OASIS_DNA_JSON': json.dumps({'OASIS': {'StorageProviders': {'MongoDBOASIS': {
+            'DBName': 'staging', 'ConnectionString': 'mongodb://stage_user:fictional@localhost/staging'}}}})}
+        gate.validate_staging_variables(values, 'staging', expected_user='stage_user')
+        with self.assertRaisesRegex(ValueError, 'credential'):
+            gate.validate_staging_variables(values, 'staging', expected_user='different_user')
+
     def test_production_does_not_mutate_on_failed_staging(self):
         with patch.object(gate, "validate_candidate"), patch.object(gate, "deploy") as deploy, \
              patch.object(gate.Path, "read_text", side_effect=[__import__('json').dumps(self.candidate()), __import__('json').dumps(dict(self.report(), accepted=False))]), \

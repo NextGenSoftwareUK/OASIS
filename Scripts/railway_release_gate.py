@@ -89,9 +89,11 @@ def preflight(environment, token):
     if environment == "staging":
         expected_db = CONFIG["stagingIsolation"]["mongoDbName"]
         require(bool(expected_db), "Staging isolation is not configured/approved; deployment blocked")
+        expected_user = CONFIG["stagingIsolation"]["mongoUsername"]
+        require(bool(expected_user), "Staging-only database credential policy is not configured; deployment blocked")
         for service in CONFIG["services"].values():
             values = service_variables(environment, service, token)
-            validate_staging_variables(values, expected_db)
+            validate_staging_variables(values, expected_db, CONFIG["stagingIsolation"]["accountingDbName"] if service == CONFIG["services"]["4"] else None, expected_user)
 
 
 def service_variables(environment, service, token):
@@ -104,8 +106,23 @@ def mongo_database(values):
     return dna.get("OASIS", {}).get("StorageProviders", {}).get("MongoDBOASIS", {}).get("DBName")
 
 
-def validate_staging_variables(values, expected_db):
+def mongo_username(values):
+    dna = json.loads(values.get("OASIS_DNA_JSON", "{}"))
+    connection = dna.get("OASIS", {}).get("StorageProviders", {}).get("MongoDBOASIS", {}).get("ConnectionString", "")
+    return urllib.parse.unquote(urllib.parse.urlsplit(connection).username or "")
+
+
+def validate_staging_variables(values, expected_db, expected_accounting=None, expected_user=None):
     require(bool(expected_db) and mongo_database(values) == expected_db, "Staging Mongo database does not match approved isolation policy")
+    if expected_user:
+        require(mongo_username(values) == expected_user, "Staging database credential does not match reviewed staging-only identity")
+    if expected_accounting:
+        require(values.get("SUBSCRIPTION_MONGODB_DATABASE") == expected_accounting,
+                "Staging subscription accounting database does not match approved isolation policy")
+        accounting_uri = values.get("SUBSCRIPTION_MONGODB_CONNECTION_STRING")
+        if accounting_uri and expected_user:
+            require(urllib.parse.unquote(urllib.parse.urlsplit(accounting_uri).username or "") == expected_user,
+                    "Staging accounting credential does not match reviewed staging-only identity")
     stripe_key = values.get("STRIPE_SECRET_KEY", "")
     require(not stripe_key or stripe_key.startswith(("sk_test_", "rk_test_")), "Staging Stripe credentials are not test-mode")
 
@@ -221,9 +238,16 @@ def main():
         # Confirm isolated database selection against the actual production configuration.
         # Values remain in memory and are never included in evidence/logs.
         for service in CONFIG["services"].values():
-            stage_db = mongo_database(service_variables("staging", service, stage_token))
-            prod_db = mongo_database(service_variables("production", service, token))
+            stage_variables = service_variables("staging", service, stage_token)
+            prod_variables = service_variables("production", service, token)
+            stage_db = mongo_database(stage_variables)
+            prod_db = mongo_database(prod_variables)
             require(stage_db and prod_db and stage_db != prod_db, "Staging and production database names are not isolated")
+            require(mongo_username(stage_variables) and mongo_username(stage_variables) != mongo_username(prod_variables),
+                    "Staging and production must not share a database credential identity")
+            if service == CONFIG["services"]["4"]:
+                require(stage_variables.get("SUBSCRIPTION_MONGODB_DATABASE") != prod_variables.get("SUBSCRIPTION_MONGODB_DATABASE", "oasis_subscription_accounting"),
+                        "Staging and production accounting databases are not isolated")
         # Recheck staged identity and contracts after human approval, before any production write.
         acceptance(report, stage_token)
     report = deploy(candidate, args.operation, token, args.output)
