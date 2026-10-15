@@ -58,6 +58,35 @@ public class SolanaAvatarUpdateTests
         }
     }
 
+    [DataTestMethod]
+    [DataRow(false, false)]
+    [DataRow(true, false)]
+    [DataRow(false, true)]
+    [DataRow(true, true)]
+    public async Task HolonUpdatesUseHolonDtoAndCurrentFields(bool bulk, bool mismatch)
+    {
+        var account = new Account();
+        var provider = new SolanaOASIS("http://127.0.0.1:8899", account.PrivateKey.Key, account.PublicKey.Key);
+        var holon = new Holon { Id = Guid.NewGuid(), Name = "updated synthetic holon", Description = "changed", Version = 1 };
+        holon.ProviderUniqueStorageKey[ProviderType.SolanaOASIS] = "old-signature";
+        var repository = new CapturingRepository { Existing = new SolanaHolonDto {
+            Id = mismatch ? Guid.NewGuid() : holon.Id, Name = "old", Version = 8 } };
+        typeof(SolanaOASIS).GetField("_solanaRepository", BindingFlags.Instance | BindingFlags.NonPublic)!.SetValue(provider, repository);
+        var isError = bulk
+            ? (await provider.SaveHolonsAsync(new[] { holon }, saveChildren:false)).IsError
+            : (await provider.SaveHolonAsync(holon, saveChildren:false)).IsError;
+        Assert.AreEqual(mismatch, isError);
+        if (mismatch) Assert.IsNull(repository.Updated);
+        else
+        {
+            var submitted = (SolanaHolonDto)repository.Updated!;
+            Assert.AreEqual(holon.Id, submitted.Id);
+            Assert.AreEqual(holon.Name, submitted.Name);
+            Assert.AreEqual(holon.Description, submitted.Description);
+            Assert.AreEqual(8, submitted.Version);
+        }
+    }
+
     private sealed class CapturingRepository : ISolanaRepository
     {
         public SolanaBaseDto Existing = null!;

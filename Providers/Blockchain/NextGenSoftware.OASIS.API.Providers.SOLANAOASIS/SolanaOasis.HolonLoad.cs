@@ -325,9 +325,7 @@ public partial class SolanaOASIS
                 holon.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS,
                     out var avatarDetailSolanaHash))
             {
-                var solanaAvatarDetailDto =
-                    await _solanaRepository.GetAsync<SolanaAvatarDetailDto>(avatarDetailSolanaHash);
-                transactionHash = await _solanaRepository.UpdateAsync(solanaAvatarDetailDto);
+                transactionHash = await UpdateStoredHolonAsync(holon, avatarDetailSolanaHash);
             }
             // Create avatar if transaction hash not exist
             else
@@ -393,9 +391,7 @@ public partial class SolanaOASIS
                     holon.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.SolanaOASIS,
                         out var avatarDetailSolanaHash))
                 {
-                    var solanaAvatarDetailDto =
-                        await _solanaRepository.GetAsync<SolanaAvatarDetailDto>(avatarDetailSolanaHash);
-                    transactionHash = await _solanaRepository.UpdateAsync(solanaAvatarDetailDto);
+                    transactionHash = await UpdateStoredHolonAsync(holon, avatarDetailSolanaHash);
                 }
                 // Create avatar if transaction hash not exist
                 else
@@ -439,10 +435,20 @@ public partial class SolanaOASIS
         }
         catch (Exception ex)
         {
-            OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}");
+            OASISErrorHandling.HandleError(ref result, $"{errorMessage}. Reason: {ex}", ex);
         }
 
         return result;
+    }
+
+    private async Task<string> UpdateStoredHolonAsync(IHolon holon, string signature)
+    {
+        var persisted = await _solanaRepository.GetAsync<SolanaHolonDto>(signature);
+        if (persisted == null || persisted.Id != holon.Id)
+            throw new InvalidOperationException("Solana holon storage reference does not match the requested identity.");
+        var current = holon.GetSolanaHolonDto();
+        current.Version = persisted.Version;
+        return await _solanaRepository.UpdateAsync(current);
     }
 
     public override OASISResult<IHolon> DeleteHolon(string providerKey)
