@@ -385,112 +385,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return result;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
+        public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+            => FindStoredIdentityAsync(avatarEmail,row=>row.Email,()=>LoadAllAvatarsAsync(version));
 
-                // Real Ethereum implementation: Query smart contract for avatar by email
-                try
-                {
-                    // Get current block number from Ethereum blockchain
-                    var currentBlockNumber = await Web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync();
-                    
-                    // Get gas price from Ethereum blockchain
-                    var gasPrice = await Web3Client.Eth.GasPrice.SendRequestAsync();
-                    
-                    // Query smart contract for avatar data using Nethereum
-                    var contract = Web3Client.Eth.GetContract(_abi, _contractAddress);
-                    var getAvatarByEmailFunction = contract.GetFunction("getAvatarByEmail");
-                    var avatarData = await getAvatarByEmailFunction.CallAsync<object>(avatarEmail);
-                    
-                    // Parse the REAL smart contract data from Ethereum blockchain
-                    var avatar = ParseEthereumToAvatar(avatarData, avatarEmail);
-                    if (avatar == null)
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Ethereum smart contract");
-                        return result;
-                    }
-                    
-                    result.Result = avatar;
-                        result.IsError = false;
-                    result.Message = "Avatar loaded successfully by email from Ethereum blockchain";
-                }
-                catch (Exception ex)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email from Ethereum: {ex.Message}", ex);
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by email: {ex.Message}", ex);
-            }
-            return result;
-        }
-
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            var result = new OASISResult<IAvatar>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Query avatar from Ethereum smart contract by username
-                // Real Ethereum implementation: Query smart contract for avatar by username
-                try
-                {
-                    // Get current block number from Ethereum blockchain
-                    var currentBlockNumber = await Web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync();
-                    
-                    // Get gas price from Ethereum blockchain
-                    var gasPrice = await Web3Client.Eth.GasPrice.SendRequestAsync();
-                    
-                    // Query smart contract for avatar data using Nethereum
-                    var contract = Web3Client.Eth.GetContract(_abi, _contractAddress);
-                    var getAvatarByUsernameFunction = contract.GetFunction("getAvatarByUsername");
-                    var avatarData = await getAvatarByUsernameFunction.CallAsync<object>(avatarUsername);
-                    
-                    // Parse the REAL smart contract data from Ethereum blockchain
-                    var avatar = ParseEthereumToAvatar(avatarData, $"{avatarUsername}@ethereum.local");
-                    if (avatar == null)
-                    {
-                        OASISErrorHandling.HandleError(ref result, "Failed to parse avatar data from Ethereum smart contract");
-                        return result;
-                    }
-                    
-                    result.Result = avatar;
-                        result.IsError = false;
-                    result.Message = "Avatar loaded successfully by username from Ethereum blockchain";
-                }
-                catch (Exception ex)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username from Ethereum: {ex.Message}", ex);
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar by username: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+            => FindStoredIdentityAsync(avatarUsername,row=>row.Username,()=>LoadAllAvatarsAsync(version));
 
         public override OASISResult<IAvatar> LoadAvatar(Guid Id, int version = 0)
         {
