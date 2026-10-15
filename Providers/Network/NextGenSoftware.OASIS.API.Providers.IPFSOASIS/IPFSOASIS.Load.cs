@@ -266,22 +266,49 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return LoadHolonAsync(id).Result;
+            return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return await LoadHolonTemplateAsync(a => a.Id == id);
+            return await ReadProjectedHolonAsync(row => row.Id == id, loadChildren, recursive, maxChildDepth, loadChildrenFromProvider, version);
         }
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return LoadHolonAsync(providerKey).Result;
+            return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
         }
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return await LoadHolonTemplateAsync(a => a.ProviderUniqueStorageKey.Where(b => b.Value == providerKey).Any());
+            return await ReadProjectedHolonAsync(row => row.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.IPFSOASIS, out var key) && key == providerKey,
+                loadChildren, recursive, maxChildDepth, loadChildrenFromProvider, version);
+        }
+
+        private async Task<OASISResult<IHolon>> ReadProjectedHolonAsync(Func<HolonResume,bool> select,
+            bool loadChildren, bool recursive, int maxDepth, bool childrenFromProvider, int version)
+        {
+            var result = new OASISResult<IHolon>();
+            try
+            {
+                if (version != 0) throw new NotSupportedException("Historical IPFS holon reads are not implemented.");
+                if (maxDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
+                _idLookup = await LoadLookupToJson();
+                var selected = FindIndexEntry("holon", select);
+                var root = await ReadPrivateRecordAsync<Holon>(selected.Key, "holon", selected.Value.Id);
+                var records = loadChildren && childrenFromProvider
+                    ? await ReadIndexedCollectionAsync<Holon>("holon", row => true)
+                    : new List<Holon> { root };
+                var project = HolonGraphProjection.Create(records, loadChildren, recursive, maxDepth, 0, childrenFromProvider,
+                    source => OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
+                result.Result = project(root);
+                result.IsLoaded = true;
+            }
+            catch (Exception cause)
+            {
+                OASISErrorHandling.HandleError(ref result, "IPFS holon read failed: " + cause.Message, cause);
+            }
+            return result;
         }
 
         /*** Templates****/
