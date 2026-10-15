@@ -10,6 +10,7 @@ using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.DNA;
 using SQLiteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.Common;
@@ -515,6 +516,43 @@ public class EthereumOASISIntegrationTests
         Assert.IsTrue(duplicateParent.IsError); Assert.IsNull(duplicateParent.Result); Assert.IsFalse(duplicateParent.IsLoaded);
         Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,duplicateParent.ErrorCode);
         Assert.IsInstanceOfType(duplicateParent.Exception,typeof(StorageIdentityAmbiguousException));
+        await provider.DeActivateProviderAsync();
+    }
+
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task NativeSearchFiltersStoredRecordsAndPreservesReadFailures(bool synchronous)
+    {
+        var (provider,address)=await CreateActivatedProviderAsync();
+        var owner=Guid.NewGuid();
+        var root=new CoreHolon { Id=Guid.NewGuid(),Name="forest guardian",Version=7,CreatedByAvatarId=owner,CreatedDate=new DateTime(2026,1,1),MetaData=new Dictionary<string,object> { ["Region"]="park" } };
+        var child=new CoreHolon { Id=Guid.NewGuid(),ParentHolonId=root.Id,Name="forest seed",Version=2,CreatedDate=new DateTime(2020,1,1) };
+        foreach(var row in new[] {root,child}) Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);
+        Assert.IsFalse((await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=Guid.NewGuid(),Username="forest friend",CreatedDate=new DateTime(2020,1,1) })).IsError);
+        SearchParams Query(params ISearchGroupBase[] groups)=>new SearchParams { SearchOnlyForCurrentAvatar=false,SearchGroups=groups.ToList() };
+        async Task<OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.Search.ISearchResults>> Run(SearchParams query,int version=0)
+            => synchronous ? provider.Search(query,loadChildren:false,version:version) : await provider.SearchAsync(query,loadChildren:false,version:version);
+        var text=new SearchTextGroup { SearchQuery="guardian",SearchHolons=true,HolonType=HolonType.All };
+        var found=await Run(Query(text)); Assert.IsFalse(found.IsError,found.Message); Assert.IsTrue(found.IsLoaded);
+        Assert.AreEqual(root.Id,found.Result.SearchResultHolons.Single().Id); Assert.AreEqual(0,found.Result.SearchResultAvatars.Count);
+        var both=await Run(Query(new SearchTextGroup { SearchQuery="forest",HolonType=HolonType.All }));
+        Assert.IsFalse(both.IsError,both.Message); Assert.AreEqual(3,both.Result.NumberOfResults);
+        var number=new SearchNumberGroup { Number=5,NumberOperator=SearchOperatorType.GreaterThan,SearchHolons=true,HolonType=HolonType.All,PreviousSearchGroupOperator=SearchParamGroupOperator.And };
+        var combined=await Run(Query(new SearchTextGroup { SearchQuery="forest",SearchHolons=true,HolonType=HolonType.All },number));
+        Assert.IsFalse(combined.IsError,combined.Message); Assert.AreEqual(root.Id,combined.Result.SearchResultHolons.Single().Id);
+        var date=await Run(Query(new SearchDateGroup { Date=new DateTime(2025,1,1),DateOperator=SearchOperatorType.GreaterThan,SearchHolons=true,HolonType=HolonType.All }));
+        Assert.IsFalse(date.IsError,date.Message); Assert.AreEqual(root.Id,date.Result.SearchResultHolons.Single().Id);
+        var owned=Query(); owned.SearchOnlyForCurrentAvatar=true; owned.AvatarId=owner;
+        Assert.AreEqual(root.Id,(await Run(owned)).Result.SearchResultHolons.Single().Id);
+        var parent=Query(); parent.ParentId=root.Id; Assert.AreEqual(child.Id,(await Run(parent)).Result.SearchResultHolons.Single().Id);
+        var metadata=Query(); metadata.FilterByMetaData=new Dictionary<string,string> { ["Region"]="park" };
+        Assert.AreEqual(root.Id,(await Run(metadata)).Result.SearchResultHolons.Single().Id);
+        var history=await Run(Query(text),1); Assert.IsTrue(history.IsError); Assert.IsInstanceOfType(history.Exception,typeof(NotSupportedException));
+        var invalid=await Run(Query(new SearchTextGroup { SearchQuery=" " })); Assert.IsTrue(invalid.IsError); Assert.IsNull(invalid.Result);
+        var service=new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),address);
+        await service.CreateHolonRequestAndWaitForReceiptAsync(NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(child.Id.ToString()),child.Id.ToString(),"corrupt payload");
+        var corrupt=await Run(Query(text)); Assert.IsTrue(corrupt.IsError); Assert.IsNull(corrupt.Result); Assert.IsFalse(corrupt.IsLoaded); Assert.IsNotNull(corrupt.Exception);
         await provider.DeActivateProviderAsync();
     }
 
