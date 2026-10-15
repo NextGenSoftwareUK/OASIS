@@ -17,13 +17,13 @@ A replica applies the lifecycle state actually committed by the primary, preserv
 - `IAvatarTombstoneStorageProvider` specifies synchronous/asynchronous application of this lifecycle patch, atomically preserving existing account data.
 - Eight focused tests cover invalid descriptors, failed-result rejection, concurrent attachment, V2 generic conversion and non-disclosure through Newtonsoft/System.Text.Json serialization.
 
-The weak association is process-local, not a durable outbox, restart recovery mechanism, signed receipt or proof that a provider actually committed. Providers must attach evidence only after their authoritative success boundary. Nothing currently attaches or applies it automatically.
+The weak association is process-local, not a durable outbox, restart recovery mechanism, signed receipt or proof that a provider actually committed. Ethereum now attaches it after receipt validation and implements explicit atomic application. SQLite and V2 replication dispatch are not yet wired to this capability.
 
 ## Remaining implementation
 
-1. Ethereum: publish the exact tombstone after successful paired native receipt validation; use the existing full-identity/ciphertext-CAS transaction to apply a supplied timestamp rather than selecting a new one.
+1. Ethereum implementation is present: receipt-bound publication, supplied-timestamp paired CAS, replica-local profile/XP/karma preservation, no-write recognition of an exact match and rejection of conflicting prior tombstones/missing accounts. Two real contract instances verify these paths; missing-account repair and concurrency stress remain open.
 2. SQLite: publish evidence only after commit; apply the supplied timestamp/attribution/inactive state to both matching records within one local transaction. Preserve existing data and rollback/tracker recovery behavior.
-3. Preserve evidence through username/email/provider-key deletion wrappers, not just generic V2 conversion.
+3. Ethereum username/email/provider-key deletion wrappers now preserve the actual result/evidence and failure cause/code. SQLite and other providers still need equivalent preservation.
 4. V2 replication: apply committed evidence through the explicit capability instead of replaying deletion. Missing evidence/capability must produce an explicit replication failure diagnostic after a primary commit, not a hidden command fallback or false complete success.
 5. Prove exact canonical timestamp, attribution and inactive flags in both directions, sync/async. Retain independent raw/database reads, failed-secondary diagnostics, no replay after uncertain submission, and zero backup requests for terminal identity errors.
 6. Resolve absent/stale/already-deleted replicas, concurrent updates, optional/missing detail, unsupported providers and durable recovery. Do not fabricate full account records to make a patch succeed.
@@ -31,4 +31,4 @@ The weak association is process-local, not a durable outbox, restart recovery me
 
 ## Verification boundaries
 
-The existing Ethereum native suite still tests the earlier command-replay path and records timestamp divergence. The eight foundation tests are not end-to-end replication evidence. The current release-gates document records exact run results and remains authoritative for unresolved gates.
+The existing V2 cross-provider tests still exercise command replay and record timestamp divergence. Explicit Ethereum-to-Ethereum tombstone application is tested independently, not through V2 dispatch. The eight foundation tests are not end-to-end replication evidence. The current release-gates document records exact run results and remains authoritative for unresolved gates.
