@@ -835,8 +835,7 @@ public sealed class MongoSqliteRealProviderRoutingTests
             {
                 await admin.RunCommandAsync<BsonDocument>(new BsonDocument { { "configureFailPoint", "failCommand" }, { "mode", "off" } });
             }
-            // Characterization of an OPEN release gate, not proof of safe graph writes:
-            // ordinary saves commit the parent before the child's rejected insert.
+            // A rejected child insert must roll back the parent in the same graph transaction.
             var partialGraphRoot = new Holon { Id = Guid.NewGuid(), Name = "owned-partial-graph-root" };
             var partialGraphChild = new Holon { Id = Guid.NewGuid(), Name = "owned-partial-graph-child", ParentHolonId = partialGraphRoot.Id };
             partialGraphRoot.Children = new List<IHolon> { partialGraphChild };
@@ -850,8 +849,8 @@ public sealed class MongoSqliteRealProviderRoutingTests
                     ? failureMongo.SaveHolon(partialGraphRoot,saveChildren:true,saveChildrenOnProvider:true)
                     : await failureMongo.SaveHolonAsync(partialGraphRoot,saveChildren:true,saveChildrenOnProvider:true);
                 partialGraph.IsError.Should().BeTrue();
-                partialGraph.Exception.Should().BeNull("the current graph wrapper loses the child's original native cause; this remains an open gate");
-                (await mongo.LoadHolonAsync(partialGraphRoot.Id,loadChildren:false)).Result.Should().NotBeNull("the current parent write is committed before child failure");
+                partialGraph.Exception.Should().BeOfType<MongoCommandException>();
+                (await mongo.LoadHolonAsync(partialGraphRoot.Id,loadChildren:false)).Result.Should().BeNull("the rejected graph must leave no committed parent");
                 (await mongo.LoadHolonAsync(partialGraphChild.Id,loadChildren:false)).Result.Should().BeNull();
             }
             finally

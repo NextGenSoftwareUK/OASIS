@@ -11,7 +11,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 {
     public partial class HolonRepository
     {
-        internal async Task<OASISResult<bool>> ImportAtomicAsync(IEnumerable<Holon> holons, Action<Holon, Holon> preserveAudit)
+        internal async Task<OASISResult<bool>> ImportAtomicAsync(IEnumerable<Holon> holons, Action<Holon, Holon> preserveAudit, Action prepareResponse = null)
         {
             var result = new OASISResult<bool>();
             try
@@ -43,6 +43,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 throw new InvalidOperationException("Imported replacement was not acknowledged.");
                         }
                     }
+                    // Response conversion is part of preparation: failure must still abort,
+                    // not turn an already committed write into an apparently replayable error.
+                    prepareResponse?.Invoke();
                     commitAttempted = true;
                     await session.CommitTransactionAsync();
                     result.Result = true;

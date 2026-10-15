@@ -327,6 +327,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         {
             var graphError = ValidateMongoChildGraph(holon);
             if (graphError != null) return graphError;
+            if (saveChildren && saveChildrenOnProvider && holon.Children != null && holon.Children.Any())
+                return await SaveGraphAtomicAsync(holon, recursive, maxChildDepth);
             // Holon.Id is the public, provider-independent OASIS identity. MongoDB's ObjectId is
             // intentionally private and therefore is not present in REST, JavaScript/NPM, Unity,
             // or native update payloads. Resolve the operation from the persisted public identity
@@ -341,19 +343,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 : await _holonRepository.UpdateAsync(mongoHolon);
             OASISResult<IHolon> result = DataHelper.ConvertMongoEntityToOASISHolon(saveResult, saveChildrenOnProvider);
 
-            if (!result.IsError && result.Result != null && saveChildren && saveChildrenOnProvider && result.Result.Children != null && result.Result.Children.Count() > 0)
-            {
-                OASISResult<IEnumerable<IHolon>> saveChildrenResult = await SaveHolonsAsync(result.Result.Children, true, recursive, maxChildDepth, 1, continueOnError, saveChildrenOnProvider);
-
-                if (!saveChildrenResult.IsError && saveChildrenResult.Result != null)
-                    result.Result.Children = saveChildrenResult.Result.ToList();
-                else
-                {
-                    result.IsError = true;
-                    result.Message = $"Holon with id {holon.Id} and name {holon.Name} saved but it's children failed to save. Reason: {saveChildrenResult.Message}";
-                }
-            }
-
             return result;
         }
 
@@ -361,6 +350,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         {
             var graphError = ValidateMongoChildGraph(holon);
             if (graphError != null) return graphError;
+            if (saveChildren && saveChildrenOnProvider && holon.Children != null && holon.Children.Any())
+                return SaveGraphAtomicAsync(holon, recursive, maxChildDepth).GetAwaiter().GetResult();
             var mongoHolon = DataHelper.ConvertOASISHolonToMongoEntity(holon);
             var persistedHolon = _holonRepository.GetHolon(mongoHolon.HolonId);
             PreserveCreationAuditFields(mongoHolon, persistedHolon);
@@ -368,19 +359,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 ? _holonRepository.Add(mongoHolon)
                 : _holonRepository.Update(mongoHolon);
             OASISResult<IHolon> result = DataHelper.ConvertMongoEntityToOASISHolon(saveResult, saveChildrenOnProvider);
-
-            if (!result.IsError && result.Result != null && saveChildren && result.Result.Children != null && result.Result.Children.Count() > 0)
-            {
-                OASISResult<IEnumerable<IHolon>> saveChildrenResult = SaveHolons(result.Result.Children, true, recursive, maxChildDepth, 1, continueOnError, saveChildrenOnProvider);
-
-                if (!saveChildrenResult.IsError && saveChildrenResult.Result != null)
-                    result.Result.Children = saveChildrenResult.Result.ToList();
-                else
-                {
-                    result.IsError = true;
-                    result.Message = $"Holon with id {holon.Id} and name {holon.Name} saved but it's children failed to save. Reason: {saveChildrenResult.Message}";
-                }
-            }
 
             return result;
         }
