@@ -40,6 +40,9 @@ if (Test-NetConnection 127.0.0.1 -Port $Port -InformationLevel Quiet -WarningAct
 }
 
 New-Item -ItemType Directory -Force $artifacts, $work | Out-Null
+if (Get-NetTCPConnection -LocalPort 18001 -State Listen -ErrorAction SilentlyContinue) {
+    throw 'Reserved AWS outage fixture port18001 is occupied; refusing to contact an unowned service.'
+}
 try {
     $lease = [IO.File]::Open((Join-Path $work 'environment.lock'), [IO.FileMode]::OpenOrCreate, [IO.FileAccess]::ReadWrite, [IO.FileShare]::None)
     $jar = Join-Path $runtime 'DynamoDBLocal.jar'
