@@ -33,6 +33,23 @@ class SourceGraphTests(unittest.TestCase):
         new["B"] = "changed-source"
         self.assertTrue(self.comparison(old, new)["changed"])
 
+    def test_child_root_merge_identity_uses_content_tree(self):
+        root = Path.cwd()
+        def fingerprint(parent_commit, child_tree):
+            def git(repo, command, *args):
+                if command == "ls-tree":
+                    self.assertEqual("Child", args[-1])
+                    return f"160000 commit child-{parent_commit}\tChild"
+                if command == "rev-parse":
+                    return child_tree
+                raise AssertionError((command, args))
+            graph = Graph(root, parent_commit)
+            with patch.object(Graph, "git", side_effect=git):
+                graph.record(root / "Child", required=True)
+            return graph.inputs
+        self.assertEqual(fingerprint("old", "same-tree"), fingerprint("merge", "same-tree"))
+        self.assertNotEqual(fingerprint("old", "same-tree"), fingerprint("changed", "new-tree"))
+
     def test_packed_readme_logo_or_build_property_change(self):
         for name in ("A", "logo.png", "Directory.Build.props"):
             old = self.base()
