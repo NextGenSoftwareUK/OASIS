@@ -124,6 +124,7 @@ public class GoogleNativeDetailTests
             pairedDetail.Inventory.Add(new InventoryItem {Id=Guid.NewGuid(),Name="paired seed"});ids.Add(avatarId);
             Assert.IsFalse((await provider.SaveAvatarDetailAsync(pairedDetail)).IsError);
             var deleted=await provider.DeleteAvatarByUsernameAsync("OWNED-AVATAR");Assert.IsFalse(deleted.IsError,deleted.Message);
+            Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.AvatarTombstoneEvidence.TryGet(deleted,out var committedTombstone));
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadAvatarAsync(avatarId)).ErrorCode);
             var tombstone=await db.Collection("avatars").Document(avatarId.ToString()).GetSnapshotAsync();
             var stored=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<Avatar>(tombstone.GetValue<string>("data_json"));
@@ -135,6 +136,10 @@ public class GoogleNativeDetailTests
             Assert.IsFalse(storedDetail.IsActive);Assert.AreEqual(stored.DeletedDate,storedDetail.DeletedDate);
             Assert.AreEqual(444,storedDetail.XP);Assert.AreEqual(555L,storedDetail.Karma);
             Assert.AreEqual(pairedDetail.Inventory[0].Id,storedDetail.Inventory.Single().Id);
+            Assert.AreEqual(stored.DeletedDate,committedTombstone.DeletedAtUtc);
+            Assert.IsFalse((await provider.ApplyAvatarTombstoneAsync(committedTombstone)).IsError);
+            var conflict=await provider.ApplyAvatarTombstoneAsync(new AvatarTombstone(avatarId,committedTombstone.DeletedAtUtc.AddSeconds(1)));
+            Assert.IsTrue(conflict.IsError);Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode,conflict.ErrorCode);
             var repeated=await provider.DeleteAvatarAsync(avatarId);Assert.IsFalse(repeated.IsError,repeated.Message);
             Assert.AreEqual(tombstone.UpdateTime,(await db.Collection("avatars").Document(avatarId.ToString()).GetSnapshotAsync()).UpdateTime);
             Assert.AreEqual(detailTombstone.UpdateTime,(await db.Collection("avatarDetails").Document(avatarId.ToString()).GetSnapshotAsync()).UpdateTime);
@@ -171,6 +176,17 @@ public class GoogleNativeDetailTests
             Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
             Assert.IsFalse((await provider.DeleteAvatarByEmailAsync("OWNED-AVATAR@EXAMPLE.INVALID",softDelete:false)).IsError);
             Assert.IsFalse((await db.Collection("avatars").Document(avatarId.ToString()).GetSnapshotAsync()).Exists);
+            Assert.IsFalse((await provider.SaveAvatarAsync(new Avatar {Id=duplicateAvatarId,IsActive=true,Username="replica-owned"})).IsError);
+            ids.Add(duplicateAvatarId);
+            Assert.IsFalse((await provider.SaveAvatarDetailAsync(new AvatarDetail {Id=duplicateAvatarId,IsActive=true,XP=777,Karma=888})).IsError);
+            var exact=new AvatarTombstone(duplicateAvatarId,new DateTime(2026,10,15,1,2,3,DateTimeKind.Utc),Guid.NewGuid());
+            var applied=provider.ApplyAvatarTombstone(exact);Assert.IsFalse(applied.IsError,applied.Message);
+            Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.AvatarTombstoneEvidence.TryGet(applied,out var appliedEvidence));
+            Assert.AreEqual(exact.DeletedAtUtc,appliedEvidence.DeletedAtUtc);Assert.AreEqual(exact.DeletedByAvatarId,appliedEvidence.DeletedByAvatarId);
+            var replicaSnapshot=await db.Collection("avatarDetails").Document(duplicateAvatarId.ToString()).GetSnapshotAsync();
+            var replica=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<AvatarDetail>(replicaSnapshot.GetValue<string>("data_json"));
+            Assert.AreEqual(exact.DeletedAtUtc,replica.DeletedDate);Assert.AreEqual(exact.DeletedByAvatarId,replica.DeletedByAvatarId);
+            Assert.AreEqual(777,replica.XP);Assert.AreEqual(888L,replica.Karma);
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadHolonAsync(Guid.NewGuid(),loadChildren:false)).ErrorCode);
         }
         finally {foreach(var id in ids) await db.Collection("avatarDetails").Document(id.ToString()).DeleteAsync();foreach(var id in importedIds.Concat(graphIds)) await db.Collection("holons").Document(id.ToString()).DeleteAsync();await db.Collection("holons").Document(holonId.ToString()).DeleteAsync();await db.Collection("holons").Document(childId.ToString()).DeleteAsync();await db.Collection("avatars").Document(avatarId.ToString()).DeleteAsync();await db.Collection("avatars").Document(duplicateAvatarId.ToString()).DeleteAsync();await provider.DeActivateProviderAsync();}
