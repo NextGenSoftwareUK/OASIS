@@ -225,52 +225,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
         }
 
         // Missing abstract method implementations
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
-        {
-            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (!_enableFirestore)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
-                    return result;
-                }
-
-                // Load avatar detail from Firestore by email
-                var query = _firestoreDb.Collection("avatarDetails").WhereEqualTo("email", avatarEmail);
-                var snapshot = await query.GetSnapshotAsync();
-                
-                if (snapshot.Count > 0)
-                {
-                    var doc = snapshot.Documents.First();
-                    var avatarDetailData = doc.ConvertTo<Dictionary<string, object>>();
-var avatarDetail = DecodeAvatarDetail(avatarDetailData, doc.Id);
-                    
-                    result.Result = avatarDetail;
-                    result.IsError = false;
-                    result.Message = "Avatar detail loaded successfully from Google Cloud Firestore by email with full property mapping";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Avatar detail not found in Google Cloud Firestore by email");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail from Google Cloud by email: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
+            => ReadCanonicalDetailSelectorAsync("email",avatarEmail,version);
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
         {
@@ -365,52 +321,8 @@ var avatarDetail = DecodeAvatarDetail(avatarDetailData, doc.Id);
             return LoadAvatarDetailByUsernameAsync(avatarUsername, version).Result;
         }
 
-        public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (!_enableFirestore)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
-                    return result;
-                }
-
-                // Load avatar detail from Firestore by username
-                var query = _firestoreDb.Collection("avatarDetails").WhereEqualTo("username", avatarUsername);
-                var snapshot = await query.GetSnapshotAsync();
-                
-                if (snapshot.Count > 0)
-                {
-                    var doc = snapshot.Documents.First();
-                    var avatarDetailData = doc.ConvertTo<Dictionary<string, object>>();
-var avatarDetail = DecodeAvatarDetail(avatarDetailData, doc.Id);
-                    
-                    result.Result = avatarDetail;
-                    result.IsError = false;
-                    result.Message = "Avatar detail loaded successfully from Google Cloud Firestore by username with full property mapping";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Avatar detail not found in Google Cloud Firestore by username");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading avatar detail from Google Cloud by username: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
+            => ReadCanonicalDetailSelectorAsync("username",avatarUsername,version);
 
     }
 }

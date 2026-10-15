@@ -12,6 +12,32 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
     {
         private GoogleCloudOASIS _provider = null!;
 
+        private sealed class FailedActivationProvider : GoogleCloudOASIS
+        {
+            public int Activations;
+            public readonly System.Exception Cause=new System.IO.IOException("owned activation failure");
+            public FailedActivationProvider():base(enableStorage:false,enableFirestore:true,enableBigQuery:false) {}
+            public override Task<NextGenSoftware.OASIS.Common.OASISResult<bool>> ActivateProviderAsync()
+            {
+                Activations++;
+                return Task.FromResult(new NextGenSoftware.OASIS.Common.OASISResult<bool> {IsError=true,Exception=Cause,ErrorCode="owned-code",Message="owned activation failure"});
+            }
+        }
+
+        [DataTestMethod]
+        [DataRow(false)] [DataRow(true)]
+        public async Task DetailSelectorsValidateBeforeActivationAndRetainActivationCause(bool email)
+        {
+            var provider=new FailedActivationProvider();
+            var invalid=email ? await provider.LoadAvatarDetailByEmailAsync(" "):await provider.LoadAvatarDetailByUsernameAsync(" ");
+            Assert.IsInstanceOfType(invalid.Exception,typeof(System.ArgumentException));
+            var historical=email ? await provider.LoadAvatarDetailByEmailAsync("owned",version:1):await provider.LoadAvatarDetailByUsernameAsync("owned",version:1);
+            Assert.IsInstanceOfType(historical.Exception,typeof(System.NotSupportedException));Assert.AreEqual(0,provider.Activations);
+            var failed=email ? await provider.LoadAvatarDetailByEmailAsync("owned"):await provider.LoadAvatarDetailByUsernameAsync("owned");
+            Assert.IsTrue(failed.IsError);Assert.AreSame(provider.Cause,failed.Exception);Assert.AreEqual("owned-code",failed.ErrorCode);
+            Assert.AreEqual(1,provider.Activations);
+        }
+
         [TestMethod]
         public void CanonicalDetailDocumentRetainsInventoryProgressAndMetadata()
         {
