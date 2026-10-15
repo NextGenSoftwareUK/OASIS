@@ -62,7 +62,7 @@ public partial class IPFSOASIS
         var context=RecordContext(kind,id);
         using var codec=OpenPrivateCodec();
         var json=codec.Decrypt(context,await LoadStringToJson(cid));
-        var record=JsonConvert.DeserializeObject<T>(json) ?? throw new InvalidDataException("IPFS private blob has no entity content.");
+        var record=OasisJson.Deserialize<T>(json) ?? throw new InvalidDataException("IPFS private blob has no entity content.");
         if(record.Id!=id) throw new InvalidDataException("IPFS private blob identity disagrees with its authenticated index.");
         record.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
         record.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS]=cid;

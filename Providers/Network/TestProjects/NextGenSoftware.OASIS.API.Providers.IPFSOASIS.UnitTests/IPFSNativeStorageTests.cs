@@ -42,6 +42,8 @@ public class IPFSNativeStorageTests
             var id=Guid.NewGuid();
             var avatar=new Avatar {Id=id,Username="owned-native-avatar",Email="owned@example.invalid",Password="synthetic-not-a-user-secret"};
             var detail=new AvatarDetail {Id=id,Username=avatar.Username,Email=avatar.Email,XP=321,Karma=29};
+            var inventoryId=Guid.NewGuid();
+            detail.Inventory.Add(new InventoryItem {Id=inventoryId,Name="owned oak seed",Quantity=5,GameSource="Our World"});
             var holon=new Holon {Id=id,Name="owned-native-holon",HolonType=HolonType.Holon};
             avatar.ProviderUniqueStorageKey=null!; avatar.PreviousVersionProviderUniqueStorageKey=null!;
             detail.ProviderUniqueStorageKey=null!; detail.PreviousVersionProviderUniqueStorageKey=null!;
@@ -57,6 +59,8 @@ public class IPFSNativeStorageTests
             var stored=await provider.LoadHolonTemplateAsync(row=>row.Id==id);
             Assert.Equal(avatar.Email,profile.Result.Email); Assert.Equal(avatar.Password,profile.Result.Password);
             Assert.Equal(detail.XP,stats.Result.XP); Assert.Equal(detail.Karma,stats.Result.Karma); Assert.Equal(holon.Name,stored.Result.Name);
+            var item=Assert.IsType<InventoryItem>(Assert.Single(stats.Result.Inventory));
+            Assert.Equal(inventoryId,item.Id); Assert.Equal(5,item.Quantity); Assert.Equal("Our World",item.GameSource);
             Assert.Single((await provider.LoadAllAvatarsAsync()).Result); Assert.Single((await provider.LoadAllAvatarDetailsAsync()).Result);
             Assert.Single((await provider.LoadAllHolonsAsync(HolonType.All)).Result);
             var child=new Holon {Id=Guid.NewGuid(),ParentHolonId=id,Name="owned-native-child",HolonType=HolonType.Holon};
