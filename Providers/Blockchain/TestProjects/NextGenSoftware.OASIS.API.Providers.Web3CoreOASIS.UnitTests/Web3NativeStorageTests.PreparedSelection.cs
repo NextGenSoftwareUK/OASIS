@@ -3,6 +3,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.Utilities;
+using Microsoft.EntityFrameworkCore;
 
 namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests;
 
@@ -81,5 +82,45 @@ public partial class Web3NativeStorageTests
             }
             finally {field.SetValue(polygon,healthy);}
         }
+        manager.IsAutoReplicationEnabled=false;
+        var reverseId=Guid.NewGuid();
+        Assert.IsFalse((await polygon.SaveAvatarDetailAsync(new AvatarDetail {Id=reverseId,IsActive=true,XP=777})).IsError);
+        Assert.IsFalse((await sqlite.SaveAvatarDetailAsync(new AvatarDetail {Id=reverseId,IsActive=true,XP=999})).IsError);
+        Assert.IsFalse((await router.RouteRequestAsync<IAvatarDetail>(new Core.StorageOperationRequest {Operation="LoadAvatarDetail",AvatarId=reverseId,PreferredProvider=Core.Enums.ProviderType.PolygonOASIS})).IsError);
+        var db=(DbContext)typeof(SQLLiteDBOASIS.SQLLiteDBOASIS).GetField("_appDataContext",flags)!.GetValue(sqlite)!;
+        var connectionString=db.Database.GetDbConnection().ConnectionString;
+        var source=new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder(connectionString).DataSource;
+        Assert.AreEqual(Path.GetFullPath("TestResults/Web3CoreRouting/routing.db"),Path.GetFullPath(source),"Only the owned fixed test database may be locked.");
+        var priorTimeout=db.Database.GetCommandTimeout();db.Database.SetCommandTimeout(1);
+        using(var control=new Microsoft.Data.Sqlite.SqliteConnection(connectionString))
+        {
+            await control.OpenAsync();using var command=control.CreateCommand();command.CommandTimeout=1;
+            command.CommandText="PRAGMA journal_mode";var priorJournal=(string)(await command.ExecuteScalarAsync())!;
+            Assert.IsTrue(priorJournal is "wal" or "delete");var locked=false;
+            try
+            {
+                command.CommandText="PRAGMA journal_mode=DELETE";await command.ExecuteScalarAsync();
+                command.CommandText="BEGIN EXCLUSIVE";await command.ExecuteNonQueryAsync();locked=true;
+                var failedRead=await sqlite.LoadAvatarDetailAsync(reverseId);
+                Assert.IsTrue(failedRead.IsError);Assert.IsInstanceOfType(failedRead.Exception,typeof(Microsoft.Data.Sqlite.SqliteException));
+                Assert.AreEqual(5,((Microsoft.Data.Sqlite.SqliteException)failedRead.Exception).SqliteErrorCode);
+                foreach(var asynchronous in new[] {false,true})
+                {
+                    var handle=await Begin("sqlite-read-outage");var before=types.ToDictionary(type=>type,type=>manager.PerformanceMonitor.GetMetrics(type).TotalRequests);
+                    var request=new Core.StorageOperationRequest {Operation="LoadAvatarDetail",AvatarId=reverseId,PreferredProvider=Core.Enums.ProviderType.SQLLiteDBOASIS,PreparedExecution=Context(handle)};
+                    var loaded=asynchronous ? await router.RouteRequestAsync<IAvatarDetail>(request):router.RouteRequest<IAvatarDetail>(request);
+                    Assert.IsFalse(loaded.IsError,loaded.Message);Assert.AreEqual(777L,loaded.Result.XP);
+                    foreach(var type in types) Assert.AreEqual(before[type]+1,manager.PerformanceMonitor.GetMetrics(type).TotalRequests);
+                    Assert.AreEqual(0,(await store.GetAsync(handle.OperationId,default)).ProviderAttempts.Count,"Read-only routing must not invent mutation attempts.");
+                }
+            }
+            finally
+            {
+                if(locked) {command.CommandText="ROLLBACK";await command.ExecuteNonQueryAsync();}
+                if(priorJournal=="wal") {command.CommandText="PRAGMA journal_mode=WAL";await command.ExecuteScalarAsync();}
+                db.Database.SetCommandTimeout(priorTimeout);
+            }
+        }
+        Assert.AreEqual(999L,(await sqlite.LoadAvatarDetailAsync(reverseId)).Result.XP);
     }
 }
