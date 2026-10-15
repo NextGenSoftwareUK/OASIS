@@ -22,3 +22,10 @@ public class EntityOASISOutput : IFunctionOutputDTO
     [Parameter("tuple", "", 1)]
     public EntityOASIS Entity { get; set; } = new();
 }
+
+[FunctionOutput]
+public class EntityOASISPageOutput : IFunctionOutputDTO
+{
+    [Parameter("tuple[]", "", 1)]
+    public System.Collections.Generic.List<EntityOASIS> Entities {get;set;} = new();
+}

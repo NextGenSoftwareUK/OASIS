@@ -16,6 +16,12 @@ const output=JSON.parse(solc.compile(JSON.stringify({language:'Solidity',
 const errors=(output.errors||[]).filter(item=>item.severity==='error');
 if(errors.length) throw new Error(errors.map(item=>item.formattedMessage).join('\n'));
 const contract=output.contracts[entry].Web3CoreOASIS;
+const helper=fs.readFileSync(path.join(runtime,'src/Web3CoreOASISBaseProviderHelper.Part1.cs'),'utf8');
+const embedded=helper.match(/public const string Abi = @"([\s\S]*?)";/);
+const canonical=value=>Array.isArray(value) ? value.map(canonical):value && typeof value==='object'
+  ? Object.fromEntries(Object.keys(value).sort().map(key=>[key,canonical(value[key])])):value;
+if(!embedded || JSON.stringify(canonical(JSON.parse(embedded[1].replace(/""/g,'"'))))!==JSON.stringify(canonical(contract.abi)))
+  throw new Error('Embedded Web3Core ABI differs from retained source compilation; regenerate/review before verification.');
 for(const name of ['getAvatarsPage','getAvatarDetailsPage','getHolonsPage'])
   if(!contract.abi.some(item=>item.type==='function' && item.name===name)) throw new Error('Missing page ABI: '+name);
 const folder=path.join(root,'TestResults/Web3CoreCurrent');fs.mkdirSync(folder,{recursive:true});

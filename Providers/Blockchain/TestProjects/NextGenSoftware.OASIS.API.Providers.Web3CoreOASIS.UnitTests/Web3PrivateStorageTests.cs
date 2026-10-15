@@ -29,6 +29,8 @@ public class Web3PrivateStorageTests
             var restored=provider.DecodePrivateRecord<AvatarDetail>("detail",detail.Id,entity);
             Assert.AreEqual(detail.Id,restored.Id);Assert.AreEqual(321L,restored.XP);Assert.AreEqual(29L,restored.Karma);
             Assert.AreEqual("owned seed",restored.Inventory.Single().Name);
+            var enumerated=provider.DecodePrivateEntity<AvatarDetail>("detail",entity);
+            Assert.AreEqual(detail.Id,enumerated.Id);Assert.AreEqual("owned seed",enumerated.Inventory.Single().Name);
             Assert.ThrowsException<AuthenticationTagMismatchException>(()=>provider.DecodePrivateRecord<AvatarDetail>("avatar",detail.Id,entity));
             var other=new PolygonOASIS.PolygonOASIS("http://127.0.0.1:18545","unused","0xother");
             Assert.ThrowsException<AuthenticationTagMismatchException>(()=>other.DecodePrivateRecord<AvatarDetail>("detail",detail.Id,entity));
