@@ -20,17 +20,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
     public partial class AzureCosmosDBOASIS
     {
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)
-        {
-            try
-            {
-                IAvatar objAvatar = avatarRepository.UpsertAsync(avatar).Result;
-                return new OASISResult<IAvatar> { IsSaved = true, Result = objAvatar };
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IAvatar> { IsSaved = false, IsError = true, Message = ex.Message };
-            }
-        }
+            => SaveAvatarAsync(avatar).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
@@ -41,22 +31,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                return new OASISResult<IAvatar> { IsSaved = false, IsError=true, Message = ex.Message };
+                return new OASISResult<IAvatar> { IsSaved = false, IsError=true, Message = ex.Message, Exception = ex };
             }
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail)
-        {
-            try
-            {
-                IAvatarDetail objAvatar = avatarDetailRepository.UpsertAsync(avatarDetail).Result;
-                return new OASISResult<IAvatarDetail> { IsSaved = true, Result = objAvatar };
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IAvatarDetail> { IsSaved = false, IsError = true, Message = ex.Message };
-            }
-        }
+            => SaveAvatarDetailAsync(avatarDetail).GetAwaiter().GetResult();
 
         public async override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         {
@@ -67,22 +47,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                return new OASISResult<IAvatarDetail> { IsSaved = false, IsError = true, Message = ex.Message };
+                return new OASISResult<IAvatarDetail> { IsSaved = false, IsError = true, Message = ex.Message, Exception = ex };
             }
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            try
-            {
-                IHolon objHolon = holonRepository.UpsertAsync(holon).Result;
-                return new OASISResult<IHolon> { IsSaved = true, Result = objHolon };
-            }
-            catch (Exception ex)
-            {
-                return new OASISResult<IHolon> { IsSaved = false, IsError = true, Message = ex.Message };
-            }
-        }
+            => SaveHolonAsync(holon,saveChildren,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
@@ -93,7 +63,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                return new OASISResult<IHolon> { IsSaved = false, IsError = true, Message = ex.Message };
+                return new OASISResult<IHolon> { IsSaved = false, IsError = true, Message = ex.Message, Exception = ex };
             }
         }
 
@@ -113,7 +83,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                return new OASISResult<IEnumerable<IHolon>> { IsSaved = false, IsError = true, Message = ex.Message };
+                return new OASISResult<IEnumerable<IHolon>> { IsSaved = false, IsError = true, Message = ex.Message, Exception = ex };
             }
         }
 
@@ -133,7 +103,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             }
             catch (Exception ex)
             {
-                return new OASISResult<IEnumerable<IHolon>> { IsSaved = false, IsError = true, Message = ex.Message };
+                return new OASISResult<IEnumerable<IHolon>> { IsSaved = false, IsError = true, Message = ex.Message, Exception = ex };
             }
         }
 
