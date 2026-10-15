@@ -182,7 +182,7 @@ public class IPFSNativeStorageTests
                 var raw=await provider.IPFSClient.FileSystem.ReadAllTextAsync((Cid)cid);
                 Assert.StartsWith("oasis-aes256gcm-gzip-v2:",raw); Assert.DoesNotContain(avatar.Email,raw); Assert.DoesNotContain(avatar.Password,raw); Assert.DoesNotContain(id.ToString(),raw);
             }
-            var exactTombstone=await VerifySqliteTombstoneReplication(provider,dna,id,Path.GetDirectoryName(path)!);
+            var exactTombstone=await VerifySqliteTombstoneReplication(provider,dna,id,Path.GetDirectoryName(path)!,ownedCids);
             var deleted=await provider.ApplyAvatarTombstoneAsync(exactTombstone);
             Assert.False(deleted.IsError,deleted.Message); Assert.True(deleted.Result);
             var tombstonedAvatar=(await provider.LoadAvatarAsync(id)).Result;
@@ -236,7 +236,7 @@ public class IPFSNativeStorageTests
             }
         }
     }
-    private static async Task<AvatarTombstone> VerifySqliteTombstoneReplication(IPFSOASIS ipfs,OASISDNA dna,Guid id,string directory)
+    private static async Task<AvatarTombstone> VerifySqliteTombstoneReplication(IPFSOASIS ipfs,OASISDNA dna,Guid originalId,string directory,HashSet<string> ownedCids)
     {
         var path=Path.Combine(directory,"tombstone-routing.db");
         if(File.Exists(path)) throw new InvalidOperationException("Retained SQLite fixture requires inspection; no reset.");
@@ -245,34 +245,58 @@ public class IPFSNativeStorageTests
         try
         {
             Assert.False((await sqlite.ActivateProviderAsync()).IsError);
-            var saved=await sqlite.SaveAvatarAsync(new Avatar {Id=id,Username="owned-sqlite-primary",Email="sqlite@example.invalid",IsActive=true,
-                AvatarType=new EnumValue<AvatarType>(AvatarType.User),DeletedByAvatarId=Guid.NewGuid()});
-            Assert.False(saved.IsError,saved.Message);
-            var savedDetail=await sqlite.SaveAvatarDetailAsync(new AvatarDetail {Id=id,Username="owned-sqlite-primary",XP=999,Karma=77,IsActive=true});
-            Assert.False(savedDetail.IsError,savedDetail.Message);
-            dna.OASIS.HyperDriveMode=HyperDriveModes.V2;
-            dna.OASIS.SubscriptionConfig=new SubscriptionConfig {PlanType="Gold"};
-            var manager=new ProviderManager(null,dna) {IsAutoReplicationEnabled=true,IsAutoFailOverEnabled=false,IsAutoLoadBalanceEnabled=false};
-            manager.RegisterProvider(ipfs); manager.RegisterProvider(sqlite);
-            Assert.False(manager.SetAndReplaceAutoReplicationListForProviders(new[] {new EnumValue<ProviderType>(ProviderType.IPFSOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)}).IsError);
-            var router=new OASISHyperDrive(manager);
-            var deleted=await router.RouteRequestAsync<bool>(new StorageOperationRequest {Operation="DeleteAvatar",AvatarId=id,SoftDelete=true,PreferredProvider=ProviderType.SQLLiteDBOASIS});
-            Assert.False(deleted.IsError,deleted.Message); Assert.False(deleted.IsWarning,deleted.Message); Assert.True(deleted.Result);
-            var primary=(await sqlite.LoadAvatarAsync(id)).Result;
-            Assert.Equal(DateTimeKind.Utc,primary.DeletedDate.Kind);
-            Assert.Equal(DateTimeKind.Utc,(await sqlite.LoadAvatarDetailAsync(id)).Result.DeletedDate.Kind);
-            var replica=(await ipfs.LoadAvatarAsync(id)).Result;
-            var detail=(await ipfs.LoadAvatarDetailAsync(id)).Result;
-            Assert.Equal(primary.DeletedDate,replica.DeletedDate); Assert.Equal(primary.DeletedByAvatarId,replica.DeletedByAvatarId);
-            Assert.Equal(primary.DeletedDate,detail.DeletedDate); Assert.False(replica.IsActive); Assert.False(detail.IsActive);
-            Assert.Equal(321,detail.XP); Assert.Equal(29,detail.Karma);
-            Assert.Equal(999,(await sqlite.LoadAvatarDetailAsync(id)).Result.XP);
-            Assert.True(NextGenSoftware.OASIS.API.Core.Helpers.AvatarTombstoneEvidence.TryGet(deleted,out var committed));
-            Assert.Equal(DateTimeKind.Utc,committed.DeletedAtUtc.Kind);
-            Assert.Equal(committed.DeletedAtUtc,replica.DeletedDate);
-            Assert.Equal(committed.DeletedByAvatarId,replica.DeletedByAvatarId);
+            AvatarTombstone original=null!;
+            foreach(var primaryProvider in new[] {ProviderType.SQLLiteDBOASIS,ProviderType.IPFSOASIS})
+            foreach(var synchronous in new[] {false,true})
+            {
+                var id=primaryProvider==ProviderType.SQLLiteDBOASIS && !synchronous ? originalId:Guid.NewGuid();
+                if(id!=originalId)
+                {
+                    var nativeAvatar=new Avatar {Id=id,Username="native-"+id,Email=id+"@example.invalid",IsActive=true};
+                    await ipfs.SaveAvatarToFile(nativeAvatar);
+                    ownedCids.Add(nativeAvatar.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]); ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+                    var nativeDetail=new AvatarDetail {Id=id,Username=nativeAvatar.Username,XP=321,Karma=29,IsActive=true};
+                    await ipfs.SaveAvatarDetailToFile(nativeDetail);
+                    ownedCids.Add(nativeDetail.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]); ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+                }
+                var saved=await sqlite.SaveAvatarAsync(new Avatar {Id=id,Username="owned-sqlite-primary",Email="sqlite@example.invalid",IsActive=true,
+                    AvatarType=new EnumValue<AvatarType>(AvatarType.User),DeletedByAvatarId=Guid.NewGuid()});
+                Assert.False(saved.IsError,saved.Message);
+                var savedDetail=await sqlite.SaveAvatarDetailAsync(new AvatarDetail {Id=id,Username="owned-sqlite-primary",XP=999,Karma=77,IsActive=true});
+                Assert.False(savedDetail.IsError,savedDetail.Message);
+                dna.OASIS.HyperDriveMode=HyperDriveModes.V2;
+                dna.OASIS.SubscriptionConfig=new SubscriptionConfig {PlanType="Gold"};
+                var manager=new ProviderManager(null,dna) {IsAutoReplicationEnabled=true,IsAutoFailOverEnabled=false,IsAutoLoadBalanceEnabled=false};
+                manager.RegisterProvider(ipfs); manager.RegisterProvider(sqlite);
+                Assert.False(manager.SetAndReplaceAutoReplicationListForProviders(new[] {new EnumValue<ProviderType>(ProviderType.IPFSOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)}).IsError);
+                var router=new OASISHyperDrive(manager);
+                var request=new StorageOperationRequest {Operation="DeleteAvatar",AvatarId=id,SoftDelete=true,PreferredProvider=primaryProvider};
+                var deleted=synchronous ? router.RouteRequest<bool>(request):await router.RouteRequestAsync<bool>(request);
+                Assert.False(deleted.IsError,deleted.Message); Assert.False(deleted.IsWarning,deleted.Message); Assert.True(deleted.Result);
+                var primary=(await sqlite.LoadAvatarAsync(id)).Result;
+                Assert.Equal(DateTimeKind.Utc,primary.DeletedDate.Kind);
+                Assert.Equal(DateTimeKind.Utc,(await sqlite.LoadAvatarDetailAsync(id)).Result.DeletedDate.Kind);
+                var replica=(await ipfs.LoadAvatarAsync(id)).Result;
+                var detail=(await ipfs.LoadAvatarDetailAsync(id)).Result;
+                Assert.Equal(primary.DeletedDate,replica.DeletedDate); Assert.Equal(primary.DeletedByAvatarId,replica.DeletedByAvatarId);
+                Assert.Equal(primary.DeletedDate,detail.DeletedDate); Assert.False(replica.IsActive); Assert.False(detail.IsActive);
+                Assert.Equal(321,detail.XP); Assert.Equal(29,detail.Karma);
+                Assert.Equal(999,(await sqlite.LoadAvatarDetailAsync(id)).Result.XP);
+                Assert.True(NextGenSoftware.OASIS.API.Core.Helpers.AvatarTombstoneEvidence.TryGet(deleted,out var committed));
+                Assert.Equal(DateTimeKind.Utc,committed.DeletedAtUtc.Kind);
+                Assert.Equal(committed.DeletedAtUtc,replica.DeletedDate);
+                Assert.Equal(committed.DeletedByAvatarId,replica.DeletedByAvatarId);
+                ownedCids.Add(replica.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]);
+                ownedCids.Add(detail.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]);
+                ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+                var repeatRoot=dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
+                Assert.False(ipfs.ApplyAvatarTombstone(committed).IsError);
+                Assert.Equal(repeatRoot,dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+                Assert.False(sqlite.ApplyAvatarTombstone(committed).IsError);
+                if(id==originalId) original=committed;
+            }
             verified=true;
-            return committed;
+            return original;
         }
         finally
         {
