@@ -96,6 +96,8 @@ public class CosmosNativeStorageTests
             Assert.IsFalse(search.IsError,search.Message);Assert.AreEqual(1,search.Result.NumberOfResults);
             Assert.AreEqual(holonId,search.Result.SearchResultHolons.Single().Id);Assert.AreEqual(0,search.Result.SearchResultAvatars.Count);
             var exported=await provider.ExportAllDataForAvatarByUsernameAsync(avatar.Username.ToUpperInvariant());
+            Assert.AreEqual(avatarId,(await provider.LoadAvatarByUsernameAsync(avatar.Username.ToUpperInvariant())).Result.Id);
+            Assert.AreEqual(avatarId,provider.LoadAvatarByEmail(avatar.Email.ToUpperInvariant()).Result.Id);
             Assert.IsFalse(exported.IsError,exported.Message);Assert.IsTrue(exported.IsLoaded);
             Assert.AreEqual(holonId,exported.Result.Single().Id);Assert.AreEqual(childId,exported.Result.Single().Children.Single().Id);
             Assert.AreEqual(holonId,provider.ExportAllDataForAvatarByEmail(avatar.Email.ToUpperInvariant()).Result.Single().Id);

@@ -222,87 +222,16 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             => await ReadCurrentIdAsync<IAvatar>(()=>avatarRepository,Id,version);
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
-        {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            try
-            {
-                IAvatar avatar = avatarRepository.GetByField("Email", avatarEmail, version);
-
-                if (avatar == null)
-                {
-                    result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
-                    result.Message = "No Avatar found in LoadAvatarByEmail method in AzureCOSMOSDBOASIS.";
-                }
-                else
-                {
-                    result.Result = avatar;
-                    result.Message = "Avatar fetched in LoadAvatarByEmail method in AzureCOSMOSDBOASIS.";
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatar method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.", ex);
-                if(ex is NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
-            }
-            return result;
-        }
+            => ReadCurrentSelectorAsync<IAvatar>(()=>avatarRepository,avatarEmail,row=>row.Email,version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
-        {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            try
-            {
-                IAvatar avatar = avatarRepository.GetByField("Email", avatarEmail, version);                
-
-                if (avatar == null)
-                {
-                    result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
-                    result.Message = "No Avatar found in LoadAvatarByEmailAsync method in AzureCOSMOSDBOASIS.";
-                }
-                else
-                {
-                    result.Result = avatar;
-                    result.Message = "Avatar fetched in LoadAvatarByEmailAsync method in AzureCOSMOSDBOASIS.";
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarByEmailAsync method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.", ex);
-                if(ex is NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
-            }
-            return result;
-        }
+            => await ReadCurrentSelectorAsync<IAvatar>(()=>avatarRepository,avatarEmail,row=>row.Email,version);
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
-        {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            try
-            {
-                IAvatar avatar = avatarRepository.GetByField("Username", avatarUsername, version);
-
-                if (avatar == null)
-                {
-                    result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
-                    result.Message = "No Avatar found in LoadAvatarByUsername method in AzureCOSMOSDBOASIS.";
-                }
-                else
-                {
-                    result.Result = avatar;
-                    result.Message = "Avatar fetched in LoadAvatarByUsername method in AzureCOSMOSDBOASIS.";
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarByUsername method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.", ex);
-                if(ex is NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
-            }
-            return result;
-        }
+            => ReadCurrentSelectorAsync<IAvatar>(()=>avatarRepository,avatarUsername,row=>row.Username,version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            return LoadAvatarByUsername(avatarUsername,version);
-        }
+            => await ReadCurrentSelectorAsync<IAvatar>(()=>avatarRepository,avatarUsername,row=>row.Username,version);
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
         {
@@ -313,66 +242,16 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
             => await ReadCurrentIdAsync<IAvatarDetail>(()=>avatarDetailRepository,id,version);
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
-        {
-            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                IAvatarDetail avatarDetail = avatarDetailRepository.GetByField("Email",avatarEmail, version);
-
-                if (avatarDetail == null)
-                {
-                    result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
-                    result.Message = "No AvatarDetails found in LoadAvatarDetailByEmail method in AzureCOSMOSDBOASIS.";
-                }
-                else
-                {
-                    result.Result = avatarDetail;
-                    result.Message = "AvatarDetails fetched in LoadAvatarDetailByEmail method in AzureCOSMOSDBOASIS.";
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarDetailByEmail method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.", ex);
-                if(ex is NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
-            }
-            return result;
-        }
+            => ReadCurrentSelectorAsync<IAvatarDetail>(()=>avatarDetailRepository,avatarEmail,row=>row.Email,version).GetAwaiter().GetResult();
 
         public async override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string avatarEmail, int version = 0)
-        {
-            return LoadAvatarDetailByEmail(avatarEmail, version);
-        }
+            => await ReadCurrentSelectorAsync<IAvatarDetail>(()=>avatarDetailRepository,avatarEmail,row=>row.Email,version);
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
-        {
-            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                IAvatarDetail avatarDetail = avatarDetailRepository.GetByField("Username", avatarUsername, version);
-
-                if (avatarDetail == null)
-                {
-                    result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
-                    result.Message = "No AvatarDetails found in LoadAvatarDetailByUsername method in AzureCOSMOSDBOASIS.";
-                }
-                else
-                {
-                    result.Result = avatarDetail;
-                    result.Message = "AvatarDetails fetched in LoadAvatarDetailByUsername method in AzureCOSMOSDBOASIS.";
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarDetailByUsername method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.", ex);
-                if(ex is NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
-            }
-            return result;
-        }
+            => ReadCurrentSelectorAsync<IAvatarDetail>(()=>avatarDetailRepository,avatarUsername,row=>row.Username,version).GetAwaiter().GetResult();
 
         public async override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            return LoadAvatarDetailByUsername(avatarUsername, version);
-        }
+            => await ReadCurrentSelectorAsync<IAvatarDetail>(()=>avatarDetailRepository,avatarUsername,row=>row.Username,version);
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
             => ReadCurrentKeyAsync<IAvatar>(()=>avatarRepository,providerKey,version).GetAwaiter().GetResult();
