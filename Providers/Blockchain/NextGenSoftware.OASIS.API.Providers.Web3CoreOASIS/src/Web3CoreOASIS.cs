@@ -16,6 +16,18 @@ public sealed class Web3CoreOASIS
     private readonly string _contractAddress;
     private readonly string _abi;
 
+    public Task<TransactionReceipt> ApplyAvatarLifecycleAsync(AvatarLifecycleRequest request)
+        =>SendAndWaitForReceiptAsync(_web3.Eth.GetContract(_abi,_contractAddress).GetFunction("applyAvatarLifecycle"),request);
+
+    public async Task<(EntityOASIS Avatar,EntityOASIS Detail)> ReadAvatarPairAsync(uint id)
+    {
+        var block=new BlockParameter(await _web3.Eth.Blocks.GetBlockNumber.SendRequestAsync());
+        var contract=_web3.Eth.GetContract(_abi,_contractAddress);
+        var avatar=await contract.GetFunction("lookupAvatar").CallDeserializingToObjectAsync<EntityOASISOutput>(block,id);
+        var detail=await contract.GetFunction("lookupAvatarDetail").CallDeserializingToObjectAsync<EntityOASISOutput>(block,id);
+        return (avatar.Entity,detail.Entity);
+    }
+
     public Task<TransactionReceipt> UpsertAvatarAsync(uint id,byte[] external,byte[] info)
         =>SendAndWaitForReceiptAsync(_web3.Eth.GetContract(_abi,_contractAddress).GetFunction("upsertAvatar"),id,external,info);
     public Task<TransactionReceipt> UpsertAvatarDetailAsync(uint id,byte[] external,byte[] info)

@@ -115,123 +115,28 @@ public partial class Web3CoreOASISBaseProvider
     }
 
     public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
-        => DeleteAvatarAsync(id, softDelete).Result;
+        => DeletePrivateAvatarAsync(id,softDelete).GetAwaiter().GetResult();
 
     public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
-    {
-        return DeleteAvatarAsync(providerKey, softDelete).Result;
-    }
+        => ReadPrivateKeyAsync<bool>(providerKey,id=>DeletePrivateAvatarAsync(id,softDelete)).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-    {
-        OASISResult<bool> result = new();
-        string errorMessage = "Error in DeleteAvatarAsync method in Web3CoreOASIS while deleting avatar. Reason: ";
-
-        if (_web3CoreOASIS is null)
-        {
-            OASISErrorHandling.HandleError(
-                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            return result;
-        }
-
-        try
-        {
-            int avatarEntityId = HashUtility.GetNumericHash(id.ToString());
-            bool isDeleted = await _web3CoreOASIS.DeleteAvatarAsync((uint)avatarEntityId);
-
-            result.Result = isDeleted;
-            result.IsError = false;
-            result.IsSaved = isDeleted;
-        }
-        catch (RpcResponseException ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.RpcError), ex);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-        return result;
-    }
+        => await DeletePrivateAvatarAsync(id,softDelete);
 
     public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-    {
-        OASISResult<bool> result = new();
-        string errorMessage = "Error in DeleteAvatarAsync method in Web3CoreOASIS while deleting avatar by provider key. Reason: ";
-
-        if (_web3CoreOASIS is null)
-        {
-            OASISErrorHandling.HandleError(
-                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            return result;
-        }
-
-        try
-        {
-            result = await DeleteAvatarAsync(providerKey, softDelete);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"{errorMessage}{ex.Message}", ex);
-        }
-        return result;
-    }
+        => await ReadPrivateKeyAsync<bool>(providerKey,id=>DeletePrivateAvatarAsync(id,softDelete));
 
     public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
-    {
-        return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
-    }
+        => DeletePrivateAvatarSelectorAsync(avatarEmail,true,softDelete).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
-    {
-        OASISResult<bool> result = new();
-        string errorMessage = "Error in DeleteAvatarByEmailAsync method in Web3CoreOASIS while deleting avatar by email. Reason: ";
-
-        if (_web3CoreOASIS is null)
-        {
-            OASISErrorHandling.HandleError(
-                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            return result;
-        }
-
-        try
-        {
-            result = await DeleteAvatarByEmailAsync(avatarEmail, softDelete);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"{errorMessage}{ex.Message}", ex);
-        }
-        return result;
-    }
+        => await DeletePrivateAvatarSelectorAsync(avatarEmail,true,softDelete);
 
     public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
-    {
-        return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
-    }
+        => DeletePrivateAvatarSelectorAsync(avatarUsername,false,softDelete).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-    {
-        OASISResult<bool> result = new();
-        string errorMessage = "Error in DeleteAvatarByUsernameAsync method in Web3CoreOASIS while deleting avatar by username. Reason: ";
-
-        if (_web3CoreOASIS is null)
-        {
-            OASISErrorHandling.HandleError(
-                ref result, Web3CoreOASISBaseProviderHelper.ProviderNotActivatedError);
-            return result;
-        }
-
-        try
-        {
-            result = await DeleteAvatarByUsernameAsync(avatarUsername, softDelete);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"{errorMessage}{ex.Message}", ex);
-        }
-        return result;
-    }
+        => await DeletePrivateAvatarSelectorAsync(avatarUsername,false,softDelete);
 
     public override OASISResult<IHolon> DeleteHolon(Guid id)
     {
