@@ -148,6 +148,14 @@ public class AWSOASISIntegrationTests
         Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.AmbiguousIdentity,deleted.ErrorCode);
         Assert.IsFalse((await _provider.LoadAvatarAsync(first.Id)).IsError);
         Assert.IsFalse((await _provider.LoadAvatarAsync(second.Id)).IsError);
+        var email=$"duplicate-{Guid.NewGuid():N}@example.invalid";
+        Assert.IsFalse((await _provider.SaveAvatarDetailAsync(new AvatarDetail {Id=first.Id,Username=username,Email=email})).IsError);
+        Assert.IsFalse((await _provider.SaveAvatarDetailAsync(new AvatarDetail {Id=second.Id,Username=username,Email=email})).IsError);
+        var byName=await _provider.LoadAvatarDetailByUsernameAsync(username);
+        var byEmail=_provider.LoadAvatarDetailByEmail(email);
+        Assert.IsTrue(byName.IsError);Assert.IsTrue(byEmail.IsError);
+        Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.AmbiguousIdentity,byName.ErrorCode);
+        Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.AmbiguousIdentity,byEmail.ErrorCode);
     }
 
     [TestMethod]
