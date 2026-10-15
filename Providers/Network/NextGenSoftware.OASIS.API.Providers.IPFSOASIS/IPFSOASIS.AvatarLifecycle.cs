@@ -12,9 +12,15 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS;
 
-public partial class IPFSOASIS
+public partial class IPFSOASIS : IAvatarTombstoneStorageProvider
 {
-    private async Task<OASISResult<bool>> DeleteIndexedAvatarAsync(Func<HolonResume,bool> predicate,bool softDelete,bool validSelector=true)
+    public OASISResult<bool> ApplyAvatarTombstone(AvatarTombstone tombstone)
+        => ApplyAvatarTombstoneAsync(tombstone).GetAwaiter().GetResult();
+
+    public Task<OASISResult<bool>> ApplyAvatarTombstoneAsync(AvatarTombstone tombstone)
+        => DeleteIndexedAvatarAsync(row=>row.Id==tombstone.AvatarId,true,tombstone!=null,tombstone);
+
+    private async Task<OASISResult<bool>> DeleteIndexedAvatarAsync(Func<HolonResume,bool> predicate,bool softDelete,bool validSelector=true,AvatarTombstone exact=null)
     {
         var result=new OASISResult<bool>();
         var acknowledged=new List<string>();
@@ -39,11 +45,13 @@ public partial class IPFSOASIS
                     if(detail!=null && (detail.IsActive || detail.DeletedDate!=avatar.DeletedDate || detail.DeletedByAvatarId!=avatar.DeletedByAvatarId))
                         throw new InvalidOperationException("Existing IPFS avatar/detail lifecycle states disagree; reconcile before deletion.");
                     tombstone=new AvatarTombstone(id,avatar.DeletedDate,avatar.DeletedByAvatarId);
+                    if(exact!=null && (exact.DeletedAtUtc!=tombstone.DeletedAtUtc || exact.DeletedByAvatarId!=tombstone.DeletedByAvatarId))
+                        throw new InvalidOperationException("Committed IPFS tombstone conflicts with the requested replica state.");
                     result.Result=true; AvatarTombstoneEvidence.Attach(result,tombstone); return result;
                 }
                 if(detail!=null && detail.DeletedDate!=default)
                     throw new InvalidOperationException("Existing IPFS detail tombstone conflicts with active avatar lifecycle.");
-                tombstone=new AvatarTombstone(id,DateTime.UtcNow,AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty);
+                tombstone=exact ?? new AvatarTombstone(id,DateTime.UtcNow,AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty);
                 async Task Prepare(IHolonBase entity,string previous,HolonResume entry)
                 {
                     entity.DeletedDate=tombstone.DeletedAtUtc; entity.DeletedByAvatarId=tombstone.DeletedByAvatarId;

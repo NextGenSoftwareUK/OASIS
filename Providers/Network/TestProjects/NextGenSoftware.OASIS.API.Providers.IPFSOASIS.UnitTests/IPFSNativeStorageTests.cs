@@ -182,19 +182,27 @@ public class IPFSNativeStorageTests
                 var raw=await provider.IPFSClient.FileSystem.ReadAllTextAsync((Cid)cid);
                 Assert.StartsWith("oasis-aes256gcm-gzip-v2:",raw); Assert.DoesNotContain(avatar.Email,raw); Assert.DoesNotContain(avatar.Password,raw); Assert.DoesNotContain(id.ToString(),raw);
             }
-            var deleted=provider.DeleteAvatarByEmail(avatar.Email.ToUpperInvariant());
+            var exactTombstone=new AvatarTombstone(id,DateTime.UtcNow.AddTicks(-12345),Guid.NewGuid());
+            var deleted=await provider.ApplyAvatarTombstoneAsync(exactTombstone);
             Assert.False(deleted.IsError,deleted.Message); Assert.True(deleted.Result);
             var tombstonedAvatar=(await provider.LoadAvatarAsync(id)).Result;
             var tombstonedDetail=(await provider.LoadAvatarDetailAsync(id)).Result;
             Assert.False(tombstonedAvatar.IsActive); Assert.False(tombstonedDetail.IsActive);
             Assert.Equal(tombstonedAvatar.DeletedDate,tombstonedDetail.DeletedDate);
             Assert.Equal(DateTimeKind.Utc,tombstonedAvatar.DeletedDate.Kind);
+            Assert.Equal(exactTombstone.DeletedAtUtc,tombstonedAvatar.DeletedDate);
+            Assert.Equal(exactTombstone.DeletedByAvatarId,tombstonedAvatar.DeletedByAvatarId);
+            Assert.Equal(exactTombstone.DeletedByAvatarId,tombstonedDetail.DeletedByAvatarId);
             Assert.Equal(321,tombstonedDetail.XP); Assert.Equal(29,tombstonedDetail.Karma);
             Assert.Equal(inventoryId,Assert.Single(tombstonedDetail.Inventory).Id);
             ownedCids.Add(tombstonedAvatar.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]);
             ownedCids.Add(tombstonedDetail.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]);
             ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
             var committedRoot=dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
+            Assert.False(provider.ApplyAvatarTombstone(exactTombstone).IsError);
+            Assert.False(provider.DeleteAvatarByEmail(avatar.Email.ToUpperInvariant()).IsError);
+            Assert.True((await provider.ApplyAvatarTombstoneAsync(new AvatarTombstone(id,exactTombstone.DeletedAtUtc.AddTicks(1),exactTombstone.DeletedByAvatarId))).IsError);
+            Assert.True((await provider.ApplyAvatarTombstoneAsync(new AvatarTombstone(Guid.NewGuid(),DateTime.UtcNow))).IsError);
             Assert.False((await provider.DeleteAvatarByUsernameAsync(avatar.Username)).IsError);
             Assert.Equal(committedRoot,dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
             Assert.True((await provider.DeleteAvatarByEmailAsync(" ")).IsError);
