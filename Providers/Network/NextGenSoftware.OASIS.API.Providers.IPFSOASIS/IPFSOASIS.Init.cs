@@ -147,87 +147,50 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             catch (Exception cause) { throw new IPFSRecordPublicationException(recordCid, cause); }
         }
 
+        private async Task SavePrivateEntityAsync(IHolonBase entity, string kind, HolonResume index)
+        {
+            if (entity == null || entity.Id == Guid.Empty) throw new ArgumentException("IPFS entity identity must be nonempty.");
+            _idLookup = await LoadLookupToJson();
+            var previous = FindIndexEntry(kind, row => row.Id == entity.Id, true);
+            entity.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+            entity.PreviousVersionProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+            if (previous.Value != null) entity.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = previous.Key;
+            index.Id = entity.Id;
+            index.RecordKind = kind;
+            var json = ProtectRecord(kind, entity.Id, JsonConvert.SerializeObject(entity));
+            var acknowledged = await IPFSClient.FileSystem.AddTextAsync(json);
+            var cid = acknowledged.Id.ToString();
+            try
+            {
+                entity.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = cid;
+                index.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType,string>(entity.ProviderUniqueStorageKey);
+                await PublishAcknowledgedRecordAsync(cid, index);
+            }
+            catch (IPFSRecordPublicationException) { throw; }
+            catch (Exception cause) { throw new IPFSRecordPublicationException(cid, cause); }
+        }
+
         public async Task<IAvatar> SaveAvatarToFile(IAvatar avatar)
         {
-            //If we have a previous version of this avatar saved, then add a pointer back to the previous version.
-            _idLookup = await LoadLookupToJson();
-            if(avatar.Id==Guid.Empty) throw new ArgumentException("IPFS entity identity must be nonempty.");
-            var previous=FindIndexEntry("avatar",row=>row.Id==avatar.Id,true);
-            var dico=new HolonResume {RecordKind="avatar"};
-            if(previous.Value != null)
-                avatar.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS]=previous.Key;
-
-            string json = ProtectRecord("avatar",avatar.Id,JsonConvert.SerializeObject(avatar));
-            var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
-            avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
-
-            // we store just values that we will use as a filter of search in other methods.
-
-            dico.Id = avatar.Id;
-            dico.login = avatar.Username;
-            dico.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType,string>(avatar.ProviderUniqueStorageKey);
-            dico.email = avatar.Email;
-            dico.HolonType = HolonType.Avatar;
-
-
-
-            await PublishAcknowledgedRecordAsync(fsn.Id,dico);
-
+            if (avatar == null) throw new ArgumentNullException(nameof(avatar));
+            await SavePrivateEntityAsync(avatar, "avatar", new HolonResume {
+                login=avatar.Username, email=avatar.Email, HolonType=HolonType.Avatar });
             return avatar;
         }
 
         public async Task<IHolon> SaveHolonToFile(IHolon holon)
         {
-            //If we have a previous version of this avatar saved, then add a pointer back to the previous version.
-            _idLookup = await LoadLookupToJson();
-            if(holon.Id==Guid.Empty) throw new ArgumentException("IPFS entity identity must be nonempty.");
-            var previous=FindIndexEntry("holon",row=>row.Id==holon.Id,true);
-            var dico=new HolonResume {RecordKind="holon"};
-            if(previous.Value != null)
-                holon.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS]=previous.Key;
-
-            string json = ProtectRecord("holon",holon.Id,JsonConvert.SerializeObject(holon));
-            var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
-            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
-
-            // we store just values that we will use as a filter of search in other methods.
-            dico.Id = holon.Id;
-            dico.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType,string>(holon.ProviderUniqueStorageKey);
-            dico.ParentHolonId = holon.ParentHolonId;
-            dico.HolonType = holon.HolonType;
-
-
-            await PublishAcknowledgedRecordAsync(fsn.Id,dico);
-
+            if (holon == null) throw new ArgumentNullException(nameof(holon));
+            await SavePrivateEntityAsync(holon, "holon", new HolonResume {
+                ParentHolonId=holon.ParentHolonId, HolonType=holon.HolonType });
             return holon;
         }
 
         public async Task<IAvatarDetail> SaveAvatarDetailToFile(IAvatarDetail avatarDetail)
         {
-            //If we have a previous version of this avatar saved, then add a pointer back to the previous version.
-            _idLookup = await LoadLookupToJson();
-            if(avatarDetail.Id==Guid.Empty) throw new ArgumentException("IPFS entity identity must be nonempty.");
-            var previous=FindIndexEntry("avatar-detail",row=>row.Id==avatarDetail.Id,true);
-            var dico=new HolonResume {RecordKind="avatar-detail"};
-            if(previous.Value != null)
-                avatarDetail.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS]=previous.Key;
-
-            string json = ProtectRecord("avatar-detail",avatarDetail.Id,JsonConvert.SerializeObject(avatarDetail));
-            var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
-            avatarDetail.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
-
-            // we store just values that we will use as a filter of search in other methods.
-
-            dico.Id = avatarDetail.Id;
-            dico.login = avatarDetail.Username;           
-            dico.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType,string>(avatarDetail.ProviderUniqueStorageKey);
-            dico.email = avatarDetail.Email;
-            dico.HolonType = HolonType.AvatarDetail;
-
-
-
-            await PublishAcknowledgedRecordAsync(fsn.Id,dico);
-
+            if (avatarDetail == null) throw new ArgumentNullException(nameof(avatarDetail));
+            await SavePrivateEntityAsync(avatarDetail, "avatar-detail", new HolonResume {
+                login=avatarDetail.Username, email=avatarDetail.Email, HolonType=HolonType.AvatarDetail });
             return avatarDetail;
         }
 
