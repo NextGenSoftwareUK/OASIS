@@ -890,6 +890,58 @@ public class EthereumOASISIntegrationTests
         finally { sqlite.Dispose(); File.Delete(path); await ethereum.DeActivateProviderAsync(); }
     }
 
+    [DataTestMethod]
+    [DataRow(false,false)]
+    [DataRow(true,false)]
+    [DataRow(false,true)]
+    [DataRow(true,true)]
+    public async Task DefaultAvatarDeletionRetainsEncryptedRecordsAndRejectsStaleUpdates(bool synchronous,bool withDetail)
+    {
+        var (provider,address)=await CreateActivatedProviderAsync();
+        var id=Guid.NewGuid();
+        var avatar=new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=id,Username="retained soft avatar",Email="retained@example.invalid",IsActive=true};
+        Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+        if(withDetail) Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail {Id=id,Username=avatar.Username,XP=91,Karma=37,IsActive=true})).IsError);
+        var native=new Web3(new Account(PrivateKey,ChainId),Host);
+        var service=new NextGenSoftwareOASISService(native,address);
+        var key=NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(id.ToString());
+        var oldInfo=(await service.GetAvatarByIdQueryAsync(key)).ReturnValue1.Info;
+        var oldDetail=withDetail ? (await service.GetAvatarDetailByIdQueryAsync(key)).ReturnValue1.Info : string.Empty;
+        var deleted=synchronous ? provider.DeleteAvatar(id) : await provider.DeleteAvatarAsync(id);
+        Assert.IsFalse(deleted.IsError,deleted.Message); Assert.IsTrue(deleted.Result); Assert.IsTrue(deleted.IsDeleted);
+        Assert.AreEqual(BigInteger.One,await service.GetAvatarsCountQueryAsync());
+        var loaded=await provider.LoadAvatarAsync(id); Assert.IsFalse(loaded.IsError,loaded.Message);
+        Assert.AreEqual(avatar.Username,loaded.Result.Username); Assert.AreEqual(avatar.Email,loaded.Result.Email);
+        Assert.AreNotEqual(DateTime.MinValue,loaded.Result.DeletedDate); Assert.IsFalse(loaded.Result.IsActive);
+        if(withDetail)
+        {
+            var detail=await provider.LoadAvatarDetailAsync(id); Assert.IsFalse(detail.IsError,detail.Message);
+            Assert.AreEqual(91L,Convert.ToInt64(detail.Result.XP)); Assert.AreEqual(37L,Convert.ToInt64(detail.Result.Karma));
+            Assert.AreEqual(loaded.Result.DeletedDate,detail.Result.DeletedDate); Assert.IsFalse(detail.Result.IsActive);
+            Assert.AreEqual(BigInteger.One,await service.GetAvatarDetailsCountQueryAsync());
+        }
+        var current=(await service.GetAvatarByIdQueryAsync(key)).ReturnValue1.Info;
+        StringAssert.StartsWith(current,"oasis-aes256gcm-gzip-v2:"); Assert.AreNotEqual(oldInfo,current);
+        var stale=new UpdateAvatarPairByIdentityFunction {EntityId=key,AvatarId=id.ToString(),
+            ExpectedAvatarHash=Nethereum.Util.Sha3Keccack.Current.CalculateHash(System.Text.Encoding.UTF8.GetBytes(oldInfo)),AvatarInfo=oldInfo,
+            ExpectedDetailHash=withDetail ? Nethereum.Util.Sha3Keccack.Current.CalculateHash(System.Text.Encoding.UTF8.GetBytes(oldDetail)) : new byte[32],DetailInfo=oldDetail};
+        Exception? conflict=null;
+        try { await native.Eth.GetContractHandler(address).SendRequestAndWaitForReceiptAsync(stale); } catch(Exception error) {conflict=error;}
+        Assert.IsNotNull(conflict); StringAssert.Contains(conflict!.ToString(),"OASIS avatar changed");
+        Assert.AreEqual(current,(await service.GetAvatarByIdQueryAsync(key)).ReturnValue1.Info);
+        if(!withDetail) Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail {Id=id,Username="concurrently created detail"})).IsError);
+        var currentDetail=(await service.GetAvatarDetailByIdQueryAsync(key)).ReturnValue1.Info;
+        stale.ExpectedAvatarHash=Nethereum.Util.Sha3Keccack.Current.CalculateHash(System.Text.Encoding.UTF8.GetBytes(current));
+        conflict=null;
+        try { await native.Eth.GetContractHandler(address).SendRequestAndWaitForReceiptAsync(stale); } catch(Exception error) {conflict=error;}
+        Assert.IsNotNull(conflict); StringAssert.Contains(conflict!.ToString(),"OASIS avatar detail changed");
+        Assert.AreEqual(current,(await service.GetAvatarByIdQueryAsync(key)).ReturnValue1.Info);
+        Assert.AreEqual(currentDetail,(await service.GetAvatarDetailByIdQueryAsync(key)).ReturnValue1.Info);
+        var repeated=synchronous ? provider.DeleteAvatar(id) : await provider.DeleteAvatarAsync(id);
+        Assert.IsTrue(repeated.IsError); Assert.IsFalse(repeated.Result);
+        await provider.DeActivateProviderAsync();
+    }
+
     [TestMethod]
     public async Task Holon_SaveLoadRoundTrip_UsesDisposableEvmChain()
     {
@@ -1195,9 +1247,10 @@ public class EthereumOASISIntegrationTests
         var owner = new Account(PrivateKey,ChainId).Address;
         var outsider = accounts.First(account => !string.Equals(account,owner,StringComparison.OrdinalIgnoreCase));
         var contract = unlocked.Eth.GetContract(compiled.RootElement.GetProperty("abi").GetRawText(),address);
-        foreach(var name in new[] {"CreateHolon","CreateAvatar","CreateAvatarDetail","UpdateHolon","UpdateAvatar","UpdateAvatarDetail","DeleteHolon","DeleteAvatar","DeleteAvatarDetail","DeleteHolonByIdentity","DeleteAvatarByIdentity","DeleteAvatarDetailByIdentity"})
+        foreach(var name in new[] {"CreateHolon","CreateAvatar","CreateAvatarDetail","UpdateHolon","UpdateAvatar","UpdateAvatarDetail","DeleteHolon","DeleteAvatar","DeleteAvatarDetail","DeleteHolonByIdentity","DeleteAvatarByIdentity","DeleteAvatarDetailByIdentity","UpdateAvatarPairByIdentity"})
         {
-            object[] input = name.StartsWith("Create") ? new object[] {new BigInteger(999),"unrelated-id","unrelated-value"}
+            object[] input = name == "UpdateAvatarPairByIdentity" ? new object[] {new BigInteger(101),"avatar",new byte[32],"changed",new byte[32],"changed"}
+                : name.StartsWith("Create") ? new object[] {new BigInteger(999),"unrelated-id","unrelated-value"}
                 : name.StartsWith("Update") || name.EndsWith("ByIdentity") ? new object[] {new BigInteger(101),"corrupted"} : new object[] {new BigInteger(101)};
             var denied = false;
             try
