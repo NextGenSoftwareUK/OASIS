@@ -120,51 +120,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                         if (searchTextGroup.SearchHolons)
                         {
+                            var filter = HolonRepository.BuildHolonTypeFilter(searchTextGroup.HolonType);
+                            if (searchParams.ParentId != Guid.Empty)
+                                filter &= Builders<Holon>.Filter.Eq(row => row.ParentHolonId, searchParams.ParentId);
+                            // Text search is literal substring matching, not caller-supplied regex.
+                            var text = new BsonRegularExpression(Regex.Escape(searchTextGroup.SearchQuery), "i");
+                            var fields = new List<FilterDefinition<Holon>>();
                             if (searchTextGroup.HolonSearchParams.Name || searchTextGroup.HolonSearchParams.SearchAllFields)
-                            {
-                                var collection = _dbContext.MongoDB.GetCollection<Holon>("Holon");
-
-                                if (searchParams.ParentId != Guid.Empty)
-                                {
-                                    var query = from doc in collection.AsQueryable<Holon>()
-                                                where doc.Name.ToLower().Contains(searchTextGroup.SearchQuery.ToLower())
-                                                where doc.HolonType == searchTextGroup.HolonType
-                                                where doc.ParentHolonId == searchParams.ParentId
-                                                select doc;
-                                    groupHolons.AddRange(query.ToList());
-                                }
-                                else
-                                {
-                                    var query = from doc in collection.AsQueryable<Holon>()
-                                                where doc.Name.ToLower().Contains(searchTextGroup.SearchQuery.ToLower())
-                                                where doc.HolonType == searchTextGroup.HolonType
-                                                select doc;
-                                    groupHolons.AddRange(query.ToList());
-                                }
-                            }
-
+                                fields.Add(Builders<Holon>.Filter.Regex(row => row.Name, text));
                             if (searchTextGroup.HolonSearchParams.Description || searchTextGroup.HolonSearchParams.SearchAllFields)
-                            {
-                                var collection = _dbContext.MongoDB.GetCollection<Holon>("Holon");
-
-                                if (searchParams.ParentId != Guid.Empty)
-                                {
-                                    var query = from doc in collection.AsQueryable<Holon>()
-                                                where doc.Description.ToLower().Contains(searchTextGroup.SearchQuery.ToLower())
-                                                where doc.HolonType == searchTextGroup.HolonType
-                                                where doc.ParentHolonId == searchParams.ParentId
-                                                select doc;
-                                    groupHolons.AddRange(query.ToList());
-                                }
-                                else
-                                {
-                                    var query = from doc in collection.AsQueryable<Holon>()
-                                                where doc.Description.ToLower().Contains(searchTextGroup.SearchQuery.ToLower())
-                                                where doc.HolonType == searchTextGroup.HolonType
-                                                select doc;
-                                    groupHolons.AddRange(query.ToList());
-                                }
-                            }
+                                fields.Add(Builders<Holon>.Filter.Regex(row => row.Description, text));
+                            if (fields.Count != 0)
+                                groupHolons.AddRange(await _dbContext.Holon.Find(filter & Builders<Holon>.Filter.Or(fields)).ToListAsync().ConfigureAwait(false));
                         }
                     }
 
