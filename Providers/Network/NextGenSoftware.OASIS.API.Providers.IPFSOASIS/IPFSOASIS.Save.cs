@@ -63,13 +63,15 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
-            string json = "";
-
-            result = await LoadHolonsForParentTemplateAsync(a =>
-                a.ProviderUniqueStorageKey.Where(a => a.Value == providerKey).Any() && a.HolonType == type);
-
-            return result;
+            if (string.IsNullOrWhiteSpace(providerKey))
+                throw new ArgumentException("A parent IPFS storage key is required.", nameof(providerKey));
+            if (version != 0)
+                throw new NotSupportedException("Historical IPFS parent lookup is not implemented.");
+            _idLookup = await LoadLookupToJson();
+            var parent = FindIndexEntry("holon", row =>
+                row.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.IPFSOASIS, out var key) && key == providerKey);
+            return await LoadHolonsForParentAsync(parent.Value.Id, type, loadChildren, recursive,
+                maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version);
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0)
