@@ -25,6 +25,9 @@ public class GoogleNativeDetailTests
         var graphIds=new[] {Guid.NewGuid(),Guid.NewGuid(),Guid.NewGuid()};
         try {
             var active=await provider.ActivateProviderAsync();Assert.IsFalse(active.IsError,active.Message);
+            var dbField=typeof(GoogleCloudOASIS).GetField("_firestoreDb",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+            var retainedDb=dbField.GetValue(provider);
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);Assert.AreSame(retainedDb,dbField.GetValue(provider));
             Assert.AreEqual(0,(await provider.LoadAllAvatarsAsync()).Result.Count());
             var avatar=new Avatar {Id=avatarId,IsActive=true,Username="owned-avatar",Email="owned-avatar@example.invalid",FirstName="Owned",
                 MetaData=new Dictionary<string,object> {{"profile-field","profile-value"}}};
