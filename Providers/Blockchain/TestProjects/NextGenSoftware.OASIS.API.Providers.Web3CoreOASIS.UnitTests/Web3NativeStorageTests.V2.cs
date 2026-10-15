@@ -205,6 +205,29 @@ public partial class Web3NativeStorageTests
                 var afterConflict=await ((Web3CoreOASIS)healthy!).ReadAvatarPairAsync(conflictKey);
                 CollectionAssert.AreEqual(beforeConflict.Avatar.Info,afterConflict.Avatar.Info);CollectionAssert.AreEqual(beforeConflict.Detail.Info,afterConflict.Detail.Info);
             }
+            await using(var proxy=new Web3AcceptedWriteProxy())
+            {
+                field.SetValue(polygon,new Web3CoreOASIS(Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_PRIVATE_KEY")!,"http://127.0.0.1:18546",address,Web3CoreOASISBaseProviderHelper.Abi,31337));
+                try
+                {
+                    foreach(var asynchronous in new[] {false,true})
+                    {
+                        var id=Guid.NewGuid();var beforeAccepted=proxy.AcceptedHashes.Count;
+                        var backupCalls=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests;
+                        var request=new Core.StorageOperationRequest {Operation="SaveAvatarDetail",PreferredProvider=Core.Enums.ProviderType.PolygonOASIS,Payload=new AvatarDetail {Id=id,IsActive=true,XP=734,Karma=91}};
+                        var saved=asynchronous ? await router.RouteRequestAsync<IAvatarDetail>(request):router.RouteRequest<IAvatarDetail>(request);
+                        Assert.IsTrue(saved.IsError);Assert.IsFalse(saved.IsSaved);Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(saved.Exception));
+                        Assert.AreEqual(beforeAccepted+1,proxy.AcceptedHashes.Count,"Exactly one native submission must be accepted.");
+                        Assert.AreEqual(backupCalls,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests);
+                        Assert.IsNull((await sqlite.LoadAvatarDetailAsync(id)).Result);
+                        var entity=await ((Web3CoreOASIS)healthy!).GetAvatarDetailByIdAsync((uint)Core.Utilities.HashUtility.GetNumericHash(id.ToString()));
+                        var committed=polygon.DecodePrivateEntity<AvatarDetail>("detail",entity);
+                        Assert.AreEqual(id,committed.Id);Assert.AreEqual(734L,committed.XP);Assert.AreEqual(91L,committed.Karma);
+                        Assert.AreEqual(string.Empty,((Web3MutationReconciliationException)saved.Exception).OriginalTransactionId,"Lost submission hash must not be invented.");
+                    }
+                }
+                finally {field.SetValue(polygon,healthy);}
+            }
             verified=true;
         }
         finally {await sqlite.DeActivateProviderAsync();sqlite.Dispose();if(verified && File.Exists(path)) File.Delete(path);}
