@@ -184,6 +184,42 @@ public class EthereumOASISIntegrationTests
     }
 
     [TestMethod]
+    public async Task NativeDeleteThenInsertKeepsAllRecordArraysQueryable()
+    {
+        var (provider,contract) = await CreateActivatedProviderAsync();
+        var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),contract);
+        async Task Check(Func<BigInteger,string,string,Task<Nethereum.RPC.Eth.DTOs.TransactionReceipt>> save,
+            Func<BigInteger,Task<Nethereum.RPC.Eth.DTOs.TransactionReceipt>> remove,
+            Func<BigInteger,Task<string>> read,Func<Task<BigInteger>> count)
+        {
+            await save(301,"first","deleted record");
+            await save(302,"retained","retained record");
+            Assert.AreEqual(BigInteger.One,(await remove(301)).Status.Value);
+            Assert.AreEqual(BigInteger.One,await count());
+            await save(303,"inserted","new record after deletion");
+            Assert.AreEqual(new BigInteger(2),await count());
+            Assert.AreEqual("retained record",await read(302));
+            Assert.AreEqual("new record after deletion",await read(303));
+            await remove(302);
+            await remove(303);
+            Assert.AreEqual(BigInteger.Zero,await count());
+            await save(304,"after-empty","new record after empty array");
+            Assert.AreEqual(BigInteger.One,await count());
+            Assert.AreEqual("new record after empty array",await read(304));
+        }
+        await Check((id,key,info)=>service.CreateHolonRequestAndWaitForReceiptAsync(id,key,info),
+            id=>service.DeleteHolonRequestAndWaitForReceiptAsync(id),async id=>(await service.GetHolonByIdQueryAsync(id)).ReturnValue1.Info,
+            ()=>service.GetHolonsCountQueryAsync());
+        await Check((id,key,info)=>service.CreateAvatarRequestAndWaitForReceiptAsync(id,key,info),
+            id=>service.DeleteAvatarRequestAndWaitForReceiptAsync(id),async id=>(await service.GetAvatarByIdQueryAsync(id)).ReturnValue1.Info,
+            ()=>service.GetAvatarsCountQueryAsync());
+        await Check((id,key,info)=>service.CreateAvatarDetailRequestAndWaitForReceiptAsync(id,key,info),
+            id=>service.DeleteAvatarDetailRequestAndWaitForReceiptAsync(id),async id=>(await service.GetAvatarDetailByIdQueryAsync(id)).ReturnValue1.Info,
+            ()=>service.GetAvatarDetailsCountQueryAsync());
+        await provider.DeActivateProviderAsync();
+    }
+
+    [TestMethod]
     public async Task RepeatedStorageSavesUpdateOneIdentityRatherThanAppendDuplicates()
     {
         var (provider,contract) = await CreateActivatedProviderAsync();
