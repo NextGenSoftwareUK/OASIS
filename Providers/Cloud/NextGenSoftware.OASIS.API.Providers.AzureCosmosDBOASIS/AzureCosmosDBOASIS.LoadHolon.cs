@@ -335,52 +335,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         }
 
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0)
-        {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            try
-            {
-                IAvatar avatar = avatarRepository.GetByIdAsync(id.ToString()).Result;
-
-                if (avatar == null)
-                {
-                    result.Message = "No Avatar found in LoadAvatar method in AzureCOSMOSDBOASIS.";
-                }
-                else
-                {
-                    result.Result = avatar;
-                    result.Message = "Avatar fetched in LoadAvatar method in AzureCOSMOSDBOASIS.";
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatar method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
-            }
-            return result;
-        }
+            => ReadCurrentIdAsync<IAvatar>(()=>avatarRepository,id,version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid Id, int version = 0)
-        {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-            try
-            {
-                var avatar = await avatarRepository.GetByIdAsync(Id.ToString());
-                
-                if (avatar == null)
-                {
-                    result.Message = "No avatars found in LoadAvatarAsync method in AzureCOSMOSDBOASIS.";
-                }
-                else
-                {
-                    result.Result = avatar;
-                    result.Message = "Avatar fetched in LoadAvatarAsync method in AzureCOSMOSDBOASIS.";
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatar method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
-            }
-            return result;
-        }
+            => await ReadCurrentIdAsync<IAvatar>(()=>avatarRepository,Id,version);
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {
@@ -471,28 +429,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         }
 
         public async override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0)
-        {
-            OASISResult<IAvatarDetail> result = new OASISResult<IAvatarDetail>();
-            try
-            {
-                IAvatarDetail avatarDetail =await avatarDetailRepository.GetByIdAsync(id.ToString());
-
-                if (avatarDetail == null)
-                {
-                    result.Message = "No AvatarDetails found in LoadAvatarDetailAsync method in AzureCOSMOSDBOASIS.";
-                }
-                else
-                {
-                    result.Result = avatarDetail;
-                    result.Message = "AvatarDetails fetched in LoadAvatarDetailAsync method in AzureCOSMOSDBOASIS.";
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarDetailAsync method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
-            }
-            return result;
-        }
+            => await ReadCurrentIdAsync<IAvatarDetail>(()=>avatarDetailRepository,id,version);
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string avatarEmail, int version = 0)
         {
@@ -557,76 +494,22 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS
         }
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
-        {
-            OASISResult<IAvatar> result = new OASISResult<IAvatar>();
-
-            try
-            {
-                IAvatar avatar = avatarRepository.GetByField("Id", providerKey, version);
-
-                //var avatarList = avatarRepository.GetList();
-                //var avatar = avatarList.Where(a => a.Id == new Guid(providerKey)).FirstOrDefault(); //The ID and ProviderUniqueStorageKey are the same for Azure because Azure uses GUID for ID's like OASIS does.
-                //var avatar = avatarList.Where(a => a.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS] == providerKey).FirstOrDefault();
-                
-                if (avatar == null)
-                    result.Message = "No record found in LoadAvatarByProviderKey method in AzureCosmosDbOASIS Provider.";
-                else
-                {
-                    result.Result = avatar;
-                    result.Message = "Avatar fetched in LoadAvatarByProviderKey method in AzureCosmosDbOASIS Provider.";
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadAvatarByProviderKey method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
-            }
-
-            return result;
-        }
+            => ReadCurrentKeyAsync<IAvatar>(()=>avatarRepository,providerKey,version).GetAwaiter().GetResult();
 
         public async override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
-        {
-            return LoadAvatarByProviderKey(providerKey, version);
-        }
+            => await ReadCurrentKeyAsync<IAvatar>(()=>avatarRepository,providerKey,version);
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return LoadHolon(id.ToString(), loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
-        }
+            => ReadCurrentIdAsync<IHolon>(()=>holonRepository,id,version,maxChildDepth).GetAwaiter().GetResult();
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-
-            try
-            {
-                var holon = holonRepository.GetByIdAsync(providerKey).Result;
-
-                if (holon == null)
-                    result.Message = "No holons found in LoadHolon method in AzureCOSMOSDBOASIS.";
-                else
-                {
-                    result.Result = holon;
-                    result.Message = "Holon fetched in LoadHolon method in AzureCOSMOSDBOASIS.";
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"An unknown error occured in LoadHolon method in AzureCosmosDBOASIS Provider. Reason: {ex.Message}.");
-            }
-
-            return result;
-        }
+            => ReadCurrentKeyAsync<IHolon>(()=>holonRepository,providerKey,version,maxChildDepth).GetAwaiter().GetResult();
 
         public async override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return LoadHolon(id.ToString(), loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider,version);
-        }
+            => await ReadCurrentIdAsync<IHolon>(()=>holonRepository,id,version,maxChildDepth);
 
         public async override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            return LoadHolon(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
-        }
+            => await ReadCurrentKeyAsync<IHolon>(()=>holonRepository,providerKey,version,maxChildDepth);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
