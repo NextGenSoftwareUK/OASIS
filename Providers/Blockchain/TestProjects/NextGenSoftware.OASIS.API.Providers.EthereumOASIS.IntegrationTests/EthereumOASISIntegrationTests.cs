@@ -211,6 +211,60 @@ public class EthereumOASISIntegrationTests
         await provider.DeActivateProviderAsync();
     }
 
+    [DataTestMethod]
+    [DataRow(false,false)]
+    [DataRow(true,false)]
+    [DataRow(false,true)]
+    [DataRow(true,true)]
+    public async Task NativeIdentityQueriesUseStoredFieldsAndRejectAmbiguity(bool synchronous,bool details)
+    {
+        var (provider,address) = await CreateActivatedProviderAsync();
+        var id=Guid.NewGuid();
+        const string username="RealStoredName",email="Stored@Example.invalid";
+        if(details) Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=id,Username=username,Email=email,XP=77 })).IsError);
+        else Assert.IsFalse((await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=id,Username=username,Email=email })).IsError);
+        async Task<(bool Error,Guid? Id,bool Loaded,string Code,Exception? Cause)> Query(string value,bool byEmail=false,int version=0)
+        {
+            if(details)
+            {
+                var result = byEmail
+                    ? synchronous ? provider.LoadAvatarDetailByEmail(value,version) : await provider.LoadAvatarDetailByEmailAsync(value,version)
+                    : synchronous ? provider.LoadAvatarDetailByUsername(value,version) : await provider.LoadAvatarDetailByUsernameAsync(value,version);
+                return (result.IsError,result.Result?.Id,result.IsLoaded,result.ErrorCode,result.Exception);
+            }
+            else
+            {
+                var result = byEmail
+                    ? synchronous ? provider.LoadAvatarByEmail(value,version) : await provider.LoadAvatarByEmailAsync(value,version)
+                    : synchronous ? provider.LoadAvatarByUsername(value,version) : await provider.LoadAvatarByUsernameAsync(value,version);
+                return (result.IsError,result.Result?.Id,result.IsLoaded,result.ErrorCode,result.Exception);
+            }
+        }
+        foreach(var byEmail in new[] {false,true})
+        {
+            var found=await Query((byEmail?email:username).ToUpperInvariant(),byEmail);
+            Assert.IsFalse(found.Error); Assert.IsTrue(found.Loaded); Assert.AreEqual(id,found.Id);
+            var absent=await Query("not-present",byEmail); Assert.IsTrue(absent.Error); Assert.IsNull(absent.Id); Assert.IsFalse(absent.Loaded);
+            var blank=await Query(" ",byEmail); Assert.IsTrue(blank.Error); Assert.IsInstanceOfType(blank.Cause,typeof(ArgumentException));
+            var history=await Query(byEmail?email:username,byEmail,1); Assert.IsTrue(history.Error); Assert.IsInstanceOfType(history.Cause,typeof(NotSupportedException));
+        }
+        if(details)
+        {
+            Assert.AreEqual(id,(await provider.LoadAvatarDetailByEmailVersionAsync(email)).Result.Id);
+            Assert.AreEqual(id,(await provider.LoadAvatarDetailByUsernameVersionAsync(username)).Result.Id);
+            Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail { Id=Guid.NewGuid(),Username=username,Email=email })).IsError);
+        }
+        else Assert.IsFalse((await provider.SaveAvatarAsync(new NextGenSoftware.OASIS.API.Core.Holons.Avatar { Id=Guid.NewGuid(),Username=username,Email=email })).IsError);
+        foreach(var byEmail in new[] {false,true})
+        {
+            var ambiguous=await Query(byEmail?email:username,byEmail);
+            Assert.IsTrue(ambiguous.Error); Assert.IsNull(ambiguous.Id); Assert.IsFalse(ambiguous.Loaded);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.AmbiguousIdentity,ambiguous.Code);
+            Assert.IsInstanceOfType(ambiguous.Cause,typeof(NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException));
+        }
+        await provider.DeActivateProviderAsync();
+    }
+
     [TestMethod]
     public async Task Holon_SaveLoadRoundTrip_UsesDisposableEvmChain()
     {
