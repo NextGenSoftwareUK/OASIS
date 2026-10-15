@@ -112,8 +112,30 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         }
 
         private static Dictionary<string,HolonResume> DeserializeLookup(string json)
-            => JsonConvert.DeserializeObject<Dictionary<string,HolonResume>>(json)
-                ?? throw new InvalidDataException("IPFS lookup root contained no index object.");
+        {
+            var token=Newtonsoft.Json.Linq.JToken.Parse(json,new Newtonsoft.Json.Linq.JsonLoadSettings {
+                DuplicatePropertyNameHandling=Newtonsoft.Json.Linq.DuplicatePropertyNameHandling.Error });
+            if(token.Type==Newtonsoft.Json.Linq.JTokenType.Null) throw new InvalidDataException("IPFS lookup root contained no index object.");
+            if(token is not Newtonsoft.Json.Linq.JObject) throw new JsonSerializationException("IPFS lookup root must be an object.");
+            var records=token.ToObject<Dictionary<string,HolonResume>>();
+            foreach(var entry in records)
+            {
+                var row=entry.Value;
+                if(string.IsNullOrWhiteSpace(entry.Key) || row==null || row.Id==Guid.Empty
+                    || row.RecordKind is not ("avatar" or "avatar-detail" or "holon")
+                    || row.ProviderUniqueStorageKey==null
+                    || !row.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.IPFSOASIS,out var cid) || cid!=entry.Key)
+                    throw new InvalidDataException("IPFS index entry has invalid kind, identity or storage-key binding.");
+            }
+            if(records.Values.GroupBy(row=>(row.RecordKind,row.Id)).Any(group=>group.Count()>1))
+                throw new StorageIdentityAmbiguousException();
+            foreach(var cid in records.Keys)
+            {
+                try { _=(Cid)cid; }
+                catch(Exception cause) { throw new InvalidDataException("IPFS index entry has an invalid CID.",cause); }
+            }
+            return records;
+        }
 
         public async Task<string> SaveJsonToFile<T>(List<T> list)
         {
