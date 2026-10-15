@@ -143,6 +143,9 @@ public class AWSOASISIntegrationTests
         var lookup=await _provider.LoadAvatarByUsernameAsync(username);
         Assert.IsTrue(lookup.IsError);
         Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.AmbiguousIdentity,lookup.ErrorCode);
+        var exported=await _provider.ExportAllDataForAvatarByUsernameAsync(username);
+        Assert.IsTrue(exported.IsError);
+        Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.AmbiguousIdentity,exported.ErrorCode);
         var deleted=await _provider.DeleteAvatarByUsernameAsync(username);
         Assert.IsTrue(deleted.IsError);
         Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.AmbiguousIdentity,deleted.ErrorCode);
@@ -238,6 +241,14 @@ public class AWSOASISIntegrationTests
         Assert.AreEqual(grandchild.Id,filtered.Result.SearchResultHolons.Single().Children.Single().Id);
         var badSearch=await _provider.SearchAsync(new SearchParams {SearchOnlyForCurrentAvatar=false},version:1);
         Assert.IsTrue(badSearch.IsError);Assert.IsInstanceOfType(badSearch.Exception,typeof(NotSupportedException));
+        var owner=Guid.NewGuid();children[0].CreatedByAvatarId=owner;
+        Assert.IsFalse((await _provider.SaveHolonAsync(children[0],saveChildren:false)).IsError);
+        var owned=await _provider.ExportAllDataForAvatarByIdAsync(owner);
+        Assert.IsFalse(owned.IsError,owned.Message);
+        Assert.AreEqual(children[0].Id,owned.Result.Single().Id);
+        Assert.AreEqual(grandchild.Id,owned.Result.Single().Children.Single().Id);
+        Assert.IsInstanceOfType(_provider.ExportAll(version:1).Exception,typeof(NotSupportedException));
+        Assert.IsTrue(_provider.ExportAllDataForAvatarById(Guid.Empty).IsError);
         var truncated=_provider.LoadHolonsForParent(parent,loadChildrenFromProvider:true,maxChildDepth:1,curentChildDepth:1);
         Assert.IsFalse(truncated.IsError,truncated.Message);
         Assert.IsTrue(truncated.Result.All(row=>row.Children.Count==0));
