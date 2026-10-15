@@ -62,42 +62,29 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             catch (CosmosException) { throw; }
         }
 
-        public async Task<T> AddAsync(T entity)
-        {
-            try
-            {
-                ArgumentNullException.ThrowIfNull(entity);
-                if (entity.Id == Guid.Empty)
-                    entity.Id = GenerateId(entity);
-                entity.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
-                entity.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS] = entity.Id.ToString();
+        public Task<T> AddAsync(T entity) => WriteSnapshotAsync(entity,true);
 
-                var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
-                var expectedId=entity.Id.ToString();
-                var partitionKey = ResolvePartitionKey(expectedId);
-                var json = await cosmosDbClient.CreateDocumentAsync(entity, partitionKey);
-                return DecodeAcknowledgedEntity(json,entity,expectedId);
-            }
-            catch (CosmosException e)
-            {
-                if (e.StatusCode == HttpStatusCode.Conflict)
-                    throw new EntityAlreadyExistsException();
-                throw;
-            }
-        }
+        public Task<T> UpsertAsync(T entity) => WriteSnapshotAsync(entity,false);
 
-        public async Task<T> UpsertAsync(T entity)
+        private async Task<T> WriteSnapshotAsync(T entity,bool create)
         {
             ArgumentNullException.ThrowIfNull(entity);
-            if (entity.Id == Guid.Empty)
-                entity.Id = GenerateId(entity);
-
+            var originalId=entity.Id;
+            var snapshot=(T)OasisJson.Deserialize(OasisJson.Serialize(entity),EntityType);
+            if(snapshot.Id==Guid.Empty) snapshot.Id=GenerateId(entity);
+            if(snapshot.Id==Guid.Empty) throw new InvalidDataException("Cosmos generated an empty identity.");
+            snapshot.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+            var expectedId=snapshot.Id.ToString();
+            snapshot.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=expectedId;
+            var client=_cosmosDbClientFactory.GetClient(CollectionName);
+            var partition=ResolvePartitionKey(expectedId);
+            var json=create ? await client.CreateDocumentAsync(snapshot,partition):await client.UpsertDocumentAsync(snapshot,partition);
+            var acknowledged=DecodeAcknowledgedEntity(json,snapshot,expectedId);
+            if(entity.Id!=originalId) throw new CosmosMutationReconciliationException(expectedId,new InvalidDataException("Caller identity changed during acknowledged Cosmos write."),acknowledged:true);
+            entity.Id=snapshot.Id;
             entity.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
-            entity.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS] = entity.Id.ToString();
-            var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
-            var expectedId=entity.Id.ToString();
-            var json = await cosmosDbClient.UpsertDocumentAsync(entity, ResolvePartitionKey(expectedId));
-            return DecodeAcknowledgedEntity(json,entity,expectedId);
+            entity.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=expectedId;
+            return acknowledged;
         }
 
         public async Task UpdateAsync(T entity)
