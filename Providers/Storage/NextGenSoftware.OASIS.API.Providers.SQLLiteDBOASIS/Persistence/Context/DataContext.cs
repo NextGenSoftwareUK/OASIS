@@ -3,6 +3,7 @@ using System.IO;
 using Microsoft.EntityFrameworkCore;
 using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities;
 using System.Collections.Generic;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
 {
@@ -49,6 +50,14 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // SQLite does not retain DateTime.Kind. DeletedDate is UTC by contract;
+            // keep its ticks and restore that kind at the materialization boundary.
+            var deletionUtc=new ValueConverter<DateTime,DateTime>(
+                value=>ValidateDeletionUtc(value),
+                value=>value==DateTime.MinValue ? DateTime.MinValue:DateTime.SpecifyKind(value,DateTimeKind.Utc));
+            modelBuilder.Entity<AvatarModel>().Property(row=>row.DeletedDate).HasConversion(deletionUtc);
+            modelBuilder.Entity<AvatarDetailModel>().Property(row=>row.DeletedDate).HasConversion(deletionUtc);
+            modelBuilder.Entity<HolonModel>().Property(row=>row.DeletedDate).HasConversion(deletionUtc);
             modelBuilder.Entity<AvatarWalletStore>().HasOne<AvatarModel>().WithMany()
                 .HasForeignKey(wallet => wallet.AvatarId).OnDelete(DeleteBehavior.Cascade);
             modelBuilder.Entity<AvatarModel>().HasMany(a => a.RefreshTokens).WithOne()
@@ -319,6 +328,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
             #endregion
             
             base.OnModelCreating(modelBuilder);
+        }
+
+        private static DateTime ValidateDeletionUtc(DateTime value)
+        {
+            if(value!=DateTime.MinValue && value.Kind!=DateTimeKind.Utc)
+                throw new ArgumentException("SQLite deletion timestamps must be UTC, or the empty DateTime.MinValue sentinel.");
+            return value;
         }
     }
 }

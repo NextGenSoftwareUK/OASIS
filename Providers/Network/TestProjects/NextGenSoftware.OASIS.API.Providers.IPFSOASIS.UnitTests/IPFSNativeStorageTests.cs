@@ -259,6 +259,8 @@ public class IPFSNativeStorageTests
             var deleted=await router.RouteRequestAsync<bool>(new StorageOperationRequest {Operation="DeleteAvatar",AvatarId=id,SoftDelete=true,PreferredProvider=ProviderType.SQLLiteDBOASIS});
             Assert.False(deleted.IsError,deleted.Message); Assert.False(deleted.IsWarning,deleted.Message); Assert.True(deleted.Result);
             var primary=(await sqlite.LoadAvatarAsync(id)).Result;
+            Assert.Equal(DateTimeKind.Utc,primary.DeletedDate.Kind);
+            Assert.Equal(DateTimeKind.Utc,(await sqlite.LoadAvatarDetailAsync(id)).Result.DeletedDate.Kind);
             var replica=(await ipfs.LoadAvatarAsync(id)).Result;
             var detail=(await ipfs.LoadAvatarDetailAsync(id)).Result;
             Assert.Equal(primary.DeletedDate,replica.DeletedDate); Assert.Equal(primary.DeletedByAvatarId,replica.DeletedByAvatarId);

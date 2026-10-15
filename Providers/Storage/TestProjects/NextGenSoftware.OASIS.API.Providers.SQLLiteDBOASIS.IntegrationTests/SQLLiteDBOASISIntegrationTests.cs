@@ -15,6 +15,21 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 public class SQLLiteDBOASISIntegrationTests : IDisposable
 {
     [Theory]
+    [InlineData(DateTimeKind.Local)]
+    [InlineData(DateTimeKind.Unspecified)]
+    public async Task NonUtcDeletionTimestampCannotBePersisted(DateTimeKind kind)
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var id=Guid.NewGuid();
+        var saved=await provider.SaveHolonAsync(new Holon {Id=id,Name="invalid deletion clock",
+            DeletedDate=DateTime.SpecifyKind(new DateTime(2026,10,15,12,0,0),kind)},saveChildren:false);
+        saved.IsError.Should().BeTrue(); saved.Exception.Should().NotBeNull();
+        using var control=new DataContext(TestConnectionString);
+        control.Holons.AsNoTracking().Any(row=>row.Id==id.ToString()).Should().BeFalse();
+    }
+
+    [Theory]
     [InlineData(true)]
     [InlineData(false)]
     public async Task SoftDeletionMarksBothRecordsInactiveWithOneUtcTimestamp(bool synchronous)
@@ -35,6 +50,10 @@ public class SQLLiteDBOASISIntegrationTests : IDisposable
         var storedDetail=control.AvatarDetails.AsNoTracking().Single(row=>row.Id==id.ToString());
         storedAvatar.IsActive.Should().BeFalse(); storedDetail.IsActive.Should().BeFalse();
         storedAvatar.DeletedDate.Should().Be(storedDetail.DeletedDate);
+        storedAvatar.DeletedDate.Kind.Should().Be(DateTimeKind.Utc);
+        storedDetail.DeletedDate.Kind.Should().Be(DateTimeKind.Utc);
+        (await provider.LoadAvatarAsync(id)).Result.DeletedDate.Kind.Should().Be(DateTimeKind.Utc);
+        (await provider.LoadAvatarDetailAsync(id)).Result.DeletedDate.Kind.Should().Be(DateTimeKind.Utc);
         storedAvatar.DeletedDate.Should().BeOnOrAfter(before).And.BeOnOrBefore(after);
         storedAvatar.Email.Should().Be(avatar.Email);
         storedDetail.XP.Should().Be(43); storedDetail.Karma.Should().Be(17);
