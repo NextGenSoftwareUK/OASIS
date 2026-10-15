@@ -97,18 +97,22 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         /******************************/
         public async Task<Dictionary<string, HolonResume>> LoadLookupToJson()
         {
-            try
+            var address=_OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
+            if(string.IsNullOrWhiteSpace(address))
             {
-                string json = await LoadStringToJson(_OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
-                _idLookup = JsonConvert.DeserializeObject<Dictionary<string, HolonResume>>(json);
+                if(_idLookup.Count>0) throw new InvalidOperationException("IPFS lookup root is missing while a populated index is retained; refusing to replace it with an empty index.");
+                return _idLookup;
             }
-            catch
-            {
-                _idLookup = new Dictionary<string, HolonResume>();
-            }
-
+            if(IPFSClient == null) throw new InvalidOperationException("An active IPFS client is required to read the configured lookup root.");
+            var json=await LoadStringToJson(address);
+            var loaded=DeserializeLookup(json);
+            _idLookup=loaded;
             return _idLookup;
         }
+
+        private static Dictionary<string,HolonResume> DeserializeLookup(string json)
+            => JsonConvert.DeserializeObject<Dictionary<string,HolonResume>>(json)
+                ?? throw new InvalidDataException("IPFS lookup root contained no index object.");
 
         public async Task<string> SaveJsonToFile<T>(List<T> list)
         {
@@ -169,41 +173,34 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public async Task<IHolon> SaveHolonToFile(IHolon holon)
         {
-            try
-            {
-                //If we have a previous version of this avatar saved, then add a pointer back to the previous version.
-                _idLookup = await LoadLookupToJson();
-                HolonResume dico = _idLookup.Values.FirstOrDefault(a => a.Id == holon.Id);
+            //If we have a previous version of this avatar saved, then add a pointer back to the previous version.
+            _idLookup = await LoadLookupToJson();
+            HolonResume dico = _idLookup.Values.FirstOrDefault(a => a.Id == holon.Id);
 
-                // in case there is no element in _idlookup dictionary
-                if (dico == null)
-                    dico = new HolonResume();
+            // in case there is no element in _idlookup dictionary
+            if (dico == null)
+                dico = new HolonResume();
 
-                if (_idLookup.Count(a => a.Value.Id == holon.Id) > 0)
-                    holon.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] =
-                        _idLookup.FirstOrDefault(a => a.Value.Id == holon.Id).Key;
+            if (_idLookup.Count(a => a.Value.Id == holon.Id) > 0)
+                holon.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] =
+                    _idLookup.FirstOrDefault(a => a.Value.Id == holon.Id).Key;
 
-                string json = JsonConvert.SerializeObject(holon);
-                var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
+            string json = JsonConvert.SerializeObject(holon);
+            var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
+            holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = fsn.Id;
 
-                // we store just values that we will use as a filter of search in other methods.
-                dico.Id = holon.Id;
-                dico.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey;
-                dico.ParentHolonId = holon.ParentHolonId;
-                dico.HolonType = holon.HolonType;
+            // we store just values that we will use as a filter of search in other methods.
+            dico.Id = holon.Id;
+            dico.ProviderUniqueStorageKey = holon.ProviderUniqueStorageKey;
+            dico.ParentHolonId = holon.ParentHolonId;
+            dico.HolonType = holon.HolonType;
 
-                if (_idLookup.Count == 0)
-                    _idLookup.Add(fsn.Id, dico);
-                else
-                    _idLookup[fsn.Id] = dico;
+            if (_idLookup.Count == 0)
+                _idLookup.Add(fsn.Id, dico);
+            else
+                _idLookup[fsn.Id] = dico;
 
-                string id = await SaveLookupToFile(_idLookup);
-            }
-            catch (Exception e)
-            {
-                OASISErrorHandling.HandleError($"Error occured in SaveHolonToFile method in IPFSOASIS Provider. Reason: {e}");
-            }
+            string id = await SaveLookupToFile(_idLookup);
 
             return holon;
         }
