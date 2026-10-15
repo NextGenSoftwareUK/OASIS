@@ -255,27 +255,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result=new OASISResult<ISearchResults>();
             try
             {
-                ArgumentNullException.ThrowIfNull(searchParams);
-                if(searchParams.SearchOnlyForCurrentAvatar && searchParams.AvatarId == Guid.Empty)
-                    throw new ArgumentException("Current-avatar search requires AvatarId.");
-                if(searchParams.MetaKeyValuePairMatchMode != MetaKeyValuePairMatchMode.All && searchParams.MetaKeyValuePairMatchMode != MetaKeyValuePairMatchMode.Any)
-                    throw new ArgumentOutOfRangeException(nameof(searchParams.MetaKeyValuePairMatchMode));
-                foreach(var group in searchParams.SearchGroups ?? new List<ISearchGroupBase>())
-                {
-                    if(group == null || group is not ISearchTextGroup && group is not ISearchNumberGroup && group is not ISearchDateGroup)
-                        throw new NotSupportedException("Unknown Ethereum search group type.");
-                    if(!Enum.IsDefined(typeof(SearchParamGroupOperator),group.PreviousSearchGroupOperator))
-                        throw new ArgumentException("Unknown search group operator.");
-                    if(group is ISearchTextGroup text && string.IsNullOrWhiteSpace(text.SearchQuery))
-                        throw new ArgumentException("Text search query must be nonempty.");
-                    if(group is ISearchDateGroup date && !Enum.IsDefined(typeof(SearchOperatorType),date.DateOperator)
-                        || group is ISearchNumberGroup number && !Enum.IsDefined(typeof(SearchOperatorType),number.NumberOperator))
-                        throw new ArgumentException("Unknown search comparison operator.");
-                    if(group.AvatarSearchParams?.SearchAvatarWalletParams != null)
-                        throw new NotSupportedException("Ethereum wallet-field search is not implemented.");
-                }
-                if(version != 0) throw new NotSupportedException("Ethereum search history is not implemented; only current version 0 is supported.");
-                if(maxChildDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(searchParams,version,maxChildDepth);
                 var groups=searchParams.SearchGroups ?? new List<ISearchGroupBase>();
                 var wantsAvatars=groups.Count == 0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
                 var wantsHolons=groups.Count == 0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);

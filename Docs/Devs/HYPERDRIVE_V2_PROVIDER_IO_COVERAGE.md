@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+Search follow-up: Solana now uses authenticated collections plus Ethereum's extracted shared StoredRecordSearch evaluator/validation. Solana unit81/81 and actual Ethereum native91/91 pass. Wallet/history search, full DTO/field/query semantics, private indexing, result redaction and live Solana finality remain incomplete.
+
 Solana metadata follow-up: single-key and All/Any selectors now query actual authenticated memo records with validated input, exact ordinal/invariant scalar matching and shared graph options. Full unit suite79/79 passes; controlled culture/case/filter tests are not native-chain/index/full structured-query certification.
 
 Solana adapter follow-up: direct provider parent/type/GUID/signature graph and validation coverage now passes; synchronous signature options no longer dropped. Full unit project77/77 passes. Historical provider-child graph remains explicitly unsupported pending a versioned index, and no fresh native finality verification is claimed.

@@ -1,6 +1,8 @@
 using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Entities.Models;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories;
 using Solnet.Wallet;
@@ -10,6 +12,30 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 [TestClass]
 public class SolanaHolonAdapterTests
 {
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task SearchUsesStoredHolonsAndSharedTextNumberDateGroups(bool synchronous)
+    {
+        var repository=new RecordsRepository();
+        var first=new SolanaHolonDto {Id=Guid.NewGuid(),HolonType=HolonType.Holon,Name="forest guardian",Version=7,CreatedDate=new DateTime(2026,10,14,0,0,0,DateTimeKind.Utc)};
+        var second=new SolanaHolonDto {Id=Guid.NewGuid(),HolonType=HolonType.Holon,Name="forest seed",Version=2,CreatedDate=new DateTime(2025,1,1,0,0,0,DateTimeKind.Utc)};
+        repository.Records=new[] {(first,"first-signature"),(second,"second-signature")};
+        var provider=new ActiveProvider(repository);
+        async Task<NextGenSoftware.OASIS.Common.OASISResult<ISearchResults>> Run(params ISearchGroupBase[] groups)
+        {
+            var query=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=groups.ToList()};
+            return synchronous ? provider.Search(query,loadChildren:false):await provider.SearchAsync(query,loadChildren:false);
+        }
+        SearchTextGroup Text()=>new() {SearchQuery="forest",SearchHolons=true,HolonType=HolonType.All};
+        var text=await Run(Text()); Assert.IsFalse(text.IsError,text.Message); Assert.AreEqual(2,text.Result.NumberOfResults);
+        var combined=await Run(Text(),new SearchNumberGroup {Number=5,NumberOperator=SearchOperatorType.GreaterThan,PreviousSearchGroupOperator=SearchParamGroupOperator.And,SearchHolons=true,HolonType=HolonType.All});
+        Assert.IsFalse(combined.IsError,combined.Message); Assert.AreEqual(first.Id,combined.Result.SearchResultHolons.Single().Id);
+        var dates=await Run(new SearchDateGroup {Date=new DateTime(2026,1,1,0,0,0,DateTimeKind.Utc),DateOperator=SearchOperatorType.GreaterThan,SearchHolons=true,HolonType=HolonType.All});
+        Assert.IsFalse(dates.IsError,dates.Message); Assert.AreEqual(first.Id,dates.Result.SearchResultHolons.Single().Id);
+        Assert.AreEqual(3,repository.Reads);
+    }
+
     [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]
@@ -85,6 +111,7 @@ public class SolanaHolonAdapterTests
         Assert.IsTrue((await provider.LoadHolonsByMetaDataAsync(" ","value")).IsError);
         Assert.IsTrue((await provider.LoadHolonsByMetaDataAsync(new Dictionary<string,string>(),MetaKeyValuePairMatchMode.All)).IsError);
         Assert.IsTrue((await provider.LoadHolonsByMetaDataAsync(new Dictionary<string,string> {{"key","value"}},(MetaKeyValuePairMatchMode)999)).IsError);
+        Assert.IsTrue((await provider.SearchAsync(new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new List<ISearchGroupBase> {new SearchTextGroup {SearchQuery=" "}}})).IsError);
         Assert.AreEqual(0,repository.Reads);
     }
 
