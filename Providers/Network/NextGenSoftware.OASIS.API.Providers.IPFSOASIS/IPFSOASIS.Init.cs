@@ -23,6 +23,7 @@ using NextGenSoftware.Utilities;
 using Ipfs.CoreApi;
 using System.Xml.Linq;
 using System.Threading;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
@@ -157,7 +158,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             if (previous.Value != null) entity.PreviousVersionProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS] = previous.Key;
             index.Id = entity.Id;
             index.RecordKind = kind;
-            var json = ProtectRecord(kind, entity.Id, JsonConvert.SerializeObject(entity));
+            var json = ProtectRecord(kind, entity.Id, OasisJson.Serialize(entity));
             var acknowledged = await IPFSClient.FileSystem.AddTextAsync(json);
             var cid = acknowledged.Id.ToString();
             try
