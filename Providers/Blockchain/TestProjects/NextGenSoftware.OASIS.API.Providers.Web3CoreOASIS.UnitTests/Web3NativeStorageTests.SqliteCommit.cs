@@ -29,10 +29,13 @@ public partial class Web3NativeStorageTests
         public CommitFaultContext Context {get;}
         private readonly DetailRepository repository;
         private readonly SQLLiteDBOASIS.Persistence.Repositories.HolonRepository holons;
+        private readonly SQLLiteDBOASIS.Persistence.Repositories.AvatarRepository avatars;
         public CommitFaultSqlite(string connection,IOException cause) : base(connection)
-        {Context=new CommitFaultContext(connection,new AfterCommitFault(cause));repository=new DetailRepository(Context);holons=new(Context);}
+        {Context=new CommitFaultContext(connection,new AfterCommitFault(cause));repository=new DetailRepository(Context);holons=new(Context);avatars=new(Context);}
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail detail)=>repository.SaveAvatarDetail(detail);
         public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail detail)=>repository.SaveAvatarDetailAsync(detail);
+        public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar)=>avatars.SaveAvatar(avatar);
+        public override Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)=>avatars.SaveAvatarAsync(avatar);
         public override OASISResult<IHolon> SaveHolon(IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
             =>holons.SaveHolon(holon,saveChildren,recursive,maxChildDepth,continueOnError);
         public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon,bool saveChildren=true,bool recursive=true,int maxChildDepth=0,bool continueOnError=true,bool saveChildrenOnProvider=false)
@@ -85,6 +88,31 @@ public partial class Web3NativeStorageTests
                 Assert.AreEqual(377L,committed.Result.XP);Assert.AreEqual("committed before notification failure",committed.Result.Inventory.Single().Name);
                 Assert.IsTrue(Web3CoreOASISBaseProvider.IsPrivateRecordAbsent(await native.GetAvatarDetailByIdAsync((uint)Core.Utilities.HashUtility.GetNumericHash(detail.Id.ToString()))));
                 var attempt=(await store.GetAsync(handle.OperationId,default)).ProviderAttempts.Single();Assert.AreEqual("SQLLiteDBOASIS",attempt.Provider);Assert.IsNull(attempt.NativePreparation);
+            }
+            foreach(var asynchronous in new[] {false,true})
+            foreach(var existing in new[] {false,true})
+            {
+                var avatar=new Avatar {Id=Guid.NewGuid(),IsActive=true,Username="commit-"+Guid.NewGuid().ToString("N"),FirstName="committed avatar",AvatarType=new EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User)};
+                if(existing)
+                {
+                    var seeded=await healthySqlite.SaveAvatarAsync(avatar);Assert.IsFalse(seeded.IsError,seeded.Message);
+                    avatar.FirstName="committed updated avatar";
+                }
+                var handle=await executor.BeginAsync("local-fixture-bearer",user,$"sqlite-avatar-commit-{asynchronous}-{existing}",new string('a',64),"local post-commit avatar fixture",policy);
+                var context=new PreparedStorageExecution(handle,"sqlite-avatar-commit",new Dictionary<Core.Enums.ProviderType,string> {{Core.Enums.ProviderType.PolygonOASIS,sdk.SigningAddress}},new[] {Core.Enums.ProviderType.SQLLiteDBOASIS});
+                var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.PolygonOASIS)?.TotalRequests ?? 0;
+                var request=new Core.StorageOperationRequest {Operation="SaveAvatar",Payload=avatar,PreferredProvider=Core.Enums.ProviderType.SQLLiteDBOASIS,PreparedExecution=context};
+                var saved=asynchronous ? await router.RouteRequestAsync<IAvatar>(request):router.RouteRequest<IAvatar>(request);
+                Assert.IsTrue(saved.IsError);Assert.IsFalse(saved.IsSaved);Assert.IsNull(saved.Result);
+                var failure=saved.Exception as SQLLiteDBOASIS.SqliteMutationReconciliationException;Assert.IsNotNull(failure);
+                Assert.AreSame(cause,failure.InnerException);CollectionAssert.AreEqual(new[] {avatar.Id},failure.RecordIds.ToArray());
+                Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(failure));
+                Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.PolygonOASIS)?.TotalRequests ?? 0);
+                var committed=await healthySqlite.LoadAvatarAsync(avatar.Id);Assert.IsFalse(committed.IsError,committed.Message);
+                Assert.AreEqual(avatar.FirstName,committed.Result.FirstName);
+                Assert.IsTrue(Web3CoreOASISBaseProvider.IsPrivateRecordAbsent(await native.GetAvatarByIdAsync((uint)Core.Utilities.HashUtility.GetNumericHash(avatar.Id.ToString()))));
+                var attempt=(await store.GetAsync(handle.OperationId,default)).ProviderAttempts.Single();
+                Assert.AreEqual("SQLLiteDBOASIS",attempt.Provider);Assert.IsNull(attempt.NativePreparation);
             }
             foreach(var asynchronous in new[] {false,true})
             foreach(var batch in new[] {false,true})
