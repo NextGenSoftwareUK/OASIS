@@ -95,7 +95,12 @@ public partial class Web3NativeStorageTests
                 foreach(var code in new[] {ar.ErrorCode,dr.ErrorCode,hr.ErrorCode}) Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,code);
                 Assert.IsNull(ar.Result);Assert.IsNull(dr.Result);Assert.IsNull(hr.Result);
                 Assert.IsNull(ar.Exception);Assert.IsNull(dr.Exception);Assert.IsNull(hr.Exception);
+                var deleteRequest=new Core.StorageOperationRequest {Operation="DeleteHolon",HolonId=stale,SoftDelete=false,PreferredProvider=Core.Enums.ProviderType.PolygonOASIS};
+                var absentDelete=asynchronous ? await router.RouteRequestAsync<IHolon>(deleteRequest):router.RouteRequest<IHolon>(deleteRequest);
+                Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,absentDelete.ErrorCode);
+                Assert.IsNull(absentDelete.Exception);Assert.IsNull(absentDelete.Result);Assert.IsFalse(absentDelete.IsSaved);
                 Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS).TotalRequests);
+                Assert.AreEqual(stale,(await sqlite.LoadHolonAsync(stale,loadChildren:false)).Result.Id);
             }
             var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
             var field=typeof(Web3CoreOASISBaseProvider).GetField("_web3CoreOASIS",flags)!;
@@ -127,6 +132,19 @@ public partial class Web3NativeStorageTests
             }
             finally {field.SetValue(polygon,healthy);}
             manager.IsAutoFailOverEnabled=false;manager.IsAutoReplicationEnabled=true;
+            foreach(var primary in providers)
+            foreach(var asynchronous in new[] {false,true})
+            {
+                var id=Guid.NewGuid();
+                foreach(var store in new IOASISStorageProvider[] {polygon,sqlite})
+                    Assert.IsFalse((await store.SaveHolonAsync(new Holon {Id=id,IsActive=true,Name="V2 checked deletion"},saveChildren:false)).IsError);
+                var request=new Core.StorageOperationRequest {Operation="DeleteHolon",HolonId=id,SoftDelete=false,PreferredProvider=primary.Value};
+                var deleted=asynchronous ? await router.RouteRequestAsync<IHolon>(request):router.RouteRequest<IHolon>(request);
+                Assert.IsFalse(deleted.IsError,deleted.Message);Assert.IsFalse(deleted.IsWarning,deleted.Message);Assert.AreEqual(id,deleted.Result.Id);
+                var native=await ((Web3CoreOASIS)healthy!).GetHolonByIdAsync((uint)Core.Utilities.HashUtility.GetNumericHash(id.ToString()));
+                Assert.IsTrue(Web3CoreOASISBaseProvider.IsPrivateRecordAbsent(native));
+                Assert.IsNull((await sqlite.LoadHolonAsync(id,loadChildren:false)).Result);
+            }
             foreach(var primary in providers)
             foreach(var asynchronous in new[] {false,true})
             {
