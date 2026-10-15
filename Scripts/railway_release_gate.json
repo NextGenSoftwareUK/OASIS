@@ -2,7 +2,9 @@
   "repository": "NextGenSoftwareUK/OASIS",
   "projectId": "712f50f6-3b7b-46d4-b229-44b49922f16b",
   "stagingIsolation": {
-    "mongoDbName": null
+    "mongoDbName": "oasis_staging",
+    "accountingDbName": "oasis_subscription_accounting_staging",
+    "mongoUsername": null
   },
   "environments": {
     "staging": "e0796a6e-8afe-4a38-8472-675ef572f7d7",
