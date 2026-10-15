@@ -5,6 +5,15 @@ using Nethereum.Web3.Accounts;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Providers.EthereumOASIS.ContractDefinition;
 using CoreHolon = NextGenSoftware.OASIS.API.Core.Holons.Holon;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.Core.Objects;
+using NextGenSoftware.OASIS.API.DNA;
+using SQLiteProvider = NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS;
+using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests;
 
@@ -70,9 +79,11 @@ public class EthereumOASISIntegrationTests
     }
 
     [DataTestMethod]
-    [DataRow(false)]
-    [DataRow(true)]
-    public async Task BulkNativeRejectionRetainsCommittedEvidence(bool synchronous)
+    [DataRow(false,false)]
+    [DataRow(true,false)]
+    [DataRow(false,true)]
+    [DataRow(true,true)]
+    public async Task BulkNativeRejectionRetainsCommittedEvidence(bool synchronous, bool throughV2)
     {
         var fixturePath = Environment.GetEnvironmentVariable("ETHEREUMOASIS_TEST_FIXTURE_JSON")
             ?? throw new InvalidOperationException("Compile the retained local rejection fixture first.");
@@ -88,7 +99,32 @@ public class EthereumOASISIntegrationTests
         var first = new CoreHolon { Id = Guid.NewGuid(), Name = "owned committed first holon" };
         var second = new CoreHolon { Id = Guid.NewGuid(), Name = "owned rejected second holon" };
         var batch = new[] { first,second };
-        var result = synchronous ? provider.SaveHolons(batch,saveChildren:false) : await provider.SaveHolonsAsync(batch,saveChildren:false);
+        SQLiteProvider? backup = null;
+        var backupPath = Path.Combine(Path.GetDirectoryName(fixturePath)!,"v2-backup.db");
+        try
+        {
+        OASISResult<IEnumerable<IHolon>> result;
+        ProviderManager? manager = null;
+        if (throughV2)
+        {
+            if (File.Exists(backupPath)) throw new InvalidOperationException("Existing backup fixture requires inspection; refusing overwrite.");
+            backup = new SQLiteProvider($"Data Source={backupPath};Pooling=False");
+            Assert.IsFalse((await backup.ActivateProviderAsync()).IsError);
+            var dna = new OASISDNA { OASIS = new NextGenSoftware.OASIS.API.DNA.OASIS {
+                HyperDriveMode = HyperDriveModes.V2, StorageProviders = new StorageProviderSettings() } };
+            dna.OASIS.SubscriptionConfig.PlanType = "Gold";
+            manager = new ProviderManager(null,dna) { IsAutoFailOverEnabled = true, IsAutoReplicationEnabled = true };
+            manager.RegisterProvider(provider);
+            manager.RegisterProvider(backup);
+            var stores = new[] { new EnumValue<ProviderType>(ProviderType.EthereumOASIS), new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS) };
+            Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(stores).IsError);
+            Assert.IsFalse(manager.SetAndReplaceAutoReplicationListForProviders(stores).IsError);
+            var router = new OASISHyperDrive(manager);
+            var request = new StorageOperationRequest { Operation = "SaveHolons", Payload = batch,
+                PreferredProvider = ProviderType.EthereumOASIS, SaveChildren = false };
+            result = synchronous ? router.RouteRequest<IEnumerable<IHolon>>(request) : await router.RouteRequestAsync<IEnumerable<IHolon>>(request);
+        }
+        else result = synchronous ? provider.SaveHolons(batch,saveChildren:false) : await provider.SaveHolonsAsync(batch,saveChildren:false);
         Assert.IsTrue(result.IsError);
         Assert.IsFalse(result.IsSaved);
         Assert.IsInstanceOfType(result.Exception,typeof(EthereumPartialStorageMutationException));
@@ -102,6 +138,21 @@ public class EthereumOASISIntegrationTests
         Assert.AreEqual(first.Name,firstRead.Result.Name);
         var rejectedRead = await provider.LoadHolonAsync(second.Id);
         Assert.IsNull(rejectedRead.Result);
+        if (throughV2)
+        {
+            Assert.AreEqual(0L,manager!.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
+            Assert.AreEqual(1L,manager.PerformanceMonitor.GetMetrics(ProviderType.EthereumOASIS).TotalRequests);
+            foreach (var node in batch) Assert.IsNull((await backup!.LoadHolonAsync(node.Id,loadChildren:false)).Result);
+        }
+        }
+        finally
+        {
+            if (backup != null)
+            {
+                backup.Dispose();
+                File.Delete(backupPath);
+            }
+        }
         await provider.DeActivateProviderAsync();
     }
 
