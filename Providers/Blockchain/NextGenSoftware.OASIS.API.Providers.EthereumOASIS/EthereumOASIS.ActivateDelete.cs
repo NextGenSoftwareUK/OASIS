@@ -100,6 +100,11 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                         .WaitAsync(TimeSpan.FromSeconds(10));
                     if (!string.Equals(owner,_oasisAccount.Address,StringComparison.OrdinalIgnoreCase))
                         throw new InvalidOperationException("Configured Ethereum signer does not own the storage contract.");
+                    var protocolVersion = await _nextGenSoftwareOasisService.ContractHandler
+                        .QueryAsync<ContractDefinition.StorageProtocolVersionFunction,System.Numerics.BigInteger>(new ContractDefinition.StorageProtocolVersionFunction())
+                        .WaitAsync(TimeSpan.FromSeconds(10));
+                    if (protocolVersion != 2)
+                        throw new InvalidOperationException($"Ethereum storage protocol version '{protocolVersion}' is unsupported; version 2 is required.");
                 }
                 else
                     throw new InvalidOperationException("EthereumOASIS requires an RPC URI, private key, and positive chain ID.");
