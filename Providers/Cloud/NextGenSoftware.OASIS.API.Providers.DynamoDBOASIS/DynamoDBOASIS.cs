@@ -37,7 +37,9 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
     /// </summary>
     public class DynamoDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
-        private readonly AmazonDynamoDBClient _client;
+        private AmazonDynamoDBClient _client;
+        private readonly Func<AmazonDynamoDBClient> _createClient;
+        private bool _clientDisposed;
         protected virtual ProviderType StorageProviderType => Core.Enums.ProviderType.DynamoDBOASIS;
 
         public DynamoDBOASIS(string accessKey, string secretKey, string region, string? serviceUrl = null)
@@ -52,7 +54,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 config.AuthenticationRegion = region;
                 config.UseHttp = serviceUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase);
             }
-            _client = new AmazonDynamoDBClient(creds, config);
+            _createClient = () => new AmazonDynamoDBClient(creds, config);
+            _client = _createClient();
             ProviderName = "DynamoDBOASIS";
             ProviderDescription = "AWS DynamoDB provider (AWSSDK.DynamoDBv2 — serverless NoSQL for OASIS holons and avatars)";
             ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.DynamoDBOASIS);
@@ -100,6 +103,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             var result = new OASISResult<bool>();
             try
             {
+                if (_clientDisposed) { _client = _createClient(); _clientDisposed = false; }
                 var pkSchema = new List<KeySchemaElement> { new KeySchemaElement { AttributeName = "id", KeyType = KeyType.HASH } };
                 var pkAttr = new List<AttributeDefinition> { new AttributeDefinition { AttributeName = "id", AttributeType = ScalarAttributeType.S } };
 
@@ -147,7 +151,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().Result;
-        public override async Task<OASISResult<bool>> DeActivateProviderAsync() { _client.Dispose(); IsProviderActivated = false; return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = $"{ProviderName} deactivated." }); }
+        public override async Task<OASISResult<bool>> DeActivateProviderAsync() { if(!_clientDisposed) { _client.Dispose(); _clientDisposed = true; } IsProviderActivated = false; return await Task.FromResult(new OASISResult<bool> { Result = true, IsError = false, Message = $"{ProviderName} deactivated." }); }
         public override OASISResult<bool> DeActivateProvider() => DeActivateProviderAsync().Result;
 
         // ─── Avatar saving ────────────────────────────────────────────────────────
