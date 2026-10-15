@@ -10,6 +10,18 @@ public class Web3TransactionOutcomeTests
 {
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
+    public async Task PreparedIdentitySurvivesMissingOrConflictingSubmissionReply(bool conflictingReply)
+    {
+        var cause=new IOException("submission response unavailable");var observations=0;
+        var failure=await Assert.ThrowsExceptionAsync<Web3MutationReconciliationException>(()=>Web3TransactionOutcome.SubmitAndObserveAsync(
+            ()=>conflictingReply ? Task.FromResult("different-hash"):Task.FromException<string>(cause),
+            _=>{observations++;return Task.FromResult<TransactionReceipt>(null!);},TimeSpan.FromSeconds(1),TimeSpan.FromMilliseconds(1),"original-signed-hash"));
+        Assert.AreEqual("original-signed-hash",failure.OriginalTransactionId);Assert.AreEqual(0,observations);
+        if(!conflictingReply) Assert.AreSame(cause,failure.InnerException);
+    }
+
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
     public async Task TransportFailureRetainsOriginalCauseAndAvailableHash(bool afterHash)
     {
         var cause=new IOException("owned transport failure");
