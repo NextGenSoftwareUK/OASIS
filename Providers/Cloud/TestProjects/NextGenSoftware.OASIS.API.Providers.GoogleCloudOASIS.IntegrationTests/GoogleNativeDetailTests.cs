@@ -158,6 +158,12 @@ public class GoogleNativeDetailTests
             var graphLoaded=await provider.LoadHolonAsync(graphIds[0],loadChildrenFromProvider:true);
             Assert.IsFalse(graphLoaded.IsError,graphLoaded.Message);
             Assert.AreEqual(graphIds[2],graphLoaded.Result.Children.Single().Children.Single().Id);
+            var deleteHolon=await provider.DeleteHolonAsync(graphIds[2]);
+            Assert.IsFalse(deleteHolon.IsError,deleteHolon.Message);Assert.AreEqual(graphIds[1],deleteHolon.Result.ParentHolonId);
+            Assert.IsFalse((await db.Collection("holons").Document(graphIds[2].ToString()).GetSnapshotAsync()).Exists);
+            var deleteKey=await provider.DeleteHolonAsync(importedIds[0].ToString());
+            Assert.IsFalse(deleteKey.IsError,deleteKey.Message);Assert.AreEqual("import-value",deleteKey.Result.MetaData["import-field"]);
+            Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.DeleteHolonAsync(importedIds[0].ToString())).ErrorCode);
             Assert.IsFalse((await db.Collection("avatarDetails").Document(avatarId.ToString()).GetSnapshotAsync()).Exists);
             Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
             Assert.IsFalse((await provider.DeleteAvatarByEmailAsync("OWNED-AVATAR@EXAMPLE.INVALID",softDelete:false)).IsError);

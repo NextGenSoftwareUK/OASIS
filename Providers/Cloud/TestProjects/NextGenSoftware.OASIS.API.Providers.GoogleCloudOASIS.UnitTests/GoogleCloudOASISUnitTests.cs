@@ -13,6 +13,17 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
         private GoogleCloudOASIS _provider = null!;
 
         [TestMethod]
+        public async Task HolonDeleteRejectsInvalidIdentityBeforeActivationAndPreservesCause()
+        {
+            var provider=new FailedActivationProvider();
+            Assert.IsInstanceOfType((await provider.DeleteHolonAsync(System.Guid.Empty)).Exception,typeof(System.ArgumentException));
+            Assert.IsInstanceOfType((await provider.DeleteHolonAsync("bad-key")).Exception,typeof(System.ArgumentException));
+            Assert.AreEqual(0,provider.Activations);
+            var failed=await provider.DeleteHolonAsync(System.Guid.NewGuid().ToString());
+            Assert.AreSame(provider.Cause,failed.Exception);Assert.AreEqual("owned-code",failed.ErrorCode);
+        }
+
+        [TestMethod]
         public async Task GraphPreflightRejectsCyclesWithoutPublishingIdsOrActivating()
         {
             var provider=new FailedActivationProvider();

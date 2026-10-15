@@ -135,135 +135,21 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
-        {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (!_enableFirestore)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
-                    return result;
-                }
-
-                var docRef = _firestoreDb.Collection("holons").Document(id.ToString());
-                var snapshot = await docRef.GetSnapshotAsync();
-                if (!snapshot.Exists)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Holon '{id}' was not found in Google Cloud Firestore");
-                    return result;
-                }
-
-                var loadResult = await LoadHolonAsync(id);
-                if (loadResult.IsError || loadResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, loadResult.Message ?? $"Holon '{id}' could not be loaded before deletion");
-                    return result;
-                }
-
-                await docRef.DeleteAsync();
-                result.Result = loadResult.Result;
-                result.IsError = false;
-                result.Message = "Holon deleted successfully from Google Cloud Firestore";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error deleting holon from Google Cloud: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+            => DeleteCanonicalHolonAsync(id);
 
         public override OASISResult<IHolon> DeleteHolon(Guid id)
         {
             return DeleteHolonAsync(id).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
-        {
-            OASISResult<IHolon> result = new OASISResult<IHolon>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Google Cloud provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                if (!_enableFirestore)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Firestore is not enabled");
-                    return result;
-                }
-
-                var query = _firestoreDb.Collection("holons").WhereEqualTo("providerKey", providerKey);
-                var snapshot = await query.GetSnapshotAsync();
-                
-                if (snapshot.Count > 0)
-                {
-                    var doc = snapshot.Documents.First();
-                    var docRef = doc.Reference;
-                    
-                    if (true) // Soft delete by default (OASIS standard)
-                    {
-                        // Soft delete - mark as deleted
-                        await docRef.UpdateAsync("IsDeleted", true);
-                        await docRef.UpdateAsync("DeletedDate", Timestamp.FromDateTime(DateTime.UtcNow));
-                        await docRef.UpdateAsync("DeletedByAvatarId", AvatarManager.LoggedInAvatar?.Id ?? Guid.Empty);
-                    }
-                    else
-                    {
-                        // Hard delete - remove document
-                        await docRef.DeleteAsync();
-                    }
-                    
-                    result.Result = null; // Return null for deleted holon
-                    result.IsError = false;
-                    result.Message = "Holon soft deleted successfully from Google Cloud Firestore by provider key";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, "Holon not found in Google Cloud Firestore by provider key");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error deleting holon from Google Cloud by provider key: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+            => DeleteCanonicalHolonAsync(providerKey);
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                var deleteResult = DeleteHolonAsync(providerKey).Result;
-                result.IsError = deleteResult.IsError;
-                result.Message = deleteResult.Message;
-                result.Result = null; // Return null for deleted holon
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error deleting holon: {ex.Message}", ex);
-            }
-            return result;
-        }
+            => DeleteCanonicalHolonAsync(providerKey).GetAwaiter().GetResult();
 
-        public async Task<OASISResult<bool>> DeleteHolonAsync(string username, bool softDelete = true)
+        public async Task<OASISResult<bool>> DeleteHolonAsync(string username, bool softDelete)
         {
             OASISResult<bool> result = new OASISResult<bool>();
             try

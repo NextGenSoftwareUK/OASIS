@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
 {
     public partial class GoogleCloudOASIS
     {
-        public OASISResult<bool> DeleteHolon(string username, bool softDelete = true)
+        public OASISResult<bool> DeleteHolon(string username, bool softDelete)
         {
             return DeleteHolonAsync(username, softDelete).Result;
         }
