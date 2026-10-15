@@ -109,6 +109,12 @@ public class CosmosNativeStorageTests
             var depthLimited=await provider.LoadAllHolonsAsync(maxChildDepth:1,curentChildDepth:1,loadChildrenFromProvider:true);
             Assert.IsFalse(depthLimited.IsError,depthLimited.Message);
             Assert.IsFalse(depthLimited.Result.Single(row=>row.Id==holonId).Children.Any());
+            childRead.Result.Name="replaced child";
+            var repository=new Infrastructure.HolonRepository((Infrastructure.ICosmosDbClientFactory)factoryField.GetValue(provider)!);
+            await repository.UpdateAsync(childRead.Result);
+            var replaced=await provider.LoadHolonAsync(childId,loadChildren:false);
+            Assert.IsFalse(replaced.IsError,replaced.Message);Assert.AreEqual("replaced child",replaced.Result.Name);
+            Assert.AreEqual(holonId,replaced.Result.ParentHolonId);
             var deleted=await provider.DeleteHolonAsync(childId);
             Assert.IsFalse(deleted.IsError,deleted.Message);Assert.IsTrue(deleted.IsSaved);Assert.AreEqual(childId,deleted.Result.Id);
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,provider.LoadHolon(childId).ErrorCode);

@@ -89,23 +89,24 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 
         public async Task UpdateAsync(T entity)
         {
-            try
-            {
-                var cosmosDbClient = _cosmosDbClientFactory.GetClient(CollectionName);
-                var partitionKey = ResolvePartitionKey(entity.Id.ToString());
-                await cosmosDbClient.ReplaceDocumentAsync(entity.Id.ToString(), entity, partitionKey);
-            }
-            catch (CosmosException e)
-            {
-                if (e.StatusCode == HttpStatusCode.NotFound)
-                    throw new EntityNotFoundException();
-                throw;
-            }
+            ArgumentNullException.ThrowIfNull(entity);
+            var originalId=entity.Id;
+            if(originalId==Guid.Empty) throw new ArgumentException("A nonempty Cosmos identity is required for replacement.",nameof(entity));
+            var snapshot=(T)OasisJson.Deserialize(OasisJson.Serialize(entity),EntityType);
+            var key=originalId.ToString();
+            snapshot.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+            snapshot.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=key;
+            var client=_cosmosDbClientFactory.GetClient(CollectionName);
+            await client.ReplaceDocumentAsync(key,snapshot,ResolvePartitionKey(key));
+            if(entity.Id!=originalId) throw new CosmosMutationReconciliationException(key,new InvalidDataException("Caller identity changed during acknowledged Cosmos replacement."),acknowledged:true);
+            entity.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+            entity.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=key;
         }
 
         public async Task DeleteAsync(T entity)
         {
-            await DeleteAsync(entity.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]);
+            ArgumentNullException.ThrowIfNull(entity);
+            await DeleteAsync(entity.Id);
         }
 
         public async Task DeleteAsync(Guid id)

@@ -11,6 +11,34 @@ public class CosmosAcknowledgedWriteTests
 {
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
+    public async Task ReplacementFreezesPayloadAndRetainsOriginalFailure(bool uncertain)
+    {
+        var entity=new Avatar {Id=Guid.NewGuid(),FirstName="submitted",ProviderUniqueStorageKey=null!};
+        var id=entity.Id;object? sent=null;
+        Exception cause=uncertain ? new CosmosMutationReconciliationException(id.ToString(),new IOException("lost reply"))
+            :new CosmosException("owned404",System.Net.HttpStatusCode.NotFound,1002,"owned",0);
+        var client=new Mock<ICosmosDbClient>();
+        client.Setup(c=>c.ReplaceDocumentAsync(id.ToString(),It.IsAny<object>(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>()))
+            .Returns((string _,object value,PartitionKey? __,CancellationToken ___)=> {sent=value;entity.FirstName="changed";return Task.FromException(cause);});
+        var factory=new Mock<ICosmosDbClientFactory>();factory.Setup(f=>f.GetClient("avatarItems")).Returns(client.Object);
+        var repository=new AvatarRepository(factory.Object);
+        Exception failed=uncertain ? await Assert.ThrowsExceptionAsync<CosmosMutationReconciliationException>(()=>repository.UpdateAsync(entity))
+            :await Assert.ThrowsExceptionAsync<CosmosException>(()=>repository.UpdateAsync(entity));
+        Assert.AreSame(cause,failed);Assert.IsNull(entity.ProviderUniqueStorageKey);Assert.AreEqual("submitted",((Avatar)sent!).FirstName);
+    }
+
+    [TestMethod]
+    public async Task EntityDeleteUsesCanonicalIdentityNotStaleProviderKey()
+    {
+        var id=Guid.NewGuid();var client=new Mock<ICosmosDbClient>();
+        client.Setup(c=>c.DeleteDocumentAsync(id.ToString(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
+        var factory=new Mock<ICosmosDbClientFactory>();factory.Setup(f=>f.GetClient("avatarItems")).Returns(client.Object);
+        await new AvatarRepository(factory.Object).DeleteAsync(new Avatar {Id=id,ProviderUniqueStorageKey=null!});
+        client.Verify(c=>c.DeleteDocumentAsync(id.ToString(),It.IsAny<PartitionKey?>(),It.IsAny<CancellationToken>()),Times.Once);
+    }
+
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
     public async Task FailedWriteDoesNotPublishGeneratedIdentityOrProviderKey(bool create)
     {
         var entity=new Avatar {Id=Guid.Empty,FirstName="submitted",ProviderUniqueStorageKey=null!};
