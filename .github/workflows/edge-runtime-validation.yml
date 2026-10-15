@@ -170,16 +170,6 @@ jobs:
           repository: NextGenSoftwareUK/OASIS-Holochain-hApp
           path: OASIS-Holochain-hApp
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
-      - name: Checkout pinned legacy hApp rejection fixture
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
-        with:
-          repository: NextGenSoftwareUK/HoloNET-Manager
-          ref: 6bdf028f476ff3e2199e22105890ab09e539fecf
-          path: holochain-client-csharp/HoloNET-Manager
-          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
-          persist-credentials: false
-          sparse-checkout-cone-mode: false
-          sparse-checkout: NextGenSoftware.Holochain.HoloNET.Manager/OASIS_hAPP/oasis.happ
       - uses: DeterminateSystems/nix-installer-action@v17
       - name: Build and test pinned HoloOASIS hApp
         shell: pwsh
@@ -393,6 +383,16 @@ jobs:
           repository: NextGenSoftwareUK/OASIS-Holochain-hApp
           path: OASIS-Holochain-hApp
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Checkout pinned legacy hApp rejection fixture
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+        with:
+          repository: NextGenSoftwareUK/HoloNET-Manager
+          ref: 6bdf028f476ff3e2199e22105890ab09e539fecf
+          path: holochain-client-csharp/HoloNET-Manager
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          persist-credentials: false
+          sparse-checkout-cone-mode: false
+          sparse-checkout: NextGenSoftware.Holochain.HoloNET.Manager/OASIS_hAPP/oasis.happ
       - name: Install pinned Unity editor and Android modules
         uses: RageAgainstThePixel/unity-setup@3da1aae07f5635ff478d3ad7f29782b3aea88258 # v2.6.0
         with:
