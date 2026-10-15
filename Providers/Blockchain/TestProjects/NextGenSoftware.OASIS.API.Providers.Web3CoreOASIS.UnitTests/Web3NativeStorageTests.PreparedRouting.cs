@@ -60,6 +60,7 @@ public partial class Web3NativeStorageTests
                 Assert.AreEqual(3,operation.ProviderAttempts.Count(attempt=>attempt.Provider=="PolygonOASIS" && attempt.NativePreparation!=null && attempt.ProviderRequestId!=null));
                 Assert.AreEqual(3,operation.ProviderAttempts.Count(attempt=>attempt.Provider=="SQLLiteDBOASIS" && attempt.NativePreparation==null));
             }
+            await VerifyPreparedSelectionAsync(polygon,sqlite,native,manager,router,executor,user,policy,store);
             verified=true;
         }
         finally {await sqlite.DeActivateProviderAsync();sqlite.Dispose();if(verified && File.Exists(path)) File.Delete(path);}
