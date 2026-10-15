@@ -140,6 +140,37 @@ contract NextGenSoftwareOASIS {
 
     // Validate the full public identity in the SAME transaction as deletion.
     // A client-side read check cannot protect against a concurrent delete/reinsert.
+    function UpdateAvatarPairByIdentity(uint256 entityId, string memory avatarId,
+        bytes32 expectedAvatarHash, string memory avatarInfo, bytes32 expectedDetailHash, string memory detailInfo)
+        public onlyStorageOwner returns (bool) {
+        uint256 avatarIndex = type(uint256).max;
+        uint256 detailIndex = type(uint256).max;
+        for (uint256 i = 0; i < totalAvatarsCount; i++) {
+            if (avatars[i].EntityId == entityId) {
+                require(keccak256(bytes(avatars[i].AvatarId)) == keccak256(bytes(avatarId)), "OASIS identity collision");
+                require(keccak256(bytes(avatars[i].Info)) == expectedAvatarHash, "OASIS avatar changed");
+                avatarIndex = i;
+                break;
+            }
+        }
+        require(avatarIndex != type(uint256).max, "OASIS record not found");
+        for (uint256 i = 0; i < totalAvatarDetailsCount; i++) {
+            if (avatarDetails[i].EntityId == entityId) {
+                require(keccak256(bytes(avatarDetails[i].AvatarId)) == keccak256(bytes(avatarId)), "OASIS identity collision");
+                require(keccak256(bytes(avatarDetails[i].Info)) == expectedDetailHash, "OASIS avatar detail changed");
+                detailIndex = i;
+                break;
+            }
+        }
+        if (detailIndex == type(uint256).max)
+            require(expectedDetailHash == bytes32(0) && bytes(detailInfo).length == 0, "OASIS avatar detail changed");
+        else require(bytes(detailInfo).length > 0, "OASIS avatar detail required");
+        require(bytes(avatarInfo).length > 0, "OASIS avatar required");
+        avatars[avatarIndex].Info = avatarInfo;
+        if (detailIndex != type(uint256).max) avatarDetails[detailIndex].Info = detailInfo;
+        return true;
+    }
+
     function DeleteAvatarByIdentity(uint256 entityId, string memory avatarId) public onlyStorageOwner returns (bool) {
         for (uint256 i = 0; i < totalAvatarsCount; i++) {
             if (avatars[i].EntityId == entityId) {
