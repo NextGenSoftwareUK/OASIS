@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         //}
 
         // Builds a filter for HolonType + soft-delete guard.
-        private static FilterDefinition<Holon> BuildHolonTypeFilter(HolonType holonType) =>
+        internal static FilterDefinition<Holon> BuildHolonTypeFilter(HolonType holonType) =>
             holonType == HolonType.All
                 ? Builders<Holon>.Filter.Where(x => x.DeletedDate == DateTime.MinValue)
                 : Builders<Holon>.Filter.Where(x => x.HolonType == holonType && x.DeletedDate == DateTime.MinValue);
@@ -70,18 +70,18 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         // Uses $expr+$getField so dotted key names (e.g. "NFT.MintedByAvatarId") are treated as
         // literal dictionary keys rather than nested field paths (MongoDB dot-notation limitation).
         // $toString handles any BSON value type, matching the original .ToString() comparison.
-        private static FilterDefinition<Holon> BuildMetaDataFilter(string metaKey, string metaValue) =>
+        internal static FilterDefinition<Holon> BuildMetaDataFilter(string metaKey, string metaValue) =>
             new BsonDocumentFilterDefinition<Holon>(new BsonDocument("$expr", new BsonDocument("$eq", new BsonArray
             {
                 new BsonDocument("$toString", new BsonDocument("$getField", new BsonDocument
                 {
-                    { "field", metaKey },
+                    { "field", new BsonDocument("$literal", metaKey) },
                     { "input", "$MetaData" }
                 })),
-                metaValue
+                new BsonDocument("$literal", metaValue)
             })));
 
-        private static FilterDefinition<Holon> BuildMetaDataMultiFilter(Dictionary<string, string> pairs, MetaKeyValuePairMatchMode mode)
+        internal static FilterDefinition<Holon> BuildMetaDataMultiFilter(Dictionary<string, string> pairs, MetaKeyValuePairMatchMode mode)
         {
             var filters = pairs.Select(kv => BuildMetaDataFilter(kv.Key, kv.Value)).ToList();
             return mode == MetaKeyValuePairMatchMode.All
