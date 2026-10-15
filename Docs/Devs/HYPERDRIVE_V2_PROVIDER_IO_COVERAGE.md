@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+IPFS index integrity follow-up: lookup errors no longer initialize an empty replacement index; retained cache preserved and invalid content rejected. Holon save failures propagate. Focused10/10 boundary tests pass; private encryption, concurrent/durable index publication and live V2/interface gates remain open.
+
 IPFS priority follow-up: SDK-based provider lifecycle no longer shuts down an externally managed daemon on disconnect/activation failure; focused5/5 tests and producer build pass. Entity/index JSON publication paths still need approved private-record encryption and index/receipt/recovery/interface/V2 live validation. Cache-only restore reused existing dependencies, no runtime installed or private data published.
 
 Solana continuation follow-up: independent-node continuation now respects continueOnError, failed-parent descendants are skipped, uncertainty stops immediately and incomplete plans remain errors with signature evidence. Full unit suite101/101 passes; native finality and remaining graph/interface/recovery gates are still open.
