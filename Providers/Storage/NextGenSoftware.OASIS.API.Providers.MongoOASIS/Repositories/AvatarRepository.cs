@@ -571,6 +571,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         private async Task<OASISResult<bool>> DeleteGraphAsync(Guid id, bool softDelete, bool detailOnly)
         {
             var result = new OASISResult<bool>();
+            Core.Objects.AvatarTombstone tombstone = null;
             try
             {
                 using var session = await _dbContext.MongoClient.StartSessionAsync();
@@ -606,7 +607,15 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 throw new InvalidOperationException("Avatar is already soft deleted.");
                             var detail = await _dbContext.AvatarDetail.Find(session, x => x.HolonId == id).FirstOrDefaultAsync();
                             if (detail == null) throw new InvalidOperationException("Avatar detail deletion matched no persisted identity.");
-                            var deletedDate = DateTime.UtcNow;
+                            // BSON dates persist milliseconds, so evidence must describe the persisted value.
+                            var now = DateTime.UtcNow;
+                            var deletedDate = new DateTime(now.Ticks - now.Ticks % TimeSpan.TicksPerMillisecond, DateTimeKind.Utc);
+                            var actor = string.IsNullOrEmpty(avatar.DeletedByAvatarId) ? Guid.Empty : Guid.Parse(avatar.DeletedByAvatarId);
+                            tombstone = new Core.Objects.AvatarTombstone(id, deletedDate, actor);
+                            avatar.IsActive = false;
+                            detail.IsActive = false;
+                            avatar.DeletedByAvatarId = actor.ToString();
+                            detail.DeletedByAvatarId = actor.ToString();
                             avatar.DeletedDate = deletedDate;
                             detail.DeletedDate = deletedDate;
                             var avatarWrite = await _dbContext.Avatar.ReplaceOneAsync(session, x => x.HolonId == id, avatar);
@@ -626,6 +635,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     await session.CommitTransactionAsync();
                     result.Result = true;
                     result.IsDeleted = true;
+                    if (tombstone != null) AvatarTombstoneEvidence.Attach(result, tombstone);
                 }
                 catch (Exception ex)
                 {
@@ -652,6 +662,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         private OASISResult<bool> DeleteGraph(Guid id, bool softDelete, bool detailOnly)
         {
             var result = new OASISResult<bool>();
+            Core.Objects.AvatarTombstone tombstone = null;
             try
             {
                 using var session = _dbContext.MongoClient.StartSession();
@@ -687,7 +698,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 throw new InvalidOperationException("Avatar is already soft deleted.");
                             var detail = _dbContext.AvatarDetail.Find(session, x => x.HolonId == id).FirstOrDefault();
                             if (detail == null) throw new InvalidOperationException("Avatar detail deletion matched no persisted identity.");
-                            var deletedDate = DateTime.UtcNow;
+                            var now = DateTime.UtcNow;
+                            var deletedDate = new DateTime(now.Ticks - now.Ticks % TimeSpan.TicksPerMillisecond, DateTimeKind.Utc);
+                            var actor = string.IsNullOrEmpty(avatar.DeletedByAvatarId) ? Guid.Empty : Guid.Parse(avatar.DeletedByAvatarId);
+                            tombstone = new Core.Objects.AvatarTombstone(id, deletedDate, actor);
+                            avatar.IsActive = false;
+                            detail.IsActive = false;
+                            avatar.DeletedByAvatarId = actor.ToString();
+                            detail.DeletedByAvatarId = actor.ToString();
                             avatar.DeletedDate = deletedDate;
                             detail.DeletedDate = deletedDate;
                             var avatarWrite = _dbContext.Avatar.ReplaceOne(session, x => x.HolonId == id, avatar);
@@ -707,6 +725,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     session.CommitTransaction();
                     result.Result = true;
                     result.IsDeleted = true;
+                    if (tombstone != null) AvatarTombstoneEvidence.Attach(result, tombstone);
                 }
                 catch (Exception ex)
                 {
