@@ -62,6 +62,7 @@ public class GoogleNativeDetailTests
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadAvatarDetailAsync(Guid.NewGuid())).ErrorCode);
             Assert.AreEqual(2,(await provider.LoadAllAvatarDetailsAsync()).Result.Count());
             await VerifyV2Async(provider,detail);
+            await VerifySqliteDeleteReplicationAsync(provider,db);
             await VerifyNativePartialBatchAsync(db);
             var holon=new Holon {Id=holonId,IsActive=true,Name="owned holon",ParentHolonId=detail.Id,CreatedByAvatarId=avatarId,
                 MetaData=new Dictionary<string,object> {{"owned-field","owned-value"}}};
@@ -190,6 +191,66 @@ public class GoogleNativeDetailTests
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await provider.LoadHolonAsync(Guid.NewGuid(),loadChildren:false)).ErrorCode);
         }
         finally {foreach(var id in ids) await db.Collection("avatarDetails").Document(id.ToString()).DeleteAsync();foreach(var id in importedIds.Concat(graphIds)) await db.Collection("holons").Document(id.ToString()).DeleteAsync();await db.Collection("holons").Document(holonId.ToString()).DeleteAsync();await db.Collection("holons").Document(childId.ToString()).DeleteAsync();await db.Collection("avatars").Document(avatarId.ToString()).DeleteAsync();await db.Collection("avatars").Document(duplicateAvatarId.ToString()).DeleteAsync();await provider.DeActivateProviderAsync();}
+    }
+
+    private static async Task VerifySqliteDeleteReplicationAsync(GoogleCloudOASIS google,FirestoreDb db)
+    {
+        var path=Path.GetFullPath("TestResults/GoogleRoutingFiles/tombstone-routing.db");
+        if(File.Exists(path)) Assert.Fail("Retained SQLite evidence exists; refusing reset.");
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        var sqlite=new NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS($"Data Source={path};Pooling=False");
+        var ids=new List<Guid>();var verified=false;
+        try
+        {
+            Assert.IsFalse((await sqlite.ActivateProviderAsync()).IsError);
+            foreach(var primary in new[] {Core.Enums.ProviderType.GoogleCloudOASIS,Core.Enums.ProviderType.SQLLiteDBOASIS})
+            foreach(var asynchronous in new[] {false,true})
+            {
+                var id=Guid.NewGuid();ids.Add(id);
+                foreach(var store in new Core.Interfaces.IOASISStorageProvider[] {google,sqlite})
+                {
+                    var avatar=new Avatar {Id=id,Username="owned-"+id,Email=id+"@example.invalid",IsActive=true,
+                        AvatarType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User)};
+                    Assert.IsFalse((await store.SaveAvatarAsync(avatar)).IsError);
+                    var detail=new AvatarDetail {Id=id,Username=avatar.Username,IsActive=true,XP=ReferenceEquals(store,google) ? 321:999,Karma=29};
+                    detail.Inventory.Add(new InventoryItem {Id=id,Name="retained owned seed"});
+                    Assert.IsFalse((await store.SaveAvatarDetailAsync(detail)).IsError);
+                }
+                var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {
+                    HyperDriveMode=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2,StorageProviders=new NextGenSoftware.OASIS.API.DNA.StorageProviderSettings(),
+                    SubscriptionConfig=new NextGenSoftware.OASIS.API.DNA.SubscriptionConfig {PlanType="Gold"}}};
+                var manager=new Core.Managers.ProviderManager(null,dna) {IsAutoReplicationEnabled=true,IsAutoFailOverEnabled=false,IsAutoLoadBalanceEnabled=false};
+                manager.RegisterProvider(google);manager.RegisterProvider(sqlite);
+                Assert.IsFalse(manager.SetAndReplaceAutoReplicationListForProviders(new[] {
+                    new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.GoogleCloudOASIS),
+                    new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.SQLLiteDBOASIS)}).IsError);
+                var router=new Core.Managers.OASISHyperDrive.OASISHyperDrive(manager);
+                var request=new Core.StorageOperationRequest {Operation="DeleteAvatar",AvatarId=id,SoftDelete=true,PreferredProvider=primary};
+                var deleted=asynchronous ? await router.RouteRequestAsync<bool>(request):router.RouteRequest<bool>(request);
+                Assert.IsFalse(deleted.IsError,deleted.Message);Assert.IsFalse(deleted.IsWarning,deleted.Message);Assert.IsTrue(deleted.Result);
+                Assert.IsTrue(Core.Helpers.AvatarTombstoneEvidence.TryGet(deleted,out var committed));
+                var googleAvatar=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<Avatar>(
+                    (await db.Collection("avatars").Document(id.ToString()).GetSnapshotAsync()).GetValue<string>("data_json"));
+                var googleDetail=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<AvatarDetail>(
+                    (await db.Collection("avatarDetails").Document(id.ToString()).GetSnapshotAsync()).GetValue<string>("data_json"));
+                var sqlAvatar=(await sqlite.LoadAvatarAsync(id)).Result;var sqlDetail=(await sqlite.LoadAvatarDetailAsync(id)).Result;
+                Assert.IsFalse(googleAvatar.IsActive);Assert.IsFalse(googleDetail.IsActive);Assert.IsFalse(sqlAvatar.IsActive);Assert.IsFalse(sqlDetail.IsActive);
+                foreach(var row in new Core.Interfaces.IHolonBase[] {googleAvatar,googleDetail,sqlAvatar,sqlDetail})
+                {
+                    Assert.AreEqual(committed.DeletedAtUtc,row.DeletedDate);Assert.AreEqual(DateTimeKind.Utc,row.DeletedDate.Kind);
+                    Assert.AreEqual(committed.DeletedByAvatarId,row.DeletedByAvatarId);
+                }
+                Assert.AreEqual(321,googleDetail.XP);Assert.AreEqual(999,sqlDetail.XP);
+                Assert.AreEqual(id,googleDetail.Inventory.Single().Id);Assert.AreEqual(id,sqlDetail.Inventory.Single().Id);
+            }
+            verified=true;
+        }
+        finally
+        {
+            foreach(var id in ids) {await db.Collection("avatars").Document(id.ToString()).DeleteAsync();await db.Collection("avatarDetails").Document(id.ToString()).DeleteAsync();}
+            await sqlite.DeActivateProviderAsync();sqlite.Dispose();
+            if(verified && File.Exists(path)) File.Delete(path);
+        }
     }
 
     private sealed class InterruptAfterFirstWriteProvider : GoogleCloudOASIS
