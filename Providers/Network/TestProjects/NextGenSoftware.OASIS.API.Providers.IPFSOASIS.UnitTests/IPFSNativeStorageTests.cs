@@ -92,6 +92,15 @@ public class IPFSNativeStorageTests
             var missing=await provider.LoadHolonAsync(missingId,loadChildren:false);
             Assert.True(missing.IsError); Assert.Null(missing.Result);
             Assert.Null(missing.Exception); Assert.Equal(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,missing.ErrorCode);
+            var missingAvatar=await provider.LoadAvatarAsync(missingId);
+            var missingDetail=provider.LoadAvatarDetail(missingId);
+            Assert.True(missingAvatar.IsError); Assert.Null(missingAvatar.Exception);
+            Assert.Equal(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,missingAvatar.ErrorCode);
+            Assert.True(missingDetail.IsError); Assert.Null(missingDetail.Exception);
+            Assert.Equal(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,missingDetail.ErrorCode);
+            Assert.IsType<NotSupportedException>(provider.LoadAvatar(id,version:1).Exception);
+            Assert.IsType<NotSupportedException>(provider.LoadAvatarDetailByUsername(detail.Username,version:1).Exception);
+            Assert.IsType<NotSupportedException>(provider.LoadAvatarByProviderKey(avatar.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],version:1).Exception);
             var snapshot=await provider.LoadLookupToJson();
             var snapshotReader=typeof(IPFSOASIS).GetMethod("ReadIndexSnapshotAsync",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(typeof(Holon));
             var currentRoot=dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;

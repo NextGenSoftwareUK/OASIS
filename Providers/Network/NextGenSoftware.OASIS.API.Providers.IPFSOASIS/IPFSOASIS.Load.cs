@@ -319,20 +319,39 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         /*** Templates****/
 
-        public async Task<OASISResult<IAvatar>> LoadAvatarTemplateAsync(Func<HolonResume,bool> predicate)
+        public async Task<OASISResult<IAvatar>> LoadAvatarTemplateAsync(Func<HolonResume,bool> predicate, int version=0)
         {
-            _idLookup=await LoadLookupToJson();
-            var selected=FindIndexEntry("avatar",predicate);
-            var record=await ReadPrivateRecordAsync<Avatar>(selected.Key,"avatar",selected.Value.Id);
-            return new OASISResult<IAvatar>(record) {IsLoaded=true};
+            var read=await ReadIndexedEntityAsync<Avatar>("avatar",predicate,version);
+            var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Avatar,IAvatar>(read);
+            result.Result=read.Result; return result;
         }
 
-        public async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailTemplateAsync(Func<HolonResume,bool> predicate)
+        public async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailTemplateAsync(Func<HolonResume,bool> predicate, int version=0)
         {
-            _idLookup=await LoadLookupToJson();
-            var selected=FindIndexEntry("avatar-detail",predicate);
-            var record=await ReadPrivateRecordAsync<AvatarDetail>(selected.Key,"avatar-detail",selected.Value.Id);
-            return new OASISResult<IAvatarDetail>(record) {IsLoaded=true};
+            var read=await ReadIndexedEntityAsync<AvatarDetail>("avatar-detail",predicate,version);
+            var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<AvatarDetail,IAvatarDetail>(read);
+            result.Result=read.Result; return result;
+        }
+
+        private async Task<OASISResult<T>> ReadIndexedEntityAsync<T>(string kind,Func<HolonResume,bool> predicate,int version) where T:class,IHolonBase
+        {
+            var result=new OASISResult<T>();
+            try
+            {
+                if(version!=0) throw new NotSupportedException("Historical IPFS entity reads are not implemented.");
+                var snapshot=await LoadLookupToJson();
+                var matches=snapshot.Where(entry=>entry.Value?.RecordKind==kind && predicate(entry.Value)).Take(2).ToList();
+                if(matches.Count>1) throw new StorageIdentityAmbiguousException();
+                if(matches.Count==0) return new OASISResult<T> {IsError=true,ErrorCount=1,ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="No IPFS entity matches the requested kind and identity."};
+                result.Result=await ReadPrivateRecordAsync<T>(matches[0].Key,kind,matches[0].Value.Id);
+                result.IsLoaded=true;
+            }
+            catch(Exception cause)
+            {
+                OASISErrorHandling.HandleError(ref result,"IPFS entity read failed: "+cause.Message,cause);
+                if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
+            }
+            return result;
         }
 
 
