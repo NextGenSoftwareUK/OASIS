@@ -107,9 +107,35 @@ public class EthereumOASISIntegrationTests
         Assert.IsInstanceOfType(holon.Exception,typeof(InvalidDataException));
         Assert.IsInstanceOfType(avatar.Exception,typeof(InvalidDataException));
         Assert.IsInstanceOfType(detail.Exception,typeof(InvalidDataException));
+        var deletedHolon = synchronous ? provider.DeleteHolon(otherId) : await provider.DeleteHolonAsync(otherId);
+        var deletedAvatar = synchronous ? provider.DeleteAvatar(otherId,softDelete:false) : await provider.DeleteAvatarAsync(otherId,softDelete:false);
+        Assert.IsTrue(deletedHolon.IsError); Assert.IsFalse(deletedHolon.IsDeleted); Assert.AreEqual(0,deletedHolon.DeletedCount);
+        Assert.IsTrue(deletedAvatar.IsError); Assert.IsFalse(deletedAvatar.Result);
+        StringAssert.Contains(deletedHolon.Exception.ToString(),"OASIS identity collision");
+        StringAssert.Contains(deletedAvatar.Exception.ToString(),"OASIS identity collision");
         Assert.AreEqual(storedId,(await provider.LoadHolonAsync(storedId)).Result.Id);
         Assert.AreEqual(storedId,(await provider.LoadAvatarAsync(storedId)).Result.Id);
         Assert.AreEqual(storedId,(await provider.LoadAvatarDetailAsync(storedId)).Result.Id);
+        var correctHolon = synchronous ? provider.DeleteHolon(storedId) : await provider.DeleteHolonAsync(storedId);
+        var correctAvatar = synchronous ? provider.DeleteAvatar(storedId,softDelete:false) : await provider.DeleteAvatarAsync(storedId,softDelete:false);
+        Assert.IsFalse(correctHolon.IsError,correctHolon.Message); Assert.IsTrue(correctHolon.IsDeleted);
+        Assert.IsFalse(correctAvatar.IsError,correctAvatar.Message); Assert.IsTrue(correctAvatar.Result);
+        var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),provider.ContractAddress);
+        Assert.AreEqual(BigInteger.Zero,await service.GetHolonsCountQueryAsync());
+        Assert.AreEqual(BigInteger.Zero,await service.GetAvatarsCountQueryAsync());
+        Assert.AreEqual(BigInteger.One,await service.GetAvatarDetailsCountQueryAsync());
+        var handler = new Web3(new Account(PrivateKey,ChainId),Host).Eth.GetContractHandler(provider.ContractAddress);
+        Exception? detailCollision = null;
+        try { await handler.SendRequestAndWaitForReceiptAsync(new DeleteAvatarDetailByIdentityFunction {
+            EntityId=NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(otherId.ToString()),Identity=otherId.ToString() }); }
+        catch(Exception error) { detailCollision=error; }
+        Assert.IsNotNull(detailCollision);
+        StringAssert.Contains(detailCollision.ToString(),"OASIS identity collision");
+        Assert.AreEqual(storedId,(await provider.LoadAvatarDetailAsync(storedId)).Result.Id);
+        var detailReceipt = await handler.SendRequestAndWaitForReceiptAsync(new DeleteAvatarDetailByIdentityFunction {
+            EntityId=NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(storedId.ToString()),Identity=storedId.ToString() });
+        Assert.AreEqual(BigInteger.One,detailReceipt.Status.Value);
+        Assert.AreEqual(BigInteger.Zero,await service.GetAvatarDetailsCountQueryAsync());
     }
 
     [DataTestMethod]
@@ -335,10 +361,10 @@ public class EthereumOASISIntegrationTests
         var owner = new Account(PrivateKey,ChainId).Address;
         var outsider = accounts.First(account => !string.Equals(account,owner,StringComparison.OrdinalIgnoreCase));
         var contract = unlocked.Eth.GetContract(compiled.RootElement.GetProperty("abi").GetRawText(),address);
-        foreach(var name in new[] {"CreateHolon","CreateAvatar","CreateAvatarDetail","UpdateHolon","UpdateAvatar","UpdateAvatarDetail","DeleteHolon","DeleteAvatar","DeleteAvatarDetail"})
+        foreach(var name in new[] {"CreateHolon","CreateAvatar","CreateAvatarDetail","UpdateHolon","UpdateAvatar","UpdateAvatarDetail","DeleteHolon","DeleteAvatar","DeleteAvatarDetail","DeleteHolonByIdentity","DeleteAvatarByIdentity","DeleteAvatarDetailByIdentity"})
         {
             object[] input = name.StartsWith("Create") ? new object[] {new BigInteger(999),"unrelated-id","unrelated-value"}
-                : name.StartsWith("Update") ? new object[] {new BigInteger(101),"corrupted"} : new object[] {new BigInteger(101)};
+                : name.StartsWith("Update") || name.EndsWith("ByIdentity") ? new object[] {new BigInteger(101),"corrupted"} : new object[] {new BigInteger(101)};
             var denied = false;
             try
             {

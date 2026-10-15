@@ -137,6 +137,38 @@ contract NextGenSoftwareOASIS {
         revert("OASIS record not found");
     }
 
+    // Validate the full public identity in the SAME transaction as deletion.
+    // A client-side read check cannot protect against a concurrent delete/reinsert.
+    function DeleteAvatarByIdentity(uint256 entityId, string memory avatarId) public onlyStorageOwner returns (bool) {
+        for (uint256 i = 0; i < totalAvatarsCount; i++) {
+            if (avatars[i].EntityId == entityId) {
+                require(keccak256(bytes(avatars[i].AvatarId)) == keccak256(bytes(avatarId)), "OASIS identity collision");
+                return DeleteAvatar(entityId);
+            }
+        }
+        revert("OASIS record not found");
+    }
+
+    function DeleteAvatarDetailByIdentity(uint256 entityId, string memory avatarId) public onlyStorageOwner returns (bool) {
+        for (uint256 i = 0; i < totalAvatarDetailsCount; i++) {
+            if (avatarDetails[i].EntityId == entityId) {
+                require(keccak256(bytes(avatarDetails[i].AvatarId)) == keccak256(bytes(avatarId)), "OASIS identity collision");
+                return DeleteAvatarDetail(entityId);
+            }
+        }
+        revert("OASIS record not found");
+    }
+
+    function DeleteHolonByIdentity(uint256 entityId, string memory holonId) public onlyStorageOwner returns (bool) {
+        for (uint256 i = 0; i < totalHolonsCount; i++) {
+            if (holons[i].EntityId == entityId) {
+                require(keccak256(bytes(holons[i].HolonId)) == keccak256(bytes(holonId)), "OASIS identity collision");
+                return DeleteHolon(entityId);
+            }
+        }
+        revert("OASIS record not found");
+    }
+
     function DeleteAvatar(uint256 entityId) public onlyStorageOwner returns (bool) {
         require(totalAvatarsCount > 0);
         for (uint256 i = 0; i < totalAvatarsCount; i++) {
