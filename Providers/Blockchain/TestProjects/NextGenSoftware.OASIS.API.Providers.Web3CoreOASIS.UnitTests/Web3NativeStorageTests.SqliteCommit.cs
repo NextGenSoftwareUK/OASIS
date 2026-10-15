@@ -320,5 +320,6 @@ public partial class Web3NativeStorageTests
             }
         }
         finally {deletion.Context.Dispose();deletion.Dispose();}
+        await VerifySqliteWalletCommitFenceAsync(healthySqlite);
     }
 }

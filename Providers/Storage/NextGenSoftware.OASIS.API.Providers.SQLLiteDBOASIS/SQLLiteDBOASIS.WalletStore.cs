@@ -19,6 +19,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
         {
             var result = new OASISResult<bool>();
             var affected = new List<string>();
+            var persistenceEntered = false;
             try
             {
                 if (wallets.Any(entry => entry.Value == null || entry.Value.Any(wallet => wallet == null || wallet.AvatarId == Guid.Empty)))
@@ -31,12 +32,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     var owner = await _avatarRepository.LoadAvatarAsync(group.Key);
                     if (owner.IsError) { result.IsError = true; result.Exception = owner.Exception; result.ErrorCode = owner.ErrorCode; result.Message = owner.Message; return result; }
                     if (owner.Result == null) throw new ArgumentException("Batch wallet owner does not exist.");
+                }
+                foreach (var group in groups)
+                {
                     var current = await ReadLocalWalletsAsync(group.Key);
                     foreach (var provider in group.GroupBy(entry => entry.Provider))
                         current[provider.Key] = provider.Select(entry => entry.Wallet).ToList();
                     affected.Add(group.Key.ToString());
+                    persistenceEntered = true;
                     var saved = await StoreLocalWalletsAsync(group.Key, current);
-                    if (saved.IsError) return saved;
+                    if (saved.IsError) { result = saved; return result; }
                 }
                 await transaction.CommitAsync();
                 result.Result = true;
@@ -44,12 +49,32 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             }
             catch (Exception exception)
             {
+                if (persistenceEntered) exception = new SqliteMutationReconciliationException(affected.Select(Guid.Parse), exception);
+                result.Result = false; result.IsSaved = false;
                 result.IsError = true; result.Exception = exception; result.Message = "Owned wallet batch failed.";
             }
             finally
             {
-                foreach (var entry in _appDataContext.ChangeTracker.Entries<AvatarWalletStore>().Where(entry => affected.Contains(entry.Entity.AvatarId)).ToList())
-                    entry.State = EntityState.Detached;
+                try
+                {
+                    foreach (var entry in _appDataContext.ChangeTracker.Entries<AvatarWalletStore>().Where(entry => affected.Contains(entry.Entity.AvatarId)).ToList())
+                        entry.State = EntityState.Detached;
+                }
+                catch (Exception cleanup)
+                {
+                    var cause = result.Exception == null ? cleanup : new AggregateException("SQLite wallet batch cleanup also failed.", result.Exception, cleanup);
+                    if (result.Result)
+                    {
+                        result.IsWarning = true; result.WarningCount++;
+                        result.Exception = cause; result.Message = "Wallet batch committed but tracker cleanup failed.";
+                    }
+                    else
+                    {
+                        result.IsError = true;
+                        result.Exception = persistenceEntered ? new SqliteMutationReconciliationException(affected.Select(Guid.Parse), cause) : cause;
+                        result.Message = "Wallet batch failed and tracker cleanup also failed.";
+                    }
+                }
             }
             return result;
         }
@@ -59,6 +84,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
         {
             var result = new OASISResult<bool>();
             AvatarWalletStore row = null;
+            var persistenceEntered = false;
             try
             {
                 if (wallets == null) throw new ArgumentNullException(nameof(wallets));
@@ -80,13 +106,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     _appDataContext.AvatarWalletStores.Add(row);
                 }
                 row.WalletsJson = json;
+                persistenceEntered = true;
                 await _appDataContext.SaveChangesAsync();
                 result.Result = true;
                 result.IsSaved = true;
             }
             catch (Exception exception)
             {
-                if (row != null) _appDataContext.Entry(row).State = EntityState.Detached;
+                try { if (row != null) _appDataContext.Entry(row).State = EntityState.Detached; }
+                catch (Exception cleanup) { exception = new AggregateException("SQLite wallet failure cleanup also failed.", exception, cleanup); }
+                if (persistenceEntered) exception = new SqliteMutationReconciliationException(avatarId, exception);
                 result.IsError = true;
                 result.Exception = exception;
                 result.Message = "Local wallet persistence failed.";
