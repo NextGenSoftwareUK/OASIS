@@ -10,6 +10,39 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests;
 
 public class IPFSLifecycleTests
 {
+    [Theory]
+    [InlineData("avatar")]
+    [InlineData("avatar-detail")]
+    [InlineData("holon")]
+    public void SameGuidKindsKeepIndependentCurrentIndexEntries(string kind)
+    {
+        var provider=new IPFSOASIS(Settings("http://127.0.0.1:1")); var id=Guid.NewGuid();
+        var entries=new Dictionary<string,HolonResume>();
+        foreach(var value in new[] {"avatar","avatar-detail","holon"}) entries.Add(value+"-cid",new HolonResume {Id=id,RecordKind=value});
+        typeof(IPFSOASIS).GetField("_idLookup",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,entries);
+        var find=typeof(IPFSOASIS).GetMethod("FindIndexEntry",BindingFlags.Instance|BindingFlags.NonPublic)!;
+        var selected=(KeyValuePair<string,HolonResume>)find.Invoke(provider,new object[] {kind,(Func<HolonResume,bool>)(row=>row.Id==id),false})!;
+        Assert.Equal(kind+"-cid",selected.Key);
+        var replace=typeof(IPFSOASIS).GetMethod("ReplaceIndexEntry",BindingFlags.Instance|BindingFlags.NonPublic)!;
+        replace.Invoke(provider,new object[] {"replacement-cid",new HolonResume {Id=id,RecordKind=kind}});
+        Assert.Equal(3,entries.Count); Assert.False(entries.ContainsKey(kind+"-cid")); Assert.Equal(kind,entries["replacement-cid"].RecordKind);
+        foreach(var other in new[] {"avatar","avatar-detail","holon"}) if(other!=kind) Assert.True(entries.ContainsKey(other+"-cid"));
+    }
+
+    [Fact]
+    public void AmbiguousIndexSelectionAndConflictingCidCannotSilentlyReplaceRecords()
+    {
+        var provider=new IPFSOASIS(Settings("http://127.0.0.1:1")); var id=Guid.NewGuid();
+        var entries=new Dictionary<string,HolonResume> {{"first",new HolonResume {Id=id,RecordKind="avatar"}},{"second",new HolonResume {Id=id,RecordKind="avatar"}}};
+        typeof(IPFSOASIS).GetField("_idLookup",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,entries);
+        var find=typeof(IPFSOASIS).GetMethod("FindIndexEntry",BindingFlags.Instance|BindingFlags.NonPublic)!;
+        Assert.IsType<NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException>(Assert.Throws<TargetInvocationException>(()=>find.Invoke(provider,new object[] {"avatar",(Func<HolonResume,bool>)(row=>row.Id==id),false})).InnerException);
+        entries["second"]=new HolonResume {Id=id,RecordKind="avatar-detail"};
+        var replace=typeof(IPFSOASIS).GetMethod("ReplaceIndexEntry",BindingFlags.Instance|BindingFlags.NonPublic)!;
+        Assert.IsType<InvalidOperationException>(Assert.Throws<TargetInvocationException>(()=>replace.Invoke(provider,new object[] {"second",new HolonResume {Id=id,RecordKind="avatar"}})).InnerException);
+        Assert.Equal(2,entries.Count); Assert.Equal("avatar",entries["first"].RecordKind); Assert.Equal("avatar-detail",entries["second"].RecordKind);
+    }
+
     private static void StorageKey(IPFSOASIS provider,Func<byte[]> resolver)
         => typeof(IPFSOASIS).GetField("_storageKeyResolver",BindingFlags.Instance|BindingFlags.NonPublic)!.SetValue(provider,resolver);
     private static string TransformIndex(IPFSOASIS provider,string method,string value)
