@@ -2,7 +2,7 @@ $ErrorActionPreference='Stop'
 $root=(Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 $jar='C:\Users\david\.cache\firebase\emulators\cloud-firestore-emulator-v1.22.0.jar'
 if(!(Test-Path -LiteralPath $jar -PathType Leaf)) {throw 'Retained official Firestore1.22.0 runtime missing; do not silently reinstall.'}
-foreach($port in @(18080,18081,18082)) {if(Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue) {throw "Owned Firestore port$port occupied."}}
+foreach($port in @(18080,18081,18082,18083)) {if(Get-NetTCPConnection -LocalPort $port -State Listen -ErrorAction SilentlyContinue) {throw "Owned Firestore port$port occupied."}}
 $work=Join-Path $root 'TestResults/GoogleCurrent'
 New-Item -ItemType Directory -Force $work | Out-Null
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)

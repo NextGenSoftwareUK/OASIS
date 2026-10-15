@@ -113,6 +113,31 @@ public class GoogleNativeDetailTests
                 Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
             }
             finally {await local.DeleteAvatarDetailAsync(missing,softDelete:false);}
+            var activated=manager.SetAndActivateCurrentStorageProvider(google);
+            Assert.IsFalse(activated.IsError,activated.Message);
+            var field=typeof(GoogleCloudOASIS).GetField("_firestoreDb",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+            var healthy=field.GetValue(google);
+            var settings=Google.Api.Gax.Grpc.CallSettingsExtensions.WithRetry(
+                Google.Api.Gax.Grpc.CallSettings.FromExpiration(Google.Api.Gax.Expiration.FromTimeout(TimeSpan.FromSeconds(2))),
+                Google.Api.Gax.Grpc.RetrySettings.FromConstantBackoff(1,TimeSpan.Zero,_=>false));
+            var client=new Google.Cloud.Firestore.V1.FirestoreClientBuilder {
+                Endpoint="127.0.0.1:18083",ChannelCredentials=Grpc.Core.ChannelCredentials.Insecure,
+                Settings=new Google.Cloud.Firestore.V1.FirestoreSettings {GetDocumentSettings=settings}}.Build();
+            var unreachable=FirestoreDb.Create("oasis-google-native",client);
+            try {
+                field.SetValue(google,unreachable);
+                foreach(var asynchronous in new[] {false,true}) {
+                    var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests;
+                    var request=new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {Operation="LoadAvatarDetail",AvatarId=detail.Id,PreferredProvider=Core.Enums.ProviderType.GoogleCloudOASIS};
+                    var read=asynchronous ? await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarDetail>(request)
+                        :router.RouteRequest<NextGenSoftware.OASIS.API.Core.Interfaces.IAvatarDetail>(request);
+                    Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(detail.Id,read.Result.Id);
+                    Assert.AreEqual(404L,read.Result.Karma);
+                    Assert.AreEqual(Core.Enums.ProviderType.LocalFileOASIS,manager.LastFailoverDiagnostic.SelectedProvider);
+                    Assert.AreEqual(before+1,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests);
+                }
+            }
+            finally {field.SetValue(google,healthy);}
         }
         finally {await local.DeleteAvatarDetailAsync(detail.Id,softDelete:false);await local.DeActivateProviderAsync();}
     }
