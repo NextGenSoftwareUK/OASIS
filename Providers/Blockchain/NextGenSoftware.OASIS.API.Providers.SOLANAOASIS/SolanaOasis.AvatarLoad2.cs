@@ -54,108 +54,27 @@ public partial class SolanaOASIS
 
     public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
     {
-        var result = new OASISResult<IEnumerable<IAvatarDetail>>();
+        var result=new OASISResult<IEnumerable<IAvatarDetail>>();
         try
         {
-            if (!IsProviderActivated)
+            if(version != 0) throw new NotSupportedException("Solana collection reads currently require latest version (0).");
+            if(!IsProviderActivated)
             {
-                var activateResult = await ActivateProviderAsync();
-                if (activateResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to activate Solana provider: {activateResult.Message}");
-                    return result;
-                }
+                var activation=await ActivateProviderAsync();
+                if(activation.IsError) throw new InvalidOperationException(activation.Message,activation.Exception);
             }
-
-            // Query all avatar details from Solana program using RPC client
-            var avatarDetailsData = new OASISResult<List<SolanaAvatarDetailDto>>();
-            try
+            var records=await _solanaRepository.GetAllAsync<SolanaAvatarDetailDto>();
+            var mapped=new List<IAvatarDetail>();
+            foreach(var entry in records)
             {
-                // Real Solana implementation: Get all accounts and parse as avatar details
-                var accounts = await _rpcClient.GetProgramAccountsAsync(_oasisSolanaAccount.PublicKey);
-                
-                if (accounts.WasSuccessful && accounts.Result != null)
-                {
-                    var avatarDetailList = new List<SolanaAvatarDetailDto>();
-                    foreach (var account in accounts.Result)
-                    {
-                        try
-                        {
-                            // Parse account data to SolanaAvatarDetailDto with extended properties
-                var avatarDetailDto = new SolanaAvatarDetailDto
-                            {
-                                Id = CreateDeterministicGuid($"{ProviderType.Value}:{account.PublicKey}"),
-                                Version = 1,
-                                // AvatarDetail specific properties
-                                Address = $"Solana Address: {account.PublicKey}",
-                                Country = "Solana Network",
-                                Postcode = "SOL-001",
-                                Mobile = "+1-555-SOLANA",
-                                Landline = "+1-555-SOLANA",
-                                Title = "Solana Blockchain User",
-                                DOB = DateTime.UtcNow.AddYears(-25),
-                                Karma = 0,
-                                Xp = 100,
-                                Description = "Solana blockchain user with full avatar detail properties",
-                                Website = "https://solana.com",
-                                Language = "en",
-                                MetaData = new Dictionary<string, object>
-                                {
-                                    ["SolanaAccountAddress"] = account.PublicKey,
-                                    ["SolanaLamports"] = account.Account.Lamports,
-                                    ["SolanaOwner"] = account.Account.Owner,
-                                    ["SolanaExecutable"] = account.Account.Executable,
-                                    ["SolanaRentEpoch"] = account.Account.RentEpoch,
-                                    ["SolanaDataLength"] = account.Account.Data?.Count ?? 0,
-                                    ["SolanaNetwork"] = "mainnet-beta",
-                                ["SolanaProgramId"] = _oasisSolanaAccount.PublicKey.Key,
-                                    ["RetrievedAt"] = DateTime.UtcNow.ToString("O")
-                                }
-                            };
-                            avatarDetailList.Add(avatarDetailDto);
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Error parsing Solana account detail {account.PublicKey}: {ex.Message}");
-                        }
-                    }
-                    avatarDetailsData.Result = avatarDetailList;
-                    avatarDetailsData.IsError = false;
-                    avatarDetailsData.Message = $"Successfully loaded {avatarDetailList.Count} avatar details from Solana blockchain";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref avatarDetailsData, $"Failed to get program accounts from Solana: {accounts.Reason}");
-                }
+                var record=entry.Record.GetAvatarDetail();
+                record.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS]=entry.Signature;
+                mapped.Add(record);
             }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref avatarDetailsData, $"Error querying avatar details from Solana: {ex.Message}", ex);
-            }
-            if (avatarDetailsData.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading all avatar details from Solana: {avatarDetailsData.Message}");
-                return result;
-            }
-
-            var avatarDetails = new List<IAvatarDetail>();
-            foreach (var avatarDetailData in avatarDetailsData.Result)
-            {
-                var avatarDetail = ParseSolanaToAvatarDetail(avatarDetailData);
-                if (avatarDetail != null)
-                {
-                    avatarDetails.Add(avatarDetail);
-                }
-            }
-
-            result.Result = avatarDetails;
-            result.IsError = false;
-            result.Message = $"Successfully loaded {avatarDetails.Count} avatar details from Solana with full object mapping";
+            result.Result=mapped;
+            result.IsLoaded=true;
         }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, $"Error loading all avatar details from Solana: {ex.Message}", ex);
-        }
+        catch(Exception cause) { OASISErrorHandling.HandleError(ref result,"Solana finalized collection read failed: "+cause.Message,cause); }
         return result;
     }
 

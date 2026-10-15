@@ -7,4 +7,5 @@ public interface ISolanaRepository
     Task<bool> DeleteAsync(string transactionHashReference);
     Task<string> CreateTombstoneAsync(string transactionHashReference);
     Task<T> GetAsync<T>(string transactionHashReference) where T : SolanaBaseDto, new();
+    Task<IReadOnlyList<(T Record,string Signature)>> GetAllAsync<T>() where T : SolanaBaseDto,new();
 }
