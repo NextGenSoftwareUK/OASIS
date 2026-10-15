@@ -15,6 +15,33 @@ public partial class Web3CoreOASISBaseProvider
 {
     internal static bool IsPrivateRecordAbsent(EntityOASIS entity)
         =>entity!=null && entity.EntityId==0 && entity.ExternalId?.Length==32 && entity.ExternalId.All(value=>value==0) && entity.Info?.Length==0;
+    private async Task<OASISResult<IHolon>> ReadPrivateHolonGraphAsync(Guid id,bool children,bool recursive,int depth,bool fromProvider,int version)
+    {
+        var result=new OASISResult<IHolon>();
+        try
+        {
+            if(id==Guid.Empty) throw new ArgumentException("A nonempty Web3Core identity is required.",nameof(id));
+            if(depth<0) throw new ArgumentOutOfRangeException(nameof(depth));
+            if(children && fromProvider)
+            {
+                // Root and descendants must come from the same pinned collection block.
+                var loaded=await ReadPrivateHolonsAsync(HolonType.All,true,recursive,depth,0,true,version);
+                if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IHolon>(loaded);
+                var root=loaded.Result.SingleOrDefault(row=>row.Id==id);
+                if(root==null) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Web3Core holon not found.";return result;}
+                result.Result=root;result.IsLoaded=true;
+                return result;
+            }
+            result=await ReadPrivateGuidAsync<IHolon>(id,version,index=>_web3CoreOASIS.GetHolonByIdAsync(index),row=>DecodePrivateEntity<Holon>("holon",row));
+            if(result.IsError) return result;
+            var project=HolonGraphProjection.Create(new[] {result.Result},children,recursive,depth,0,false,
+                row=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(row)));
+            result.Result=project(result.Result);
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);result.Result=null;result.IsLoaded=false;}
+        return result;
+    }
+
     private async Task<OASISResult<IEnumerable<IHolon>>> ExportPrivateOwnedAsync(Guid owner,int version)
     {
         var result=new OASISResult<IEnumerable<IHolon>>();
