@@ -126,10 +126,19 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             string json = JsonConvert.SerializeObject(idLookup);
             var fsn = await IPFSClient.FileSystem.AddTextAsync(json);
 
+            var previousRoot=_OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
             _OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress = fsn.Id;
-            OASISDNAManager.SaveDNA(_OASISDNAPath, _OASISDNA);
+            var saved=OASISDNAManager.SaveDNA(_OASISDNAPath, _OASISDNA);
+            EnsureIndexPublication(fsn.Id,previousRoot,saved);
 
             return fsn.Id;
+        }
+
+        private static void EnsureIndexPublication(string cid,string previousRoot,OASISResult<bool> saved)
+        {
+            if(saved == null || saved.IsError || !saved.Result)
+                throw new IPFSIndexPublicationException(cid,previousRoot,saved?.Exception
+                    ?? new InvalidOperationException(saved?.Message ?? "DNA pointer persistence returned no result."));
         }
 
         public async Task<IAvatar> SaveAvatarToFile(IAvatar avatar)
@@ -155,7 +164,6 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
             dico.Id = avatar.Id;
             dico.login = avatar.Username;
-            dico.password = avatar.Password;
             dico.ProviderUniqueStorageKey = avatar.ProviderUniqueStorageKey;
             dico.email = avatar.Email;
             dico.HolonType = HolonType.Avatar;
@@ -245,7 +253,6 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         //public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(string username, string password, int version = 0)
         //{
-        //    return await LoadAvatarTemplateAsync(a => a.login == username && a.password == password);
         //}
         /************************************************************/
 
