@@ -20,7 +20,7 @@ public class SearchFailurePropagationTests
         else Assert.IsFalse((await provider.SaveHolonAsync(new Holon {Id=id,Name="owned-match"},saveChildren:false)).IsError);
         backend.FailGetKey="oasis/"+(avatar ? "avatar/":"holon/")+id.ToString("N");
         backend.FailGetException=new System.IO.InvalidDataException("owned corrupt collection read");
-        var query=new SearchParams {SearchGroups=new List<ISearchGroupBase> {new SearchTextGroup {SearchQuery="owned",SearchAvatars=avatar,SearchHolons=!avatar}}};
+        var query=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new List<ISearchGroupBase> {new SearchTextGroup {SearchQuery="owned",SearchAvatars=avatar,SearchHolons=!avatar}}};
         var result=synchronous ? provider.Search(query,continueOnError:false):await provider.SearchAsync(query,continueOnError:false);
         Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.AreSame(backend.FailGetException,result.Exception);
     }

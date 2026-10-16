@@ -699,7 +699,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests
             await _provider.SaveAvatarAsync(NewAvatar());
             await _provider.SaveHolonAsync(new Holon { Name = "Nebuchadnezzar", Description = "hovercraft" });
 
-            var search = new SearchParams { SearchGroups = new List<ISearchGroupBase> { new SearchTextGroup { SearchQuery = "ne" } } };
+            var search = new SearchParams { SearchOnlyForCurrentAvatar=false, SearchGroups = new List<ISearchGroupBase> { new SearchTextGroup { SearchQuery = "ne",HolonType=HolonType.All } } };
             var result = await _provider.SearchAsync(search);
             Assert.IsFalse(result.IsError, result.Message);
             Assert.AreEqual(1, result.Result.SearchResultAvatars.Count);

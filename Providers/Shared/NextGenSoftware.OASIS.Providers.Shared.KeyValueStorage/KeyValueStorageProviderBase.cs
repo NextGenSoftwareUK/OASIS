@@ -788,47 +788,39 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         {
             try
             {
-                var groups = searchParams?.SearchGroups?.OfType<ISearchTextGroup>().Where(g => !string.IsNullOrWhiteSpace(g.SearchQuery)).ToList();
-                if (groups == null || groups.Count == 0) return Fail<ISearchResults>("Search requires at least one text search group with a query.");
-
+                StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
                 var results = new SearchResults();
-                List<IAvatar> avatars = null;
-                List<IHolon> holons = null;
-
-                foreach (var group in groups)
+                OASISResult<IEnumerable<IHolon>> partialCollection=null;
+                var groups=searchParams.SearchGroups??new List<ISearchGroupBase>();
+                var searchAvatars=groups.Count==0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
+                var searchHolons=groups.Count==0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);
+                var avatars=new List<IAvatar>();var holons=new List<IHolon>();
+                if(searchAvatars)
                 {
-                    var q = group.SearchQuery.Trim();
-                    bool Has(string s) => s != null && s.Contains(q, StringComparison.OrdinalIgnoreCase);
-                    var searchAvatars = group.SearchAvatars || !group.SearchHolons;
-                    var searchHolons = group.SearchHolons || !group.SearchAvatars;
-
-                    if (searchAvatars)
-                    {
-                        if (avatars == null)
-                        {
-                            var all = await LoadAllAvatarsAsync(version);
-                            if (all.IsError) return Fail<ISearchResults>(all.Message,all.Exception,all.ErrorCode);
-                            avatars = all.Result.ToList();
-                        }
-                        results.SearchResultAvatars.AddRange(avatars.Where(a => Has(a.Username) || Has(a.Email) || Has(a.FirstName) || Has(a.LastName)
-                            || (group.SearchIds && Has(a.Id.ToString()))).Where(a => !results.SearchResultAvatars.Any(x => x.Id == a.Id)));
-                    }
-
-                    if (searchHolons)
-                    {
-                        if (holons == null)
-                        {
-                            var all = await LoadAllHolonsAsync(HolonType.All, false, false, 0, 0, continueOnError, false, version);
-                            if (all.IsError) return Fail<ISearchResults>(all.Message,all.Exception,all.ErrorCode);
-                            holons = all.Result.ToList();
-                        }
-                        results.SearchResultHolons.AddRange(holons.Where(h => Has(h.Name) || Has(h.Description)
-                            || (group.SearchIds && Has(h.Id.ToString()))).Where(h => !results.SearchResultHolons.Any(x => x.Id == h.Id)));
-                    }
+                    var all=await LoadAllAvatarsAsync(version);
+                    if(all.IsError)return Fail<ISearchResults>(all.Message,all.Exception,all.ErrorCode);
+                    avatars=all.Result.ToList();
                 }
-
+                if(searchHolons || searchParams.ParentId!=Guid.Empty)
+                {
+                    var all=await LoadAllHolonsAsync(HolonType.All,loadChildren,recursive,maxChildDepth,0,continueOnError,false,version);
+                    if(all.IsError)return Fail<ISearchResults>(all.Message,all.Exception,all.ErrorCode);
+                    if(all.IsWarning)partialCollection=all;
+                    holons=all.Result.ToList();
+                }
+                var ancestry=holons;
+                if(version>0 && searchParams.ParentId!=Guid.Empty)
+                {
+                    var current=await LoadAllHolonsAsync(HolonType.All,false,false,0,0,false,false,0);
+                    if(current.IsError)return Fail<ISearchResults>(current.Message,current.Exception,current.ErrorCode);
+                    ancestry=current.Result.ToList();
+                }
+                results.SearchResultAvatars.AddRange(avatars.Where(row=>StoredRecordSearch.Matches(row,true,searchParams,ancestry)));
+                if(searchHolons)results.SearchResultHolons.AddRange(holons.Where(row=>StoredRecordSearch.Matches(row,false,searchParams,ancestry)));
                 results.NumberOfResults = results.SearchResultAvatars.Count + results.SearchResultHolons.Count;
-                return Ok<ISearchResults>(results);
+                var result=Ok<ISearchResults>(results);
+                if(partialCollection!=null){result.IsWarning=true;result.Message=partialCollection.Message;result.MetaData=partialCollection.MetaData;}
+                return result;
             }
             catch (Exception ex) { return Fail<ISearchResults>($"Error searching: {ex.Message}", ex); }
         }
