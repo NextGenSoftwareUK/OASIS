@@ -269,40 +269,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         async Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.SendTokenAsync(ISendWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>();
-            string errorMessage = "Error in SendTokenAsync method in EthereumOASIS. Reason: ";
-
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-                if (Web3Client == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
-                    return result;
-                }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.FromTokenAddress) || 
-                    string.IsNullOrWhiteSpace(request.ToWalletAddress) || string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Token address, to wallet address, and owner private key are required");
-                    return result;
-                }
-
-                return await SendEthereumErc20Transaction(request.OwnerPrivateKey, request.FromTokenAddress, request.ToWalletAddress, request.Amount);
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-            }
-            return result;
+            return await ExecuteErc20MutationAsync(request?.OwnerPrivateKey, request?.FromTokenAddress, request?.ToWalletAddress, request?.Amount ?? 0, false);
         }
 
         OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.MintToken(IMintWeb3TokenRequest request)
@@ -388,61 +355,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         async Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.BurnTokenAsync(IBurnWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>();
-            string errorMessage = "Error in BurnTokenAsync method in EthereumOASIS. Reason: ";
-
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-                if (Web3Client == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
-                    return result;
-                }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || 
-                    string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Token address and owner private key are required");
-                    return result;
-                }
-
-                var senderEthAccount = new Account(request.OwnerPrivateKey);
-                var web3Client = CreateWeb3WithAccount(senderEthAccount, HostURI);
-
-                // ERC20 burn function ABI - need to get amount from token balance or request
-                var erc20Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"burn\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"type\":\"function\"}]";
-                var erc20Contract = web3Client.Eth.GetContract(erc20Abi, request.TokenAddress);
-                var decimalsFunction = erc20Contract.GetFunction("decimals");
-                var decimals = await decimalsFunction.CallAsync<byte>();
-                var multiplier = System.Numerics.BigInteger.Pow(10, decimals);
-                var burnAmount = 1m; // Would get from request or token balance in real implementation
-                var amountBigInt = new System.Numerics.BigInteger(burnAmount * (decimal)multiplier);
-                var burnFunction = erc20Contract.GetFunction("burn");
-                var receipt = await burnFunction.SendTransactionAndWaitForReceiptAsync(senderEthAccount.Address, new Nethereum.Hex.HexTypes.HexBigInteger(600000), null, null, amountBigInt);
-                
-                if (receipt.HasErrors() == true)
-                {
-                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "ERC-20 burn failed."));
-                    return result;
-                }
-
-                result.Result.TransactionResult = receipt.TransactionHash;
-                TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-            }
-            return result;
+            return await ExecuteErc20MutationAsync(request?.OwnerPrivateKey, request?.TokenAddress, null, request?.Amount ?? 0, true);
         }
 
         OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.LockToken(ILockWeb3TokenRequest request)

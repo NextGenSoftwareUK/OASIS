@@ -250,37 +250,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         private async Task<OASISResult<ITransactionResponse>> SendEthereumErc20Transaction(string senderAccountPrivateKey, string tokenContractAddress, string receiverAccountAddress, decimal amount)
         {
-            var result = new OASISResult<ITransactionResponse>();
-            string errorMessage = "Error in SendEthereumErc20Transaction in EthereumOASIS. Reason: ";
-
-            try
-            {
-                var senderEthAccount = new Account(senderAccountPrivateKey);
-                var web3Client = CreateWeb3WithAccount(senderEthAccount, HostURI);
-
-                // Use Nethereum's ERC20 token service
-                var erc20Abi = "[{\"constant\":true,\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"type\":\"function\"}]";
-                var erc20Contract = web3Client.Eth.GetContract(erc20Abi, tokenContractAddress);
-                var decimalsFunction = erc20Contract.GetFunction("decimals");
-                var decimals = await decimalsFunction.CallAsync<byte>();
-                var multiplier = System.Numerics.BigInteger.Pow(10, decimals);
-                var amountBigInt = new System.Numerics.BigInteger(amount * (decimal)multiplier);
-                var transferFunction = erc20Contract.GetFunction("transfer");
-                var receipt = await transferFunction.SendTransactionAndWaitForReceiptAsync(senderEthAccount.Address, new Nethereum.Hex.HexTypes.HexBigInteger(600000), null, null, receiverAccountAddress, amountBigInt);
-                if (receipt.HasErrors() == true)
-                {
-                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "ERC-20 transfer failed."));
-                    return result;
-                }
-
-                result.Result.TransactionResult = receipt.TransactionHash;
-                TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-            }
-            return result;
+            return await ExecuteErc20MutationAsync(senderAccountPrivateKey, tokenContractAddress, receiverAccountAddress, amount, false);
         }
 
 
