@@ -115,9 +115,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         //public IHolon Original { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
         
         public AvatarDetailModel(){}
-        public AvatarDetailModel(IAvatarDetail source){
+        public AvatarDetailModel(IAvatarDetail source,Guid? plannedId=null){
 
-            if(source.Id == Guid.Empty){
+            if(plannedId.HasValue) this.Id=plannedId.Value.ToString();
+            else if(source.Id == Guid.Empty){
                 this.Id = Guid.NewGuid().ToString();
             }
             else{
