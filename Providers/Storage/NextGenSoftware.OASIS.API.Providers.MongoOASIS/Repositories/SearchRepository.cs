@@ -59,8 +59,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
         private async Task<OASISResult<ISearchResults>> SearchCoreAsync(ISearchParams searchParams, bool synchronous)
         {
+            var currentGroupType=HolonType.All;
             async Task<List<T>> Read<T>(IMongoCollection<T> collection, FilterDefinition<T> filter)
             {
+                if(currentGroupType!=HolonType.All)
+                    filter &= Builders<T>.Filter.Eq("HolonType",currentGroupType);
                 return synchronous ? collection.Find(filter).ToList()
                     : await collection.Find(filter).ToListAsync().ConfigureAwait(false);
             }
@@ -74,8 +77,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 bool isFirstGroup = true;
 
-                foreach (ISearchGroupBase searchGroup in searchParams.SearchGroups)
+                foreach (ISearchGroupBase searchGroup in searchParams.SearchGroups ?? new List<ISearchGroupBase>())
                 {
+                    currentGroupType=searchGroup.HolonType;
                     // Collect this group's results into temporary lists, then apply AND/OR below.
                     List<Avatar> groupAvatars = new List<Avatar>();
                     List<Holon> groupHolons = new List<Holon>();
@@ -97,15 +101,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                             {
                                 var filter=Builders<Avatar>.Filter.Eq(row=>row.DeletedDate,DateTime.MinValue)
                                     & Builders<Avatar>.Filter.Or(fields);
-                                if(searchTextGroup.HolonType!=HolonType.All)
-                                    filter &= Builders<Avatar>.Filter.Eq(row=>row.HolonType,searchTextGroup.HolonType);
                                 groupAvatars.AddRange(await Read(_dbContext.Avatar,filter).ConfigureAwait(false));
                             }
                         }
 
                         if (searchTextGroup.SearchHolons)
                         {
-                            var filter = HolonRepository.BuildHolonTypeFilter(searchTextGroup.HolonType);
+                            var filter = HolonRepository.BuildHolonTypeFilter(HolonType.All);
                             if (searchParams.ParentId != Guid.Empty)
                                 filter &= Builders<Holon>.Filter.Eq(row => row.ParentHolonId, searchParams.ParentId);
                             // Text search is literal substring matching, not caller-supplied regex.
@@ -126,7 +128,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     {
                         if (searchDateGroup.SearchAvatars)
                         {
-                            if (searchDateGroup.AvatarSearchParams.CreatedDate)
+                            if (searchDateGroup.AvatarSearchParams?.CreatedDate ?? true)
                             {
                                 if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.EqualTo)
                                 {
@@ -160,7 +162,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 }
                             }
 
-                            if (searchDateGroup.AvatarSearchParams.ModifiedDate)
+                            if (searchDateGroup.AvatarSearchParams?.ModifiedDate ?? true)
                             {
                                 if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.EqualTo)
                                 {
@@ -194,7 +196,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 }
                             }
 
-                            if (searchDateGroup.AvatarSearchParams.DeletedDate)
+                            if (searchDateGroup.AvatarSearchParams?.DeletedDate == true)
                             {
                                 if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.EqualTo)
                                 {
@@ -231,7 +233,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                         if (searchDateGroup.SearchHolons)
                         {
-                            if (searchDateGroup.HolonSearchParams.CreatedDate)
+                            if (searchDateGroup.HolonSearchParams?.CreatedDate ?? true)
                             {
                                 if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.EqualTo)
                                 {
@@ -265,7 +267,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 }
                             }
 
-                            if (searchDateGroup.HolonSearchParams.ModifiedDate)
+                            if (searchDateGroup.HolonSearchParams?.ModifiedDate ?? true)
                             {
                                 if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.EqualTo)
                                 {
@@ -299,7 +301,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 }
                             }
 
-                            if (searchDateGroup.HolonSearchParams.DeletedDate)
+                            if (searchDateGroup.HolonSearchParams?.DeletedDate == true)
                             {
                                 if (searchDateGroup.DateOperator == Core.Enums.SearchOperatorType.EqualTo)
                                 {
@@ -341,7 +343,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     {
                         if (searchNumberGroup.SearchAvatars)
                         {
-                            if (searchNumberGroup.AvatarSearchParams.Version)
+                            if (searchNumberGroup.AvatarSearchParams?.Version ?? true)
                             {
                                 if (searchNumberGroup.NumberOperator == Core.Enums.SearchOperatorType.EqualTo)
                                 {
@@ -378,7 +380,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                         if (searchNumberGroup.SearchHolons)
                         {
-                            if (searchNumberGroup.HolonSearchParams.Version)
+                            if (searchNumberGroup.HolonSearchParams?.Version ?? true)
                             {
                                 if (searchNumberGroup.NumberOperator == Core.Enums.SearchOperatorType.EqualTo)
                                 {
