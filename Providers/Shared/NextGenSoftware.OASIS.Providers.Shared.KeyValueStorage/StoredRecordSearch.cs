@@ -91,8 +91,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                         if(text.SearchProviderKeys) flags.Add("ProviderUniqueStorageKey");
                         match=flags.SelectMany(name=>SearchValues(json[name])).Any(value=>value.ToString().Contains(text.SearchQuery,StringComparison.OrdinalIgnoreCase));
                         if(text.SearchIds)
-                            match |= json.Descendants().OfType<JValue>().Any(value=>Guid.TryParse(value.ToString(),out _)
-                                && value.ToString().Contains(text.SearchQuery,StringComparison.OrdinalIgnoreCase));
+                            match |= MatchesTextIds(json,text.SearchQuery);
                     }
                     else if(group is ISearchNumberGroup number)
                         match=flags.SelectMany(name=>SearchValues(json[name])).Any(token=>decimal.TryParse(token.ToString(),NumberStyles.Number,CultureInfo.InvariantCulture,out var value) && CompareSearch(value.CompareTo(number.Number),number.NumberOperator));
@@ -105,6 +104,19 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             }
             return combined ?? true;
         }
+
+        public static bool MatchesTextIds(IHolonBase record,string query)
+        {
+            ArgumentNullException.ThrowIfNull(record);
+            ArgumentException.ThrowIfNullOrWhiteSpace(query);
+            var json=JObject.FromObject(record);
+            RemoveSearchCredentials(json);
+            return MatchesTextIds(json,query);
+        }
+
+        private static bool MatchesTextIds(JObject json,string query)
+            => json.Descendants().OfType<JValue>().Any(value=>Guid.TryParse(value.ToString(),out _)
+                && value.ToString().Contains(query,StringComparison.OrdinalIgnoreCase));
 
         private static IEnumerable<JValue> SearchValues(JToken token)
             => token is JValue value ? new[] {value} : token is JContainer container ? container.Descendants().OfType<JValue>() : Enumerable.Empty<JValue>();
