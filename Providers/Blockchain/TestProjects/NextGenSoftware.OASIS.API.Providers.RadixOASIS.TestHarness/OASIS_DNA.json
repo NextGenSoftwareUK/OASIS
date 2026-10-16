@@ -156,7 +156,7 @@
                 "ConnectionString": "http://testchain.nethereum.com:8545"
             },
             "ArbitrumOASIS": {
-                "ChainPrivateKey": "d3c80ec102d5fe42beadcb7346f74df529a0a10a1906f6ecc5fe3770eb65fb1a",
+                "ChainPrivateKey": "",
                 "ChainId": 421614,
                 "ContractAddress": "0xd56B495571Ea5793fC3960D6af86420dF161c50a",
                 "ConnectionString": "https://sepolia-rollup.arbitrum.io/rpc"
