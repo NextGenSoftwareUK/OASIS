@@ -28,21 +28,7 @@ public partial class EthereumOASIS
     """;
 
     private static BigInteger ExactTokenUnits(decimal amount, byte decimals)
-    {
-        if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount), "Token amount must be positive.");
-        var bits = decimal.GetBits(amount);
-        var coefficient = new BigInteger((uint)bits[0]) + (new BigInteger((uint)bits[1]) << 32) + (new BigInteger((uint)bits[2]) << 64);
-        var scale = (bits[3] >> 16) & 255;
-        BigInteger units;
-        if (decimals >= scale) units = coefficient * BigInteger.Pow(10, decimals - scale);
-        else
-        {
-            units = BigInteger.DivRem(coefficient, BigInteger.Pow(10, scale - decimals), out var remainder);
-            if (remainder != 0) throw new ArgumentException("Token amount exceeds the contract's decimal precision.", nameof(amount));
-        }
-        if (units <= 0 || units >= (BigInteger.One << 256)) throw new ArgumentOutOfRangeException(nameof(amount), "Token amount exceeds uint256.");
-        return units;
-    }
+        =>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ExactEvmTokenAmount.ToUnits(amount,decimals);
 
     private enum TokenMutation { Transfer, Burn, Mint }
 

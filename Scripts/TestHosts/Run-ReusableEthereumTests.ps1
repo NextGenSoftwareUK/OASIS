@@ -71,7 +71,7 @@ try {
     if($report.LastWriteTimeUtc -lt $started){throw 'Native report is stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 158 -or [int]$counts.passed -ne 158 -or [int]$counts.notExecuted -ne 0){throw 'Expected 158 passing cases including native multi-wallet escrow and mint checks, no skips.'}
+    if([int]$counts.total -ne 162 -or [int]$counts.passed -ne 162 -or [int]$counts.notExecuted -ne 0){throw 'Expected 162 passing cases including explicit shared-EVM mint, escrow and Ethereum mint checks, no skips.'}
     & $node (Join-Path $PSScriptRoot 'verify-web3core-pages.cjs')
     if($LASTEXITCODE){throw 'Web3Core native page verification failed.'}
     $web3Started=[DateTime]::UtcNow
