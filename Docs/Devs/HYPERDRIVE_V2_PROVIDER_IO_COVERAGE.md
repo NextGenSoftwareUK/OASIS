@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 shared selected graph planner: Azure native38/38 +unit15/15; AWS native51/51 +unit49/49; Google native17/17 +unit32/32, all zero skips. Existing Dynamo/Google planners consolidated, Azure child options now implemented with post-ack source publication/native-key collision guard.6Azure child cases failed before fix. Native blobs/parent links/readback and controlled zero-write invalid preflight verified. Sequential writes NOT atomic; Azure routed graph fault/replication/durability and complete release/interface gates remain open.
+
 2026-10-16 Azure native30/30pass14s +unit13/13pass266ms:6actual-commit/controlled SDK-acknowledgement failures reproduced pre-ack caller ID mutation. Direct profile/detail/holon writes now use canonical detached snapshots and publish IDs/keys only after ack; independent native read/original cause/blob-key evidence verified. Existing V2 cases retained. Batch graph planning/publication still OPEN alongside durable recovery/pair atomicity/history/live/hosted gates.
 
 2026-10-16 Azure native24/24pass14s +unit13/13pass259ms: common malformed JSON classification retains original cause and typed integrity error; actual V2 Azure→stale SQLite profile/detail/holon syncasync point+collection reads make0secondary requests and preserve both stores.3unit cases failed before fix; native previous12 retained plus12new top-level cases. Cross-blob atomicity/durable recovery/history/full interfaces/live/hosted gates remain open.
