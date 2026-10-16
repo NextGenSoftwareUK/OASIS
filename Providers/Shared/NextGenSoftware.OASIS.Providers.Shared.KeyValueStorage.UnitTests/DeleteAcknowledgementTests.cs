@@ -11,6 +11,36 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 public class DeleteAcknowledgementTests
 {
     [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task CurrentIndexCanSelectEarlierRenamedRecord(bool email)
+    {
+        var provider=new TestProvider(new InMemoryBackend()) {IsVersionControlEnabled=true};
+        var row=new Avatar {Id=Guid.NewGuid(),Username="old-name",Email="old@example.invalid"};
+        Assert.IsFalse((await provider.SaveAvatarAsync(row)).IsError);var version=row.Version;
+        row.Username="new-name";row.Email="new@example.invalid";Assert.IsFalse((await provider.SaveAvatarAsync(row)).IsError);
+        var read=email ? await provider.LoadAvatarByEmailAsync(" NEW@example.invalid ",version):await provider.LoadAvatarByUsernameAsync(" NEW-NAME ",version);
+        Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual("old-name",read.Result.Username);Assert.AreEqual("old@example.invalid",read.Result.Email);
+    }
+    [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public async Task ForeignIdentityIndexCannotReadOrDeleteAnotherAvatar(bool synchronous,bool email)
+    {
+        var backend=new InMemoryBackend();var provider=new TestProvider(backend);
+        var requested=new Avatar {Id=Guid.NewGuid(),Username="requested",Email="requested@example.invalid"};
+        var foreign=new Avatar {Id=Guid.NewGuid(),Username="foreign",Email="foreign@example.invalid"};
+        Assert.IsFalse((await provider.SaveAvatarAsync(requested)).IsError);Assert.IsFalse((await provider.SaveAvatarAsync(foreign)).IsError);
+        var prefix=email ? "oasis/avatar-email/":"oasis/avatar-username/";
+        var index=backend.Items.Single(pair=>pair.Key.StartsWith(prefix,StringComparison.Ordinal) && pair.Value==requested.Id.ToString()).Key;
+        backend.Items[index]=foreign.Id.ToString();var before=backend.Items.OrderBy(pair=>pair.Key).ToArray();
+        var read=email ? synchronous ? provider.LoadAvatarByEmail(requested.Email):await provider.LoadAvatarByEmailAsync(requested.Email)
+            :synchronous ? provider.LoadAvatarByUsername(requested.Username):await provider.LoadAvatarByUsernameAsync(requested.Username);
+        Assert.IsTrue(read.IsError);Assert.IsNull(read.Result);Assert.IsInstanceOfType(read.Exception,typeof(System.IO.InvalidDataException));
+        var deleted=email ? synchronous ? provider.DeleteAvatarByEmail(requested.Email,false):await provider.DeleteAvatarByEmailAsync(requested.Email,false)
+            :synchronous ? provider.DeleteAvatarByUsername(requested.Username,false):await provider.DeleteAvatarByUsernameAsync(requested.Username,false);
+        Assert.IsTrue(deleted.IsError);Assert.IsFalse(deleted.IsDeleted);Assert.IsInstanceOfType(deleted.Exception,typeof(System.IO.InvalidDataException));
+        CollectionAssert.AreEqual(before,backend.Items.OrderBy(pair=>pair.Key).ToArray());
+    }
+    [DataTestMethod]
     [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
     public async Task SelectorDeletePreservesAbsenceCodeAndOriginalReadFailure(bool synchronous,bool email)
     {
