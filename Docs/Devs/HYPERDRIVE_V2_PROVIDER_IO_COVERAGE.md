@@ -6,7 +6,7 @@ Baseline parent `174397c70` / Core `ea61d9e`; latest retained reports were read 
 
 | Provider | Current retained evidence inspected | Still required / limitation |
 | --- | --- | --- |
-| MongoDBOASIS | Fresh Mongo/SQLite four-case native matrix4/4 in1m54s against current Coreea61d9e, report2026-10-16T18:56:58Z | All interfaces/options/history, multi-member election/durable/hosted proof; initializer1/1 is not an additional routing case |
+| MongoDBOASIS | Unit36/36pass228ms and fresh native Mongo/SQLite matrix4/4 in1m54s after search-boundary/options changes | All interfaces/options/history, multi-member election/durable/hosted proof; activation retry state risk below; initializer1/1 is not a routing case |
 | SQLLiteDBOASIS | Fresh direct suite401/401 in28s after preactivation search validation; local V2 routing92/92 in9s at19:23:00Z includes terminal invalid-search/no-backup checks | Full per-operation/options/history/recovery acceptance, not just matching stored Version; graph version semantics diverge from Mongo (see release gates) |
 | EthereumOASIS | Selected local EVM182/182 at18:36:06Z (includes shared-base cases) | Public-network/hosted admission, every interface/option, durable wallet/multi-stage recovery |
 | SolanaOASIS | Offline306/306 at16:49:49Z | Native validator finality stall/retained tower conflict and original uncertain outcomes; no reset/new ledger; SPL history and remaining options/hosted gates |

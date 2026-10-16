@@ -400,12 +400,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<ISearchResults>> SearchAsync(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            return await _searchRepository.SearchAsync(searchParams).ConfigureAwait(false);
+            return await SearchValidatedAsync(searchParams,loadChildren,recursive,maxChildDepth,version,false).ConfigureAwait(false);
         }
 
         public override OASISResult<ISearchResults> Search(ISearchParams searchParams, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, int version = 0)
         {
-            return _searchRepository.Search(searchParams);
+            return SearchValidatedAsync(searchParams,loadChildren,recursive,maxChildDepth,version,true).GetAwaiter().GetResult();
         }
 
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string avatarUsername, int version = 0)
