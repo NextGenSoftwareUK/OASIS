@@ -8,6 +8,21 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests;
 public sealed class Web3Erc20MintGuardTests
 {
     [DataTestMethod]
+    [DataRow("missing-id")] [DataRow("zero-amount")] [DataRow("redirected-escrow")] [DataRow("wrong-sender")] [DataRow("missing-key")]
+    public async Task EscrowCannotDefaultToLockAllOrConfiguredOperator(string mode)
+    {
+        var provider=new GuardProvider(){TokenEscrowContractAddress="0x"+new string('4',40)};
+        var key="0x"+new string('1',64);
+        var request=new LockWeb4TokenRequest{LockId=mode=="missing-id" ? Guid.Empty:Guid.NewGuid(),LockedByAvatarId=Guid.NewGuid(),
+            TokenAddress="0x"+new string('5',40),EscrowContractAddress=mode=="redirected-escrow" ? "0x"+new string('6',40):provider.TokenEscrowContractAddress,
+            FromWalletPrivateKey=mode=="missing-key" ? null!:key,FromWalletAddress=mode=="wrong-sender" ? "0x"+new string('7',40):new Nethereum.Web3.Accounts.Account(key).Address,
+            Amount=mode=="zero-amount" ? 0:1.25m};
+        var result=await provider.LockTokenAsync(request);
+        Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsFalse(result.IsSaved);
+        Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",result.ErrorCode);Assert.IsFalse(provider.IsProviderActivated);Assert.AreEqual(0,provider.KeyCalls);
+    }
+
+    [DataTestMethod]
     [DataRow("missing")] [DataRow("unowned")] [DataRow("denied")] [DataRow("aliases")]
     public async Task DefaultMintWalletMustMatchAnAuthorizedAccountBeforeActivation(string mode)
     {

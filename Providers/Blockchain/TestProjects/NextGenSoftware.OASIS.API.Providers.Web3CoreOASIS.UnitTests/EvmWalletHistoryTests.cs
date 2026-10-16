@@ -24,7 +24,7 @@ public sealed class EvmWalletHistoryTests
         {
             Assert.IsFalse(result.IsError,result.Exception?.ToString()??result.Message);Assert.IsTrue(result.IsLoaded);Assert.AreEqual(1,result.LoadedCount);
             var raw=mode=="zero" ? System.Numerics.BigInteger.Zero:mode=="large-value" ? (System.Numerics.BigInteger.One<<256)-1:System.Numerics.BigInteger.One;
-            Assert.AreEqual((double)raw/1e18,result.Result);Assert.IsTrue(double.IsFinite(result.Result));
+            Assert.AreEqual(EvmNativeAmount.ToDisplayDouble(raw),result.Result);Assert.IsTrue(double.IsFinite(result.Result));
         }
         else
         {
@@ -33,6 +33,13 @@ public sealed class EvmWalletHistoryTests
             else Assert.IsInstanceOfType(result.Exception,typeof(InvalidDataException));
         }
     }
+
+    [DataTestMethod]
+    [DataRow("9989346475516888000000","9989.346475516888")]
+    [DataRow("1","0.000000000000000001")]
+    [DataRow("115792089237316195423570985008687907853269984665640564039457584007913129639935","115792089237316195423570985008687907853269984665640564039457.584007913129639935")]
+    public void NativeDisplayRoundsOnceWithoutDecimalOverflow(string raw,string expected)
+        =>Assert.AreEqual(double.Parse(expected,System.Globalization.CultureInfo.InvariantCulture),EvmNativeAmount.ToDisplayDouble(System.Numerics.BigInteger.Parse(raw)));
 
     [TestMethod]
     public async Task BalanceValidatesBeforeInitializationAndPreservesActivationCause()

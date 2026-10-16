@@ -24,7 +24,7 @@ public partial class EthereumOASISIntegrationTests
             var initialRequest=new GetWeb3WalletBalanceRequest{WalletAddress=owner};
             var initial=synchronous ? provider.GetBalance(initialRequest):await provider.GetBalanceAsync(initialRequest);
             Assert.IsFalse(initial.IsError,initial.Exception?.ToString()??initial.Message);Assert.IsTrue(initial.IsLoaded);Assert.IsTrue(provider.IsProviderActivated);
-            Assert.AreEqual((double)(await web3.Eth.GetBalance.SendRequestAsync(owner)).Value/1e18,initial.Result);
+            Assert.AreEqual(double.Parse(Nethereum.Util.UnitConversion.Convert.FromWei((await web3.Eth.GetBalance.SendRequestAsync(owner)).Value).ToString(System.Globalization.CultureInfo.InvariantCulture),System.Globalization.CultureInfo.InvariantCulture),initial.Result);
             var nonce=(await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(owner)).Value;
             var rejected=await provider.SendTokenAsync(new SendWeb3TokenRequest{FromTokenAddress=null!,ToWalletAddress=address,OwnerPrivateKey=PrivateKey,Amount=0.000000000000000001m});
             Assert.IsTrue(rejected.IsError);Assert.IsNull(rejected.Result);Assert.IsFalse(NativeMutationReconciliation.IsRequired(rejected.Exception));
@@ -50,7 +50,7 @@ public partial class EthereumOASISIntegrationTests
                 var balanceRequest=new GetWeb3WalletBalanceRequest{WalletAddress=owner};
                 var displayed=synchronous ? provider.GetBalance(balanceRequest):await provider.GetBalanceAsync(balanceRequest);
                 Assert.IsFalse(displayed.IsError,displayed.Exception?.ToString()??displayed.Message);Assert.IsTrue(displayed.IsLoaded);Assert.AreEqual(1,displayed.LoadedCount);
-                Assert.AreEqual((double)(await web3.Eth.GetBalance.SendRequestAsync(owner)).Value/1e18,displayed.Result);
+                Assert.AreEqual(double.Parse(Nethereum.Util.UnitConversion.Convert.FromWei((await web3.Eth.GetBalance.SendRequestAsync(owner)).Value).ToString(System.Globalization.CultureInfo.InvariantCulture),System.Globalization.CultureInfo.InvariantCulture),displayed.Result);
                 if(!self) Assert.AreEqual(targetBefore+wei,(await web3.Eth.GetBalance.SendRequestAsync(recipient)).Value);
             }
         }
@@ -180,9 +180,9 @@ public partial class EthereumOASISIntegrationTests
 
     private sealed class SharedMintFixture(string host,string configuredKey,string address):Web3CoreOASISBaseProvider(host,configuredKey,address,31337)
     {
-        public Guid Avatar;public bool MultipleWallets;public int DefaultReads;
+        public Guid Avatar;public bool MultipleWallets;public int DefaultReads;public List<string>? ExplicitKeys;
         protected override OASISResult<List<string>> ResolveErc20MintSigningKeys(Guid avatarId)
-        {Avatar=avatarId;return new OASISResult<List<string>>{Result=MultipleWallets ? new(){"0x"+new string('2',64),PrivateKey,PrivateKey[2..]}:new(){PrivateKey}};}
+        {Avatar=avatarId;return new OASISResult<List<string>>{Result=ExplicitKeys??(MultipleWallets ? new(){"0x"+new string('2',64),PrivateKey,PrivateKey[2..]}:new(){PrivateKey})};}
         protected override Task<OASISResult<string>> ResolveDefaultErc20MintWalletAsync(Guid avatarId)
         {Assert.AreEqual(Avatar,avatarId);DefaultReads++;return Task.FromResult(new OASISResult<string>{Result=new Nethereum.Web3.Accounts.Account(PrivateKey,ChainId).Address});}
     }
