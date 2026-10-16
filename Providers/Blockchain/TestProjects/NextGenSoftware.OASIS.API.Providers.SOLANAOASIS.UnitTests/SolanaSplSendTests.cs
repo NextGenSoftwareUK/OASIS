@@ -7,6 +7,7 @@ using Solnet.Programs;
 using Solnet.Rpc;
 using Solnet.Wallet;
 using SplAccount=Solnet.Programs.Models.TokenProgram.TokenAccount;
+using SplMint=Solnet.Programs.Models.TokenProgram.TokenMint;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 
@@ -22,7 +23,7 @@ public sealed class SolanaSplSendTests
     public async Task ExactRawUnitsDoNotRoundOrAssumeNineDecimals(int decimals,string amount,ulong expected)
     {
         var signer=new Account();var rpc=DispatchProxy.Create<IRpcClient,SplRpc>();var proxy=(SplRpc)(object)rpc;
-        proxy.Owner=signer.PublicKey;proxy.Recipient=new Account().PublicKey;proxy.Mint=new Account().PublicKey;proxy.Decimals=decimals;proxy.SourceBalance=ulong.MaxValue;
+        proxy.Owner=signer.PublicKey;proxy.Recipient=new Account().PublicKey;proxy.Mint=new Account().PublicKey;proxy.Decimals=decimals;proxy.SourceBalance=ulong.MaxValue;proxy.DestinationBalance=0;
         var result=await Provider(rpc).SendTokenAsync(new SendWeb3TokenRequest{OwnerPrivateKey=signer.PrivateKey.Key,FromWalletAddress=signer.PublicKey.Key,
             ToWalletAddress=proxy.Recipient.Key,FromTokenAddress=proxy.Mint.Key,Amount=decimal.Parse(amount,System.Globalization.CultureInfo.InvariantCulture)});
         Assert.IsFalse(result.IsError,result.Exception?.ToString());
@@ -64,15 +65,16 @@ public sealed class SolanaSplSendTests
 
     [DataTestMethod]
     [DataRow("mint-program")] [DataRow("source-owner")] [DataRow("source-mint")]
-    [DataRow("frozen")] [DataRow("insufficient")] [DataRow("destination-owner")] [DataRow("precision")]
+    [DataRow("frozen")] [DataRow("insufficient")] [DataRow("destination-owner")] [DataRow("precision")] [DataRow("destination-overflow")]
     public async Task InvalidNativeStateOrPrecisionCannotBroadcast(string mode)
     {
         var signer=new Account();var rpc=DispatchProxy.Create<IRpcClient,SplRpc>();var proxy=(SplRpc)(object)rpc;
         proxy.Owner=signer.PublicKey;proxy.Recipient=new Account().PublicKey;proxy.Mint=new Account().PublicKey;proxy.Mode=mode;
+        if(mode=="destination-overflow") proxy.DestinationBalance=ulong.MaxValue;
         var result=await Provider(rpc).SendTokenAsync(new SendWeb3TokenRequest{OwnerPrivateKey=signer.PrivateKey.Key,FromWalletAddress=signer.PublicKey.Key,
             ToWalletAddress=proxy.Recipient.Key,FromTokenAddress=proxy.Mint.Key,Amount=mode=="precision" ? 0.0000001m:1.25m});
         Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.AreEqual(0,proxy.Sends);Assert.AreEqual(0,proxy.StatusReads);
-        Assert.IsInstanceOfType(result.Exception,mode=="mint-program" ? typeof(NotSupportedException):mode=="insufficient" || mode=="precision" ? typeof(ArgumentException):typeof(InvalidDataException));
+        Assert.IsInstanceOfType(result.Exception,mode=="mint-program" ? typeof(NotSupportedException):mode=="insufficient" || mode=="precision" || mode=="destination-overflow" ? typeof(ArgumentException):typeof(InvalidDataException));
     }
 
     [TestMethod]
@@ -95,19 +97,30 @@ public sealed class SolanaSplSendTests
     public class SplRpc : SolanaNativeTokenTests.TokenRpc
     {
         public PublicKey Owner=null!,Recipient=null!,Mint=null!;public string Mode="";public bool CreateRecipient;public int Decimals=6;public ulong SourceBalance=10_000_000;
+        public ulong MintSupply=ulong.MaxValue,DestinationBalance=10_000_000,MintAmount=1_250_000;public bool ApplyMint;
         protected override object? Invoke(MethodInfo? method,object?[]? args)
         {
             if(method!.Name=="GetTokenSupplyAsync") {Calls++;return Respond(method,JsonConvert.SerializeObject(new{Value=new{decimals=Decimals,amount=ulong.MaxValue.ToString()}}));}
             if(method.Name!="GetAccountInfoAsync") return base.Invoke(method,args);
             Calls++;var address=(string)args![0]!;
-            if(address==Mint.Key) return Respond(method,JsonConvert.SerializeObject(new{Value=new{owner=Mode=="mint-program" ? new Account().PublicKey.Key:TokenProgram.ProgramIdKey.Key,
-                executable=false,data=new[]{Convert.ToBase64String(new byte[TokenProgram.MintAccountDataSize]),"base64"}}}));
+            if(address==Mint.Key)
+            {
+                var mintData=new byte[SplMint.Layout.Length];
+                BitConverter.GetBytes(Mode=="revoked-authority" ? 0:1).CopyTo(mintData,SplMint.Layout.MintAuthorityOptionOffset);
+                (Mode=="wrong-authority" ? new Account().PublicKey:Owner).KeyBytes.CopyTo(mintData,SplMint.Layout.MintAuthorityOffset);
+                var supply=MintSupply+(ApplyMint && Sends>0 && Mode!="no-mint-effect" ? MintAmount:0);
+                BitConverter.GetBytes(supply).CopyTo(mintData,SplMint.Layout.SupplyOffset);
+                mintData[SplMint.Layout.DecimalsOffset]=(byte)Decimals;mintData[SplMint.Layout.IsInitializedOffset]=(byte)(Mode=="uninitialized" ? 0:1);
+                return Respond(method,JsonConvert.SerializeObject(new{Value=new{owner=Mode=="mint-program" ? new Account().PublicKey.Key:TokenProgram.ProgramIdKey.Key,
+                    executable=false,data=new[]{Convert.ToBase64String(mintData),"base64"}}}));
+            }
             var source=address==AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(Owner,Mint).Key;
-            if(!source && CreateRecipient) return Respond(method,"{\"Value\":null}");
+            if(!source && CreateRecipient && Sends==0) return Respond(method,"{\"Value\":null}");
             var data=new byte[SplAccount.Layout.Length];
             (source && Mode=="source-mint" ? new Account().PublicKey:Mint).KeyBytes.CopyTo(data,SplAccount.Layout.MintOffset);
             (source ? Mode=="source-owner" ? new Account().PublicKey:Owner:Mode=="destination-owner" ? new Account().PublicKey:Recipient).KeyBytes.CopyTo(data,SplAccount.Layout.OwnerOffset);
-            BitConverter.GetBytes(source ? Mode=="insufficient" ? 1UL:SourceBalance:10_000_000UL).CopyTo(data,SplAccount.Layout.AmountOffset);
+            var balance=source ? Mode=="insufficient" ? 1UL:SourceBalance:DestinationBalance+(ApplyMint && Sends>0 && Mode!="no-recipient-effect" ? MintAmount:0);
+            BitConverter.GetBytes(balance).CopyTo(data,SplAccount.Layout.AmountOffset);
             data[SplAccount.Layout.StateOffset]=(byte)(Mode=="frozen" && source ? SplAccount.AccountState.Frozen:SplAccount.AccountState.Initialized);
             return Respond(method,JsonConvert.SerializeObject(new{Value=new{owner=TokenProgram.ProgramIdKey.Key,executable=false,data=new[]{Convert.ToBase64String(data),"base64"}}}));
         }

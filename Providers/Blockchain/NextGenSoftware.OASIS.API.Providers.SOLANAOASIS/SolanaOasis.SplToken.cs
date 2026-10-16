@@ -7,6 +7,7 @@ using Solnet.Rpc.Builders;
 using Solnet.Rpc.Types;
 using Solnet.Wallet;
 using SplAccount=Solnet.Programs.Models.TokenProgram.TokenAccount;
+using SplMint=Solnet.Programs.Models.TokenProgram.TokenMint;
 using NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories;
 
 namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS;
@@ -28,7 +29,7 @@ public partial class SolanaOASIS
         return (ulong)raw;
     }
 
-    private async Task<int> ReadLegacyMintDecimalsAsync(PublicKey mint)
+    private async Task<SplMint> ReadLegacyMintAsync(PublicKey mint)
     {
         var info=await _rpcClient.GetAccountInfoAsync(mint.Key,Commitment.Finalized);
         if(!info.WasSuccessful || info.Result?.Value==null) throw new InvalidOperationException("SPL mint account could not be read.");
@@ -37,12 +38,12 @@ public partial class SolanaOASIS
         if(info.Result.Value.Executable || info.Result.Value.Data==null || info.Result.Value.Data.Count!=2 || info.Result.Value.Data[1]!="base64"
             || Convert.FromBase64String(info.Result.Value.Data[0]).Length!=TokenProgram.MintAccountDataSize)
             throw new InvalidDataException("SPL mint account data is malformed.");
-        var supply=await _rpcClient.GetTokenSupplyAsync(mint.Key,Commitment.Finalized);
-        if(!supply.WasSuccessful || supply.Result?.Value==null) throw new InvalidOperationException("SPL mint decimals could not be read.");
-        var decimals=supply.Result.Value.Decimals;
-        if(decimals<0 || decimals>255) throw new InvalidDataException("SPL mint decimals are invalid.");
-        return decimals;
+        var state=SplMint.Deserialize(Convert.FromBase64String(info.Result.Value.Data[0]));
+        if(!state.IsInitialized) throw new InvalidDataException("SPL mint is not initialized.");
+        return state;
     }
+
+    private async Task<int> ReadLegacyMintDecimalsAsync(PublicKey mint) => (await ReadLegacyMintAsync(mint)).Decimals;
 
     private async Task<SplAccount> ReadLegacyTokenAccountAsync(PublicKey address,PublicKey mint,PublicKey owner,bool allowMissing)
     {
@@ -81,6 +82,7 @@ public partial class SolanaOASIS
         var sourceAccount=await ReadLegacyTokenAccountAsync(source,mint,signer.PublicKey,false);
         if(sourceAccount.Amount<raw) throw new ArgumentException("Sender SPL token balance is insufficient.");
         var destinationAccount=await ReadLegacyTokenAccountAsync(destination,mint,recipient,true);
+        if(destinationAccount!=null && raw>ulong.MaxValue-destinationAccount.Amount) throw new ArgumentOutOfRangeException(nameof(amount),"SPL recipient balance would overflow.");
         var instructions=new System.Collections.Generic.List<Solnet.Rpc.Models.TransactionInstruction>();
         if(destinationAccount==null) instructions.Add(AssociatedTokenAccountProgram.CreateAssociatedTokenAccount(signer.PublicKey,recipient,mint));
         instructions.Add(TokenProgram.TransferChecked(source,destination,raw,decimals,signer.PublicKey,mint));

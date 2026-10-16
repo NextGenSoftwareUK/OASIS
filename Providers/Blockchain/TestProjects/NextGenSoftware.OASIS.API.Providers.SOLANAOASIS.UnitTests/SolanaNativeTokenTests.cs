@@ -67,11 +67,11 @@ public sealed class SolanaNativeTokenTests
 
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
-    public async Task UnavailableMintAndInvalidBurnNeverReturnFabricatedSuccess(bool mint)
+    public async Task InvalidMintAndBurnNeverReturnFabricatedSuccess(bool mint)
     {
         var owner=new Account();var provider=new SolanaOASIS("http://127.0.0.1:1",owner.PrivateKey.Key,owner.PublicKey.Key);
         var result=mint ? await provider.MintTokenAsync(new MintWeb3TokenRequest()):await provider.BurnTokenAsync(new BurnWeb3TokenRequest {OwnerPublicKey=owner.PublicKey.Key,OwnerPrivateKey=owner.PrivateKey.Key,OwnerSeedPhrase=""});
-        Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsInstanceOfType(result.Exception,mint ? typeof(NotSupportedException):typeof(ArgumentException));
+        Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsInstanceOfType(result.Exception,typeof(ArgumentException));
     }
 
     public class TokenRpc : DispatchProxy

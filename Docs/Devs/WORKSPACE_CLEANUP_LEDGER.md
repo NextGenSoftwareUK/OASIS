@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 SPL existing-mint SDK path/tests reused installed Solnet XML/model/builder code, cached Core/shared and fixed SolanaCurrent output.265unitpass2s/providerbuild0errors; controlled RPC/signer seam only, no chain/node/account/faucet/ledger/tower/fee changes and no install/download/new env/clone. Shared SDK mint decoder used across token operations rather than duplicated parsing; one-key lookup uses existing encryption/key system. Observed C free81,937,203,200bytes; no recovery claim. Pending native data and concurrent subscription source untouched.
+
 2026-10-16 SPL burn SDK implementation/tests reused installed Solnet/cache/fixed SolanaCurrent outputs.247unitpass2s/providerbuild0errors; controlled RPC only, no chain/account/balance/fee/ledger/tower modifications and no runtime start/download/new environment/clone. Native SOL/send/burn submission code consolidated rather than copied. Observed C free81,941,147,648bytes; no broad reclamation claim. Pending native evidence/unrelated subscription source preserved.
 
 2026-10-16 SPL send implemented/tested using existing cached Solnet6.1.0 SDK/XML docs and fixed SolanaCurrent report,236unitpass2s. Eighteen new cases are in-process controlled RPC/real SDK-signed bytes only; no native node/account/rent/fee/ledger mutation, no runtime download/install/new env or clone. Existing native ledger/tower/pending records and unrelated subscription work preserved. Source test output reuses same bounded directories; no per-run copies created.
