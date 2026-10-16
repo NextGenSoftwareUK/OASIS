@@ -352,7 +352,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.Username = avatarDetailEntity.Username;
                     existing.XP = avatarDetailEntity.XP;
                     existing.MetaDataJson = System.Text.Json.JsonSerializer.Serialize(avatarDetailEntity.MetaData ?? new Dictionary<string,object>());
-                    SetStats(existing, avatarDetailEntity);
+                    SetComponents(existing, avatarDetailEntity);
+                    existing.Model3D = avatarDetailEntity.Model3D;
                     existing.DeletedByAvatarId = avatarDetailEntity.DeletedByAvatarId.ToString();
                     existing.DeletedDate = avatarDetailEntity.DeletedDate;
                     existing.FavouriteColour = avatarDetailEntity.FavouriteColour;
@@ -446,7 +447,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.Username = AvatarDetailEntity.Username;
                     existing.XP = AvatarDetailEntity.XP;
                     existing.MetaDataJson = System.Text.Json.JsonSerializer.Serialize(AvatarDetailEntity.MetaData ?? new Dictionary<string,object>());
-                    SetStats(existing, AvatarDetailEntity);
+                    SetComponents(existing, AvatarDetailEntity);
+                    existing.Model3D = AvatarDetailEntity.Model3D;
                     existing.DeletedByAvatarId = AvatarDetailEntity.DeletedByAvatarId.ToString();
                     existing.DeletedDate = AvatarDetailEntity.DeletedDate;
                     existing.FavouriteColour = AvatarDetailEntity.FavouriteColour;
@@ -546,6 +548,27 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             else _dbContext.Entry(existing.Stats).CurrentValues.SetValues(incoming);
         }
 
+        private void SetComponent<T>(T current,T incoming,Action<T> assign) where T:class
+        {
+            if(incoming==null)
+            {
+                if(current!=null) _dbContext.Remove(current);
+                assign(null);
+            }
+            else if(current==null) assign(incoming);
+            else _dbContext.Entry(current).CurrentValues.SetValues(incoming);
+        }
+
+        private void SetComponents(AvatarDetailModel existing,IAvatarDetail source)
+        {
+            SetStats(existing,source);
+            SetComponent(existing.Attributes,source.Attributes==null ? null:new AvatarAttributesModel(source.Attributes) {AvatarId=existing.Id},value=>existing.Attributes=value);
+            SetComponent(existing.Aura,source.Aura==null ? null:new AvatarAuraModel(source.Aura) {AvatarId=existing.Id},value=>existing.Aura=value);
+            SetComponent(existing.Skills,source.Skills==null ? null:new AvatarSkillsModel(source.Skills) {AvatarId=existing.Id},value=>existing.Skills=value);
+            SetComponent(existing.SuperPowers,source.SuperPowers==null ? null:new AvatarSuperPowersModel(source.SuperPowers) {AvatarId=existing.Id},value=>existing.SuperPowers=value);
+            SetComponent(existing.HumanDesign,source.HumanDesign==null ? null:new AvatarHumanDesignModel(source.HumanDesign) {Id=existing.Id,AvatarId=existing.Id},value=>existing.HumanDesign=value);
+        }
+
         private IAvatarDetail GetAvatarDetailFromEntity(AvatarDetailModel avatarDetailEntity) =>
             new AvatarDetail()
             {
@@ -562,6 +585,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Town = avatarDetailEntity.Town,
                 Username = avatarDetailEntity.Username,
                 XP = avatarDetailEntity.XP,
+                Model3D = avatarDetailEntity.Model3D,
                 MetaData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string,object>>(avatarDetailEntity.MetaDataJson)
                     ?? throw new System.IO.InvalidDataException("Stored avatar detail metadata must be a JSON object."),
                 Stats = avatarDetailEntity.Stats?.GetAvatarStats(),
@@ -584,8 +608,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 ModifiedDate = avatarDetailEntity.ModifiedDate,
                 STARCLIColour = avatarDetailEntity.STARCLIColour,
                 Version = avatarDetailEntity.Version,
-                Attributes = avatarDetailEntity.Attributes,
-                Aura = avatarDetailEntity.Aura,
+                Attributes = avatarDetailEntity.Attributes?.GetAvatarAttributes(),
+                Aura = avatarDetailEntity.Aura?.GetAvatarAura(),
+                Skills = avatarDetailEntity.Skills?.GetAvatarSkills(),
+                SuperPowers = avatarDetailEntity.SuperPowers?.GetAvatarSuperPowers(),
+                HumanDesign = avatarDetailEntity.HumanDesign?.GetHumanDesign(),
                 County = avatarDetailEntity.County,
                 ActiveQuestId = avatarDetailEntity.ActiveQuestId,
                 ActiveObjectiveId = avatarDetailEntity.ActiveObjectiveId,

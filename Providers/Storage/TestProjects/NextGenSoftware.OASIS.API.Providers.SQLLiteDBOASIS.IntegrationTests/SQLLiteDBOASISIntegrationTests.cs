@@ -12,7 +12,7 @@ using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Repositorie
 
 namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 
-public class SQLLiteDBOASISIntegrationTests : IDisposable
+public partial class SQLLiteDBOASISIntegrationTests : IDisposable
 {
     [Theory]
     [InlineData(DateTimeKind.Local)]

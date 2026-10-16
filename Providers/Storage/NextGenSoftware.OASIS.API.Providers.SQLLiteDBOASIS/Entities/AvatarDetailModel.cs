@@ -176,21 +176,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
                 this.Stats.AvatarId=this.Id;
             }
 
-            this.Aura=new AvatarAuraModel(source.Aura);
-            this.Aura.AvatarId=this.Id;
-
-            this.HumanDesign = new AvatarHumanDesignModel(source.HumanDesign);
-            this.HumanDesign.Id=this.Id;
-            this.HumanDesign.AvatarId=this.Id;
-
-            this.Skills=new AvatarSkillsModel(source.Skills);
-            this.Skills.AvatarId=this.Id;
-
-            this.Attributes=new AvatarAttributesModel(source.Attributes);
-            this.Attributes.AvatarId=this.Id;
-
-            this.SuperPowers=new AvatarSuperPowersModel(source.SuperPowers);
-            this.SuperPowers.AvatarId=this.Id;
+            this.Aura=source.Aura==null ? null:new AvatarAuraModel(source.Aura) {AvatarId=this.Id};
+            this.HumanDesign=source.HumanDesign==null ? null:new AvatarHumanDesignModel(source.HumanDesign) {Id=this.Id,AvatarId=this.Id};
+            this.Skills=source.Skills==null ? null:new AvatarSkillsModel(source.Skills) {AvatarId=this.Id};
+            this.Attributes=source.Attributes==null ? null:new AvatarAttributesModel(source.Attributes) {AvatarId=this.Id};
+            this.SuperPowers=source.SuperPowers==null ? null:new AvatarSuperPowersModel(source.SuperPowers) {AvatarId=this.Id};
 
             foreach(AvatarGift gift in source.Gifts){
                 this.Gifts.Add(new AvatarGiftModel(gift));
