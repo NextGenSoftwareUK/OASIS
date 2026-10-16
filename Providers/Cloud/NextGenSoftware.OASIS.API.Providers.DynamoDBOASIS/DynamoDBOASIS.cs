@@ -70,12 +70,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             if(requested==Guid.Empty || !item.TryGetValue("id",out var key) || key.S!=requested.ToString()
                 || !item.TryGetValue("data_json",out var json) || string.IsNullOrWhiteSpace(json.S))
                 throw new System.IO.InvalidDataException("DynamoDB native record key/payload differs from requested identity.");
-            T? record;
-            try {record=Des<T>(json.S);}
-            catch(Newtonsoft.Json.JsonException cause)
-            {
-                throw new System.IO.InvalidDataException("DynamoDB canonical record JSON is invalid.",cause);
-            }
+            var record=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.DeserializeStored<T>(json.S);
             if(record==null || record.Id!=requested)
                 throw new System.IO.InvalidDataException("DynamoDB canonical record identity differs from its native key.");
             return record;

@@ -29,6 +29,16 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public static T Deserialize<T>(string json) => JsonConvert.DeserializeObject<T>(json, Settings);
 
+        /// <summary>Classifies invalid persisted JSON as data corruption, not provider unavailability.</summary>
+        public static T DeserializeStored<T>(string json)
+        {
+            try { return Deserialize<T>(json); }
+            catch (JsonException cause)
+            {
+                throw new System.IO.InvalidDataException("Stored canonical record JSON is invalid.", cause);
+            }
+        }
+
         public static object Deserialize(string json, Type type) => JsonConvert.DeserializeObject(json, type, Settings);
 
         private sealed class OasisTypesOnlyBinder : ISerializationBinder

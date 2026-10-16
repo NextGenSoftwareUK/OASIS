@@ -97,7 +97,7 @@ public partial class GoogleCloudOASIS
     {
         if(!fields.TryGetValue("data_json",out var value) || value is not string json)
             throw new InvalidDataException("Firestore detail lacks canonical data_json; legacy manual mappings require explicit review.");
-        var detail=OasisJson.Deserialize<AvatarDetail>(json) ?? throw new InvalidDataException("Firestore detail payload is null.");
+        var detail=OasisJson.DeserializeStored<AvatarDetail>(json) ?? throw new InvalidDataException("Firestore detail payload is null.");
         if(detail.Id==Guid.Empty || detail.Id.ToString()!=documentId || !fields.TryGetValue("id",out var id) || !Equals(id,documentId))
             throw new InvalidDataException("Firestore detail identity does not match document key.");
         return detail;
