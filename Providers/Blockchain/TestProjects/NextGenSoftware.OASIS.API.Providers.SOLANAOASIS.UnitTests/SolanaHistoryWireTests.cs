@@ -42,19 +42,29 @@ public sealed class SolanaHistoryWireTests
         Assert.AreEqual(signature,result.Result[0].NativeTransactionId);Assert.AreEqual(status,result.Result[0].NativeExecutionResult);
         if(status=="failed") Assert.IsFalse(string.IsNullOrWhiteSpace(result.Result[0].NativeError));
         Assert.AreEqual(new DateTime(2023,11,14,22,13,20,DateTimeKind.Utc),result.Result[0].CreatedDate);
-        using var request=JsonDocument.Parse(handler.Request!);var root=request.RootElement;
+        using var request=JsonDocument.Parse(handler.HistoryRequest!);var root=request.RootElement;
         Assert.AreEqual("getSignaturesForAddress",root.GetProperty("method").GetString());
         var parameters=root.GetProperty("params");Assert.AreEqual(owner.PublicKey.Key,parameters[0].GetString());
         // Solnet6.1.0 deliberately omits default finalized/1000 config (verified against pinned SDK source).
-        Assert.AreEqual(1,parameters.GetArrayLength(),handler.Request);Assert.AreEqual(1,handler.Calls);
+        Assert.AreEqual(1,parameters.GetArrayLength(),handler.HistoryRequest);Assert.AreEqual(2,handler.Calls);
     }
 
     private sealed class WireHandler(string response) : HttpMessageHandler
     {
-        public string? Request;public int Calls;
+        public string? Request,HistoryRequest;public int Calls;
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken cancellationToken)
         {
             Calls++;Request=await request.Content!.ReadAsStringAsync(cancellationToken);
+            using var parsed=JsonDocument.Parse(Request);
+            if(parsed.RootElement.GetProperty("method").GetString()=="getTransaction")
+            {
+                using var history=JsonDocument.Parse(response);var row=history.RootElement.GetProperty("result")[0];
+                var detail=System.Text.Json.JsonSerializer.Serialize(new{jsonrpc="2.0",id=0,result=new{slot=20,
+                    transaction=new{signatures=new[]{row.GetProperty("signature").GetString()},message=new{accountKeys=Array.Empty<string>(),instructions=Array.Empty<object>()}},
+                    meta=new{err=row.GetProperty("err")}}});
+                return new HttpResponseMessage(HttpStatusCode.OK){Content=new StringContent(detail,Encoding.UTF8,"application/json")};
+            }
+            HistoryRequest=Request;
             return new HttpResponseMessage(HttpStatusCode.OK){Content=new StringContent(response,Encoding.UTF8,"application/json")};
         }
     }

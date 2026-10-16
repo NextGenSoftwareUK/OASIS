@@ -225,19 +225,20 @@ public partial class SolanaOASIS
                         throw new InvalidDataException("Solana history contains an empty or repeated signature.");
                     if(request.FromBlock.HasValue && item.Slot<request.FromBlock.Value) {belowRange=true;continue;}
                     if(request.ToBlock.HasValue && item.Slot>request.ToBlock.Value) continue;
-                    transactions.Add(new WalletTransaction {
+                    var summary=new WalletTransaction {
                         NativeTransactionId=item.Signature,NativeOperation="account transaction (amount not decoded)",
                         NativeExecutionResult=item.Error==null ? "succeeded":"failed",
                         NativeError=item.Error==null ? null:JsonConvert.SerializeObject(item.Error),
                         CreatedDate=item.BlockTime.HasValue ? DateTimeOffset.FromUnixTimeSeconds(checked((long)item.BlockTime.Value)).UtcDateTime:default,
                         Description=$"Finalized Solana slot {item.Slot}; transfer amounts and counterparties are not decoded."
-                    });
+                    };
+                    transactions.AddRange(await ReadNativeHistoryEffectsAsync(item,address.Key,summary));
                 }
                 if(page.Result.Count<1000 || belowRange) break;
                 before=page.Result[page.Result.Count-1].Signature;
             }
             result.Result=transactions;
-            result.Message=$"Retrieved {transactions.Count} finalized account transactions; transfer amounts are not decoded.";
+            result.Message=$"Retrieved {transactions.Count} finalized history rows; top-level native SOL transfers decoded, other operations may remain undecoded.";
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,errorMessage+cause.Message,cause);}
         return result;
