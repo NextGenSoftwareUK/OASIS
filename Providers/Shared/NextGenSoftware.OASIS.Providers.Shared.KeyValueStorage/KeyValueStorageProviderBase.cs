@@ -58,6 +58,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         private async Task StampVersionAsync(string recordKey, IHolonBase entity, IHolonBase previous,List<string> acknowledged=null)
         {
+            // Saves must enforce the same stored-ID/key invariant as reads and deletes, before archiving or writing.
+            await ReadVersionAsync(recordKey,previous,0);
             if (entity.VersionId == Guid.Empty) entity.VersionId = Guid.NewGuid();
             if (previous == null)
             {

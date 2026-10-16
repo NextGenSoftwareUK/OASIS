@@ -10,6 +10,28 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class CallerPublicationTests
 {
+    [DataTestMethod]
+    [DataRow(false,0)] [DataRow(true,0)] [DataRow(false,1)] [DataRow(true,1)] [DataRow(false,2)] [DataRow(true,2)]
+    public async Task SaveRejectsMiskeyedPreviousRecordBeforeArchiveOrMutation(bool synchronous,int kind)
+    {
+        foreach(var history in new[] {false,true})
+        {
+            var backend=new InMemoryBackend();var provider=new TestProvider(backend) {IsVersionControlEnabled=history};
+            var foreign=Guid.NewGuid();var id=Guid.NewGuid();var prefix="oasis/"+(kind==0 ? "avatar/":kind==1 ? "avatardetail/":"holon/");
+            if(kind==0)Assert.IsFalse((await provider.SaveAvatarAsync(new Avatar {Id=foreign,Username="foreign"})).IsError);
+            else if(kind==1)Assert.IsFalse((await provider.SaveAvatarDetailAsync(new AvatarDetail {Id=foreign,XP=12})).IsError);
+            else Assert.IsFalse((await provider.SaveHolonAsync(new Holon {Id=foreign},saveChildren:false)).IsError);
+            backend.Items[prefix+id.ToString("N")]=backend.Items[prefix+foreign.ToString("N")];
+            var before=backend.Items.OrderBy(pair=>pair.Key).ToArray();
+            IHolonBase input=kind==0 ? new Avatar {Id=id,Username="replacement"}:kind==1 ? new AvatarDetail {Id=id,XP=99}:new Holon {Id=id};
+            var caller=OasisJson.Serialize(input);Exception failure;
+            if(kind==0){var result=synchronous ? provider.SaveAvatar((IAvatar)input):await provider.SaveAvatarAsync((IAvatar)input);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);failure=result.Exception;}
+            else if(kind==1){var result=synchronous ? provider.SaveAvatarDetail((IAvatarDetail)input):await provider.SaveAvatarDetailAsync((IAvatarDetail)input);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);failure=result.Exception;}
+            else {var result=synchronous ? provider.SaveHolon((IHolon)input,saveChildren:false):await provider.SaveHolonAsync((IHolon)input,saveChildren:false);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);failure=result.Exception;}
+            Assert.IsInstanceOfType(failure,typeof(System.IO.InvalidDataException));Assert.AreEqual(caller,OasisJson.Serialize(input));
+            CollectionAssert.AreEqual(before,backend.Items.OrderBy(pair=>pair.Key).ToArray());
+        }
+    }
     private sealed class PendingBatchWrite:System.IO.IOException,INativeMutationReconciliationRequired
     {public string OriginalTransactionId=>"owned-original-pending";}
 

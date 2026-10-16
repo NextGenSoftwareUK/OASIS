@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 shared save ID/key validation reused existing shared/integration outputs and fixed guarded disk/SQLite fixture. Six baseline failures retained in miskeyed-save-before-current.trx; Shared241/241pass1s/local routing102/102pass10s. Normal local routing fixture disposal completed. No new environment/download/install/clone/runtime/node or protected ledger/source/userdata/credential removal; compact reports overwritten at fixed paths.
+
 2026-10-16 delete ID/key binding reused existing shared outputs/in-memory backend. Initial invalid concrete fixture corrected to actual provider-produced canonical JSON; genuine old-behavior four-case failure baseline retained in miskeyed-delete-before-current.trx. FinalShared235/235pass1s. No runtime/node/install/download/clone/environment or ledger/userdata/source/credential removal; fixed reports reused.
 
 2026-10-16 avatar index-owner binding used existing shared SDK/build/test outputs and in-memory backend only. Four baseline failures retained in foreign-index-before-current.trx; finalShared231/231pass1s includes two renamed-history positives. No runtime/node/download/install/clone/new environment, ledger reset/replay or source/userdata/credential removal; fixed compact reports reused.
