@@ -41,7 +41,7 @@ try {
     if($report.LastWriteTimeUtc -lt $testStarted){throw 'Native Neo4j report is stale.'}
     [xml]$evidence=Get-Content -LiteralPath $report.FullName
     $counts=$evidence.SelectSingleNode("//*[local-name()='Counters']")
-    if(!$counts -or [int]$counts.total -ne 14 -or [int]$counts.passed -ne 14 -or [int]$counts.notExecuted -ne 0){throw 'Exactly fourteen fresh native cases, no skips, required.'}
+    if(!$counts -or [int]$counts.total -ne 16 -or [int]$counts.passed -ne 16 -or [int]$counts.notExecuted -ne 0){throw 'Exactly sixteen fresh native cases, no skips, required.'}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
     try {
