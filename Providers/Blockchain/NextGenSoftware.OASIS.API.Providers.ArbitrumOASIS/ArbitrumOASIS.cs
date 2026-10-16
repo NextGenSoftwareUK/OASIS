@@ -53,7 +53,7 @@ using NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
 
 /// <summary>
-/// Arbitrum provider (current live deployment). Uses chain-specific contract and Nethereum.
+/// Chain-specific legacy Arbitrum implementation using Nethereum; source presence does not verify a live deployment.
 /// When the generic Web3Core contract is deployed to Arbitrum, use <see cref="ArbitrumOASIS_Web3Core"/> instead.
 /// </summary>
 public sealed partial class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider, IOASISNFTProvider

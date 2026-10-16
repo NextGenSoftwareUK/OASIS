@@ -18,7 +18,8 @@ namespace NextGenSoftware.OASIS.API.Providers.PolygonOASIS.UnitTests
         [TestInitialize]
         public void Setup()
         {
-            _provider = new PolygonOASIS("https://polygon-rpc.com", "pk", "0xContract");
+            // Unit tests must never contact a public chain or spend gas.
+            _provider = new PolygonOASIS("http://127.0.0.1:18546", "pk", "0xContract");
         }
 
         [TestMethod]
