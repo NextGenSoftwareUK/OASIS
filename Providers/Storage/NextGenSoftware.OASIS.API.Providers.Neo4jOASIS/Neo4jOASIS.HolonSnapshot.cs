@@ -137,6 +137,9 @@ public partial class Neo4jOASIS
                     throw new InvalidDataException("Neo4j holon batch acknowledgement differs from submitted identities.");
                 if (edges.Count != 0)
                 {
+                    // Selected child parent identity and native incoming edge move in the same transaction.
+                    await (await transaction.RunAsync("UNWIND $edges AS edge MATCH (c:Holon {Id:edge.child}) "
+                        + "MATCH (old:Holon)-[r:HAS_CHILD]->(c) WHERE old.Id <> edge.parent DELETE r", new { edges })).ConsumeAsync();
                     var linked = await (await transaction.RunAsync("UNWIND $edges AS edge MATCH (p:Holon {Id:edge.parent}), (c:Holon {Id:edge.child}) "
                         + "MERGE (p)-[:HAS_CHILD]->(c) RETURN count(*) AS linked", new { edges })).SingleAsync();
                     if (linked["linked"].As<long>() != edges.Count) throw new InvalidDataException("Neo4j graph edge acknowledgement is incomplete.");
