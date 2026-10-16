@@ -11,7 +11,7 @@ try {
     if($LASTEXITCODE -ne 0 -or $state.Trim() -ne 'exited 77f8a39f5c39e0b7878c8d9cddd70ff08872695dec9b85d2055b38d5d58d5302') {throw 'Expected retained stopped Cosmos DB container/image; refusing replacement or interference.'}
     $project='Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests.csproj'
     foreach($producer in @('Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj','Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS/NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.csproj',$project)) {
-        & dotnet build $producer --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
+        & dotnet build $producer --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if($LASTEXITCODE) {throw "Cached build failed: $producer"}
     }
     & wsl.exe -d Ubuntu -u root -- podman start oasis-cosmos
@@ -27,10 +27,14 @@ try {
     }
     if(!$ready) {throw 'Retained Cosmos DB gateway readiness timed out.'}
     $env:OASIS_COSMOSDB_NATIVE='1'
-    & dotnet test $project --no-build --no-restore --filter FullyQualifiedName~CosmosNativeStorageTests --logger 'trx;LogFileName=cosmos-native-current.trx' --results-directory $work -v:q
+    $testsStarted=[DateTime]::UtcNow
+    & dotnet test $project --no-build --no-restore --logger 'trx;LogFileName=cosmos-native-current.trx' --results-directory $work -v:q
     if($LASTEXITCODE) {throw 'Cosmos DB native test failed.'}
-    [xml]$report=Get-Content (Join-Path $work 'cosmos-native-current.trx') -Raw
-    if($report.TestRun.ResultSummary.Counters.total -ne '1' -or $report.TestRun.ResultSummary.Counters.passed -ne '1') {throw 'Expected exactly one native Cosmos DB test passed.'}
+    $reportFile=Get-Item -LiteralPath (Join-Path $work 'cosmos-native-current.trx') -ErrorAction Stop
+    if($reportFile.LastWriteTimeUtc -lt $testsStarted){throw 'Cosmos DB native report is stale; no verification claim permitted.'}
+    [xml]$report=Get-Content -LiteralPath $reportFile.FullName -Raw
+    $counts=$report.TestRun.ResultSummary.Counters
+    if([int]$counts.total -ne 3 -or [int]$counts.passed -ne 3 -or [int]$counts.notExecuted -ne 0) {throw 'Expected all three native Cosmos DB tests passed, no skips.'}
 }
 finally {
     $env:OASIS_COSMOSDB_NATIVE=$previous
