@@ -179,17 +179,18 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
                 ["data_json"]=new() {S=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(avatar)}
             };
             int calls=0;
-            Func<Amazon.DynamoDBv2.Model.QueryRequest,Task<Amazon.DynamoDBv2.Model.QueryResponse>> query=request=> {
+            Func<Amazon.DynamoDBv2.Model.ScanRequest,Task<Amazon.DynamoDBv2.Model.ScanResponse>> query=request=> {
+                Assert.IsTrue(request.ConsistentRead);Assert.IsTrue(string.IsNullOrEmpty(request.IndexName));
                 calls++;
                 if(calls>1) Assert.AreEqual("next",request.ExclusiveStartKey["id"].S);
-                return Task.FromResult(new Amazon.DynamoDBv2.Model.QueryResponse {
+                return Task.FromResult(new Amazon.DynamoDBv2.Model.ScanResponse {
                     Items=calls==1 ? new() {Row(true)} : duplicate ? new() {Row(false),Row(false)} : new() {Row(false)},
                     LastEvaluatedKey=calls==1 ? new() {["id"]=new() {S="next"}} : new()
                 });
             };
             var task=(Task<NextGenSoftware.OASIS.API.Core.Holons.Avatar>)typeof(DynamoDBOASIS)
-                .GetMethod("QueryUniqueAvatarAsync",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!
-                .Invoke(null,new object[] {query,"username-index","username","owned-user"})!;
+                .GetMethod("ReadUniqueAvatarAsync",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!
+                .Invoke(null,new object[] {query,"username","owned-user"})!;
             if(duplicate) await Assert.ThrowsExceptionAsync<NextGenSoftware.OASIS.Common.StorageIdentityAmbiguousException>(async()=>await task);
             else Assert.AreEqual(avatar.Id,(await task).Id);
             Assert.AreEqual(2,calls);
