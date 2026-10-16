@@ -2,6 +2,8 @@
 
 ## Current acceptance summary
 
+2026-10-16 11:39 UTC: The rerun still failed because branch policy requires the exact Development tip, not merely an ancestor; hosted shallow history also misleadingly reported a730942 as off-branch. Advanced ORM parent gitlink and manifest together to PR4 merge2ccce989 (same synchronized released source tree), rather than weakening policy or reverting source. This new parent requires fresh CI; Edge305390 remains an earlier candidate in progress. Production promotion is not complete.
+
 2026-10-16 11:24 UTC: ORM PR4 normally merged with exact-head matching (534cd788), merge2ccce989c544b6b3b154554f4756eba3d005305a, no admin/force flag. This synchronizes already released main history into Development, without changing OASIS gitlinks or reverting Claude's source. The component PR had no configured status checks; do not describe it as separately CI-proved. Reran only failed jobs in parent CI38888805716 to verify restored branch reachability against exact305390. Current Edge38890362621 prerequisites remain in progress. Production promotion/full global proof still pending.
 
 2026-10-16 11:09 UTC: CI38888805716 now passes STAR restore but fails branch-policy reachability: preserved ORM a730942 is on main, not origin/Development (still d500921). Did not revert the pin or weaken the check. Opened owning-repository PR https://github.com/NextGenSoftwareUK/HoloNET-ORM/pull/4 from existing main into Development (ten commits ahead, zero behind) for normal checked synchronization. Latest exact305390 Edge38890362621 remains in progress. Promotion remains blocked until normal component synchronization and green exact-source checks.
