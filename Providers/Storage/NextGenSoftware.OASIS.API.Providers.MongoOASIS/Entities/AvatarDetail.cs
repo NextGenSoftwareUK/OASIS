@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
 using MongoDB.Bson.Serialization.Attributes;
+using MongoDB.Bson.Serialization.Options;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Objects.Avatar;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Avatar;
 using NextGenSoftware.OASIS.API.Core.Objects;
@@ -11,6 +14,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities
     public class AvatarDetail : Holon
     {
         public string UmaJson { get; set; }
+        public string Model3D { get; set; }
+        [BsonDictionaryOptions(DictionaryRepresentation.ArrayOfArrays)]
+        public Dictionary<DimensionLevel, Guid> DimensionLevelIds { get; set; } = new Dictionary<DimensionLevel, Guid>();
+        public List<HeartRateEntry> HeartRateData { get; set; }
         public string Portrait { get; set; }
         //public string Title { get; set; }
         //public string FirstName { get; set; }

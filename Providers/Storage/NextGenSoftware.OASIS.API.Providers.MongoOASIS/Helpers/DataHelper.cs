@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Helpers;
@@ -15,6 +16,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
 {
     public static class DataHelper
     {
+        private static AvatarAttributes CopyAvatarAttributes(IAvatarAttributes value) => value == null ? null : new AvatarAttributes
+        {
+            Strength = value.Strength, Speed = value.Speed, Dexterity = value.Dexterity,
+            Toughness = value.Toughness, Wisdom = value.Wisdom, Intelligence = value.Intelligence,
+            Magic = value.Magic, Vitality = value.Vitality, Endurance = value.Endurance
+        };
+
         public static OASISResult<IEnumerable<IAvatar>> ConvertMongoEntitysToOASISAvatars(OASISResult<IEnumerable<Avatar>> avatars, bool mapChildren = true)
         {
             OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
@@ -217,6 +225,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisAvatar.IsActive = avatar.Result.IsActive;
             oasisAvatar.Portrait = avatar.Result.Portrait;
             oasisAvatar.UmaJson = avatar.Result.UmaJson;
+            oasisAvatar.Model3D = avatar.Result.Model3D;
+            oasisAvatar.Attributes = CopyAvatarAttributes(avatar.Result.Attributes);
+            oasisAvatar.DimensionLevelIds = avatar.Result.DimensionLevelIds == null ? null : new Dictionary<DimensionLevel, Guid>(avatar.Result.DimensionLevelIds);
+            oasisAvatar.HeartRateData = avatar.Result.HeartRateData?.Select(entry => (IHeartRateEntry)new Core.Objects.Avatar.HeartRateEntry
+                { HeartRateValue = entry.HeartRateValue, TimeStamp = entry.TimeStamp }).ToList();
             oasisAvatar.ActiveQuestId = avatar.Result.ActiveQuestId;
             oasisAvatar.ActiveObjectiveId = avatar.Result.ActiveObjectiveId;
             //oasisAvatar.ProviderPrivateKey = avatar.Result.ProviderPrivateKey;
@@ -569,6 +582,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.ActiveQuestId = avatar.ActiveQuestId;
             mongoAvatar.ActiveObjectiveId = avatar.ActiveObjectiveId;
             mongoAvatar.UmaJson = avatar.UmaJson;
+            mongoAvatar.Model3D = avatar.Model3D;
+            mongoAvatar.Attributes = CopyAvatarAttributes(avatar.Attributes);
+            mongoAvatar.DimensionLevelIds = avatar.DimensionLevelIds == null ? null : new Dictionary<DimensionLevel, Guid>(avatar.DimensionLevelIds);
+            mongoAvatar.HeartRateData = avatar.HeartRateData?.Select(entry => new Core.Objects.Avatar.HeartRateEntry
+                { HeartRateValue = entry.HeartRateValue, TimeStamp = entry.TimeStamp }).ToList();
             //mongoAvatar.ProviderPrivateKey = avatar.ProviderPrivateKey;
             //mongoAvatar.ProviderPublicKey = avatar.ProviderPublicKey;
             //mongoAvatar.ProviderUsername = avatar.ProviderUsername;
