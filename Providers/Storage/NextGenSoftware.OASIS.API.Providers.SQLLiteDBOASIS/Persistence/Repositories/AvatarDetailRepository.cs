@@ -319,7 +319,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 ArgumentNullException.ThrowIfNull(avatarDetailEntity);
-                recordId=avatarDetailEntity.Id;
+                recordId=avatarDetailEntity.Id==Guid.Empty ? Guid.NewGuid():avatarDetailEntity.Id;
                 var idStr = recordId.ToString();
                 var existing = DetailState()
                     .FirstOrDefault(x => x.Id == idStr);
@@ -373,6 +373,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                     persistenceEntered=true;
                     _dbContext.SaveChanges();
+                avatarDetailEntity.Id=recordId;
                     return new OASISResult<IAvatarDetail>
                     {
                         IsSaved = true,
@@ -382,10 +383,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     };
                 }
 
-                var newModel = new AvatarDetailModel(avatarDetailEntity);
+                var newModel = new AvatarDetailModel(avatarDetailEntity,recordId);
                 _dbContext.AvatarDetails.Add(newModel);
                 persistenceEntered=true;
                 _dbContext.SaveChanges();
+                avatarDetailEntity.Id=recordId;
                 return new OASISResult<IAvatarDetail>
                 {
                     IsSaved = true,
@@ -414,7 +416,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 ArgumentNullException.ThrowIfNull(AvatarDetailEntity);
-                recordId=AvatarDetailEntity.Id;
+                recordId=AvatarDetailEntity.Id==Guid.Empty ? Guid.NewGuid():AvatarDetailEntity.Id;
                 var idStr = recordId.ToString();
                 var existing = await DetailState()
                     .FirstOrDefaultAsync(x => x.Id == idStr);
@@ -469,6 +471,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
                     persistenceEntered=true;
                     await _dbContext.SaveChangesAsync();
+                AvatarDetailEntity.Id=recordId;
                     return new OASISResult<IAvatarDetail>
                     {
                         IsSaved = true,
@@ -478,10 +481,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     };
                 }
 
-                var newModel = new AvatarDetailModel(AvatarDetailEntity);
+                var newModel = new AvatarDetailModel(AvatarDetailEntity,recordId);
                 _dbContext.AvatarDetails.Add(newModel);
                 persistenceEntered=true;
                 await _dbContext.SaveChangesAsync();
+                AvatarDetailEntity.Id=recordId;
                 return new OASISResult<IAvatarDetail>
                 {
                     IsSaved = true,
