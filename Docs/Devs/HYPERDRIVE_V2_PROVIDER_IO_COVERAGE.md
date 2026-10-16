@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 Clan mapping2/2 serialized round trips and real Mongo transaction42/42 passed (zero skips): package bytes retained and relative media URI supported through existing clan persistence. Expanded real transfer/idempotency case independently restores destination and verifies source remainder; not all inherited fields, direct mapper parity or full V2 gameplay/HTTP/release coverage. Core147650f and parent pin/gitlink kept together; unrelated dirty Core subscription source excluded from commit but prevents clean-source release claim.
+
 2026-10-16 Mongo native transaction42/42 passed25s, zero skips: canonical existing storage clone replaces lossy avatar-to-avatar transfer field list. Expanded real atomic/idempotent transfer regression failed before fix and now independently verifies package bytes, public flag, version/identity, parent ID and custom type in destination after replay; source and paired receipts verified. Existing transaction suite retained. No clan/full inherited-contract/HTTP/release certification; testhost cache resolution warning documented in release gates.
 
 2026-10-16 real Mongo/SQLite V2 matrix4/4 passed1m33s after4/4 pre-fix package-loss failures. Mongo inventory copies now preserve inherited PublishedSTARNETHolon in both directions; expanded custom-interface native tests verify nonempty bytes and replicated null clearing in both stores, including soft-delete checks. Original outage/load-balancing/replication/uncertainty assertions retained. Initialization1/1; no skipped cases. This is selected routed-operation coverage, not full inherited-contract/all endpoint/release certification.
