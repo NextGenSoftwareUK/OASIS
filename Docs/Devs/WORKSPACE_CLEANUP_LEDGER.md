@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 import publication helper tests in-memory only, reused Core cache/fixed reports.599Corepass2s, both targets build; no native runtime/service/DB/ledger or download/new environment/clone. No fixture deletion necessary. Pending native evidence and concurrent subscription work preserved.
+
 2026-10-16 detached import staging primitive tests are in-memory only, reuse cached Core build/runtime/fixed report.594Corepass1s; both frameworks built in existing paths. No native service/ledger/DB or new install/environment/download/clone involved, pending evidence and concurrent subscription work preserved. No disposable native fixture created.
 
 2026-10-16 canonical serializer move reused existing Core/shared/IPFS cache and retained Kubo/key/repo.589Core/174shared/11nativeIPFS pass; Core cross-target build reused same outputs (no new environment/download). Owned IPFS test data cleaned/GC444 and daemon stopped. Free bytes before82,083,594,240 after82,081,550,336; builds caused output growth, no broad reclamation claim. Required compact reports retained, pending chain data/concurrent subscription edits untouched. No clone/install/deployment.
