@@ -346,6 +346,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisAvatar.ParentOmniverseId = avatar.Result.ParentOmniverseId;
             oasisAvatar.ParentDimension = avatar.Result.ParentDimension;
             oasisAvatar.ParentDimensionId = avatar.Result.ParentDimensionId;
+            oasisAvatar.DimensionLevel = avatar.Result.DimensionLevel;
+            oasisAvatar.SubDimensionLevel = avatar.Result.SubDimensionLevel;
             oasisAvatar.ParentMultiverse = avatar.Result.ParentMultiverse;
             oasisAvatar.ParentMultiverseId = avatar.Result.ParentMultiverseId;
             oasisAvatar.ParentUniverse = avatar.Result.ParentUniverse;
@@ -698,6 +700,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.ParentOmniverseId = avatar.ParentOmniverseId;
             mongoAvatar.ParentDimension = avatar.ParentDimension;
             mongoAvatar.ParentDimensionId = avatar.ParentDimensionId;
+            mongoAvatar.DimensionLevel = avatar.DimensionLevel;
+            mongoAvatar.SubDimensionLevel = avatar.SubDimensionLevel;
             mongoAvatar.ParentMultiverse = avatar.ParentMultiverse;
             mongoAvatar.ParentMultiverseId = avatar.ParentMultiverseId;
             mongoAvatar.ParentUniverse = avatar.ParentUniverse;
@@ -780,6 +784,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisHolon.ParentOmniverseId = holon.ParentOmniverseId;
             oasisHolon.ParentDimension = holon.ParentDimension;
             oasisHolon.ParentDimensionId = holon.ParentDimensionId;
+            oasisHolon.DimensionLevel = holon.DimensionLevel;
+            oasisHolon.SubDimensionLevel = holon.SubDimensionLevel;
             oasisHolon.ParentMultiverse = holon.ParentMultiverse;
             oasisHolon.ParentMultiverseId = holon.ParentMultiverseId;
             oasisHolon.ParentUniverse = holon.ParentUniverse;
@@ -892,6 +898,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoHolon.ParentOmniverseId = holon.ParentOmniverseId;
             mongoHolon.ParentDimension = holon.ParentDimension;
             mongoHolon.ParentDimensionId = holon.ParentDimensionId;
+            mongoHolon.DimensionLevel = holon.DimensionLevel;
+            mongoHolon.SubDimensionLevel = holon.SubDimensionLevel;
             mongoHolon.ParentMultiverse = holon.ParentMultiverse;
             mongoHolon.ParentMultiverseId = holon.ParentMultiverseId;
             mongoHolon.ParentUniverse = holon.ParentUniverse;

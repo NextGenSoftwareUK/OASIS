@@ -78,6 +78,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             var holon = new Holon { Id = Guid.NewGuid(), Name = "priority-replication" };
             var request = new StorageOperationRequest { Operation = "SaveHolon", Payload = holon, SaveChildren = false, PreferredProvider = mongoPrimary ? ProviderType.MongoDBOASIS : ProviderType.SQLLiteDBOASIS };
             var router = new OASISHyperDrive(manager);
+            await VerifyDimensionReplicationAsync(mongo,sqlite,router,synchronous,mongoPrimary);
             await VerifyMongoHolonDeleteOutcomesAsync(mongo,sqlite,manager,router,synchronous);
             var replicatedDeletionId=Guid.NewGuid(); var replicatedActor=Guid.NewGuid();
             foreach(var store in new IOASISStorageProvider[] {mongo,sqlite})

@@ -4,6 +4,8 @@
 
 ### Priority Mongo/SQLite contract audit (2026-10-15)
 
+Inherited dimension follow-up: Mongo holon/avatar-detail conversions now map DimensionLevel/SubDimensionLevel both ways. Real V2 two-cycle healthy replication checks pass with Mongo/SQLite primaries and independent readback from both stores, full selected matrix4/4 in1m43s. Dimension query/history/all-field/hosted coverage is not inferred.
+
 Avatar-detail follow-up: Model3D/DimensionLevelIds/HeartRateData now have native typed persistence; previously declared Attributes is mapped both ways with all nine values. Extended real two-cycle round-trip matrix4/4 passes1m42s. DimensionLevels/Omniverse object references, all inherited DTO fields, null/empty/custom implementation/precision/privacy and hosted/V2 new-field replication remain unverified; do not infer complete IAvatarDetail coverage from these selected tests.
 
 Latest Mongo mapping correction: profile read converter now retains native MetaData and profile/detail VersionId. Real two-cycle native read-modify-save regression and the full selected Mongo/SQLite matrix pass4/4 in1m42s. This fixes selected-field data loss, not all DTO fields, historical version generation, private encryption or hosted release gates; details in current release gates.

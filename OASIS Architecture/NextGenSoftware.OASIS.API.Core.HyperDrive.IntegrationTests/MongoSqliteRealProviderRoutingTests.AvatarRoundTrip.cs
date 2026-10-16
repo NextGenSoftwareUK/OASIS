@@ -23,7 +23,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             var profile=new Avatar {Id=id,Username=name,Email=name+"@test.local",FirstName="preserve",VersionId=profileVersion,
                 AvatarType=new EnumValue<AvatarType>(AvatarType.User),MetaData=new() {{"profile-marker","retained"},{"integer",42},{"flag",true}}};
             var detail=new AvatarDetail {Id=id,Username=name,Email=profile.Email,VersionId=detailVersion,Karma=101,XP=202,
-                MetaData=new() {{"detail-marker","retained"}},Model3D="model://owned-fixture",
+                MetaData=new() {{"detail-marker","retained"}},Model3D="model://owned-fixture",DimensionLevel=DimensionLevel.Fifth,SubDimensionLevel=SubDimensionLevel.Seventh,
                 Attributes=new AvatarAttributes {Strength=11,Speed=12,Dexterity=13,Toughness=14,Wisdom=15,Intelligence=16,Magic=17,Vitality=18,Endurance=19},
                 DimensionLevelIds=new Dictionary<DimensionLevel,Guid> {{DimensionLevel.Third,Guid.NewGuid()},{DimensionLevel.Fifth,Guid.NewGuid()}},
                 HeartRateData=new List<NextGenSoftware.OASIS.API.Core.Interfaces.Avatar.IHeartRateEntry> {
@@ -46,6 +46,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 loadedDetail.Result.MetaData.Should().ContainKey("detail-marker").WhoseValue.Should().Be("retained");
                 loadedDetail.Result.Karma.Should().Be(101);loadedDetail.Result.XP.Should().Be(202);
                 loadedDetail.Result.Model3D.Should().Be(detail.Model3D);
+                loadedDetail.Result.DimensionLevel.Should().Be(detail.DimensionLevel);loadedDetail.Result.SubDimensionLevel.Should().Be(detail.SubDimensionLevel);
                 loadedDetail.Result.Attributes.Should().BeEquivalentTo(detail.Attributes);
                 loadedDetail.Result.DimensionLevelIds.Should().BeEquivalentTo(detail.DimensionLevelIds);
                 loadedDetail.Result.HeartRateData.Should().BeEquivalentTo(detail.HeartRateData,options=>options.WithStrictOrdering());
