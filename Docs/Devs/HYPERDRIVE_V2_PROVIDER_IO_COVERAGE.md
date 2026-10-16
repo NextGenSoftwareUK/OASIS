@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+V2 paired soft-delete failure delta: local routing104/104pass10s includes new sync/async second-put failure with original exception/exact acknowledgement, zero secondary requests and unchanged active SQLite profile/detail. Four chain libraries refreshed0errors after latest shared fixes. Controlled disk backend, not native SDK/durable/hosted proof; shared latest249/249pass1s.
+
 Shared paired deletion integrity delta: optional detail ID/key validation now precedes hard as well as soft avatar deletion; corrupt paired record cannot authorize any index/history/profile mutation. Baseline2pass/2fail/finalShared249/249pass1s. No new native/V2/concurrent/durable/hosted certification.
 
 Shared paired soft-delete delta: existing paired detail now receives same inactive/deleted timestamp as avatar; absent detail not created, payload retained, failed detail put retains profile acknowledgement/reconciliation marker. Four red-before/green-after cases; Shared245/245pass1s/local routing102/102pass11s. Not atomic two-record delete/native SDK failure/durable recovery/hosted certification.
