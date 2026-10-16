@@ -3,6 +3,7 @@ using System.Reflection;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Newtonsoft.Json;
 using NextGenSoftware.OASIS.API.DNA;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
 using NextGenSoftware.OASIS.OASISBootLoader;
 
@@ -21,6 +22,7 @@ public sealed class EvmProviderConfigurationTests
         var provider=EvmProviderFactory.CreateArbitrum(restored,v2 ? HyperDriveModes.V2:HyperDriveModes.Legacy,"http://127.0.0.1:2");
         Assert.IsFalse(provider.IsProviderActivated);
         Assert.AreEqual(v2 ? typeof(ArbitrumOASIS_Web3Core):typeof(NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.ArbitrumOASIS),provider.GetType());
+        Assert.AreEqual(!v2,provider is IOASISLegacyOnlyStorageProvider);
         if(v2)
         {
             var shared=(Web3CoreOASISBaseProvider)provider;
