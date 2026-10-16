@@ -361,9 +361,15 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
                 if (softDelete)
                 {
+                    var detail=await ReadVersionAsync(AvatarDetailKey(id),await ReadAsync<IAvatarDetail>(AvatarDetailKey(id)),0);
                     avatar.DeletedDate = DateTime.UtcNow;
                     avatar.IsActive = false;
                     await PutAcknowledgedAsync(AvatarKey(id), OasisJson.Serialize(avatar),acknowledged);
+                    if(detail!=null)
+                    {
+                        detail.IsActive=false;detail.DeletedDate=avatar.DeletedDate;
+                        await PutAcknowledgedAsync(AvatarDetailKey(id),OasisJson.Serialize(detail),acknowledged);
+                    }
                 }
                 else
                 {
