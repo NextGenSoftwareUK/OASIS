@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 import-reference preflight tests reused existing Core/cache/fixed SQLite evidence paths.589unit/86localrouting pass; two red-before cases retained in import-reference-before.trx. Invalid batches never activate/create database or assign caller IDs; existing local fixtures cleaned by teardown. No installation/download/new environment/clone or chain replay, concurrent subscription work preserved and excluded.
+
 2026-10-16 generic graph-depth verification reused existing Core build cache/local SQLite tests/fixed HyperDriveSqliteCurrent reports:587unit/84localrouting pass;12red-before cases retained in graph-depth-before.trx. Invalid writes create no DB/IDs; normal synthetic local fixtures cleaned by existing teardown. No runtime download/install/new env/clone, no pending chain mutation or broad cleanup. Concurrent subscription source untouched/excluded from commit.
 
 2026-10-16 explicit V2 entry-point validation used existing Core/cache/local SQLite fixtures/fixed reports only:575unit/82localrouting pass, thirty expanded red-before assertions retained in explicit-validation-before.trx. Invalid requests do not activate/create native DB. No runtime installation/new environment/clone or cloud/chain start, pending ledgers preserved. Unrelated subscription edits excluded from source commit but present in local build; immutable deployment still separate.
