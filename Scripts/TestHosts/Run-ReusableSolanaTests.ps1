@@ -60,7 +60,24 @@ try {
         $recent=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body $body -TimeoutSec 5
         if($recent.error){throw 'Read-only native signature inspection failed.'}
         if($null -eq $recent.result){throw 'Native signature inspection omitted its result.'}
-        @{FinalizedSlot=$initialRoot.result;Count=@($recent.result).Count;Transactions=@($recent.result | Select-Object signature,slot,confirmationStatus,err)} | ConvertTo-Json -Depth 5 -Compress | Write-Output
+        $slots=@{}
+        foreach($commitment in 'processed','confirmed','finalized'){
+            $slotRequest=@{jsonrpc='2.0';id=1;method='getSlot';params=@(@{commitment=$commitment})} | ConvertTo-Json -Depth 4 -Compress
+            $slotReply=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body $slotRequest -TimeoutSec 3
+            if($slotReply.error -or $null -eq $slotReply.result){throw "Read-only $commitment slot inspection failed."}
+            $slots[$commitment]=$slotReply.result
+        }
+        $votes=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body '{"jsonrpc":"2.0","id":1,"method":"getVoteAccounts"}' -TimeoutSec 3
+        if($votes.error -or $null -eq $votes.result){throw 'Read-only vote account inspection failed.'}
+        # Observe the same live validator, without client keys, submissions, warp or reset.
+        Start-Sleep -Seconds 2
+        if($owned.HasExited){throw 'Owned validator exited during read-only consensus observation.'}
+        $rootAfter=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body $slotBody -TimeoutSec 3
+        if($rootAfter.error -or $null -eq $rootAfter.result){throw 'Read-only final root observation failed.'}
+        @{Genesis=$genesis.result;FinalizedSlot=$initialRoot.result;FinalizedAfterObservation=$rootAfter.result;Slots=$slots;
+            CurrentVotes=@($votes.result.current | Select-Object votePubkey,nodePubkey,activatedStake,lastVote,rootSlot);
+            DelinquentVotes=@($votes.result.delinquent | Select-Object votePubkey,nodePubkey,activatedStake,lastVote,rootSlot);
+            Count=@($recent.result).Count;Transactions=@($recent.result | Select-Object signature,slot,confirmationStatus,err)} | ConvertTo-Json -Depth 6 -Compress | Write-Output
         return
     }
     Add-Type -Path (Join-Path (Split-Path $project) 'bin/Debug/net10.0/Solnet.Wallet.dll')
