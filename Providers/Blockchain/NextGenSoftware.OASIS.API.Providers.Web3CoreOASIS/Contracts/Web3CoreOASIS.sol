@@ -290,6 +290,7 @@ contract Web3CoreOASIS is ERC721, Ownable, IWeb3CoreOASIS {
         uint256 amount,
         string memory memoText
     ) external {
+        require(amount == 1, "ERC721 amount must equal one");
         require(ownerOf(tokenId) == fromWalletAddress, OWNER_NOT_TOKEN);
         require(fromWalletAddress == msg.sender, OWNER_NOT_AUTHORIZED);
 

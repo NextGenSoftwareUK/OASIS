@@ -43,6 +43,23 @@ public partial class Web3NativeStorageTests
                 var seeded = await contract.GetFunction("seedToken").SendTransactionAndWaitForReceiptAsync(
                     account.Address, new HexBigInteger(500000), null, null, account.Address, id);
                 Assert.IsTrue(seeded.Succeeded());
+                foreach (var quantity in new[] { BigInteger.Zero, new BigInteger(2) })
+                {
+                    // Direct contract callers must obey the same ERC-721 invariant.
+                    var rejected = await Assert.ThrowsExceptionAsync<Nethereum.JsonRpc.Client.RpcResponseException>(
+                        () => contract.GetFunction("sendNFT").SendTransactionAndWaitForReceiptAsync(
+                        account.Address, new HexBigInteger(500000), null, null,
+                        account.Address, recipient, id, "None", "None", quantity, "invalid quantity"));
+                    StringAssert.Contains(rejected.Message, "ERC721 amount must equal one");
+                    Assert.AreEqual(account.Address.ToLowerInvariant(),
+                        (await contract.GetFunction("ownerOf").CallAsync<string>(id)).ToLowerInvariant());
+                }
+                var invalidQuantity = await provider.SendNFTAsync(new SendWeb3NFTRequest {
+                    FromWalletAddress = account.Address, ToWalletAddress = recipient,
+                    TokenId = id.ToString(System.Globalization.CultureInfo.InvariantCulture), Amount = 2 });
+                Assert.IsTrue(invalidQuantity.IsError);
+                Assert.IsNull(invalidQuantity.Result);
+                Assert.AreEqual("ERC-721 transfer amount must equal one.", invalidQuantity.Message);
                 var transfer = await provider.SendNFTAsync(new SendWeb3NFTRequest {
                     FromWalletAddress = account.Address, ToWalletAddress = recipient,
                     TokenId = id.ToString(System.Globalization.CultureInfo.InvariantCulture), Amount = 1,
