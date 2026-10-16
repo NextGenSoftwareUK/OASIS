@@ -2,6 +2,8 @@
 
 ## Current acceptance summary
 
+2026-10-16 20:10 UTC: **Hosted planner-only38958437922 SUCCESS** for the standalone receipt repair, with no packing/publication and all deliberately unselected component jobs skipped. This proves registry/provenance planning, not integrated builds. Requested standard trusted-master promotion to carry the tested planner/source-graph repair through normal parent PR/checks; PR489 remains already merged. Full nonpublishing global master run must follow checked repair promotion.
+
 2026-10-16 19:55 UTC: CI38954999629 SUCCESS at exacte401a587035a5b3bc917d76317168a77322cf563. Dispatched planner-only global38958437922 from Development with publish=false, nuget_plan_only=true and every runtime/component selection false. This verifies registry/provenance planning without packing or duplicate publication; it is not full integrated release proof. Await its actual result before checked repair promotion/global master rerun.
 
 2026-10-16 19:25 UTC: Implemented explicit standalone publication receipts rather than inventing a historical OASIS parent commit. Receipt validates exact NuGet owner URL/commit and records producer Client/Libraries commits and nested-owner layout; graph comparison uses repository-relative identities, retaining parent build-property/README/logo differences. Real ORM4.4 comparison succeeds and correctly reports changed packaging inputs (standalone versus OASIS), not falsely "unchanged". Added10 passing source-graph regression tests and future standalone producer source-graph/package-digest evidence. No package rebuilt/published locally; hosted planner/checked source promotion still needed before a new global proof run.
