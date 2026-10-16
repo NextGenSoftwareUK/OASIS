@@ -10,6 +10,58 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 public partial class Neo4jNativeAvatarTests
 {
     [TestMethod]
+    public async Task OwnedNativePointGraphReadsHonorDepthAndRejectCorruptEdges()
+    {
+        const string uri = "bolt://127.0.0.1:17687";
+        Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
+        using var raw = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
+        using var inspection = raw.AsyncSession();
+        Assert.AreEqual(0L, (await (await inspection.RunAsync("MATCH (h:Holon) RETURN count(h) AS count")).SingleAsync())["count"].As<long>());
+        var provider = new Provider(uri, "neo4j", "oasis-local-test-only");
+        try
+        {
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            var root = new Holon { Id = Guid.NewGuid() }; var child = new Holon { Id = Guid.NewGuid() }; var leaf = new Holon { Id = Guid.NewGuid() };
+            root.Children = new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> { child };
+            child.Children = new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> { leaf };
+            Assert.IsFalse((await provider.SaveHolonAsync(root)).IsError);
+            foreach (var key in new[] { false, true })
+            foreach (var sync in new[] { false, true })
+            foreach (var fromProvider in new[] { false, true })
+            foreach (var option in new[] { (Children:false, Recursive:true, Depth:0, Expected:1),
+                (Children:true, Recursive:false, Depth:0, Expected:2), (Children:true, Recursive:true, Depth:1, Expected:2),
+                (Children:true, Recursive:true, Depth:0, Expected:3) })
+            {
+                var read = key
+                    ? sync ? provider.LoadHolon(root.Id.ToString(), option.Children, option.Recursive, option.Depth, loadChildrenFromProvider:fromProvider)
+                        : await provider.LoadHolonAsync(root.Id.ToString(), option.Children, option.Recursive, option.Depth, loadChildrenFromProvider:fromProvider)
+                    : sync ? provider.LoadHolon(root.Id, option.Children, option.Recursive, option.Depth, loadChildrenFromProvider:fromProvider)
+                        : await provider.LoadHolonAsync(root.Id, option.Children, option.Recursive, option.Depth, loadChildrenFromProvider:fromProvider);
+                Assert.IsFalse(read.IsError, read.Message); Assert.IsTrue(read.IsLoaded);
+                Assert.AreEqual(option.Expected > 1 ? 1 : 0, read.Result.Children.Count());
+                if (option.Expected > 1)
+                {
+                    Assert.AreEqual(child.Id, read.Result.Children.Single().Id);
+                    Assert.AreEqual(option.Expected > 2 ? 1 : 0, read.Result.Children.Single().Children.Count());
+                }
+            }
+            var badDepth = await provider.LoadHolonAsync(root.Id, maxChildDepth:-1);
+            Assert.IsTrue(badDepth.IsError); Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID", badDepth.ErrorCode);
+            await (await inspection.RunAsync("MATCH (a:Holon {Id:$leaf}), (b:Holon {Id:$root}) MERGE (a)-[:HAS_CHILD]->(b)",
+                new { leaf = leaf.Id.ToString(), root = root.Id.ToString() })).ConsumeAsync();
+            var cycle = await provider.LoadHolonAsync(root.Id);
+            Assert.IsTrue(cycle.IsError); Assert.IsFalse(cycle.IsLoaded);
+            Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode, cycle.ErrorCode);
+            await (await inspection.RunAsync("MATCH (a:Holon {Id:$leaf})-[r:HAS_CHILD]->(b:Holon {Id:$root}) DELETE r",
+                new { leaf = leaf.Id.ToString(), root = root.Id.ToString() })).ConsumeAsync();
+            Assert.IsFalse((await provider.LoadHolonAsync(root.Id)).IsError);
+            await (await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h",
+                new { ids = new[] { root.Id.ToString(), child.Id.ToString(), leaf.Id.ToString() } })).ConsumeAsync();
+        }
+        finally { await provider.DeActivateProviderAsync(); }
+    }
+
+    [TestMethod]
     public async Task OwnedNativeSelectedGraphsHonorSaveDepthRecursionAndBulkInitialDepth()
     {
         const string uri = "bolt://127.0.0.1:17687";
