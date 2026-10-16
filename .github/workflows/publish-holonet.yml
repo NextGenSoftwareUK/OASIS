@@ -197,7 +197,7 @@ jobs:
           }
           # Notes: this version's CHANGELOG section.
           $log = Get-Content holochain-client-csharp/CHANGELOG.md -Raw
-          $m = [regex]::Match($log, "(?ms)^## v$([regex]::Escape($version)).*?(?=^## v)")
+          $m = [regex]::Match($log, "(?ms)^## v$([regex]::Escape($version))b.*?(?=^## v)")
           $notes = if ($m.Success) { $m.Value } else { "HoloNET $version" }
           $notes += "`n`nFull history: https://github.com/$repo/blob/main/CHANGELOG.md"
           Set-Content release-notes.md $notes
