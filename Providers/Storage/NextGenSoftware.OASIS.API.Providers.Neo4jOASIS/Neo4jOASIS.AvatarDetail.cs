@@ -251,187 +251,29 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             return SaveAvatarDetailAsync(Avatar).Result;
         }
 
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-        {
-            var response = new OASISResult<bool>();
-            try
-            {
-                // REAL Neo4j implementation for deleting avatar by ID
-                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
-                }
-
-                var query = "MATCH (a:Avatar {Id: $id}) DETACH DELETE a RETURN a";
-                var parameters = new { id = id.ToString() };
-                
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.RunAsync(query, parameters);
-                    var record = await result.SingleAsync();
-                    
-                    if (record != null)
-                    {
-                        response.Result = true;
-                        response.IsError = false;
-                        response.Message = "Avatar deleted successfully from Neo4j";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Avatar not found in Neo4j database");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error deleting avatar from Neo4j: {ex.Message}");
-            }
-            return response;
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+            => DeleteAvatarRecordAsync("Id", id.ToString(), softDelete);
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true)
-        {
-            return DeleteAvatarAsync(id, softDelete).Result;
-        }
+            => DeleteAvatarAsync(id, softDelete).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-        {
-            var response = new OASISResult<bool>();
-            try
-            {
-                // REAL Neo4j implementation for deleting avatar by provider key
-                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
-                }
-
-                var query = softDelete 
-                    ? "MATCH (a:Avatar {ProviderKey: $providerKey}) SET a.DeletedDate = datetime() RETURN a"
-                    : "MATCH (a:Avatar {ProviderKey: $providerKey}) DETACH DELETE a RETURN a";
-                var parameters = new { providerKey };
-                
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.RunAsync(query, parameters);
-                    var record = await result.SingleAsync();
-                    
-                    if (record != null)
-                    {
-                        response.Result = true;
-                        response.IsError = false;
-                        response.Message = $"Avatar deleted successfully from Neo4j {(softDelete ? "(soft delete)" : "(hard delete)")}";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Avatar not found in Neo4j database");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error deleting avatar by provider key from Neo4j: {ex.Message}");
-            }
-            return response;
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
+            => DeleteAvatarRecordAsync("ProviderKey", providerKey, softDelete);
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true)
-        {
-            return DeleteAvatarAsync(providerKey, softDelete).Result;
-        }
+            => DeleteAvatarAsync(providerKey, softDelete).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
-        {
-            var response = new OASISResult<bool>();
-            try
-            {
-                // REAL Neo4j implementation for deleting avatar by email
-                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
-                }
-
-                var query = "MATCH (a:Avatar {Email: $email}) DETACH DELETE a RETURN a";
-                var parameters = new { email = avatarEmail };
-                
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.RunAsync(query, parameters);
-                    var record = await result.SingleAsync();
-                    
-                    if (record != null)
-                    {
-                        response.Result = true;
-                        response.IsError = false;
-                        response.Message = "Avatar deleted successfully from Neo4j by email";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Avatar not found in Neo4j database");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error deleting avatar by email from Neo4j: {ex.Message}");
-            }
-            return response;
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
+            => DeleteAvatarRecordAsync("Email", avatarEmail, softDelete);
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true)
-        {
-            return DeleteAvatarByEmailAsync(avatarEmail, softDelete).Result;
-        }
+            => DeleteAvatarByEmailAsync(avatarEmail, softDelete).GetAwaiter().GetResult();
 
-        public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
-        {
-            var response = new OASISResult<bool>();
-            try
-            {
-                // REAL Neo4j implementation for deleting avatar by username
-                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
-                }
-
-                var query = "MATCH (a:Avatar {Username: $username}) DETACH DELETE a RETURN a";
-                var parameters = new { username = avatarUsername };
-                
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.RunAsync(query, parameters);
-                    var record = await result.SingleAsync();
-                    
-                    if (record != null)
-                    {
-                        response.Result = true;
-                        response.IsError = false;
-                        response.Message = "Avatar deleted successfully from Neo4j by username";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Avatar not found in Neo4j database");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error deleting avatar by username from Neo4j: {ex.Message}");
-            }
-            return response;
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
+            => DeleteAvatarRecordAsync("Username", avatarUsername, softDelete);
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true)
-        {
-            return DeleteAvatarByUsernameAsync(avatarUsername, softDelete).Result;
-        }
+            => DeleteAvatarByUsernameAsync(avatarUsername, softDelete).GetAwaiter().GetResult();
 
 
 
