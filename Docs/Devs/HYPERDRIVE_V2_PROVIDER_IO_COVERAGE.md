@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+Neo4j GUID/key point graph loading now honors children/recursion/depth and validates selected node/edge parent identities/cycles. Native9/9 passes8s with32point-read combinations, negative-depth rejection and exact injected-cycle conflict; prior V2/replay-fence cases remain green. Both fromProvider flag values select native edges, not proof of separate manager-owned graph source. Parent/collection/metadata graph options, partial-read continuation/history/concurrency/routed graph acceptance remain open.
+
 Neo4j avatar/detail saves now explicit-transaction and unknown-commit fenced like holons, with caller/result publication only after commit+disposal and exact identity validation. Native V2 scenario12real committed acknowledgement-loss combinations across3types/syncasync/replicationonoff all preserve cause/marker,1commit,0secondary requests; physical committed data independently read and SQLite absence checked. Native8/8 passes8s, unit27/27 passes249ms, zero skips. Controlled SDK-boundary fault, not complete durable recovery/pair lifecycle/graph failure/history/options/hosted certification.
 
 Neo4j actual V2 root uncertain-write fence now native-proven for4 syncasync/replicationoff-on combinations with failover enabled. Real official SDK commits to real server before test adapter throws acknowledgement IOException; V2 retains exact original cause/reconciliation marker, exactly1physical commit,0secondary requests, and independent reads prove Neo4j data exists/SQLite absent. Native8/8 passes8s, zero skips. SDK-boundary fault injection is not a physical network-cut test; avatar/detail/graph other commit stages/durable recovery/settlement/all interfaces remain open.
