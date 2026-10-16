@@ -53,7 +53,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         try
                         {
                             var jsonContent = await File.ReadAllTextAsync(file);
-                            var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent, AvatarDeserializeSettings);
+                            var avatar = DeserializeStoredProfile<Avatar>(jsonContent);
                             if (avatar != null && avatar.VerificationToken != null &&
                                 avatar.VerificationToken.Equals(verificationToken, StringComparison.Ordinal))
                             {
@@ -64,6 +64,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 return result;
                             }
                         }
+                        catch (System.IO.InvalidDataException) { throw; }
                         catch (Exception ex)
                         {
                             LoggingManager.Log($"Error reading avatar file {file}: {ex.Message}", NextGenSoftware.Logging.LogType.Warning);
@@ -109,7 +110,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         try
                         {
                             var jsonContent = await File.ReadAllTextAsync(file);
-                            var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent, AvatarDeserializeSettings);
+                            var avatar = DeserializeStoredProfile<Avatar>(jsonContent);
                             if (avatar != null && avatar.ResetToken != null &&
                                 avatar.ResetToken.Equals(resetToken, StringComparison.Ordinal))
                             {
@@ -120,6 +121,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 return result;
                             }
                         }
+                        catch (System.IO.InvalidDataException) { throw; }
                         catch (Exception ex)
                         {
                             LoggingManager.Log($"Error reading avatar file {file}: {ex.Message}", NextGenSoftware.Logging.LogType.Warning);
@@ -165,7 +167,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         try
                         {
                             var jsonContent = await File.ReadAllTextAsync(file);
-                            var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent, AvatarDeserializeSettings);
+                            var avatar = DeserializeStoredProfile<Avatar>(jsonContent);
                             if (avatar != null && avatar.RefreshTokens != null &&
                                 avatar.RefreshTokens.Any(r => r.Token == refreshToken))
                             {
@@ -176,6 +178,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 return result;
                             }
                         }
+                        catch (System.IO.InvalidDataException) { throw; }
                         catch (Exception ex)
                         {
                             LoggingManager.Log($"Error reading avatar file {file}: {ex.Message}", NextGenSoftware.Logging.LogType.Warning);
@@ -219,13 +222,14 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         try
                         {
                             var jsonContent = await File.ReadAllTextAsync(file);
-                            var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent, AvatarDeserializeSettings);
+                            var avatar = DeserializeStoredProfile<Avatar>(jsonContent);
                             
                             if (avatar != null && (version == 0 || avatar.Version == version))
                             {
                                 avatars.Add(avatar);
                             }
                         }
+                        catch (System.IO.InvalidDataException) { throw; }
                         catch (Exception ex)
                         {
                             // Continue processing other files
@@ -270,7 +274,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                 if (File.Exists(avatarDetailFilePath))
                 {
                     var jsonContent = await File.ReadAllTextAsync(avatarDetailFilePath);
-                    var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(jsonContent, AvatarDeserializeSettings);
+                    var avatarDetail = DeserializeStoredProfile<AvatarDetail>(jsonContent);
                     
                     if (avatarDetail != null && (version == 0 || avatarDetail.Version == version))
                     {
@@ -329,7 +333,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         try
                         {
                             var jsonContent = await File.ReadAllTextAsync(file);
-                            var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(jsonContent, AvatarDeserializeSettings);
+                            var avatarDetail = DeserializeStoredProfile<AvatarDetail>(jsonContent);
                             
                             if (avatarDetail != null && avatarDetail.Email != null && 
                                 avatarDetail.Email.Equals(avatarEmail, StringComparison.OrdinalIgnoreCase) &&
@@ -342,6 +346,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 return result;
                             }
                         }
+                        catch (System.IO.InvalidDataException) { throw; }
                         catch (Exception ex)
                         {
                             LoggingManager.Log($"Error reading avatar detail file {file}: {ex.Message}", NextGenSoftware.Logging.LogType.Warning);
@@ -389,7 +394,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         try
                         {
                             var jsonContent = await File.ReadAllTextAsync(file);
-                            var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(jsonContent, AvatarDeserializeSettings);
+                            var avatarDetail = DeserializeStoredProfile<AvatarDetail>(jsonContent);
                             
                             if (avatarDetail != null && avatarDetail.Username != null && 
                                 avatarDetail.Username.Equals(avatarUsername, StringComparison.OrdinalIgnoreCase) &&
@@ -402,6 +407,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 return result;
                             }
                         }
+                        catch (System.IO.InvalidDataException) { throw; }
                         catch (Exception ex)
                         {
                             LoggingManager.Log($"Error reading avatar detail file {file}: {ex.Message}", NextGenSoftware.Logging.LogType.Warning);
@@ -450,13 +456,14 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         try
                         {
                             var jsonContent = await File.ReadAllTextAsync(file);
-                            var avatarDetail = JsonConvert.DeserializeObject<AvatarDetail>(jsonContent, AvatarDeserializeSettings);
+                            var avatarDetail = DeserializeStoredProfile<AvatarDetail>(jsonContent);
                             
                             if (avatarDetail != null && (version == 0 || avatarDetail.Version == version))
                             {
                                 avatarDetails.Add(avatarDetail);
                             }
                         }
+                        catch (System.IO.InvalidDataException) { throw; }
                         catch (Exception ex)
                         {
                             LoggingManager.Log($"Error reading avatar detail file {file}: {ex.Message}", NextGenSoftware.Logging.LogType.Warning);
