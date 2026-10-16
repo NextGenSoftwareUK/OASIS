@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+Neo4j continueOnError now implements explicitly marked transient descendant partial reads across4graph-read families, matching existing shared warning metadata. Native12/12 passes9s:16scope/syncasync/continue combinations with actual SDK read then injected IOException prove strict original failure vs marked subset/unaffected sibling; cycles remain fatal. Not every transport class/wire outage, routed partial policy/history/pair lifecycle/recovery certification. Initial root-query failures cannot become empty successful reads.
+
 Neo4j selected child reparenting now removes old incoming HAS_CHILD edges in same snapshot/new-edge transaction. Native11/11 passes9s: unselected move attempt preserves old linkage, explicit selected move yields correct parent readback and exactly1incoming edge. Not arbitrary missing-child removal/concurrent moves/history. Fresh814/655method inventory,43operation static checks and Railway pins pass, without equating static inventory to runtime certification. Remaining partial errors/pair lifecycle/recovery/hosted gates stay open.
 
 Neo4j parent/collection/metadata graph reads now reuse native hydration with children/recursion/depth, initial-depth behavior aligned to existing shared provider and root type filtering. Native10/10 passes9s; new8option combinations across3read families + typed/initial-depth/negative cases, prior point/save/policy/commit-fault cases retained. Partial continuation/history/snapshot isolation/concurrent graph mutation/reparent-removal/full routed options remain unverified; no full certification.

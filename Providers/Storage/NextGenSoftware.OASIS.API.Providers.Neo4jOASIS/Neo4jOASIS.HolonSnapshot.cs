@@ -13,9 +13,10 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
 public partial class Neo4jOASIS
 {
-    private async Task<OASISResult<IHolon>> ReadHolonRootAsync(string field, string value, bool children, bool recursive, int maximumDepth)
+    private async Task<OASISResult<IHolon>> ReadHolonRootAsync(string field, string value, bool children, bool recursive, int maximumDepth, bool continueOnError)
     {
         var result = new OASISResult<IHolon>();
+        var failures = new List<string>();
         try
         {
             if (field != "Id" && field != "ProviderKey") throw new ArgumentException("Unknown holon selector.");
@@ -27,7 +28,7 @@ public partial class Neo4jOASIS
                 if (rows.Count == 0) return new OASISResult<IHolon> { IsError = true, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Holon not found in Neo4j." };
                 if (rows.Count != 1) throw new Core.Helpers.StorageLifecycleConflictException("Neo4j holon identity is not unique.");
                 var root = ReadHolonNode(rows[0]["h"].As<Neo4j.Driver.INode>());
-                if (children) await HydrateNativeChildrenAsync(session, root, recursive, maximumDepth, 0, new HashSet<Guid> { root.Id });
+                if (children) await HydrateNativeChildrenAsync(session, root, recursive, maximumDepth, 0, new HashSet<Guid> { root.Id }, continueOnError, failures);
                 result.Result = root;
             }
             result.IsLoaded = true;
@@ -39,14 +40,37 @@ public partial class Neo4jOASIS
                 result.ErrorCode = Core.Helpers.StorageLifecycleConflictException.ErrorCode;
             else if (cause is ArgumentException) result.ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID";
         }
+        return MarkNativePartialRead(result, failures);
+    }
+
+    private static OASISResult<T> MarkNativePartialRead<T>(OASISResult<T> result, List<string> failures)
+    {
+        if (result.IsError || failures.Count == 0) return result;
+        result.IsWarning = true;
+        result.Message = $"Returned partial holon data; {failures.Count} descendant reads failed.";
+        result.MetaData ??= new Dictionary<string, string>();
+        result.MetaData["partialHolonReads"] = "true";
+        result.MetaData["failedHolonReadCount"] = failures.Count.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        result.MetaData["failedHolonReads"] = OasisJson.Serialize(failures.ToArray());
         return result;
     }
 
     private static async Task HydrateNativeChildrenAsync(IAsyncSession session, IHolon parent,
-        bool recursive, int maximumDepth, int depth, HashSet<Guid> visited)
+        bool recursive, int maximumDepth, int depth, HashSet<Guid> visited,
+        bool continueOnError = false, List<string> failures = null)
     {
-        var rows = await (await session.RunAsync("MATCH (p:Holon {Id:$id})-[:HAS_CHILD]->(h:Holon) RETURN h",
-            new { id = parent.Id.ToString() })).ToListAsync();
+        List<IRecord> rows;
+        try
+        {
+            rows = await (await session.RunAsync("MATCH (p:Holon {Id:$id})-[:HAS_CHILD]->(h:Holon) RETURN h",
+                new { id = parent.Id.ToString() })).ToListAsync();
+        }
+        catch (Exception cause) when (continueOnError && failures != null && cause is not InvalidDataException
+            && (cause is IOException || cause is TimeoutException || cause is ServiceUnavailableException || cause is SessionExpiredException))
+        {
+            failures.Add(parent.Id + " (" + cause.GetType().Name + ")");
+            return;
+        }
         var selected = new List<IHolon>();
         foreach (var row in rows)
         {
@@ -54,7 +78,7 @@ public partial class Neo4jOASIS
             if (!visited.Add(child.Id)) throw new Core.Helpers.StorageLifecycleConflictException("Neo4j selected graph has a repeated identity or cycle.");
             if (child.ParentHolonId != parent.Id) throw new Core.Helpers.StorageLifecycleConflictException("Neo4j child snapshot conflicts with its native parent edge.");
             if (recursive && (maximumDepth == 0 || depth + 1 < maximumDepth))
-                await HydrateNativeChildrenAsync(session, child, true, maximumDepth, depth + 1, visited);
+                await HydrateNativeChildrenAsync(session, child, true, maximumDepth, depth + 1, visited, continueOnError, failures);
             selected.Add(child);
         }
         parent.Children = selected;

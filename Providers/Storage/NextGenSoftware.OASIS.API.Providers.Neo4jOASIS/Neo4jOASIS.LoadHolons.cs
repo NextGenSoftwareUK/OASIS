@@ -18,7 +18,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
     public partial class Neo4jOASIS
     {
         public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => ReadHolonRootAsync("Id", id.ToString(), loadChildren, recursive, maxChildDepth);
+            => ReadHolonRootAsync("Id", id.ToString(), loadChildren, recursive, maxChildDepth, continueOnError);
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
@@ -26,7 +26,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         }
 
         public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => ReadHolonRootAsync("ProviderKey", providerKey, loadChildren, recursive, maxChildDepth);
+            => ReadHolonRootAsync("ProviderKey", providerKey, loadChildren, recursive, maxChildDepth, continueOnError);
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
@@ -36,6 +36,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var response = new OASISResult<IEnumerable<IHolon>>();
+            var failures = new List<string>();
             try
             {
                 // REAL Neo4j implementation for loading holons for parent by ID
@@ -44,7 +45,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
                 {
                     OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
+                    return MarkNativePartialRead(response, failures);
                 }
 
                 var query = "MATCH (p:Holon {Id: $parentId})-[:HAS_CHILD]->(h:Holon) RETURN h";
@@ -63,7 +64,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                         if (child.Id == id || child.ParentHolonId != id || holons.Any(existing => existing.Id == child.Id))
                             throw new StorageLifecycleConflictException("Neo4j native child identity or parent edge is inconsistent.");
                         if (loadChildren && recursive && (maxChildDepth == 0 || curentChildDepth + 1 < maxChildDepth))
-                            await HydrateNativeChildrenAsync(session, child, true, maxChildDepth, curentChildDepth + 1, new HashSet<Guid> { id, child.Id });
+                            await HydrateNativeChildrenAsync(session, child, true, maxChildDepth, curentChildDepth + 1, new HashSet<Guid> { id, child.Id }, continueOnError, failures);
                         holons.Add(child);
                     }
                     
@@ -78,7 +79,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 response.Exception = ex;
                 OASISErrorHandling.HandleError(ref response, $"Error loading holons for parent from Neo4j: {ex.Message}");
             }
-            return response;
+            return MarkNativePartialRead(response, failures);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -123,6 +124,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var response = new OASISResult<IEnumerable<IHolon>>();
+            var failures = new List<string>();
             try
             {
                 // REAL Neo4j implementation for loading holons by metadata pairs
@@ -131,7 +133,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
                 {
                     OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
+                    return MarkNativePartialRead(response, failures);
                 }
 
                 var planned = MetadataLookupQuery(metaKeyValuePairs, metaKeyValuePairMatchMode, type);
@@ -150,7 +152,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                         var holon = ReadHolonNode(node);
                         
                         if (loadChildren)
-                            await HydrateNativeChildrenAsync(session, holon, recursive, maxChildDepth, curentChildDepth, new HashSet<Guid> { holon.Id });
+                            await HydrateNativeChildrenAsync(session, holon, recursive, maxChildDepth, curentChildDepth, new HashSet<Guid> { holon.Id }, continueOnError, failures);
                         holons.Add(holon);
                     }
                     
@@ -165,7 +167,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 response.Exception = ex;
                 OASISErrorHandling.HandleError(ref response, $"Error loading holons by metadata pairs from Neo4j: {ex.Message}");
             }
-            return response;
+            return MarkNativePartialRead(response, failures);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
@@ -176,6 +178,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             var response = new OASISResult<IEnumerable<IHolon>>();
+            var failures = new List<string>();
             try
             {
                 // REAL Neo4j implementation for loading all holons
@@ -184,7 +187,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
                 {
                     OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
+                    return MarkNativePartialRead(response, failures);
                 }
 
                 var query = "MATCH (h:Holon) WHERE $type = 'All' OR h.HolonType = $type RETURN h";
@@ -199,7 +202,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                         var node = record["h"].As<Neo4j.Driver.INode>();
                         var holon = ReadHolonNode(node);
                         if (loadChildren)
-                            await HydrateNativeChildrenAsync(session, holon, recursive, maxChildDepth, curentChildDepth, new HashSet<Guid> { holon.Id });
+                            await HydrateNativeChildrenAsync(session, holon, recursive, maxChildDepth, curentChildDepth, new HashSet<Guid> { holon.Id }, continueOnError, failures);
                         holons.Add(holon);
                     }
                     
@@ -214,7 +217,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 response.Exception = ex;
                 OASISErrorHandling.HandleError(ref response, $"Error loading all holons from Neo4j: {ex.Message}");
             }
-            return response;
+            return MarkNativePartialRead(response, failures);
         }
 
         public override OASISResult<IEnumerable<IHolon>> LoadAllHolons(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
