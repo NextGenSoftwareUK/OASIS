@@ -504,42 +504,19 @@ public partial class Web3CoreOASISBaseProvider
 
     public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
     {
-        return GetBalanceAsync(request).Result;
+        return GetBalanceAsync(request).GetAwaiter().GetResult();
     }
 
-    public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
-    {
-        var result = new OASISResult<double>();
-        string errorMessage = "Error in GetBalanceAsync method in Web3CoreOASIS. Reason: ";
-
-        try
+    public Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
+        =>NextGenSoftware.OASIS.Providers.Shared.Evm.EvmWalletBalance.ReadAsync(request,async ()=>
         {
             if (!IsProviderActivated || _web3Client == null)
             {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
+                var activation=await ActivateProviderAsync();
+                if(activation.IsError) return new OASISResult<Web3>{IsError=true,Message=activation.Message,Exception=activation.Exception,ErrorCode=activation.ErrorCode};
             }
-
-            if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
-            {
-                OASISErrorHandling.HandleError(ref result, "Wallet address is required");
-                return result;
-            }
-
-            // Get native token balance (ETH, BNB, etc.)
-            // Note: ERC20 token balance would require a separate TokenAddress parameter
-            var balance = await _web3Client.Eth.GetBalance.SendRequestAsync(request.WalletAddress);
-            result.Result = (double)UnitConversion.Convert.FromWei(balance.Value);
-
-            result.IsError = false;
-            result.Message = "Balance retrieved successfully.";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-        return result;
-    }
+            return new OASISResult<Web3>{Result=_web3Client};
+        });
 
     public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request)
     {
