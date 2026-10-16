@@ -134,7 +134,7 @@ public partial class EthereumOASISIntegrationTests
     public async Task SharedEvmMintUsesRequestedContractRecipientUnitsAndNativeEffects(bool synchronous,bool noop)
     {
         var (storage,address)=await CreateActivatedProviderAsync();
-        var provider=new SharedMintFixture(Host,"0x"+new string('2',64),address);
+        var provider=new SharedMintFixture(Host,"0x"+new string('2',64),address){MultipleWallets=!noop};
         try
         {
             foreach(var decimals in noop ? new byte[]{6}:new byte[]{6,30})
@@ -159,18 +159,22 @@ public partial class EthereumOASISIntegrationTests
                     var receipt=await new Web3(Host).Eth.Transactions.GetTransactionReceipt.SendRequestAsync(minted.Result.TransactionResult);Assert.IsTrue(receipt.Succeeded());
                     var native=await new Web3(Host).Eth.Transactions.GetTransactionByHash.SendRequestAsync(minted.Result.TransactionResult);
                     Assert.AreEqual(token.Address.ToLowerInvariant(),native.To.ToLowerInvariant());
+                    Assert.AreEqual(new Nethereum.Web3.Accounts.Account(PrivateKey,ChainId).Address.ToLowerInvariant(),native.From.ToLowerInvariant());
                 }
                 Assert.AreEqual(before+(noop ? BigInteger.Zero:raw),await token.GetFunction("balanceOf").CallAsync<BigInteger>(recipient));
                 Assert.AreEqual(supply+(noop ? BigInteger.Zero:raw),await token.GetFunction("totalSupply").CallAsync<BigInteger>());
             }
+            Assert.AreEqual(noop ? 0:2,provider.DefaultReads,"Only multiple distinct authorized accounts require default selection.");
         }
         finally {await provider.DeActivateProviderAsync();await storage.DeActivateProviderAsync();}
     }
 
     private sealed class SharedMintFixture(string host,string configuredKey,string address):Web3CoreOASISBaseProvider(host,configuredKey,address,31337)
     {
-        public Guid Avatar;
+        public Guid Avatar;public bool MultipleWallets;public int DefaultReads;
         protected override OASISResult<List<string>> ResolveErc20MintSigningKeys(Guid avatarId)
-        {Avatar=avatarId;return new OASISResult<List<string>>{Result=new(){PrivateKey}};}
+        {Avatar=avatarId;return new OASISResult<List<string>>{Result=MultipleWallets ? new(){"0x"+new string('2',64),PrivateKey,PrivateKey[2..]}:new(){PrivateKey}};}
+        protected override Task<OASISResult<string>> ResolveDefaultErc20MintWalletAsync(Guid avatarId)
+        {Assert.AreEqual(Avatar,avatarId);DefaultReads++;return Task.FromResult(new OASISResult<string>{Result=new Nethereum.Web3.Accounts.Account(PrivateKey,ChainId).Address});}
     }
 }
