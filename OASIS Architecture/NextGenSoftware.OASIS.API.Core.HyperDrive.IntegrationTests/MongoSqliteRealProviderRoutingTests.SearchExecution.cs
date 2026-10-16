@@ -19,9 +19,9 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
         foreach(var comparison in Enum.GetValues<SearchOperatorType>())
         {
             ISearchGroupBase condition=date
-                ? new SearchDateGroup {SearchHolons=true,Date=DateTime.UtcNow.AddYears(1),DateOperator=comparison,
+                ? new SearchDateGroup {SearchHolons=true,HolonType=HolonType.All,Date=DateTime.UtcNow.AddYears(1),DateOperator=comparison,
                     PreviousSearchGroupOperator=SearchParamGroupOperator.And,HolonSearchParams=new SearchHolonParams {CreatedDate=true}}
-                : new SearchNumberGroup {SearchHolons=true,Number=root.Version,NumberOperator=comparison,
+                : new SearchNumberGroup {SearchHolons=true,HolonType=HolonType.All,Number=root.Version,NumberOperator=comparison,
                     PreviousSearchGroupOperator=SearchParamGroupOperator.And,HolonSearchParams=new SearchHolonParams {Version=true}};
             var request=new StorageOperationRequest {Operation="Search",PreferredProvider=ProviderType.MongoDBOASIS,
                 SearchParams=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new() {Text(),condition}}};
