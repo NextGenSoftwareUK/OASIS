@@ -10,6 +10,71 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 public class Neo4jNativeAvatarTests
 {
     [TestMethod]
+    public async Task OwnedNativeHolonRootSnapshotsRoundtripAcrossSingleBulkSyncAsync()
+    {
+        const string uri = "bolt://127.0.0.1:17687";
+        Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
+        using var raw = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
+        using (var preflight = raw.AsyncSession())
+        {
+            var count = await (await preflight.RunAsync("MATCH (h:Holon) RETURN count(h) AS count")).SingleAsync();
+            Assert.AreEqual(0L, count["count"].As<long>(), "Retained holon evidence exists; no overwrite allowed.");
+        }
+        var provider = new Provider(uri, "neo4j", "oasis-local-test-only");
+        try
+        {
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            for (var mode = 0; mode < 4; mode++)
+            {
+                var roots = Enumerable.Range(0, mode < 2 ? 1 : 2).Select(index => {
+                    var record = new Holon { Id = Guid.NewGuid(), Name = "owned root " + index,
+                        Description = "full root snapshot", ParentHolonId = Guid.NewGuid(),
+                        Version = 5, VersionId = Guid.NewGuid(), IsPublic = false,
+                        HolonType = NextGenSoftware.OASIS.API.Core.Enums.HolonType.Holon };
+                    record.MetaData["biome"] = "park";
+                    return record;
+                }).ToList();
+                if (mode < 2)
+                {
+                    var saved = mode == 0 ? await provider.SaveHolonAsync(roots[0], saveChildren:false)
+                        : provider.SaveHolon(roots[0], saveChildren:false);
+                    Assert.IsFalse(saved.IsError, saved.Message); Assert.IsTrue(saved.IsSaved);
+                }
+                else
+                {
+                    var saved = mode == 2 ? await provider.SaveHolonsAsync(roots, saveChildren:false)
+                        : provider.SaveHolons(roots, saveChildren:false);
+                    Assert.IsFalse(saved.IsError, saved.Message); Assert.IsTrue(saved.IsSaved);
+                    Assert.AreEqual(roots.Count, saved.Result.Count());
+                }
+                foreach (var source in roots)
+                {
+                    foreach (var read in new[] { await provider.LoadHolonAsync(source.Id, loadChildren:false),
+                        provider.LoadHolon(source.Id, loadChildren:false),
+                        await provider.LoadHolonAsync(source.Id.ToString(), loadChildren:false),
+                        provider.LoadHolon(source.Id.ToString(), loadChildren:false) })
+                    {
+                        Assert.IsFalse(read.IsError, read.Message); Assert.IsTrue(read.IsLoaded);
+                        Assert.AreEqual(source.ParentHolonId, read.Result.ParentHolonId);
+                        Assert.AreEqual(source.VersionId, read.Result.VersionId); Assert.AreEqual(5, read.Result.Version);
+                        Assert.AreEqual("park", read.Result.MetaData["biome"]);
+                        Assert.AreEqual("full root snapshot", read.Result.Description);
+                    }
+                }
+                var all = await provider.LoadAllHolonsAsync(loadChildren:false);
+                Assert.IsFalse(all.IsError, all.Message); Assert.IsTrue(all.IsLoaded); Assert.AreEqual(roots.Count, all.Result.Count());
+                roots[0].Description = null; roots[0].MetaData.Clear();
+                Assert.IsFalse((await provider.SaveHolonAsync(roots[0], saveChildren:false)).IsError);
+                var cleared = await provider.LoadHolonAsync(roots[0].Id, loadChildren:false);
+                Assert.IsFalse(cleared.IsError, cleared.Message); Assert.IsNull(cleared.Result.Description); Assert.AreEqual(0, cleared.Result.MetaData.Count);
+                using var cleanup = raw.AsyncSession();
+                await (await cleanup.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h", new { ids = roots.Select(record => record.Id.ToString()).ToList() })).ConsumeAsync();
+            }
+        }
+        finally { await provider.DeActivateProviderAsync(); }
+    }
+
+    [TestMethod]
     public async Task OwnedNativeAvatarDetailsPreserveInventoryTrackingAndNullClearing()
     {
         const string uri = "bolt://127.0.0.1:17687";
