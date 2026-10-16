@@ -19,6 +19,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public InventoryItemModel(){}
         public InventoryItemModel(NextGenSoftware.OASIS.API.Core.Interfaces.IInventoryItem source){
             this.ItemId = source.Id;
+            this.PublishedSTARNETHolon = source.PublishedSTARNETHolon == null ? null : (byte[])source.PublishedSTARNETHolon.Clone();
             this.Image2D = source.Image2D == null ? null : (byte[])source.Image2D.Clone();
             this.Object3D = source.Object3D == null ? null : (byte[])source.Object3D.Clone();
             this.Image2DURI = source.Image2DURI;
@@ -49,6 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public InventoryItem GetInventoryItem(){
             InventoryItem item = new InventoryItem();
             item.Id = this.ItemId;
+            item.PublishedSTARNETHolon = this.PublishedSTARNETHolon == null ? null : (byte[])this.PublishedSTARNETHolon.Clone();
             item.Image2D = this.Image2D == null ? null : (byte[])this.Image2D.Clone();
             item.Object3D = this.Object3D == null ? null : (byte[])this.Object3D.Clone();
             item.Image2DURI = this.Image2DURI;

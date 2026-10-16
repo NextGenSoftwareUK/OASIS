@@ -13,6 +13,30 @@ public partial class SQLLiteDBOASISIntegrationTests
 {
     [Theory]
     [InlineData(true)] [InlineData(false)]
+    public async Task LegacyInventoryPublishedPackageUpgradePreservesItem(bool synchronous)
+    {
+        var item=new InventoryItem {Id=Guid.NewGuid(),Name="legacy-package",Quantity=4};
+        var source=new AvatarDetail {Id=Guid.NewGuid(),Username="legacy-package",Inventory=new List<IInventoryItem>{item}};
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        (await provider.SaveAvatarDetailAsync(source)).IsError.Should().BeFalse();
+        using(var control=new DataContext(TestConnectionString))
+            control.Database.ExecuteSqlRaw("ALTER TABLE AvatarInventory DROP COLUMN PublishedSTARNETHolon");
+        var activated=synchronous ? provider.ActivateProvider():await provider.ActivateProviderAsync();
+        activated.IsError.Should().BeFalse(activated.Message);
+        var loaded=(await provider.LoadAvatarDetailAsync(source.Id)).Result.Inventory.Should().ContainSingle().Subject;
+        loaded.Id.Should().Be(item.Id);loaded.Quantity.Should().Be(4);loaded.Name.Should().Be(item.Name);
+        loaded.PublishedSTARNETHolon.Should().BeNull();
+        item.PublishedSTARNETHolon=new byte[] {0,255,19};
+        var saved=synchronous ? provider.SaveAvatarDetail(source):await provider.SaveAvatarDetailAsync(source);
+        saved.IsError.Should().BeFalse(saved.Message);
+        using var reader=new SQLLiteDBOASIS(TestConnectionString);
+        (await reader.ActivateProviderAsync()).IsError.Should().BeFalse();
+        (await reader.LoadAvatarDetailAsync(source.Id)).Result.Inventory.Single().PublishedSTARNETHolon.Should().Equal(item.PublishedSTARNETHolon);
+    }
+
+    [Theory]
+    [InlineData(true)] [InlineData(false)]
     public async Task LegacyInventoryMediaUpgradePreservesItem(bool synchronous)
     {
         var item=new InventoryItem {Id=Guid.NewGuid(),Name="legacy-media-item",Quantity=7,
@@ -61,6 +85,7 @@ public partial class SQLLiteDBOASISIntegrationTests
             item.Quantity=quantity;
             item.Image2D=quantity==7 ? null:new byte[] {0,17,255};
             item.Object3D=quantity==7 ? null:new byte[] {255,0,23,41};
+            item.PublishedSTARNETHolon=quantity==7 ? null:new byte[] {19,0,255,42};
             item.Image2DURI=quantity==7 ? null:new Uri("https://example.test/seed.png?variant="+quantity);
             item.Object3DURI=quantity==7 ? null:new Uri("models/seed-"+quantity+".glb",UriKind.Relative);
             source.Inventory=quantity==0 ? new List<IInventoryItem>():new List<IInventoryItem>{item};
@@ -77,6 +102,7 @@ public partial class SQLLiteDBOASISIntegrationTests
                 actual.Id.Should().Be(item.Id);actual.Quantity.Should().Be(quantity);
                 actual.Image2D.Should().BeEquivalentTo(item.Image2D,options=>options.WithStrictOrdering());
                 actual.Object3D.Should().BeEquivalentTo(item.Object3D,options=>options.WithStrictOrdering());
+                actual.PublishedSTARNETHolon.Should().BeEquivalentTo(item.PublishedSTARNETHolon,options=>options.WithStrictOrdering());
                 (actual.Image2DURI?.OriginalString).Should().Be(item.Image2DURI?.OriginalString);
                 (actual.Object3DURI?.OriginalString).Should().Be(item.Object3DURI?.OriginalString);
                 actual.Name.Should().Be(item.Name);actual.Description.Should().Be(item.Description);
