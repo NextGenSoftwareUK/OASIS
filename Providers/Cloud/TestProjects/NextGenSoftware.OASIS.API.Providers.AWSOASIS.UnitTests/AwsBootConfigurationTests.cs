@@ -12,6 +12,21 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.UnitTests;
 [DoNotParallelize]
 public sealed class AwsBootConfigurationTests
 {
+    [DataTestMethod]
+    [DataRow("Amazon.SecurityToken.AmazonSecurityTokenServiceClient, AWSSDK.SecurityToken")]
+    [DataRow("Amazon.SSO.AmazonSSOClient, AWSSDK.SSO")]
+    [DataRow("Amazon.SSOOIDC.AmazonSSOOIDCClient, AWSSDK.SSOOIDC")]
+    public void OptionalCredentialSdkClientsAreAvailableWithoutNetwork(string typeName)
+    {
+        var type=Type.GetType(typeName,throwOnError:false);
+        Assert.IsNotNull(type,"Configured credential paths must not fail because their official SDK assembly is absent.");
+        Assert.IsTrue(typeof(AmazonServiceClient).IsAssignableFrom(type));
+        var constructor=type.GetConstructor(new[] {typeof(AWSCredentials),typeof(Amazon.RegionEndpoint)});
+        Assert.IsNotNull(constructor);
+        using var client=(AmazonServiceClient)constructor.Invoke(new object[] {new BasicAWSCredentials("OwnedSdkOnly","owned-synthetic-secret"),Amazon.RegionEndpoint.USEast1});
+        Assert.IsNotNull(client.Config);
+    }
+
     private static AmazonDynamoDBClient Client(AWSOASIS provider) => (AmazonDynamoDBClient)
         typeof(NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.DynamoDBOASIS).GetField("_client",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(provider)!;
 
