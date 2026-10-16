@@ -10,6 +10,29 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class CallerPublicationTests
 {
+    private sealed class PendingBatchWrite:System.IO.IOException,INativeMutationReconciliationRequired
+    {public string OriginalTransactionId=>"owned-original-pending";}
+
+    [DataTestMethod]
+    [DataRow(false,false,false)] [DataRow(true,false,false)] [DataRow(false,false,true)] [DataRow(true,false,true)]
+    [DataRow(false,true,false)] [DataRow(true,true,false)] [DataRow(false,true,true)] [DataRow(true,true,true)]
+    public async Task BatchRetainsEarlierAcknowledgementsOnLaterFailure(bool synchronous,bool unknown,bool continueOnError)
+    {
+        var first=new Holon {Id=Guid.NewGuid()};var second=new Holon {Id=Guid.NewGuid()};var last=new Holon {Id=Guid.NewGuid()};
+        var key="oasis/holon/"+second.Id.ToString("N");Exception cause=unknown ? new PendingBatchWrite():new System.IO.IOException("owned later read failure");
+        var backend=new InMemoryBackend();if(unknown) {backend.FailPutKey=key;backend.FailPutException=cause;} else {backend.FailGetKey=key;backend.FailGetException=cause;}
+        var provider=new TestProvider(backend);var result=synchronous ? provider.SaveHolons(new[] {first,second,last},continueOnError:continueOnError)
+            :await provider.SaveHolonsAsync(new[] {first,second,last},continueOnError:continueOnError);
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsTrue(NativeMutationReconciliation.IsRequired(result.Exception));
+        var marker=(KeyValuePartialMutationException)result.Exception;Assert.AreSame(cause,marker.InnerException);
+        var expected=new System.Collections.Generic.List<string> {"oasis/holon/"+first.Id.ToString("N")};
+        if(!unknown && continueOnError) expected.Add("oasis/holon/"+last.Id.ToString("N"));
+        CollectionAssert.AreEquivalent(expected,marker.AcknowledgedKeys.ToArray());
+        Assert.IsTrue(backend.Items.ContainsKey(expected[0]));Assert.IsFalse(backend.Items.ContainsKey(key));
+        Assert.AreEqual(!unknown && continueOnError,backend.Items.ContainsKey("oasis/holon/"+last.Id.ToString("N")));
+        if(unknown) CollectionAssert.AreEqual(new[] {"owned-original-pending"},NativeMutationReconciliation.OriginalTransactionIds(marker).ToArray());
+    }
+
     [DataTestMethod]
     [DataRow(true,true,0,0,3)] [DataRow(true,true,1,0,1)] [DataRow(true,true,2,0,2)]
     [DataRow(true,false,0,0,2)] [DataRow(false,true,0,0,1)] [DataRow(true,false,0,1,1)]
