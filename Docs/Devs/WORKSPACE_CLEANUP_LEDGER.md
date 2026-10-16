@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 paired hard-delete integrity reused existing shared outputs/in-memory backend. Baseline2pass/2fail retained in paired-delete-integrity-before-current.trx; finalShared249/249pass1s. Tests require corrupt stored records remain unchanged. No runtime/node/download/install/clone/new environment or protected ledger/source/userdata/credential removal; fixed compact reports reused.
+
 2026-10-16 shared paired soft-delete fix reused existing SDK/build outputs, in-memory backend and fixed guarded local-routing disk/SQLite fixture. Four baseline failures retained in paired-soft-delete-before-current.trx; Shared245/245pass1s/local routing102/102pass11s, normal fixture teardown. No runtime/node/download/install/clone/environment or ledger/source/userdata/credential removal; compact fixed reports reused. Soft-delete marks records without removing their data.
 
 2026-10-16 shared save ID/key validation reused existing shared/integration outputs and fixed guarded disk/SQLite fixture. Six baseline failures retained in miskeyed-save-before-current.trx; Shared241/241pass1s/local routing102/102pass10s. Normal local routing fixture disposal completed. No new environment/download/install/clone/runtime/node or protected ledger/source/userdata/credential removal; compact reports overwritten at fixed paths.
