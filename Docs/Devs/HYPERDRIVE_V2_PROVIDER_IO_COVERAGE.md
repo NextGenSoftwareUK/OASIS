@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-16 Core96ba97f preserves async default-wallet storage/identity lookup Exception/ErrorCode through ID/username/email wrappers. Five new controlled single-provider boundary cases, full Core624/624pass2s. Failover disabled only in these boundary tests; initial622pass2fail revealed independent exhausted-failover exception loss. Native/hosted and exhausted aggregate-cause routing remain open, not certified by wallet tests; no legacy expansion.
+
 2026-10-16 Core1b2bce1 default-wallet boundary: ID/username/email reject multiple default flags before decryption, preserving encrypted records/flags and returning no wallet. Three red-before cases now pass; full Core619/619pass2s. Single/missing-default semantics retained. Ethereum/shared EVM selectors consume this existing manager boundary. This is controlled storage-fixture manager coverage, not live hosted key admission or atomic default-write proof.
 
 Multiwallet native follow-up:178/178localEVMpass34s,4/4Ethereum selectionpass97ms,4/4nativeWeb3Corepass42s and59Solidityassertions. Shared sync/async mint checks actual selected signer with decoy-first/duplicate-alias input, exact6/30decimal supply/recipient effects. Current native rerun completed; KeyManager/default lookup seams remain controlled (not hosted store authorization proof), existing duplicate-default behavior remains open.
