@@ -6,6 +6,7 @@ New-Item -ItemType Directory -Force -Path $work | Out-Null
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 $started=$false
 $prior=$env:OASIS_OWNED_NEO4J_URI
+$priorWork=$env:OASIS_OWNED_NEO4J_WORK
 $freeBefore=(Get-PSDrive C).Free
 try {
     $state=(& wsl -d Ubuntu -u root -- podman inspect oasis-neo4j --format '{{.State.Status}} {{.Image}}') -join ''
@@ -13,9 +14,11 @@ try {
         throw 'Exact retained stopped Neo4j container required; no download/replacement attempted.'
     }
     if(Get-NetTCPConnection -State Listen -LocalPort 17687 -ErrorAction SilentlyContinue){throw 'Owned Bolt port is already occupied.'}
+    if(Get-NetTCPConnection -State Listen -LocalPort 17688 -ErrorAction SilentlyContinue){throw 'Owned simulated outage port is occupied.'}
     $provider=Join-Path $taskRoot 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.csproj'
     $project=Join-Path $taskRoot 'Providers/Storage/TestProjects/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests.csproj'
-    foreach($path in $provider,$project){
+    $sqlite=Join-Path $taskRoot 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj'
+    foreach($path in $sqlite,$provider,$project){
         & dotnet build $path --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if($LASTEXITCODE){throw 'Neo4j producer/consumer build failed.'}
     }
@@ -30,6 +33,7 @@ try {
     } while(!$ready -and [DateTime]::UtcNow -lt $deadline)
     if(!$ready){throw 'Owned Neo4j did not become ready; no test submitted.'}
     $env:OASIS_OWNED_NEO4J_URI='bolt://127.0.0.1:17687'
+    $env:OASIS_OWNED_NEO4J_WORK=$work
     $testStarted=[DateTime]::UtcNow
     & dotnet test $project --no-build --no-restore /m:2 /nr:false --filter FullyQualifiedName~Neo4jNativeAvatarTests --logger 'trx;LogFileName=neo4j-native-current.trx' --results-directory $work -v:q
     if($LASTEXITCODE){throw 'Native Neo4j test failed; preserve database for inspection.'}
@@ -37,7 +41,7 @@ try {
     if($report.LastWriteTimeUtc -lt $testStarted){throw 'Native Neo4j report is stale.'}
     [xml]$evidence=Get-Content -LiteralPath $report.FullName
     $counts=$evidence.SelectSingleNode("//*[local-name()='Counters']")
-    if(!$counts -or [int]$counts.total -ne 7 -or [int]$counts.passed -ne 7 -or [int]$counts.notExecuted -ne 0){throw 'Exactly seven fresh native cases, no skips, required.'}
+    if(!$counts -or [int]$counts.total -ne 8 -or [int]$counts.passed -ne 8 -or [int]$counts.notExecuted -ne 0){throw 'Exactly eight fresh native cases, no skips, required.'}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
     try {
@@ -47,6 +51,7 @@ try {
         }
     } finally {
         [Environment]::SetEnvironmentVariable('OASIS_OWNED_NEO4J_URI',$prior)
+        [Environment]::SetEnvironmentVariable('OASIS_OWNED_NEO4J_WORK',$priorWork)
         $lease.Dispose()
     }
 }
