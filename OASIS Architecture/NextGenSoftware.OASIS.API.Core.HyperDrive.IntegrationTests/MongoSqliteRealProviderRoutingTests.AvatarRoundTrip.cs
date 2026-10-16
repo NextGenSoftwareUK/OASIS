@@ -20,9 +20,9 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
         var avatars=database.GetCollection<NativeAvatar>("Avatar");var details=database.GetCollection<NativeDetail>("AvatarDetail");
         try
         {
-            var profile=new Avatar {Id=id,Username=name,Email=name+"@test.local",FirstName="preserve",VersionId=profileVersion,
+            var profile=new Avatar {Id=id,Username=name,Email=name+"@test.local",FirstName="preserve",VersionId=profileVersion,IsPublic=true,
                 AvatarType=new EnumValue<AvatarType>(AvatarType.User),MetaData=new() {{"profile-marker","retained"},{"integer",42},{"flag",true}}};
-            var detail=new AvatarDetail {Id=id,Username=name,Email=profile.Email,VersionId=detailVersion,Karma=101,XP=202,
+            var detail=new AvatarDetail {Id=id,Username=name,Email=profile.Email,VersionId=detailVersion,Karma=101,XP=202,IsPublic=true,
                 MetaData=new() {{"detail-marker","retained"}},Model3D="model://owned-fixture",DimensionLevel=DimensionLevel.Fifth,SubDimensionLevel=SubDimensionLevel.Seventh,
                 Attributes=new AvatarAttributes {Strength=11,Speed=12,Dexterity=13,Toughness=14,Wisdom=15,Intelligence=16,Magic=17,Vitality=18,Endurance=19},
                 DimensionLevelIds=new Dictionary<DimensionLevel,Guid> {{DimensionLevel.Third,Guid.NewGuid()},{DimensionLevel.Fifth,Guid.NewGuid()}},
@@ -41,17 +41,19 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 loaded.IsError.Should().BeFalse(loaded.Message);loaded.Result.MetaData.Should().ContainKey("profile-marker").WhoseValue.Should().Be("retained");
                 loaded.Result.MetaData["integer"].ToString().Should().Be("42");loaded.Result.MetaData["flag"].Should().Be(true);
                 loaded.Result.VersionId.Should().Be(profileVersion);
+                loaded.Result.IsPublic.Should().Be(pass==0);
                 var loadedDetail=synchronous ? mongo.LoadAvatarDetail(id):await mongo.LoadAvatarDetailAsync(id);
                 loadedDetail.IsError.Should().BeFalse(loadedDetail.Message);loadedDetail.Result.VersionId.Should().Be(detailVersion);
                 loadedDetail.Result.MetaData.Should().ContainKey("detail-marker").WhoseValue.Should().Be("retained");
                 loadedDetail.Result.Karma.Should().Be(101);loadedDetail.Result.XP.Should().Be(202);
+                loadedDetail.Result.IsPublic.Should().Be(pass==0);
                 loadedDetail.Result.Model3D.Should().Be(detail.Model3D);
                 loadedDetail.Result.DimensionLevel.Should().Be(detail.DimensionLevel);loadedDetail.Result.SubDimensionLevel.Should().Be(detail.SubDimensionLevel);
                 loadedDetail.Result.Attributes.Should().BeEquivalentTo(detail.Attributes);
                 loadedDetail.Result.DimensionLevelIds.Should().BeEquivalentTo(detail.DimensionLevelIds);
                 loadedDetail.Result.HeartRateData.Should().BeEquivalentTo(detail.HeartRateData,options=>options.WithStrictOrdering());
                 // A normal profile/detail edit must not erase identity or unrelated metadata.
-                loaded.Result.FirstName="edited";loadedDetail.Result.XP=202;
+                loaded.Result.FirstName="edited";loadedDetail.Result.XP=202;loaded.Result.IsPublic=false;loadedDetail.Result.IsPublic=false;
                 (synchronous ? mongo.SaveAvatar(loaded.Result):await mongo.SaveAvatarAsync(loaded.Result)).IsError.Should().BeFalse();
                 (synchronous ? mongo.SaveAvatarDetail(loadedDetail.Result):await mongo.SaveAvatarDetailAsync(loadedDetail.Result)).IsError.Should().BeFalse();
             }

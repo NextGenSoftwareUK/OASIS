@@ -21,6 +21,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public string LocalProviderKey { get; set; }
         public string ProviderKeysJson { get; set; } = "{}";
         public string MetaDataJson { get; set; } = "{}";
+        public bool IsPublic { get; set; }
 
         public AvatarType AvatarType { get; set;}
         public HolonType HolonType { get; set;}
@@ -117,6 +118,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             
             this.Version=source.Version;
             this.IsActive=source.IsActive;
+            this.IsPublic=source.IsPublic;
             this.IsChanged = source.IsChanged;
             this.IsNewHolon = source.IsNewHolon;
 
@@ -193,6 +195,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             
             item.Version=this.Version;
             item.IsActive=this.IsActive;
+            item.IsPublic=this.IsPublic;
             item.IsChanged = this.IsChanged;
             item.IsNewHolon = this.IsNewHolon;
 
