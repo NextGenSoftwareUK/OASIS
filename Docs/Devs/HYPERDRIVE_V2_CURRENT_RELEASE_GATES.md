@@ -1,5 +1,21 @@
 # HyperDrive V2 current release gates
 
+## Current gate re-audit — 2026-10-16, parent19295c6a6
+
+The latest direct nearby-interface corrections do not close V2 routing or release certification. Fresh read-only checks:
+
+| Gate | Authoritative outcome | Required next work |
+| --- | --- | --- |
+| WEB4 source route inventory | PASS:693 actions,599 classified provider/external-manager actions | Authenticated functional evidence for the actual relevant routes; classifications are not runtime tests |
+| Core public manager inventory | PASS:814 methods,655 provider-backed/delegating | Complete operation/interface execution matrix, not a passing source scanner |
+| Railway manifest/Dockerfiles/committed gitlinks | PASS | Seven immutable pinned publishes and deployed acceptance still required |
+| Actual local pinned-source checkouts | FAIL | Preserve concurrent edits; reconcile approved dependency checkouts before immutable build claims |
+| Nearby through V2 | NOT IMPLEMENTED: StorageOperationRequest has no coordinate/radius fields; synchronous/asynchronous storage dispatch switches have no GetAvatarsNearMe/GetHolonsNearMe cases | Add the request/dispatch contract, pre-routing validation, capability handling and real policy tests before calling the direct nearby work V2 support |
+
+Fresh checkout failures: parent and Core have concurrent subscription changes; ONODE/ONODEManager, STAR ODK, WEB6 and OASIS Omniverse/OGEngineClient are uninitialized. Libraries actuale91f10635c5c79e484b06322a6c0c60d392a46ce differs from pinnedf93b880da15bb8e0c85f7f358df90213704422c4; holochain actual75824d5b4ef7f4f4dda12225747d916ed1dc220a differs from pinnede75a20ded8c2fb553032a2971e6e4300f02a7e0a. The latter actual revision differs from older notes: current checkout wins over history. Do not reset unrelated work, change pins merely to pass, or clone another environment.
+
+The chronological matrix later in this document contains older revision-scoped counts, not current-provider certification. No provider has passed the entire original release scope. Goal remains active/incomplete; no merge/deployment/sponsored-spending enablement.
+
 2026-10-16 Google nearby integrity gap corrected: duplicate location parser silently omitted partial coordinate pairs, did not validate requested type before storage and discarded source result metadata. Reuses shared validated query over canonical active/not-deleted records with type filtering, preserves result metadata/errors and clears failure load flags. Native43/43pass29s/no skips: existing actual Firestore SDK scenario expanded with fr-FR full profile read and avatar+holon missing-longitude writes, terminal InvalidData/null/not-loaded assertions, restored writes and healthy rereads. Unit40/40pass1s adds undefined-type-before-activation regression. Existing native V2 cases retained, not new V2 spatial dispatcher/live IAM/spatial indexing/scalability/history/durable recovery/full-interface/hosted certification. No merge.
 
 2026-10-16 Azure Blob nearby implementation added: replaces always-unsupported IOASISNETProvider methods with existing canonical SDK collection loads plus shared validated coordinate/distance query. Input coordinate/radius/type checked before requests; full records, active/type filtering, IsLoaded and original load/result metadata preserved. Native66/66pass15s/no skips includes two new actual Blob SDK cases for fr-FR, nonzero microdegree inputs, exact profile/holon content, radius/type/missing/inactive/distant behavior and terminal NaN/partial-coordinate corruption. Unit19/19pass267ms includes four request-validation cases with daemon stopped. Initial unit fixture mistakenly supplied invalid constructor connection string; corrected to valid development config, not a production constructor change. Native spatial indexes/V2 nearby dispatch/full interface/history/cross-blob atomic lifecycle/durable recovery/live IAM/hosted/pinned publication gates remain open. No merge.
