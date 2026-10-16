@@ -10,6 +10,48 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 public class Neo4jNativeAvatarTests
 {
     [TestMethod]
+    public async Task OwnedNativeMetadataQueriesAreExactParameterizedAndRefreshOnUpdate()
+    {
+        const string uri = "bolt://127.0.0.1:17687";
+        Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
+        using var raw = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
+        using (var preflight = raw.AsyncSession())
+            Assert.AreEqual(0L, (await (await preflight.RunAsync("MATCH (h:Holon) RETURN count(h) AS count")).SingleAsync())["count"].As<long>());
+        var provider = new Provider(uri, "neo4j", "oasis-local-test-only");
+        try
+        {
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            var first = new Holon { Id = Guid.NewGuid(), HolonType = NextGenSoftware.OASIS.API.Core.Enums.HolonType.Holon };
+            var second = new Holon { Id = Guid.NewGuid(), HolonType = NextGenSoftware.OASIS.API.Core.Enums.HolonType.Avatar };
+            const string hostileKey = "key`}) DETACH DELETE h // 雨";
+            first.MetaData["biome"] = "park"; first.MetaData["region"] = "north"; first.MetaData[hostileKey] = "literal 'value'";
+            second.MetaData["biome"] = "parkland"; second.MetaData["region"] = "north";
+            var saved = await provider.SaveHolonsAsync(new[] { first, second }, saveChildren:false);
+            Assert.IsFalse(saved.IsError, saved.Message);
+            var exact = await provider.LoadHolonsByMetaDataAsync("biome", "park", loadChildren:false);
+            Assert.IsFalse(exact.IsError, exact.Message); Assert.IsTrue(exact.IsLoaded); Assert.AreEqual(first.Id, exact.Result.Single().Id);
+            var pairs = new Dictionary<string, string> { ["biome"] = "park", ["region"] = "north" };
+            var all = await provider.LoadHolonsByMetaDataAsync(pairs, NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All, loadChildren:false);
+            Assert.IsFalse(all.IsError, all.Message); Assert.AreEqual(first.Id, all.Result.Single().Id);
+            var any = provider.LoadHolonsByMetaData(pairs, NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.Any, loadChildren:false);
+            Assert.IsFalse(any.IsError, any.Message); Assert.AreEqual(2, any.Result.Count());
+            var typed = await provider.LoadHolonsByMetaDataAsync("region", "north", NextGenSoftware.OASIS.API.Core.Enums.HolonType.Avatar, loadChildren:false);
+            Assert.IsFalse(typed.IsError, typed.Message); Assert.AreEqual(second.Id, typed.Result.Single().Id);
+            var literal = await provider.LoadHolonsByMetaDataAsync(hostileKey, "literal 'value'", loadChildren:false);
+            Assert.IsFalse(literal.IsError, literal.Message); Assert.AreEqual(first.Id, literal.Result.Single().Id);
+            pairs["biome"] = "absent";
+            var noAll = await provider.LoadHolonsByMetaDataAsync(pairs, NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All, loadChildren:false);
+            Assert.IsFalse(noAll.IsError, noAll.Message); Assert.AreEqual(0, noAll.Result.Count());
+            first.MetaData.Clear(); Assert.IsFalse((await provider.SaveHolonAsync(first, saveChildren:false)).IsError);
+            var removed = await provider.LoadHolonsByMetaDataAsync("biome", "park", loadChildren:false);
+            Assert.IsFalse(removed.IsError, removed.Message); Assert.AreEqual(0, removed.Result.Count());
+            using var cleanup = raw.AsyncSession();
+            await (await cleanup.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h", new { ids = new[] { first.Id.ToString(), second.Id.ToString() } })).ConsumeAsync();
+        }
+        finally { await provider.DeActivateProviderAsync(); }
+    }
+
+    [TestMethod]
     public async Task OwnedNativeHolonRootSnapshotsRoundtripAcrossSingleBulkSyncAsync()
     {
         const string uri = "bolt://127.0.0.1:17687";

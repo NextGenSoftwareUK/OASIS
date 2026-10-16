@@ -55,13 +55,14 @@ public partial class Neo4jOASIS
             if (staged.Count == 0) { result.Result = Array.Empty<IHolon>(); return result; }
             var rows = staged.Select(record => new Dictionary<string, object> {
                 ["id"] = record.Id.ToString(), ["name"] = record.Name, ["description"] = record.Description,
-                ["type"] = record.HolonType.ToString(), ["snapshot"] = OasisJson.Serialize(record)
+                ["type"] = record.HolonType.ToString(), ["snapshot"] = OasisJson.Serialize(record),
+                ["metadataTokens"] = MetadataLookupTokens(record)
             }).ToList();
             Dictionary<Guid, Holon> acknowledged;
             using (var session = _driver.AsyncSession())
             {
                 const string query = "UNWIND $rows AS row MERGE (h:Holon {Id:row.id}) "
-                    + "SET h.ProviderKey=row.id, h.Name=row.name, h.Description=row.description, h.HolonType=row.type, h.SnapshotJson=row.snapshot RETURN h";
+                    + "SET h.ProviderKey=row.id, h.Name=row.name, h.Description=row.description, h.HolonType=row.type, h.SnapshotJson=row.snapshot, h.MetaLookupTokens=row.metadataTokens RETURN h";
                 dispatched = true;
                 var records = await (await session.RunAsync(query, new { rows })).ToListAsync();
                 acknowledged = records.Select(row => ReadHolonNode(row["h"].As<Neo4j.Driver.INode>())).ToDictionary(record => record.Id);
