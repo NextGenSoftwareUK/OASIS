@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Full unit refresh (not live certification): TRON310/310pass3s, Sui102/102pass2m17s, Cosmos136/136pass2m11s, Hashgraph47/47pass25s, all zero skips. Cosmos/Hashgraph use existing owned Mongo27029/retained SDK bridges; direct runs first failed required harness setup (Cosmos1, Hashgraph8), not provider regressions. Existing runner now has -HederaPreparedOwners -HederaFull with fresh/exact47/no-skip evidence gate. Original pending journal fingerprints unchanged; no chain replay/reset. These supersede earlier narrowly refreshed unit counts only, not native/V2/durable/hosted open gates.
+
 TRON pagination follow-up: current focused storage16/16pass98ms adds terminal cursor/total/duplicate/empty/cross-page-key checks and all-or-nothing page-key publication; valid unsorted keys and empty final page retained. Provider/consumer builds pass. No new live-node/V2/recovery proof; original pending journal fingerprint verified unchanged.
 
 TRON decoder follow-up: focused storage10/10pass104ms after reproducing overflowing dynamic offsets escaping as OverflowException. Narrow remote-decoder exception translation preserves original cause under terminal InvalidDataException; configured output type validation/network exceptions unchanged. Prior6-case boundary evidence superseded for this focused class only; no new live-node/V2/recovery evidence.
