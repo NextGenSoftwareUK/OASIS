@@ -62,7 +62,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     Exception evidence=commitAttempted ? new MongoTransactionReconciliationException(session.ServerSession.Id.ToJson(),session.WrappedCoreSession.CurrentTransaction.TransactionNumber,cause) : cause;
                     OASISErrorHandling.HandleError(ref result,"Mongo committed tombstone application failed.",evidence);
                     if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
-                    if(cause is StorageLifecycleConflictException) result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
+                    if(cause is StorageLifecycleConflictException || !commitAttempted && MongoTransactionFailure.IsWriteConflict(cause)) result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
                     if(session.IsInTransaction) await session.AbortTransactionAsync();
                 }
             }
