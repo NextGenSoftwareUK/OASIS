@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 AWS graph-save verification: same retained runtime/caches/fixed reports reused. Initial31-case run25pass/6fail proved ignored selected children; final31/31pass10s and unit25/25pass307ms. Intermediate embedded-navigation test assumption corrected against existing shared serializer contract. Exact synthetic root/child/leaf native items removed in finally; no new runtime/download/clone/environment or broad cleanup. Existing unknown other-chain evidence untouched.
+
 2026-10-16 DynamoDB receipt evidence verification: cached SDK unit21/21 and retained-runtime AWS native23/23pass11s. Same fixed reports/runtime/cache reused; no installs/downloads/new environments. Request-correlation regression uses official SDK exception object locally; does not contact a public service or claim a live receipt. Existing exact-owned native fixture cleanup unchanged.
 
 2026-10-16 AWS write-publication verification: reused existing retained DynamoDB Local/Java/.NET caches/fixed reports. First23-case run17pass/6fail reproduced generated caller-ID mutation after independently read actual commit; final23/23pass10s. Only exact synthetic committed item keys deleted after assertions; owned in-memory runtime stopped by runner. No install/download/clone/new environment or broad user-data/cache cleanup. Failure is explicitly injected after known SDK acknowledgement, not unknown physical ledger state.

@@ -36,6 +36,45 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
 
         [DataTestMethod]
         [DataRow(false)] [DataRow(true)]
+        public async Task GraphPreflightRejectsInvalidSelectionWithoutPublishingIdsOrWriting(bool synchronous)
+        {
+            foreach(var invalid in new[] {"cycle","duplicate","parent","null"})
+            {
+                var provider=new PartialWriter();
+                var root=new NextGenSoftware.OASIS.API.Core.Holons.Holon();
+                var child=new NextGenSoftware.OASIS.API.Core.Holons.Holon();
+                root.Children=new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> {child};
+                if(invalid=="cycle") child.Children=new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> {root};
+                if(invalid=="duplicate") root.Children.Add(child);
+                if(invalid=="parent") child.ParentHolonId=Guid.NewGuid();
+                if(invalid=="null") root.Children.Add(null!);
+                var result=synchronous ? provider.SaveHolons(new[] {root}):await provider.SaveHolonsAsync(new[] {root});
+                Assert.IsTrue(result.IsError,invalid);Assert.IsNotNull(result.Exception);
+                Assert.AreEqual(0,provider.Writes,invalid);
+                Assert.AreEqual(Guid.Empty,root.Id);Assert.AreEqual(Guid.Empty,child.Id);
+            }
+        }
+
+        [DataTestMethod]
+        [DataRow(false)] [DataRow(true)]
+        public async Task GraphUncertaintyStopsDescendantsAndPublishesOnlyAcknowledgedRoot(bool synchronous)
+        {
+            var provider=new PartialWriter();
+            var root=new NextGenSoftware.OASIS.API.Core.Holons.Holon();
+            var child=new NextGenSoftware.OASIS.API.Core.Holons.Holon();
+            var leaf=new NextGenSoftware.OASIS.API.Core.Holons.Holon();
+            root.Children=new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> {child};
+            child.Children=new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> {leaf};
+            var result=synchronous ? provider.SaveHolons(new[] {root}):await provider.SaveHolonsAsync(new[] {root});
+            Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.AreEqual(2,provider.Writes);
+            var partial=(DynamoDBPartialMutationException)result.Exception;
+            Assert.AreSame(provider.Cause,partial.InnerException);
+            Assert.AreNotEqual(Guid.Empty,root.Id);Assert.AreEqual(root.Id,partial.AcknowledgedRecordIds.Single());
+            Assert.AreEqual(Guid.Empty,child.Id);Assert.AreEqual(Guid.Empty,child.ParentHolonId);Assert.AreEqual(Guid.Empty,leaf.Id);
+        }
+
+        [DataTestMethod]
+        [DataRow(false)] [DataRow(true)]
         public async Task ImportRetainsAcknowledgedIdentitiesAndStopsAfterUncertainty(bool synchronous)
         {
             var provider=new PartialWriter();
