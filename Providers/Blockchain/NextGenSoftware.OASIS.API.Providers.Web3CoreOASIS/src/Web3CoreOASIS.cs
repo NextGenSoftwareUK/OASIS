@@ -150,6 +150,9 @@ public sealed class Web3CoreOASIS
     internal Task<TransactionReceipt> MintErc20Async(string recipient,BigInteger amount)
         =>SendAndWaitForReceiptAsync(_web3.Eth.GetContract(_abi,_contractAddress).GetFunction("mint"),recipient,amount);
 
+    internal Task<TransactionReceipt> BurnErc20Async(BigInteger amount)
+        =>SendAndWaitForReceiptAsync(_web3.Eth.GetContract(_abi,_contractAddress).GetFunction("burn"),amount);
+
     internal Task<TransactionReceipt> TransferErc721Async(string from, string to, BigInteger tokenId)
         => SendAndWaitForReceiptAsync(_web3.Eth.GetContract(_abi, _contractAddress).GetFunction("transferFrom"), from, to, tokenId);
 

@@ -8,6 +8,16 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests;
 public sealed class Web3Erc20MintGuardTests
 {
     [DataTestMethod]
+    [DataRow("missing-token")] [DataRow("missing-key")] [DataRow("zero")] [DataRow("negative")]
+    public async Task InvalidBurnCannotSubstituteBalanceOrOneToken(string mode)
+    {
+        var provider=new GuardProvider();var request=new BurnWeb3TokenRequest{TokenAddress=mode=="missing-token" ? null!:"0x"+new string('1',40),
+            OwnerPrivateKey=mode=="missing-key" ? null!:"0x"+new string('1',64),OwnerPublicKey="",OwnerSeedPhrase="",Amount=mode=="zero" ? 0:mode=="negative" ? -1:2};
+        var result=await provider.BurnTokenAsync(request);Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);
+        Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",result.ErrorCode);Assert.IsFalse(provider.IsProviderActivated);Assert.AreEqual(0,provider.KeyCalls);
+    }
+
+    [DataTestMethod]
     [DataRow("1.234567",6,"1234567")]
     [DataRow("1.25",30,"1250000000000000000000000000000")]
     [DataRow("1",0,"1")]

@@ -12,6 +12,7 @@ internal sealed class Web3AcceptedWriteProxy : IAsyncDisposable
     private readonly HttpClient upstream=new() {Timeout=TimeSpan.FromSeconds(10)};
     private readonly Task loop;
     private readonly Func<string,Task>? beforeSubmission;
+    private int stopping;
     internal ConcurrentQueue<string> AcceptedHashes {get;}=new();
     internal ConcurrentQueue<string> Methods {get;}=new();
     internal string? ReportedChainId {get;set;}
@@ -22,12 +23,12 @@ internal sealed class Web3AcceptedWriteProxy : IAsyncDisposable
     }
     private async Task RunAsync()
     {
-        while(listener.IsListening)
+        while(Volatile.Read(ref stopping)==0 && listener.IsListening)
         {
             HttpListenerContext context;
             try {context=await listener.GetContextAsync();}
-            catch(HttpListenerException) when(!listener.IsListening) {return;}
-            catch(ObjectDisposedException) when(!listener.IsListening) {return;}
+            catch(HttpListenerException) when(Volatile.Read(ref stopping)!=0) {return;}
+            catch(ObjectDisposedException) when(Volatile.Read(ref stopping)!=0) {return;}
             try
             {
                 using var reader=new StreamReader(context.Request.InputStream,Encoding.UTF8);
@@ -62,7 +63,9 @@ internal sealed class Web3AcceptedWriteProxy : IAsyncDisposable
     }
     public async ValueTask DisposeAsync()
     {
-        listener.Stop();listener.Close();
+        // Stop may abort GetContext before HttpListener publishes IsListening=false.
+        // Declare the owned shutdown before invoking Stop; unrelated accept failures still propagate.
+        if(Interlocked.Exchange(ref stopping,1)==0){listener.Stop();listener.Close();}
         try {await loop.WaitAsync(TimeSpan.FromSeconds(15));}
         finally {upstream.Dispose();}
     }
