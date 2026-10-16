@@ -411,7 +411,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         try
                         {
                             var jsonContent = await File.ReadAllTextAsync(file);
-                            var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent, AvatarDeserializeSettings);
+                            var avatar = DeserializeStoredProfile<Avatar>(jsonContent);
                             
                             if (avatar != null && avatar.ProviderUniqueStorageKey != null && 
                                 avatar.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.LocalFileOASIS) &&
@@ -424,6 +424,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 return result;
                             }
                         }
+                        catch (System.IO.InvalidDataException) { throw; }
                         catch (Exception ex)
                         {
                             // Continue searching other files
@@ -467,7 +468,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                 if (File.Exists(avatarFilePath))
                 {
                     var jsonContent = await File.ReadAllTextAsync(avatarFilePath);
-                    var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent, AvatarDeserializeSettings);
+                    var avatar = DeserializeStoredProfile<Avatar>(jsonContent);
                     
                     if (avatar != null && (version == 0 || avatar.Version == version))
                     {
@@ -526,7 +527,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         try
                         {
                             var jsonContent = await File.ReadAllTextAsync(file);
-                            var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent, AvatarDeserializeSettings);
+                            var avatar = DeserializeStoredProfile<Avatar>(jsonContent);
                             
                             if (avatar != null && avatar.Email != null && 
                                 avatar.Email.Equals(avatarEmail, StringComparison.OrdinalIgnoreCase) &&
@@ -539,6 +540,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 return result;
                             }
                         }
+                        catch (System.IO.InvalidDataException) { throw; }
                         catch (Exception ex)
                         {
                             // Continue searching other files
@@ -587,7 +589,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                         try
                         {
                             var jsonContent = await File.ReadAllTextAsync(file);
-                            var avatar = JsonConvert.DeserializeObject<Avatar>(jsonContent, AvatarDeserializeSettings);
+                            var avatar = DeserializeStoredProfile<Avatar>(jsonContent);
                             
                             if (avatar != null && avatar.Username != null && 
                                 avatar.Username.Equals(avatarUsername, StringComparison.OrdinalIgnoreCase) &&
@@ -600,6 +602,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                                 return result;
                             }
                         }
+                        catch (System.IO.InvalidDataException) { throw; }
                         catch (Exception ex)
                         {
                             // Continue searching other files

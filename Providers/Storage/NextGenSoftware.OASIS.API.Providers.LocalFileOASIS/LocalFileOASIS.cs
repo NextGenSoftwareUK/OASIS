@@ -25,6 +25,18 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
         {
             Converters = { new ProviderWalletsJsonConverter(), new KarmaAkashicRecordJsonConverter(), new InventoryItemJsonConverter() }
         };
+        private static T DeserializeStoredProfile<T>(string json) where T : class
+        {
+            try
+            {
+                return JsonConvert.DeserializeObject<T>(json, AvatarDeserializeSettings)
+                    ?? throw new System.IO.InvalidDataException("Stored local profile is null.");
+            }
+            catch (Newtonsoft.Json.JsonException cause)
+            {
+                throw new System.IO.InvalidDataException("Stored local profile JSON is invalid.", cause);
+            }
+        }
         //private string _filePath = "wallets.json";
         private string _filePath = "";
         private string _basePath = "";
