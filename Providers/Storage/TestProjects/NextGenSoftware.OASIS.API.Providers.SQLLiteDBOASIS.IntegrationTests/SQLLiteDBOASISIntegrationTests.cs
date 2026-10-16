@@ -2054,8 +2054,7 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
         var direct = new Holon { Id = Guid.NewGuid(), ParentHolonId = root.Id, Name = "owned-scope-match" };
         var bridge = new Holon { Id = Guid.NewGuid(), ParentHolonId = root.Id, Name = "non-matching-bridge" };
         var grandchild = new Holon { Id = Guid.NewGuid(), ParentHolonId = bridge.Id, Name = "owned-scope-match" };
-        // Deliberate cycle: the search root must never become its own descendant.
-        root.ParentHolonId = grandchild.Id;
+        // Valid hierarchy coverage; reachable corruption is tested separately and must fail explicitly.
         var unrelated = new Holon { Id = Guid.NewGuid(), ParentHolonId = Guid.NewGuid(), Name = "owned-scope-match" };
         var deleted = new Holon { Id = Guid.NewGuid(), ParentHolonId = root.Id, Name = "owned-scope-match", DeletedDate = DateTime.UtcNow };
         var behindDeleted = new Holon { Id = Guid.NewGuid(), ParentHolonId = deleted.Id, Name = "owned-scope-match" };

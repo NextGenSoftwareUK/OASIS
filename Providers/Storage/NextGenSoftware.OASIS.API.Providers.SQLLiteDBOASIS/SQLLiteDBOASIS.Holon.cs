@@ -226,7 +226,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                             {
                                 foreach (var child in byParent[pending.Dequeue()])
                                 {
-                                    if (!visited.Add(child.Id)) continue;
+                                    if(child.Id==Guid.Empty || !visited.Add(child.Id))
+                                        throw new System.IO.InvalidDataException("SQLite search parent scope contains an invalid, duplicate or cyclic identity.");
                                     descendants.Add(child.Id);
                                     if (searchParams.Recursive) pending.Enqueue(child.Id);
                                 }
