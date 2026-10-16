@@ -4,6 +4,8 @@
 
 ### Priority Mongo/SQLite contract audit (2026-10-15)
 
+Avatar-detail follow-up: Model3D/DimensionLevelIds/HeartRateData now have native typed persistence; previously declared Attributes is mapped both ways with all nine values. Extended real two-cycle round-trip matrix4/4 passes1m42s. DimensionLevels/Omniverse object references, all inherited DTO fields, null/empty/custom implementation/precision/privacy and hosted/V2 new-field replication remain unverified; do not infer complete IAvatarDetail coverage from these selected tests.
+
 Latest Mongo mapping correction: profile read converter now retains native MetaData and profile/detail VersionId. Real two-cycle native read-modify-save regression and the full selected Mongo/SQLite matrix pass4/4 in1m42s. This fixes selected-field data loss, not all DTO fields, historical version generation, private encryption or hosted release gates; details in current release gates.
 
 Current requested priority remains MongoDB/SQLite, Ethereum/Solana, IPFS, AWS/Azure/GoogleCloud/CosmosDB, Polygon/Arbitrum, Neo4j, remaining chains, SOLID/ActivityPub. No provider is fully certified. Latest detailed native regression results and unresolved release gates are in [current release gates](./HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md).
