@@ -10,6 +10,20 @@ public sealed partial class RealProviderRoutingTests
 {
     [Theory]
     [InlineData(false)] [InlineData(true)]
+    public async Task DuplicateNewImportReferenceLeavesCallerAndNativeStoreUntouched(bool synchronous)
+    {
+        Directory.CreateDirectory(_root);using var sqlite=new SQLLiteDBOASIS($"Data Source={SqlitePath};Pooling=False");
+        var manager=CreateManager(autoFailover:true,autoReplication:true);manager.RegisterProvider(sqlite);
+        var source=new NextGenSoftware.OASIS.API.Core.Holons.Holon();var independent=new NextGenSoftware.OASIS.API.Core.Holons.Holon();
+        var request=new StorageOperationRequest {Operation="Import",Payload=new NextGenSoftware.OASIS.API.Core.Interfaces.IHolon[]{independent,source,source},PreferredProvider=ProviderType.SQLLiteDBOASIS};
+        var router=new OASISHyperDrive(manager);
+        var result=synchronous ? router.RouteRequest<bool>(request):await router.RouteRequestAsync<bool>(request);
+        result.IsError.Should().BeTrue();result.ErrorCode.Should().Be("HYPERDRIVE_PAYLOAD_INVALID");
+        source.Id.Should().BeEmpty();independent.Id.Should().BeEmpty();sqlite.IsProviderActivated.Should().BeFalse();File.Exists(SqlitePath).Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
     public async Task InvalidGraphWritesCannotCreateNativeDatabase(bool synchronous)
     {
         Directory.CreateDirectory(_root);using var sqlite=new SQLLiteDBOASIS($"Data Source={SqlitePath};Pooling=False");

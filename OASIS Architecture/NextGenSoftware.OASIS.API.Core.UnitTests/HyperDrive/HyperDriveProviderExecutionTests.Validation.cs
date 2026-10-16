@@ -10,6 +10,20 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive;
 
 public sealed partial class HyperDriveProviderExecutionTests
 {
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task DuplicateNewImportReferenceCannotPublishCallerIdentity(bool synchronous)
+    {
+        var primary=CreateActiveProvider();var manager=new ProviderManager(null,CreateDna(HyperDriveModes.V2));manager.RegisterProvider(primary.Object);
+        var router=new OASISHyperDrive(manager);var source=new NextGenSoftware.OASIS.API.Core.Holons.Holon();
+        var independent=new NextGenSoftware.OASIS.API.Core.Holons.Holon();
+        var request=new StorageOperationRequest {Operation="Import",Payload=new IHolon[]{independent,source,source},PreferredProvider=ProviderType.MongoDBOASIS};
+        var result=synchronous ? router.RouteRequest<bool>(request):await router.RouteRequestAsync<bool>(request);
+        result.IsError.Should().BeTrue();result.ErrorCode.Should().Be("HYPERDRIVE_PAYLOAD_INVALID");
+        source.Id.Should().BeEmpty();independent.Id.Should().BeEmpty();
+        primary.Invocations.Should().NotContain(call=>call.Method.Name=="Import" || call.Method.Name=="ImportAsync");
+    }
+
     public static IEnumerable<object[]> InvalidGraphWrites()
     {
         foreach(var operation in new[]{"SaveHolon","SaveHolons"})
