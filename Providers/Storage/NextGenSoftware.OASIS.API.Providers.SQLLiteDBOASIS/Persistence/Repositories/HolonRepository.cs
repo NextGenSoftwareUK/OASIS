@@ -31,7 +31,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 var row = _dbContext.Holons.AsNoTracking().FirstOrDefault(p => p.Id == id.ToString() && (version == 0 || p.Version == version));
                 var holonEntity = row == null ? null : GetHolonFromEntity(row);
                 if (holonEntity != null && loadChildren)
-                    AttachLoadedChildren(holonEntity, _dbContext.Holons.AsNoTracking().Where(item => version == 0 || item.Version == version).ToList(), recursive, maxChildDepth);
+                    AttachLoadedChildren(holonEntity, _dbContext.Holons.AsNoTracking().ToList(), recursive, maxChildDepth);
                 if (holonEntity == null)
                     return new OASISResult<IHolon>
                     {
@@ -68,7 +68,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 var row = await _dbContext.Holons.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id.ToString() && (version == 0 || p.Version == version));
                 var holonEntity = row == null ? null : GetHolonFromEntity(row);
                 if (holonEntity != null && loadChildren)
-                    AttachLoadedChildren(holonEntity, await _dbContext.Holons.AsNoTracking().Where(item => version == 0 || item.Version == version).ToListAsync(), recursive, maxChildDepth);
+                    AttachLoadedChildren(holonEntity, await _dbContext.Holons.AsNoTracking().ToListAsync(), recursive, maxChildDepth);
                 if (holonEntity == null)
                     return new OASISResult<IHolon>
                     {
@@ -109,7 +109,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     .Select(GetHolonFromEntity)
                     .SingleOrDefault();
                 if (holonEntities != null && loadChildren)
-                    AttachLoadedChildren(holonEntities, _dbContext.Holons.AsNoTracking().Where(item => version == 0 || item.Version == version).ToList(), recursive, maxChildDepth);
+                    AttachLoadedChildren(holonEntities, _dbContext.Holons.AsNoTracking().ToList(), recursive, maxChildDepth);
                 return new OASISResult<IHolon>
                 {
                     IsLoaded = holonEntities != null,
@@ -139,7 +139,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 var stored = await _dbContext.Holons.AsNoTracking().SingleOrDefaultAsync(p => p.LocalProviderKey == providerKey && (version == 0 || p.Version == version));
                 var holonEntity = stored == null ? null : GetHolonFromEntity(stored);
                 if (holonEntity != null && loadChildren)
-                    AttachLoadedChildren(holonEntity, await _dbContext.Holons.AsNoTracking().Where(item => version == 0 || item.Version == version).ToListAsync(), recursive, maxChildDepth);
+                    AttachLoadedChildren(holonEntity, await _dbContext.Holons.AsNoTracking().ToListAsync(), recursive, maxChildDepth);
                 return new OASISResult<IHolon>
                 {
                     IsLoaded = holonEntity != null,
@@ -174,7 +174,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                         .ToList();
                 if (loadChildren)
                 {
-                    var graphRows = _dbContext.Holons.AsNoTracking().Where(item => version == 0 || item.Version == version).ToList();
+                    var graphRows = _dbContext.Holons.AsNoTracking().ToList();
                     foreach (var root in holonEntities) AttachLoadedChildren(root, graphRows, recursive, maxChildDepth, curentChildDepth);
                 }
                 return new OASISResult<IEnumerable<IHolon>>
@@ -212,7 +212,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     .ToList();
                 if (loadChildren)
                 {
-                    var graphRows = await _dbContext.Holons.AsNoTracking().Where(item => version == 0 || item.Version == version).ToListAsync();
+                    var graphRows = await _dbContext.Holons.AsNoTracking().ToListAsync();
                     foreach (var root in holonEntities) AttachLoadedChildren(root, graphRows, recursive, maxChildDepth, curentChildDepth);
                 }
                 return new OASISResult<IEnumerable<IHolon>>
@@ -250,7 +250,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     .ToList();
                 if (loadChildren)
                 {
-                    var graphRows = _dbContext.Holons.AsNoTracking().Where(item => version == 0 || item.Version == version).ToList();
+                    var graphRows = _dbContext.Holons.AsNoTracking().ToList();
                     foreach (var root in holonEntities) AttachLoadedChildren(root, graphRows, recursive, maxChildDepth, curentChildDepth);
                 }
                 return new OASISResult<IEnumerable<IHolon>>
@@ -287,7 +287,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 var holonEntities = rows.Select(GetHolonFromEntity).ToList();
                 if (loadChildren)
                 {
-                    var graphRows = await _dbContext.Holons.AsNoTracking().Where(item => version == 0 || item.Version == version).ToListAsync();
+                    var graphRows = await _dbContext.Holons.AsNoTracking().ToListAsync();
                     foreach (var root in holonEntities) AttachLoadedChildren(root, graphRows, recursive, maxChildDepth, curentChildDepth);
                 }
                 return new OASISResult<IEnumerable<IHolon>>
@@ -324,7 +324,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     .ToList();
                 if (loadChildren)
                 {
-                    var graphRows = _dbContext.Holons.AsNoTracking().Where(item => version == 0 || item.Version == version).ToList();
+                    var graphRows = _dbContext.Holons.AsNoTracking().ToList();
                     foreach (var root in holonEntities) AttachLoadedChildren(root, graphRows, recursive, maxChildDepth, curentChildDepth);
                 }
                 return new OASISResult<IEnumerable<IHolon>>
@@ -362,7 +362,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     .ToList();
                 if (loadChildren)
                 {
-                    var graphRows = await _dbContext.Holons.AsNoTracking().Where(item => version == 0 || item.Version == version).ToListAsync();
+                    var graphRows = await _dbContext.Holons.AsNoTracking().ToListAsync();
                     foreach (var root in holonEntities) AttachLoadedChildren(root, graphRows, recursive, maxChildDepth, curentChildDepth);
                 }
                 return new OASISResult<IEnumerable<IHolon>>
