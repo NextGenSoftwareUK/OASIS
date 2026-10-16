@@ -116,6 +116,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             var result = new OASISResult<ISearchResults>();
             try
             {
+                // SQLite accepts an explicit stored-Version filter; this does not imply archived revisions.
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.Validate(
+                    searchParams,version,maxChildDepth,supportsHistory:true);
+            }
+            catch(Exception cause) when(cause is ArgumentException or NotSupportedException)
+            {
+                OASISErrorHandling.HandleError(ref result,"Invalid SQLite search request: "+cause.Message,cause);
+                result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
+                return result;
+            }
+            try
+            {
                 if (!IsProviderActivated)
                 {
                     var activateResult = await ActivateProviderAsync();
@@ -134,17 +146,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
                 {
                     var groups = searchParams.SearchGroups;
-                    if (groups.Skip(1).Any(group => group == null || !Enum.IsDefined(typeof(SearchParamGroupOperator), group.PreviousSearchGroupOperator)))
-                        throw new ArgumentException("Invalid search group operator.");
-                    foreach (var group in groups)
-                    {
-                        if (group is not ISearchTextGroup && group is not ISearchNumberGroup && group is not ISearchDateGroup)
-                            throw new NotSupportedException("SQLite search does not yet support this search group type.");
-                        if (group is ISearchNumberGroup number && !Enum.IsDefined(typeof(SearchOperatorType), number.NumberOperator))
-                            throw new ArgumentException("Invalid numeric search operator.");
-                        if (group is ISearchDateGroup date && !Enum.IsDefined(typeof(SearchOperatorType), date.DateOperator))
-                            throw new ArgumentException("Invalid date search operator.");
-                    }
                     bool MatchesGroups(Func<ISearchGroupBase, bool> matches)
                     {
                         var matched = matches(groups[0]);
