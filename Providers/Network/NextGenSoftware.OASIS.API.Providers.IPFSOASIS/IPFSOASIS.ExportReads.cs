@@ -18,7 +18,7 @@ public partial class IPFSOASIS
         try
         {
             if(!validSelector || owner==Guid.Empty) throw new ArgumentException("A nonempty avatar export selector is required.");
-            if(version!=0) throw new NotSupportedException("Historical IPFS export is not implemented.");
+            if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
             var snapshot=await LoadLookupToJson();
             if(selector!=null)
             {
@@ -28,7 +28,7 @@ public partial class IPFSOASIS
                     ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="No IPFS avatar matches the export selector."};
                 owner=matches[0].Value.Id;
             }
-            var records=await ReadIndexSnapshotAsync<Holon>(snapshot,"holon",row=>true);
+            var records=await ReadIndexSnapshotAsync<Holon>(snapshot,"holon",row=>true,version);
             result.Result=records.Where(row=>!owner.HasValue || row.CreatedByAvatarId==owner.Value || row.ParentHolonId==owner.Value).Cast<IHolon>().ToList();
             result.IsLoaded=true;
         }

@@ -22,6 +22,78 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests
 	public class IPFSOASISTests
 	{
         [Fact]
+        public async Task HistoricalCollectionsFilterAndProjectRetainedVersionsNotCurrentRows()
+        {
+            foreach(var synchronous in new[] {false,true})
+            await WithOwnedProvider(async provider => {
+                var avatar=new Avatar {Id=Guid.NewGuid(),Version=1,Username="history-owner-old",Email="history-old@example.invalid"};
+                var detail=new AvatarDetail {Id=avatar.Id,Version=1,Username=avatar.Username,XP=17};
+                var root=new Holon {Id=Guid.NewGuid(),Version=1,Name="history-root-old",CreatedByAvatarId=avatar.Id};
+                var child=new Holon {Id=Guid.NewGuid(),Version=1,Name="history-child-old",ParentHolonId=root.Id,CreatedByAvatarId=avatar.Id,
+                    MetaData=new() {{"biome","old-park"}}};
+                var grandchild=new Holon {Id=Guid.NewGuid(),Version=1,Name="history-grandchild-old",ParentHolonId=child.Id,CreatedByAvatarId=avatar.Id};
+                await provider.SaveAvatarToFile(avatar);await provider.SaveAvatarDetailToFile(detail);
+                foreach(var row in new[] {root,child,grandchild}) await provider.SaveHolonToFile(row);
+                avatar.Version=2;avatar.Username="history-owner-new";avatar.Email="history-new@example.invalid";
+                detail.Version=2;detail.Username=avatar.Username;detail.XP=91;
+                await provider.SaveAvatarToFile(avatar);await provider.SaveAvatarDetailToFile(detail);
+                var newOwner=Guid.NewGuid();
+                foreach(var row in new[] {root,child,grandchild})
+                {
+                    row.Version=2;row.Name=row.Name.Replace("-old","-new");row.CreatedByAvatarId=newOwner;
+                    if(row==child) {row.ParentHolonId=Guid.NewGuid();row.MetaData["biome"]="new-park";}
+                    await provider.SaveHolonToFile(row);
+                }
+                var currentOnly=new Holon {Id=Guid.NewGuid(),Version=2,Name="current-only",ParentHolonId=root.Id};
+                await provider.SaveHolonToFile(currentOnly);
+                var all=synchronous ? provider.LoadAllHolons(NextGenSoftware.OASIS.API.Core.Enums.HolonType.All,loadChildrenFromProvider:true,version:1)
+                    :await provider.LoadAllHolonsAsync(NextGenSoftware.OASIS.API.Core.Enums.HolonType.All,loadChildrenFromProvider:true,version:1);
+                Assert.False(all.IsError,all.Message);Assert.True(all.IsLoaded);Assert.Equal(3,all.Result.Count());
+                Assert.All(all.Result,row=>Assert.Equal(1,row.Version));
+                var oldRoot=all.Result.Single(row=>row.Id==root.Id);
+                Assert.Equal("history-child-old",Assert.Single(oldRoot.Children).Name);
+                Assert.Equal("history-grandchild-old",Assert.Single(oldRoot.Children.Single().Children).Name);
+                var single=synchronous ? provider.LoadHolon(root.Id,loadChildrenFromProvider:true,version:1)
+                    :await provider.LoadHolonAsync(root.Id,loadChildrenFromProvider:true,version:1);
+                Assert.False(single.IsError,single.Message);Assert.Equal(child.Id,Assert.Single(single.Result.Children).Id);
+                var shallow=provider.LoadHolon(root.Id,recursive:false,loadChildrenFromProvider:true,version:1);
+                Assert.Empty(Assert.Single(shallow.Result.Children).Children);
+                var parentKey=root.ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.IPFSOASIS];
+                var parent=synchronous ? provider.LoadHolonsForParent(parentKey,loadChildren:false,version:1)
+                    :await provider.LoadHolonsForParentAsync(root.Id,loadChildren:false,version:1);
+                Assert.False(parent.IsError,parent.Message);Assert.Equal(child.Id,Assert.Single(parent.Result).Id);
+                var meta=synchronous ? provider.LoadHolonsByMetaData("biome","old-park",loadChildrenFromProvider:true,version:1)
+                    :await provider.LoadHolonsByMetaDataAsync("biome","old-park",loadChildrenFromProvider:true,version:1);
+                Assert.False(meta.IsError,meta.Message);Assert.Equal(child.Id,Assert.Single(meta.Result).Id);
+                Assert.Equal(grandchild.Id,Assert.Single(meta.Result.Single().Children).Id);
+                Assert.Empty(provider.LoadHolonsByMetaData("biome","new-park",version:1).Result);
+                var exported=synchronous ? provider.ExportAllDataForAvatarByEmail(avatar.Email,version:1)
+                    :await provider.ExportAllDataForAvatarByIdAsync(avatar.Id,version:1);
+                Assert.False(exported.IsError,exported.Message);Assert.Equal(3,exported.Result.Count());
+                Assert.All(exported.Result,row=>Assert.Equal(avatar.Id,row.CreatedByAvatarId));
+                Assert.Empty(provider.ExportAllDataForAvatarById(avatar.Id).Result);
+                Assert.Equal(3,provider.ExportAll(version:1).Result.Count());
+                var avatars=synchronous ? provider.LoadAllAvatars(version:1):await provider.LoadAllAvatarsAsync(version:1);
+                var details=synchronous ? provider.LoadAllAvatarDetails(version:1):await provider.LoadAllAvatarDetailsAsync(version:1);
+                Assert.Equal("history-owner-old",Assert.Single(avatars.Result).Username);Assert.Equal(17,Assert.Single(details.Result).XP);
+                var query=new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {
+                    SearchOnlyForCurrentAvatar=false,MetaKeyValuePairMatchMode=NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All,
+                    SearchGroups=new() {new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup {
+                        SearchHolons=true,HolonType=NextGenSoftware.OASIS.API.Core.Enums.HolonType.All,SearchQuery="history-child-old",
+                        HolonSearchParams=new SearchHolonParams {Name=true}}}};
+                var searched=synchronous ? provider.Search(query,version:1):await provider.SearchAsync(query,version:1);
+                Assert.False(searched.IsError,searched.Message);Assert.Equal(1,searched.Result.NumberOfResults);
+                Assert.Equal(grandchild.Id,Assert.Single(Assert.Single(searched.Result.SearchResultHolons).Children).Id);
+                Assert.Empty(provider.LoadAllHolons(version:3).Result);
+                Assert.Empty(provider.ExportAll(version:3).Result);
+                Assert.IsType<ArgumentOutOfRangeException>(provider.ExportAll(version:-1).Exception);
+                Assert.IsType<ArgumentOutOfRangeException>(provider.Search(query,version:-1).Exception);
+                Assert.Equal(currentOnly.Id,Assert.Single(provider.LoadHolon(root.Id,loadChildrenFromProvider:true).Result.Children).Id);
+                Assert.Equal(91,provider.LoadAvatarDetail(avatar.Id).Result.XP);
+            });
+        }
+
+        [Fact]
         public async Task NearbyReadsEncryptedCanonicalLocationsUnderNonEnglishCulture()
         {
             foreach(var avatars in new[] {false,true})
