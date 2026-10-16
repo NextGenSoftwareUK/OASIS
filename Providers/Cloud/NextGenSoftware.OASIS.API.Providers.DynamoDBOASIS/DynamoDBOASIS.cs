@@ -65,6 +65,17 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         private static string Ser(object o) => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(o);
         private static T? Des<T>(string? json) => json == null ? default : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<T>(json);
 
+        private static T ReadStoredIdentity<T>(Dictionary<string,AttributeValue> item,Guid requested) where T:class,IHolonBase
+        {
+            if(requested==Guid.Empty || !item.TryGetValue("id",out var key) || key.S!=requested.ToString()
+                || !item.TryGetValue("data_json",out var json) || string.IsNullOrWhiteSpace(json.S))
+                throw new System.IO.InvalidDataException("DynamoDB native record key/payload differs from requested identity.");
+            var record=Des<T>(json.S);
+            if(record==null || record.Id!=requested)
+                throw new System.IO.InvalidDataException("DynamoDB canonical record identity differs from its native key.");
+            return record;
+        }
+
         private static async Task<T> ObserveMutationAsync<T>(Func<Task<T>> mutation,string table,string key)
         {
             try {return await mutation();}
@@ -226,8 +237,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 ValidateRecordVersion(version);
                 var resp = await _client.GetItemAsync(new GetItemRequest {TableName="OasisAvatars",ConsistentRead=true,Key=new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } }});
                 if (resp.Item == null || !resp.Item.Any() || (resp.Item.TryGetValue("is_deleted", out var del) && del.BOOL)) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
-                var avatar = Des<Avatar>(resp.Item["data_json"].S); if (avatar == null) { OASISErrorHandling.HandleError(ref result, "DynamoDBOASIS: Deserialise failed."); return result; }
-                result.Result = avatar; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded.";
+                var avatar = ReadStoredIdentity<Avatar>(resp.Item,id);
+                result.Result = avatar; result.IsLoaded=true; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
@@ -386,8 +397,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 ValidateRecordVersion(version);
                 var resp = await _client.GetItemAsync(new GetItemRequest {TableName="OasisAvatarDetails",ConsistentRead=true,Key=new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } }});
                 if (resp.Item == null || !resp.Item.Any()) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No detail for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
-                var d = Des<AvatarDetail>(resp.Item["data_json"].S); if (d == null) { OASISErrorHandling.HandleError(ref result, "DynamoDBOASIS: Deserialise failed."); return result; }
-                result.Result = d; result.IsError = false; result.Message = "DynamoDBOASIS: AvatarDetail loaded.";
+                var d = ReadStoredIdentity<AvatarDetail>(resp.Item,id);
+                result.Result = d; result.IsLoaded=true; result.IsError = false; result.Message = "DynamoDBOASIS: AvatarDetail loaded.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
