@@ -300,6 +300,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     {
                         TransactionResult = receipt.TransactionHash,
                         Web3NFT = new Web3NFT { NFTTokenAddress = transaction.TokenAddress,
+                            TokenId = tokenId.ToString(System.Globalization.CultureInfo.InvariantCulture),
                             SendNFTTransactionHash = receipt.TransactionHash, MemoText = transaction.MemoText }
                     };
                     result.IsSaved = true;
@@ -410,72 +411,70 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
         {
-            var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
-            string errorMessage = "Error in BurnNFTAsync method in EthereumOASIS. Reason: ";
-
+            var result = new OASISResult<IWeb3NFTTransactionResponse>();
+            var dispatched = false;
+            Nethereum.RPC.Eth.DTOs.TransactionReceipt receipt = null;
             try
             {
+                if (request == null || !BigInteger.TryParse(request.TokenId, System.Globalization.NumberStyles.None,
+                    System.Globalization.CultureInfo.InvariantCulture, out var tokenId)
+                    || tokenId < 0 || tokenId >= (BigInteger.One << 256))
+                    throw new ArgumentException("Burn requires an explicit decimal uint256 token ID; the OASIS GUID is not a native token ID.");
+                if (!Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(request.NFTTokenAddress)
+                    || string.Equals(request.NFTTokenAddress, "0x0000000000000000000000000000000000000000", StringComparison.OrdinalIgnoreCase))
+                    throw new ArgumentException("A nonzero NFT contract address is required.");
+                if (string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
+                    throw new ArgumentException("NFT owner private key is required.");
+                var account = new Account(request.OwnerPrivateKey, ChainId);
                 if (!IsProviderActivated)
                 {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError) throw new InvalidOperationException(activation.Message, activation.Exception);
+                }
+                await _nftSendGate.WaitAsync();
+                try
+                {
+                    const string abi = "[{\"type\":\"function\",\"name\":\"ownerOf\",\"inputs\":[{\"name\":\"id\",\"type\":\"uint256\"}],\"outputs\":[{\"name\":\"owner\",\"type\":\"address\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"burn\",\"inputs\":[{\"name\":\"id\",\"type\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"}]";
+                    var web3 = CreateWeb3WithAccount(account, HostURI);
+                    var contract = web3.Eth.GetContract(abi, request.NFTTokenAddress);
+                    var owner = await contract.GetFunction("ownerOf").CallAsync<string>(tokenId);
+                    if (!string.Equals(owner, account.Address, StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidOperationException("NFT burn signer is not the token owner.");
+                    // Explicit ERC-721 burn(uint256) extension, not an assumed GUID mapping.
+                    dispatched = true;
+                    receipt = await contract.GetFunction("burn").SendTransactionAndWaitForReceiptAsync(
+                        account.Address, new HexBigInteger(600000), null, null, tokenId);
+                    if (!StorageReceiptSucceeded(receipt))
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
+                        result.IsError = true; result.Message = "ERC-721 burn transaction reverted."; return result;
                     }
+                    if (receipt.BlockNumber == null) throw new InvalidDataException("NFT burn receipt has no block number.");
+                    var transferTopic = "0x" + Nethereum.Util.Sha3Keccack.Current.CalculateHash("Transfer(address,address,uint256)");
+                    var ownerTopic = "0x" + account.Address.Substring(2).PadLeft(64, '0');
+                    var zeroTopic = "0x" + new string('0', 64);
+                    var idTopic = "0x" + Convert.ToHexString(tokenId.ToByteArray(isUnsigned: true, isBigEndian: true)).PadLeft(64, '0');
+                    var burnt = receipt.Logs != null && receipt.Logs.Any(log =>
+                        string.Equals(log.Address, request.NFTTokenAddress, StringComparison.OrdinalIgnoreCase)
+                        && log.Topics is { Length: 4 } topics
+                        && string.Equals(topics[0]?.ToString(), transferTopic, StringComparison.OrdinalIgnoreCase)
+                        && string.Equals(topics[1]?.ToString(), ownerTopic, StringComparison.OrdinalIgnoreCase)
+                        && string.Equals(topics[2]?.ToString(), zeroTopic, StringComparison.OrdinalIgnoreCase)
+                        && string.Equals(topics[3]?.ToString(), idTopic, StringComparison.OrdinalIgnoreCase));
+                    if (!burnt) throw new InvalidDataException("NFT receipt lacks the exact ERC-721 owner-to-zero burn event.");
+                    result.Result = new Web3NFTTransactionResponse {
+                        TransactionResult = receipt.TransactionHash,
+                        Web3NFT = new Web3NFT { NFTTokenAddress = request.NFTTokenAddress,
+                            TokenId = tokenId.ToString(System.Globalization.CultureInfo.InvariantCulture) } };
+                    result.IsSaved = true; result.IsDeleted = true;
                 }
-                if (Web3Client == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
-                    return result;
-                }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.NFTTokenAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "NFT token address is required");
-                    return result;
-                }
-
-                // Get private key from KeyManager
-                var keysResult = KeyManager.GetProviderPrivateKeysForAvatarById(request.BurntByAvatarId, Core.Enums.ProviderType.EthereumOASIS);
-                if (keysResult.IsError || keysResult.Result == null || keysResult.Result.Count == 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Could not retrieve private key for avatar");
-                    return result;
-                }
-
-                var senderAccount = new Account(keysResult.Result[0], ChainId);
-                var web3 = CreateWeb3WithAccount(senderAccount, HostURI);
-
-                // ERC-721 burn function ABI (assuming contract has burn function)
-                var erc721Abi = @"[{""constant"":false,""inputs"":[{""name"":""_tokenId"",""type"":""uint256""}],""name"":""burn"",""outputs"":[],""payable"":false,""stateMutability"":""nonpayable"",""type"":""function""}]";
-                var erc721Contract = web3.Eth.GetContract(erc721Abi, request.NFTTokenAddress);
-                var burnFunction = erc721Contract.GetFunction("burn");
-
-                // Get token ID from request
-                var tokenId = request?.Web3NFTId != null && request.Web3NFTId != Guid.Empty
-                    ? new BigInteger(request.Web3NFTId.GetHashCode())
-                    : BigInteger.Zero;
-
-                var receipt = await burnFunction.SendTransactionAndWaitForReceiptAsync(
-                    senderAccount.Address,
-                    new HexBigInteger(600000),
-                    null,
-                    null,
-                    tokenId);
-
-                if (receipt.HasErrors() == true)
-                {
-                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "ERC-721 burn failed."));
-                    return result;
-                }
-
-                result.Result.TransactionResult = receipt.TransactionHash;
-                TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
+                finally { _nftSendGate.Release(); }
             }
-            catch (Exception ex)
+            catch (Exception cause)
             {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+                result.IsError = true;
+                result.Exception = dispatched ? new EthereumNftMutationReconciliationException(receipt?.TransactionHash, cause) : cause;
+                result.Message = result.Exception.Message;
+                if (!dispatched && cause is ArgumentException) result.ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID";
             }
             return result;
         }
