@@ -16,6 +16,10 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
         var avatar=new Avatar {Id=id,Username=name,Email=name+"@test.local",FirstName="retained",AvatarType=new EnumValue<AvatarType>(AvatarType.User)};
         var detail=new AvatarDetail {Id=id,Username=name,Email=avatar.Email,Karma=31,XP=47};
         var holon=new Holon {Id=holonId,Name="existing private row"};
+        foreach(var initial in new NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase[] {avatar,detail,holon})
+        {
+            initial.CreatedProviderType=new EnumValue<ProviderType>(ProviderType.EthereumOASIS);initial.CreatedOASISType=new EnumValue<OASISType>(OASISType.OurWorld);
+        }
         try
         {
             (await sqlite.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
@@ -47,6 +51,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 foreach(var incoming in new NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase[] {avatar,detail,holon})
                 {
                     incoming.VersionId=version;incoming.PreviousVersionId=previous;incoming.CustomHolonType="owned-schema-type";
+                    incoming.CreatedProviderType=null;incoming.CreatedOASISType=null;
                 }
                 (synchronous ? sqlite.SaveAvatar(avatar):await sqlite.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
                 (synchronous ? sqlite.SaveAvatarDetail(detail):await sqlite.SaveAvatarDetailAsync(detail)).IsError.Should().BeFalse();
@@ -60,6 +65,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                     (await sqlite.LoadHolonAsync(holonId,loadChildren:false)).Result})
                 {
                     retained.VersionId.Should().Be(version);retained.PreviousVersionId.Should().Be(previous);retained.CustomHolonType.Should().Be("owned-schema-type");
+                    retained.CreatedProviderType?.Value.Should().Be(ProviderType.EthereumOASIS);retained.CreatedOASISType?.Value.Should().Be(OASISType.OurWorld);
                 }
             }
             // Reopening an already upgraded schema is idempotent.

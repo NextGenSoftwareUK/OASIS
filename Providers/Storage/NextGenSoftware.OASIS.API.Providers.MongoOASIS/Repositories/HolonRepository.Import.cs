@@ -40,6 +40,11 @@ public partial class HolonRepository
                     var observed=matches.SingleOrDefault();
                     var existing=observed==null ? null:BsonSerializer.Deserialize<Holon>(observed);
                     preserveAudit(holon,existing);
+                    if(existing!=null)
+                    {
+                        holon.CreatedProviderType=existing.CreatedProviderType;
+                        holon.CreatedOASISType=existing.CreatedOASISType;
+                    }
                     if(existing==null && holon.CreatedProviderType==null)
                         holon.CreatedProviderType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
                     PrepareNativeHolonIdentity(holon);
