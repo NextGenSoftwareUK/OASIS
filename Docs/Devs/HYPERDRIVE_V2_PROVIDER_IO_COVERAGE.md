@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 AWS native43/43pass13s +4/4 focused Core predicate tests: V2 preserves direct/wrapped/aggregate InvalidDataException instead of masking corrupt primary with stale secondary; ordinary IOException failover retained. Real AWS corrupted profile/detail→SQLite tests syncasync prove no result/original cause/0secondary requests. Reproduced stale success before Core fix. Other corruption classes/provider matrix and release gates remain open; Core4f118259584b75cdf74377c1cf024510aa1697d6 pinned with gitlink.
+
 2026-10-16 AWS native43/43pass12s +unit37/37pass334ms: shared direct avatar/detail validator rejects native-key or canonical-ID mismatch before publishing result;8controlled regressions failed before fix and actual native mismatched rows rejected syncasync. V2 terminal-corruption classification remains unproven/open: current ShouldFailOver lacks a typed integrity exclusion. Do not claim stale-secondary corruption is fenced yet.
 
 2026-10-16 AWS native41/41pass12s +unit29/29pass314ms: identity selectors use one paginated strongly consistent BASE-table scan (no GSI), preserve ambiguity/identity validation, and mark RecordNotFound. Actual V2 four selectors×syncasync refuse stale SQLite identity results with0secondary requests. Initial failure was IsError fixture assumption; existing V2 normalized absence contract inspected and exact synthetic read-only fixture reconciled before cleanup. Strong item reads are NOT scan snapshot isolation/transactional uniqueness; scale-efficient identity lookup/concurrency/history/recovery/live/hosted remain open.

@@ -75,6 +75,25 @@ public partial class AWSOASISIntegrationTests
                 else Missing(synchronous ? router.RouteRequest<IAvatar>(request):await router.RouteRequestAsync<IAvatar>(request));
             }
             Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
+            var other=Guid.NewGuid();
+            foreach(var detail in new[] {false,true})
+            {
+                var table=detail ? "OasisAvatarDetails":"OasisAvatars";
+                var json=detail ? NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(new AvatarDetail {Id=other,XP=888})
+                    :NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(new Avatar {Id=other,Username="owned-impostor"});
+                await Client.PutItemAsync(new Amazon.DynamoDBv2.Model.PutItemRequest {TableName=table,Item=new() {
+                    ["id"]=new() {S=id.ToString()},["data_json"]=new() {S=json}}});
+                var request=new Core.StorageOperationRequest {Operation=detail ? "LoadAvatarDetail":"LoadAvatar",AvatarId=id,PreferredProvider=Core.Enums.ProviderType.AWSOASIS};
+                void Corrupt<T>(OASISResult<T> result)
+                {
+                    Assert.IsTrue(result.IsError,"Corrupt primary must not be masked by stale secondary.");Assert.IsNull(result.Result);
+                    Assert.IsInstanceOfType(result.Exception,typeof(InvalidDataException));
+                }
+                if(detail) Corrupt(synchronous ? router.RouteRequest<IAvatarDetail>(request):await router.RouteRequestAsync<IAvatarDetail>(request));
+                else Corrupt(synchronous ? router.RouteRequest<IAvatar>(request):await router.RouteRequestAsync<IAvatar>(request));
+                await Client.DeleteItemAsync(new Amazon.DynamoDBv2.Model.DeleteItemRequest {TableName=table,Key=Key(id)});
+            }
+            Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
             verified=true;
         }
         finally
