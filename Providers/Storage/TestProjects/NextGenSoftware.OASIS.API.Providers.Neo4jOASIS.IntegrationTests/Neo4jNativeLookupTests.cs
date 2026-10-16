@@ -35,7 +35,11 @@ public partial class Neo4jNativeAvatarTests
         try
         {
             Assert.IsFalse((await neo.ActivateProviderAsync()).IsError);Assert.IsFalse((await backup.ActivateProviderAsync()).IsError);
-            Assert.IsFalse((await backup.SaveAvatarAsync(new Avatar {Id=ids[0],Username="owned lookup",Email="lookup@example.invalid",FirstName="stale backup",AvatarType=new EnumValue<AvatarType>(AvatarType.User)})).IsError);
+            Avatar Credentials(Guid id,string name)=>new() {Id=id,Username="owned lookup",Email="lookup@example.invalid",FirstName=name,AvatarType=new EnumValue<AvatarType>(AvatarType.User),
+                VerificationToken="owned lookup credential",ResetToken="owned lookup credential",RefreshTokens=new() {new Core.Objects.RefreshToken {Token="owned lookup credential"}},
+                ProviderWallets=new() {{ProviderType.SolanaOASIS,new() {new Core.Objects.ProviderWallet {Id=Guid.NewGuid(),PublicKey="owned lookup credential",PrivateKey="owned lookup credential"}}}}};
+            var credentialOperations=new[] {"LoadAvatarByVerificationToken","LoadAvatarByResetToken","LoadAvatarByRefreshToken","LoadAvatarByPublicKey","LoadAvatarByPrivateKey"};
+            Assert.IsFalse((await backup.SaveAvatarAsync(Credentials(ids[0],"stale backup"))).IsError);
             Assert.IsFalse((await backup.SaveAvatarDetailAsync(new AvatarDetail {Id=ids[0],Username="owned lookup",Email="lookup@example.invalid",XP=41})).IsError);
             var dna=new OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings()}};
             dna.OASIS.SubscriptionConfig.PlanType="Gold";
@@ -44,7 +48,8 @@ public partial class Neo4jNativeAvatarTests
             var router=new OASISHyperDrive(manager);
             async Task Check<T>(string operation,bool ambiguous)
             {
-                var request=new StorageOperationRequest {Operation=operation,AvatarId=ids[0],ProviderKey=ids[0].ToString(),Username="owned lookup",Email="lookup@example.invalid",PreferredProvider=ProviderType.Neo4jOASIS};
+                var request=new StorageOperationRequest {Operation=operation,AvatarId=ids[0],ProviderKey=ids[0].ToString(),Username="owned lookup",Email="lookup@example.invalid",
+                    VerificationToken="owned lookup credential",ResetToken="owned lookup credential",RefreshToken="owned lookup credential",PublicKey="owned lookup credential",PrivateKey="owned lookup credential",PreferredProvider=ProviderType.Neo4jOASIS};
                 var result=synchronous ? router.RouteRequest<T>(request):await router.RouteRequestAsync<T>(request);
                 Assert.AreEqual(ambiguous,result.IsError,result.Message);Assert.IsFalse(result.IsLoaded);Assert.IsNull(result.Result);
                 Assert.AreEqual(ambiguous ? OASISResultErrorCodes.AmbiguousIdentity:OASISResultErrorCodes.RecordNotFound,result.ErrorCode);
@@ -52,13 +57,15 @@ public partial class Neo4jNativeAvatarTests
                 Assert.AreEqual(0L,manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
             }
             foreach(var operation in new[] {"LoadAvatar","LoadAvatarByProviderKey","LoadAvatarByUsername","LoadAvatarByEmail"}) await Check<IAvatar>(operation,false);
+            foreach(var operation in credentialOperations) await Check<IAvatar>(operation,false);
             foreach(var operation in new[] {"LoadAvatarDetail","LoadAvatarDetailByUsername","LoadAvatarDetailByEmail"}) await Check<IAvatarDetail>(operation,false);
             foreach(var id in ids)
             {
-                Assert.IsFalse((await neo.SaveAvatarAsync(new Avatar {Id=id,Username="owned lookup",Email="lookup@example.invalid",FirstName="native "+id})).IsError);
+                Assert.IsFalse((await neo.SaveAvatarAsync(Credentials(id,"native "+id))).IsError);
                 Assert.IsFalse((await neo.SaveAvatarDetailAsync(new AvatarDetail {Id=id,Username="owned lookup",Email="lookup@example.invalid",XP=7})).IsError);
             }
             foreach(var operation in new[] {"LoadAvatarByUsername","LoadAvatarByEmail"}) await Check<IAvatar>(operation,true);
+            foreach(var operation in credentialOperations) await Check<IAvatar>(operation,true);
             foreach(var operation in new[] {"LoadAvatarDetailByUsername","LoadAvatarDetailByEmail"}) await Check<IAvatarDetail>(operation,true);
             Assert.AreEqual(4L,(await (await session.RunAsync("MATCH (n) WHERE n:Avatar OR n:AvatarDetail RETURN count(n) AS count")).SingleAsync())["count"].As<long>());
             Assert.AreEqual("native "+ids[0],(await neo.LoadAvatarAsync(ids[0])).Result.FirstName);
