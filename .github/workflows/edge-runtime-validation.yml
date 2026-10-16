@@ -173,6 +173,31 @@ jobs:
           path: OASIS-Holochain-hApp
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - uses: DeterminateSystems/nix-installer-action@v17
+      - name: Resolve canonical generator dependencies
+        id: generator-pins
+        shell: pwsh
+        run: |
+          foreach ($name in @('HOLOCHAIN_COMMIT', 'LIBRARIES_COMMIT')) {
+            $line = @(Get-Content OASIS/Docker/oasis-dependency-versions.env | Where-Object { $_ -match "^$name=[0-9a-f]{40}$" })
+            if ($line.Count -ne 1) { throw "Invalid pin $name" }
+            $line[0] >> $env:GITHUB_OUTPUT
+          }
+      - uses: actions/checkout@v7
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ steps.generator-pins.outputs.HOLOCHAIN_COMMIT }}
+          path: holochain-client-csharp
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - uses: actions/checkout@v7
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.generator-pins.outputs.LIBRARIES_COMMIT }}
+          path: NextGenSoftware-Libraries
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: '10.0.x'
       - name: Build and test pinned HoloOASIS hApp
         shell: pwsh
         working-directory: OASIS
@@ -184,6 +209,14 @@ jobs:
           $manifest = Get-Content OASIS/Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/OASIS_hAPP/build-manifest.json -Raw | ConvertFrom-Json
           if ($manifest.sourceCommit -notmatch '^[0-9a-f]{40}$') { throw 'Invalid verified hApp source identity.' }
           "commit=$($manifest.sourceCommit)" >> $env:GITHUB_OUTPUT
+      - name: Compile generated HoloNET game hApp fixture
+        shell: pwsh
+        run: ./OASIS/Scripts/build_holonet_generated_fixture.ps1
+      - uses: actions/upload-artifact@v7
+        with:
+          name: verified-holonet-generated-fixture
+          path: OASIS/artifacts/holonet-generated-fixture/package
+          if-no-files-found: error
       - uses: actions/upload-artifact@v7
         with:
           name: verified-holooasis-happ
@@ -476,6 +509,10 @@ jobs:
         with:
           name: hosted-mongo-sync-evidence
           path: OASIS/artifacts/hosted-mongo-ci
+      - uses: actions/download-artifact@v7
+        with:
+          name: verified-holonet-generated-fixture
+          path: OASIS/artifacts/holonet-generated-fixture/package
       - name: Validate Edge release
         shell: pwsh
         working-directory: OASIS

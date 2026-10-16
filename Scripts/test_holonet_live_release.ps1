@@ -50,11 +50,26 @@ $legacyBlob = (& git hash-object $legacy).Trim()
 if ($LASTEXITCODE -ne 0 -or $legacyBlob -ne '4069c5da8349f7a866f46fd0bc9a17e4dcef70c0') { throw 'Legacy hApp rejection fixture differs from the reviewed Git blob.' }
 $ResultsDirectory = (Resolve-Path -LiteralPath $ResultsDirectory).Path
 $saved = @{}
-$names = @('HOLONET_LIVE_ADMIN_URI', 'HOLONET_LIVE_HAPP_PATH', 'HOLONET_LIVE_CLONE_HAPP_PATH', 'HOLONET_LIVE_MEMPROOFS_HAPP_PATH', 'HOLONET_LIVE_HC_BIN')
+$names = @('HOLONET_LIVE_ADMIN_URI', 'HOLONET_LIVE_HAPP_PATH', 'HOLONET_LIVE_CLONE_HAPP_PATH', 'HOLONET_LIVE_MEMPROOFS_HAPP_PATH', 'HOLONET_LIVE_HC_BIN', 'HOLONET_GENERATE_HAPP_TO', 'HOLONET_GENERATE_HAPP_VERSION', 'HOLONET_LIVE_GENERATED_HAPP_DIR', 'HOLONET_LIVE_GENERATED_SRC_DIR')
 foreach ($name in $names) { $saved[$name] = [Environment]::GetEnvironmentVariable($name) }
 $process = $null
 Push-Location $fixture
 try {
+    $generated = Join-Path (Split-Path $PSScriptRoot -Parent) 'artifacts/holonet-generated-fixture/package'
+    $identity = Get-Content (Join-Path $generated 'manifest.json') -Raw | ConvertFrom-Json
+    $clientCommit = (& git -C (Split-Path (Split-Path $Project -Parent) -Parent) rev-parse HEAD).Trim()
+    if ($LASTEXITCODE -ne 0 -or $identity.sourceCommit -ne $clientCommit -or $identity.holochainVersion -ne '0.7.1') { throw 'Generated fixture source/version mismatch.' }
+    foreach ($file in $identity.files.PSObject.Properties) {
+        if ($file.Name -match '(^/|\.\.|:)') { throw 'Unsafe generated fixture catalogue path.' }
+        if ((Get-FileHash (Join-Path $generated $file.Name) -Algorithm SHA256).Hash -ine $file.Value) { throw 'Generated fixture digest mismatch.' }
+    }
+    foreach ($required in @('holonet_game.happ', 'CSharp/Player.cs', 'CSharp/GameItem.cs')) {
+        if (-not $identity.files.PSObject.Properties[$required]) { throw "Missing generated fixture contract: $required" }
+    }
+    $env:HOLONET_LIVE_GENERATED_HAPP_DIR = $generated
+    $env:HOLONET_LIVE_GENERATED_SRC_DIR = $generated
+    $env:HOLONET_GENERATE_HAPP_TO = Join-Path $fixture 'generated-test-output'
+    $env:HOLONET_GENERATE_HAPP_VERSION = '0.7.1'
     foreach ($variant in @('clone', 'memproofs')) {
         $directory = Join-Path $fixture $variant
         & $hc app unpack $Happ --output $directory
