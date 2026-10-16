@@ -77,6 +77,35 @@ public partial class IPFSOASIS
         return record;
     }
 
+    private async Task<T> ReadPrivateVersionAsync<T>(string cid,string kind,Guid id,int version) where T:class,IHolonBase
+        => await TraversePrivateVersionsAsync(cid,version,async key=>
+        {
+            try { _=(Ipfs.Cid)key; }
+            catch(Exception cause) { throw new InvalidDataException("IPFS version chain contains an invalid CID.",cause); }
+            return await ReadPrivateRecordAsync<T>(key,kind,id);
+        });
+
+    private static async Task<T> TraversePrivateVersionsAsync<T>(string cid,int version,Func<string,Task<T>> read) where T:class,IHolonBase
+    {
+        if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
+        var visited=new HashSet<string>(StringComparer.Ordinal);
+        T newer=null;
+        while(!string.IsNullOrWhiteSpace(cid))
+        {
+            if(!visited.Add(cid)) throw new InvalidDataException("IPFS version chain contains a CID cycle.");
+            var record=await read(cid) ?? throw new InvalidDataException("IPFS version chain contains an empty record.");
+            if(record.Version<0 || newer!=null && (record.Id!=newer.Id || record.Version>newer.Version))
+                throw new InvalidDataException("IPFS version chain identity or version ordering is invalid.");
+            if(version==0 || record.Version==version) return record;
+            if(record.Version<version) return null;
+            newer=record;
+            if(record.PreviousVersionProviderUniqueStorageKey==null
+                || !record.PreviousVersionProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.IPFSOASIS,out cid)) return null;
+            if(string.IsNullOrWhiteSpace(cid)) throw new InvalidDataException("IPFS version chain has an empty previous CID.");
+        }
+        return null;
+    }
+
     private async Task<List<T>> ReadIndexedCollectionAsync<T>(string kind,Func<HolonResume,bool> predicate,int version=0) where T:class,IHolonBase
     {
         if(version!=0) throw new NotSupportedException("IPFS current index collection requires version 0; historical traversal is not implemented.");
