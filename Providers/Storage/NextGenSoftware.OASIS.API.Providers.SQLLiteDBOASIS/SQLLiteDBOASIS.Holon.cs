@@ -217,14 +217,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                             }
                             candidates = candidates.Where(h => descendants.Contains(h.Id)).ToList();
                         }
-                        holons.AddRange(candidates.Where(h => MatchesGroups(group => group switch {
+                        holons.AddRange(candidates.Where(h => MatchesGroups(group =>
+                            (group.HolonType == HolonType.All || group.HolonType == h.HolonType) && (group switch {
                             ISearchNumberGroup number => number.SearchHolons && number.HolonSearchParams?.Version == true && Compare(h.Version, number),
                             ISearchDateGroup date => date.SearchHolons && (
                                 date.HolonSearchParams?.CreatedDate == true && CompareDate(h.CreatedDate, date) ||
                                 date.HolonSearchParams?.ModifiedDate == true && CompareDate(h.ModifiedDate, date) ||
                                 date.HolonSearchParams?.DeletedDate == true && CompareDate(h.DeletedDate, date)),
                             ISearchTextGroup text => (!text.SearchAvatars || text.SearchHolons) &&
-                                (text.HolonType == HolonType.All || text.HolonType == h.HolonType) && (MatchesIdentityAndMetadata(h, text,
+                                (MatchesIdentityAndMetadata(h, text,
                                 text.HolonSearchParams?.ProviderUniqueStorageKey == true || text.HolonSearchParams?.SearchAllFields == true,
                                 text.HolonSearchParams?.MetaData == true || text.HolonSearchParams?.SearchAllFields == true,
                                 text.HolonSearchParams?.MetaDataKey) || (text.HolonSearchParams == null
@@ -232,7 +233,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                                 : (text.HolonSearchParams.Name || text.HolonSearchParams.SearchAllFields) && Contains(h.Name, text) ||
                                   (text.HolonSearchParams.Description || text.HolonSearchParams.SearchAllFields) && Contains(h.Description, text))),
                             _ => false
-                        })));
+                        }))));
                     }
 
                     var avatarLoad = await _avatarRepository.LoadAllAvatarsAsync(version);
