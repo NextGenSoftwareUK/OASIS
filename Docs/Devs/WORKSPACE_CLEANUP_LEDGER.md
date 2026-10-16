@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 search ancestry classification reused shared outputs/in-memory engine cases. Three baseline failures retained in search-parent-corruption-before-current.trx; finalShared260/260pass1s. No runtime/node/download/install/clone/new environment/protected ledger/source/userdata/credential removal. Fixed compact reports reused.
+
 2026-10-16 shared search engine integration reused existing shared/provider outputs and in-memory backend. Two failing numeric/filter baseline cases retained in search-contract-before-current.trx; finalShared257/257pass1s/four chain builds0errors. Five old fixture ownership/type assumptions corrected to explicit global/all-type queries. No runtime/node/download/install/clone/new environment or protected ledger/source/userdata/credential removal. Fixed compact reports reused.
 
 2026-10-16 shared search-cause fix reused existing shared outputs/in-memory backend. Four baseline failures retained in search-cause-before-current.trx; Shared253/253pass1s. No runtime/node/download/install/clone/new environment or protected ledger/source/userdata/credential removal; fixed compact reports reused.

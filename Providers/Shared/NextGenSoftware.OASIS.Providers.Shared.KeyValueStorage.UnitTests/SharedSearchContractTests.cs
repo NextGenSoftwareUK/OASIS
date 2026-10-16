@@ -12,6 +12,18 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 public class SharedSearchContractTests
 {
     [DataTestMethod]
+    [DataRow("cycle")] [DataRow("duplicate")] [DataRow("empty")]
+    public void InvalidParentGraphIsTerminalDataCorruption(string mode)
+    {
+        var first=new Holon {Id=Guid.NewGuid()};var second=new Holon {Id=Guid.NewGuid()};
+        first.ParentHolonId=second.Id;second.ParentHolonId=first.Id;
+        if(mode=="duplicate")second.Id=first.Id;
+        if(mode=="empty")second.Id=Guid.Empty;
+        var candidate=new Holon {Id=Guid.NewGuid(),ParentHolonId=first.Id};
+        var query=new SearchParams {SearchOnlyForCurrentAvatar=false,ParentId=Guid.NewGuid(),Recursive=true};
+        Assert.ThrowsException<System.IO.InvalidDataException>(()=>StoredRecordSearch.Matches(candidate,false,query,new[] {first,second}));
+    }
+    [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     public async Task DateAndSelectedDescriptionMaskUseStoredValues(bool synchronous)
     {
