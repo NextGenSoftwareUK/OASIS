@@ -39,6 +39,21 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 result.Result.SearchResultHolons.Select(row=>row.Id).Should().BeEquivalentTo(item.Holons);
                 result.Result.SearchResultAvatars.Select(row=>row.Id).Should().BeEquivalentTo(item.Avatars);
             }
+            foreach(var mode in new[] {MetaKeyValuePairMatchMode.All,MetaKeyValuePairMatchMode.Any})
+            foreach(var kind in new[] {"match","miss","mixed","empty"})
+            {
+                var filter=new Dictionary<string,string>();
+                if(kind is "match" or "mixed") filter["selected"]=text;
+                if(kind is "miss" or "mixed") filter["missing"]="never";
+                var query=new SearchParams {SearchOnlyForCurrentAvatar=false,FilterByMetaData=filter,MetaKeyValuePairMatchMode=mode,SearchGroups=new() {
+                    new SearchTextGroup {SearchHolons=true,SearchAvatars=true,HolonType=HolonType.All,SearchQuery=text,
+                        HolonSearchParams=new SearchHolonParams {SearchAllFields=true},AvatarSearchParams=new AvatarMask {SearchAllFields=true}}}};
+                var result=synchronous ? mongo.Search(query,loadChildren:false):await mongo.SearchAsync(query,loadChildren:false);
+                result.IsError.Should().BeFalse(result.Exception?.ToString() ?? result.Message);
+                var matches=kind is "match" or "empty" || kind=="mixed" && mode==MetaKeyValuePairMatchMode.Any;
+                result.Result.SearchResultHolons.Select(row=>row.Id).Should().BeEquivalentTo(matches ? new[] {holon.Id}:Array.Empty<Guid>(),"metadata {0}/{1}",mode,kind);
+                result.Result.SearchResultAvatars.Select(row=>row.Id).Should().BeEquivalentTo(matches ? new[] {avatar.Id}:Array.Empty<Guid>(),"metadata {0}/{1}",mode,kind);
+            }
         }
         finally
         {
