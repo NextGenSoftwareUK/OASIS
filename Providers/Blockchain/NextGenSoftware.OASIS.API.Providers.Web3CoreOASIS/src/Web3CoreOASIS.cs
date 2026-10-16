@@ -91,6 +91,9 @@ public sealed class Web3CoreOASIS
         }
     }
 
+    internal Task<TransactionReceipt> SendContractCallAsync(string data)
+        =>SendInputAndWaitForReceiptAsync(new TransactionInput {From=_web3.TransactionManager.Account.Address,To=_contractAddress,Gas=new HexBigInteger(600000),Data=data});
+
     private Task<TransactionReceipt> SendAndWaitForReceiptAsync(Function function, params object[] functionInput)
         =>SendInputAndWaitForReceiptAsync(new TransactionInput {From=_web3.TransactionManager.Account.Address,To=_contractAddress,
             Gas=new HexBigInteger(3_000_000),Data=function.GetData(functionInput)});

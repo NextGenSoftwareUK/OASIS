@@ -57,7 +57,7 @@ internal static class EvmWalletHistory
                         || !string.Equals(receipt.BlockHash,block.BlockHash,StringComparison.OrdinalIgnoreCase)
                         || !string.Equals(receipt.TransactionHash,transaction.TransactionHash,StringComparison.OrdinalIgnoreCase)) throw new InvalidDataException("EVM history receipt does not match its block/transaction or execution status.");
                     rows.Add(new WalletTransaction{NativeTransactionId=transaction.TransactionHash,FromWalletAddress=transaction.From,ToWalletAddress=transaction.To??receipt.ContractAddress,
-                        RawAmount=transaction.Value.Value.ToString(CultureInfo.InvariantCulture),AmountUnit="wei",Amount=(double)transaction.Value.Value/1_000_000_000_000_000_000d,
+                        RawAmount=transaction.Value.Value.ToString(CultureInfo.InvariantCulture),AmountUnit="wei",Amount=EvmNativeAmount.ToDisplayDouble(transaction.Value.Value),
                         NativeOperation="top-level transaction",NativeExecutionResult=receipt.Status.Value==1 ? "succeeded":"reverted",
                         NativeError=receipt.Status.Value==1 ? null:"EVM execution reverted; requested value was not applied.",
                         CreatedDate=DateTimeOffset.FromUnixTimeSeconds(checked((long)block.Timestamp.Value)).UtcDateTime,

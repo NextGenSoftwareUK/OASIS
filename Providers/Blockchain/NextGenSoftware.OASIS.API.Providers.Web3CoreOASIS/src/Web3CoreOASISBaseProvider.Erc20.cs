@@ -25,7 +25,9 @@ public partial class Web3CoreOASISBaseProvider
     {"type":"function","name":"balanceOf","inputs":[{"type":"address"}],"outputs":[{"type":"uint256"}],"stateMutability":"view"},
     {"type":"function","name":"mint","inputs":[{"type":"address"},{"type":"uint256"}],"outputs":[],"stateMutability":"nonpayable"},
     {"type":"function","name":"burn","inputs":[{"type":"uint256"}],"outputs":[],"stateMutability":"nonpayable"},
-    {"type":"function","name":"transfer","inputs":[{"type":"address"},{"type":"uint256"}],"outputs":[{"type":"bool"}],"stateMutability":"nonpayable"}]
+    {"type":"function","name":"transfer","inputs":[{"type":"address"},{"type":"uint256"}],"outputs":[{"type":"bool"}],"stateMutability":"nonpayable"},
+    {"type":"function","name":"allowance","inputs":[{"type":"address"},{"type":"address"}],"outputs":[{"type":"uint256"}],"stateMutability":"view"},
+    {"type":"function","name":"approve","inputs":[{"type":"address"},{"type":"uint256"}],"outputs":[{"type":"bool"}],"stateMutability":"nonpayable"}]
     """;
 
     protected virtual OASISResult<List<string>> ResolveErc20MintSigningKeys(Guid avatarId)
