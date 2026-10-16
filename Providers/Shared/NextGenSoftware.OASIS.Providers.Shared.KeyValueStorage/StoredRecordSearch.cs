@@ -109,11 +109,15 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             => MatchesTextIdentifiers(record,query,searchIds:true,searchProviderKeys:false);
 
         public static bool MatchesTextFields(IHolonBase record,bool avatar,ISearchTextGroup group)
+            => MatchesSearchFields(record,avatar,group);
+
+        public static bool MatchesSearchFields(IHolonBase record,bool avatar,ISearchGroupBase group)
         {
             ArgumentNullException.ThrowIfNull(record);
             ArgumentNullException.ThrowIfNull(group);
-            ArgumentException.ThrowIfNullOrWhiteSpace(group.SearchQuery);
-            return Matches(record,avatar,new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new List<ISearchGroupBase> {group}},Enumerable.Empty<IHolon>());
+            var query=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new List<ISearchGroupBase> {group}};
+            Validate(query,0,0);
+            return Matches(record,avatar,query,Enumerable.Empty<IHolon>());
         }
 
         public static bool MatchesTextIdentifiers(IHolonBase record,string query,bool searchIds,bool searchProviderKeys)
