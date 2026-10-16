@@ -11,6 +11,28 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests;
 public class IPFSLifecycleTests
 {
     [Theory]
+    [InlineData(90000001L,0L,1)] [InlineData(0L,180000001L,1)] [InlineData(0L,0L,-1)]
+    public void NearbyInvalidRequestFailsBeforeDaemonAccess(long latitude,long longitude,int radius)
+    {
+        var provider=new IPFSOASIS(Settings("http://127.0.0.1:1"));
+        var net=(NextGenSoftware.OASIS.API.Core.Interfaces.IOASISNETProvider)provider;
+        var avatar=net.GetAvatarsNearMe(latitude,longitude,radius);
+        Assert.True(avatar.IsError);Assert.Null(avatar.Result);Assert.IsType<ArgumentOutOfRangeException>(avatar.Exception);
+        var holon=net.GetHolonsNearMe(latitude,longitude,radius,NextGenSoftware.OASIS.API.Core.Enums.HolonType.All);
+        Assert.True(holon.IsError);Assert.Null(holon.Result);Assert.IsType<ArgumentOutOfRangeException>(holon.Exception);
+        Assert.False(provider.IsProviderActivated);Assert.Null(provider.IPFSClient);
+    }
+
+    [Fact]
+    public void NearbyUndefinedTypeFailsBeforeDaemonAccess()
+    {
+        var provider=new IPFSOASIS(Settings("http://127.0.0.1:1"));
+        var result=((NextGenSoftware.OASIS.API.Core.Interfaces.IOASISNETProvider)provider).GetHolonsNearMe(0,0,100,(NextGenSoftware.OASIS.API.Core.Enums.HolonType)int.MaxValue);
+        Assert.True(result.IsError);Assert.Null(result.Result);Assert.IsType<ArgumentOutOfRangeException>(result.Exception);
+        Assert.False(provider.IsProviderActivated);Assert.Null(provider.IPFSClient);
+    }
+
+    [Theory]
     [InlineData("null-entry")]
     [InlineData("empty-id")]
     [InlineData("unknown-kind")]
