@@ -22,6 +22,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
         {
             var profile=new Avatar {Id=id,Username=name,Email=name+"@test.local",FirstName="preserve",VersionId=profileVersion,IsPublic=true,
                 CustomHolonType="owned-profile-type",AvatarType=new EnumValue<AvatarType>(AvatarType.User),MetaData=new() {{"profile-marker","retained"},{"integer",42},{"flag",true}}};
+            profile.CreatedProviderType=new EnumValue<ProviderType>(ProviderType.EthereumOASIS);profile.CreatedOASISType=new EnumValue<OASISType>(OASISType.OurWorld);
             var detail=new AvatarDetail {Id=id,Username=name,Email=profile.Email,VersionId=detailVersion,Karma=101,XP=202,IsPublic=true,
                 CustomHolonType="owned-detail-type",MetaData=new() {{"detail-marker","retained"}},Model3D="model://owned-fixture",DimensionLevel=DimensionLevel.Fifth,SubDimensionLevel=SubDimensionLevel.Seventh,
                 Attributes=new AvatarAttributes {Strength=11,Speed=12,Dexterity=13,Toughness=14,Wisdom=15,Intelligence=16,Magic=17,Vitality=18,Endurance=19},
@@ -29,6 +30,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 HeartRateData=new List<NextGenSoftware.OASIS.API.Core.Interfaces.Avatar.IHeartRateEntry> {
                     new HeartRateEntry {HeartRateValue=72,TimeStamp=new DateTime(2026,10,15,10,0,0,DateTimeKind.Utc)},
                     new HeartRateEntry {HeartRateValue=84,TimeStamp=new DateTime(2026,10,15,10,1,0,DateTimeKind.Utc)}}};
+            detail.CreatedProviderType=new EnumValue<ProviderType>(ProviderType.EthereumOASIS);detail.CreatedOASISType=new EnumValue<OASISType>(OASISType.OurWorld);
             (await mongo.SaveAvatarAsync(profile)).IsError.Should().BeFalse();
             (await mongo.SaveAvatarDetailAsync(detail)).IsError.Should().BeFalse();
             (await avatars.Find(row=>row.HolonId==id).SingleAsync()).VersionId.Should().Be(profileVersion);
@@ -43,12 +45,14 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 loaded.Result.VersionId.Should().Be(profileVersion);
                 loaded.Result.IsPublic.Should().Be(pass==0);
                 loaded.Result.CustomHolonType.Should().Be(profile.CustomHolonType);
+                loaded.Result.CreatedProviderType?.Value.Should().Be(ProviderType.EthereumOASIS);loaded.Result.CreatedOASISType?.Value.Should().Be(OASISType.OurWorld);
                 var loadedDetail=synchronous ? mongo.LoadAvatarDetail(id):await mongo.LoadAvatarDetailAsync(id);
                 loadedDetail.IsError.Should().BeFalse(loadedDetail.Message);loadedDetail.Result.VersionId.Should().Be(detailVersion);
                 loadedDetail.Result.MetaData.Should().ContainKey("detail-marker").WhoseValue.Should().Be("retained");
                 loadedDetail.Result.Karma.Should().Be(101);loadedDetail.Result.XP.Should().Be(202);
                 loadedDetail.Result.IsPublic.Should().Be(pass==0);
                 loadedDetail.Result.CustomHolonType.Should().Be(detail.CustomHolonType);
+                loadedDetail.Result.CreatedProviderType?.Value.Should().Be(ProviderType.EthereumOASIS);loadedDetail.Result.CreatedOASISType?.Value.Should().Be(OASISType.OurWorld);
                 loadedDetail.Result.Model3D.Should().Be(detail.Model3D);
                 loadedDetail.Result.DimensionLevel.Should().Be(detail.DimensionLevel);loadedDetail.Result.SubDimensionLevel.Should().Be(detail.SubDimensionLevel);
                 loadedDetail.Result.Attributes.Should().BeEquivalentTo(detail.Attributes);
@@ -56,6 +60,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 loadedDetail.Result.HeartRateData.Should().BeEquivalentTo(detail.HeartRateData,options=>options.WithStrictOrdering());
                 // A normal profile/detail edit must not erase identity or unrelated metadata.
                 loaded.Result.FirstName="edited";loadedDetail.Result.XP=202;loaded.Result.IsPublic=false;loadedDetail.Result.IsPublic=false;
+                loaded.Result.CreatedProviderType=null;loaded.Result.CreatedOASISType=null;loadedDetail.Result.CreatedProviderType=null;loadedDetail.Result.CreatedOASISType=null;
                 (synchronous ? mongo.SaveAvatar(loaded.Result):await mongo.SaveAvatarAsync(loaded.Result)).IsError.Should().BeFalse();
                 (synchronous ? mongo.SaveAvatarDetail(loadedDetail.Result):await mongo.SaveAvatarDetailAsync(loadedDetail.Result)).IsError.Should().BeFalse();
             }

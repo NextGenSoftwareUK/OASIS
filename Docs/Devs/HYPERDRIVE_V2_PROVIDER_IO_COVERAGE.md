@@ -4,6 +4,8 @@
 
 ### Priority Mongo/SQLite contract audit (2026-10-15)
 
+Creation-origin follow-up: Mongo no longer relabels a supplied origin during first replica insertion; ordinary native updates and import updates retain persisted creation-provider/OASIS types. SQLite active mappings preserve explicit origin and keep it on updates omitting fields. Real V2 matrix4/4 passes1m45s; SQLite integration281/281 passes23s. Unspecified INITIAL origin in SQLite nonnullable enum columns remains an explicit representation gap, along with origin-specific graph/import assertions and other full-interface/hosted gates.
+
 Version/type identity follow-up: SQLite holon/profile/detail stores now preserve supplied VersionId/PreviousVersionId/CustomHolonType; Mongo profile/detail custom-type mapping repaired. Actual V2 two-cycle replication matrix4/4 passes1m44s and SQLite integration281/281 passes21s. Additive native migration and in-place EnsureCreated upgrades retain rows and default missing IDs to empty, NOT fabricated history. Version generation/history, other inherited fields and hosted/all-interface release gates remain open.
 
 IsPublic follow-up: Mongo and SQLite holon/profile/detail persistence now retains visibility flags. Native V2 healthy public→private replication/round-trip matrix4/4 passes1m44s; SQLite integration281/281 passes21s and unit4/4 passes. In-place EnsureCreated schema upgrade and separate native migration Up/Down preserve synthetic rows/default private. Authorization/redaction/encryption, complete historical schema lineage, all-field parity and hosted gates remain open; see release gates for exact boundaries.

@@ -761,6 +761,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 VersionId = holonEntity.VersionId,
                 PreviousVersionId = holonEntity.PreviousVersionId,
                 CustomHolonType = holonEntity.CustomHolonType,
+                CreatedProviderType = new NextGenSoftware.Utilities.EnumValue<ProviderType>(holonEntity.CreatedProviderType),
+                CreatedOASISType = new NextGenSoftware.Utilities.EnumValue<OASISType>(holonEntity.CreatedOASISType),
                 IsChanged = holonEntity.IsChanged,
                 ModifiedDate = holonEntity.ModifiedDate,
                 Name = holonEntity.Name,
@@ -795,6 +797,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 VersionId = holon.VersionId,
                 PreviousVersionId = holon.PreviousVersionId,
                 CustomHolonType = holon.CustomHolonType,
+                CreatedProviderType = holon.CreatedProviderType?.Value ?? default,
+                CreatedOASISType = holon.CreatedOASISType?.Value ?? default,
                 IsChanged = holon.IsChanged,
                 ModifiedDate = holon.ModifiedDate,
                 Name = holon.Name,
@@ -815,6 +819,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 holon.CreatedDate = tracked.CreatedDate;
                 holon.CreatedByAvatarId = tracked.CreatedByAvatarId;
+                holon.CreatedProviderType = tracked.CreatedProviderType;
+                holon.CreatedOASISType = tracked.CreatedOASISType;
                 _dbContext.Entry(tracked).CurrentValues.SetValues(holon);
                 return tracked;
             }
@@ -832,6 +838,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             // persisted value rather than treating its presence as a create signal.
             holon.CreatedDate = persistedHolon.CreatedDate;
             holon.CreatedByAvatarId = persistedHolon.CreatedByAvatarId;
+            holon.CreatedProviderType = persistedHolon.CreatedProviderType;
+            holon.CreatedOASISType = persistedHolon.CreatedOASISType;
             _dbContext.Holons.Update(holon);
             return holon;
         }
