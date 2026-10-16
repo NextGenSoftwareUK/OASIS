@@ -70,8 +70,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
             {
                 if(parentScope!=null)
                 {
-                    if(typeof(T)!=typeof(Holon)) return new List<T>();
-                    filter &= (FilterDefinition<T>)(object)Builders<Holon>.Filter.In(row=>row.HolonId,parentScope);
+                    if(typeof(T)==typeof(Holon))
+                        filter &= (FilterDefinition<T>)(object)Builders<Holon>.Filter.In(row=>row.HolonId,parentScope);
+                    else if(typeof(T)==typeof(Avatar))
+                        filter &= (FilterDefinition<T>)(object)Builders<Avatar>.Filter.In(row=>row.ParentHolonId,
+                            searchParams.Recursive ? parentScope.Append(searchParams.ParentId):new[] {searchParams.ParentId});
                 }
                 if(currentGroupType!=HolonType.All)
                     filter &= Builders<T>.Filter.Eq("HolonType",currentGroupType);

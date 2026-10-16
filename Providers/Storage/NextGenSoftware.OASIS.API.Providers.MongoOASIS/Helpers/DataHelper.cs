@@ -135,6 +135,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                 ? new Dictionary<string, object>(avatarResult.Result.MetaData) : new Dictionary<string, object>();
             result.Result.Description = avatarResult.Result.Description;
             result.Result.Title = avatarResult.Result.Title;
+            result.Result.ParentHolonId = avatarResult.Result.ParentHolonId;
             result.Result.FirstName = avatarResult.Result.FirstName;
             result.Result.LastName = avatarResult.Result.LastName;
             result.Result.Email = avatarResult.Result.Email;
@@ -442,6 +443,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.Email = avatar.Email;
             mongoAvatar.Password = avatar.Password;
             mongoAvatar.Title = avatar.Title;
+            mongoAvatar.ParentHolonId = avatar.ParentHolonId;
             mongoAvatar.Username = avatar.Username;
             mongoAvatar.HolonType = avatar.HolonType;
             mongoAvatar.AvatarType = avatar.AvatarType;

@@ -146,6 +146,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 if (searchParams.SearchGroups != null && searchParams.SearchGroups.Any())
                 {
                     var groups = searchParams.SearchGroups;
+                    HashSet<Guid> avatarParentScope=null;
                     bool MatchesGroups(Func<ISearchGroupBase, bool> matches)
                     {
                         var matched = matches(groups[0]);
@@ -202,11 +203,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                         var candidates = holonLoad.Result.Where(h => h.DeletedDate == DateTime.MinValue).ToList();
                         if (searchParams.ParentId != Guid.Empty)
                         {
+                            // Version filters returned roots, not the independently versioned
+                            // ancestors needed to reach those roots under the requested parent.
+                            var scopeRows=candidates;
+                            if(version!=0)
+                            {
+                                var scopeLoad=await _holonRepository.LoadAllHolonsAsync(loadChildren:false,version:0);
+                                if(scopeLoad.IsError)
+                                {
+                                    OASISErrorHandling.HandleError(ref result,"SQLite search parent links failed: "+scopeLoad.Message,scopeLoad.Exception);
+                                    return result;
+                                }
+                                if(scopeLoad.Result==null) throw new System.IO.InvalidDataException("SQLite search parent-link collection is missing.");
+                                scopeRows=scopeLoad.Result.Where(row=>row.DeletedDate==DateTime.MinValue).ToList();
+                            }
                             var descendants = new HashSet<Guid>();
                             var visited = new HashSet<Guid> { searchParams.ParentId };
                             var pending = new Queue<Guid>();
                             pending.Enqueue(searchParams.ParentId);
-                            var byParent = candidates.ToLookup(h => h.ParentHolonId);
+                            var byParent = scopeRows.ToLookup(h => h.ParentHolonId);
                             while (pending.Count > 0)
                             {
                                 foreach (var child in byParent[pending.Dequeue()])
@@ -217,6 +232,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                                 }
                             }
                             candidates = candidates.Where(h => descendants.Contains(h.Id)).ToList();
+                            avatarParentScope=new HashSet<Guid> {searchParams.ParentId};
+                            if(searchParams.Recursive) avatarParentScope.UnionWith(descendants);
                         }
                         holons.AddRange(candidates.Where(h => MatchesGroups(group =>
                             (group.HolonType == HolonType.All || group.HolonType == h.HolonType) && (group switch {
@@ -244,7 +261,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     }
                     if (!avatarLoad.IsError && avatarLoad.Result != null)
                     {
-                        avatars.AddRange(avatarLoad.Result.Where(a => MatchesGroups(group => group switch {
+                        avatars.AddRange(avatarLoad.Result.Where(a => (avatarParentScope==null || avatarParentScope.Contains(a.ParentHolonId)) && MatchesGroups(group => group switch {
                             ISearchNumberGroup number => number.SearchAvatars && number.AvatarSearchParams?.Version == true && Compare(a.Version, number),
                             ISearchDateGroup date => date.SearchAvatars && (
                                 date.AvatarSearchParams?.CreatedDate == true && CompareDate(a.CreatedDate, date) ||
