@@ -1,0 +1,147 @@
+name: Publish OASIS NuGet Packages (selected)
+
+# Light, manual publish of a chosen set of OASIS packages (the global release, global-release.yml, publishes everything).
+# The projects listed get release_version; every other OASIS project they depend on is pinned at base_version (what is
+# already on NuGet), via .github/release/PinOASISVersions.targets. Before anything is pushed, every dependency of every
+# package is checked to exist on nuget.org or in this batch (.github/release/verify-nupkg-dependencies.ps1), so a broken
+# package (e.g. one depending on a version that was never published) can't go out.
+#
+# The default set fixes STAR's install chain: IPFSOASIS 2.0.4 depended on Ipfs.Http.Client >= 0.42 (not on NuGet), and
+# Contracts, ArweaveOASIS and STAR.DNA were never published at 2.0.4.
+
+on:
+  workflow_dispatch:
+    inputs:
+      projects:
+        description: Projects to release (paths relative to the OASIS repo, separated by ';')
+        type: string
+        default: "OASIS Architecture/NextGenSoftware.OASIS.Contracts/NextGenSoftware.OASIS.Contracts.csproj;Providers/Network/NextGenSoftware.OASIS.API.Providers.IPFSOASIS/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.csproj;Providers/Network/NextGenSoftware.OASIS.API.Providers.HoloOASIS/NextGenSoftware.OASIS.API.Providers.HoloOASIS.csproj;Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS/NextGenSoftware.OASIS.API.Providers.ArweaveOASIS.csproj;STAR ODK/NextGenSoftware.OASIS.STAR.STARDNA/NextGenSoftware.OASIS.STAR.DNA.csproj;OASIS Architecture/NextGenSoftware.OASIS.OASISBootLoader/NextGenSoftware.OASIS.OASISBootLoader.csproj;STAR ODK/NextGenSoftware.OASIS.STAR/NextGenSoftware.OASIS.STAR.csproj"
+      release_version:
+        description: Version for the projects above
+        type: string
+        default: "2.0.5"
+      base_version:
+        description: Version of every other OASIS package they depend on (must already be on NuGet)
+        type: string
+        default: "2.0.4"
+      holonet_ref:
+        description: holochain-client-csharp branch, tag or commit (HoloOASIS builds against it)
+        type: string
+        default: main
+      libraries_ref:
+        description: NextGenSoftware-Libraries branch, tag or commit
+        type: string
+        default: main
+      publish:
+        description: Push to NuGet.org and create the GitHub release (off = build, pack and verify only)
+        type: boolean
+        default: false
+
+jobs:
+  publish:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout OASIS
+        uses: actions/checkout@v4
+        with:
+          path: OASIS
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v4
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ inputs.holonet_ref }}
+          path: holochain-client-csharp
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v4
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ inputs.libraries_ref }}
+          path: NextGenSoftware-Libraries
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Pack (release set at release_version, every other OASIS dependency at base_version)
+        shell: pwsh
+        working-directory: OASIS
+        env:
+          PROJECTS: ${{ inputs.projects }}
+          RELEASE_VERSION: ${{ inputs.release_version }}
+          BASE_VERSION: ${{ inputs.base_version }}
+        run: |
+          $projects = $env:PROJECTS.Split(';') | ForEach-Object { $_.Trim() } | Where-Object { $_ }
+          $names = ($projects | ForEach-Object { [IO.Path]::GetFileNameWithoutExtension($_) }) -join '%3B'
+          $targets = (Resolve-Path .github/release/PinOASISVersions.targets).Path
+          New-Item -ItemType Directory -Force -Path ..\nupkgs | Out-Null
+          $failed = 0
+          foreach ($proj in $projects) {
+            dotnet pack "$proj" --configuration Release --output ..\nupkgs `
+              "-p:CustomAfterMicrosoftCommonTargets=$targets" "-p:CustomAfterMicrosoftCommonCrossTargetingTargets=$targets" `
+              "-p:OASISBaseVersion=$env:BASE_VERSION" "-p:OASISReleaseVersion=$env:RELEASE_VERSION" "-p:OASISReleaseProjects=$names"
+            if ($LASTEXITCODE -ne 0) { $failed++; Write-Host "PACK FAILED: $proj" }
+          }
+          Get-ChildItem ..\nupkgs\*.nupkg | ForEach-Object { Write-Host $_.Name }
+          if ($failed -gt 0) { exit 1 }
+          $wrong = Get-ChildItem ..\nupkgs\*.nupkg | Where-Object { $_.Name -notlike "*.$env:RELEASE_VERSION.nupkg" }
+          if ($wrong) { $wrong | ForEach-Object { Write-Host "WRONG VERSION: $($_.Name)" }; exit 1 }
+
+      - name: Verify every dependency resolves (nuget.org or this batch)
+        shell: pwsh
+        run: ./OASIS/.github/release/verify-nupkg-dependencies.ps1 -Folder nupkgs
+
+      - name: Zip each package's assemblies (GitHub release assets)
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path assets | Out-Null
+          foreach ($p in Get-ChildItem nupkgs\*.nupkg) {
+            Copy-Item $p.FullName assets\
+            $dir = Join-Path $env:RUNNER_TEMP $p.BaseName
+            Expand-Archive $p.FullName -DestinationPath $dir -Force
+            if (Test-Path "$dir\lib") { Compress-Archive -Path "$dir\lib\*" -DestinationPath "assets\$($p.BaseName).zip" -Force }
+          }
+          Get-ChildItem assets | ForEach-Object { Write-Host $_.Name }
+
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: oasis-nupkgs
+          path: assets/*
+
+      - name: Push to NuGet.org
+        if: inputs.publish
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) { throw 'NUGET_API_KEY is required.' }
+          $pushFailed = 0
+          foreach ($package in Get-ChildItem .\nupkgs\*.nupkg) {
+            Write-Host "Pushing $($package.Name)..."
+            dotnet nuget push $package.FullName --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --skip-duplicate
+            if ($LASTEXITCODE -ne 0) { $pushFailed++ }
+          }
+          if ($pushFailed -gt 0) { exit 1 }
+
+      - name: GitHub release with the packages attached
+        if: inputs.publish
+        shell: pwsh
+        working-directory: OASIS
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RELEASE_VERSION: ${{ inputs.release_version }}
+        run: |
+          $tag = "oasis-packages-v$env:RELEASE_VERSION"
+          $list = (Get-ChildItem ..\nupkgs\*.nupkg | ForEach-Object { "- $($_.BaseName)" }) -join "`n"
+          $notes = "OASIS NuGet packages $env:RELEASE_VERSION (selected set; every other OASIS dependency stays at the published ${{ inputs.base_version }}).`n`n$list`n`nEach .nupkg is attached, plus a .zip of its assemblies."
+          gh release view $tag 2>$null
+          if ($LASTEXITCODE -ne 0) { gh release create $tag --target $env:GITHUB_SHA --title "OASIS packages $env:RELEASE_VERSION" --notes $notes }
+          gh release upload $tag (Get-ChildItem ..\assets\*).FullName --clobber
