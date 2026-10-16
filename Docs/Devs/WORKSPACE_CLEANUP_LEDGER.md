@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 AWS consistency scans: existing DynamoDBLocal/runtime/cache/fixed reports reused;57/57unit and63/63nativepass13s. Existing exact synthetic-key/verified routing fixture cleanup and owned Java shutdown retained. No install/download/clone/duplicate environment or data migration. Free C observed84,708,868,096bytes during run.
+
 2026-10-16 Azure V2 key-mismatch matrix:64/64nativepass15s using existing runtime/cache/fixed report/SQLite routing fixture. Exact acknowledged synthetic blob removed after unchanged-payload assertions; fixture family removed only after verified native+SQLite readback/deactivation. Owned Node stopped/lease released; no install/download/clone/new environment/broad deletion. Free C observed84,687,114,240bytes during run, no claim this scoped report explains unrelated disk usage.
 
 2026-10-16 Azure custom-key integrity: same pinned Azurite/cache/fixed reports;62/62nativepass14s and15/15unitpass. Exact synthetic mismatched/custom-GUID blobs live only in existing per-test owned containers, removed by existing container cleanup after independent unchanged-payload checks; owned Node stopped. No install/download/clone/new environment/user-record migration or broad deletion.
