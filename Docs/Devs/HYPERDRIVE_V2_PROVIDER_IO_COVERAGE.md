@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 AWS native51/51pass13s:16actual corrupt-lifecycle V2 combinations prove0transaction dispatches/0secondary requests, typed original errors/no tombstone evidence, unchanged native profile/detail snapshots and active SQLite XP777 pair. New2top-level tests each contain8cases; no inflated test count. Prior49 cases retained. Full integrity/provider/history/recovery/live/hosted gates remain open.
+
 2026-10-16 AWS native49/49pass12s +Dynamo unit49/49pass341ms: common canonical validator covers collections/holon point+parent and lifecycle snapshot reads.12collection regressions failed before fix; native holon wrong-ID/JSON point/all/parent errors and V2 avatar/detail corrupt collections with0stale-secondary requests verified. Dedicated corrupt-lifecycle mutation fencing, all read consistency/concurrency/history/recovery/live/hosted gates remain open.
 
 2026-10-16 AWS native45/45pass12s +Dynamo unit37/37pass340ms +SQLite/LocalFile/Core integrity28/28pass5s: malformed canonical JSON is typed InvalidDataException with original JsonException cause; point/selectors share identity decoder. Actual V2 malformed/wrong-ID profile/detail GUID/username/email cases preserve errors/no result/0secondary calls. Broader collection/holon corruption classes, history/recovery/live/hosted gates remain open.
