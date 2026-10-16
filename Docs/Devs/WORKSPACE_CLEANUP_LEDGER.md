@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 negative-version validation reused existing Core build/cache and fixed HyperDriveSqliteCurrent test lease/report. Two baseline failures reproduced; final72/72pass7s,no skips; invalid-request tests verify SQLite inactive/native DB absent. No download/install/runtime/clone/environment; existing owned fixture cleanup reused. C free83,412,819,968bytes. Core commit includes only router file, unrelated subscription/pending chain data untouched.
+
 2026-10-16 exact-version regression reused fixed HyperDriveSqliteCurrent lease/owned-data/reports, cached LocalFile producer/SQLite. Two new cases failed before predicate fix; final70/70pass7s;owned-data independently absent. No install/download/clone/runtime/environment creation or pending chain fixture action. C free83,415,015,424bytes observed; no recovery claim.
 
 2026-10-16 LocalFile integrity regression reused fixed HyperDriveSqliteCurrent lease/owned-data, existing SDK/dependencies and report. LocalFile producer0errors/26warnings;targeted68/68pass6s.12synthetic file-corruption cases set preserve-on-failure before mutation, independently verify corrupt bytes and SQLite backup, restore valid original and verify healthy reads before allowing normal fixture cleanup. No download/install/new environment; unknown chain/CosmosDB and concurrent subscription files untouched.
