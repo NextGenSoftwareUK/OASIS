@@ -14,8 +14,9 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 
 public sealed class CosmosAvatarMintSignerTests
 {
-    [Fact]
-    public async Task TokenMintUsesEncryptedAvatarDefaultWalletInsteadOfConfiguredOrFirstWallet()
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task TokenMintUsesEncryptedAvatarDefaultWalletInsteadOfConfiguredOrFirstWallet(bool synchronous)
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory != null && !File.Exists(Path.Combine(directory.FullName, "Scripts/TestHosts/Use-ReusableTronRuntime.ps1"))) directory = directory.Parent;
@@ -49,11 +50,15 @@ public sealed class CosmosAvatarMintSignerTests
             providers.SetAndActivateCurrentStorageProvider(local).IsError.Should().BeFalse();
             var constructor = typeof(WalletManager).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).Single(value => value.GetParameters().Length == 4);
             cosmos.WalletManager = (WalletManager)constructor.Invoke(new object?[] { local, dna, providers, null });
-            var minted = await cosmos.MintTokenAsync(new MintWeb3TokenRequest { Symbol = "fixture-token", Amount = 1, MintedByAvatarId = avatarId });
+            var request=new MintWeb3TokenRequest { Symbol = "fixture-token", Amount = 1, MintedByAvatarId = avatarId };
+            var minted = synchronous ? cosmos.MintToken(request):await cosmos.MintTokenAsync(request);
             minted.IsError.Should().BeFalse(minted.Message);
-            minted.Result.TransactionResult.Should().Be("fixture-committed-cosmos-nft");
+            // nft-signer.mjs is a controlled transport fixture, not native consensus evidence.
+            // Its execute branch rejects any signer except the decrypted explicit default key.
+            minted.Result.TransactionResult.Should().Be(new string('a',64));
             (await local.LoadProviderWalletsForAvatarByIdAsync(avatarId)).Result[ProviderType.CosmosBlockChainOASIS][1].PrivateKey.Should().Be(encrypted);
-            var missing = await cosmos.MintTokenAsync(new MintWeb3TokenRequest { Symbol = "fixture-token", Amount = 1, MintedByAvatarId = Guid.NewGuid() });
+            var absent=new MintWeb3TokenRequest { Symbol = "fixture-token", Amount = 1, MintedByAvatarId = Guid.NewGuid() };
+            var missing = synchronous ? cosmos.MintToken(absent):await cosmos.MintTokenAsync(absent);
             missing.IsError.Should().BeTrue(); missing.Result.Should().BeNull();
             missing.Message.Should().Contain("sender wallet could not be loaded");
         }
