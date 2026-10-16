@@ -435,25 +435,30 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
             Assert.IsFalse(string.IsNullOrEmpty(description));
         }
 
-        [TestMethod]
-        public void ActivateProvider_ShouldSetIsProviderActivatedToTrue()
+        [DataTestMethod]
+        [DataRow(false)] [DataRow(true)]
+        public async Task ActivationCannotAdvertiseReadyWhenAllServicesAreDisabled(bool asynchronous)
         {
             // Arrange
             Assert.IsFalse(_provider.IsProviderActivated);
 
             // Act
-            var result = _provider.ActivateProvider();
+            var result = asynchronous ? await _provider.ActivateProviderAsync():_provider.ActivateProvider();
 
             // Assert
-            Assert.IsTrue(result.IsError == false);
-            Assert.IsTrue(_provider.IsProviderActivated);
+            Assert.IsTrue(result.IsError);
+            Assert.IsFalse(result.Result);
+            Assert.IsFalse(_provider.IsProviderActivated);
+            Assert.AreEqual("GOOGLE_CLOUD_SERVICE_REQUIRED",result.ErrorCode);
+            Assert.IsInstanceOfType(result.Exception,typeof(System.InvalidOperationException));
         }
 
         [TestMethod]
         public void DeActivateProvider_ShouldSetIsProviderActivatedToFalse()
         {
             // Arrange
-            _provider.ActivateProvider();
+            // Owned state-transition fixture, not a claim that disabled SDKs activated.
+            _provider.IsProviderActivated=true;
             Assert.IsTrue(_provider.IsProviderActivated);
 
             // Act

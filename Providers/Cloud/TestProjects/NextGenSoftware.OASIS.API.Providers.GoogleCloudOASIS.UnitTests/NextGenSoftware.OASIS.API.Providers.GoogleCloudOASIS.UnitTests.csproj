@@ -19,4 +19,7 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS\NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\CloudProviderFactory.Google.cs" Link="Production\CloudProviderFactory.cs" />
+  </ItemGroup>
 </Project>
