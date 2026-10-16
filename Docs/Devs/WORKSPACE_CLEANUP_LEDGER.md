@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 Google inactive-state regression: same retained emulator/cache/fixed report reused. First7-case run5pass/2fail reproduced invalid empty tombstone timestamp; after root-cause fix7/7pass14s. Exact synthetic document cleanup only; no new runtime/archive/environment or broad data cleanup. Prior compact failure assertions documented, latest TRX retained.
+
 2026-10-16 AWS routed hard-delete verification: existing retained DynamoDB Local runtime and fixed AWSProviderEvidence/artifacts reports reused;17/17 native passes10s. No runtime/download/clone/new environment. Test lifecycle uses actual routed deletion rather than separate direct-provider cleanup, independently verifies absence before successful fixture DB removal. No broad user-table/cache/ledger cleanup or global reclaim claim.
 
 2026-10-16 Google routed hard-deletion verification: reused same retained Firestore/runtime/caches/fixed GoogleCurrent reports;5/5 native pass14s. Existing fixture exact-ID cleanup and verified SQLite fixture cleanup unchanged; no additional database copies, installs or downloads. No global reclaim claim.

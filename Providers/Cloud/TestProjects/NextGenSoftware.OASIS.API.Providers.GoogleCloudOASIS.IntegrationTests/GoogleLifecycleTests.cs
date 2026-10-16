@@ -12,9 +12,11 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.IntegrationTests;
 public class GoogleLifecycleTests
 {
     [DataTestMethod]
-    [DataRow(false)]
-    [DataRow(true)]
-    public async Task PairedDeletionPreservesActorAndCanonicalFields(bool synchronous)
+    [DataRow(false,true)]
+    [DataRow(true,true)]
+    [DataRow(false,false)]
+    [DataRow(true,false)]
+    public async Task PairedDeletionPreservesActorAndCanonicalFields(bool synchronous,bool initiallyActive)
     {
         Assert.AreEqual("127.0.0.1:18080",Environment.GetEnvironmentVariable("FIRESTORE_EMULATOR_HOST"));
         const string project="oasis-google-native";
@@ -26,11 +28,13 @@ public class GoogleLifecycleTests
         try
         {
             Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
-            Assert.IsFalse((await provider.SaveAvatarAsync(new Avatar {Id=id,Username="owned-lifecycle-"+id,IsActive=true,
+            Assert.IsFalse((await provider.SaveAvatarAsync(new Avatar {Id=id,Username="owned-lifecycle-"+id,IsActive=initiallyActive,
                 FirstName="preserved-profile",DeletedByAvatarId=actor})).IsError);
-            var value=new AvatarDetail {Id=id,Username="owned-lifecycle-"+id,IsActive=true,XP=321,Karma=29};
+            var value=new AvatarDetail {Id=id,Username="owned-lifecycle-"+id,IsActive=initiallyActive,XP=321,Karma=29};
             value.Inventory.Add(new InventoryItem {Id=Guid.NewGuid(),Name="preserved-seed"});
             Assert.IsFalse((await provider.SaveAvatarDetailAsync(value)).IsError);
+            var before=OasisJson.Deserialize<Avatar>((await profile.GetSnapshotAsync()).GetValue<string>("data_json"));
+            Assert.AreEqual(initiallyActive,before.IsActive);Assert.IsFalse(before.IsDeleted);
             DateTime? committedDate=null;
             for(var repeat=0;repeat<2;repeat++)
             {

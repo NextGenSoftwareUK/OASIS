@@ -68,10 +68,10 @@ public partial class GoogleCloudOASIS : IAvatarTombstoneStorageProvider
                 var detail=detailSnapshot.Exists ? DecodeAvatarDetail(detailSnapshot.ConvertTo<Dictionary<string,object>>(),detailSnapshot.Id):null;
                 if(softDelete)
                 {
-                    var patch=supplied ?? (!avatar.IsActive
+                    var patch=supplied ?? (avatar.IsDeleted
                         ? new AvatarTombstone(id,avatar.DeletedDate,avatar.DeletedByAvatarId)
                         : new AvatarTombstone(id,DateTime.UtcNow,avatar.DeletedByAvatarId));
-                    if(!avatar.IsActive && !MatchesTombstone(avatar,patch) || detail!=null && !detail.IsActive && !MatchesTombstone(detail,patch))
+                    if(avatar.IsDeleted && !MatchesTombstone(avatar,patch) || detail!=null && detail.IsDeleted && !MatchesTombstone(detail,patch))
                         throw new StorageLifecycleConflictException("Firestore stored tombstone differs from requested committed lifecycle state.");
                     committed=patch;
                     if(MatchesTombstone(avatar,patch) && (detail==null || MatchesTombstone(detail,patch))) return true;
