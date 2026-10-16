@@ -19,4 +19,7 @@
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.AWSOASIS\NextGenSoftware.OASIS.API.Providers.AWSOASIS.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Compile Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\CloudProviderFactory.AWS.cs" Link="Production\CloudProviderFactory.cs" />
+  </ItemGroup>
 </Project>

@@ -137,7 +137,8 @@ public partial class AWSOASISIntegrationTests
     {
         const string endpoint = "http://127.0.0.1:18000";
         Assert.AreEqual(endpoint,Environment.GetEnvironmentVariable("DYNAMODB_SERVICE_URL"),"Owned reusable DynamoDB Local runner required.");
-        _provider = new AWSOASIS("us-east-1", "fakeMyKeyId", "fakeSecretAccessKey", endpoint);
+        _provider = NextGenSoftware.OASIS.OASISBootLoader.CloudProviderFactory.CreateAws(new NextGenSoftware.OASIS.API.DNA.AWSOASISProviderSettings
+            {Region="us-east-1",AccessKey="fakeMyKeyId",SecretKey="fakeSecretAccessKey",ServiceUrl=endpoint},null!);
         var activated = await _provider.ActivateProviderAsync();
         Assert.IsFalse(activated.IsError, activated.Message);
         Assert.IsTrue(_provider.IsProviderActivated);
