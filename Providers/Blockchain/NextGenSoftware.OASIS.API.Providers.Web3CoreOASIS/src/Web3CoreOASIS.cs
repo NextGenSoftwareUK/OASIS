@@ -91,21 +91,25 @@ public sealed class Web3CoreOASIS
         }
     }
 
-    private async Task<TransactionReceipt> SendAndWaitForReceiptAsync(Function function, params object[] functionInput)
+    private Task<TransactionReceipt> SendAndWaitForReceiptAsync(Function function, params object[] functionInput)
+        =>SendInputAndWaitForReceiptAsync(new TransactionInput {From=_web3.TransactionManager.Account.Address,To=_contractAddress,
+            Gas=new HexBigInteger(3_000_000),Data=function.GetData(functionInput)});
+
+    private async Task<TransactionReceipt> SendInputAndWaitForReceiptAsync(TransactionInput input)
     {
         await _mutationGate.WaitAsync();
         try
         {
-        var input=new TransactionInput {From=_web3.TransactionManager.Account.Address,To=_contractAddress,
-            Gas=new HexBigInteger(3_000_000),Data=function.GetData(functionInput)};
+        var persist=_preparation.Value;
+        if(persist!=null && (input.Value?.Value??BigInteger.Zero)!=BigInteger.Zero)
+            throw new InvalidOperationException("Admitted native-value recovery requires a value-aware journal contract before submission.");
         // Signing must not consume a cached nonce if preparation fails before submission.
         input.Nonce=await _web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(input.From,BlockParameter.CreatePending());
         var signed=await _web3.TransactionManager.SignTransactionAsync(input);
         var bytes=signed.HexToByteArray();
         if(bytes.Length==0) throw new InvalidOperationException("EVM signer returned empty signed transaction.");
         var hash="0x"+Convert.ToHexString(Nethereum.Util.Sha3Keccack.Current.CalculateHash(bytes)).ToLowerInvariant();
-        Web3SignedPreparation.Verify(bytes,hash,_chainId ?? throw new InvalidOperationException("Signed EVM mutations require an explicit chain identity."),input.From,_contractAddress,input.Data.HexToByteArray());
-        var persist=_preparation.Value;
+        Web3SignedPreparation.Verify(bytes,hash,_chainId ?? throw new InvalidOperationException("Signed EVM mutations require an explicit chain identity."),input.From,_contractAddress,input.Data.HexToByteArray(),input.Value?.Value??System.Numerics.BigInteger.Zero);
         if(persist!=null)
             await persist(System.Text.Json.JsonSerializer.SerializeToElement(new {
                 transactionHash=hash,chainId=_chainId.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),sender=input.From,
@@ -155,6 +159,13 @@ public sealed class Web3CoreOASIS
 
     internal Task<TransactionReceipt> TransferErc20Async(string recipient,BigInteger amount)
         =>SendAndWaitForReceiptAsync(_web3.Eth.GetContract(_abi,_contractAddress).GetFunction("transfer"),recipient,amount);
+
+    internal async Task<TransactionReceipt> SendNativeAsync(BigInteger wei)
+    {
+        var input=new TransactionInput {From=_web3.TransactionManager.Account.Address,To=_contractAddress,Value=new HexBigInteger(wei),Data="0x"};
+        input.Gas=await _web3.Eth.Transactions.EstimateGas.SendRequestAsync(input);
+        return await SendInputAndWaitForReceiptAsync(input);
+    }
 
     internal Task<TransactionReceipt> TransferErc721Async(string from, string to, BigInteger tokenId)
         => SendAndWaitForReceiptAsync(_web3.Eth.GetContract(_abi, _contractAddress).GetFunction("transferFrom"), from, to, tokenId);

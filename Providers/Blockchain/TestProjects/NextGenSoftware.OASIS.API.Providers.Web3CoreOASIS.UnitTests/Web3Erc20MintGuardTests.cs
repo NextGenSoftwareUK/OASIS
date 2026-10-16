@@ -9,15 +9,25 @@ public sealed class Web3Erc20MintGuardTests
 {
     [DataTestMethod]
     [DataRow("wrong-sender")] [DataRow("conflicting-key")] [DataRow("zero-amount")]
-    [DataRow("zero-recipient")] [DataRow("missing-key")] [DataRow("missing-token")]
+    [DataRow("zero-recipient")] [DataRow("missing-key")] [DataRow("malformed-token")]
     public async Task InvalidTransferCannotSelectOperatorOrIgnoreExplicitSigner(string mode)
     {
         var provider=new GuardProvider();var key="0x"+new string('1',64);var owner=new Nethereum.Web3.Accounts.Account(key).Address;
-        var result=await provider.SendTokenAsync(new SendWeb3TokenRequest{FromTokenAddress=mode=="missing-token" ? null!:"0x"+new string('3',40),
+        var result=await provider.SendTokenAsync(new SendWeb3TokenRequest{FromTokenAddress=mode=="malformed-token" ? "not-an-address":"0x"+new string('3',40),
             FromWalletAddress=mode=="wrong-sender" ? "0x"+new string('5',40):owner,ToWalletAddress=mode=="zero-recipient" ? "0x"+new string('0',40):"0x"+new string('2',40),
             OwnerPrivateKey=mode=="missing-key" ? null!:key,FromWalletPrivateKey=mode=="conflicting-key" ? "0x"+new string('2',64):null!,Amount=mode=="zero-amount" ? 0:2});
         Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",result.ErrorCode);
         Assert.IsFalse(provider.IsProviderActivated);Assert.AreEqual(0,provider.KeyCalls);
+    }
+
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task NativeTransferRejectsSubWeiOrUnspecifiedMemoBeforeRpc(bool memo)
+    {
+        var provider=new GuardProvider();var result=await provider.SendTokenAsync(new SendWeb3TokenRequest{FromTokenAddress=null!,
+            ToWalletAddress="0x"+new string('2',40),OwnerPrivateKey="0x"+new string('1',64),Amount=memo ? 1:0.0000000000000000001m,MemoText=memo ? "unspecified":null!});
+        Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsFalse(provider.IsProviderActivated);
+        Assert.IsInstanceOfType(result.Exception,memo ? typeof(NotSupportedException):typeof(ArgumentException));
     }
 
     [DataTestMethod]
@@ -34,6 +44,8 @@ public sealed class Web3Erc20MintGuardTests
     [DataRow("1.234567",6,"1234567")]
     [DataRow("1.25",30,"1250000000000000000000000000000")]
     [DataRow("1",0,"1")]
+    [DataRow("0.000000000000000001",18,"1")]
+    [DataRow("1.234567890123456789",18,"1234567890123456789")]
     public void SharedExactUnitsNeverRoundOrCastThroughDecimalMultiplier(string amount,int decimals,string expected)
         =>Assert.AreEqual(System.Numerics.BigInteger.Parse(expected),NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ExactEvmTokenAmount.ToUnits(decimal.Parse(amount,System.Globalization.CultureInfo.InvariantCulture),(byte)decimals));
 

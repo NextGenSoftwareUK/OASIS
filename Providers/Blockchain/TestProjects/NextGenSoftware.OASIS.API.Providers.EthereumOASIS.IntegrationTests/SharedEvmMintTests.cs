@@ -13,6 +13,37 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests;
 public partial class EthereumOASISIntegrationTests
 {
     [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public async Task SharedNativeCoinSendBindsExactWeiAndAccountsForReceiptFee(bool synchronous,bool self)
+    {
+        var (storage,address)=await CreateActivatedProviderAsync();var provider=new SharedMintFixture(Host,"0x"+new string('2',64),address);
+        var owner=new Nethereum.Web3.Accounts.Account(PrivateKey,ChainId).Address;var web3=new Web3(Host);
+        try
+        {
+            var nonce=(await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(owner)).Value;
+            var rejected=await provider.SendTokenAsync(new SendWeb3TokenRequest{FromTokenAddress=null!,ToWalletAddress=address,OwnerPrivateKey=PrivateKey,Amount=0.000000000000000001m});
+            Assert.IsTrue(rejected.IsError);Assert.IsNull(rejected.Result);Assert.IsFalse(NativeMutationReconciliation.IsRequired(rejected.Exception));
+            Assert.AreEqual(nonce,(await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(owner)).Value,"Nonpayable recipient preflight must not spend nonce or fees.");
+            foreach(var amount in new[]{0.000000000000000001m,1.234567890123456789m})
+            {
+                var recipient=self ? owner:"0x2222222222222222222222222222222222222222";
+                var before=(await web3.Eth.GetBalance.SendRequestAsync(owner)).Value;var targetBefore=(await web3.Eth.GetBalance.SendRequestAsync(recipient)).Value;
+                var request=new SendWeb3TokenRequest{FromTokenAddress=null!,FromWalletAddress=owner,ToWalletAddress=recipient,OwnerPrivateKey=PrivateKey,Amount=amount};
+                var sent=synchronous ? provider.SendToken(request):await provider.SendTokenAsync(request);
+                Assert.IsFalse(sent.IsError,sent.Exception?.ToString()??sent.Message);Assert.IsTrue(sent.IsSaved);
+                var transaction=await web3.Eth.Transactions.GetTransactionByHash.SendRequestAsync(sent.Result.TransactionResult);
+                var receipt=await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(sent.Result.TransactionResult);
+                var wei=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ExactEvmTokenAmount.ToUnits(amount,18);
+                Assert.AreEqual(wei,transaction.Value.Value);Assert.AreEqual(owner.ToLowerInvariant(),transaction.From.ToLowerInvariant());Assert.AreEqual(recipient.ToLowerInvariant(),transaction.To.ToLowerInvariant());
+                Assert.IsTrue(receipt.Succeeded());Assert.IsNotNull(receipt.EffectiveGasPrice);var fee=receipt.GasUsed.Value*receipt.EffectiveGasPrice.Value;
+                Assert.AreEqual(before-(self ? BigInteger.Zero:wei)-fee,(await web3.Eth.GetBalance.SendRequestAsync(owner)).Value);
+                if(!self) Assert.AreEqual(targetBefore+wei,(await web3.Eth.GetBalance.SendRequestAsync(recipient)).Value);
+            }
+        }
+        finally {await provider.DeActivateProviderAsync();await storage.DeActivateProviderAsync();}
+    }
+
+    [DataTestMethod]
     [DataRow(false,false,false)] [DataRow(true,false,false)] [DataRow(false,true,false)] [DataRow(true,true,false)]
     [DataRow(false,false,true)] [DataRow(true,false,true)] [DataRow(false,true,true)] [DataRow(true,true,true)]
     public async Task SharedEvmTransferVerifiesExactUnitsSenderRecipientSupplyAndEvent(bool synchronous,bool self,bool noop)

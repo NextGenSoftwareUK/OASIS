@@ -357,7 +357,7 @@ public partial class Web3CoreOASISBaseProvider
     }
 
     public Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
-        =>SendExplicitErc20Async(request);
+        =>SendExplicitTokenAsync(request);
 
     public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
     {
