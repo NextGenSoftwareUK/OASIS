@@ -465,11 +465,15 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             services.AddGrpc(options => options.Interceptors.Add<Security.OASISGrpcAuthorizationInterceptor>());
 
             services.AddGraphQLServer()
+                .BindRuntimeType<object, HotChocolate.Types.AnyType>()
+                .AddType(new HotChocolate.Types.AnyType("JSON"))
+                .BindRuntimeType<System.Collections.Generic.Dictionary<string, object>>("JSON")
                 .AddQueryType<Query>()
                 .AddMutationType<Mutation>()
                 .UseField<Security.OASISGraphQLAuthorizationMiddleware>()
                 .AddType<GraphQL.Types.AvatarType>()
                 .AddType<GraphQL.Types.HolonType>()
+                .AddOasisDataTypes()
                 // Removes the IHolon persistence methods that HotChocolate would otherwise infer as fields
                 // taking an 'IHolon (Input)' argument, which made the whole schema fail to build.
                 .TryAddTypeInterceptor<GraphQL.OASISMethodFieldTypeInterceptor>();

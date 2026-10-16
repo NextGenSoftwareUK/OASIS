@@ -9,6 +9,7 @@ namespace NextGenSoftware.OASIS.Web9.WebAPI.Middleware
         public static UsageEndpointPolicy Resolve(HttpContext context)
         {
             var path = context.Request.Path;
+            if (UsageRequestClassification.IsOrdinaryRestRead(context)) return null;
             if (context.GetEndpoint()?.Metadata.GetMetadata<Microsoft.AspNetCore.Authorization.IAllowAnonymous>() != null || context.GetEndpoint() == null || path == "/" ||
                 path.StartsWithSegments("/swagger") || path.StartsWithSegments("/health") ||
                 path.StartsWithSegments("/api/health") || path.StartsWithSegments("/openapi") ||
