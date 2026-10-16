@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 Azure write-acknowledgement regression: same retained runtime/cache/fixed evidence; baseline24pass/6fail at caller IDs, final30/30nativepass14s,13/13unitpass266ms. Official SDK adapter observes known real HTTP201 before injected failure. Independently read exact acknowledged synthetic blob then delete in finally; original cause/key retained in test evidence. No install/download/clone/new environment or unknown-physical-outcome/user-data cleanup.
+
 2026-10-16 Azure integrity verification: retained Azurite3.37.0/runtime/cache/fixed AzureCurrent reports reused; final24/24nativepass14s, unit13/13pass259ms. Exact deliberately malformed acknowledged blobs deleted in finally; same fixed AzureRoutingFiles/lifecycle.db family removed only after full verified pass/deactivation. No new runtime/download/clone/environment or user-data repair/unknown-ledger removal. Existing in-memory fixture and ownership lease retained.
 
 2026-10-16 AWS corrupt lifecycle matrix: same retained runtime/cache/fixed SQLite routing fixture/reports; native51/51pass13s.16deliberately corrupt synthetic pairs independently verified unchanged/no dispatched mutation before exact-ID source cleanup. SQLite test family removed only after complete verification/deactivation; no unknown chain evidence/user data removed. No install/download/clone/new environment. C:85,105,098,752bytes free during run; no global reclaim claim.
