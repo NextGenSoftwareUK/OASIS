@@ -10,6 +10,40 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 public partial class Neo4jNativeAvatarTests
 {
     [TestMethod]
+    public async Task OwnedNativeSelectedChildReparentingMovesOnlyItsIncomingEdge()
+    {
+        const string uri = "bolt://127.0.0.1:17687";
+        Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
+        using var raw = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
+        using var inspection = raw.AsyncSession();
+        Assert.AreEqual(0L, (await (await inspection.RunAsync("MATCH (h:Holon) RETURN count(h) AS count")).SingleAsync())["count"].As<long>());
+        var provider = new Provider(uri, "neo4j", "oasis-local-test-only");
+        try
+        {
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            var oldParent = new Holon { Id = Guid.NewGuid(), Name = "old parent" };
+            var newParent = new Holon { Id = Guid.NewGuid(), Name = "new parent" };
+            var child = new Holon { Id = Guid.NewGuid(), Name = "moving child" };
+            oldParent.Children = new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> { child };
+            newParent.Children = new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> { child };
+            Assert.IsFalse((await provider.SaveHolonAsync(oldParent)).IsError);
+            Assert.IsFalse((await provider.SaveHolonAsync(newParent, saveChildren:false)).IsError);
+            Assert.AreEqual(child.Id, (await provider.LoadHolonsForParentAsync(oldParent.Id, loadChildren:false)).Result.Single().Id);
+            Assert.AreEqual(0, (await provider.LoadHolonsForParentAsync(newParent.Id, loadChildren:false)).Result.Count());
+            child.ParentHolonId = newParent.Id;
+            var moved = await provider.SaveHolonAsync(newParent);
+            Assert.IsFalse(moved.IsError, moved.Message);
+            Assert.AreEqual(0, (await provider.LoadHolonsForParentAsync(oldParent.Id, loadChildren:false)).Result.Count());
+            Assert.AreEqual(child.Id, (await provider.LoadHolonsForParentAsync(newParent.Id, loadChildren:false)).Result.Single().Id);
+            Assert.AreEqual(newParent.Id, (await provider.LoadHolonAsync(child.Id, loadChildren:false)).Result.ParentHolonId);
+            var incoming = await (await inspection.RunAsync("MATCH (:Holon)-[r:HAS_CHILD]->(h:Holon {Id:$id}) RETURN count(r) AS count", new { id = child.Id.ToString() })).SingleAsync();
+            Assert.AreEqual(1L, incoming["count"].As<long>());
+            await (await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h", new { ids = new[] { oldParent.Id.ToString(), newParent.Id.ToString(), child.Id.ToString() } })).ConsumeAsync();
+        }
+        finally { await provider.DeActivateProviderAsync(); }
+    }
+
+    [TestMethod]
     public async Task OwnedNativeCollectionParentAndMetadataReadsHydrateSelectedGraphs()
     {
         const string uri = "bolt://127.0.0.1:17687";

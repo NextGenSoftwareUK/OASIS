@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+Neo4j selected child reparenting now removes old incoming HAS_CHILD edges in same snapshot/new-edge transaction. Native11/11 passes9s: unselected move attempt preserves old linkage, explicit selected move yields correct parent readback and exactly1incoming edge. Not arbitrary missing-child removal/concurrent moves/history. Fresh814/655method inventory,43operation static checks and Railway pins pass, without equating static inventory to runtime certification. Remaining partial errors/pair lifecycle/recovery/hosted gates stay open.
+
 Neo4j parent/collection/metadata graph reads now reuse native hydration with children/recursion/depth, initial-depth behavior aligned to existing shared provider and root type filtering. Native10/10 passes9s; new8option combinations across3read families + typed/initial-depth/negative cases, prior point/save/policy/commit-fault cases retained. Partial continuation/history/snapshot isolation/concurrent graph mutation/reparent-removal/full routed options remain unverified; no full certification.
 
 Neo4j GUID/key point graph loading now honors children/recursion/depth and validates selected node/edge parent identities/cycles. Native9/9 passes8s with32point-read combinations, negative-depth rejection and exact injected-cycle conflict; prior V2/replay-fence cases remain green. Both fromProvider flag values select native edges, not proof of separate manager-owned graph source. Parent/collection/metadata graph options, partial-read continuation/history/concurrency/routed graph acceptance remain open.
