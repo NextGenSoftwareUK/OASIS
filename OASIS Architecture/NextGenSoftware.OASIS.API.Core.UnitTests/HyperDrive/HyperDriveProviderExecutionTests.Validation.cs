@@ -9,6 +9,35 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive;
 
 public sealed partial class HyperDriveProviderExecutionTests
 {
+    public static IEnumerable<object[]> InvalidCollectionQueries()
+    {
+        foreach(var operation in new[]{"LoadAllHolons","LoadHolonsForParent","LoadHolonsForParentByProviderKey","LoadHolonsByMetaData","LoadHolonsByMetaDataPairs"})
+        foreach(var field in new[]{"type","depth","currentDepth"})
+        foreach(var synchronous in new[]{false,true}) yield return new object[]{operation,field,synchronous};
+    }
+
+    [Theory]
+    [MemberData(nameof(InvalidCollectionQueries))]
+    public async Task InvalidCollectionQueryNeverSelectsOrCallsProvider(string operation,string field,bool synchronous)
+    {
+        var primary=CreateActiveProvider();var secondary=CreateActiveProvider(ProviderType.LocalFileOASIS,"secondary");
+        var dna=CreateDna(HyperDriveModes.V2);dna.OASIS.SubscriptionConfig.PlanType="Gold";
+        var manager=new ProviderManager(null,dna){IsAutoFailOverEnabled=true,IsAutoLoadBalanceEnabled=true,IsAutoReplicationEnabled=true};
+        manager.RegisterProvider(primary.Object);manager.RegisterProvider(secondary.Object);
+        var types=new[]{new EnumValue<ProviderType>(ProviderType.MongoDBOASIS),new EnumValue<ProviderType>(ProviderType.LocalFileOASIS)};
+        manager.SetAndReplaceAutoFailOverListForProviders(types);manager.SetAndReplaceAutoLoadBalanceListForProviders(types);manager.SetAndReplaceAutoReplicationListForProviders(types);
+        var router=new OASISHyperDrive(manager);
+        var request=new StorageOperationRequest {Operation=operation,HolonId=Guid.NewGuid(),ProviderKey=Guid.NewGuid().ToString(),MetaKey="owned",MetaValue="value",
+            MetaKeyValuePairs=new Dictionary<string,string>{{"owned","value"}},HolonType=field=="type" ? (HolonType)int.MaxValue:HolonType.All,
+            MaxChildDepth=field=="depth" ? -1:0,CurrentChildDepth=field=="currentDepth" ? -1:0};
+        var result=synchronous ? router.RouteRequest<object>(request):await router.RouteRequestAsync<object>(request);
+        result.IsError.Should().BeTrue();result.Result.Should().BeNull();
+        result.ErrorCode.Should().Be(field=="type" ? "HYPERDRIVE_HOLON_TYPE_INVALID":"HYPERDRIVE_DEPTH_INVALID");
+        result.Exception.Should().BeOfType<ArgumentOutOfRangeException>();
+        manager.LastProviderSelectionDiagnostic.Should().BeNull();router.LastFailoverDiagnostic.Should().BeNull();
+        foreach(var provider in new[]{primary,secondary}) provider.Invocations.Should().NotContain(call=>call.Method.Name.StartsWith("Load",StringComparison.Ordinal) || call.Method.Name.StartsWith("Save",StringComparison.Ordinal));
+    }
+
     public static IEnumerable<object[]> InvalidStorageInputs()
     {
         var cases=new[] {
