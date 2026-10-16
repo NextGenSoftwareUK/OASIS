@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 Mongo native transaction42/42 passed25s, zero skips: canonical existing storage clone replaces lossy avatar-to-avatar transfer field list. Expanded real atomic/idempotent transfer regression failed before fix and now independently verifies package bytes, public flag, version/identity, parent ID and custom type in destination after replay; source and paired receipts verified. Existing transaction suite retained. No clan/full inherited-contract/HTTP/release certification; testhost cache resolution warning documented in release gates.
+
 2026-10-16 real Mongo/SQLite V2 matrix4/4 passed1m33s after4/4 pre-fix package-loss failures. Mongo inventory copies now preserve inherited PublishedSTARNETHolon in both directions; expanded custom-interface native tests verify nonempty bytes and replicated null clearing in both stores, including soft-delete checks. Original outage/load-balancing/replication/uncertainty assertions retained. Initialization1/1; no skipped cases. This is selected routed-operation coverage, not full inherited-contract/all endpoint/release certification.
 
 2026-10-16 SQLite direct351/351 passed25s, zero skips: inherited PublishedSTARNETHolon byte payload previously lost in all four expanded custom-interface lifecycle cases; now copied both ways and stored as nullable BLOB. Same-database upgrade2cases and actual migration Up/Down1case added; historical absent values stay null, unrelated item data retained. Explicit downgrade removes payload data. Remaining STARNETDNA/common-holon parity, large payload/security, fresh real Mongo/V2 and release/hosted checks not certified by this direct suite.
