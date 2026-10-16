@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 Google V2 delete matrix:43/43nativepass32s using same Firestore runtime/cache/fixed report and GoogleRoutingFiles/tombstone-routing.db fixture. Exact acknowledged native synthetic paths cleaned after independent state assertions; SQLite family removed only after full verification/deactivation (otherwise retained/refused overwrite). Runner stopped owned Java/released lease. No install/download/clone/new environment or unknown-ledger cleanup. Free C observed85,069,701,120bytes during run; no historical-space reclamation claim.
+
 2026-10-16 Google delete fault tests: reused same pinned official emulator/cache/fixed report throughout adapter repairs;37/37nativepass28s. Exact acknowledged synthetic documents cleaned after successful assertions on final run, runner stopped owned Java/released lease. Earlier adapter failures occurred before native delete and test-owned source docs were cleaned; no SQLite/unknown ledger mutation. No downloads/installs/clones/new environment. Free C observed85,112,832,000bytes during run.
 
 2026-10-16 Google hard-delete tests: same Firestore runtime/cache/fixed reports;33/33nativepass26s after29pass/4fail regression,35/35unitpass. Initial test compile missing namespace repaired before native execution. Exact acknowledged synthetic IDs cleaned; native successful deletion independently checked on final run. Runner stopped owned Java; no install/download/clone/duplicate environment or broad data deletion. Free C observed85,117,509,632bytes during work.
