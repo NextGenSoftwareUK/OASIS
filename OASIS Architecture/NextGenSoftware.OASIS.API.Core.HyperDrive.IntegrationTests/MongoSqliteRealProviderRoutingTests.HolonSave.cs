@@ -21,6 +21,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
     {
         await VerifyMongoSerializationFailuresAsync(healthy,sqlite,dna,synchronous,records.Database);
         await VerifyMongoAtomicWriteConflictAsync(fault,healthy,sqlite,dna,admin,app,synchronous,records);
+        await VerifyMongoAvatarTransactionConflictsAsync(fault,healthy,sqlite,dna,admin,app,synchronous,records.Database);
         await VerifyMongoBatchSerializationFailuresAsync(fault,healthy,sqlite,dna,admin,app,synchronous,records);
         await VerifyMongoAvatarSaveWriteConcernAsync(fault,healthy,sqlite,dna,admin,app,synchronous,records.Database);
         var manager=new ProviderManager(null,dna){IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=true};
