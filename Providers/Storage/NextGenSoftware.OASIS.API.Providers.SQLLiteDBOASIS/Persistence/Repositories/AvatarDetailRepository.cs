@@ -23,6 +23,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             _dbContext = dbContext;
         }
 
+        // Load the two independent collections without a cartesian inventory ×
+        // heart-rate join. One-to-one components are centrally AutoIncluded.
+        private IQueryable<AvatarDetailModel> DetailState() => _dbContext.AvatarDetails.AsSplitQuery()
+            .Include(a=>a.InventoryItems).Include(a=>a.HeartRates);
+
         private IAvatarDetail MapUniqueAvatarDetail(List<AvatarDetailModel> rows)
         {
             if (rows.Count > 1) throw new StorageIdentityAmbiguousException();
@@ -34,9 +39,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var avatarDetailEntity =
-                    _dbContext.AvatarDetails.AsNoTracking()
-                        .Include(a => a.InventoryItems)
-                        .Include(a => a.Stats)
+                    DetailState().AsNoTracking()
                         .Where(x => x.Id == id.ToString() && (version == 0 || x.Version == version))
                         .ToList()
                         .Select(GetAvatarDetailFromEntity)
@@ -73,9 +76,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var rows = _dbContext.AvatarDetails.AsNoTracking()
-                        .Include(a => a.InventoryItems)
-                        .Include(a => a.Stats)
+                var rows = DetailState().AsNoTracking()
                         .Where(x => x.Email == avatarEmail && (version == 0 || x.Version == version))
                         .Take(2).ToList();
                 var avatarDetailEntity = MapUniqueAvatarDetail(rows);
@@ -111,9 +112,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var rows = _dbContext.AvatarDetails.AsNoTracking()
-                        .Include(a => a.InventoryItems)
-                        .Include(a => a.Stats)
+                var rows = DetailState().AsNoTracking()
                         .Where(x => x.Username == avatarUsername && (version == 0 || x.Version == version))
                         .Take(2).ToList();
                 var avatarDetailEntity = MapUniqueAvatarDetail(rows);
@@ -149,9 +148,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var obj = await _dbContext.AvatarDetails.AsNoTracking()
-                    .Include(a => a.InventoryItems)
-                    .Include(a => a.Stats)
+                var obj = await DetailState().AsNoTracking()
                     .Where(x => x.Id == id.ToString() && (version == 0 || x.Version == version))
                     .FirstOrDefaultAsync();
                 if (obj == null)
@@ -187,9 +184,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var rows = await _dbContext.AvatarDetails.AsNoTracking()
-                    .Include(a => a.InventoryItems)
-                    .Include(a => a.Stats)
+                var rows = await DetailState().AsNoTracking()
                     .Where(x => x.Username == avatarUsername && (version == 0 || x.Version == version))
                     .Take(2).ToListAsync();
                 var avatarDetailEntity = MapUniqueAvatarDetail(rows);
@@ -225,9 +220,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var rows = await _dbContext.AvatarDetails.AsNoTracking()
-                    .Include(a => a.InventoryItems)
-                    .Include(a => a.Stats)
+                var rows = await DetailState().AsNoTracking()
                     .Where(x => x.Email == avatarEmail && (version == 0 || x.Version == version))
                     .Take(2).ToListAsync();
                 var avatarDetailEntity = MapUniqueAvatarDetail(rows);
@@ -264,9 +257,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var avatarDetailEntities = 
-                    _dbContext.AvatarDetails.AsNoTracking()
-                    .Include(a => a.InventoryItems)
-                    .Include(a => a.Stats)
+                    DetailState().AsNoTracking()
                     .Where(x => (version == 0 || x.Version == version))
                     .ToList()
                     .Select(GetAvatarDetailFromEntity)
@@ -296,9 +287,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
-                var rows = await _dbContext.AvatarDetails.AsNoTracking()
-                    .Include(a => a.InventoryItems)
-                    .Include(a => a.Stats)
+                var rows = await DetailState().AsNoTracking()
                     .Where(x => version == 0 || x.Version == version)
                     .ToListAsync();
                 var avatarDetailEntities = rows.Select(GetAvatarDetailFromEntity).ToList();
@@ -332,9 +321,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 ArgumentNullException.ThrowIfNull(avatarDetailEntity);
                 recordId=avatarDetailEntity.Id;
                 var idStr = recordId.ToString();
-                var existing = _dbContext.AvatarDetails
-                    .Include(a => a.InventoryItems)
-                    .Include(a => a.Stats)
+                var existing = DetailState()
                     .FirstOrDefault(x => x.Id == idStr);
 
                 if (existing != null)
@@ -353,6 +340,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.XP = avatarDetailEntity.XP;
                     existing.MetaDataJson = System.Text.Json.JsonSerializer.Serialize(avatarDetailEntity.MetaData ?? new Dictionary<string,object>());
                     SetComponents(existing, avatarDetailEntity);
+                    SetHeartRates(existing, avatarDetailEntity);
                     existing.Model3D = avatarDetailEntity.Model3D;
                     existing.DeletedByAvatarId = avatarDetailEntity.DeletedByAvatarId.ToString();
                     existing.DeletedDate = avatarDetailEntity.DeletedDate;
@@ -426,9 +414,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 ArgumentNullException.ThrowIfNull(AvatarDetailEntity);
                 recordId=AvatarDetailEntity.Id;
                 var idStr = recordId.ToString();
-                var existing = await _dbContext.AvatarDetails
-                    .Include(a => a.InventoryItems)
-                    .Include(a => a.Stats)
+                var existing = await DetailState()
                     .FirstOrDefaultAsync(x => x.Id == idStr);
 
                 if (existing != null)
@@ -448,6 +434,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.XP = AvatarDetailEntity.XP;
                     existing.MetaDataJson = System.Text.Json.JsonSerializer.Serialize(AvatarDetailEntity.MetaData ?? new Dictionary<string,object>());
                     SetComponents(existing, AvatarDetailEntity);
+                    SetHeartRates(existing, AvatarDetailEntity);
                     existing.Model3D = AvatarDetailEntity.Model3D;
                     existing.DeletedByAvatarId = AvatarDetailEntity.DeletedByAvatarId.ToString();
                     existing.DeletedDate = AvatarDetailEntity.DeletedDate;
@@ -548,6 +535,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             else _dbContext.Entry(existing.Stats).CurrentValues.SetValues(incoming);
         }
 
+        private void SetHeartRates(AvatarDetailModel existing,IAvatarDetail source)
+        {
+            // Stage the complete replacement before mutating tracked rows.
+            var incoming=(source.HeartRateData ?? new List<Core.Interfaces.Avatar.IHeartRateEntry>())
+                .Select((entry,index)=>new HeartRateEntryModel(entry) {AvatarId=existing.Id,SequenceIndex=index}).ToList();
+            _dbContext.RemoveRange(existing.HeartRates);
+            existing.HeartRates.Clear();
+            existing.HeartRates.AddRange(incoming);
+        }
+
         private void SetComponent<T>(T current,T incoming,Action<T> assign) where T:class
         {
             if(incoming==null)
@@ -586,6 +583,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Username = avatarDetailEntity.Username,
                 XP = avatarDetailEntity.XP,
                 Model3D = avatarDetailEntity.Model3D,
+                HeartRateData = avatarDetailEntity.HeartRates.OrderBy(row=>row.SequenceIndex).ThenBy(row=>row.Id)
+                    .Select(row=>(Core.Interfaces.Avatar.IHeartRateEntry)row.GetHeartRateEntry()).ToList(),
                 MetaData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string,object>>(avatarDetailEntity.MetaDataJson)
                     ?? throw new System.IO.InvalidDataException("Stored avatar detail metadata must be a JSON object."),
                 Stats = avatarDetailEntity.Stats?.GetAvatarStats(),
