@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+Neo4j existing-pair rollback native16/16 passes10s:2real soft/hard detail-lock races prove stale detail CAS rejects deletion, rolls profile changes back, preserves concurrent XP999 and publishes no committed tombstone evidence. Prior cases retained. Concurrent missing-detail creation/delete commit loss/failed rollback/incoming tombstone replication/history/recovery still open; no full certification.
+
 Neo4j delete now updates/removes an existing profile/detail pair in same explicit compare-guarded transaction; soft state shares timestamp/actor and preserves full detail data, hard removes both. Process-local committed tombstone evidence attached only after successful commit/disposal; missing detail not fabricated. Native14/14 passes10s, new2soft/hard cases verify preservation/timestamp/evidence/absence. Existing-pair atomic write scope only: concurrent creation/rollback/faults/incoming tombstone apply/routed delete replication/history/recovery remain open.
 
 Actual V2 point partial policy now native-proven:4syncasync×continue cases preserve marked Neo4j subset/warning/failure metadata with0SQLite requests when continuation accepted; strict transient failure instead fails over to SQLite exactly once and returns distinct stored fallback. Native12/12 passes9s/zero skips. Not every routed collection/parent/metadata partial case, transport class, history/pair/recovery/hosted coverage. No full certification.

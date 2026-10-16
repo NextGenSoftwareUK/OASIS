@@ -11,6 +11,60 @@ public partial class Neo4jNativeAvatarTests
 {
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
+    public async Task OwnedNativeDetailConflictRollsBackProfileDeletion(bool softDelete)
+    {
+        const string uri = "bolt://127.0.0.1:17687";
+        Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
+        using var raw = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
+        using var heldSession = raw.AsyncSession();
+        Assert.AreEqual(0L, (await (await heldSession.RunAsync("MATCH (a) WHERE a:Avatar OR a:AvatarDetail RETURN count(a) AS count")).SingleAsync())["count"].As<long>());
+        var provider = new Provider(uri, "neo4j", "oasis-local-test-only");
+        Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+        var id = Guid.NewGuid();
+        var avatar = new Avatar { Id = id, Username = "owned-rollback", IsActive = true };
+        var detail = new AvatarDetail { Id = id, Username = "owned-rollback", IsActive = true, XP = 10 };
+        Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+        Assert.IsFalse((await provider.SaveAvatarDetailAsync(detail)).IsError);
+        using var transaction = await heldSession.BeginTransactionAsync();
+        Task<NextGenSoftware.OASIS.Common.OASISResult<bool>>? deletion = null;
+        var committed = false;
+        try
+        {
+            await (await transaction.RunAsync("MATCH (a:AvatarDetail {Id:$id}) SET a.__heldTestLock=true REMOVE a.__heldTestLock RETURN a.Id", new { id = id.ToString() })).ConsumeAsync();
+            deletion = provider.DeleteAvatarAsync(id, softDelete);
+            var deadline = DateTime.UtcNow.AddSeconds(10); var blocked = false;
+            do
+            {
+                using var inspection = raw.AsyncSession();
+                var rows = await (await inspection.RunAsync("SHOW TRANSACTIONS YIELD currentQuery, status WHERE currentQuery CONTAINS '__oasisAvatarLock' AND currentQuery CONTAINS 'AvatarDetail' RETURN status")).ToListAsync();
+                blocked = rows.Any(row => row["status"].As<string>().StartsWith("Blocked", StringComparison.OrdinalIgnoreCase));
+                if (!blocked) await Task.Delay(50);
+            } while (!blocked && !deletion.IsCompleted && DateTime.UtcNow < deadline);
+            Assert.IsTrue(blocked, "Actual paired-delete detail mutation must block after profile mutation, before concurrent update commits.");
+            detail.XP = 999;
+            var snapshot = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(detail);
+            await (await transaction.RunAsync("MATCH (a:AvatarDetail {Id:$id}) SET a.SnapshotJson=$snapshot RETURN a.Id", new { id = id.ToString(), snapshot })).ConsumeAsync();
+            await transaction.CommitAsync(); committed = true;
+            var rejected = await deletion.WaitAsync(TimeSpan.FromSeconds(10));
+            Assert.IsTrue(rejected.IsError); Assert.IsFalse(rejected.Result); Assert.IsFalse(rejected.IsDeleted);
+            Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode, rejected.ErrorCode);
+            Assert.IsFalse(NextGenSoftware.OASIS.API.Core.Helpers.AvatarTombstoneEvidence.TryGet(rejected, out _));
+            var profile = await provider.LoadAvatarAsync(id); var currentDetail = await provider.LoadAvatarDetailAsync(id);
+            Assert.IsFalse(profile.IsError, profile.Message); Assert.IsFalse(currentDetail.IsError, currentDetail.Message);
+            Assert.IsTrue(profile.Result.IsActive); Assert.IsFalse(profile.Result.IsDeleted);
+            Assert.IsTrue(currentDetail.Result.IsActive); Assert.IsFalse(currentDetail.Result.IsDeleted); Assert.AreEqual(999L, currentDetail.Result.XP);
+            Assert.IsFalse((await provider.DeleteAvatarAsync(id, false)).IsError);
+        }
+        finally
+        {
+            if (!committed) await transaction.RollbackAsync();
+            if (deletion != null) await deletion.WaitAsync(TimeSpan.FromSeconds(10));
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
     public async Task OwnedNativeAvatarDeletionPreservesOrRemovesItsDetailInSameCommit(bool softDelete)
     {
         const string uri = "bolt://127.0.0.1:17687";
