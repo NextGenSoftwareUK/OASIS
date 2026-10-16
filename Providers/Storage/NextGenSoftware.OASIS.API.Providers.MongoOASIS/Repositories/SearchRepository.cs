@@ -14,6 +14,7 @@ using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 {
@@ -103,6 +104,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                     & Builders<Avatar>.Filter.Or(fields);
                                 groupAvatars.AddRange(await Read(_dbContext.Avatar,filter).ConfigureAwait(false));
                             }
+                            if(searchTextGroup.SearchIds)
+                            {
+                                var filter=Builders<Avatar>.Filter.Eq(row=>row.DeletedDate,DateTime.MinValue);
+                                var candidates=await Read(_dbContext.Avatar,filter).ConfigureAwait(false);
+                                groupAvatars.AddRange(candidates.Where(row=>StoredRecordSearch.MatchesTextIds(
+                                    DataHelper.ConvertMongoEntityToOASISAvatar(new OASISResult<Avatar>(row),false).Result,searchTextGroup.SearchQuery)));
+                            }
                         }
 
                         if (searchTextGroup.SearchHolons)
@@ -119,6 +127,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 fields.Add(Builders<Holon>.Filter.Regex(row => row.Description, text));
                             if (fields.Count != 0)
                                 groupHolons.AddRange(await Read(_dbContext.Holon, filter & Builders<Holon>.Filter.Or(fields)).ConfigureAwait(false));
+                            if(searchTextGroup.SearchIds)
+                            {
+                                var candidates=await Read(_dbContext.Holon,filter).ConfigureAwait(false);
+                                groupHolons.AddRange(candidates.Where(row=>StoredRecordSearch.MatchesTextIds(
+                                    DataHelper.ConvertMongoEntityToOASISHolon(row,false),searchTextGroup.SearchQuery)));
+                            }
                         }
                     }
 
