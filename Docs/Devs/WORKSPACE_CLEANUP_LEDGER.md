@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 Azure holon deletion tests: existing retained runtime/cache/fixed reports;48/48nativepass14s +15/15unitpass272ms after6baseline regressions. Exact synthetic GUID/custom-key blobs cleaned in finally. Race changes are real acknowledged SDK writes; native412/newer snapshot verified before test-owned cleanup. No install/download/new environment, user-data repair or unknown physical ledger removal.
+
 2026-10-16 Azure routed graph verification: native42/42pass14s reuses retained Azurite/cache/fixed reports and same AzureRoutingFiles/lifecycle.db. Normal exact generated graph blobs cleaned after readback; partial root/child actual committed blobs independently reconciled before exact-ID cleanup, no leaf existed. SQLite fixture removed only after complete verification/deactivation. No install/download/new environment/broad user-data or unknown-ledger deletion.
 
 2026-10-16 shared graph planner verification: existing Azure/AWS/Google runtimes/cache/fixed reports reused; no installation/download/clone/new test environment. Shared producer built in existing Debug/Release output directories. Native Azure38/AWS51/Google17 and unit Azure15/AWS49/Google32 all pass, zero skips. Exact selected synthetic Azure graph blob IDs cleaned in finally; normal fixed routing fixture cleanup retained. Removed duplicated SOURCE planners only as reviewed refactor into shared HolonGraphWritePlan (Git recoverable), not arbitrary data cleanup. C:85,474,107,392bytes free at inspection; no global reclaim claim.

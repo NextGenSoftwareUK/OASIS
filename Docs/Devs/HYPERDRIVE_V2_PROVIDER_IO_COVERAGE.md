@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 Azure native48/48pass14s +unit15/15pass272ms: holon deletes return real canonical original only after ETag-conditioned native acknowledgement, structured missing and original real412 conflict.6new regressions failed before fix; real SDK interleaving preserves newer blob. V2 delete replication/partial-ack matrix/durability/history/live/hosted still open; not graph-atomic deletion.
+
 2026-10-16 Azure native42/42pass14s: actual V2 graph replication4normal Azure/SQLite primary×syncasync combinations proves matching generated trees;2partial SDK acknowledgement-boundary cases prove2real uploads, exact partial/uncertain evidence,0secondary requests and no leaf submission with independent native/SQLite reads. Four new top-level tests total, previous38 retained. Physical wire loss/concurrency/durable recovery/history/all interfaces/live/hosted remain open.
 
 2026-10-16 shared selected graph planner: Azure native38/38 +unit15/15; AWS native51/51 +unit49/49; Google native17/17 +unit32/32, all zero skips. Existing Dynamo/Google planners consolidated, Azure child options now implemented with post-ack source publication/native-key collision guard.6Azure child cases failed before fix. Native blobs/parent links/readback and controlled zero-write invalid preflight verified. Sequential writes NOT atomic; Azure routed graph fault/replication/durability and complete release/interface gates remain open.
