@@ -9,6 +9,34 @@ public partial class AWSOASISIntegrationTests
 {
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
+    public async Task NativePointReadsRejectCanonicalIdentityMismatch(bool synchronous)
+    {
+        var id=Guid.NewGuid();var other=Guid.NewGuid();
+        foreach(var detail in new[] {false,true})
+        {
+            var table=detail ? "OasisAvatarDetails":"OasisAvatars";
+            var json=detail ? NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(new AvatarDetail {Id=other,XP=999})
+                :NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(new Avatar {Id=other,Username="owned-impostor"});
+            await Client.PutItemAsync(new Amazon.DynamoDBv2.Model.PutItemRequest {TableName=table,Item=new() {
+                ["id"]=new() {S=id.ToString()},["data_json"]=new() {S=json}}});
+            if(detail)
+            {
+                var result=synchronous ? _provider.LoadAvatarDetail(id):await _provider.LoadAvatarDetailAsync(id);
+                Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsFalse(result.IsLoaded);
+                Assert.IsInstanceOfType(result.Exception,typeof(InvalidDataException));
+            }
+            else
+            {
+                var result=synchronous ? _provider.LoadAvatar(id):await _provider.LoadAvatarAsync(id);
+                Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsFalse(result.IsLoaded);
+                Assert.IsInstanceOfType(result.Exception,typeof(InvalidDataException));
+            }
+            await Client.DeleteItemAsync(new Amazon.DynamoDBv2.Model.DeleteItemRequest {TableName=table,Key=Key(id)});
+        }
+    }
+
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
     public async Task V2SelectorAbsenceDoesNotReturnStaleSecondary(bool synchronous)
     {
         var path=Path.GetFullPath("TestResults/AWSRoutingFiles/delete-routing.db");
