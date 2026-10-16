@@ -26,6 +26,11 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
         {
             var saved=await mongo.SaveHolonAsync(root,saveChildren:false);saved.IsError.Should().BeFalse(saved.Message);
             var key=saved.Result.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS];
+            // Seed the deliberately divergent embedded read fixture through the native SDK.
+            // saveChildren:false must not be used to persist children as an accidental side effect.
+            var embedded = await records.UpdateOneAsync(row=>row.HolonId==root.Id,
+                Builders<NativeHolon>.Update.Set(row=>row.Children,root.Children));
+            embedded.IsAcknowledged.Should().BeTrue();embedded.MatchedCount.Should().Be(1);
             (await mongo.SaveHolonAsync(child,saveChildren:false)).IsError.Should().BeFalse();
             (await mongo.SaveHolonAsync(grand,saveChildren:false)).IsError.Should().BeFalse();
             foreach(var byKey in new[] {false,true})
