@@ -86,6 +86,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string Region { get; set; } = "us-east-1";
         public string AccessKey { get; set; }
         public string SecretKey { get; set; }
+        public string SessionToken { get; set; }
+        public bool UseDefaultCredentials { get; set; }
         public string ServiceUrl { get; set; }
     }
 
