@@ -218,10 +218,20 @@ jobs:
           path: OASIS
           submodules: recursive
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Read canonical release dependency pins
+        id: dependency-pins
+        shell: pwsh
+        run: |
+          foreach ($name in @('HOLOCHAIN_COMMIT', 'LIBRARIES_COMMIT')) {
+            $lines = @(Get-Content OASIS/Docker/oasis-dependency-versions.env | Where-Object { $_ -match "^$name=[0-9a-f]{40}$" })
+            if ($lines.Count -ne 1) { throw "Missing or duplicate canonical pin: $name" }
+            $lines[0] >> $env:GITHUB_OUTPUT
+          }
       - name: Checkout NextGenSoftware-Libraries
         uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency-pins.outputs.LIBRARIES_COMMIT }}
           path: NextGenSoftware-Libraries
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - uses: actions/setup-dotnet@v6
@@ -375,17 +385,27 @@ jobs:
         shell: pwsh
         working-directory: OASIS
         run: ./Scripts/test_edge_unity_batch_lifecycle.ps1
+      - name: Read canonical release dependency pins
+        id: dependency-pins
+        shell: pwsh
+        run: |
+          foreach ($name in @('HOLOCHAIN_COMMIT', 'LIBRARIES_COMMIT')) {
+            $lines = @(Get-Content OASIS/Docker/oasis-dependency-versions.env | Where-Object { $_ -match "^$name=[0-9a-f]{40}$" })
+            if ($lines.Count -ne 1) { throw "Missing or duplicate canonical pin: $name" }
+            $lines[0] >> $env:GITHUB_OUTPUT
+          }
       - name: Checkout NextGenSoftware-Libraries
         uses: actions/checkout@v7
         with:
           repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ steps.dependency-pins.outputs.LIBRARIES_COMMIT }}
           path: NextGenSoftware-Libraries
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - name: Checkout holochain-client-csharp
         uses: actions/checkout@v7
         with:
           repository: holochain-open-dev/holochain-client-csharp
-          ref: d6d8a49c92b88d3b058a11ad3cf2585bab7f207f
+          ref: ${{ steps.dependency-pins.outputs.HOLOCHAIN_COMMIT }}
           path: holochain-client-csharp
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
           submodules: recursive
