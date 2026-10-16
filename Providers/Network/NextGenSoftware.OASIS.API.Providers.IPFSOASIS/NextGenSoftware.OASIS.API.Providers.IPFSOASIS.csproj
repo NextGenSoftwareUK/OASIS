@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net10.0</TargetFramework>
@@ -39,7 +39,11 @@
   <ItemGroup>
     <PackageReference Include="Ipfs.Core" Version="0.55.0" />
     <PackageReference Include="Ipfs.Engine" Version="0.13.0" />
-    <PackageReference Include="Ipfs.Http.Client" Version="0.33.0" />
+    <!-- The local External Libs Ipfs.Http.Client (0.42, below) is what builds and runs; this 0.33 package was shadowed by it.
+         Packing the project reference also made the NuGet package depend on Ipfs.Http.Client >= 0.42, which isn't on NuGet,
+         so IPFSOASIS (and everything above it, e.g. STAR) couldn't be installed. The 0.42 DLL now ships inside the package.
+    <PackageReference Include="Ipfs.Http.Client" Version="0.33.0" />-->
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
     <!--<PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />-->
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="5.0.0" />
     <PackageReference Include="PeterO.Cbor" Version="4.5.5" />
@@ -58,7 +62,8 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\External Libs\net-ipfs-http-client-master\src\IpfsHttpClient.csproj" />
+    <!-- PrivateAssets: not a NuGet dependency (Ipfs.Http.Client 0.42 isn't on NuGet); its DLL is packed into lib/ instead (see below). -->
+    <ProjectReference Include="..\..\..\External Libs\net-ipfs-http-client-master\src\IpfsHttpClient.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.DNA\NextGenSoftware.OASIS.API.DNA.csproj" />
@@ -72,4 +77,13 @@
     </None>
   </ItemGroup>
 
+  <!-- Pack the local Ipfs.Http.Client build alongside IPFSOASIS.dll. -->
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeLocalIpfsHttpClient</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="IncludeLocalIpfsHttpClient" DependsOnTargets="ResolveReferences">
+    <ItemGroup>
+      <BuildOutputInPackage Include="@(ReferenceCopyLocalPaths->WithMetadataValue('ReferenceSourceTarget', 'ProjectReference')->WithMetadataValue('Filename', 'Ipfs.Http.Client'))" />
+    </ItemGroup>
+  </Target>
 </Project>
