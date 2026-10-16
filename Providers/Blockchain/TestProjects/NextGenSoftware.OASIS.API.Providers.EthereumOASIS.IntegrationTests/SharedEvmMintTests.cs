@@ -13,6 +13,46 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests;
 public partial class EthereumOASISIntegrationTests
 {
     [DataTestMethod]
+    [DataRow(false,false,false)] [DataRow(true,false,false)] [DataRow(false,true,false)] [DataRow(true,true,false)]
+    [DataRow(false,false,true)] [DataRow(true,false,true)] [DataRow(false,true,true)] [DataRow(true,true,true)]
+    public async Task SharedEvmTransferVerifiesExactUnitsSenderRecipientSupplyAndEvent(bool synchronous,bool self,bool noop)
+    {
+        var (storage,address)=await CreateActivatedProviderAsync();var provider=new SharedMintFixture(Host,"0x"+new string('2',64),address);
+        var owner=new Nethereum.Web3.Accounts.Account(PrivateKey,ChainId).Address;
+        try
+        {
+            foreach(var decimals in noop ? new byte[]{6}:new byte[]{6,30})
+            {
+                var token=await CreateTokenAsync(decimals,noop);var recipient=self ? owner:"0x2222222222222222222222222222222222222222";
+                var ownerBefore=await token.GetFunction("balanceOf").CallAsync<BigInteger>(owner);
+                var recipientBefore=await token.GetFunction("balanceOf").CallAsync<BigInteger>(recipient);
+                var supply=await token.GetFunction("totalSupply").CallAsync<BigInteger>();var raw=2345678*BigInteger.Pow(10,decimals-6);
+                var request=new SendWeb3TokenRequest{FromTokenAddress=token.Address,FromWalletAddress=owner,ToWalletAddress=recipient,Amount=2.345678m,
+                    OwnerPrivateKey=synchronous ? PrivateKey:null!,FromWalletPrivateKey=synchronous ? PrivateKey.Replace("0x",""):PrivateKey};
+                var sent=synchronous ? provider.SendToken(request):await provider.SendTokenAsync(request);
+                if(noop)
+                {
+                    Assert.IsTrue(sent.IsError);Assert.IsNull(sent.Result);Assert.IsFalse(sent.IsSaved);
+                    var cause=(Web3MutationReconciliationException)sent.Exception;Assert.IsTrue(cause.ObservedReceipt.Succeeded());
+                    Assert.AreEqual(cause.ObservedReceipt.TransactionHash,cause.OriginalTransactionId);
+                    if(self) Assert.IsInstanceOfType(cause.InnerException,typeof(InvalidDataException),"Unchanged self-transfer balances cannot certify a no-op without its exact event.");
+                }
+                else
+                {
+                    Assert.IsFalse(sent.IsError,sent.Exception?.ToString()??sent.Message);Assert.IsTrue(sent.IsSaved);
+                    var native=await new Web3(Host).Eth.Transactions.GetTransactionByHash.SendRequestAsync(sent.Result.TransactionResult);
+                    Assert.AreEqual(token.Address.ToLowerInvariant(),native.To.ToLowerInvariant());Assert.AreEqual(owner.ToLowerInvariant(),native.From.ToLowerInvariant());
+                }
+                var delta=noop || self ? BigInteger.Zero:raw;
+                Assert.AreEqual(ownerBefore-delta,await token.GetFunction("balanceOf").CallAsync<BigInteger>(owner));
+                Assert.AreEqual(recipientBefore+delta,await token.GetFunction("balanceOf").CallAsync<BigInteger>(recipient));
+                Assert.AreEqual(supply,await token.GetFunction("totalSupply").CallAsync<BigInteger>());
+            }
+        }
+        finally {await provider.DeActivateProviderAsync();await storage.DeActivateProviderAsync();}
+    }
+
+    [DataTestMethod]
     [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
     public async Task SharedEvmBurnUsesOnlyRequestedAmountAndVerifiesSupply(bool synchronous,bool noop)
     {

@@ -18,12 +18,14 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
 public partial class Web3CoreOASISBaseProvider
 {
+    private enum ExplicitTokenMutation { Mint,Burn,Transfer }
     private const string Erc20MutationAbi="""
     [{"type":"function","name":"decimals","inputs":[],"outputs":[{"type":"uint8"}],"stateMutability":"view"},
     {"type":"function","name":"totalSupply","inputs":[],"outputs":[{"type":"uint256"}],"stateMutability":"view"},
     {"type":"function","name":"balanceOf","inputs":[{"type":"address"}],"outputs":[{"type":"uint256"}],"stateMutability":"view"},
     {"type":"function","name":"mint","inputs":[{"type":"address"},{"type":"uint256"}],"outputs":[],"stateMutability":"nonpayable"},
-    {"type":"function","name":"burn","inputs":[{"type":"uint256"}],"outputs":[],"stateMutability":"nonpayable"}]
+    {"type":"function","name":"burn","inputs":[{"type":"uint256"}],"outputs":[],"stateMutability":"nonpayable"},
+    {"type":"function","name":"transfer","inputs":[{"type":"address"},{"type":"uint256"}],"outputs":[{"type":"bool"}],"stateMutability":"nonpayable"}]
     """;
 
     protected virtual OASISResult<List<string>> ResolveErc20MintSigningKeys(Guid avatarId)
@@ -45,7 +47,7 @@ public partial class Web3CoreOASISBaseProvider
             if(keys.Result==null || keys.Result.Count==0 || keys.Result.Any(string.IsNullOrWhiteSpace)) throw new ArgumentException("An authorized minter key is required.");
             var accounts=keys.Result.Select(key=>new Account(key,_expectedChainId)).GroupBy(account=>account.Address,StringComparer.OrdinalIgnoreCase).Select(group=>group.First()).ToList();
             if(accounts.Count!=1) throw new InvalidOperationException("Shared ERC20 minting requires one unambiguous authorized account.");
-            return await ExecuteExplicitErc20Async(accounts[0],request.TokenAddress,request.ToWalletAddress,request.Amount,false);
+            return await ExecuteExplicitErc20Async(accounts[0],request.TokenAddress,request.ToWalletAddress,request.Amount,ExplicitTokenMutation.Mint);
         }
         catch(Exception cause){OASISErrorHandling.HandleError(ref result,"Shared EVM mint preparation failed.",cause);if(cause is ArgumentException) result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";}
         return result;
@@ -60,17 +62,41 @@ public partial class Web3CoreOASISBaseProvider
                 || !Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(request.TokenAddress))
                 throw new ArgumentException("An explicit token, owner signing key and positive requested burn amount are required.");
             if(!_expectedChainId.HasValue || _expectedChainId.Value<=0) throw new InvalidOperationException("ERC20 burning requires an explicit chain identity.");
-            return await ExecuteExplicitErc20Async(new Account(request.OwnerPrivateKey,_expectedChainId),request.TokenAddress,null,request.Amount,true);
+            return await ExecuteExplicitErc20Async(new Account(request.OwnerPrivateKey,_expectedChainId),request.TokenAddress,null,request.Amount,ExplicitTokenMutation.Burn);
         }
         catch(Exception cause){OASISErrorHandling.HandleError(ref result,"Shared EVM burn preparation failed.",cause);if(cause is ArgumentException) result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";}
         return result;
     }
 
-    private async Task<OASISResult<ITransactionResponse>> ExecuteExplicitErc20Async(Account account,string tokenAddress,string recipient,decimal amount,bool burn)
+    private async Task<OASISResult<ITransactionResponse>> SendExplicitErc20Async(ISendWeb3TokenRequest request)
+    {
+        var result=new OASISResult<ITransactionResponse>();
+        try
+        {
+            if(request==null || request.Amount<=0 || !Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(request.FromTokenAddress)
+                || !Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(request.ToWalletAddress)
+                || string.Equals(request.ToWalletAddress,"0x"+new string('0',40),StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("An explicit token, nonzero recipient and positive transfer amount are required.");
+            if(!_expectedChainId.HasValue || _expectedChainId.Value<=0) throw new InvalidOperationException("ERC20 transfers require an explicit chain identity.");
+            var keys=new List<string>();if(!string.IsNullOrWhiteSpace(request.OwnerPrivateKey)) keys.Add(request.OwnerPrivateKey);
+            if(request is NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.SendWeb3TokenRequest concrete && !string.IsNullOrWhiteSpace(concrete.FromWalletPrivateKey)) keys.Add(concrete.FromWalletPrivateKey);
+            var accounts=keys.Select(key=>new Account(key,_expectedChainId)).GroupBy(account=>account.Address,StringComparer.OrdinalIgnoreCase).Select(group=>group.First()).ToList();
+            if(accounts.Count!=1) throw new ArgumentException("One consistent explicit transfer signing account is required.");
+            var account=accounts[0];
+            if(!string.IsNullOrWhiteSpace(request.FromWalletAddress) && !string.Equals(request.FromWalletAddress,account.Address,StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("Explicit sender address does not match the signing key.");
+            return await ExecuteExplicitErc20Async(account,request.FromTokenAddress,request.ToWalletAddress,request.Amount,ExplicitTokenMutation.Transfer);
+        }
+        catch(Exception cause){OASISErrorHandling.HandleError(ref result,"Shared EVM transfer preparation failed.",cause);if(cause is ArgumentException) result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";}
+        return result;
+    }
+
+    private async Task<OASISResult<ITransactionResponse>> ExecuteExplicitErc20Async(Account account,string tokenAddress,string recipient,decimal amount,ExplicitTokenMutation operation)
     {
         var result=new OASISResult<ITransactionResponse>();TransactionReceipt receipt=null;
         try
         {
+            var burn=operation==ExplicitTokenMutation.Burn;var mint=operation==ExplicitTokenMutation.Mint;
             if(!IsProviderActivated)
             {
                 var activation=await ActivateProviderAsync();
@@ -81,17 +107,22 @@ public partial class Web3CoreOASISBaseProvider
             var supply=await contract.GetFunction("totalSupply").CallAsync<BigInteger>();
             var target=burn ? account.Address:recipient;
             var balance=contract.GetFunction("balanceOf");var before=await balance.CallAsync<BigInteger>(target);
-            if(burn && (before<units || supply<units)) throw new InvalidOperationException("Insufficient owned token balance or supply for the requested burn.");
-            if(!burn && (supply+units>=(BigInteger.One<<256) || before+units>=(BigInteger.One<<256))) throw new ArgumentOutOfRangeException(nameof(amount));
+            var self=!mint && !burn && string.Equals(account.Address,recipient,StringComparison.OrdinalIgnoreCase);
+            var ownerBefore=mint ? BigInteger.Zero:burn || self ? before:await balance.CallAsync<BigInteger>(account.Address);
+            if((!mint && ownerBefore<units) || (burn && supply<units)) throw new InvalidOperationException("Insufficient owned token balance or supply.");
+            if((mint && supply+units>=(BigInteger.One<<256)) || (!burn && !self && before+units>=(BigInteger.One<<256))) throw new ArgumentOutOfRangeException(nameof(amount));
             var arguments=burn ? new object[]{units}:new object[]{recipient,units};
-            await contract.GetFunction(burn ? "burn":"mint").EstimateGasAsync(account.Address,null,null,arguments);
+            await contract.GetFunction(burn ? "burn":mint ? "mint":"transfer").EstimateGasAsync(account.Address,null,null,arguments);
             var signer=_web3CoreOASIS.ForContractTransaction(account.PrivateKey,tokenAddress,Erc20MutationAbi);
-            receipt=burn ? await signer.BurnErc20Async(units):await signer.MintErc20Async(recipient,units);
-            var delta=burn ? -units:units;
-            if(await contract.GetFunction("totalSupply").CallAsync<BigInteger>()!=supply+delta || await balance.CallAsync<BigInteger>(target)!=before+delta)
+            receipt=burn ? await signer.BurnErc20Async(units):mint ? await signer.MintErc20Async(recipient,units):await signer.TransferErc20Async(recipient,units);
+            var supplyDelta=burn ? -units:mint ? units:BigInteger.Zero;
+            var targetDelta=burn ? -units:self ? BigInteger.Zero:units;
+            if(await contract.GetFunction("totalSupply").CallAsync<BigInteger>()!=supply+supplyDelta || await balance.CallAsync<BigInteger>(target)!=before+targetDelta
+                || !mint && !burn && await balance.CallAsync<BigInteger>(account.Address)!=ownerBefore-(self ? BigInteger.Zero:units))
                 throw new InvalidOperationException("Token receipt does not establish the requested exact supply and balance effect.");
+            if(!mint && !burn) VerifyExactErc20TransferEvent(receipt,tokenAddress,account.Address,recipient,units);
             result.Result=new TransactionResponse{TransactionResult=receipt.TransactionHash};result.IsSaved=true;result.SavedCount=1;
-            result.Message=burn ? "Exact requested ERC20 burn confirmed.":"Explicit exact ERC20 mint confirmed.";
+            result.Message=burn ? "Exact requested ERC20 burn confirmed.":mint ? "Explicit exact ERC20 mint confirmed.":"Exact ERC20 transfer confirmed.";
         }
         catch(Exception cause)
         {
@@ -100,5 +131,17 @@ public partial class Web3CoreOASISBaseProvider
             if(cause is ArgumentException) result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
         }
         return result;
+    }
+
+    private static void VerifyExactErc20TransferEvent(TransactionReceipt receipt,string token,string sender,string recipient,BigInteger units)
+    {
+        var signature="0x"+Nethereum.Util.Sha3Keccack.Current.CalculateHash("Transfer(address,address,uint256)");
+        var from="0x"+sender.Substring(2).PadLeft(64,'0');var to="0x"+recipient.Substring(2).PadLeft(64,'0');
+        var data="0x"+Convert.ToHexString(units.ToByteArray(isUnsigned:true,isBigEndian:true)).PadLeft(64,'0');
+        if(receipt.Logs==null || receipt.Logs.Count(log=>string.Equals(log.Address,token,StringComparison.OrdinalIgnoreCase)
+            && log.Topics is {Length:3} topics && string.Equals(topics[0]?.ToString(),signature,StringComparison.OrdinalIgnoreCase)
+            && string.Equals(topics[1]?.ToString(),from,StringComparison.OrdinalIgnoreCase) && string.Equals(topics[2]?.ToString(),to,StringComparison.OrdinalIgnoreCase)
+            && string.Equals(log.Data,data,StringComparison.OrdinalIgnoreCase))!=1)
+            throw new System.IO.InvalidDataException("Transfer receipt lacks exactly one matching token/sender/recipient/amount event.");
     }
 }

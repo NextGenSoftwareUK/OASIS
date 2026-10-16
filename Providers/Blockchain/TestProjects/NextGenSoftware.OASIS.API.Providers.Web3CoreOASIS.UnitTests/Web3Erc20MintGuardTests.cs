@@ -8,6 +8,19 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests;
 public sealed class Web3Erc20MintGuardTests
 {
     [DataTestMethod]
+    [DataRow("wrong-sender")] [DataRow("conflicting-key")] [DataRow("zero-amount")]
+    [DataRow("zero-recipient")] [DataRow("missing-key")] [DataRow("missing-token")]
+    public async Task InvalidTransferCannotSelectOperatorOrIgnoreExplicitSigner(string mode)
+    {
+        var provider=new GuardProvider();var key="0x"+new string('1',64);var owner=new Nethereum.Web3.Accounts.Account(key).Address;
+        var result=await provider.SendTokenAsync(new SendWeb3TokenRequest{FromTokenAddress=mode=="missing-token" ? null!:"0x"+new string('3',40),
+            FromWalletAddress=mode=="wrong-sender" ? "0x"+new string('5',40):owner,ToWalletAddress=mode=="zero-recipient" ? "0x"+new string('0',40):"0x"+new string('2',40),
+            OwnerPrivateKey=mode=="missing-key" ? null!:key,FromWalletPrivateKey=mode=="conflicting-key" ? "0x"+new string('2',64):null!,Amount=mode=="zero-amount" ? 0:2});
+        Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",result.ErrorCode);
+        Assert.IsFalse(provider.IsProviderActivated);Assert.AreEqual(0,provider.KeyCalls);
+    }
+
+    [DataTestMethod]
     [DataRow("missing-token")] [DataRow("missing-key")] [DataRow("zero")] [DataRow("negative")]
     public async Task InvalidBurnCannotSubstituteBalanceOrOneToken(string mode)
     {
