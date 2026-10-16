@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Shared search integration delta supersedes basic-text-only limitation below: base now reuses StoredRecordSearch validation/matching for numbers/dates/masks/types/operators/ownership/metadata and current ancestry. Shared257/257pass1s/four chain library builds0errors. New provider-boundary cases prove numeric ownership/metadata/AND and date/selected description exclusion. Intended old global fixtures now explicit about ownership/type. Broader live-native/V2/graph/history/options/tombstone/concurrent/hosted verification still open; not full search certification.
+
 Shared search delta: avatar/holon collection read failures retain original Exception/ErrorCode instead of dropping terminal corruption classification; four red-before/green-after cases, Shared253/253pass1s. Shared base search still lacks full numeric/date/operators/masks/ownership/metadata/parent/options parity; this is not complete search/native/V2 acceptance.
 
 Cosmos shutdown finding resolved: idle sleep infinity isPID1 and ignoresTERM; node had stopped separately. Runner now refuses container signal unless no wasmd/exact idlePID1/retained identity verified, then closes idle holder explicitly. Read-only native1/1pass1s refreshed,280history/0matches/pending fingerprint unchanged; original outcome/V2 mutation gates remain open. Expected containerexit137 is idle holder, not ledger-node termination proof/failure.
