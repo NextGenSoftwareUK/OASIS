@@ -33,9 +33,8 @@ public partial class SolanaOASIS
         try
         {
             if(request==null) throw new ArgumentNullException(nameof(request));
-            var amount=NativeSolAmount(request.Amount);
-            if(!string.IsNullOrWhiteSpace(request.FromTokenAddress))
-                throw new NotSupportedException("SPL token transfers require the token-program adapter; native SOL transfer must not silently reinterpret a token mint.");
+            if(request.Amount<=0) throw new ArgumentOutOfRangeException(nameof(request.Amount));
+            var amount=string.IsNullOrWhiteSpace(request.FromTokenAddress) ? NativeSolAmount(request.Amount):0UL;
             var key=request.OwnerPrivateKey;
             if(request is NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.SendWeb3TokenRequest concrete && !string.IsNullOrWhiteSpace(concrete.FromWalletPrivateKey))
             {
@@ -50,6 +49,11 @@ public partial class SolanaOASIS
             var challenge=System.Text.Encoding.UTF8.GetBytes("oasis/solana/token-signer/v1");
             if(!signer.Verify(challenge,signer.Sign(challenge))) throw new ArgumentException("Sender signing key does not match its public address.");
             var recipient=new PublicKey(request.ToWalletAddress);
+            if(!string.IsNullOrWhiteSpace(request.FromTokenAddress))
+            {
+                var splSignature=await SendLegacySplAsync(signer,recipient,new PublicKey(request.FromTokenAddress),request.Amount,request.MemoText);
+                result.Result=new TransactionResponse{TransactionResult=splSignature};result.IsSaved=true;return result;
+            }
             var block=await _rpcClient.GetLatestBlockHashAsync();
             if(!block.WasSuccessful || string.IsNullOrWhiteSpace(block.Result?.Value?.Blockhash))
                 throw new InvalidOperationException("Solana writable blockhash was unavailable.");
