@@ -44,6 +44,14 @@ public sealed class SolanaHistoryTests
         public Commitment Commitment;public string? Mode,Before;
         protected override object? Invoke(MethodInfo? method,object?[]? args)
         {
+            if(method!.Name=="GetTransactionAsync")
+            {
+                var signature=(string)args![0]!;
+                var slot=signature.StartsWith("page") ? 2000-int.Parse(signature[4..]):int.Parse(signature[3..]);
+                return Respond(method,Newtonsoft.Json.JsonConvert.SerializeObject(new{Slot=slot,
+                    Transaction=new{Signatures=new[]{signature},Message=new{AccountKeys=Array.Empty<string>(),Instructions=Array.Empty<object>()}},
+                    Meta=new{Error=signature=="sig10" ? new{Type="AccountNotFound"}:null}}));
+            }
             Calls++;if(method!.Name!="GetSignaturesForAddressAsync") throw new InvalidOperationException(method.Name);
             Commitment=(Commitment)args![4]!;
             Before=(string?)args[2];
