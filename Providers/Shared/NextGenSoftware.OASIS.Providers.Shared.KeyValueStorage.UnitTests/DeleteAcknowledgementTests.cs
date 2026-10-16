@@ -12,6 +12,19 @@ public class DeleteAcknowledgementTests
 {
     [DataTestMethod]
     [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public async Task CorruptPairedDetailRejectsAvatarDeleteBeforeAnyMutation(bool synchronous,bool soft)
+    {
+        var backend=new InMemoryBackend();var provider=new TestProvider(backend);var id=Guid.NewGuid();var foreign=Guid.NewGuid();
+        Assert.IsFalse((await provider.SaveAvatarAsync(new Avatar {Id=id,Username="paired-integrity",IsActive=true})).IsError);
+        Assert.IsFalse((await provider.SaveAvatarDetailAsync(new AvatarDetail {Id=foreign,XP=42})).IsError);
+        backend.Items["oasis/avatardetail/"+id.ToString("N")]=backend.Items["oasis/avatardetail/"+foreign.ToString("N")];
+        var before=backend.Items.OrderBy(pair=>pair.Key).ToArray();
+        var result=synchronous ? provider.DeleteAvatar(id,soft):await provider.DeleteAvatarAsync(id,soft);
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsDeleted);Assert.IsInstanceOfType(result.Exception,typeof(System.IO.InvalidDataException));
+        CollectionAssert.AreEqual(before,backend.Items.OrderBy(pair=>pair.Key).ToArray());
+    }
+    [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
     public async Task AvatarSoftDeleteIncludesPairedDetailAndFencesPartialFailure(bool synchronous,bool failDetail)
     {
         var backend=new InMemoryBackend();var provider=new TestProvider(backend);var id=Guid.NewGuid();
