@@ -85,6 +85,7 @@ public class CosmosStreamOwnershipTests
     [DataRow(false,"{\"Documents\":null}")] [DataRow(true,"{\"Documents\":null}")]
     [DataRow(false,"{\"Documents\":[null]}")] [DataRow(true,"{\"Documents\":[null]}")]
     [DataRow(false,"{\"Documents\":[42]}")] [DataRow(true,"{\"Documents\":[42]}")]
+    [DataRow(false,"not-json")] [DataRow(true,"not-json")]
     public void MalformedLaterQueryPageNeverReturnsPartialSuccess(bool selector,string malformed)
     {
         var first=new TrackedResponse(HttpStatusCode.OK);first.SetContent("{\"Documents\":[{\"id\":\"owned\"}]}");
