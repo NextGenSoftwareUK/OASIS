@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
+using NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 using NextGenSoftware.OASIS.Common;
 using NativeHolon=NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon;
 
@@ -13,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 
 public sealed partial class MongoSqliteRealProviderRoutingTests
 {
-    private static async Task VerifyMongoCollectionGraphReadsAsync(MongoDBOASIS mongo,OASISHyperDrive router,bool synchronous,IMongoCollection<NativeHolon> records)
+    private static async Task VerifyMongoCollectionGraphReadsAsync(MongoDBOASIS mongo,SQLLiteDBOASIS sqlite,OASISHyperDrive router,bool synchronous,IMongoCollection<NativeHolon> records)
     {
         var parent=new Holon {Id=Guid.NewGuid(),IsActive=true,HolonType=HolonType.Zome,Name="collection parent"};
         var root=new Holon {Id=Guid.NewGuid(),IsActive=true,Version=317,HolonType=HolonType.Quest,ParentHolonId=parent.Id,Name="selected collection root"};
@@ -91,6 +92,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 found.Result.SearchResultHolons.Select(hit=>hit.Id).Should().Equal(expected,"All is a wildcard and parent/type restrictions must still apply");
             }
             await VerifyMongoSearchExecutionAsync(mongo,router,synchronous,root);
+            await VerifyMongoScalarMetadataAsync(mongo,sqlite,synchronous,records);
             var missing=synchronous ? mongo.LoadHolonsForParent(ObjectId.GenerateNewId().ToString(),loadChildren:true,loadChildrenFromProvider:true)
                 :await mongo.LoadHolonsForParentAsync(ObjectId.GenerateNewId().ToString(),loadChildren:true,loadChildrenFromProvider:true);
             missing.IsError.Should().BeFalse();missing.IsLoaded.Should().BeTrue();missing.Result.Should().BeEmpty();

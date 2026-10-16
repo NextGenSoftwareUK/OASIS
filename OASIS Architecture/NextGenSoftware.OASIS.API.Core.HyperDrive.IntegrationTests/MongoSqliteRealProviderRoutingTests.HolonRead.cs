@@ -53,7 +53,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
         }
         stopped!["count"].ToInt64().Should().Be(configured!["count"].ToInt64(),"a read must not even attempt a repair write");
         await VerifyMongoHolonGraphReadsAsync(healthy,router,synchronous,records);
-        await VerifyMongoCollectionGraphReadsAsync(healthy,router,synchronous,records);
+        await VerifyMongoCollectionGraphReadsAsync(healthy,sqlite,router,synchronous,records);
         foreach(var byKey in new[] {false,true})
         {
             var stale=new Holon {Id=Guid.NewGuid(),IsActive=true,Name="stale SQLite read must not replace healthy Mongo absence"};

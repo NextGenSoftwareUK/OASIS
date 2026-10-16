@@ -67,19 +67,22 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 ? Builders<Holon>.Filter.Where(x => x.DeletedDate == DateTime.MinValue)
                 : Builders<Holon>.Filter.Where(x => x.HolonType == holonType && x.DeletedDate == DateTime.MinValue);
 
-        // Uses $expr+$getField so dotted key names (e.g. "NFT.MintedByAvatarId") are treated as
-        // literal dictionary keys rather than nested field paths (MongoDB dot-notation limitation).
-        // $toString handles any BSON value type, matching the original .ToString() comparison.
-        internal static FilterDefinition<Holon> BuildMetaDataFilter(string metaKey, string metaValue) =>
-            new BsonDocumentFilterDefinition<Holon>(new BsonDocument("$expr", new BsonDocument("$eq", new BsonArray
+        // Query values use the existing .NET scalar ToString contract. Unsupported
+        // compound/null/missing values are nonmatches, not storage failures.
+        internal static FilterDefinition<Holon> BuildMetaDataFilter(string metaKey, string metaValue)
+        {
+            var value=new BsonDocument("$getField",new BsonDocument
+                {{"field",new BsonDocument("$literal",metaKey)},{"input","$MetaData"}});
+            var scalar=new BsonDocument("$cond",new BsonArray
             {
-                new BsonDocument("$toString", new BsonDocument("$getField", new BsonDocument
-                {
-                    { "field", new BsonDocument("$literal", metaKey) },
-                    { "input", "$MetaData" }
-                })),
-                new BsonDocument("$literal", metaValue)
-            })));
+                new BsonDocument("$eq",new BsonArray {new BsonDocument("$type",value),"bool"}),
+                new BsonDocument("$cond",new BsonArray {value,bool.TrueString,bool.FalseString}),
+                new BsonDocument("$convert",new BsonDocument
+                    {{"input",value},{"to","string"},{"onError",BsonNull.Value},{"onNull",BsonNull.Value}})
+            });
+            return new BsonDocumentFilterDefinition<Holon>(new BsonDocument("$expr",
+                new BsonDocument("$eq",new BsonArray {scalar,new BsonDocument("$literal",metaValue)})));
+        }
 
         internal static FilterDefinition<Holon> BuildMetaDataMultiFilter(Dictionary<string, string> pairs, MetaKeyValuePairMatchMode mode)
         {
@@ -119,8 +122,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                 //    result.Result = query.ToList();
                 //}
 
-                // Use $expr+$getField to match dotted key names literally (not as nested paths)
-                // and $toString to handle any BSON value type — all server-side.
+                // Shared server-side scalar filter preserves literal keys and handles
+                // non-scalar/null/missing values without treating them as storage outages.
                 FilterDefinition<Holon> filter = BuildHolonTypeFilter(holonType);
                 filter = Builders<Holon>.Filter.And(filter, BuildMetaDataFilter(metaKey, metaValue));
                 if (version != 0) filter &= Builders<Holon>.Filter.Eq(x => x.Version, version);
