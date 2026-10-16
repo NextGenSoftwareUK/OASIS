@@ -514,33 +514,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
                 if (searchParams.FilterByMetaData != null)
                 {
-                    List<Holon> matchedHolons = new List<Holon>();
-
-                    foreach (Holon holon in holons)
-                    {
-                        if (holon.MetaData == null)
-                            continue;
-                        int matchedKeys = 0;
-                        foreach (KeyValuePair<string, string> metaKeyValuePair in searchParams.FilterByMetaData)
-                        {
-                            if (holon.MetaData.ContainsKey(metaKeyValuePair.Key) && holon.MetaData[metaKeyValuePair.Key] != null && holon.MetaData[metaKeyValuePair.Key].ToString() == metaKeyValuePair.Value)
-                            {
-                                if (searchParams.MetaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any)
-                                {
-                                    matchedHolons.Add(holon);
-                                    // ANY accepts this candidate once, not once per matching key.
-                                    break;
-                                }
-                                else
-                                    matchedKeys++;
-                            }
-                        }
-
-                        if (searchParams.MetaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All && matchedKeys == searchParams.FilterByMetaData.Count)
-                            matchedHolons.Add(holon);
-                    }
-
-                    holons = matchedHolons;
+                    holons=holons.Where(row=>StoredRecordSearch.MatchesMetadata(row.MetaData,searchParams.FilterByMetaData,searchParams.MetaKeyValuePairMatchMode)).ToList();
+                    avatars=avatars.Where(row=>StoredRecordSearch.MatchesMetadata(row.MetaData,searchParams.FilterByMetaData,searchParams.MetaKeyValuePairMatchMode)).ToList();
                 }
 
                 result.Result = new SearchResults();

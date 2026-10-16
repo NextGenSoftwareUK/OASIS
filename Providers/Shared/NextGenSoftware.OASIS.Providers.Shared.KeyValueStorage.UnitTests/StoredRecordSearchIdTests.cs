@@ -7,6 +7,26 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class StoredRecordSearchIdTests
 {
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public void MetadataPredicateKeepsAllAnyEmptyNullAndInvariantScalarSemantics(bool any)
+    {
+        var mode=any ? NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.Any:NextGenSoftware.OASIS.API.Core.Enums.MetaKeyValuePairMatchMode.All;
+        var metadata=new System.Collections.Generic.Dictionary<string,object> {{"number",1.5m},{"flag",true},{"null",null}};
+        var prior=System.Globalization.CultureInfo.CurrentCulture;
+        try
+        {
+            System.Globalization.CultureInfo.CurrentCulture=System.Globalization.CultureInfo.GetCultureInfo("fr-FR");
+            Assert.IsTrue(StoredRecordSearch.MatchesMetadata(metadata,new System.Collections.Generic.Dictionary<string,string> {{"number","1.5"}},mode));
+            Assert.IsTrue(StoredRecordSearch.MatchesMetadata(metadata,new System.Collections.Generic.Dictionary<string,string> {{"flag","True"}},mode));
+            Assert.AreEqual(any,StoredRecordSearch.MatchesMetadata(metadata,new System.Collections.Generic.Dictionary<string,string> {{"number","1.5"},{"missing","never"}},mode));
+            Assert.IsFalse(StoredRecordSearch.MatchesMetadata(metadata,new System.Collections.Generic.Dictionary<string,string> {{"null",""}},mode));
+            Assert.IsTrue(StoredRecordSearch.MatchesMetadata(metadata,new System.Collections.Generic.Dictionary<string,string>(),mode));
+            Assert.IsTrue(StoredRecordSearch.MatchesMetadata(null,null,mode));
+        }
+        finally {System.Globalization.CultureInfo.CurrentCulture=prior;}
+    }
+
     [TestMethod]
     public void ExtendedComparisonsUseSelectedTypedMetadataAndAllFields()
     {
