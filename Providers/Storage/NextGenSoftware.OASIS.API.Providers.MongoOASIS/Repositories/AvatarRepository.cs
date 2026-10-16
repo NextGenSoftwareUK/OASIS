@@ -488,7 +488,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     {
                         OASISErrorHandling.HandleError(ref result, "MongoDB avatar deletion failed.", evidence);
                         if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
-                        else if (ex is StorageLifecycleConflictException) result.ErrorCode = StorageLifecycleConflictException.ErrorCode;
+                        else if (ex is StorageLifecycleConflictException || !commitAttempted && MongoTransactionFailure.IsWriteConflict(ex)) result.ErrorCode = StorageLifecycleConflictException.ErrorCode;
                     }
                     if (session.IsInTransaction) await session.AbortTransactionAsync();
                 }
@@ -585,7 +585,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     {
                         OASISErrorHandling.HandleError(ref result, "MongoDB avatar deletion failed.", evidence);
                         if (ex is StorageIdentityAmbiguousException) result.ErrorCode = OASISResultErrorCodes.AmbiguousIdentity;
-                        else if (ex is StorageLifecycleConflictException) result.ErrorCode = StorageLifecycleConflictException.ErrorCode;
+                        else if (ex is StorageLifecycleConflictException || !commitAttempted && MongoTransactionFailure.IsWriteConflict(ex)) result.ErrorCode = StorageLifecycleConflictException.ErrorCode;
                     }
                     if (session.IsInTransaction) session.AbortTransaction();
                 }
