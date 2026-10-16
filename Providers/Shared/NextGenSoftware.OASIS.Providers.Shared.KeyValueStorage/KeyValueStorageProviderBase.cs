@@ -284,23 +284,30 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) => LoadAvatarByProviderKeyAsync(providerKey, version).GetAwaiter().GetResult();
 
-        private async Task<OASISResult<IAvatar>> LoadAvatarByIndexAsync(string indexKey, string description, int version)
+        private async Task<OASISResult<IAvatar>> LoadAvatarByIndexAsync(string indexKey, string description, int version,bool byEmail)
         {
             try
             {
                 var id = await ReadIdAsync(indexKey);
-                return id.HasValue ? await LoadAvatarAsync(id.Value, version) : Fail<IAvatar>($"No avatar with {description}.", errorCode: OASISResultErrorCodes.RecordNotFound);
+                if(!id.HasValue)return Fail<IAvatar>($"No avatar with {description}.",errorCode:OASISResultErrorCodes.RecordNotFound);
+                // Validate the current index owner before selecting an independently retained record version.
+                var current=await LoadAvatarAsync(id.Value);
+                if(current.IsError)return current;
+                var value=byEmail ? current.Result.Email:current.Result.Username;
+                if(string.IsNullOrWhiteSpace(value) || !string.Equals(indexKey,byEmail ? EmailKey(value):UsernameKey(value),StringComparison.Ordinal))
+                    throw new System.IO.InvalidDataException("Stored avatar index does not match its current record identity.");
+                return version==0 ? current:await LoadAvatarAsync(id.Value,version);
             }
             catch (Exception ex) { return Fail<IAvatar>($"Error loading avatar with {description}: {ex.Message}", ex); }
         }
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
-            => string.IsNullOrWhiteSpace(avatarUsername) ? Task.FromResult(Fail<IAvatar>("Username is required.")) : LoadAvatarByIndexAsync(UsernameKey(avatarUsername), $"username '{avatarUsername}'", version);
+            => string.IsNullOrWhiteSpace(avatarUsername) ? Task.FromResult(Fail<IAvatar>("Username is required.")) : LoadAvatarByIndexAsync(UsernameKey(avatarUsername), $"username '{avatarUsername}'", version,false);
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0) => LoadAvatarByUsernameAsync(avatarUsername, version).GetAwaiter().GetResult();
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
-            => string.IsNullOrWhiteSpace(avatarEmail) ? Task.FromResult(Fail<IAvatar>("Email is required.")) : LoadAvatarByIndexAsync(EmailKey(avatarEmail), $"email '{avatarEmail}'", version);
+            => string.IsNullOrWhiteSpace(avatarEmail) ? Task.FromResult(Fail<IAvatar>("Email is required.")) : LoadAvatarByIndexAsync(EmailKey(avatarEmail), $"email '{avatarEmail}'", version,true);
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0) => LoadAvatarByEmailAsync(avatarEmail, version).GetAwaiter().GetResult();
 
