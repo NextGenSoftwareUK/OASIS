@@ -101,5 +101,36 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests
                 _provider.DeActivateProvider();
             }
         }
+
+        [DataTestMethod]
+        [DataRow(true)]
+        [DataRow(false)]
+        public async System.Threading.Tasks.Task InvalidBulkGraph_DoesNotPublishEarlierIdentitiesOrParents(bool synchronous)
+        {
+            var child = new NextGenSoftware.OASIS.API.Core.Holons.Holon();
+            var first = new NextGenSoftware.OASIS.API.Core.Holons.Holon
+            {
+                Children = new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> { child }
+            };
+            var conflicting = new NextGenSoftware.OASIS.API.Core.Holons.Holon
+            {
+                Children = new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>
+                {
+                    new NextGenSoftware.OASIS.API.Core.Holons.Holon { ParentHolonId = Guid.NewGuid() }
+                }
+            };
+            var roots = new[] { first, conflicting };
+            var result = synchronous
+                ? _provider.SaveHolons(roots, saveChildrenOnProvider: true)
+                : await _provider.SaveHolonsAsync(roots, saveChildrenOnProvider: true);
+            Assert.IsTrue(result.IsError);
+            Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID", result.ErrorCode);
+            Assert.AreEqual(Guid.Empty, first.Id);
+            Assert.AreEqual(Guid.Empty, child.Id);
+            Assert.AreEqual(Guid.Empty, child.ParentHolonId);
+            Assert.AreEqual(Guid.Empty, conflicting.Id);
+            Assert.IsFalse(_provider.IsProviderActivated);
+        }
+
     }
 }
