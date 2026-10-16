@@ -123,6 +123,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             result.Result.PreviousVersionId = avatarResult.Result.PreviousVersionId;
             result.Result.PreviousVersionProviderUniqueStorageKey = avatarResult.Result.PreviousVersionProviderUniqueStorageKey;
             result.Result.ProviderMetaData = avatarResult.Result.ProviderMetaData;
+            result.Result.MetaData = avatarResult.Result.MetaData != null
+                ? new Dictionary<string, object>(avatarResult.Result.MetaData) : new Dictionary<string, object>();
             result.Result.Description = avatarResult.Result.Description;
             result.Result.Title = avatarResult.Result.Title;
             result.Result.FirstName = avatarResult.Result.FirstName;
@@ -160,6 +162,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             result.Result.LastBeamedOut = avatarResult.Result.LastBeamedOut;
             result.Result.IsBeamedIn = avatarResult.Result.IsBeamedIn;
             result.Result.Version = avatarResult.Result.Version;
+            result.Result.VersionId = avatarResult.Result.VersionId;
             result.Result.IsActive = avatarResult.Result.IsActive;
             //result.Result.CustomKey = avatarResult.Result.CustomKey;
 
@@ -210,6 +213,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisAvatar.ModifiedDate = avatar.Result.ModifiedDate;
             oasisAvatar.DeletedDate = avatar.Result.DeletedDate;
             oasisAvatar.Version = avatar.Result.Version;
+            oasisAvatar.VersionId = avatar.Result.VersionId;
             oasisAvatar.IsActive = avatar.Result.IsActive;
             oasisAvatar.Portrait = avatar.Result.Portrait;
             oasisAvatar.UmaJson = avatar.Result.UmaJson;
