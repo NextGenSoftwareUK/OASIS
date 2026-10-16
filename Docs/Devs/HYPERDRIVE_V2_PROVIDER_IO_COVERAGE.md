@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 Azure native24/24pass14s +unit13/13pass259ms: common malformed JSON classification retains original cause and typed integrity error; actual V2 Azure→stale SQLite profile/detail/holon syncasync point+collection reads make0secondary requests and preserve both stores.3unit cases failed before fix; native previous12 retained plus12new top-level cases. Cross-blob atomicity/durable recovery/history/full interfaces/live/hosted gates remain open.
+
 2026-10-16 AWS native51/51pass13s:16actual corrupt-lifecycle V2 combinations prove0transaction dispatches/0secondary requests, typed original errors/no tombstone evidence, unchanged native profile/detail snapshots and active SQLite XP777 pair. New2top-level tests each contain8cases; no inflated test count. Prior49 cases retained. Full integrity/provider/history/recovery/live/hosted gates remain open.
 
 2026-10-16 AWS native49/49pass12s +Dynamo unit49/49pass341ms: common canonical validator covers collections/holon point+parent and lifecycle snapshot reads.12collection regressions failed before fix; native holon wrong-ID/JSON point/all/parent errors and V2 avatar/detail corrupt collections with0stale-secondary requests verified. Dedicated corrupt-lifecycle mutation fencing, all read consistency/concurrency/history/recovery/live/hosted gates remain open.
