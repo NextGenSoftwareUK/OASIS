@@ -75,7 +75,7 @@ $rows = foreach ($file in Get-ChildItem -LiteralPath $managerRoot -Recurse -Filt
         $signatureText = $declaration.Substring(0, $declaration.LastIndexOf(')') + 1)
         if ($signatureText -match '\b(?:get|set|add|remove)\s*\(') { continue }
         $prefix = Normalize $signatureText.Substring(0, $signatureText.IndexOf('('))
-        if ($prefix -match '[{;}]') { continue } # Property/event text reached before a later method.
+        if ($prefix -match '[{;}]|=>|=') { continue } # Exclude properties/field initializers calling methods.
         $prefix = $prefix -replace '^public\s+(?:(?:static|async|virtual|override|new|sealed|partial|unsafe|extern)\s+)*', ''
         if ($prefix -notmatch '\s') { continue } # Constructor, not a method.
         $declarations += [pscustomobject]@{ Index = $index; Line = $index + 1; Signature = Normalize $signatureText }
