@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -15,9 +16,21 @@ public partial class SQLLiteDBOASIS
         using var transaction=await _appDataContext.Database.BeginTransactionAsync().ConfigureAwait(false);
         var connection=_appDataContext.Database.GetDbConnection();
         foreach(var table in new[] {"Holon","Avatar","AvatarDetail"})
+            await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),table,new Dictionary<string,string> {
+                {"IsPublic","INTEGER NOT NULL DEFAULT 0"},
+                {"VersionId","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"},
+                {"PreviousVersionId","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"},
+                {"CustomHolonType","TEXT NULL"}}).ConfigureAwait(false);
+        await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"HeartRateEntry",
+            new Dictionary<string,string> {{"SequenceIndex","INTEGER NOT NULL DEFAULT 0"}}).ConfigureAwait(false);
+        await transaction.CommitAsync().ConfigureAwait(false);
+    }
+
+    private static async Task EnsureColumnsAsync(DbConnection connection,DbTransaction transaction,string table,Dictionary<string,string> columns)
+    {
         {
             using var command=connection.CreateCommand();
-            command.Transaction=transaction.GetDbTransaction();
+            command.Transaction=transaction;
             command.CommandText=$"PRAGMA table_info(\"{table}\")";
             var found=new HashSet<string>(StringComparer.Ordinal);var exists=false;
             using(var reader=await command.ExecuteReaderAsync().ConfigureAwait(false))
@@ -27,11 +40,7 @@ public partial class SQLLiteDBOASIS
                     found.Add(reader.GetString(1));
                 }
             if(!exists) throw new InvalidOperationException($"Required SQLite table {table} is missing.");
-            foreach(var column in new Dictionary<string,string> {
-                {"IsPublic","INTEGER NOT NULL DEFAULT 0"},
-                {"VersionId","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"},
-                {"PreviousVersionId","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"},
-                {"CustomHolonType","TEXT NULL"}})
+            foreach(var column in columns)
             {
                 if(!found.Contains(column.Key))
                 {
@@ -40,6 +49,5 @@ public partial class SQLLiteDBOASIS
                 }
             }
         }
-        await transaction.CommitAsync().ConfigureAwait(false);
     }
 }

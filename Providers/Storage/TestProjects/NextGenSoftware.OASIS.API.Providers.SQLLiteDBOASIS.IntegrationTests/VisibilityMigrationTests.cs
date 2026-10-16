@@ -11,6 +11,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 public sealed class VisibilityMigrationTests
 {
     [Fact]
+    public void HeartRateSequenceMigrationRetainsLegacySample()
+    {
+        using var context=new DataContext("Data Source=:memory:");context.Database.OpenConnection();
+        context.GetService<IMigrationsAssembly>().Migrations.Should().ContainKey("20261015020000_AddHeartRateSequence");
+        context.Database.ExecuteSqlRaw("CREATE TABLE HeartRateEntry (Id INTEGER PRIMARY KEY,HeartRateValue INTEGER NOT NULL); INSERT INTO HeartRateEntry VALUES(1,73)");
+        var migration=new AddHeartRateSequence();var generator=context.GetService<IMigrationsSqlGenerator>();
+        foreach(var command in generator.Generate(migration.UpOperations)) context.Database.ExecuteSqlRaw(command.CommandText);
+        using var check=context.Database.GetDbConnection().CreateCommand();check.CommandText="SELECT SequenceIndex FROM HeartRateEntry WHERE Id=1";
+        Convert.ToInt32(check.ExecuteScalar()).Should().Be(0);
+        foreach(var command in generator.Generate(migration.DownOperations)) context.Database.ExecuteSqlRaw(command.CommandText);
+        check.CommandText="SELECT HeartRateValue FROM HeartRateEntry WHERE Id=1";Convert.ToInt32(check.ExecuteScalar()).Should().Be(73);
+    }
+
+    [Fact]
     public void VisibilityMigrationPreservesOldRowsAndDefaultsPrivate()
     {
         using var context=new DataContext("Data Source=:memory:");
