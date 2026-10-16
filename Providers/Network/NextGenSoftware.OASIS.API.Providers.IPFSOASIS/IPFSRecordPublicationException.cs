@@ -15,7 +15,7 @@ public sealed class IPFSRecordPublicationException : Exception, INativeMutationR
         : this(new[] {recordCid},cause) { }
 
     public IPFSRecordPublicationException(IEnumerable<string> recordCids, Exception cause)
-        : base("IPFS acknowledged a record CID, but publishing its index failed; reconcile before replay.", cause)
+        : base("IPFS acknowledged record CIDs before the operation failed; reconcile before replay.", cause)
     {
         var receipts=recordCids?.ToArray();
         if (receipts==null || receipts.Length==0 || receipts.Any(string.IsNullOrWhiteSpace))
