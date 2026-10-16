@@ -2,6 +2,8 @@
 
 ## Current acceptance summary
 
+2026-10-16 12:09 UTC: **CI38895357695 SUCCESS at exact88261a6c9e5f002d61fc02462d2f509f63d600f2**, including restored ORM branch-policy/solution integrity. Edge38890362621 at earlier305390 has passed Android0.7.1, hApp, desktop and Mongo prerequisites and is now validating Windows; no terminal Edge result yet. Do not transfer earlier Edge success to the newer source graph or claim production promotion/global proof complete.
+
 2026-10-16 11:39 UTC: The rerun still failed because branch policy requires the exact Development tip, not merely an ancestor; hosted shallow history also misleadingly reported a730942 as off-branch. Advanced ORM parent gitlink and manifest together to PR4 merge2ccce989 (same synchronized released source tree), rather than weakening policy or reverting source. This new parent requires fresh CI; Edge305390 remains an earlier candidate in progress. Production promotion is not complete.
 
 2026-10-16 11:24 UTC: ORM PR4 normally merged with exact-head matching (534cd788), merge2ccce989c544b6b3b154554f4756eba3d005305a, no admin/force flag. This synchronizes already released main history into Development, without changing OASIS gitlinks or reverting Claude's source. The component PR had no configured status checks; do not describe it as separately CI-proved. Reran only failed jobs in parent CI38888805716 to verify restored branch reachability against exact305390. Current Edge38890362621 prerequisites remain in progress. Production promotion/full global proof still pending.
