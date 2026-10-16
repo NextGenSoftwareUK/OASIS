@@ -26,6 +26,7 @@ contract UnsupportedStorageProtocolFixture {
 }
 
 contract OwnedErc20Fixture {
+    address public immutable minter = msg.sender;
     uint8 public immutable decimals;
     bool public immutable noOp;
     uint256 public totalSupply;
@@ -51,5 +52,12 @@ contract OwnedErc20Fixture {
         balanceOf[msg.sender] -= amount;
         totalSupply -= amount;
         emit Transfer(msg.sender, address(0), amount);
+    }
+    function mint(address to, uint256 amount) external {
+        require(msg.sender == minter && to != address(0), "unauthorized mint");
+        if (noOp) return;
+        balanceOf[to] += amount;
+        totalSupply += amount;
+        emit Transfer(address(0), to, amount);
     }
 }
