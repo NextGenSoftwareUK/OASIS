@@ -29,6 +29,7 @@ public partial class Web3NativeStorageTests
         try
         {
             var activation=await provider.ActivateProviderAsync();Assert.IsFalse(activation.IsError,activation.Message);
+            await VerifyNativeCredentialSelectorsAsync(provider);
             Assert.AreEqual(ProviderType.ArbitrumOASIS,provider.ProviderType.Value);
             var avatar=new Avatar {Id=Guid.NewGuid(),Username="owned-private",Email="arbitrum-private@example.invalid",IsActive=true,IsPublic=false};
             var detail=new AvatarDetail {Id=avatar.Id,Username=avatar.Username,Email=avatar.Email,XP=321,Karma=29,IsActive=true,IsPublic=false};

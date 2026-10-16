@@ -32,6 +32,7 @@ public partial class Web3NativeStorageTests
         try
         {
             var activation=await provider.ActivateProviderAsync();Assert.IsFalse(activation.IsError,activation.Message);
+            await VerifyNativeCredentialSelectorsAsync(provider);
             var empty=await provider.LoadAllAvatarsAsync();Assert.IsFalse(empty.IsError,empty.Message);Assert.IsTrue(empty.IsLoaded);Assert.IsFalse(empty.Result.Any());
             var avatar=new Avatar {Id=Guid.NewGuid(),IsActive=true,Username="owned-private",Email="native@example.invalid"};
             var saved=await provider.SaveAvatarAsync(avatar);Assert.IsFalse(saved.IsError,saved.Message);Assert.IsTrue(saved.IsSaved);
