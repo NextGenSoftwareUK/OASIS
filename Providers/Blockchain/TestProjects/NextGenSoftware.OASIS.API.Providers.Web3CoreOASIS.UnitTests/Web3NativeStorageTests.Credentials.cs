@@ -30,7 +30,8 @@ public partial class Web3NativeStorageTests
             using(var sqlite=new NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS($"Data Source={path};Pooling=False"))
             {
             Assert.IsFalse((await sqlite.ActivateProviderAsync()).IsError);
-            Assert.IsFalse((await sqlite.SaveAvatarAsync(Create("stale-secondary"))).IsError);
+            var stale=Create("stale-secondary");
+            Assert.IsFalse((await sqlite.SaveAvatarAsync(stale)).IsError);
             var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {
                 HyperDriveMode=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2,StorageProviders=new(),SubscriptionConfig=new() {PlanType="Gold"}}};
             var manager=new Core.Managers.ProviderManager(null,dna) {IsAutoFailOverEnabled=true};manager.RegisterProvider(provider);manager.RegisterProvider(sqlite);
@@ -55,6 +56,7 @@ public partial class Web3NativeStorageTests
             await NoStaleSecondary("HYPERDRIVE_PAYLOAD_INVALID",1);
             Assert.IsFalse((await provider.SaveAvatarAsync(first)).IsError);
             Assert.IsFalse((await provider.SaveAvatarDetailAsync(new AvatarDetail {Id=first.Id,IsActive=true})).IsError);
+            await VerifyCredentialBalanceAndOutageAsync(provider,sqlite,key,first.Id,stale.Id,synchronous);
             for(var kind=0;kind<5;kind++)
             {
                 var found=await Read(kind,key);Assert.IsFalse(found.IsError,found.Message);Assert.IsTrue(found.IsLoaded);Assert.AreEqual(first.Id,found.Result.Id);
