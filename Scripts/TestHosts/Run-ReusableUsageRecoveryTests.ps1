@@ -37,6 +37,7 @@ try{
         }
     }
     if(Get-NetTCPConnection -State Listen -LocalPort 27029 -ErrorAction SilentlyContinue){throw 'Owned port already in use; no process will be stopped.'}
+    if($MongoV2 -and (Get-NetTCPConnection -State Listen -LocalPort 27030 -ErrorAction SilentlyContinue)){throw 'Reserved Mongo credential-outage port is occupied; refusing verification.'}
     if([IO.Path]::GetFullPath($data) -ne (Join-Path $taskRoot 'TestResults/SubscriptionUsageCurrent/mongo-data')){throw 'Unexpected owned data path.'}
     New-Item -ItemType Directory -Force -Path $data | Out-Null
     Limit-OwnedMongoLog -WorkDirectory $work
