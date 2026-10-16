@@ -51,6 +51,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
 public partial class Web3CoreOASISBaseProvider
 {
+    private readonly SemaphoreSlim _nftSigningGate = new(1, 1);
     public OASISResult<IWeb3NFTTransactionResponse> SendNFT(ISendWeb3NFTRequest transaction)
         => SendNFTAsync(transaction).Result;
 
@@ -86,9 +87,27 @@ public partial class Web3CoreOASISBaseProvider
             return result;
         }
 
+        await _nftSigningGate.WaitAsync();
         try
         {
-            TransactionReceipt transactionReceipt = await _web3CoreOASIS.SendNFTAsync(
+            var signer = _web3CoreOASIS;
+            if (!string.IsNullOrWhiteSpace(transaction.OwnerPrivateKey))
+            {
+                var owner = new Account(transaction.OwnerPrivateKey, _expectedChainId);
+                if (!string.Equals(owner.Address, signer.SigningAddress, StringComparison.OrdinalIgnoreCase))
+                {
+                    if (signer.HasNativePreparation)
+                        throw new InvalidOperationException("NFT signer differs from the admitted native preparation owner.");
+                    signer = new Web3CoreOASIS(transaction.OwnerPrivateKey, _hostURI, _contractAddress,
+                        Web3CoreOASISBaseProviderHelper.Abi, _expectedChainId);
+                }
+            }
+            if (!string.Equals(signer.SigningAddress, transaction.FromWalletAddress, StringComparison.OrdinalIgnoreCase))
+            {
+                OASISErrorHandling.HandleError(ref result, "NFT transfer sender does not match the signing account.");
+                return result;
+            }
+            TransactionReceipt transactionReceipt = await signer.SendNFTAsync(
                 transaction.FromWalletAddress,
                 transaction.ToWalletAddress,
                 tokenId,
@@ -97,7 +116,7 @@ public partial class Web3CoreOASISBaseProvider
                 "None", //Obsolete.
                 "None",
                 new BigInteger(transaction.Amount),
-                transaction.MemoText
+                transaction.MemoText ?? string.Empty
             );
             string transactionHash = transactionReceipt.TransactionHash;
 
@@ -127,6 +146,7 @@ public partial class Web3CoreOASISBaseProvider
         {
             OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
         }
+        finally { _nftSigningGate.Release(); }
 
         return result;
     }

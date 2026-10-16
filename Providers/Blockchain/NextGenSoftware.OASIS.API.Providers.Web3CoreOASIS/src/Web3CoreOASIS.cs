@@ -20,6 +20,7 @@ public sealed class Web3CoreOASIS
     private readonly AsyncLocal<Func<System.Text.Json.JsonElement,Task>> _preparation=new();
     private readonly SemaphoreSlim _mutationGate=new(1,1);
     internal string SigningAddress=>_web3.TransactionManager.Account.Address;
+    internal bool HasNativePreparation => _preparation.Value != null;
     internal async Task<BigInteger> ReadChainIdAsync()=> (await _web3.Eth.ChainId.SendRequestAsync()).Value;
     internal Task<TransactionReceipt> ReadOriginalReceiptAsync(string hash)=>_web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(hash);
 

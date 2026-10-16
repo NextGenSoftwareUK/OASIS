@@ -49,6 +49,35 @@ public partial class Web3NativeStorageTests
             Assert.IsTrue(syncMetadata.IsLoaded);
             Assert.AreEqual(metadata.Result.Title, syncMetadata.Result.Title);
             Assert.AreEqual(metadata.Result.Symbol, syncMetadata.Result.Symbol);
+            // Public development-only key; funded solely inside the asserted local chain.
+            var alternateKey = new string('0', 63) + "2";
+            var alternate = new Account(alternateKey, 31337);
+            await web3.Client.SendRequestAsync<object>(new Nethereum.JsonRpc.Client.RpcRequest(
+                1, "hardhat_setBalance", alternate.Address, "0xDE0B6B3A7640000"));
+            var alternateId = new BigInteger(17);
+            Assert.IsTrue((await contract.GetFunction("seedToken").SendTransactionAndWaitForReceiptAsync(
+                account.Address, new HexBigInteger(500000), null, null, alternate.Address, alternateId)).Succeeded());
+            var sdk = (Web3CoreOASIS)typeof(Web3CoreOASISBaseProvider).GetField("_web3CoreOASIS",
+                System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic)!.GetValue(provider)!;
+            var preparations = 0;
+            var forbiddenSigner = await sdk.WithNativePreparationAsync(
+                () => provider.SendNFTAsync(new SendWeb3NFTRequest {
+                    FromWalletAddress = alternate.Address, ToWalletAddress = recipient,
+                    TokenId = "17", Amount = 1, OwnerPrivateKey = alternateKey }),
+                _ => { preparations++; return Task.CompletedTask; });
+            Assert.IsTrue(forbiddenSigner.IsError);
+            StringAssert.Contains(forbiddenSigner.Message, "admitted native preparation owner");
+            Assert.AreEqual(0, preparations);
+            Assert.AreEqual(alternate.Address.ToLowerInvariant(),
+                (await contract.GetFunction("ownerOf").CallAsync<string>(alternateId)).ToLowerInvariant());
+            var alternateTransfer = await provider.SendNFTAsync(new SendWeb3NFTRequest {
+                FromWalletAddress = alternate.Address, ToWalletAddress = recipient,
+                TokenId = "17", Amount = 1, OwnerPrivateKey = alternateKey });
+            Assert.IsFalse(alternateTransfer.IsError, alternateTransfer.Message);
+            var alternateReceipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(alternateTransfer.Result.TransactionResult);
+            Assert.IsTrue(alternateReceipt.Succeeded());
+            Assert.AreEqual(alternate.Address.ToLowerInvariant(), alternateReceipt.From.ToLowerInvariant());
+            Assert.AreEqual(recipient, (await contract.GetFunction("ownerOf").CallAsync<string>(alternateId)).ToLowerInvariant());
             foreach (var id in new[] { BigInteger.Zero, BigInteger.One << 63, (BigInteger.One << 256) - 1 })
             {
                 var seeded = await contract.GetFunction("seedToken").SendTransactionAndWaitForReceiptAsync(
@@ -86,6 +115,7 @@ public partial class Web3NativeStorageTests
                     FromWalletAddress = recipient, ToWalletAddress = account.Address,
                     TokenId = id.ToString(System.Globalization.CultureInfo.InvariantCulture), Amount = 1 });
                 Assert.IsTrue(unauthorized.IsError);
+                Assert.AreEqual("NFT transfer sender does not match the signing account.", unauthorized.Message);
                 Assert.IsFalse(unauthorized.IsSaved);
                 Assert.AreEqual(recipient, (await contract.GetFunction("ownerOf").CallAsync<string>(id)).ToLowerInvariant());
             }
