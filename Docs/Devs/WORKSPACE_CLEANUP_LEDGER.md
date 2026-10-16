@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 AWS identity absence fixture reconciliation: actual retained path C:/Source/OASIS-hyperdrive-v2-gaps/Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests/bin/Release/net10.0/TestResults/AWSRoutingFiles/delete-routing.db. Existing Node read-only SQLite inspection proved exactly synthetic pairfa355e1a-ea23-4740-b221-e12a76609e8b, owned-stale username, both active/no deletion, XP999 and0holons. Failure was read-result IsError assertion versus existing V2 normalized absence; no unknown mutation. Exact resolved path equality and exclusive file-open validated before deleting ONLY that fixture. Tests regenerate it; subsequent41/41nativepass12s. Same retained runtime/cache/fixed reports reused, no install/download/new environment/user DB deletion. Unit29/29pass314ms; no global reclaim claim.
+
 2026-10-16 Dynamo version safety: existing cached official SDK read probes and fixed unit report used;29/29pass312ms. Probes reject any attempted SDK read locally, no network service/download/environment/data creation. No cleanup or reclaimed-space claim required.
 
 2026-10-16 AWS definite-rejection graph tests: same retained runtime/cache/fixed reports; native39/39pass11s. Actual rejected synthetic parent/descendant absence independently verified, exact acknowledged independent parent/child keys deleted after readback. No install/download/clone/new environment or broad dataset/cache cleanup.
