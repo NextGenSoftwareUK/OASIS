@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.Common;
 namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.IntegrationTests;
 
 [TestClass]
+[DoNotParallelize]
 public class AzureNativeStorageTests
 {
     [TestMethod]
