@@ -103,8 +103,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                     var protocolVersion = await _nextGenSoftwareOasisService.ContractHandler
                         .QueryAsync<ContractDefinition.StorageProtocolVersionFunction,System.Numerics.BigInteger>(new ContractDefinition.StorageProtocolVersionFunction())
                         .WaitAsync(TimeSpan.FromSeconds(10));
-                    if (protocolVersion != 2)
-                        throw new InvalidOperationException($"Ethereum storage protocol version '{protocolVersion}' is unsupported; version 2 is required.");
+                    if (protocolVersion != 3)
+                        throw new InvalidOperationException($"Ethereum storage protocol version '{protocolVersion}' is unsupported; version 3 is required.");
                 }
                 else
                     throw new InvalidOperationException("EthereumOASIS requires an RPC URI, private key, and positive chain ID.");
