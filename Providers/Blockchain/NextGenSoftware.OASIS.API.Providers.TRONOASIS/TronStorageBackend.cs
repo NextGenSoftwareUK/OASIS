@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,7 +48,7 @@ public sealed class TronStorageBackend : IKeyValueBackend
     internal static List<ParameterOutput> Decode(byte[] bytes, params string[] outputTypes)
     {
         if (bytes == null || bytes.Length == 0 || bytes.Length % 32 != 0)
-            throw new InvalidOperationException("Storage query returned an empty or truncated ABI payload.");
+            throw new InvalidDataException("Storage query returned an empty or truncated ABI payload.");
         var outputs = outputTypes.Select((type, index) => new ParameterOutput
         {
             Parameter = new Parameter(type, "output" + index, index + 1)
@@ -70,7 +71,7 @@ public sealed class TronStorageBackend : IKeyValueBackend
         var canonical = Encode("result(" + string.Join(",", outputTypes) + ")", outputTypes,
             decoded.Select(output => output.Result).ToArray());
         if (!bytes.AsSpan().SequenceEqual(canonical.AsSpan(4)))
-            throw new InvalidOperationException("Storage query returned noncanonical or lossy ABI data.");
+            throw new InvalidDataException("Storage query returned noncanonical or lossy ABI data.");
         return decoded;
     }
 
