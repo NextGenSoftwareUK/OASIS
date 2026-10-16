@@ -150,7 +150,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     ["nextVersionId"] = holon.VersionId.ToString(),
                     ["isChanged"] = holon.IsChanged,
                     ["isNew"] = holon.IsNewHolon,
-                    ["isDeleted"] = !holon.IsActive,
+                    ["isDeleted"] = holon.IsDeleted,
                     ["deletedByAvatarId"] = holon.DeletedByAvatarId.ToString(),
                     ["deletedDate"] = ToFirestoreTimestamp(holon.DeletedDate),
                     ["createdByAvatarId"] = holon.CreatedByAvatarId.ToString(),
