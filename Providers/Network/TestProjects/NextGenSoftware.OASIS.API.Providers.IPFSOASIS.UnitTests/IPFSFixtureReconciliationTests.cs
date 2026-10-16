@@ -13,7 +13,7 @@ public sealed class IPFSFixtureReconciliationTests(ITestOutputHelper output)
 {
     [Fact]
     [Trait("Category","IPFSNativeFixtureReconciliation")]
-    public async Task ReleaseVerifiedInterruptedNativeReadFixture()
+    public async Task ReleaseVerifiedInterruptedVersionFixture()
     {
         const string endpoint="http://127.0.0.1:18547";
         Assert.Equal(endpoint,Environment.GetEnvironmentVariable("OASIS_IPFS_TEST_RPC"));
@@ -32,11 +32,24 @@ public sealed class IPFSFixtureReconciliationTests(ITestOutputHelper output)
         try
         {
             Assert.False((await provider.ActivateProviderAsync()).IsError);
-            var index=await provider.LoadLookupToJson();Assert.Equal(6,index.Count);
+            var index=await provider.LoadLookupToJson();
+            foreach(var entry in index)
+                output.WriteLine($"Retained index {entry.Value.RecordKind}/{entry.Value.Id:D} login={entry.Value.login} CID={entry.Key}");
+            Assert.Equal(12,index.Count);
             var avatars=await provider.LoadAllAvatarsAsync();Assert.False(avatars.IsError,avatars.Message);
-            var avatar=Assert.Single(avatars.Result);Assert.Equal("owned-native-avatar",avatar.Username);Assert.Equal("owned@example.invalid",avatar.Email);
+            Assert.Equal(4,avatars.Result.Count());
+            var avatar=Assert.Single(avatars.Result.Where(row=>row.Username=="owned-native-avatar"));Assert.Equal("owned@example.invalid",avatar.Email);
+            Assert.Equal(Guid.Parse("86b07556-6125-480a-b3e9-ac4740e55984"),avatar.Id);
+            Assert.False(avatar.IsActive);Assert.Equal(2,avatar.Version);
+            Assert.Equal(2,avatars.Result.Count(row=>row.Username=="conflict-"+row.Id));
+            Assert.Single(avatars.Result.Where(row=>row.Username=="partial-native-"+row.Id && row.IsActive));
             var details=await provider.LoadAllAvatarDetailsAsync();Assert.False(details.IsError,details.Message);
-            var detail=Assert.Single(details.Result);Assert.Equal(avatar.Id,detail.Id);Assert.Equal(321,detail.XP);Assert.Equal(29,detail.Karma);
+            Assert.Equal(4,details.Result.Count());
+            Assert.Equal(avatars.Result.Select(row=>row.Id).OrderBy(id=>id),details.Result.Select(row=>row.Id).OrderBy(id=>id));
+            var detail=Assert.Single(details.Result.Where(row=>row.Id==avatar.Id));Assert.Equal(654,detail.XP);Assert.Equal(29,detail.Karma);
+            Assert.Equal(avatar.DeletedDate,detail.DeletedDate);Assert.False(detail.IsActive);
+            Assert.Equal(2,details.Result.Count(row=>row.Username=="conflict-"+row.Id && row.XP==246 && row.IsActive));
+            Assert.Single(details.Result.Where(row=>row.Username=="partial-native-"+row.Id && row.XP==123 && row.IsActive));
             var item=Assert.Single(detail.Inventory);Assert.Equal("owned oak seed",item.Name);Assert.Equal(5,item.Quantity);
             var rows=new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>();
             foreach(var entry in index.Values.Where(row=>row.RecordKind=="holon"))
@@ -44,12 +57,24 @@ public sealed class IPFSFixtureReconciliationTests(ITestOutputHelper output)
                 var loaded=await provider.LoadHolonAsync(entry.Id,loadChildren:false);Assert.False(loaded.IsError,loaded.Message);rows.Add(loaded.Result);
             }
             Assert.Equal(4,rows.Count);
-            Assert.Equal(new[]{"owned-native-child","owned-native-grandchild","owned-native-holon","owned-partial-import"},rows.Select(row=>row.Name).OrderBy(value=>value,StringComparer.Ordinal));
-            var parent=rows.Single(row=>row.Name=="owned-native-holon");Assert.Equal(avatar.Id,parent.Id);
+            Assert.Equal(new[]{"owned-native-child","owned-native-grandchild","owned-partial-import","replicated-from-LocalFileOASIS"},rows.Select(row=>row.Name).OrderBy(value=>value,StringComparer.Ordinal));
+            var parent=rows.Single(row=>row.Name=="replicated-from-LocalFileOASIS");Assert.Equal(avatar.Id,parent.Id);
             var child=rows.Single(row=>row.Name=="owned-native-child");Assert.Equal(parent.Id,child.ParentHolonId);
             Assert.Equal(child.Id,rows.Single(row=>row.Name=="owned-native-grandchild").ParentHolonId);
             foreach(var entry in index){cids.Add(entry.Key);output.WriteLine($"Verified native fixture {entry.Value.RecordKind}/{entry.Value.Id:D} CID={entry.Key}");}
-            output.WriteLine($"Verified native fixture root={root}");verified=true;
+            var sqlitePath=Path.Combine(Path.GetDirectoryName(path)!,"tombstone-routing.db");
+            using(var sqlite=new SqliteProvider($"Data Source={sqlitePath};Mode=ReadOnly;Pooling=False"))
+            {
+                Assert.False((await sqlite.ActivateProviderAsync()).IsError);
+                var localAvatar=Assert.Single((await sqlite.LoadAllAvatarsAsync()).Result);
+                var localDetail=Assert.Single((await sqlite.LoadAllAvatarDetailsAsync()).Result);
+                Assert.Equal(avatar.Id,localAvatar.Id);Assert.Equal(avatar.Id,localDetail.Id);
+                Assert.Equal("owned-sqlite-primary",localAvatar.Username);Assert.Equal(999,localDetail.XP);Assert.Equal(77,localDetail.Karma);
+                Assert.Equal(avatar.DeletedDate,localAvatar.DeletedDate);Assert.Equal(avatar.DeletedDate,localDetail.DeletedDate);
+                Assert.Empty((await sqlite.LoadAllHolonsAsync()).Result);
+                await sqlite.DeActivateProviderAsync();
+            }
+            output.WriteLine($"Verified native fixture root={root}; exact synthetic tombstone database={new FileInfo(sqlitePath).Length} bytes");verified=true;
         }
         finally {await provider.DeActivateProviderAsync();OASISDNAManager.OASISDNA=priorDna;OASISDNAManager.OASISDNAPath=priorPath;}
         if(verified)
@@ -57,7 +82,8 @@ public sealed class IPFSFixtureReconciliationTests(ITestOutputHelper output)
             var client=new Ipfs.Http.IpfsClient(endpoint);
             foreach(var cid in cids) Assert.Contains((await client.Pin.RemoveAsync((Cid)cid)).Select(value=>value.ToString()),value=>value==cid);
             File.Delete(path);
-            output.WriteLine("Released seven verified current pins and exact synthetic DNA; unknown earlier pins/local files retained.");
+            File.Delete(Path.Combine(Path.GetDirectoryName(path)!,"tombstone-routing.db"));
+            output.WriteLine("Released thirteen verified current pins and exact synthetic DNA/tombstone SQLite; unknown earlier pins/local files retained.");
         }
     }
     [Fact]
