@@ -2,6 +2,8 @@
 
 ## Current acceptance summary
 
+2026-10-16 13:39 UTC: CI38904039971 SUCCESS at exact3d7eb5e923aa09407f0824a6f360fd4c858404cb after the single failed-job rerun; MongoDB startup recovered without a code change. Edge38904040051 is still building hApp/generated-fixture and Android prerequisites. Zero-skip runtime/full Edge and global promotion acceptance remain pending.
+
 2026-10-16 13:24 UTC: CI38904039971 at3d7eb5e92 failed only MongoDB service startup: Docker Hub authentication request timed out before the mongo:7 container or tests started (Docker exit125). Requested one failed-job rerun for this external registry timeout; no code, test assertions or registry fallback changed. Edge38904040051 remains building hApp/Android prerequisites; completed desktop/Mongo evidence checks are green. This is not a test-pass claim.
 
 2026-10-16 12:54 UTC: Implemented hosted generated-hApp fixture provisioning: canonical pinned HoloNET/recursive ORM and Libraries checkouts, generator test execution, Rust/WASM compilation and hc packing using the existing hApp job's pinned Nix toolchain. Transfers only bundle/C# models with source identity and SHA256 catalogue; Windows verifies source/version/digests before setting the new test variables. Generator test remains in the full shared suite and writes separate output; no tests filtered away. Parser/static checks only locally; hosted build/runtime proof still required. Prior two-skip failure remains unresolved until this candidate passes.
