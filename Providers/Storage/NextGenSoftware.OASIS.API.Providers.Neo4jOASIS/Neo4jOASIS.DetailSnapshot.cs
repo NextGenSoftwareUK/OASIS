@@ -69,40 +69,43 @@ public partial class Neo4jOASIS
     public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail source)
         => SaveAvatarDetailAsync(source).GetAwaiter().GetResult();
 
-    private async Task<OASISResult<IEnumerable<IAvatarDetail>>> ReadDetailsAsync(string field = null, string value = null)
+    private async Task<OASISResult<IEnumerable<IAvatarDetail>>> ReadDetailsAsync(string field = null, string value = null,int version=0)
     {
         var result = new OASISResult<IEnumerable<IAvatarDetail>>();
         try
         {
+            ValidateCurrentAvatarVersion(version);
             if (!IsProviderActivated || _driver == null) throw new InvalidOperationException("Neo4j provider is not activated.");
             if (field != null && field != "Id" && field != "Email" && field != "Username") throw new ArgumentException("Unknown detail selector.");
             var query = field == null ? "MATCH (a:AvatarDetail) RETURN a" : "MATCH (a:AvatarDetail {" + field + ":$value}) RETURN a";
             using (var session = _driver.AsyncSession())
             {
                 var rows = await (await session.RunAsync(query, new { value })).ToListAsync();
+                if(field!=null && rows.Count>1) throw new StorageIdentityAmbiguousException();
                 result.Result = rows.Select(row => (IAvatarDetail)ReadDetailNode(row["a"].As<Neo4j.Driver.INode>())).ToList();
             }
             result.IsLoaded = true;
         }
-        catch (Exception cause) { result.IsError = true; result.Exception = cause; result.Message = cause.Message; }
+        catch (Exception cause) { result.IsError = true; result.Exception = cause; result.Message = cause.Message;
+            if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity; }
         return result;
     }
 
-    private async Task<OASISResult<IAvatarDetail>> ReadOneDetailAsync(string field, string value)
+    private async Task<OASISResult<IAvatarDetail>> ReadOneDetailAsync(string field, string value,int version=0)
     {
-        var read = await ReadDetailsAsync(field, value);
-        if (read.IsError) return new OASISResult<IAvatarDetail> { IsError = true, Exception = read.Exception, Message = read.Message };
+        var read = await ReadDetailsAsync(field, value,version);
+        if (read.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IAvatarDetail>,IAvatarDetail>(read);
         var records = read.Result.ToList();
         if (records.Count == 0) return new OASISResult<IAvatarDetail> { IsError = true, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Avatar detail not found in Neo4j." };
-        if (records.Count != 1) return new OASISResult<IAvatarDetail> { IsError = true, ErrorCode = StorageLifecycleConflictException.ErrorCode, Message = "Neo4j detail selector is not unique." };
+        if (records.Count != 1) return new OASISResult<IAvatarDetail> { IsError = true, ErrorCode = OASISResultErrorCodes.AmbiguousIdentity, Message = "Neo4j detail selector is not unique." };
         return new OASISResult<IAvatarDetail>(records[0]) { IsLoaded = true };
     }
 
-    public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0) => ReadDetailsAsync();
+    public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0) => ReadDetailsAsync(version:version);
     public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) => LoadAllAvatarDetailsAsync(version).GetAwaiter().GetResult();
-    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0) => ReadOneDetailAsync("Id", id.ToString());
+    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailAsync(Guid id, int version = 0) => ReadOneDetailAsync("Id", id.ToString(),version);
     public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).GetAwaiter().GetResult();
-    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0) => ReadOneDetailAsync("Email", email);
+    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0) => ReadOneDetailAsync("Email", email,version);
     public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string email, int version = 0) => LoadAvatarDetailByEmailAsync(email, version).GetAwaiter().GetResult();
-    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0) => ReadOneDetailAsync("Username", username);
+    public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0) => ReadOneDetailAsync("Username", username,version);
 }
