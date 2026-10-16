@@ -47,16 +47,19 @@ public sealed class WalletCredentialIsolationTests
         Assert.Single(stored);
     }
     [Theory]
-    [InlineData(false, "id", false)]
-    [InlineData(true, "id", false)]
-    [InlineData(false, "username", false)]
-    [InlineData(true, "username", false)]
-    [InlineData(false, "email", false)]
-    [InlineData(true, "email", false)]
-    [InlineData(true, "id", true)]
-    [InlineData(true, "username", true)]
-    [InlineData(true, "email", true)]
-    public async Task DefaultWalletLookupDoesNotDecryptStoredWalletInPlace(bool showPrivateKey, string route, bool validKey)
+    [InlineData(false, "id", false, false)]
+    [InlineData(true, "id", false, false)]
+    [InlineData(false, "username", false, false)]
+    [InlineData(true, "username", false, false)]
+    [InlineData(false, "email", false, false)]
+    [InlineData(true, "email", false, false)]
+    [InlineData(true, "id", true, false)]
+    [InlineData(true, "username", true, false)]
+    [InlineData(true, "email", true, false)]
+    [InlineData(true, "id", true, true)]
+    [InlineData(true, "username", true, true)]
+    [InlineData(true, "email", true, true)]
+    public async Task DefaultWalletLookupDoesNotDecryptStoredWalletInPlace(bool showPrivateKey, string route, bool validKey, bool ambiguous)
     {
         var avatarId = Guid.NewGuid();
         var wallet = new ProviderWallet
@@ -68,6 +71,10 @@ public sealed class WalletCredentialIsolationTests
         {
             [ProviderType.TRONOASIS] = new List<IProviderWallet> { wallet }
         };
+        if (ambiguous) stored[ProviderType.TRONOASIS].Add(new ProviderWallet {
+            Id = Guid.NewGuid(), AvatarId = avatarId, IsDefaultWallet = true,
+            ProviderType = ProviderType.TRONOASIS, PrivateKey = "must-not-decrypt-second-default"
+        });
         var provider = new Mock<IOASISStorageProvider>();
         provider.SetupAllProperties();
         var local = provider.As<IOASISLocalStorageProvider>();
@@ -101,7 +108,16 @@ public sealed class WalletCredentialIsolationTests
                 ? await manager.GetAvatarDefaultWalletByEmailAsync("isolation@example.test", ProviderType.TRONOASIS, showPrivateKeys: showPrivateKey)
                 : await manager.GetAvatarDefaultWalletByIdAsync(avatarId, ProviderType.TRONOASIS, showPrivateKeys: showPrivateKey);
         Assert.Equal(originalStoredKey, wallet.PrivateKey);
-        if (showPrivateKey && !validKey)
+        if (ambiguous)
+        {
+            Assert.True(result.IsError);
+            Assert.Null(result.Result);
+            Assert.False(result.IsLoaded);
+            Assert.IsType<InvalidDataException>(result.Exception);
+            Assert.Equal("must-not-decrypt-second-default", stored[ProviderType.TRONOASIS][1].PrivateKey);
+            Assert.All(stored[ProviderType.TRONOASIS], item => Assert.True(item.IsDefaultWallet));
+        }
+        else if (showPrivateKey && !validKey)
         {
             Assert.True(result.IsError);
             Assert.Null(result.Result);
