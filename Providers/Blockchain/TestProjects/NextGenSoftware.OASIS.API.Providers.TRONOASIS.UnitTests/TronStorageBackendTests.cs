@@ -9,6 +9,29 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 public sealed class TronStorageBackendTests
 {
     [Theory]
+    [InlineData("duplicate")] [InlineData("empty")] [InlineData("cross-page")]
+    [InlineData("cursor")] [InlineData("total")]
+    public void InvalidStoragePagesAreTerminalAndDoNotPublishPartialKeys(string mode)
+    {
+        var keys=new SortedSet<string>(StringComparer.Ordinal) {"prior"};
+        var entries=mode=="empty" ? new[] {"valid",""}:mode=="cross-page" ? new[] {"valid","prior"}:new[] {"valid","valid"};
+        if(mode is "cursor" or "total")entries=new[] {"valid","other"};
+        var method=typeof(TronStorageBackend).GetMethod("ValidatePage",BindingFlags.Static|BindingFlags.NonPublic)!;
+        var error=Assert.Throws<TargetInvocationException>(()=>method.Invoke(null,new object?[] {entries,
+            System.Numerics.BigInteger.Zero,new System.Numerics.BigInteger(mode=="cursor" ? 1:2),new System.Numerics.BigInteger(2),
+            mode=="total" ? new System.Numerics.BigInteger(3):null,keys}));
+        Assert.IsType<System.IO.InvalidDataException>(error.InnerException);Assert.Equal(new[] {"prior"},keys);
+    }
+    [Fact]
+    public void ValidStoragePagePreservesUnsortedNativeKeysAndEmptyFinalPage()
+    {
+        var keys=new SortedSet<string>(StringComparer.Ordinal);
+        var method=typeof(TronStorageBackend).GetMethod("ValidatePage",BindingFlags.Static|BindingFlags.NonPublic)!;
+        method.Invoke(null,new object?[] {new[] {"b","a"},System.Numerics.BigInteger.Zero,new System.Numerics.BigInteger(2),new System.Numerics.BigInteger(2),null,keys});
+        method.Invoke(null,new object?[] {Array.Empty<string>(),new System.Numerics.BigInteger(2),new System.Numerics.BigInteger(2),new System.Numerics.BigInteger(2),new System.Numerics.BigInteger(2),keys});
+        Assert.Equal(new[] {"a","b"},keys);
+    }
+    [Theory]
     [InlineData("string",false)] [InlineData("string",true)]
     [InlineData("string[]",false)] [InlineData("string[]",true)]
     public void MalformedDynamicOffsetsRemainTerminalWithOriginalDecoderCause(string type,bool overflowing)

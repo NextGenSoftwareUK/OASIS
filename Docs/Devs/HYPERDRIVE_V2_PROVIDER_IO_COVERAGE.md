@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+TRON pagination follow-up: current focused storage16/16pass98ms adds terminal cursor/total/duplicate/empty/cross-page-key checks and all-or-nothing page-key publication; valid unsorted keys and empty final page retained. Provider/consumer builds pass. No new live-node/V2/recovery proof; original pending journal fingerprint verified unchanged.
+
 TRON decoder follow-up: focused storage10/10pass104ms after reproducing overflowing dynamic offsets escaping as OverflowException. Narrow remote-decoder exception translation preserves original cause under terminal InvalidDataException; configured output type validation/network exceptions unchanged. Prior6-case boundary evidence superseded for this focused class only; no new live-node/V2/recovery evidence.
 
 Latest chain response-boundary delta: Sui/Cosmos/Hashgraph now use strict shared get/list response-shape owner, malformed shape/order/prefix/cursor is terminal InvalidDataException instead of generic InvalidOperationException. Shared213/213pass1s and three provider builds; no fresh native-chain evidence. TRON two explicit ABI integrity guards now terminal InvalidDataException; focused storage backend6/6pass526ms, library builds; other decoder error paths remain open. This supplements (does not complete) the chain rows below; pending outcomes untouched.

@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 TRON key-page follow-up reused existing SDK/build/test outputs; focused storage16/16pass98ms. No node started/new runtime/download/install/clone/environment or ledger/userdata/source/credential removal. Exact pending-native-outcome.json SHA256 rechecked unchanged9A6B6E580DB63E5F20A91D9A345430FA72670CC041B278E3B44E00BD0FDEBAEE. Fixed compact report overwritten in place rather than accumulating run directories.
+
 2026-10-16 TRON decoder follow-up reused existing SDK/cache/build outputs. Baseline6pass/4fail compact report retained as tron-storage-decoder-before-current.trx; final focused10/10pass104ms. No node/runtime/environment started or installed, no downloads/clones/ledger resets/mutation replays/source/userdata/credential removal. Original pending transaction evidence remains protected; fixed reports retained.
 
 2026-10-16 chain storage response-boundary fix reused existing SDK/cache/build outputs only: Shared213/213pass1s, Sui/Cosmos/Hashgraph/TRON libraries build, focused TRON backend6/6pass526ms. No chain runtime started, no downloads/installs/clones/new environments or ledger/credential/source/userdata removal. Original pending journals preserved; fixed compact shared/TRON reports retained. C free78853861376during bytes is systemwide observation only, not attributed recovery.
