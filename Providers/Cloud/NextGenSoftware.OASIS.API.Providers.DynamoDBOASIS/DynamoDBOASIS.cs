@@ -187,6 +187,9 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
+                ArgumentNullException.ThrowIfNull(avatar);
+                var source=avatar;
+                avatar=Des<Avatar>(Ser(source))!;
                 if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
                 if (avatar.ProviderUniqueStorageKey == null) avatar.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
                 avatar.ProviderUniqueStorageKey[StorageProviderType] = avatar.Id.ToString();
@@ -202,7 +205,10 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         ["data_json"] = new AttributeValue { S = Ser(avatar) }
                     })
                 });
-                result.Result = avatar; result.IsError = false; result.Message = $"DynamoDBOASIS: Avatar '{avatar.Username}' saved.";
+                source.Id=avatar.Id;
+                source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+                source.ProviderUniqueStorageKey[StorageProviderType]=avatar.Id.ToString();
+                result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = $"DynamoDBOASIS: Avatar '{avatar.Username}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
@@ -345,6 +351,9 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
+                ArgumentNullException.ThrowIfNull(d);
+                var source=d;
+                d=Des<AvatarDetail>(Ser(source))!;
                 if (d.Id == Guid.Empty) d.Id = Guid.NewGuid();
                 await PutItemAsync(new PutItemRequest
                 {
@@ -357,7 +366,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         ["data_json"] = new AttributeValue { S = Ser(d) }
                     })
                 });
-                result.Result = d; result.IsError = false; result.Message = "DynamoDBOASIS: AvatarDetail saved.";
+                source.Id=d.Id;
+                result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = "DynamoDBOASIS: AvatarDetail saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
@@ -420,6 +430,9 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             var result = new OASISResult<IHolon>();
             try
             {
+                ArgumentNullException.ThrowIfNull(holon);
+                var source=holon;
+                holon=Des<Holon>(Ser(source))!;
                 if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
                 if (holon.ProviderUniqueStorageKey == null) holon.ProviderUniqueStorageKey = new Dictionary<Core.Enums.ProviderType, string>();
                 holon.ProviderUniqueStorageKey[StorageProviderType] = holon.Id.ToString();
@@ -435,7 +448,10 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                         ["data_json"] = new AttributeValue { S = Ser(holon) }
                     }
                 });
-                result.Result = holon; result.IsError = false; result.Message = $"DynamoDBOASIS: Holon '{holon.Name}' saved.";
+                source.Id=holon.Id;
+                source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+                source.ProviderUniqueStorageKey[StorageProviderType]=holon.Id.ToString();
+                result.Result = source; result.IsSaved=true; result.IsError = false; result.Message = $"DynamoDBOASIS: Holon '{holon.Name}' saved.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
