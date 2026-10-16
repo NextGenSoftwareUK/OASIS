@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 batch regression verification reused the existing checkout, dependency cache, fixed SQLite routing report and installed .NET runtime. Shared 151 tests, targeted V2 48 tests and four bounded chain-library builds completed. No download, installation, clone, new worktree, chain-runtime start/reset or deletion. C: free space after builds: 84,374,634,496 bytes. This records observed free space, not a claim of recovered space.
+
 2026-10-16 shared whole-batch preflight:143/143unit985ms,48/48targetedV26s and four bounded chain library builds using existing cache/test environments. Invalid cases prove zero controlled-backend writes and unchanged caller nodes; owned SQLite/disk fixtures cleaned only after existing verified routines. No install/download/clone/new environment/chain runtime or unknown-ledger reset. Existing shared planner reused, not copied.
 
 2026-10-16 V2 partial-key tests:48/48targetedpass6s using existing HyperDriveSqliteCurrent lease/owned-data/files/SQLite and fixed TRX. Actual disk adapter stores bounded synthetic JSON files at SHA256-derived filenames (no key-path traversal/new environment). Native file payloads and secondary emptiness verified before fixture cleanup; failure preserves fixture. No install/download/clone/chain process/reset. Free C84,408,123,392bytes after verification. Local I/O evidence explicitly not cloud SDK certification.

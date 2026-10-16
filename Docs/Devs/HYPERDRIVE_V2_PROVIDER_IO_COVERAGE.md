@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-16 shared batch regression evidence: 151/151 shared tests and 48/48 targeted V2 tests pass. Eight new controlled-backend tests prove prior root acknowledgements survive a later ordinary or native-uncertain failure, preserve original transaction identifiers, and stop on native uncertainty. Acknowledged logical keys are evidence, not exhaustive native receipts or restart recovery. Four chain consumers compile; no live chain was run. Mainstream-provider priority remains MongoDB/SQLite, Ethereum/Solana, IPFS, AWS/Azure/GoogleCloud/CosmosDB, Polygon/Arbitrum, Neo4j, remaining chains, then SOLID/ActivityPub.
+
 ## Current evidence summary — supersedes historical entries below
 
 2026-10-16 AWS native63/63pass14s: actual V2 hard-delete4normal primary×syncasync cases +2real conditional conflicts +2controlled post-real-ack losses verify original result/native removal or preserved conflict state and0secondary requests on failures. Exactly1delete/original cause/table/key evidence retained after lost ack. Prior57 retained; physical wire loss/durable recovery/history/full-interface/live/hosted remain open.
