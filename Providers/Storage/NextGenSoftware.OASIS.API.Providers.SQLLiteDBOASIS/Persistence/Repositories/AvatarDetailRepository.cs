@@ -358,6 +358,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.FavouriteColour = avatarDetailEntity.FavouriteColour;
                     existing.IsActive = avatarDetailEntity.IsActive;
                     existing.IsPublic = avatarDetailEntity.IsPublic;
+                    existing.VersionId = avatarDetailEntity.VersionId;
+                    existing.PreviousVersionId = avatarDetailEntity.PreviousVersionId;
+                    existing.CustomHolonType = avatarDetailEntity.CustomHolonType;
                     existing.IsChanged = avatarDetailEntity.IsChanged;
                     existing.ModifiedByAvatarId = avatarDetailEntity.ModifiedByAvatarId.ToString();
                     existing.ModifiedDate = avatarDetailEntity.ModifiedDate;
@@ -449,6 +452,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.FavouriteColour = AvatarDetailEntity.FavouriteColour;
                     existing.IsActive = AvatarDetailEntity.IsActive;
                     existing.IsPublic = AvatarDetailEntity.IsPublic;
+                    existing.VersionId = AvatarDetailEntity.VersionId;
+                    existing.PreviousVersionId = AvatarDetailEntity.PreviousVersionId;
+                    existing.CustomHolonType = AvatarDetailEntity.CustomHolonType;
                     existing.IsChanged = AvatarDetailEntity.IsChanged;
                     existing.ModifiedByAvatarId = AvatarDetailEntity.ModifiedByAvatarId.ToString();
                     existing.ModifiedDate = AvatarDetailEntity.ModifiedDate;
@@ -570,6 +576,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 FavouriteColour = avatarDetailEntity.FavouriteColour,
                 IsActive = avatarDetailEntity.IsActive,
                 IsPublic = avatarDetailEntity.IsPublic,
+                VersionId = avatarDetailEntity.VersionId,
+                PreviousVersionId = avatarDetailEntity.PreviousVersionId,
+                CustomHolonType = avatarDetailEntity.CustomHolonType,
                 IsChanged = avatarDetailEntity.IsChanged,
                 ModifiedByAvatarId = Guid.Parse(avatarDetailEntity.ModifiedByAvatarId),
                 ModifiedDate = avatarDetailEntity.ModifiedDate,
@@ -610,6 +619,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 FavouriteColour = avatarDetail.FavouriteColour,
                 IsActive = avatarDetail.IsActive,
                 IsPublic = avatarDetail.IsPublic,
+                VersionId = avatarDetail.VersionId,
+                PreviousVersionId = avatarDetail.PreviousVersionId,
+                CustomHolonType = avatarDetail.CustomHolonType,
                 IsChanged = avatarDetail.IsChanged,
                 ModifiedByAvatarId = avatarDetail.ModifiedByAvatarId.ToString(),
                 ModifiedDate = avatarDetail.ModifiedDate,
