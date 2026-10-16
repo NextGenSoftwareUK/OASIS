@@ -296,7 +296,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             catch (Exception ex)
             {
                 return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Exception = ex, Message = ex.ToString(),
-                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null };
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : ex is ArgumentException ? "HYPERDRIVE_PAYLOAD_INVALID" : null };
             }
         }
 
@@ -314,7 +314,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             catch (Exception ex)
             {
                 return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Exception = ex, Message = ex.ToString(),
-                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null };
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : ex is ArgumentException ? "HYPERDRIVE_PAYLOAD_INVALID" : null };
             }
         }
 
@@ -332,7 +332,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             catch (Exception ex)
             {
                 return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Exception = ex, Message = ex.ToString(),
-                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null };
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : ex is ArgumentException ? "HYPERDRIVE_PAYLOAD_INVALID" : null };
             }
         }
 
@@ -350,7 +350,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             catch (Exception ex)
             {
                 return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Exception = ex, Message = ex.ToString(),
-                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null };
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : ex is ArgumentException ? "HYPERDRIVE_PAYLOAD_INVALID" : null };
             }
         }
 
@@ -368,7 +368,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             catch (Exception ex)
             {
                 return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Exception = ex, Message = ex.ToString(),
-                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null };
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : ex is ArgumentException ? "HYPERDRIVE_PAYLOAD_INVALID" : null };
             }
         }
 
@@ -386,7 +386,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             catch (Exception ex)
             {
                 return new OASISResult<IAvatar> { IsLoaded = false, IsError = true, Exception = ex, Message = ex.ToString(),
-                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : null };
+                    ErrorCode = ex is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity : ex is ArgumentException ? "HYPERDRIVE_PAYLOAD_INVALID" : null };
             }
         }
 
