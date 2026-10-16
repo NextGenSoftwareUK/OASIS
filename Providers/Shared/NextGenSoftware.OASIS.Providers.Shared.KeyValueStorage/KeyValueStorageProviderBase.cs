@@ -380,7 +380,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string avatarEmail, bool softDelete = true)
         {
             var avatar = await LoadAvatarByEmailAsync(avatarEmail);
-            return avatar.IsError ? Fail<bool>(avatar.Message) : await DeleteAvatarAsync(avatar.Result.Id, softDelete);
+            return avatar.IsError ? Fail<bool>(avatar.Message,avatar.Exception,avatar.ErrorCode) : await DeleteAvatarAsync(avatar.Result.Id, softDelete);
         }
 
         public override OASISResult<bool> DeleteAvatarByEmail(string avatarEmail, bool softDelete = true) => DeleteAvatarByEmailAsync(avatarEmail, softDelete).GetAwaiter().GetResult();
@@ -388,7 +388,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string avatarUsername, bool softDelete = true)
         {
             var avatar = await LoadAvatarByUsernameAsync(avatarUsername);
-            return avatar.IsError ? Fail<bool>(avatar.Message) : await DeleteAvatarAsync(avatar.Result.Id, softDelete);
+            return avatar.IsError ? Fail<bool>(avatar.Message,avatar.Exception,avatar.ErrorCode) : await DeleteAvatarAsync(avatar.Result.Id, softDelete);
         }
 
         public override OASISResult<bool> DeleteAvatarByUsername(string avatarUsername, bool softDelete = true) => DeleteAvatarByUsernameAsync(avatarUsername, softDelete).GetAwaiter().GetResult();
@@ -464,12 +464,12 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             {
                 if (id == Guid.Empty) return Fail<bool>("Avatar detail ID is required.");
                 var loaded = await LoadAvatarDetailAsync(id);
-                if (loaded.IsError) return Fail<bool>(loaded.Message, loaded.Exception);
+                if (loaded.IsError) return Fail<bool>(loaded.Message, loaded.Exception,loaded.ErrorCode);
                 if (softDelete)
                 {
                     loaded.Result.IsActive = false; loaded.Result.DeletedDate = DateTime.UtcNow;
                     var saved = await SaveAvatarDetailAsync(loaded.Result);
-                    if (saved.IsError) return Fail<bool>(saved.Message, saved.Exception);
+                    if (saved.IsError) return Fail<bool>(saved.Message, saved.Exception,saved.ErrorCode);
                 }
                 else
                 {
@@ -486,14 +486,14 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public async Task<OASISResult<bool>> DeleteAvatarDetailByUsernameAsync(string username, bool softDelete = true)
         {
             var avatar = await LoadAvatarByUsernameAsync(username);
-            return avatar.IsError ? Fail<bool>(avatar.Message, avatar.Exception) : await DeleteAvatarDetailAsync(avatar.Result.Id, softDelete);
+            return avatar.IsError ? Fail<bool>(avatar.Message, avatar.Exception,avatar.ErrorCode) : await DeleteAvatarDetailAsync(avatar.Result.Id, softDelete);
         }
         public OASISResult<bool> DeleteAvatarDetailByUsername(string username, bool softDelete = true)
             => DeleteAvatarDetailByUsernameAsync(username, softDelete).GetAwaiter().GetResult();
         public async Task<OASISResult<bool>> DeleteAvatarDetailByEmailAsync(string email, bool softDelete = true)
         {
             var avatar = await LoadAvatarByEmailAsync(email);
-            return avatar.IsError ? Fail<bool>(avatar.Message, avatar.Exception) : await DeleteAvatarDetailAsync(avatar.Result.Id, softDelete);
+            return avatar.IsError ? Fail<bool>(avatar.Message, avatar.Exception,avatar.ErrorCode) : await DeleteAvatarDetailAsync(avatar.Result.Id, softDelete);
         }
         public OASISResult<bool> DeleteAvatarDetailByEmail(string email, bool softDelete = true)
             => DeleteAvatarDetailByEmailAsync(email, softDelete).GetAwaiter().GetResult();
