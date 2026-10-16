@@ -20,6 +20,11 @@ public partial class EthereumOASISIntegrationTests
         var owner=new Nethereum.Web3.Accounts.Account(PrivateKey,ChainId).Address;var web3=new Web3(Host);
         try
         {
+            Assert.IsFalse(provider.IsProviderActivated);
+            var initialRequest=new GetWeb3WalletBalanceRequest{WalletAddress=owner};
+            var initial=synchronous ? provider.GetBalance(initialRequest):await provider.GetBalanceAsync(initialRequest);
+            Assert.IsFalse(initial.IsError,initial.Exception?.ToString()??initial.Message);Assert.IsTrue(initial.IsLoaded);Assert.IsTrue(provider.IsProviderActivated);
+            Assert.AreEqual((double)(await web3.Eth.GetBalance.SendRequestAsync(owner)).Value/1e18,initial.Result);
             var nonce=(await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(owner)).Value;
             var rejected=await provider.SendTokenAsync(new SendWeb3TokenRequest{FromTokenAddress=null!,ToWalletAddress=address,OwnerPrivateKey=PrivateKey,Amount=0.000000000000000001m});
             Assert.IsTrue(rejected.IsError);Assert.IsNull(rejected.Result);Assert.IsFalse(NativeMutationReconciliation.IsRequired(rejected.Exception));
@@ -42,6 +47,10 @@ public partial class EthereumOASISIntegrationTests
                 var entry=history.Result.Single(row=>row.NativeTransactionId==sent.Result.TransactionResult);
                 Assert.AreEqual(wei.ToString(),entry.RawAmount);Assert.AreEqual("wei",entry.AmountUnit);Assert.AreEqual("succeeded",entry.NativeExecutionResult);
                 Assert.AreEqual(before-(self ? BigInteger.Zero:wei)-fee,(await web3.Eth.GetBalance.SendRequestAsync(owner)).Value);
+                var balanceRequest=new GetWeb3WalletBalanceRequest{WalletAddress=owner};
+                var displayed=synchronous ? provider.GetBalance(balanceRequest):await provider.GetBalanceAsync(balanceRequest);
+                Assert.IsFalse(displayed.IsError,displayed.Exception?.ToString()??displayed.Message);Assert.IsTrue(displayed.IsLoaded);Assert.AreEqual(1,displayed.LoadedCount);
+                Assert.AreEqual((double)(await web3.Eth.GetBalance.SendRequestAsync(owner)).Value/1e18,displayed.Result);
                 if(!self) Assert.AreEqual(targetBefore+wei,(await web3.Eth.GetBalance.SendRequestAsync(recipient)).Value);
             }
         }

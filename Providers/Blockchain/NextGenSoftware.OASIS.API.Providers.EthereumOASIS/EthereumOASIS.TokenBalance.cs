@@ -102,41 +102,19 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
         {
-            return GetBalanceAsync(request).Result;
+            return GetBalanceAsync(request).GetAwaiter().GetResult();
         }
 
-        public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
-        {
-            var result = new OASISResult<double>();
-            try
+        public Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
+            =>NextGenSoftware.OASIS.Providers.Shared.Evm.EvmWalletBalance.ReadAsync(request,async ()=>
             {
-                if (request == null || !Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(request.WalletAddress))
-                    throw new ArgumentException("A valid Ethereum wallet address is required.", nameof(request));
                 if (!IsProviderActivated || Web3Client == null)
                 {
                     var active = await ActivateProviderAsync();
-                    if (active.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, active.Message, active.Exception);
-                        result.ErrorCode = active.ErrorCode;
-                        return result;
-                    }
+                    if(active.IsError) return new OASISResult<Web3>{IsError=true,Message=active.Message,Exception=active.Exception,ErrorCode=active.ErrorCode};
                 }
-
-                // Get ETH balance
-                var balance = await Web3Client.Eth.GetBalance.SendRequestAsync(request.WalletAddress);
-                result.Result = (double)Nethereum.Util.UnitConversion.Convert.FromWei(balance.Value);
-                result.IsLoaded = true;
-                result.LoadedCount = 1;
-                result.IsError = false;
-                result.Message = "Balance retrieved successfully.";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting balance: {ex.Message}", ex);
-            }
-            return result;
-        }
+                return new OASISResult<Web3>{Result=Web3Client};
+            });
 
         public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request)
         {

@@ -14,6 +14,37 @@ public sealed class EvmWalletHistoryTests
 {
     private const string Wallet="0x1111111111111111111111111111111111111111";
     [DataTestMethod]
+    [DataRow("normal")] [DataRow("zero")] [DataRow("large-value")]
+    [DataRow("too-large")] [DataRow("missing-balance")] [DataRow("transport")]
+    public async Task NativeBalanceValidatesSdkAmountAndPreservesReadFailures(string mode)
+    {
+        var rpc=DispatchProxy.Create<IClient,HistoryRpc>();var proxy=(HistoryRpc)(object)rpc;proxy.Mode=mode;
+        var result=await EvmWalletBalance.ReadAsync(new GetWeb3WalletBalanceRequest{WalletAddress=Wallet},()=>Task.FromResult(new OASISResult<Web3>{Result=new Web3(rpc)}));
+        if(mode is "normal" or "zero" or "large-value")
+        {
+            Assert.IsFalse(result.IsError,result.Exception?.ToString()??result.Message);Assert.IsTrue(result.IsLoaded);Assert.AreEqual(1,result.LoadedCount);
+            var raw=mode=="zero" ? System.Numerics.BigInteger.Zero:mode=="large-value" ? (System.Numerics.BigInteger.One<<256)-1:System.Numerics.BigInteger.One;
+            Assert.AreEqual((double)raw/1e18,result.Result);Assert.IsTrue(double.IsFinite(result.Result));
+        }
+        else
+        {
+            Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsLoaded);Assert.AreEqual(0,result.LoadedCount);
+            if(mode=="transport") Assert.AreSame(proxy.Cause,result.Exception);
+            else Assert.IsInstanceOfType(result.Exception,typeof(InvalidDataException));
+        }
+    }
+
+    [TestMethod]
+    public async Task BalanceValidatesBeforeInitializationAndPreservesActivationCause()
+    {
+        var calls=0;var cause=new IOException("owned initialization failure");
+        Task<OASISResult<Web3>> Initialize(){calls++;return Task.FromResult(new OASISResult<Web3>{IsError=true,Exception=cause,ErrorCode="OWNED_INIT_DENIED",Message="owned initialization failure"});}
+        var invalid=await EvmWalletBalance.ReadAsync(new GetWeb3WalletBalanceRequest{WalletAddress="invalid"},Initialize);
+        Assert.IsTrue(invalid.IsError);Assert.AreEqual(0,calls);
+        var denied=await EvmWalletBalance.ReadAsync(new GetWeb3WalletBalanceRequest{WalletAddress=Wallet},Initialize);
+        Assert.IsTrue(denied.IsError);Assert.AreEqual(1,calls);Assert.AreSame(cause,denied.Exception);Assert.AreEqual("OWNED_INIT_DENIED",denied.ErrorCode);Assert.IsFalse(denied.IsLoaded);
+    }
+    [DataTestMethod]
     [DataRow("normal")] [DataRow("reverted")] [DataRow("large-value")]
     [DataRow("bad-status")] [DataRow("missing-block")] [DataRow("missing-receipt")] [DataRow("bad-receipt-hash")]
     [DataRow("anchor-changed")] [DataRow("transport")]
@@ -54,7 +85,12 @@ public sealed class EvmWalletHistoryTests
             if(method.Name!="SendRequestAsync") throw new InvalidOperationException(method.Name);
             var request=(RpcRequest)args![0]!;string json;
             var hash="0x"+new string('a',64);var transaction="0x"+new string('b',64);
-            if(request.Method=="eth_blockNumber") json="\"0x1\"";
+            if(request.Method=="eth_getBalance")
+            {
+                if(Mode=="transport") throw Cause;
+                json=Mode=="missing-balance" ? "null":JsonConvert.SerializeObject(Mode=="zero" ? "0x0":Mode=="large-value" ? "0x"+new string('f',64):Mode=="too-large" ? "0x1"+new string('0',64):"0x1");
+            }
+            else if(request.Method=="eth_blockNumber") json="\"0x1\"";
             else if(request.Method=="eth_getBlockByNumber")
             {
                 BlockReads++;if(Mode=="transport") throw Cause;
