@@ -137,6 +137,15 @@ The `submodule-sync` workflow opens a pointer-update pull request when a tracked
 
 ## Required verification
 
+Before treating a **local** publish as pinned-source release evidence, run:
+
+```bash
+python3 Scripts/validate_railway_dependency_manifest.py --require-checkouts
+python3 Scripts/test_railway_dependency_manifest.py
+```
+
+The first command includes gitlink validation, then checks initialized, clean, exact-pinned private submodules and the existing shared `../NextGenSoftware-Libraries` and `../holochain-client-csharp` checkouts, plus a clean parent. It is read-only: never initializes, clones, switches or resets a checkout. An empty submodule must not inherit its parent's Git identity or silently substitute a NuGet package and be counted as tested source. Dirty builds may be useful compile diagnostics but are not immutable release evidence. Reuse suitable existing checkouts; do not reset another task's work or change pins merely to pass this guard. The six controlled boundary tests do not replace the real source preflight or actual publishes. Docker's existing pinned clone workflow is unchanged.
+
 For a manifest-only or Docker orchestration change:
 
 ```bash
