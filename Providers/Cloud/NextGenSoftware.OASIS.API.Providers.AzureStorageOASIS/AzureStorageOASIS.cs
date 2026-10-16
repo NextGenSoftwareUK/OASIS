@@ -178,6 +178,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
             => SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => await ReadCanonicalHolonAsync(providerKey,loadChildren,recursive,maxChildDepth,continueOnError,loadChildrenFromProvider,version);
+
+        private async Task<OASISResult<IHolon>> ReadCanonicalHolonAsync(string providerKey,bool loadChildren,bool recursive,int maxChildDepth,bool continueOnError,bool loadChildrenFromProvider,int version,Guid? expectedId=null)
         {
             var result = new OASISResult<IHolon>();
             try
@@ -189,7 +192,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 var json = await ReadBlobAsync(blob);
                 var holon = Deserialise<Holon>(json) ?? throw new InvalidDataException("Azure holon record is null.");
                 if(holon.Id==Guid.Empty) throw new InvalidDataException("Azure holon record has no identity.");
-                if(Guid.TryParse(providerKey,out var requestedId) && holon.Id!=requestedId)
+                if(HolonKey(holon)!=providerKey || expectedId.HasValue && holon.Id!=expectedId.Value)
                     throw new InvalidDataException("Azure holon identity does not match blob key.");
                 holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                 holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = providerKey;
@@ -213,7 +216,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
             => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-            => await LoadHolonAsync(id.ToString(), loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version);
+            => await ReadCanonicalHolonAsync(id.ToString(), loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version,id);
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 

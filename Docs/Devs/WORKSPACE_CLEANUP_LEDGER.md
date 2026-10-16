@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 Azure custom-key integrity: same pinned Azurite/cache/fixed reports;62/62nativepass14s and15/15unitpass. Exact synthetic mismatched/custom-GUID blobs live only in existing per-test owned containers, removed by existing container cleanup after independent unchanged-payload checks; owned Node stopped. No install/download/clone/new environment/user-record migration or broad deletion.
+
 2026-10-16 Azure holon collection/export flags:58/58nativepass15s and15/15unitpass using same retained Azurite/cache/fixed reports. Existing test-owned container cleanup removed synthetic owned holon; owned Node process stopped normally. No install/download/clone/new environment/broad data cleanup. Source acknowledgement fixed once rather than duplicated across exports.
 
 2026-10-16 Azure avatar read flags: retained Azurite/cache/fixed report reused,56/56nativepass15s and15/15unitpass. Added exact synthetic avatar inside existing per-test owned-container lifecycle; container cleanup/owned Node shutdown unchanged. No install/download/clone/new environment or unrelated data deletion. Source-only acknowledgement fix, no migration or broad cleanup.
