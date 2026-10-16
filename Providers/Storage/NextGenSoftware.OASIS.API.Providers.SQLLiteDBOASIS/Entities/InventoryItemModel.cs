@@ -17,7 +17,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public string AvatarId{ set; get; }
 
         public InventoryItemModel(){}
-        public InventoryItemModel(InventoryItem source){
+        public InventoryItemModel(NextGenSoftware.OASIS.API.Core.Interfaces.IInventoryItem source){
             this.ItemId = source.Id;
             this.PropertiesJson = System.Text.Json.JsonSerializer.Serialize(source.Properties);
             this.MetaDataJson = System.Text.Json.JsonSerializer.Serialize(source.MetaData ?? new System.Collections.Generic.Dictionary<string, object>());
