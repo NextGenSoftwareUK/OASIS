@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 Azure native54/54pass14s: actual V2 hard holon-delete replication4normal primary×syncasync cases plus2real412 conflict and2controlled post-real-delete-ack failures prove preserved original result/evidence, unchanged secondary/0secondary requests on failure and exactly1native delete attempt. Initial SoftDelete default fixture error reconciled before exact synthetic DB cleanup; source guard retained. Physical loss/durability/history/all interfaces/live/hosted remain open.
+
 2026-10-16 Azure native48/48pass14s +unit15/15pass272ms: holon deletes return real canonical original only after ETag-conditioned native acknowledgement, structured missing and original real412 conflict.6new regressions failed before fix; real SDK interleaving preserves newer blob. V2 delete replication/partial-ack matrix/durability/history/live/hosted still open; not graph-atomic deletion.
 
 2026-10-16 Azure native42/42pass14s: actual V2 graph replication4normal Azure/SQLite primary×syncasync combinations proves matching generated trees;2partial SDK acknowledgement-boundary cases prove2real uploads, exact partial/uncertain evidence,0secondary requests and no leaf submission with independent native/SQLite reads. Four new top-level tests total, previous38 retained. Physical wire loss/concurrency/durable recovery/history/all interfaces/live/hosted remain open.

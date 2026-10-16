@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using Azure;
@@ -42,6 +43,8 @@ public partial class AzureStorageOASISIntegrationTests
     private sealed class HolonRaceService : BlobServiceClient
     {
         public required BlobServiceClient Healthy;public required string Target;public int Reads,Deletes;
+        public bool LoseAcknowledgement;
+        public readonly IOException Cause=new("Controlled loss after actual SDK delete acknowledgement.");
         public HolonRaceService():base("UseDevelopmentStorage=true") { }
         public override BlobContainerClient GetBlobContainerClient(string name)=>new HolonRaceContainer(Healthy.GetBlobContainerClient(name),this);
     }
@@ -58,15 +61,19 @@ public partial class AzureStorageOASISIntegrationTests
         public override async Task<Response<BlobDownloadResult>> DownloadContentAsync(CancellationToken cancellationToken=default)
         {
             var observed=await _healthy.DownloadContentAsync(cancellationToken);
-            if(Interlocked.Increment(ref _owner.Reads)==1)
+            if(Interlocked.Increment(ref _owner.Reads)==1 && !_owner.LoseAcknowledgement)
             {
                 var newer=OasisJson.Deserialize<Holon>(observed.Value.Content.ToString());newer.Name="owned-newer";
                 await _healthy.UploadAsync(BinaryData.FromString(OasisJson.Serialize(newer)),overwrite:true,cancellationToken);
             }
             return observed;
         }
-        public override Task<Response> DeleteAsync(DeleteSnapshotsOption snapshotsOption=DeleteSnapshotsOption.None,BlobRequestConditions conditions=null,CancellationToken cancellationToken=default)
-        {_owner.Deletes++;return _healthy.DeleteAsync(snapshotsOption,conditions,cancellationToken);}
+        public override async Task<Response> DeleteAsync(DeleteSnapshotsOption snapshotsOption=DeleteSnapshotsOption.None,BlobRequestConditions conditions=null,CancellationToken cancellationToken=default)
+        {
+            _owner.Deletes++;var response=await _healthy.DeleteAsync(snapshotsOption,conditions,cancellationToken);
+            if(_owner.LoseAcknowledgement) {Assert.AreEqual(202,response.Status);throw _owner.Cause;}
+            return response;
+        }
     }
 
     [DataTestMethod]
