@@ -388,11 +388,7 @@ jobs:
           ref: d6d8a49c92b88d3b058a11ad3cf2585bab7f207f
           path: holochain-client-csharp
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
-      - name: Initialize exact HoloNET test project dependencies
-        shell: pwsh
-        run: |
-          git -C holochain-client-csharp submodule update --init --recursive -- NextGenSoftware.Holochain.HoloNET.ORM HoloNET-API
-          if ($LASTEXITCODE -ne 0) { throw 'Unable to initialize pinned HoloNET ORM/API test dependencies.' }
+          submodules: recursive
       - name: Checkout OASIS Holochain hApp source
         uses: actions/checkout@v7
         with:
