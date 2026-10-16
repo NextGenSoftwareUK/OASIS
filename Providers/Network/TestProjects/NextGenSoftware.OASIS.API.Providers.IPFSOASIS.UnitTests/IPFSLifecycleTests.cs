@@ -115,12 +115,18 @@ public class IPFSLifecycleTests
         var envelope=(string)protect.Invoke(provider,new object[] {kind,id,json})!;
         Assert.DoesNotContain("owned@example.invalid",envelope); Assert.DoesNotContain(id.ToString(),envelope);
         Assert.Equal(json,unprotect.Invoke(provider,new object[] {kind,id,envelope}));
-        Assert.IsAssignableFrom<System.Security.Cryptography.CryptographicException>(Assert.Throws<TargetInvocationException>(()=>unprotect.Invoke(provider,new object[] {kind,Guid.NewGuid(),envelope})).InnerException);
+        AssertStoredCryptoFailure(()=>unprotect.Invoke(provider,new object[] {kind,Guid.NewGuid(),envelope}));
         var other=kind=="avatar" ? "holon":"avatar";
-        Assert.IsAssignableFrom<System.Security.Cryptography.CryptographicException>(Assert.Throws<TargetInvocationException>(()=>unprotect.Invoke(provider,new object[] {other,id,envelope})).InnerException);
-        Assert.IsAssignableFrom<System.Security.Cryptography.CryptographicException>(Assert.Throws<TargetInvocationException>(()=>unprotect.Invoke(provider,new object[] {kind,id,json})).InnerException);
+        AssertStoredCryptoFailure(()=>unprotect.Invoke(provider,new object[] {other,id,envelope}));
+        AssertStoredCryptoFailure(()=>unprotect.Invoke(provider,new object[] {kind,id,json}));
         StorageKey(provider,()=>System.Security.Cryptography.RandomNumberGenerator.GetBytes(32));
-        Assert.IsAssignableFrom<System.Security.Cryptography.CryptographicException>(Assert.Throws<TargetInvocationException>(()=>unprotect.Invoke(provider,new object[] {kind,id,envelope})).InnerException);
+        AssertStoredCryptoFailure(()=>unprotect.Invoke(provider,new object[] {kind,id,envelope}));
+    }
+
+    private static void AssertStoredCryptoFailure(Action operation)
+    {
+        var corruption=Assert.IsType<System.IO.InvalidDataException>(Assert.Throws<TargetInvocationException>(operation).InnerException);
+        Assert.IsAssignableFrom<System.Security.Cryptography.CryptographicException>(corruption.InnerException);
     }
 
     [Theory]
@@ -203,8 +209,9 @@ public class IPFSLifecycleTests
         if(scenario=="plaintext") envelope="{}";
         if(scenario=="corrupt") envelope="oasis-aes256gcm-gzip-v2:bad";
         var error=Assert.Throws<TargetInvocationException>(()=>TransformIndex(provider,"UnprotectIndex",envelope));
-        if(scenario=="corrupt") Assert.IsType<FormatException>(error.InnerException);
-        else Assert.IsAssignableFrom<System.Security.Cryptography.CryptographicException>(error.InnerException);
+        var corruption=Assert.IsType<System.IO.InvalidDataException>(error.InnerException);
+        if(scenario=="corrupt") Assert.IsType<FormatException>(corruption.InnerException);
+        else Assert.IsAssignableFrom<System.Security.Cryptography.CryptographicException>(corruption.InnerException);
     }
 
     [Fact]
