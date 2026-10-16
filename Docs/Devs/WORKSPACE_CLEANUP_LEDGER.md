@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 shared holon publication:129/129unitpass973ms plus bounded four-chain library builds using existing .NET/cache/in-memory fixtures. No install/download/clone/new environment, pending-chain resume/reset or unknown ledger cleanup. Controlled-backend partial records independently inspected; do not equate with native chain receipt proof.
+
 2026-10-16 shared caller-publication fix:123/123unitpass978ms using existing in-memory test backend/runtime/cache; Sui/Cosmos/TRON/Hashgraph bounded library builds only. No chain process/resume/reset, package install/download/clone/new environment or synthetic ledger removal. No production retention/deletion policy change. Partial-key tests independently inspect acknowledged controlled-backend records/archive before fixture disposal; not claimed real SDK/native evidence.
 
 2026-10-16 Ethereum/Web3 refresh: same cached Node/Hardhat/solc/runtime, fixed EthereumCurrent/Web3CoreCurrent fixtures/reports and retained DPAPI key.93/93native22s,59contract assertions,4/4Web3native43s pass. No download/install/clone/new environment/public-chain spend or pending-chain ledger reset. Owned EVM stopped, loopback18545/18546 absent; free C runner before84,461,428,736bytes/after84,452,708,352bytes. Runner warning-noise-only build flag change; no disposable archives created.

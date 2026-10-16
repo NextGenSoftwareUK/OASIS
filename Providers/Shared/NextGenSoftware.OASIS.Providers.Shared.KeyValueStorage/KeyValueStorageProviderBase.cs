@@ -501,42 +501,47 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => await SaveHolonInternalAsync(holon, saveChildren, recursive, maxChildDepth, 0, continueOnError);
 
-        private async Task<OASISResult<IHolon>> SaveHolonInternalAsync(IHolon holon, bool saveChildren, bool recursive, int maxChildDepth, int depth, bool continueOnError)
+        private async Task<OASISResult<IHolon>> SaveHolonInternalAsync(IHolon holon, bool saveChildren, bool recursive, int maxChildDepth, int depth, bool continueOnError,Guid? parent=null)
         {
+            var source=holon;var acknowledged=new List<string>();
             try
             {
                 if (holon == null) return Fail<IHolon>("Holon is required.");
                 ValidateSaveTree(holon, saveChildren, recursive, maxChildDepth, depth, new List<IHolon>());
+                holon=OasisJson.Deserialize<IHolon>(OasisJson.Serialize(source));
+                if(parent.HasValue) holon.ParentHolonId=parent.Value;
                 if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
                 holon.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                 holon.ProviderUniqueStorageKey[StorageType] = holon.Id.ToString();
 
                 var previous = await ReadAsync<IHolon>(HolonKey(holon.Id));
-                await StampVersionAsync(HolonKey(holon.Id), holon, previous);
-                await Backend.PutAsync(HolonKey(holon.Id), OasisJson.Serialize(holon));
+                await StampVersionAsync(HolonKey(holon.Id), holon, previous,acknowledged);
+                await PutAcknowledgedAsync(HolonKey(holon.Id), OasisJson.Serialize(holon),acknowledged);
                 if (holon.ParentHolonId != Guid.Empty)
-                    await Backend.PutAsync(ParentKey(holon.ParentHolonId, holon.Id), holon.Id.ToString());
+                    await PutAcknowledgedAsync(ParentKey(holon.ParentHolonId, holon.Id), holon.Id.ToString(),acknowledged);
                 if (previous != null && previous.ParentHolonId != Guid.Empty && previous.ParentHolonId != holon.ParentHolonId)
                     await Backend.DeleteAsync(ParentKey(previous.ParentHolonId, holon.Id));
 
-                var result = new OASISResult<IHolon>(holon) { IsSaved = true, Message = $"Holon {holon.Id} saved to {Name}." };
+                PublishSavedMetadata(source,holon);source.ParentHolonId=holon.ParentHolonId;
+                var result = new OASISResult<IHolon>(source) { IsSaved = true, Message = $"Holon {holon.Id} saved to {Name}." };
                 var reachedDepth = maxChildDepth > 0 && depth + 1 >= maxChildDepth;
-                if (saveChildren && holon.Children != null && (depth == 0 || recursive) && !reachedDepth)
+                if (saveChildren && source.Children != null && (depth == 0 || recursive) && !reachedDepth)
                 {
-                    foreach (var child in holon.Children)
+                    foreach (var child in source.Children)
                     {
-                        child.ParentHolonId = holon.Id;
-                        var saved = await SaveHolonInternalAsync(child, saveChildren, recursive, maxChildDepth, depth + 1, continueOnError);
+                        var saved = await SaveHolonInternalAsync(child, saveChildren, recursive, maxChildDepth, depth + 1, continueOnError,holon.Id);
                         if (saved.IsError)
                         {
-                            OASISErrorHandling.HandleError(ref result, $"{Name}: error saving child holon {child.Id}: {saved.Message}", saved.Exception);
+                            var cause=NativeMutationReconciliation.IsRequired(saved.Exception) ? saved.Exception
+                                :new KeyValuePartialMutationException(StorageType,acknowledged,saved.Exception ?? new InvalidOperationException(saved.Message));
+                            OASISErrorHandling.HandleError(ref result, $"{Name}: error saving child holon {child.Id}: {saved.Message}", cause);
                             if (!continueOnError || NativeMutationReconciliation.IsRequired(saved.Exception)) return result;
                         }
                     }
                 }
                 return result;
             }
-            catch (Exception ex) { return Fail<IHolon>($"Error saving holon: {ex.Message}", ex); }
+            catch (Exception ex) { return Fail<IHolon>($"Error saving holon: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
         }
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
