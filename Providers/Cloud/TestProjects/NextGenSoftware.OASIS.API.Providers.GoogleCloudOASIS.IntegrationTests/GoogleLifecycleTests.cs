@@ -12,6 +12,32 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.IntegrationTests;
 public class GoogleLifecycleTests
 {
     [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)]
+    [DataRow(false,true)] [DataRow(true,true)]
+    public async Task HolonNativeDeletionProjectionMatchesCanonicalState(bool active,bool deleted)
+    {
+        Assert.AreEqual("127.0.0.1:18080",Environment.GetEnvironmentVariable("FIRESTORE_EMULATOR_HOST"));
+        const string project="oasis-google-native";
+        var db=new FirestoreDbBuilder {ProjectId=project,EmulatorDetection=Google.Api.Gax.EmulatorDetection.EmulatorOnly}.Build();
+        var provider=new GoogleCloudOASIS(projectId:project,enableStorage:false,enableFirestore:true,enableBigQuery:false);
+        var id=Guid.NewGuid();var document=db.Collection("holons").Document(id.ToString());
+        try
+        {
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            var value=new Holon {Id=id,IsActive=active,Name="owned-state-projection",
+                DeletedDate=deleted ? new DateTime(2026,10,16,0,0,0,DateTimeKind.Utc):DateTime.MinValue};
+            var saved=await provider.SaveHolonAsync(value,saveChildren:false);
+            Assert.IsFalse(saved.IsError,saved.Message);
+            var raw=await document.GetSnapshotAsync();
+            var canonical=OasisJson.Deserialize<Holon>(raw.GetValue<string>("data_json"));
+            Assert.AreEqual(active,canonical.IsActive);Assert.AreEqual(deleted,canonical.IsDeleted);
+            Assert.AreEqual(canonical.IsActive,raw.GetValue<bool>("isActive"));
+            Assert.AreEqual(canonical.IsDeleted,raw.GetValue<bool>("isDeleted"),"Native query projection must agree with canonical deletion state.");
+        }
+        finally {await document.DeleteAsync();await provider.DeActivateProviderAsync();}
+    }
+
+    [DataTestMethod]
     [DataRow(false,true)]
     [DataRow(true,true)]
     [DataRow(false,false)]
