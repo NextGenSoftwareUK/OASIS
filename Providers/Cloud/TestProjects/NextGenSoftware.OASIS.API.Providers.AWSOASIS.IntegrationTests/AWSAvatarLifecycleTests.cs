@@ -127,6 +127,7 @@ public partial class AWSOASISIntegrationTests
     {
         public required AmazonDynamoDBClient Healthy;
         public required Guid Target;
+        public bool CreateMissing;
         public int Changes;
         public ConcurrentDetailClient():base(new BasicAWSCredentials("fakeMyKeyId","fakeSecretAccessKey"),
             new AmazonDynamoDBConfig {ServiceURL="http://127.0.0.1:18000",AuthenticationRegion="us-east-1",UseHttp=true}) { }
@@ -135,9 +136,15 @@ public partial class AWSOASISIntegrationTests
             var observed=await Healthy.GetItemAsync(request,cancellationToken);
             if(request.TableName=="OasisAvatarDetails" && request.Key["id"].S==Target.ToString() && Changes++==0)
             {
-                var newer=OasisJson.Deserialize<AvatarDetail>(observed.Item["data_json"].S);newer.XP=999;
-                await Healthy.UpdateItemAsync(new UpdateItemRequest {TableName=request.TableName,Key=request.Key,
-                    UpdateExpression="SET data_json = :json",ExpressionAttributeValues=new() {{":json",new AttributeValue {S=OasisJson.Serialize(newer)}}}},cancellationToken);
+                Assert.AreEqual(CreateMissing,observed.Item.Count==0);
+                var newer=CreateMissing ? new AvatarDetail {Id=Target,IsActive=true}:OasisJson.Deserialize<AvatarDetail>(observed.Item["data_json"].S);
+                newer.XP=999;
+                if(CreateMissing)
+                    await Healthy.PutItemAsync(new PutItemRequest {TableName=request.TableName,Item=new() {
+                        {"id",new AttributeValue {S=Target.ToString()}},{"data_json",new AttributeValue {S=OasisJson.Serialize(newer)}}}},cancellationToken);
+                else
+                    await Healthy.UpdateItemAsync(new UpdateItemRequest {TableName=request.TableName,Key=request.Key,
+                        UpdateExpression="SET data_json = :json",ExpressionAttributeValues=new() {{":json",new AttributeValue {S=OasisJson.Serialize(newer)}}}},cancellationToken);
             }
             return observed; // Actual SDK snapshot observed before the real concurrent write.
         }
@@ -146,11 +153,16 @@ public partial class AWSOASISIntegrationTests
     }
 
     [DataTestMethod]
-    [DataRow(false)] [DataRow(true)]
-    public async Task ConcurrentDetailChangeCancelsWholeLifecycleTransaction(bool softDelete)
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public async Task ConcurrentDetailChangeCancelsWholeLifecycleTransaction(bool softDelete,bool createMissing)
     {
         var id=Guid.NewGuid();await SeedPair(id);var healthy=Client;
-        using var concurrent=new ConcurrentDetailClient {Healthy=healthy,Target=id};
+        if(createMissing)
+        {
+            await healthy.DeleteItemAsync(new DeleteItemRequest {TableName="OasisAvatarDetails",Key=Key(id)});
+            Assert.AreEqual(0,(await healthy.GetItemAsync(new GetItemRequest {TableName="OasisAvatarDetails",Key=Key(id),ConsistentRead=true})).Item.Count);
+        }
+        using var concurrent=new ConcurrentDetailClient {Healthy=healthy,Target=id,CreateMissing=createMissing};
         ClientField.SetValue(_provider,concurrent);
         NextGenSoftware.OASIS.Common.OASISResult<bool> result;
         try {result=await _provider.DeleteAvatarAsync(id,softDelete);}
