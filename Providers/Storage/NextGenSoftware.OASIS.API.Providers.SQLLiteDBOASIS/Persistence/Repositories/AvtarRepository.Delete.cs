@@ -147,6 +147,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 dbContextTransaction.Commit();
                 if(softDelete && result.Result) AvatarTombstoneEvidence.Attach(result,committedTombstone);
+                if(result.Result) {result.IsSaved=true;result.IsDeleted=true;result.DeletedCount=1;}
             }
 
             return result;
