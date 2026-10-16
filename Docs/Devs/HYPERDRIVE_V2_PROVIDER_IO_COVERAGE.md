@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 Google native5/5 passes14s, zero skips after actual2/5 failure reproduced empty lifecycle actor. Existing Firestore transaction now preserves stored DeletedByAvatarId. New sync/async tests independently verify paired canonical timestamp/actor/data preservation, repeat deletion, hard removal. Prior3 native tests retained. Full-interface/live service/Storage/BigQuery/recovery and hosted release gates remain open.
+
 2026-10-16 Azure Blob native12/12 passes, zero skips: existing profile/detail lifecycle and incoming tombstone idempotence/conflict; actual V2 Azure↔SQLite sync/async soft/hard replication; actual SDK second-mutation outage after first real acknowledgement preserves exact paths/cause and fences replay/replication with zero secondary requests. Per-blob ETags are NOT pair atomicity. Concurrent absent-detail creation, durable recovery, physical ack loss, complete interfaces/live Azure/hosted release remain open.
 
 2026-10-16 AWS native17/17pass10s, zero skips: new soft/hard concurrent missing-detail creation proves atomic cancellation with both records/new XP999 retained. Four actual V2 soft/hard sync/async post-real-commit SDK-boundary failures prove exactly1commit, original cause/reconciliation marker, no trusted success evidence and0SQLite requests; independent AWS/SQLite states verified. Initial pre-dispatch metrics fixture bug reconciled before exact synthetic DB cleanup, not a production failure or ignored guard. Physical wire loss, durable recovery, all operation/interface and live AWS/release gates remain OPEN.
