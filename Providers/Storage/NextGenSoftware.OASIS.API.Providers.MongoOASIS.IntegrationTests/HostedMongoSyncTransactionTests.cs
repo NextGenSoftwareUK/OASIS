@@ -722,7 +722,10 @@ public sealed class HostedMongoSyncTransactionTests
                     Id = ObjectId.GenerateNewId().ToString(), HolonId = sourceId, VersionId = Guid.NewGuid(),
                     Inventory = new List<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>
                     {
-                        new() { Id = itemId, Name = "Transferred key", GameSource = "Our World", Quantity = 3 }
+                        new() { Id = itemId, Name = "Transferred key", GameSource = "Our World", Quantity = 3,
+                            PublishedSTARNETHolon = new byte[] {0,255,19}, IsPublic = true,
+                            Version = 7, VersionId = operationId, ParentHolonId = sourceId,
+                            CustomHolonType = "owned-transfer-package" }
                     }
                 },
                 new NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail
@@ -754,6 +757,12 @@ public sealed class HostedMongoSyncTransactionTests
             var transferred = Assert.Single(target.Inventory);
             Assert.Equal(itemId, transferred.Id);
             Assert.Equal(3, transferred.Quantity);
+            Assert.Equal(new byte[] {0,255,19}, transferred.PublishedSTARNETHolon);
+            Assert.True(transferred.IsPublic);
+            Assert.Equal(7, transferred.Version);
+            Assert.Equal(operationId, transferred.VersionId);
+            Assert.Equal(sourceId, transferred.ParentHolonId);
+            Assert.Equal("owned-transfer-package", transferred.CustomHolonType);
             Assert.Contains(operationId.ToString("D"), source.MetaData[HyperDriveAvatarGameplay.ReceiptMetadataKey].ToString());
             Assert.Contains(operationId.ToString("D"), target.MetaData[HyperDriveAvatarGameplay.ReceiptMetadataKey].ToString());
         }
