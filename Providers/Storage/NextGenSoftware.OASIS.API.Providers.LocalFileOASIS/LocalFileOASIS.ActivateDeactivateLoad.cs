@@ -415,7 +415,8 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             
                             if (avatar != null && avatar.ProviderUniqueStorageKey != null && 
                                 avatar.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.LocalFileOASIS) &&
-                                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.LocalFileOASIS] == providerKey)
+                                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.LocalFileOASIS] == providerKey &&
+                                (version == 0 || avatar.Version == version))
                             {
                                 result.Result = avatar;
                                 result.IsError = false;
