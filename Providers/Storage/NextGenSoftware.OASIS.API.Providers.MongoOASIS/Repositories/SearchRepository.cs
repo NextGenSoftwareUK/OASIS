@@ -86,31 +86,20 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                     {
                         if (searchTextGroup.SearchAvatars)
                         {
-                            if (searchTextGroup.AvatarSearchParams.FirstName || searchTextGroup.AvatarSearchParams.SearchAllFields)
+                            var mask=searchTextGroup.AvatarSearchParams;
+                            var text=new BsonRegularExpression(Regex.Escape(searchTextGroup.SearchQuery),"i");
+                            var fields=new List<FilterDefinition<Avatar>>();
+                            if(mask==null || mask.FirstName || mask.SearchAllFields) fields.Add(Builders<Avatar>.Filter.Regex(row=>row.FirstName,text));
+                            if(mask==null || mask.LastName || mask.SearchAllFields) fields.Add(Builders<Avatar>.Filter.Regex(row=>row.LastName,text));
+                            if(mask==null || mask.Username || mask.SearchAllFields) fields.Add(Builders<Avatar>.Filter.Regex(row=>row.Username,text));
+                            if(mask==null || mask.Email || mask.SearchAllFields) fields.Add(Builders<Avatar>.Filter.Regex(row=>row.Email,text));
+                            if(fields.Count!=0)
                             {
-                                avatarFilter = Builders<Avatar>.Filter.Regex("FirstName", new BsonRegularExpression("/" + Regex.Escape(searchTextGroup.SearchQuery.ToLower()) + "/i"));
-                                groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
-                            }
-
-                            if (searchTextGroup.AvatarSearchParams.LastName || searchTextGroup.AvatarSearchParams.SearchAllFields)
-                            {
-                                avatarFilter = Builders<Avatar>.Filter.Regex("LastName", new BsonRegularExpression("/" + Regex.Escape(searchTextGroup.SearchQuery.ToLower()) + "/i"));
-                                groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
-                            }
-
-                            if (searchTextGroup.AvatarSearchParams.Username || searchTextGroup.AvatarSearchParams.SearchAllFields)
-                            {
-                                avatarFilter = Builders<Avatar>.Filter.Regex(row => row.Username,
-                                    new BsonRegularExpression(Regex.Escape(searchTextGroup.SearchQuery), "i"));
-                                if (searchTextGroup.HolonType != HolonType.All)
-                                    avatarFilter &= Builders<Avatar>.Filter.Eq(row => row.HolonType, searchTextGroup.HolonType);
-                                groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
-                            }
-
-                            if (searchTextGroup.AvatarSearchParams.Email || searchTextGroup.AvatarSearchParams.SearchAllFields)
-                            {
-                                avatarFilter = Builders<Avatar>.Filter.Regex("Email", new BsonRegularExpression("/" + Regex.Escape(searchTextGroup.SearchQuery.ToLower()) + "/i"));
-                                groupAvatars.AddRange(await Read(_dbContext.Avatar, avatarFilter).ConfigureAwait(false));
+                                var filter=Builders<Avatar>.Filter.Eq(row=>row.DeletedDate,DateTime.MinValue)
+                                    & Builders<Avatar>.Filter.Or(fields);
+                                if(searchTextGroup.HolonType!=HolonType.All)
+                                    filter &= Builders<Avatar>.Filter.Eq(row=>row.HolonType,searchTextGroup.HolonType);
+                                groupAvatars.AddRange(await Read(_dbContext.Avatar,filter).ConfigureAwait(false));
                             }
                         }
 
@@ -122,9 +111,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                             // Text search is literal substring matching, not caller-supplied regex.
                             var text = new BsonRegularExpression(Regex.Escape(searchTextGroup.SearchQuery), "i");
                             var fields = new List<FilterDefinition<Holon>>();
-                            if (searchTextGroup.HolonSearchParams.Name || searchTextGroup.HolonSearchParams.SearchAllFields)
+                            if (searchTextGroup.HolonSearchParams==null || searchTextGroup.HolonSearchParams.Name || searchTextGroup.HolonSearchParams.SearchAllFields)
                                 fields.Add(Builders<Holon>.Filter.Regex(row => row.Name, text));
-                            if (searchTextGroup.HolonSearchParams.Description || searchTextGroup.HolonSearchParams.SearchAllFields)
+                            if (searchTextGroup.HolonSearchParams==null || searchTextGroup.HolonSearchParams.Description || searchTextGroup.HolonSearchParams.SearchAllFields)
                                 fields.Add(Builders<Holon>.Filter.Regex(row => row.Description, text));
                             if (fields.Count != 0)
                                 groupHolons.AddRange(await Read(_dbContext.Holon, filter & Builders<Holon>.Filter.Or(fields)).ConfigureAwait(false));
