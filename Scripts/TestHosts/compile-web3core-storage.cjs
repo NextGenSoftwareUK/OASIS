@@ -7,7 +7,7 @@ const contractRoot=path.join(runtime,'Contracts');
 const entry='Web3CoreOASIS.sol';
 const output=JSON.parse(solc.compile(JSON.stringify({language:'Solidity',
   sources:{[entry]:{content:fs.readFileSync(path.join(contractRoot,entry),'utf8')},
-    'NftBoundaryFixture.sol':{content:'pragma solidity ^0.8.20; import "./Web3CoreOASIS.sol"; contract NftBoundaryFixture is Web3CoreOASIS { function seedToken(address recipient, uint256 tokenId) external onlyOwner { _safeMint(recipient, tokenId); } } contract NftNoOpFixture is NftBoundaryFixture { function transferFrom(address, address, uint256) public override {} }'}},
+    'NftBoundaryFixture.sol':{content:'pragma solidity ^0.8.20; import "./Web3CoreOASIS.sol"; contract NftBoundaryFixture is Web3CoreOASIS { function seedToken(address recipient, uint256 tokenId) external onlyOwner { _safeMint(recipient, tokenId); } function burn(uint256 tokenId) public virtual { require(ownerOf(tokenId) == msg.sender); _burn(tokenId); } } contract NftNoOpFixture is NftBoundaryFixture { function transferFrom(address, address, uint256) public override {} function burn(uint256) public override {} }'}},
   settings:{evmVersion:'paris',optimizer:{enabled:true,runs:200},outputSelection:{'*':{'*':['abi','evm.bytecode.object']}}}}),
   {import:file=>{
     const resolved=path.resolve(contractRoot,file);
