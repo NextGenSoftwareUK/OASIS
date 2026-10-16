@@ -90,10 +90,10 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             return historical;
         }
 
-        private async Task DeleteVersionsAsync(string recordKey)
+        private async Task DeleteVersionsAsync(string recordKey,List<string> acknowledged=null)
         {
             foreach (var key in await Backend.ListKeysAsync(VersionPrefix(recordKey)))
-                await Backend.DeleteAsync(key);
+            {await Backend.DeleteAsync(key);acknowledged?.Add(key);}
         }
 
         // Usernames and emails may contain characters some services reject in keys; base64url keeps keys portable.
@@ -215,6 +215,9 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         {
             await Backend.PutAsync(key,value);acknowledged.Add(key);
         }
+
+        private async Task DeleteAcknowledgedAsync(string key,List<string> acknowledged)
+        {await Backend.DeleteAsync(key);acknowledged.Add(key);}
 
         private void PublishSavedMetadata(IHolonBase source,IHolonBase saved)
         {
@@ -341,6 +344,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
         {
+            var acknowledged=new List<string>();
             try
             {
                 var avatar = await ReadAsync<IAvatar>(AvatarKey(id));
@@ -350,20 +354,20 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 {
                     avatar.DeletedDate = DateTime.UtcNow;
                     avatar.IsActive = false;
-                    await Backend.PutAsync(AvatarKey(id), OasisJson.Serialize(avatar));
+                    await PutAcknowledgedAsync(AvatarKey(id), OasisJson.Serialize(avatar),acknowledged);
                 }
                 else
                 {
-                    if (!string.IsNullOrWhiteSpace(avatar.Username)) await Backend.DeleteAsync(UsernameKey(avatar.Username));
-                    if (!string.IsNullOrWhiteSpace(avatar.Email)) await Backend.DeleteAsync(EmailKey(avatar.Email));
-                    await DeleteVersionsAsync(AvatarDetailKey(id));
-                    await Backend.DeleteAsync(AvatarDetailKey(id));
-                    await DeleteVersionsAsync(AvatarKey(id));
-                    await Backend.DeleteAsync(AvatarKey(id));
+                    if (!string.IsNullOrWhiteSpace(avatar.Username)) await DeleteAcknowledgedAsync(UsernameKey(avatar.Username),acknowledged);
+                    if (!string.IsNullOrWhiteSpace(avatar.Email)) await DeleteAcknowledgedAsync(EmailKey(avatar.Email),acknowledged);
+                    await DeleteVersionsAsync(AvatarDetailKey(id),acknowledged);
+                    await DeleteAcknowledgedAsync(AvatarDetailKey(id),acknowledged);
+                    await DeleteVersionsAsync(AvatarKey(id),acknowledged);
+                    await DeleteAcknowledgedAsync(AvatarKey(id),acknowledged);
                 }
                 return new OASISResult<bool>(true) { IsDeleted = true, Message = $"Avatar {id} {(softDelete ? "soft" : "permanently")} deleted from {Name}." };
             }
-            catch (Exception ex) { return Fail<bool>($"Error deleting avatar {id}: {ex.Message}", ex); }
+            catch (Exception ex) { return Fail<bool>($"Error deleting avatar {id}: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
         }
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).GetAwaiter().GetResult();
