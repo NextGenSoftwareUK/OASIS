@@ -36,12 +36,14 @@ public partial class AWSOASISIntegrationTests
     private sealed class HolonDeleteRaceClient : AmazonDynamoDBClient
     {
         public required AmazonDynamoDBClient Healthy;public required Guid Target;public int Reads,Deletes;
+        public bool LoseAcknowledgement;
+        public readonly IOException Cause=new("Controlled loss after actual SDK DeleteItem acknowledgement.");
         public HolonDeleteRaceClient():base(new BasicAWSCredentials("fakeMyKeyId","fakeSecretAccessKey"),
             new AmazonDynamoDBConfig {ServiceURL="http://127.0.0.1:18000",AuthenticationRegion="us-east-1",UseHttp=true}) { }
         public override async Task<GetItemResponse> GetItemAsync(GetItemRequest request,CancellationToken cancellationToken=default)
         {
             var observed=await Healthy.GetItemAsync(request,cancellationToken);
-            if(request.TableName=="OasisHolons" && request.Key["id"].S==Target.ToString() && Interlocked.Increment(ref Reads)==1)
+            if(request.TableName=="OasisHolons" && request.Key["id"].S==Target.ToString() && Interlocked.Increment(ref Reads)==1 && !LoseAcknowledgement)
             {
                 var newer=OasisJson.Deserialize<Holon>(observed.Item["data_json"].S);newer.Name="owned-newer";
                 await Healthy.UpdateItemAsync(new UpdateItemRequest {TableName=request.TableName,Key=request.Key,UpdateExpression="SET data_json = :json",
@@ -49,8 +51,12 @@ public partial class AWSOASISIntegrationTests
             }
             return observed;
         }
-        public override Task<DeleteItemResponse> DeleteItemAsync(DeleteItemRequest request,CancellationToken cancellationToken=default)
-        {Deletes++;return Healthy.DeleteItemAsync(request,cancellationToken);}
+        public override async Task<DeleteItemResponse> DeleteItemAsync(DeleteItemRequest request,CancellationToken cancellationToken=default)
+        {
+            Deletes++;var response=await Healthy.DeleteItemAsync(request,cancellationToken);
+            if(LoseAcknowledgement) {Assert.AreEqual(System.Net.HttpStatusCode.OK,response.HttpStatusCode);Assert.IsTrue(response.Attributes.Count>0);throw Cause;}
+            return response;
+        }
     }
 
     [DataTestMethod]
