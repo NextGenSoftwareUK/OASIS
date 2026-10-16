@@ -18,6 +18,9 @@ public partial class AWSOASISIntegrationTests
     {
         const string endpoint="http://127.0.0.1:18000";
         Assert.AreEqual(endpoint,Environment.GetEnvironmentVariable("DYNAMODB_SERVICE_URL"));
+        foreach(var type in new[] {"Amazon.SecurityToken.AmazonSecurityTokenServiceClient, AWSSDK.SecurityToken",
+            "Amazon.SSO.AmazonSSOClient, AWSSDK.SSO","Amazon.SSOOIDC.AmazonSSOOIDCClient, AWSSDK.SSOOIDC"})
+            Assert.IsNotNull(Type.GetType(type,throwOnError:false),"Credential SDK assemblies must be present in the actual provider test host.");
         var variables=new[] {"AWS_ACCESS_KEY_ID","AWS_SECRET_ACCESS_KEY","AWS_SESSION_TOKEN","AWS_PROFILE","AWS_DEFAULT_PROFILE","AWS_EC2_METADATA_DISABLED"};
         var previous=variables.ToDictionary(name=>name,Environment.GetEnvironmentVariable);
         AWSOASIS? provider=null;
