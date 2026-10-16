@@ -20,34 +20,20 @@ public sealed partial class SolanaService
 
         try
         {
-            // Save the original Console.Out
-            var originalConsoleOut = Console.Out;
-
-            try
-            {
-                // Redirect Console.Out to a NullTextWriter to stop the SolNET Logger from outputting to the console (messes up STAR CLI!)
-                Console.SetOut(new NullTextWriter());
-
-                RequestResult<ResponseValue<AccountInfo>> solResult = await rpcClient.GetAccountInfoAsync(request.WalletAddress);
-
-                if (solResult.WasSuccessful && solResult.Result.Value?.Lamports != null)
-                {
-                    decimal balanceInSol = solResult.Result.Value.Lamports / Lamports;
-                    result.Result = balanceInSol;
-                }
-
-                if (!solResult.WasSuccessful)
-                    OASISErrorHandling.HandleError(ref result, $"{errorMessage} {solResult.Reason}");
-            }
-            finally
-            {
-                // Restore the original Console.Out
-                Console.SetOut(originalConsoleOut);
-            }
+            if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
+                throw new ArgumentException("A Solana wallet address is required.", nameof(request));
+            var address = new PublicKey(request.WalletAddress);
+            // Force address decoding before any RPC; Solnet string constructors are lazy.
+            if (address.KeyBytes.Length != 32) throw new ArgumentException("Invalid Solana wallet address.", nameof(request));
+            var balance = await rpcClient.GetBalanceAsync(address.Key, Solnet.Rpc.Types.Commitment.Finalized);
+            if (!balance.WasSuccessful)
+                throw new InvalidOperationException($"Solana balance RPC failed: {balance.Reason}");
+            if (balance.Result == null) throw new System.IO.InvalidDataException("Solana balance RPC returned no result.");
+            result.Result = balance.Result.Value / Lamports;
         }
         catch (Exception e)
         {
-            OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e}");
+            OASISErrorHandling.HandleError(ref result, $"{errorMessage} {e.Message}", e);
         }
 
         return result;
