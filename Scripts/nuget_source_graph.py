@@ -10,11 +10,16 @@ from functools import lru_cache
 
 
 class Graph:
-    def __init__(self, root, commit):
+    def __init__(self, root, commit, *, external_pins=None, canonical=False):
         self.root = Path(root).resolve()
         self.commit = commit
         self.inputs = {}
         self.visited = set()
+        self.external_pins = external_pins
+        self.canonical = canonical
+
+    def identity(self, root):
+        return normalize_url(self.git(root, "remote", "get-url", "origin"))
 
     @staticmethod
     @lru_cache(maxsize=50000)
@@ -29,6 +34,12 @@ class Graph:
         try:
             relative = path.relative_to(self.root).as_posix()
         except ValueError:
+            if self.external_pins is not None:
+                for folder, dependency in self.external_pins.items():
+                    external = Path(folder).resolve()
+                    if path.is_relative_to(external):
+                        return dependency["root"], dependency["commit"], path.relative_to(external).as_posix()
+                raise ValueError(f"Unrecorded standalone dependency: {path}")
             manifest = self.git(self.root, "show", f"{self.commit}:Docker/oasis-dependency-versions.env")
             pins = dict(line.split("=", 1) for line in manifest.splitlines() if "=" in line and not line.startswith("#"))
             for folder, key in (("NextGenSoftware-Libraries", "LIBRARIES_COMMIT"), ("holochain-client-csharp", "HOLOCHAIN_COMMIT")):
@@ -49,13 +60,15 @@ class Graph:
     def child_location(self, root, commit, relative):
         # A child repository's complete tree is conservatively included. This
         # covers child imports and conditional dependency wiring without guessing.
-        self.inputs[f"repository:{root.name}"] = self.git(root, "rev-parse", f"{commit}^{{tree}}")
+        name = self.identity(root) if self.canonical else root.name
+        self.inputs[f"repository:{name}"] = self.git(root, "rev-parse", f"{commit}^{{tree}}")
         return root, commit, relative
 
     def record(self, path, required=False):
         root, commit, relative = self.location(path)
         if relative in ("", "."):
-            self.inputs[str(root)] = self.git(root, "rev-parse", f"{commit}^{{tree}}")
+            key = f"repository:{self.identity(root)}" if self.canonical else str(root)
+            self.inputs[key] = self.git(root, "rev-parse", f"{commit}^{{tree}}")
             return root, commit, relative, True
         entry = self.git(root, "ls-tree", commit, "--", relative)
         if entry.startswith("160000 commit "):
@@ -66,7 +79,8 @@ class Graph:
             return child_root, child_commit, child_relative, True
         if not entry and required:
             raise ValueError(f"Input absent from committed source: {path}")
-        key = str(Path(path).resolve().relative_to(self.root.parent)).replace("\\", "/")
+        key = (f"{self.identity(root)}:{relative}" if self.canonical else
+               str(Path(path).resolve().relative_to(self.root.parent)).replace("\\", "/"))
         self.inputs[key] = entry.split("\t", 1)[0] if entry else "absent"
         return root, commit, relative, bool(entry)
 
@@ -133,6 +147,10 @@ def resolve_baseline(item, receipts):
         raise ValueError(f"Missing repository commit: {package} {version}")
     receipt = receipts.get((package.lower(), version))
     if receipt:
+        if receipt.get("kind") == "standalone":
+            if commit != receipt["ownerCommit"] or url != normalize_url(receipt["ownerUrl"]):
+                raise ValueError(f"Catalog provenance contradicts standalone receipt: {package} {version}")
+            return receipt
         baseline = receipt["sourceCommit"]
         graph = Graph(root, baseline)
         owner_root, owner_commit, owner_project = graph.location(root / item["project"])
@@ -174,6 +192,42 @@ def load_receipts(root):
     return receipts
 
 
+def compare_publication(item, receipts):
+    baseline = resolve_baseline(item, receipts)
+    if not isinstance(baseline, dict):
+        return compare(item["root"], baseline, item["current"], item["project"])
+    root = Path(item["root"]).resolve()
+    current = Graph(root, item["current"], canonical=True)
+    owner_root, _, owner_project = current.location(root / item["project"])
+    if current.identity(owner_root) != normalize_url(baseline["ownerUrl"]):
+        raise ValueError("Standalone receipt owner differs from current project owner")
+    pins = {}
+    for folder, dependency in baseline["dependencies"].items():
+        if folder not in ("holochain-client-csharp", "NextGenSoftware-Libraries"):
+            raise ValueError("Unknown standalone dependency location")
+        path = root.parent / folder
+        if normalize_url(Graph.git(path, "remote", "get-url", "origin")) != normalize_url(dependency["url"]):
+            raise ValueError("Standalone dependency repository mismatch")
+        if not re.fullmatch(r"[0-9a-f]{40}", dependency["commit"]):
+            raise ValueError("Invalid standalone dependency commit")
+        pins[str(path)] = {"root": path, "commit": dependency["commit"]}
+    # In the producer ORM is nested under the Client checkout. Its ../Logos,
+    # README and other sibling inputs belong to that exact Client tree, not OASIS.
+    if baseline.get("ownerParent") != "holochain-client-csharp":
+        raise ValueError("Standalone owner layout must be recorded explicitly")
+    client = root.parent / baseline["ownerParent"]
+    pins[str(owner_root.parent)] = {"root": client,
+                                    "commit": baseline["dependencies"][baseline["ownerParent"]]["commit"]}
+    old = Graph(owner_root, baseline["ownerCommit"], external_pins=pins, canonical=True)
+    old_hash = old.fingerprint(owner_project)
+    new_hash = current.fingerprint(item["project"])
+    return {"changed": old_hash != new_hash, "baselineFingerprint": old_hash,
+            "sourceFingerprint": new_hash, "baselineCommit": baseline["ownerCommit"],
+            "baselineKind": "standalone", "producerRun": baseline["run"],
+            "changedInputs": sorted(key for key in old.inputs.keys() | current.inputs.keys()
+                                    if old.inputs.get(key) != current.inputs.get(key))}
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--batch", action="store_true")
@@ -184,6 +238,6 @@ if __name__ == "__main__":
         import sys
         requests = json.load(sys.stdin)
         receipts = load_receipts(requests[0]["root"]) if requests else {}
-        print(json.dumps({item["packageId"]: compare(item["root"], resolve_baseline(item, receipts), item["current"], item["project"]) for item in requests}))
+        print(json.dumps({item["packageId"]: compare_publication(item, receipts) for item in requests}))
     else:
         print(json.dumps(compare(args.root, args.baseline, args.current, args.project)))

@@ -6,6 +6,12 @@
     "sourceCommit": "c9b2197ec4e8e477139ba72d976ee1bcc273a40e"
   },
   "packages": [
+    {"kind": "standalone", "ownerParent": "holochain-client-csharp", "packageId": "NextGenSoftware.Holochain.HoloNET.ORM", "version": "4.4.0", "run": 38881276474,
+     "ownerUrl": "https://github.com/NextGenSoftwareUK/HoloNET-ORM", "ownerCommit": "534cd788f892b4402a3753d926e62e7cad4189bf",
+     "dependencies": {
+       "holochain-client-csharp": {"url": "https://github.com/holochain-open-dev/holochain-client-csharp", "commit": "75824d5b4ef7f4f4dda12225747d916ed1dc220a"},
+       "NextGenSoftware-Libraries": {"url": "https://github.com/NextGenSoftwareUK/NextGenSoftware-Libraries", "commit": "e91f10635c5c79e484b06322a6c0c60d392a46ce"}
+     }},
     {"packageId": "NextGenSoftware.OGEngine.Client", "version": "2.0.3", "run": 38435332644, "sourceCommit": "d1a70aed792e0a1550c66783a48e189e20e5a9b3"},
     {"packageId": "NextGenSoftware.OASIS.Web6.Core", "version": "2.0.4", "run": 38465480473, "sourceCommit": "9f58e31b16c2faa36dd93357dc94288bc5606ca5"}
   ],

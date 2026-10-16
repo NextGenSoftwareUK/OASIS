@@ -126,11 +126,30 @@ jobs:
           Get-ChildItem .\nupkgs\*.nupkg | ForEach-Object { Write-Host $_.Name }
           if ($failed -gt 0) { exit 1 }
 
+      - name: Record immutable standalone publication source graph
+        shell: pwsh
+        run: |
+          $repositories = @()
+          foreach ($folder in @('holochain-client-csharp', 'NextGenSoftware-Libraries')) {
+            $commit = (& git -C $folder rev-parse HEAD).Trim()
+            if ($LASTEXITCODE -ne 0) { throw "Cannot resolve source $folder" }
+            $url = (& git -C $folder remote get-url origin).Trim()
+            if ($LASTEXITCODE -ne 0) { throw "Cannot resolve repository $folder" }
+            $repositories += @{ path=$folder; commit=$commit; url=$url }
+          }
+          $gitlinks = @(& git -C holochain-client-csharp submodule status --recursive)
+          if ($LASTEXITCODE -ne 0 -or @($gitlinks | Where-Object { $_ -match '^[+\-U]' }).Count) { throw 'Publication submodule graph is not exact.' }
+          $packages = @(Get-ChildItem holochain-client-csharp/nupkgs/*.nupkg | ForEach-Object {
+            @{ file=$_.Name; sha256=(Get-FileHash $_.FullName -Algorithm SHA256).Hash }
+          })
+          @{ schemaVersion=1; kind='standalone'; run=$env:GITHUB_RUN_ID; repositories=$repositories; gitlinks=$gitlinks; packages=$packages } |
+            ConvertTo-Json -Depth 8 | Set-Content publication-source-graph.json
       - name: Upload packages
         uses: actions/upload-artifact@v4
         with:
           name: holonet-nupkgs
           path: |
+            publication-source-graph.json
             nupkgs-libraries/*.nupkg
             holochain-client-csharp/nupkgs/*.nupkg
 
