@@ -4,6 +4,8 @@ using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 using NextGenSoftware.OASIS.API.DNA;
@@ -16,10 +18,13 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 public partial class Neo4jNativeAvatarTests
 {
     [DataTestMethod]
-    [DataRow(false,"Avatar")] [DataRow(true,"Avatar")]
-    [DataRow(false,"AvatarDetail")] [DataRow(true,"AvatarDetail")]
-    [DataRow(false,"Holon")] [DataRow(true,"Holon")]
-    public async Task NativeCorruptSnapshotsNeverFallBackToStaleSqlite(bool synchronous,string label)
+    [DataRow(false,"Avatar",false)] [DataRow(true,"Avatar",false)]
+    [DataRow(false,"AvatarDetail",false)] [DataRow(true,"AvatarDetail",false)]
+    [DataRow(false,"Holon",false)] [DataRow(true,"Holon",false)]
+    [DataRow(false,"Avatar",true)] [DataRow(true,"Avatar",true)]
+    [DataRow(false,"AvatarDetail",true)] [DataRow(true,"AvatarDetail",true)]
+    [DataRow(false,"Holon",true)] [DataRow(true,"Holon",true)]
+    public async Task NativeCorruptSnapshotsNeverFallBackToStaleSqlite(bool synchronous,string label,bool nativeIdentity)
     {
         const string uri="bolt://127.0.0.1:17687";
         Assert.AreEqual(uri,Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
@@ -52,20 +57,29 @@ public partial class Neo4jNativeAvatarTests
             var router=new OASISHyperDrive(manager);
             async Task Check<T>(string operation)
             {
-                var request=new StorageOperationRequest {Operation=operation,HolonId=id,AvatarId=id,LoadChildren=false,PreferredProvider=ProviderType.Neo4jOASIS};
+                var request=new StorageOperationRequest {Operation=operation,HolonId=id,AvatarId=operation=="LoadAllHolons" ? Guid.Empty:id,LoadChildren=false,PreferredProvider=ProviderType.Neo4jOASIS};
+                if(operation=="Search") request.SearchParams=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new List<ISearchGroupBase> {
+                    new SearchTextGroup {SearchQuery="owned",SearchAvatars=label=="Avatar",SearchHolons=label=="Holon",HolonType=HolonType.All}}};
                 var result=synchronous ? router.RouteRequest<T>(request):await router.RouteRequestAsync<T>(request);
                 Assert.IsTrue(result.IsError,result.Message);Assert.IsFalse(result.IsLoaded);Assert.IsNull(result.Result);
                 Assert.IsInstanceOfType(result.Exception,typeof(InvalidDataException));
-                Assert.IsInstanceOfType(result.Exception.InnerException,typeof(Newtonsoft.Json.JsonException));
+                if(!nativeIdentity) Assert.IsInstanceOfType(result.Exception.InnerException,typeof(Newtonsoft.Json.JsonException));
             }
-            foreach(var snapshot in new[] {"not-json",$"{{\"Id\":\"{id}\",\"Version\":\"not-an-integer\"}}",
-                $"{{\"$type\":\"System.IO.FileInfo, System.Private.CoreLib\",\"Id\":\"{id}\"}}"})
+            var originalSnapshot=(await (await session.RunAsync("MATCH (n:"+label+" {ProviderKey:$key}) RETURN n.SnapshotJson AS snapshot",new {key=id.ToString()})).SingleAsync())["snapshot"].As<string>();
+            var corruptions=nativeIdentity ? new object?[] {null,42L,"invalid-id",Guid.Empty.ToString(),Guid.NewGuid().ToString()}
+                :new object?[] {"not-json",$"{{\"Id\":\"{id}\",\"Version\":\"not-an-integer\"}}",
+                $"{{\"$type\":\"System.IO.FileInfo, System.Private.CoreLib\",\"Id\":\"{id}\"}}"};
+            foreach(var corruption in corruptions)
             {
-                await (await session.RunAsync("MATCH (n:"+label+" {Id:$id}) SET n.SnapshotJson=$snapshot RETURN n.Id",new {id=id.ToString(),snapshot})).ConsumeAsync();
-                if(label=="Avatar") {await Check<IAvatar>("LoadAvatar");await Check<IEnumerable<IAvatar>>("LoadAllAvatars");}
-                else if(label=="AvatarDetail") {await Check<IAvatarDetail>("LoadAvatarDetail");await Check<IEnumerable<IAvatarDetail>>("LoadAllAvatarDetails");}
-                else {await Check<IHolon>("LoadHolon");await Check<IEnumerable<IHolon>>("LoadAllHolons");}
-                Assert.AreEqual(snapshot,(await (await session.RunAsync("MATCH (n:"+label+" {Id:$id}) RETURN n.SnapshotJson AS snapshot",new {id=id.ToString()})).SingleAsync())["snapshot"].As<string>());
+                var property=nativeIdentity ? "Id":"SnapshotJson";
+                await (await session.RunAsync("MATCH (n:"+label+" {ProviderKey:$key}) SET n."+property+"=$corruption RETURN n.ProviderKey",new {key=id.ToString(),corruption})).ConsumeAsync();
+                if(label=="Avatar") {if(!nativeIdentity) await Check<IAvatar>("LoadAvatar");await Check<IEnumerable<IAvatar>>("LoadAllAvatars");}
+                else if(label=="AvatarDetail") {if(!nativeIdentity) await Check<IAvatarDetail>("LoadAvatarDetail");await Check<IEnumerable<IAvatarDetail>>("LoadAllAvatarDetails");}
+                else {if(!nativeIdentity) await Check<IHolon>("LoadHolon");await Check<IEnumerable<IHolon>>("LoadAllHolons");}
+                if(nativeIdentity && label!="AvatarDetail") await Check<ISearchResults>("Search");
+                var retained=(await (await session.RunAsync("MATCH (n:"+label+" {ProviderKey:$key}) RETURN n.Id AS id,n.SnapshotJson AS snapshot",new {key=id.ToString()})).SingleAsync());
+                Assert.AreEqual(nativeIdentity ? originalSnapshot:corruption,retained["snapshot"]);
+                if(nativeIdentity) Assert.AreEqual(corruption,retained["id"]);
             }
             Assert.AreEqual(0L,manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
             Assert.AreEqual("stale avatar",(await backup.LoadAvatarAsync(id)).Result.Username);
@@ -78,7 +92,7 @@ public partial class Neo4jNativeAvatarTests
             await neo.DeActivateProviderAsync();backup.Dispose();
             if(verified)
             {
-                await (await session.RunAsync("MATCH (n:"+label+" {Id:$id}) DETACH DELETE n",new {id=id.ToString()})).ConsumeAsync();
+                await (await session.RunAsync("MATCH (n:"+label+" {ProviderKey:$key}) DETACH DELETE n",new {key=id.ToString()})).ConsumeAsync();
                 File.Delete(path);
             }
         }

@@ -71,6 +71,14 @@ public partial class Neo4jOASIS
     {
         if (!node.Properties.TryGetValue("SnapshotJson", out var json))
             throw new InvalidDataException("Neo4j avatar canonical snapshot is missing.");
-        return ReadAvatarSnapshot(json as string, node["Id"].As<string>());
+        return ReadAvatarSnapshot(json as string, ReadNativeIdentity(node).ToString());
+    }
+
+    private static Guid ReadNativeIdentity(Neo4j.Driver.INode node)
+    {
+        if(!node.Properties.TryGetValue("Id",out var value) || value is not string text
+            || !Guid.TryParse(text,out var id) || id==Guid.Empty)
+            throw new InvalidDataException("Neo4j native record identity is missing or invalid.");
+        return id;
     }
 }
