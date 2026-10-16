@@ -356,6 +356,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.STARCLIColour = avatarDetailEntity.STARCLIColour;
                     existing.Version = avatarDetailEntity.Version;
                     existing.County = avatarDetailEntity.County;
+                    existing.ActiveQuestId = avatarDetailEntity.ActiveQuestId;
+                    existing.ActiveObjectiveId = avatarDetailEntity.ActiveObjectiveId;
 
                     var toRemoveSync = existing.InventoryItems.ToList();
                     _dbContext.RemoveRange(toRemoveSync);
@@ -450,8 +452,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.STARCLIColour = AvatarDetailEntity.STARCLIColour;
                     existing.Version = AvatarDetailEntity.Version;
                     existing.County = AvatarDetailEntity.County;
-                existing.ActiveQuestId = AvatarDetailEntity.ActiveQuestId;
-                existing.ActiveObjectiveId = AvatarDetailEntity.ActiveObjectiveId;
+                    existing.ActiveQuestId = AvatarDetailEntity.ActiveQuestId;
+                    existing.ActiveObjectiveId = AvatarDetailEntity.ActiveObjectiveId;
 
                     var toRemove = existing.InventoryItems.ToList();
                     _dbContext.RemoveRange(toRemove);
