@@ -84,7 +84,7 @@ try {
     if($web3Report.LastWriteTimeUtc -lt $web3Started){throw 'Web3Core native report is stale.'}
     [xml]$web3Trx=Get-Content -LiteralPath $web3Report.FullName
     $web3Counts=$web3Trx.TestRun.ResultSummary.Counters
-    if([int]$web3Counts.total -ne 1 -or [int]$web3Counts.passed -ne 1 -or [int]$web3Counts.notExecuted -ne 0){throw 'Expected one native Web3Core scenario, no skips.'}
+    if([int]$web3Counts.total -ne 2 -or [int]$web3Counts.passed -ne 2 -or [int]$web3Counts.notExecuted -ne 0){throw 'Expected two native Web3Core scenarios, no skips.'}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
     foreach($name in $names){[Environment]::SetEnvironmentVariable($name,$previous[$name])}
