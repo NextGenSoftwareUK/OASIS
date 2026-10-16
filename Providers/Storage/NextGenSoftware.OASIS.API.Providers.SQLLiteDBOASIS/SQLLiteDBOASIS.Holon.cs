@@ -264,8 +264,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     }
                 }
                 
-                // Match the existing Mongo search contract: deleted records are excluded,
-                // ownership applies to both sets, and metadata filters apply to holons.
+                // Deleted, ownership and metadata constraints apply to both result sets.
                 holons = holons.Where(h => h.DeletedDate == DateTime.MinValue).ToList();
                 avatars = avatars.Where(a => a.DeletedDate == DateTime.MinValue).ToList();
                 if (searchParams.SearchOnlyForCurrentAvatar)
@@ -275,12 +274,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 }
                 if (searchParams.FilterByMetaData?.Count > 0)
                 {
-                    bool Matches(IHolon holon, KeyValuePair<string, string> filter) =>
-                        holon.MetaData != null && holon.MetaData.TryGetValue(filter.Key, out var value) &&
-                        value != null && string.Equals(value.ToString(), filter.Value, StringComparison.Ordinal);
-                    holons = holons.Where(h => searchParams.MetaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.Any
-                        ? searchParams.FilterByMetaData.Any(f => Matches(h, f))
-                        : searchParams.FilterByMetaData.All(f => Matches(h, f))).ToList();
+                    holons=holons.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesMetadata(
+                        row.MetaData,searchParams.FilterByMetaData,searchParams.MetaKeyValuePairMatchMode)).ToList();
+                    avatars=avatars.Where(row=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesMetadata(
+                        row.MetaData,searchParams.FilterByMetaData,searchParams.MetaKeyValuePairMatchMode)).ToList();
                 }
 
                 searchResults.SearchResultHolons = holons;
