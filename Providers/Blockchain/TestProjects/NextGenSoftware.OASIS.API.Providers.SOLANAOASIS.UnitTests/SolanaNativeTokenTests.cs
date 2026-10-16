@@ -15,6 +15,22 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 public sealed class SolanaNativeTokenTests
 {
     [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task GeneratedWalletCanSignNativeTransferWithoutKeyReencoding(bool synchronous)
+    {
+        var owner=new Account();var provider=new SolanaOASIS("http://127.0.0.1:1",owner.PrivateKey.Key,owner.PublicKey.Key);
+        var generated=synchronous ? provider.GenerateKeyPair():await provider.GenerateKeyPairAsync();
+        Assert.IsFalse(generated.IsError,generated.Message);Assert.IsNotNull(generated.Result);
+        var rpc=DispatchProxy.Create<IRpcClient,TokenRpc>();var proxy=(TokenRpc)(object)rpc;
+        typeof(SolanaOASIS).GetField("_rpcClient",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(provider,rpc);
+        var result=await provider.SendTokenAsync(new SendWeb3TokenRequest {FromWalletAddress=generated.Result.PublicKey,
+            ToWalletAddress=new Account().PublicKey.Key,OwnerPrivateKey=generated.Result.PrivateKey,Amount=0.000000001m});
+        Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.AreEqual(1,proxy.Sends);
+        var publicKey=new PublicKey(generated.Result.PublicKey);
+        Assert.IsTrue(publicKey.Verify(proxy.Signed!.AsSpan(65).ToArray(),proxy.Signed.AsSpan(1,64).ToArray()));
+    }
+
+    [DataTestMethod]
     [DataRow("wrong-signer")] [DataRow("conflicting-key")]
     public async Task InvalidSignerCannotReachRpc(string mode)
     {

@@ -288,7 +288,7 @@ public partial class SolanaOASIS
 
             result.Result = new KeyPairAndWallet()
             {
-                PrivateKey = Convert.ToBase64String(account.PrivateKey.KeyBytes),
+                PrivateKey = account.PrivateKey.Key,
                 PublicKey = account.PublicKey.Key,
                 WalletAddressLegacy = account.PublicKey.Key
             };
@@ -370,7 +370,7 @@ public partial class SolanaOASIS
 
             result.Result = (
                 PublicKey: account.PublicKey.Key,
-                PrivateKey: Convert.ToBase64String(account.PrivateKey.KeyBytes),
+                PrivateKey: account.PrivateKey.Key,
                 SeedPhrase: mnemonic.ToString()
             );
             result.IsError = false;
@@ -410,7 +410,7 @@ public partial class SolanaOASIS
 
             result.Result = (
                 PublicKey: account.PublicKey.Key,
-                PrivateKey: Convert.ToBase64String(account.PrivateKey.KeyBytes)
+                PrivateKey: account.PrivateKey.Key
             );
             result.IsError = false;
         }
