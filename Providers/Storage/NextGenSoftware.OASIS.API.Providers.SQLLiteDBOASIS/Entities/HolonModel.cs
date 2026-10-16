@@ -26,6 +26,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public bool IsChanged { get; set; }
         public int Version { get; set; }
         public bool IsActive { get; set; }
+        public bool IsPublic { get; set; }
         // Repository metadata payload belongs to this holon, not a global property-key row.
         public string MetaDataJson { get; set; } = "{}";
         public string LocalProviderKey { get; set; }

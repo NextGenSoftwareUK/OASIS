@@ -507,6 +507,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 MetaDataJson = System.Text.Json.JsonSerializer.Serialize(avatar.MetaData ?? new Dictionary<string,object>()),
                 Version = avatar.Version,
                 IsActive = avatar.IsActive,
+                IsPublic = avatar.IsPublic,
                 IsVerified = avatar.IsVerified,
                 RefreshTokens = (avatar.RefreshTokens ?? new List<NextGenSoftware.OASIS.API.Core.Objects.RefreshToken>())
                     .Select(token => new RefreshTokenModel(token) { AvatarId = avatar.Id.ToString() }).ToList(),
@@ -547,6 +548,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     ?? throw new System.IO.InvalidDataException("Stored avatar provider keys must be a JSON object."),
                 Version = avatar.Version,
                 IsActive = avatar.IsActive,
+                IsPublic = avatar.IsPublic,
                 RefreshTokens = avatar.RefreshTokens.Select(token => token.GetRefreshToken()).ToList(),
                 CreatedByAvatarId = avatar.CreatedByAvatarId == null ? Guid.Empty : Guid.Parse(avatar.CreatedByAvatarId),
                 ModifiedByAvatarId = avatar.ModifiedByAvatarId == null ? Guid.Empty : Guid.Parse(avatar.ModifiedByAvatarId),
