@@ -90,11 +90,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
 
         private static T? Deserialise<T>(string json)
         {
-            try {return NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<T>(json);}
-            catch(Newtonsoft.Json.JsonException cause)
-            {
-                throw new InvalidDataException("Azure canonical record JSON is invalid.",cause);
-            }
+            return NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.DeserializeStored<T>(json);
         }
 
         private static string Serialise<T>(T obj) =>

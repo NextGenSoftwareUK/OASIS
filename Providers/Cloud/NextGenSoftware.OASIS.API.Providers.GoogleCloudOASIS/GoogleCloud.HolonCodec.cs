@@ -157,7 +157,7 @@ public partial class GoogleCloudOASIS
     {
         if(!fields.TryGetValue("data_json",out var value) || value is not string json)
             throw new InvalidDataException("Firestore holon lacks canonical data_json; old mappings require explicit review.");
-        var holon=OasisJson.Deserialize<Holon>(json) ?? throw new InvalidDataException("Firestore holon payload is null.");
+        var holon=OasisJson.DeserializeStored<Holon>(json) ?? throw new InvalidDataException("Firestore holon payload is null.");
         if(holon.Id==Guid.Empty || holon.Id.ToString()!=documentId || !fields.TryGetValue("id",out var id) || !Equals(id,documentId))
             throw new InvalidDataException("Firestore holon identity does not match document key.");
         return holon;
