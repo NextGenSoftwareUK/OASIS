@@ -189,23 +189,27 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     return result;
                 }
 
-                if (avatar.Id == Guid.Empty)
-                    avatar.Id = Guid.NewGuid();
-                avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS] = avatar.Id.ToString();
+                var snapshot=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<Avatar>(
+                    NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(avatar));
+                if(snapshot.Id==Guid.Empty) snapshot.Id=Guid.NewGuid();
+                snapshot.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+                snapshot.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS]=snapshot.Id.ToString();
 
                 // Save avatar to Firestore with FULL property mapping
-                var docRef = _firestoreDb.Collection("avatars").Document(avatar.Id.ToString());
+                var docRef = _firestoreDb.Collection("avatars").Document(snapshot.Id.ToString());
                 var avatarData = new Dictionary<string, object>
                 {
-                    ["id"] = avatar.Id.ToString(),
-                    ["username"] = avatar.Username,
-                    ["email"] = avatar.Email,
-                    ["isActive"] = avatar.IsActive,
-                    ["data_json"] = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(avatar)
+                    ["id"] = snapshot.Id.ToString(),
+                    ["username"] = snapshot.Username,
+                    ["email"] = snapshot.Email,
+                    ["isActive"] = snapshot.IsActive,
+                    ["data_json"] = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(snapshot)
                 };
                 
                 await ObserveFirestoreMutationAsync(()=>docRef.SetAsync(avatarData),docRef.Path);
+                avatar.Id=snapshot.Id;
+                avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS]=snapshot.Id.ToString();
                 
                 result.Result = avatar;
                 result.IsSaved = true;
