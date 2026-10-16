@@ -104,12 +104,12 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                     & Builders<Avatar>.Filter.Or(fields);
                                 groupAvatars.AddRange(await Read(_dbContext.Avatar,filter).ConfigureAwait(false));
                             }
-                            if(searchTextGroup.SearchIds)
+                            if(searchTextGroup.SearchIds || searchTextGroup.SearchProviderKeys)
                             {
                                 var filter=Builders<Avatar>.Filter.Eq(row=>row.DeletedDate,DateTime.MinValue);
                                 var candidates=await Read(_dbContext.Avatar,filter).ConfigureAwait(false);
-                                groupAvatars.AddRange(candidates.Where(row=>StoredRecordSearch.MatchesTextIds(
-                                    DataHelper.ConvertMongoEntityToOASISAvatar(new OASISResult<Avatar>(row),false).Result,searchTextGroup.SearchQuery)));
+                                groupAvatars.AddRange(candidates.Where(row=>StoredRecordSearch.MatchesTextIdentifiers(
+                                    DataHelper.ConvertMongoEntityToOASISAvatar(new OASISResult<Avatar>(row),false).Result,searchTextGroup.SearchQuery,searchTextGroup.SearchIds,searchTextGroup.SearchProviderKeys)));
                             }
                         }
 
@@ -127,11 +127,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 fields.Add(Builders<Holon>.Filter.Regex(row => row.Description, text));
                             if (fields.Count != 0)
                                 groupHolons.AddRange(await Read(_dbContext.Holon, filter & Builders<Holon>.Filter.Or(fields)).ConfigureAwait(false));
-                            if(searchTextGroup.SearchIds)
+                            if(searchTextGroup.SearchIds || searchTextGroup.SearchProviderKeys)
                             {
                                 var candidates=await Read(_dbContext.Holon,filter).ConfigureAwait(false);
-                                groupHolons.AddRange(candidates.Where(row=>StoredRecordSearch.MatchesTextIds(
-                                    DataHelper.ConvertMongoEntityToOASISHolon(row,false),searchTextGroup.SearchQuery)));
+                                groupHolons.AddRange(candidates.Where(row=>StoredRecordSearch.MatchesTextIdentifiers(
+                                    DataHelper.ConvertMongoEntityToOASISHolon(row,false),searchTextGroup.SearchQuery,searchTextGroup.SearchIds,searchTextGroup.SearchProviderKeys)));
                             }
                         }
                     }

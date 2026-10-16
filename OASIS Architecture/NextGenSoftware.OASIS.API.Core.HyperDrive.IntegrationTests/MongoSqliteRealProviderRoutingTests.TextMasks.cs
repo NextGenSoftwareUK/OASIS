@@ -26,8 +26,8 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
         var holonIds=new[] {name.Id,description.Id,decoy.Id};var avatarIds=avatars.Select(row=>row.Id).ToArray();
         try
         {
-            foreach(var row in new[] {name,description,decoy}) (await mongo.SaveHolonAsync(row,saveChildren:false)).IsError.Should().BeFalse();
-            foreach(var row in avatars) (await mongo.SaveAvatarAsync(row)).IsError.Should().BeFalse();
+            foreach(var row in new[] {name,description,decoy}) {row.ProviderUniqueStorageKey[ProviderType.SolanaOASIS]="owned.provider.[key]-"+row.Id;(await mongo.SaveHolonAsync(row,saveChildren:false)).IsError.Should().BeFalse();}
+            foreach(var row in avatars) {row.ProviderUniqueStorageKey[ProviderType.SolanaOASIS]="owned.provider.[key]-"+row.Id;(await mongo.SaveAvatarAsync(row)).IsError.Should().BeFalse();}
             foreach(var masks in new[] {"omitted","empty","selected"})
             foreach(var type in new[] {HolonType.All,HolonType.Park,HolonType.Quest})
             {
@@ -58,6 +58,19 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 found.Result.SearchResultHolons.Select(row=>row.Id).Should().BeEquivalentTo(target==name.Id ? new[] {target}:Array.Empty<Guid>());
                 found.Result.SearchResultAvatars.Select(row=>row.Id).Should().BeEquivalentTo(target==name.Id ? Array.Empty<Guid>():new[] {target});
                 found.Result.NumberOfResults.Should().Be(1);
+            }
+            foreach(var target in new[] {name.Id,avatars[0].Id})
+            foreach(var enabled in new[] {false,true})
+            {
+                var group=new SearchTextGroup {SearchHolons=true,SearchAvatars=true,SearchProviderKeys=enabled,
+                    SearchQuery=("provider.[key]-"+target).ToUpperInvariant(),HolonType=HolonType.All,
+                    HolonSearchParams=new SearchHolonParams(),AvatarSearchParams=new AvatarMask()};
+                var query=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new() {group}};
+                var found=synchronous ? mongo.Search(query,loadChildren:false):await mongo.SearchAsync(query,loadChildren:false);
+                found.IsError.Should().BeFalse(found.Exception?.ToString() ?? found.Message);
+                found.Result.SearchResultHolons.Select(row=>row.Id).Should().BeEquivalentTo(enabled && target==name.Id ? new[] {target}:Array.Empty<Guid>());
+                found.Result.SearchResultAvatars.Select(row=>row.Id).Should().BeEquivalentTo(enabled && target!=name.Id ? new[] {target}:Array.Empty<Guid>());
+                found.Result.NumberOfResults.Should().Be(enabled ? 1:0);
             }
         }
         finally
