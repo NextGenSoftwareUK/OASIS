@@ -1,5 +1,32 @@
 # HyperDrive V2 provider-I/O coverage
 
+## Authoritative provider snapshot — audited 2026-10-16
+
+Baseline parent `174397c70` / Core `ea61d9e`; latest retained reports were read directly, not inferred from prior chat or green source scans. This table overrides older status/“current”/PASS labels below. Counts are scoped and overlapping; do not sum them. None proves all relevant interfaces, options, retained history, durable recovery and hosted authenticated V2 orchestration. See `HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md` for immutable/hosted gates and exact protected-journal fingerprints.
+
+| Provider | Current retained evidence inspected | Still required / limitation |
+| --- | --- | --- |
+| MongoDBOASIS | Fresh Mongo/SQLite four-case native matrix4/4 in1m54s against current Coreea61d9e, report2026-10-16T18:56:58Z | All interfaces/options/history, multi-member election/durable/hosted proof; initializer1/1 is not an additional routing case |
+| SQLLiteDBOASIS | Direct suite381/381 at13:21:43Z; local routing90/90 at18:34:42Z | Full per-operation/options/history/recovery acceptance, not just matching stored Version |
+| EthereumOASIS | Selected local EVM182/182 at18:36:06Z (includes shared-base cases) | Public-network/hosted admission, every interface/option, durable wallet/multi-stage recovery |
+| SolanaOASIS | Offline306/306 at16:49:49Z | Native validator finality stall/retained tower conflict and original uncertain outcomes; no reset/new ledger; SPL history and remaining options/hosted gates |
+| IPFSOASIS | Native11/11 at16:41:19Z, official retained Kubo | Revision-scoped subset; current-pin/full interface/recovery/hosted acceptance |
+| AWSOASIS | Native105/105 at18:42:58Z; official DynamoDB Local/SDK with production constructor factory in setup | Not all AWS services, cloud IAM/STS/physical cloud transport, snapshot/history/durable/hosted acceptance |
+| AzureStorageOASIS | Native70/70 at18:44:33Z; official Blob SDK/Azurite, factory profile/detail/holon case and distinct-container fix | Not Cosmos DB; cloud IAM/physical cloud, complete interface/history/durable/hosted proof |
+| GoogleCloudOASIS | Native Firestore47/47 at18:50:04Z; official SDK/emulator, factory CRUD setup; disabled-service refusal | Not alternate Cloud Storage/BigQuery record engines or full live IAM/service/history/durable/hosted certification |
+| AzureCosmosDBOASIS | Latest native report17cases:15pass/2fail at10:58:24Z | Not green; final source fix not native-refreshed, protected fixture cleanup policy-denied; CAS/ETag/cross-container atomicity/full interfaces/hosted remain open |
+| PolygonOASIS | Shared wrapper native suite4/4 at18:36:54Z plus scoped local EVM cases above | Public L2 fees/finality, native escrow deployment/config, actual hosted key authorization and multi-stage recovery |
+| ArbitrumOASIS Web3Core | Same4/4 wrapper suite includes actual Arbitrum; V2 boot selects shared implementation, known legacy-only cache refused | Not legacy provider certification, automatic hot replacement or public L2/hosted/durable proof |
+| Neo4jOASIS | Native60/60 at17:07:50Z, retained official node | Revision-scoped native matrix, not every history/recovery/hosted/interface option |
+| CosmosBlockChainOASIS | Official SDK/retained wasmd and historical scoped native evidence; original replication journal still present | Reconcile original outcome without replay/reset; full current policy/interface/assets/billing/hosted matrix |
+| HashgraphOASIS | Official SDK/scoped historical testnet and receipt evidence | Funded tests deferred; all-in fee safety, native storage/policy/interface/recovery/hosted gates |
+| SuiOASIS | Official SDK/scoped historical native evidence; original prepared journal still present | Original-outcome reconciliation, complete policy/interface/recovery/hosted matrix; no state reset |
+| TRONOASIS | Official SDK/scoped historical node evidence; original pending transaction journal present | Original outcome unresolved; no mutation replay/reset; current full native policy/interface/recovery/hosted matrix |
+
+SOLID/ActivityPub and other providers remain in scope after the user-prioritized providers; their absence from this priority snapshot is not a completion claim. All report times above are UTC on2026-10-16. This is a read-only evidence audit, not a rerun except where a fresh follow-up is explicitly recorded.
+
+## Implementation and evidence journal — historical, newest first
+
 Google final local follow-up:47nativepass28s/47unitpass275ms, no skips; pending rerun completed. Real Firestore SDK/retained emulator and normal CRUD production-factory setup; all-services-disabled fails before SDK access. Hosted boot/IAM, physical cloud failures, full service/history/durable gates stay open. Emulator stopped.
 
 2026-10-16 Google activation now refuses all-services-disabled configuration before SDK work;2red-before sync/async cases pass. Old disabled-service success assertion corrected and cleanup fixture no longer advertises a fake successful activation. Single production constructor factory preserves DNA values/flags and is reused by native CRUD setup. Unit47pass452ms/Google+BootLoaderbuild0errors; native rerun pending. Firestore is canonical record backend; Storage/BigQuery backend parity/live IAM/full service coverage remains unproven. No public cloud mutation or new runtime.
@@ -226,7 +253,7 @@ Ethereum protocol-3 current native result: 107/107 pass in 22 s/no skips; Solidi
 
 2026-10-16 shared batch regression evidence: 151/151 shared tests and 48/48 targeted V2 tests pass. Eight new controlled-backend tests prove prior root acknowledgements survive a later ordinary or native-uncertain failure, preserve original transaction identifiers, and stop on native uncertainty. Acknowledged logical keys are evidence, not exhaustive native receipts or restart recovery. Four chain consumers compile; no live chain was run. Mainstream-provider priority remains MongoDB/SQLite, Ethereum/Solana, IPFS, AWS/Azure/GoogleCloud/CosmosDB, Polygon/Arbitrum, Neo4j, remaining chains, then SOLID/ActivityPub.
 
-## Current evidence summary — supersedes historical entries below
+## Historical evidence summary — superseded by authoritative snapshot above
 
 2026-10-16 AWS native63/63pass14s: actual V2 hard-delete4normal primary×syncasync cases +2real conditional conflicts +2controlled post-real-ack losses verify original result/native removal or preserved conflict state and0secondary requests on failures. Exactly1delete/original cause/table/key evidence retained after lost ack. Prior57 retained; physical wire loss/durable recovery/history/full-interface/live/hosted remain open.
 
@@ -515,7 +542,7 @@ Following the human priority order, resumed Solana source review after Mongo gra
 
 Required next: reuse the existing private-record protection/key persistence and blinded-index design rather than invent another encryption system; connect it to the actual Solana write/read owner, prove email/username lookup without public disclosure, fix canonical update mapping, classify native finality/uncertainty, and verify operations through the retained official validator with synthetic data only. No new runtime/install/download/environment, public transaction or production change in this audit. Ethereum remains paired at this priority tier; both remain uncertified. Original Cosmos/Hedera/Sui/TRON work remains in scope.
 
-## Current priority-store evidence — 2026-10-14
+## Historical priority-store evidence — 2026-10-14
 
 See HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md for chronological implementation/failure evidence. Current SQLite direct suite272/272 (18s) and rebuilt real Mongo/SQLite V2 matrix4/4 plus initializer1/1 (12s), zero skips. Concrete work since earlier entries includes separate avatar-owned SQLite wallet persistence, credential-marker retention through avatar replication, transactional owner-aware wallet batches, import/export error/version/owner fixes, Mongo transactional import with controlled insert/update rollback and rejected-commit replay fencing, stable V2 import materialization/IDs, graph traversal/depth and read freshness. Four matrix cases are broad selected scenarios, NOT four providers or all API routes. Real successful-commit/lost-reply reconciliation, Mongo ordinary graph atomicity/embedded bounds, complete SQLite fields/history/scalability/concurrency, hosted authenticated routes and other provider release gates remain unverified. No provider is newly declared fully complete by this refresh.
 
@@ -546,7 +573,7 @@ Human priority order still governs: MongoDB/SQLite, Ethereum/Solana, IPFS, AWS/A
 **Updated:** 2026-10-13 (scope-specific evidence below; full completion unproven)
 **Branch:** `codex/hyperdrive-dual-mode-route-matrix`
 
-## Current provider status — not full certification
+## Historical provider status — not full certification
 
 Cosmos Linux SDK run failed (2026-10-13): four subprocess cases hit fixed10second limit on retainedNode22.22.2; independent import-only measured18.471s from mountedNTFS source/deps before network/operation. Retained suite's Linux compatibility NOT green. No timeout relaxation/install/copy; native filesystem/performance and exactNode24 published proof remain open. Other platform passes not substitutes.
 
@@ -4539,7 +4566,7 @@ Railway holds the complete DNA document in the `OASIS_DNA_JSON` service variable
 
 Secrets were neither printed nor committed. Changing `OASIS_DNA.json` locally would not change Railway because `OASIS_DNA_JSON` is the deployed source of truth. Likewise, changing only `OASIS.HyperDriveMode` is insufficient if `OASIS.OASISHyperDriveConfig` does not define the intended V2 failover, replication and load-balancing policy.
 
-## October 11 verification checkpoint (supersedes narrower counts above)
+## Historical October 11 verification checkpoint — counts apply only to that revision
 
 `OASISHederaTokenEscrow.sol` adds depositor-owned fungible HTS custody on top of the same NFT escrow base and reentrancy guard. Since the fungible lock request has no amount, `lockAll` deposits the caller's full spendable positive int64 balance, performs HIP-719 association when needed, and records exact units. Deposit and release verify both sides' balance changes; false/inexact transfers revert rather than recording success. Unlock returns only the caller's recorded deposit to that caller. No administrator release path is added.
 
@@ -4621,7 +4648,7 @@ User explicitly authorized merging into dev for automatic Railway deployment pro
 
 Fetched Development history into the three existing submodule repositories (no clones/worktrees/installs). Core `5ef4756cb5ba10a58b32a7255467a317e50a4cf9` and ONODE Core `2e2a74c3ffb94ee03e179f002c2908ce79690b86` both have conflict-free merge-tree previews with their current task commits. That establishes textual mergeability only, not build/runtime compatibility. HoloNET-ORM Development was force-updated to `eb63ae150849254136708c2716b00bcb55c2b0ae`; inspect that dependency history before choosing its pin. No branch merge or deployment occurred during preflight. Free C: 104.76 GB decimal.
 
-## Current shared Sui wallet transfer — 2026-10-12
+## Historical shared Sui wallet transfer — 2026-10-12
 
 Reused the pinned Sui 1.81.1 runtime and existing local ledger; no install/download or fresh environment. `SharedAvatarSendSignsWithStoredWalletAndCommitsRealSuiTransfer` passes 1/1, zero skips (`TestResults/HyperDriveSui/sui-shared-wallet-current.trx`). In addition to exact recipient +0.001 SUI and preserved encrypted signing key, it now independently requires Completed status for the original transaction digest. The fixture refuses an existing wallet map before saving and only clears a successfully owned map; provider deactivation runs even if cleanup assertion fails. Integration project build: zero errors, five warnings. This is shared WalletManager native transfer proof, not positive named-provider-overload or hosted HTTP proof. Owned node PID 133885 was stopped after verification, retaining the reusable ledger/runtime.
 

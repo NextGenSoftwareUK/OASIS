@@ -1,5 +1,30 @@
 # HyperDrive V2 current release gates
 
+## Authoritative release snapshot — audited 2026-10-16
+
+Audit baseline: parent `174397c70`, committed Core `ea61d9e4f1c12b21dd14fdd6e51a912d2bfd2cae`, ONODE Core `fa911ee5036565cd4b7a7ca77c5f24c00bd2cfad`. This snapshot overrides **all older “current”, “authoritative”, OPEN and PASS statements in the journal below**. Historical test passes apply only to their recorded revision/scope. No provider or release is certified complete.
+
+Execution priority remains MongoDB/SQLite → Ethereum/Solana → IPFS → AWS/Azure/Google Cloud/Cosmos DB → Polygon/Arbitrum → Neo4j → remaining chains → SOLID/ActivityPub. The older goal wording does not move remaining chains ahead of these priorities. See the current provider table in `HYPERDRIVE_V2_PROVIDER_IO_COVERAGE.md` for scoped native evidence.
+
+| Required release gate | Fresh audit outcome | Remaining requirement |
+| --- | --- | --- |
+| WEB4 source-route inventory | PASS:693 actions/599 classified provider or external-manager actions | Authenticated functional execution; source classification is not endpoint verification |
+| Registered-provider documentation | PASS:29 registered providers have formal rows after correcting the missing AzureStorageOASIS row | Documentation inventory only, not runtime certification |
+| Committed dependency coherence | `--require-gitlinks` checks manifest/seven Dockerfiles/gitlinks | Keep Core/ONODE pins synchronized; this alone does not verify source checkouts |
+| Actual immutable source checkouts | FAIL:`--require-checkouts` | Preserve concurrent root/Core subscription edits; four uninitialized dependencies and two revision mismatches listed below must be resolved without resetting unrelated work or duplicating environments |
+| Seven immutable WEB4–WEB10 publishes | NOT PROVEN | Build exact pinned clean sources and verify artifacts; cached dirty-checkout builds do not substitute |
+| Hosted V2 authenticated routes/policies | NOT PROVEN | Current-task deployed revision, auth, request/data/response and actual policy effects; older reachable deployments are not evidence for these pins |
+| Full interface/options/history/privacy/recovery matrix | INCOMPLETE | Per-provider acceptance beyond selected suites; restart/outbox/multi-stage recovery and retained history cannot be inferred from happy-path CRUD |
+| Live mode replacement | INCOMPLETE | Known legacy-only objects now reject V2 safely; quiescence/atomic mode persistence/hot replacement are not implemented or certified by that guard |
+
+Fresh checkout failure details: parent/Core dirty; ONODE/ONODEManager, STAR ODK, WEB6 and OASIS Omniverse/OGEngineClient uninitialized. Libraries HEAD `e91f10635c5c79e484b06322a6c0c60d392a46ce` differs from pin `f93b880da15bb8e0c85f7f358df90213704422c4`; holochain HEAD `75824d5b4ef7f4f4dda12225747d916ed1dc220a` differs from pin `e75a20ded8c2fb553032a2971e6e4300f02a7e0a`. Do not reset/check out other sessions' work, change pins just to pass, initialize duplicate environments or merge/deploy on partial evidence.
+
+Protected unresolved native evidence remains present: Sui `prepared-live-pending.json`469bytes SHA256 `B7E6EECC7C32EF5AD030C740ECF1071CB54FF05905FF69FC8DBE04A759061599`; Cosmos blockchain `replication-pending.json`470bytes SHA256 `9B5A15110B0F21FEF8FCA6D2CE215859EEBC8944E9F1F83733CACE90892DEA81`; TRON `pending-native-outcome.json`879bytes SHA256 `9A6B6E580DB63E5F20A91D9A345430FA72670CC041B278E3B44E00BD0FDEBAEE`. Presence/hash does not reconcile an outcome or permit replay/reset. Cosmos DB emulator fixture cleanup was policy-denied; do not bypass it. Hedera funded mutation work remains deferred, not replaced with real-money funding.
+
+Fresh Mongo/SQLite follow-up: four sync/async × primary-direction native V2 cases passed4/4 in1m54s, report `TestResults/SubscriptionUsageCurrent/mongo-sqlite-v2-current.trx` updated2026-10-16T18:56:58Z against current cached Coreea61d9e. Replica initialization1/1 is separate setup evidence, not a fifth routing case. Owned Mongo stopped/port27029 closed; retained data directory and protected journals untouched. This refresh does not prove every interface/history/election/hosted gate. Next priority evidence work includes current-pin IPFS/Neo4j refreshes and remaining full-interface/recovery acceptance, without bypassing the Solana finality or protected-journal constraints.
+
+## Implementation and evidence journal — historical, newest first
+
 Google activation/factory final local evidence:47/47nativeFirestorepass28s and refreshed47/47unitpass275ms/no skips; pending native rerun below completed. Constructor-only production factory participates in ordinary native CRUD setup, enabled Firestore health/I/O unchanged, disabled-service refusal verified without credentials/network. Retained1.22.0 emulator stopped/portsclosed. BootLoader0errors/dependency-pin validator pass, not full hosted boot/controller/IAM/physical-cloud outage or alternate-storage-engine proof. No live settings/deploy/merge/publicspend.
 
 2026-10-16 Google disabled-service false activation FIXED: with Storage/Firestore/BigQuery all false, activation formerly returned success/IsProviderActivated=true and two unit tests asserted it. Now sync/async activation returns GOOGLE_CLOUD_SERVICE_REQUIRED with original InvalidOperationException, false result/inactive state before any SDK work. Two regressions were red before/pass after; cleanup unit fixture explicitly sets owned active state rather than claiming SDK activation. Success message now says configured services, not all services. Existing enabled-service SDK checks/credential behavior unchanged. BootLoader constructor wiring extracted into single CloudProviderFactory.Google source and compiled by existing unit/native harnesses; all project/bucket/credential-path/database/dataset/service-switch settings preserved. Unit47/47pass452ms/cached Google+BootLoaderbuilds0errors; native47case rerun pending, ordinary CRUD setup now enters production factory. Canonical OASIS storage remains Firestore; CloudStorage/BigQuery client activation is NOT proof of alternate record-storage engines/full service APIs. No cloud credentials/accounts/resources provisioned, no config/deploy/merge/download/newenv.
@@ -196,7 +221,7 @@ Still blocking full Ethereum interface acceptance: MintToken uses hardcoded amou
 
 2026-10-16 SQLite generator acknowledgement corrected: IOASISSuperStar explicitly defines true as successful generation. SQLite has no generator, so NativeCodeGenesis now returns false rather than falsely acknowledging success. New interface-level regression fails before/pass after, also verifies no storage activation. Producer builds with 0 errors/37 warnings; final maintained units 5/5 pass (92 ms), full native SQLite integration 381/381 pass (26 s), no skips. This is truthful unsupported capability reporting, NOT implementation/certification of native code generation or all interfaces. Mongo has the same return-true/no-generator pattern in MongoDBOASIS.Part3.cs and remains to be corrected/tested separately. No merge/deploy/history policy change.
 
-## Current execution priority — user confirmed 2026-10-16
+## Historical execution-priority checkpoint — 2026-10-16
 
 MongoDB/SQLite → Ethereum/Solana → IPFS → AWS/Azure/Google Cloud/Cosmos DB → Polygon/Arbitrum → Neo4j → remaining chains → SOLID/ActivityPub. This overrides the older goal text naming the remaining chains first, without removing those providers from scope.
 
@@ -240,7 +265,7 @@ Next root-cause implementation: reuse detached shared graph planning/canonical s
 
 2026-10-16 V2 nearby request/dispatch implemented (Coref2428d0): StorageOperationRequest now has GeoLatitude/GeoLongitude microdegrees and RadiusInMeters. GetAvatarsNearMe/GetHolonsNearMe route through IOASISNETProvider in both sync/async V2 storage switches; async routing honestly invokes that interface's existing synchronous method. Invalid coordinates/radius/type/nonzero historical version return HYPERDRIVE_NEARBY_REQUEST_INVALID before quota/provider selection, with no failover. Non-network providers return explicit capability error, eligible for existing failover policy. Reads are not replication mutations. Targeted current-source suite52/52pass6s/no skips adds four sync/async cases: actual SQLite profile+holon content and terminal partial-coordinate InvalidData, plus five invalid-input variants with zero provider metrics. This supersedes only the "not implemented" nearby dispatch audit below. Native cross-provider nearby load balancing/failover/capability skipping, manager/HTTP exposure, all provider combinations and immutable seven-service publishes remain UNPROVEN. Concurrent subscription source excluded from Core commit; working-source build is not immutable release evidence. No merge/deploy.
 
-## Current gate re-audit — 2026-10-16, parent19295c6a6
+## Historical gate re-audit — 2026-10-16, parent19295c6a6
 
 The latest direct nearby-interface corrections do not close V2 routing or release certification. Fresh read-only checks:
 
@@ -464,7 +489,7 @@ Google Firestore deletion actor regression fixed (2026-10-16): two new sync/asyn
 
 Azure Blob lifecycle evidence (2026-10-16): current native TRX proves12/12 passed, zero failures/skips. Shared existing GUID deletion path now coordinates existing avatar/detail blobs using canonical snapshots and per-blob ETag conditions; incoming committed tombstones preserve timestamp/actor and target-specific fields. Actual V2 Azure↔SQLite sync/async soft/hard replication passes. Official Azure SDK requests to reserved unreachable loopback10003 after the first real blob acknowledgement prove partial-state errors carry exact acknowledged paths/original cause and fence both failover and replication (zero SQLite manager requests). Independent raw reads verify partial source state and unchanged replica. This is NOT a cross-blob transaction: missing-detail creation races, durable recovery, physical acknowledgement loss and all-interface/live Azure/hosted release verification remain OPEN. Never report pair atomicity or full certification.
 
-## Current user-directed priority (2026-10-16)
+## Historical user-directed priority checkpoint (2026-10-16)
 
 Work order: MongoDB/SQLite → Ethereum/Solana → IPFS → AWS/Azure/Google Cloud/CosmosDB → Polygon/Arbitrum → Neo4j → remaining chains → SOLID/ActivityPub. This order supersedes the older goal wording that foregrounds Cosmos blockchain, Hedera, Sui and TRON. It is the user's product priority, not a claim of measured market-share rankings. Lower-priority chain work must not imply the higher-priority providers are complete: no provider is fully certified; retain all open release gates and distinguish native SDK tests from hosted/full-interface verification.
 
@@ -854,7 +879,7 @@ First corrected run reached the old failover assertion: injected aggregate fault
 
 Mongo search metadata multiplicity (2026-10-15): real V2 regression reproduced duplicate holon search hits in ALL FOUR outer routing cases when ANY metadata mode matched two keys. Root cause: SearchRepository deduplicated candidates before metadata filtering, then appended the same candidate once per matching key. Fix accepts the candidate once and exits the ANY key loop; ALL behavior is unchanged. Regression now checks both ANY and ALL with two matching keys through actual synchronous/asynchronous V2 routes. Final same-environment Mongo/SQLite suite4/4 passed, zero skips,22s; replica initialization1/1. Initial test-only namespace compile error corrected to actual SearchHolonParams contract before reproduction. No mocked provider, weakened assertion, new environment or dependency download. This certifies this search multiplicity invariant only, not the whole search API. Search type/parent/date/number/group semantics, async blocking sites, and broader release gates remain open for review.
 
-## Current priority and Mongo collection-query evidence (2026-10-15)
+## Historical priority and Mongo collection-query evidence (2026-10-15)
 
 User-confirmed work order: MongoDB/SQLite → Ethereum/Solana → IPFS → AWS/Azure/GoogleCloud/CosmosDB → Polygon/Arbitrum → Neo4j → remaining chains → SOLID/ActivityPub. This is the requested implementation priority, not a measured popularity ranking. Returning to a smaller chain never proves higher-priority providers complete. The active product goal text still names smaller chains; the available goal tool cannot edit objective text. This document records the governing work order without narrowing the full completion requirements.
 
@@ -1660,7 +1685,7 @@ Human priority order remains MongoDB/SQLite, Ethereum/Solana, IPFS, AWS/Azure/Go
 
 Updated 2026-10-13, inspected parent `07e0ae20c` and retained reports/journals. This is a current navigation checklist, not a replacement for the original all-provider scope or the detailed evidence log. **Not release-ready; do not merge yet.**
 
-## Authoritative state
+## Historical state — not current dependency pins
 
 Priority combined V2 persistent-failure truthfulness (2026-10-13): reverse SQLite trigger rejection now enables failover+replication together. Mongo success remains success with explicit warning/one failed replica; metrics require exactly one Mongo execution and two SQLite attempts (initial rejection plus failed repair), unchanged SQLite detail and correct Mongo mutation. Uncertain Mongo detail commit tests now also enable replication, retaining zero SQLite executions. Full real matrix4/4 plus initializer1/1, zero skips,11s after consumer build. This proves truthful partial replication and no duplicate successful-store mutation, not repair/convergence while failed store remains unavailable or eventual reconciliation. Predictive override primary tracking and full all-operation/API/provider gates remain open. Same environment/report reused; no downloads/installations or merge.
 
@@ -1862,7 +1887,7 @@ Cosmos subprocess deadline follow-up (2026-10-13, parent `c984d6203`): repeated 
 - Cosmos replication ownership journal is present and unresolved; Sui journal was absent at last inspection. Do not delete pending journals blindly.
 - Cleanup is finished per user confirmation. Latest observed free124095033344bytes (124.10GB decimal);150GB target remains incomplete. See `WORKSPACE_CLEANUP_LEDGER.md` for exact removals, preservation commits and denied artifact removals. Reuse existing caches/runtimes; whole-drive changes alone do not attribute ownership of growth. No broad cleanup of unrelated services/data is authorized by this checklist.
 
-## Required-gate snapshot (not certification)
+## Historical required-gate snapshot (not certification)
 
 Retained TRX counters inspected directly on2026-10-13: zero failed/skipped in the listed reports. Report age/source scope still matters; do not sum overlapping suites or infer live coverage from unit counts.
 
@@ -1875,7 +1900,7 @@ Retained TRX counters inspected directly on2026-10-13: zero failed/skipped in th
 
 No provider row currently proves every required gate. Keep the goal active and do not merge on these subsets.
 
-## Evidence versus completion
+## Historical evidence versus completion
 
 Cosmos Linux compatibility contradiction (2026-10-13): retained LinuxNode22.22.2 run of current60-case SDK suite fails FOUR child-process cases with ETIMEDOUT at10000ms; no Linux full-pass claim. Independent read-only bridge import measurement on existing /mnt/c source/dependencies took18471ms before any operation/network request. Thus child deadline is shorter than observed import startup in this mounted environment; underlying filesystem/runtime performance still needs diagnosis, not blindly increasing test timeout or installing duplicates. No alternate Linux node_modules found under bounded /var/tmp,/opt search. No downloads/copies/native writes. Production Node24.19.0/published image gate remains open; current Windows60/60 does not close it.
 
@@ -2195,7 +2220,7 @@ SQLite delete checkpoint (2026-10-13): GUID synchronous deletion now completes S
 
 Counts are revision-scoped and overlap. Do not add them together or claim all endpoints/provider interfaces are covered by them.
 
-## Work order
+## Historical work order
 
 1. Return to the user-approved provider order: MongoDB/SQLite, Ethereum/Solana, IPFS, clouds, L2s, Neo4j, remaining chains, protocol integrations. Current SQLite fixes are incomplete; historical passing subsets do not certify priority providers. Preserve native uncertainty fences and the original four-chain completion scope.
 2. Close unified encryption configuration/policy and live registration gaps without exposing legacy exempt private fields on-chain or breaking database indexes.
