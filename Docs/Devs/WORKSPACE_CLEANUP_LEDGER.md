@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 Azure holon collection/export flags:58/58nativepass15s and15/15unitpass using same retained Azurite/cache/fixed reports. Existing test-owned container cleanup removed synthetic owned holon; owned Node process stopped normally. No install/download/clone/new environment/broad data cleanup. Source acknowledgement fixed once rather than duplicated across exports.
+
 2026-10-16 Azure avatar read flags: retained Azurite/cache/fixed report reused,56/56nativepass15s and15/15unitpass. Added exact synthetic avatar inside existing per-test owned-container lifecycle; container cleanup/owned Node shutdown unchanged. No install/download/clone/new environment or unrelated data deletion. Source-only acknowledgement fix, no migration or broad cleanup.
 
 2026-10-16 Google avatar-key/version correction: same checkout/cache/pinned Firestore/fixed report reused;39/39unit and43/43nativepass29s. Existing native fixture cleanup/owned Java shutdown retained. No install/download/clone/duplicate environment or broad deletion; replaced obsolete source query is Git-recoverable, not data migration/deletion.
