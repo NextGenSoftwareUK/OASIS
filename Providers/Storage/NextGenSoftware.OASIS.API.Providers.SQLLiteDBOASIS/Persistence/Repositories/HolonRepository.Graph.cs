@@ -8,28 +8,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 {
     public partial class HolonRepository
     {
-        private List<HolonModel> PrepareGraph(IEnumerable<IHolon> roots, bool saveChildren, bool recursive, int maxDepth, int initialDepth = 0)
+        private sealed record PreparedGraph(List<HolonModel> Models,
+            List<NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PlannedHolonWrite> Nodes,HashSet<string> RootIds)
         {
-            if (maxDepth < 0 || initialDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
-            var models = new List<HolonModel>();
-            var seen = new HashSet<Guid>();
-            void Visit(IHolon holon, int depth, Guid? parent)
+            public void Publish()
             {
-                if (holon == null) throw new ArgumentException("Graph contains a null holon.");
-                if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
-                if (!seen.Add(holon.Id)) throw new ArgumentException("Graph contains a cycle or repeated holon identity.");
-                if (parent.HasValue)
-                {
-                    if (holon.ParentHolonId != Guid.Empty && holon.ParentHolonId != parent.Value)
-                        throw new ArgumentException("Graph child has a conflicting parent identity.");
-                    holon.ParentHolonId = parent.Value;
-                }
-                models.Add(CreateHolonModel(holon));
-                if (!saveChildren || (maxDepth != 0 && depth >= maxDepth) || (!recursive && depth > initialDepth)) return;
-                foreach (var child in holon.Children ?? Enumerable.Empty<IHolon>()) Visit(child, depth + 1, holon.Id);
+                foreach(var node in Nodes) {node.Source.Id=node.Snapshot.Id;node.Source.ParentHolonId=node.Snapshot.ParentHolonId;}
             }
-            foreach (var root in roots) Visit(root, initialDepth, null);
-            return models;
+        }
+
+        private PreparedGraph PrepareGraph(IEnumerable<IHolon> roots,bool saveChildren,bool recursive,int maxDepth,int initialDepth=0)
+        {
+            var plan=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphWritePlan.Create(roots,saveChildren,recursive,maxDepth,initialDepth);
+            var models=plan.Nodes.Select(node=> {
+                // Preserve SQLite's own full mapping and UTC validation; use shared detached planning for identity/edges.
+                var model=CreateHolonModel(node.Source,node.Snapshot.Id);
+                model.Id=node.Snapshot.Id.ToString();model.ParentHolonId=node.Snapshot.ParentHolonId.ToString();
+                return model;
+            }).ToList();
+            var rootIds=plan.Roots.Select(source=>plan.Nodes.Single(node=>ReferenceEquals(node.Source,source)).Snapshot.Id.ToString()).ToHashSet();
+            return new PreparedGraph(models,plan.Nodes,rootIds);
         }
 
         private IHolon AttachLoadedChildren(IHolon root, IEnumerable<HolonModel> rows, bool recursive, int maxDepth, int initialDepth = 0)
