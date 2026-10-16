@@ -1,6 +1,7 @@
 #Requires -Version 7.0
-param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile)
+param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile)
 $ErrorActionPreference='Stop'
+if($HederaFull -and !$HederaPreparedOwners){throw 'HederaFull requires the owned HederaPreparedOwners environment.'}
 if($MongoGraphReconcile -and ($SuiMintOwner -or $ReconcileControlledMintOwner -or $HederaPreparedOwners -or $MongoProjection -or $MongoTransactions -or $MongoV2 -or $SuiPreparedLedger -or $CosmosPreparedOwners -or $CosmosFull -or $AuthorityLedger -or $SuiPreparedInspect -or $Web3PreparedOwners)){throw 'Graph fixture reconciliation requires its own exclusive mode.'}
 if($Web3PreparedOwners -and ($SuiMintOwner -or $ReconcileControlledMintOwner -or $HederaPreparedOwners -or $MongoProjection -or $MongoTransactions -or $MongoV2 -or $SuiPreparedLedger -or $CosmosPreparedOwners -or $CosmosFull -or $AuthorityLedger -or $SuiPreparedInspect)){throw 'Choose Web3 prepared owner verification or one other suite.'}
 if($SuiPreparedInspect -and ($SuiMintOwner -or $ReconcileControlledMintOwner -or $HederaPreparedOwners -or $MongoProjection -or $MongoTransactions -or $MongoV2 -or $SuiPreparedLedger -or $CosmosPreparedOwners -or $CosmosFull -or $AuthorityLedger)){throw 'Read-only prepared inspection requires its own exclusive mode.'}
@@ -114,7 +115,17 @@ try{
     }elseif($HederaPreparedOwners){
         $env:OASIS_HEDERA_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/SdkBridge/bridge.mjs'
         $hederaProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests.csproj'
-        & dotnet test $hederaProject --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --filter FullyQualifiedName~SignedEscrowStagesPersistExactEvidenceWithDistinctCorrelations --logger 'trx;LogFileName=hedera-real-signed-owner-mongo-current.trx' --results-directory $work -v:q
+        $hederaArgs=if($HederaFull){@('--logger','trx;LogFileName=hedera-full-owned-current.trx')}else{@('--filter','FullyQualifiedName~SignedEscrowStagesPersistExactEvidenceWithDistinctCorrelations','--logger','trx;LogFileName=hedera-real-signed-owner-mongo-current.trx')}
+        $hederaStarted=[DateTime]::UtcNow
+        & dotnet test $hederaProject --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false @hederaArgs --results-directory $work -v:q
+        if($LASTEXITCODE -ne 0){throw 'Hedera owned regression failed.'}
+        if($HederaFull){
+            $report=Get-Item -LiteralPath (Join-Path $work 'hedera-full-owned-current.trx')
+            if($report.LastWriteTimeUtc -lt $hederaStarted){throw 'Hedera full report is stale.'}
+            [xml]$evidence=Get-Content -LiteralPath $report.FullName
+            $counts=$evidence.TestRun.ResultSummary.Counters
+            if([int]$counts.total -ne 47 -or [int]$counts.passed -ne 47 -or [int]$counts.notExecuted -ne 0){throw 'Expected47 passing Hedera unit cases without skips.'}
+        }
     }elseif($SuiMintOwner -or $ReconcileControlledMintOwner){
         $mintProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests.csproj'
         $mintFilter=if($ReconcileControlledMintOwner){'FullyQualifiedName~ReconcileControlledMintOwnerFixture'}else{'FullyQualifiedName~PublicMintRetainsOriginalAttemptInReusableMongo'}
