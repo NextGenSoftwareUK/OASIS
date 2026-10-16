@@ -16,7 +16,11 @@ public sealed class AWSOASIS : NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         string accessKey = "",
         string secretKey = "",
         string? serviceUrl = null)
-        : base(accessKey, secretKey, region, serviceUrl)
+        :this(region,accessKey,secretKey,serviceUrl,null,false)
+    { }
+
+    public AWSOASIS(string region,string accessKey,string secretKey,string? serviceUrl,string? sessionToken,bool useDefaultCredentials)
+        : base(accessKey,secretKey,region,serviceUrl,sessionToken,useDefaultCredentials)
     {
         ProviderName = "AWSOASIS";
         ProviderDescription = "AWS Provider - official AWSSDK.DynamoDBv2 storage integration";

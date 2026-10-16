@@ -43,8 +43,18 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         protected virtual ProviderType StorageProviderType => Core.Enums.ProviderType.DynamoDBOASIS;
 
         public DynamoDBOASIS(string accessKey, string secretKey, string region, string? serviceUrl = null)
+            :this(accessKey,secretKey,region,serviceUrl,null,false)
+        { }
+
+        public DynamoDBOASIS(string accessKey,string secretKey,string region,string? serviceUrl,string? sessionToken,bool useDefaultCredentials)
         {
-            var creds = new BasicAWSCredentials(accessKey, secretKey);
+            if(useDefaultCredentials && (!string.IsNullOrEmpty(accessKey) || !string.IsNullOrEmpty(secretKey) || !string.IsNullOrEmpty(sessionToken)))
+                throw new ArgumentException("Choose SDK default credentials or explicit credentials, not both.");
+            if(!useDefaultCredentials && !string.IsNullOrEmpty(sessionToken)
+                && (string.IsNullOrWhiteSpace(accessKey) || string.IsNullOrWhiteSpace(secretKey)))
+                throw new ArgumentException("Session credentials require access key, secret key and session token.");
+            AWSCredentials? creds=useDefaultCredentials ? null:string.IsNullOrEmpty(sessionToken)
+                ? new BasicAWSCredentials(accessKey,secretKey):new SessionAWSCredentials(accessKey,secretKey,sessionToken);
             var config = new AmazonDynamoDBConfig();
             if (string.IsNullOrWhiteSpace(serviceUrl))
                 config.RegionEndpoint = RegionEndpoint.GetBySystemName(region);
@@ -54,7 +64,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 config.AuthenticationRegion = region;
                 config.UseHttp = serviceUrl.StartsWith("http://", StringComparison.OrdinalIgnoreCase);
             }
-            _createClient = () => new AmazonDynamoDBClient(creds, config);
+            _createClient = () => useDefaultCredentials ? new AmazonDynamoDBClient(config):new AmazonDynamoDBClient(creds,config);
             _client = _createClient();
             ProviderName = "DynamoDBOASIS";
             ProviderDescription = "AWS DynamoDB provider (AWSSDK.DynamoDBv2 — serverless NoSQL for OASIS holons and avatars)";
