@@ -27,6 +27,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var row = _dbContext.Holons.AsNoTracking().FirstOrDefault(p => p.Id == id.ToString() && (version == 0 || p.Version == version));
                 var holonEntity = row == null ? null : GetHolonFromEntity(row);
                 if (holonEntity != null && loadChildren)
@@ -63,6 +64,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var row = await _dbContext.Holons.AsNoTracking().FirstOrDefaultAsync(p => p.Id == id.ToString() && (version == 0 || p.Version == version));
                 var holonEntity = row == null ? null : GetHolonFromEntity(row);
                 if (holonEntity != null && loadChildren)
@@ -99,6 +101,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 ArgumentException.ThrowIfNullOrWhiteSpace(providerKey);
                 var holonEntities = _dbContext.Holons.AsNoTracking()
                     .Where(p => p.LocalProviderKey == providerKey && (version == 0 || p.Version == version))
@@ -131,6 +134,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 ArgumentException.ThrowIfNullOrWhiteSpace(providerKey);
                 var stored = await _dbContext.Holons.AsNoTracking().SingleOrDefaultAsync(p => p.LocalProviderKey == providerKey && (version == 0 || p.Version == version));
                 var holonEntity = stored == null ? null : GetHolonFromEntity(stored);
@@ -161,6 +165,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var holonEntities =
                     _dbContext.Holons.AsNoTracking()
                         .Where(p => p.ParentHolonId == id.ToString() && (version == 0 || p.Version == version) && (type == HolonType.All || p.HolonType == type))
@@ -198,6 +203,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var rows = await _dbContext.Holons.AsNoTracking()
                     .Where(p => p.ParentHolonId == id.ToString() && (version == 0 || p.Version == version) && (type == HolonType.All || p.HolonType == type))
                     .ToListAsync();
@@ -235,6 +241,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var holonEntities = _dbContext.Holons.AsNoTracking()
                     .Where(p => _dbContext.Holons.AsNoTracking().Any(parent => parent.LocalProviderKey == providerKey && parent.Id == p.ParentHolonId)
                         && (version == 0 || p.Version == version) && (type == HolonType.All || p.HolonType == type))
@@ -272,6 +279,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var rows = await _dbContext.Holons.AsNoTracking()
                     .Where(p => _dbContext.Holons.AsNoTracking().Any(parent => parent.LocalProviderKey == providerKey && parent.Id == p.ParentHolonId)
                         && (version == 0 || p.Version == version) && (type == HolonType.All || p.HolonType == type))
@@ -308,6 +316,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var holonEntities = _dbContext.Holons.AsNoTracking()
                     .Where(p => (version == 0 || p.Version == version) && (type == HolonType.All || p.HolonType == type))
                     .ToList()
@@ -344,6 +353,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var rows = await _dbContext.Holons.AsNoTracking()
                     .Where(p => (version == 0 || p.Version == version) && (type == HolonType.All || p.HolonType == type))
                     .ToListAsync();
