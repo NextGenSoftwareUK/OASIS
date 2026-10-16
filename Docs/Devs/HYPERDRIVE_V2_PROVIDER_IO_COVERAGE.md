@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-16 current broader compatibility refresh: Core526/526unitpass3s,WEB4 154/154unitpass2s,no skips. ONODE Core/WEB4 builds pass0errors (152/253warnings). Core DLL hash across producer/API/test outputs matches864356E75930FE6DB300BE83BBA0AE808C022FF47F49975DAAF703C37614D999; no stale consumer substitution. This is local source/unit proof only, not native all-provider/HTTP/immutable deployment certification; unrelated Core subscription edits remain uncommitted and excluded from our commits.
+
 2026-10-16 Core9ceb9ac centralizes negative StorageOperationRequest.Version rejection before selection/quota in both router paths. Two syncasync cases test21 operation names, no provider activation/requests/native DB, terminal validation code; targeted72/72pass7s. This avoids relying on uneven provider guards but does not implement history or verify runtime behavior of every named operation. Concurrent subscription source excluded; immutable/hosted gates remain open.
 
 2026-10-16 LocalFile provider-key avatar version omission fixed. Native filesystem+SQLite V2 syncasync cases reproduced requested1 returning7 before correction; now latest0/exact7 succeed,missing1 remains terminal empty without stale SQLite fallback. Targeted70/70pass7s. Positive current-version filtering does not prove immutable historical versions; archive/history gates remain open.

@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 full Core+WEB4 compatibility refresh reused existing cached dependencies, Debug outputs and fixed CoreCurrent/Web4Current reports; no restore/download/install/runtime/server/new environment. Core526/526pass3s;WEB4 154/154pass2s;ONODE Core/WEB4 builds0errors. Required reusable producer/consumer outputs retained, no per-run copies. Core hashes independently match across3outputs; C free83,412,340,736bytes after run. Concurrent user/subscription changes and all pending chain/CosmosDB evidence untouched.
+
 2026-10-16 negative-version validation reused existing Core build/cache and fixed HyperDriveSqliteCurrent test lease/report. Two baseline failures reproduced; final72/72pass7s,no skips; invalid-request tests verify SQLite inactive/native DB absent. No download/install/runtime/clone/environment; existing owned fixture cleanup reused. C free83,412,819,968bytes. Core commit includes only router file, unrelated subscription/pending chain data untouched.
 
 2026-10-16 exact-version regression reused fixed HyperDriveSqliteCurrent lease/owned-data/reports, cached LocalFile producer/SQLite. Two new cases failed before predicate fix; final70/70pass7s;owned-data independently absent. No install/download/clone/runtime/environment creation or pending chain fixture action. C free83,415,015,424bytes observed; no recovery claim.
