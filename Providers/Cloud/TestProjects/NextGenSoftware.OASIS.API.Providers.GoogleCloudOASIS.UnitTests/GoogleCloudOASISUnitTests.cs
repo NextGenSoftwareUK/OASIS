@@ -10,6 +10,21 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
     [TestClass]
     public class GoogleCloudOASISProviderTests
     {
+        [DataTestMethod]
+        [DataRow("DecodeAvatar")]
+        [DataRow("DecodeAvatarDetail")]
+        [DataRow("DecodeHolon")]
+        public void MalformedStoredJsonIsAnIntegrityFailureWithOriginalCause(string decoder)
+        {
+            var id=System.Guid.NewGuid().ToString();
+            var fields=new System.Collections.Generic.Dictionary<string,object> {{"id",id},{"data_json","{ invalid json"}};
+            var method=typeof(GoogleCloudOASIS).GetMethod(decoder,System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Static);
+            Assert.IsNotNull(method);
+            var failure=Assert.ThrowsException<System.Reflection.TargetInvocationException>(()=>method.Invoke(null,new object[] {fields,id}));
+            Assert.IsInstanceOfType(failure.InnerException,typeof(System.IO.InvalidDataException));
+            Assert.IsInstanceOfType(failure.InnerException.InnerException,typeof(Newtonsoft.Json.JsonException));
+        }
+
         private GoogleCloudOASIS _provider = null!;
 
         [TestMethod]

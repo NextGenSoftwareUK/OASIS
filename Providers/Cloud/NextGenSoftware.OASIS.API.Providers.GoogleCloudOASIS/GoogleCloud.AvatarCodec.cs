@@ -117,7 +117,7 @@ public partial class GoogleCloudOASIS : IAvatarTombstoneStorageProvider
     {
         if(!fields.TryGetValue("data_json",out var value) || value is not string json)
             throw new InvalidDataException("Firestore avatar lacks canonical data_json.");
-        var avatar=OasisJson.Deserialize<Avatar>(json) ?? throw new InvalidDataException("Firestore avatar payload is null.");
+        var avatar=OasisJson.DeserializeStored<Avatar>(json) ?? throw new InvalidDataException("Firestore avatar payload is null.");
         if(avatar.Id==Guid.Empty || avatar.Id.ToString()!=documentId || !fields.TryGetValue("id",out var id) || !Equals(id,documentId))
             throw new InvalidDataException("Firestore avatar identity does not match document key.");
         return avatar;

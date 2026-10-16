@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 shared stored-JSON regression: reused existing checkout, NuGet cache, pinned Firestore/Azurite/DynamoDB Local runtimes and fixed reports. Google17/Azure54/AWS63 native cases passed; owned runner processes stopped normally and synthetic fixtures follow existing verified cleanup. No install/download/new environment or broad deletion. Free C before work85,123,076,096bytes; no claim of recovering the historical70GB. Generated build outputs were reused, not copied into per-run directories.
+
 2026-10-16 AWS V2 hard-delete tests: native63/63pass14s, same retained runtime/cache/fixed SQLite routing fixture/reports. Actual native deletion/conflict states and secondary preservation independently verified before exact-ID source cleanup; fixture family removed only after complete verified pass/deactivation. No install/download/clone/new environment, user-data changes or unknown physical-ledger removal.
 
 2026-10-16 AWS hard holon-delete regression: retained runtime/cache/fixed reports reused;57/57nativepass13s +49/49unitpass349ms after6baseline failures. Exact acknowledged synthetic item keys cleaned in finally; real concurrent newer row independently verified before test cleanup. No install/download/clone/new environment, production data conversion/user-record deletion or unknown-ledger reset. Source now matches existing explicit hard-delete V2 contract; no deployment/merge performed.
