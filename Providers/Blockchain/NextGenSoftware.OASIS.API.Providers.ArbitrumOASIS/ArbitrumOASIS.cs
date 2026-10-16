@@ -56,7 +56,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS;
 /// Chain-specific legacy Arbitrum implementation using Nethereum; source presence does not verify a live deployment.
 /// When the generic Web3Core contract is deployed to Arbitrum, use <see cref="ArbitrumOASIS_Web3Core"/> instead.
 /// </summary>
-public sealed partial class ArbitrumOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider, IOASISNFTProvider
+public sealed partial class ArbitrumOASIS : OASISStorageProviderBase, IOASISLegacyOnlyStorageProvider, IOASISDBStorageProvider, IOASISNETProvider, IOASISSuperStar, IOASISBlockchainStorageProvider, IOASISNFTProvider
 {
     private static Guid CreateDeterministicGuid(string input)
     {
