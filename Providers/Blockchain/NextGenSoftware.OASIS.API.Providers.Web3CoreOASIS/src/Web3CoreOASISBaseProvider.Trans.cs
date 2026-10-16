@@ -60,10 +60,22 @@ public partial class Web3CoreOASISBaseProvider
         OASISResult<IWeb3NFTTransactionResponse> result = new();
         string errorMessage = "Error in SendNFTAsync method in Web3CoreOASIS while sending nft. Reason: ";
 
-        if (transaction.Amount <= 0)
+        if (transaction == null)
+        {
+            OASISErrorHandling.HandleError(ref result, "NFT transfer request is required.");
+            return result;
+        }
+
+        if (transaction.Amount <= 0 || decimal.Truncate(transaction.Amount) != transaction.Amount)
         {
             OASISErrorHandling.HandleError(
-                ref result, Web3CoreOASISBaseProviderHelper.InvalidAmountError);
+                ref result, "NFT transfer amount must be a positive whole number.");
+            return result;
+        }
+
+        if (!Web3NftTokenId.TryParse(transaction.TokenId, out var tokenId))
+        {
+            OASISErrorHandling.HandleError(ref result, "NFT token ID must be a decimal uint256 value.");
             return result;
         }
 
@@ -76,11 +88,10 @@ public partial class Web3CoreOASISBaseProvider
 
         try
         {
-            //TODO: Double check this still works! lol
             TransactionReceipt transactionReceipt = await _web3CoreOASIS.SendNFTAsync(
                 transaction.FromWalletAddress,
                 transaction.ToWalletAddress,
-                Convert.ToInt64(transaction.TokenId),
+                tokenId,
                 //transaction.FromProvider.Value.ToString(),
                 //transaction.ToProvider.Value.ToString(),
                 "None", //Obsolete.
