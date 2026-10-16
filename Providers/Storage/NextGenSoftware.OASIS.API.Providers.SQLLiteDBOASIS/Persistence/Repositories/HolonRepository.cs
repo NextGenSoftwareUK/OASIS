@@ -381,13 +381,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             HolonModel holonEntity = null;
             var graphModels = new List<HolonModel>();
             var persistenceEntered = false;
+            PreparedGraph graph=null;
             try
             {
-                graphModels = PrepareGraph(new[] { holon }, saveChildren, recursive, maxChildDepth);
+                graph = PrepareGraph(new[] { holon }, saveChildren, recursive, maxChildDepth);
+                graphModels=graph.Models;
                 for (var index = 0; index < graphModels.Count; index++) graphModels[index] = AddOrUpdateHolon(graphModels[index]);
                 holonEntity = graphModels[0];
                 persistenceEntered = true;
                 _dbContext.SaveChanges();
+                graph.Publish();
                 return new OASISResult<IHolon>
                     {IsError = false, Result = GetHolonFromEntity(holonEntity), IsSaved = true};
             }
@@ -409,13 +412,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             HolonModel holonEntity = null;
             var graphModels = new List<HolonModel>();
             var persistenceEntered = false;
+            PreparedGraph graph=null;
             try
             {
-                graphModels = PrepareGraph(new[] { holon }, saveChildren, recursive, maxChildDepth);
+                graph = PrepareGraph(new[] { holon }, saveChildren, recursive, maxChildDepth);
+                graphModels=graph.Models;
                 for (var index = 0; index < graphModels.Count; index++) graphModels[index] = AddOrUpdateHolon(graphModels[index]);
                 holonEntity = graphModels[0];
                 persistenceEntered = true;
                 await _dbContext.SaveChangesAsync();
+                graph.Publish();
                 return new OASISResult<IHolon>
                     {IsError = false, Result = GetHolonFromEntity(holonEntity), IsSaved = true};
             }
@@ -436,15 +442,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             var models = new List<HolonModel>();
             var persistenceEntered = false;
+            PreparedGraph graph=null;
             try
             {
                 var roots = holons.ToList();
-                models = PrepareGraph(roots, saveChildren, recursive, maxChildDepth, curentChildDepth);
-                var rootIds = new HashSet<string>(roots.Select(root => root.Id.ToString()));
+                graph = PrepareGraph(roots, saveChildren, recursive, maxChildDepth, curentChildDepth);
+                models=graph.Models;
+                var rootIds = graph.RootIds;
                 for (var index = 0; index < models.Count; index++) models[index] = AddOrUpdateHolon(models[index]);
 
                 persistenceEntered = true;
                 _dbContext.SaveChanges();
+                graph.Publish();
 
                 return new OASISResult<IEnumerable<IHolon>>
                     {IsError = false, Result = models.Where(model => rootIds.Contains(model.Id)).Select(GetHolonFromEntity).ToList(), IsSaved = true};
@@ -467,15 +476,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             var models = new List<HolonModel>();
             var persistenceEntered = false;
+            PreparedGraph graph=null;
             try
             {
                 var roots = holons.ToList();
-                models = PrepareGraph(roots, saveChildren, recursive, maxChildDepth, curentChildDepth);
-                var rootIds = new HashSet<string>(roots.Select(root => root.Id.ToString()));
+                graph = PrepareGraph(roots, saveChildren, recursive, maxChildDepth, curentChildDepth);
+                models=graph.Models;
+                var rootIds = graph.RootIds;
                 for (var index = 0; index < models.Count; index++) models[index] = AddOrUpdateHolon(models[index]);
 
                 persistenceEntered = true;
                 await _dbContext.SaveChangesAsync();
+                graph.Publish();
 
                 return new OASISResult<IEnumerable<IHolon>>
                     {IsError = false, Result = models.Where(model => rootIds.Contains(model.Id)).Select(GetHolonFromEntity).ToList(), IsSaved = true};
@@ -774,9 +786,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     ?? throw new System.IO.InvalidDataException("Stored provider keys must be a JSON object.")
             };
 
-        private HolonModel CreateHolonModel(IHolon holon)
+        private HolonModel CreateHolonModel(IHolon holon,Guid? plannedId=null)
         {
-            var id = holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id;
+            var id = plannedId ?? (holon.Id == Guid.Empty ? Guid.NewGuid() : holon.Id);
             var keys = holon.ProviderUniqueStorageKey == null ? new Dictionary<ProviderType,string>() : new Dictionary<ProviderType,string>(holon.ProviderUniqueStorageKey);
             if (!keys.ContainsKey(ProviderType.SQLLiteDBOASIS)) keys[ProviderType.SQLLiteDBOASIS] = id.ToString();
             ArgumentException.ThrowIfNullOrWhiteSpace(keys[ProviderType.SQLLiteDBOASIS]);

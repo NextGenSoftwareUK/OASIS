@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 SQLite detached graph fix: existing shared planner reused via project reference; cache-only local NuGet restores refresh dependency metadata, no network/runtime install or cloned environment.363/363SQLite integration25s,4/4unit377ms; existing Google43/Azure64/AWS103 native regressions allpass with retained runtimes/fixed reports. SQLite uses existing owned test DB lifecycle/cleanup; cloud fixtures verified/cleaned and owned Java/Node processes stopped. Free C observed84,462,788,608bytes after reruns. No broad deletion or historical-space reclamation claim.
+
 2026-10-16 AWS V2 identity matrix:103/103nativepass17s, retained runtime/cache/fixed report/delete-routing.db reused. Exact acknowledged SDK avatar/detail keys removed after native/secondary state readback; SQLite family removed only after verified/deactivated; owned Java stopped/lease released. No download/install/clone/new environment/broad data cleanup. Free C observed83,923,267,584bytes during run; unrelated changes not attributed to this report.
 
 2026-10-16 AWS identity projection tests:95/95nativepass14s,57/57unitpass491ms using retained runtime/cache/fixed reports. Exact acknowledged synthetic avatar/detail keys cleaned after native canonical payload readback; owned Java stopped. No download/install/clone/new environment/user-record migration/broad deletion. Unfiltered selector scan changes runtime transfer, not retained disk environments.

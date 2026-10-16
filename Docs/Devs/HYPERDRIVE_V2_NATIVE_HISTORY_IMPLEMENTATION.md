@@ -10,6 +10,7 @@ Evidence audit: 2026-10-16, parent `2c3dff3af`. This is an implementation specif
 - DynamoDBOASIS declares `IsVersionControlEnabled` but source search finds no use of it in saves/reads. Setting true does not establish history. Its positive-version guards are deliberate explicit incompleteness, not history support.
 - Google and Azure latest-only guards likewise do not implement historical persistence or reads. Their current canonical JSON includes version fields but storing fields is not retaining historical records.
 - SQLite repository version predicates select matching rows. Predicate coverage alone is not proof that successive versions coexist; audit its save keys/schema and retention separately before claiming historical support there.
+- Follow-up SQLite source audit: `SQLLiteDBOASIS.Avatar.cs` declares the version-control flag without consumers. `HolonRepository.AddOrUpdateHolon` finds/replaces the existing row by logical Id, so its version predicates are not an implemented archive. History remains open. The accompanying detached graph identity fix does not add history.
 - WEB5 STARNETHolonID/version semantics are distinct from WEB4 logical holon IDs. Do not replace STARNETHolonID lookup with direct WEB4 ID lookup or conflate the version domains.
 
 ## Required invariants
