@@ -25,8 +25,18 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
     /// </summary>
     public class OASISMethodFieldTypeInterceptor : TypeInterceptor
     {
-        public override void OnBeforeCompleteType(ITypeCompletionContext completionContext, DefinitionBase definition)
+        public override void OnBeforeRegisterDependencies(ITypeDiscoveryContext discoveryContext, DefinitionBase definition)
         {
+            // Model interfaces are inferred as GraphQL interfaces, not objects.
+            // Remove their persistence methods before argument types are discovered.
+            if (definition is InterfaceTypeDefinition interfaceType &&
+                interfaceType.RuntimeType != null && IsOASISAssembly(interfaceType.RuntimeType.Assembly))
+            {
+                foreach (var field in interfaceType.Fields.Where(f => f.Member is MethodInfo || f.ResolverMember is MethodInfo).ToList())
+                    interfaceType.Fields.Remove(field);
+                return;
+            }
+
             if (definition is not ObjectTypeDefinition objectTypeDefinition)
                 return;
 
@@ -39,7 +49,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
                 return;
 
             List<ObjectFieldDefinition> methodFields = objectTypeDefinition.Fields
-                .Where(field => field.Member is MethodInfo)
+                .Where(field => field.Member is MethodInfo || field.ResolverMember is MethodInfo ||
+                    field.Member is PropertyInfo property && property.PropertyType == typeof(NextGenSoftware.OASIS.API.Core.Holons.GlobalHolonData))
                 .ToList();
 
             foreach (var methodField in methodFields)

@@ -159,7 +159,9 @@
         "RustTemplateList": "crud/list.rs",
         "RustTemplateInt": "types/int.rs",
         "RustTemplateString": "types/string.rs",
-        "RustTemplateBool": "types/bool.rs"
+        "RustTemplateBool": "types/bool.rs",
+        "RustDNAHolochain07TemplateFolder": "DNATemplates/RustDNATemplates/Holochain07",
+        "HolochainVersion": "0.7.1"
       },
       "MongoDBOASIS": {
         "DBName": "OASISAPI_DEV",

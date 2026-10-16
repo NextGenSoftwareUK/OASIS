@@ -141,6 +141,7 @@ var requiredTestReports = new List<string>
 if (profile == "HoloEnabled")
 {
     requiredTestReports.Add("holonet-app-authentication.trx");
+    requiredTestReports.Add("holonet-auto-start.trx");
     requiredTestReports.Add("holooasis-unity.trx");
     requiredTestReports.Add("holooasis-edge.trx");
 }
@@ -165,7 +166,9 @@ var minimumExecutedTests = new Dictionary<string, int>(StringComparer.OrdinalIgn
     ["hyperdrive-predictive-failover.trx"] = 8,
     ["hosted-mongo-sync.trx"] = 42,
     ["hosted-mongo-process-kill.trx"] = 1,
-    ["holonet-app-authentication.trx"] = 79,
+    ["holonet-app-authentication.trx"] = 1188,
+    // Four facts plus three two-row theories; the HC retrieval test belongs to the shared report.
+    ["holonet-auto-start.trx"] = 10,
     ["holooasis-unity.trx"] = 8,
     ["holooasis-edge.trx"] = 9
 };

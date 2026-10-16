@@ -133,6 +133,11 @@ jobs:
           token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
       - name: Verify source-aware NuGet planning invariants
         run: python -B Scripts/test_nuget_source_graph.py
+      - name: Reject stale dependency pins before release planning
+        run: |
+          python -B Scripts/test_release_dependency_freshness.py
+          python -B Scripts/validate_release_dependency_freshness.py
+          python -B Scripts/validate_railway_dependency_manifest.py --require-gitlinks
       - name: Verify NuGet version-selection invariants
         shell: pwsh
         run: ./Scripts/Test-NuGetVersionSelection.ps1

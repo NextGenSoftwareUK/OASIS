@@ -50,6 +50,14 @@ if ($createdSourceCheckout -or $actualCommit -ne $pin.commit) {
     $actualCommit = (& git -C $sourceRoot rev-parse HEAD).Trim()
 }
 if ($actualCommit -ne $pin.commit) { throw "Runtime checkout is '$actualCommit', expected '$($pin.commit)'." }
+$lockPath = Join-Path $sourceRoot 'Cargo.lock'
+$lockText = Get-Content -LiteralPath $lockPath -Raw
+if ($pin.holochainVersion -ne '0.7.1') { throw 'Android release policy requires Holochain 0.7.1.' }
+foreach ($crate in @('holochain','holochain_conductor_api','holochain_types','holochain_keystore')) {
+    $versions = @([regex]::Matches($lockText, ('(?m)^name = "' + [regex]::Escape($crate) + '"\r?\nversion = "([^"]+)"')) | ForEach-Object { $_.Groups[1].Value })
+    if ($versions.Count -ne 1 -or $versions[0] -ne $pin.holochainVersion) { throw "Android locked crate $crate must resolve exactly to 0.7.1." }
+}
+$verifiedLockHash = (Get-FileHash -LiteralPath $lockPath -Algorithm SHA256).Hash
 $dirty = @(& git -C $sourceRoot status --porcelain --untracked-files=no)
 if ($dirty.Count -eq 0) {
     foreach ($patch in $compatibilityPatches) {
@@ -166,6 +174,8 @@ $manifest = [ordered]@{
     })
     upstreamRelease = $pin.upstreamRelease
     holochainCompatibility = $pin.holochainCompatibility
+    holochainVersion = $pin.holochainVersion
+    cargoLockSha256 = $verifiedLockHash
     androidAbi = $pin.androidAbi
     artifacts = @(
         [ordered]@{ name = 'holochain-service.aar'; sha256 = (Get-FileHash $serviceAar -Algorithm SHA256).Hash; bytes = (Get-Item $serviceAar).Length },
@@ -173,5 +183,6 @@ $manifest = [ordered]@{
         [ordered]@{ name = 'holooasis-unity-bridge.aar'; sha256 = (Get-FileHash $bridgeAar -Algorithm SHA256).Hash; bytes = (Get-Item $bridgeAar).Length }
     ) + $dependencyArtifacts
 }
+if ((Get-FileHash -LiteralPath $lockPath -Algorithm SHA256).Hash -ne $verifiedLockHash) { throw 'Android build changed the verified Cargo.lock; refusing mismatched runtime provenance.' }
 $manifest | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath (Join-Path $packageRoot 'build-manifest.json') -Encoding utf8
 Write-Host "Pinned Holochain Android runtime created at '$packageRoot'."
