@@ -146,7 +146,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            var graphError = ValidateMongoChildGraph(holon);
+            var graphError = ValidateMongoChildGraph(holon, maxChildDepth);
             if (graphError != null) return graphError;
             if (saveChildren && saveChildrenOnProvider && holon.Children != null && holon.Children.Any())
                 return await SaveGraphAtomicAsync(holon, recursive, maxChildDepth);
@@ -169,7 +169,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            var graphError = ValidateMongoChildGraph(holon);
+            var graphError = ValidateMongoChildGraph(holon, maxChildDepth);
             if (graphError != null) return graphError;
             if (saveChildren && saveChildrenOnProvider && holon.Children != null && holon.Children.Any())
                 return SaveGraphAtomicAsync(holon, recursive, maxChildDepth).GetAwaiter().GetResult();
@@ -184,8 +184,13 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return result;
         }
 
-        private static OASISResult<IHolon> ValidateMongoChildGraph(IHolon root)
+        private static OASISResult<IHolon> ValidateMongoChildGraph(IHolon root, int maxChildDepth = 0)
         {
+            if (maxChildDepth < 0)
+            {
+                var cause = new ArgumentOutOfRangeException(nameof(maxChildDepth));
+                return new OASISResult<IHolon> { IsError = true, ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID", Exception = cause, Message = cause.Message };
+            }
             var pending = new Stack<IHolon>();
             var visited = new HashSet<IHolon>(new HolonReferenceComparer());
             var identities = new HashSet<Guid>();
