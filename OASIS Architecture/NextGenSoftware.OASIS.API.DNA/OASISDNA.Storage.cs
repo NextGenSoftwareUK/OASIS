@@ -35,6 +35,8 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string AutoFailOverLocalProviders { get; set; }
         public string OASISProviderBootType { get; set; }
         public AzureOASISProviderSettings AzureCosmosDBOASIS { get; set; }
+        public AWSOASISProviderSettings AWSOASIS { get; set; }
+        public AzureStorageOASISProviderSettings AzureStorageOASIS { get; set; }
         public HoloOASISProviderSettings HoloOASIS { get; set; }
         public MongoDBOASISProviderSettings MongoDBOASIS { get; set; }
         public EOSIOASISProviderSettings EOSIOOASIS { get; set; }
@@ -77,6 +79,21 @@ namespace NextGenSoftware.OASIS.API.DNA
         // Network Providers
         public ActivityPubOASISProviderSettings ActivityPubOASIS { get; set; }
         public GoogleCloudOASISProviderSettings GoogleCloudOASIS { get; set; }
+    }
+
+    public class AWSOASISProviderSettings : ProviderSettingsBase
+    {
+        public string Region { get; set; } = "us-east-1";
+        public string AccessKey { get; set; }
+        public string SecretKey { get; set; }
+        public string ServiceUrl { get; set; }
+    }
+
+    public class AzureStorageOASISProviderSettings : ProviderSettingsBase
+    {
+        public string HolonContainer { get; set; } = "oasis-holons";
+        public string AvatarContainer { get; set; } = "oasis-avatars";
+        public string AvatarDetailContainer { get; set; } = "oasis-avatar-details";
     }
 
     public class EmailSettings

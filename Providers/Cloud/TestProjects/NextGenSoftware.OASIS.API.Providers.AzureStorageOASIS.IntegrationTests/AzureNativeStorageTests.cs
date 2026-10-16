@@ -18,7 +18,8 @@ public class AzureNativeStorageTests
         var names=new[] {"oasis-native-holons","oasis-native-avatars","oasis-native-details"};
         var service=new BlobServiceClient(connection);
         foreach(var name in names) Assert.IsFalse((await service.GetBlobContainerClient(name).ExistsAsync()).Value,"Refusing existing fixture container.");
-        var provider=new AzureStorageOASIS(connection,names[0],names[1],names[2]);
+        var provider=NextGenSoftware.OASIS.OASISBootLoader.CloudProviderFactory.CreateAzureStorage(new NextGenSoftware.OASIS.API.DNA.AzureStorageOASISProviderSettings
+            {ConnectionString=connection,HolonContainer=names[0],AvatarContainer=names[1],AvatarDetailContainer=names[2]},null!);
         try {
             var active=await provider.ActivateProviderAsync();
             Assert.IsFalse(active.IsError,active.Message);Assert.IsTrue(provider.IsProviderActivated);

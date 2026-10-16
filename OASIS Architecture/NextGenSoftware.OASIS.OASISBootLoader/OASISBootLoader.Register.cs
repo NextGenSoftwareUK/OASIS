@@ -289,6 +289,12 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             }
                             break;
 
+                        case ProviderType.AWSOASIS:
+                            result.Result = CloudProviderFactory.CreateAws(OASISDNA.OASIS.StorageProviders.AWSOASIS,overrideConnectionString);
+                            break;
+                        case ProviderType.AzureStorageOASIS:
+                            result.Result = CloudProviderFactory.CreateAzureStorage(OASISDNA.OASIS.StorageProviders.AzureStorageOASIS,overrideConnectionString);
+                            break;
                         case ProviderType.AzureCosmosDBOASIS:
                             {
                                 AzureCosmosDBOASIS azureCosmosDBOASIS = new AzureCosmosDBOASIS(
@@ -568,7 +574,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
             }
             catch (Exception e)
             {
-                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In OASISBootLoader In Method RegisterProviderInternal. Reason: {e}");
+                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In OASISBootLoader In Method RegisterProviderInternal. Reason: {e}", e);
             }
 
             return result;

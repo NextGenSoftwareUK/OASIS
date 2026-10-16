@@ -44,8 +44,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
             _holonContainer = holonContainer;
             _avatarContainer = avatarContainer;
             _detailContainer = avatarDetailContainer;
-            if(_detailContainer==_avatarContainer || _detailContainer==_holonContainer)
-                throw new ArgumentException("Avatar details require a distinct blob container.",nameof(avatarDetailContainer));
+            if(_detailContainer==_avatarContainer || _detailContainer==_holonContainer || _holonContainer==_avatarContainer)
+                throw new ArgumentException("Holons, avatars and avatar details require three distinct blob containers.",nameof(avatarDetailContainer));
 
             ProviderName = "AzureStorageOASIS";
             ProviderDescription = "Azure Blob Storage Provider — JSON holons and avatars as blobs";
