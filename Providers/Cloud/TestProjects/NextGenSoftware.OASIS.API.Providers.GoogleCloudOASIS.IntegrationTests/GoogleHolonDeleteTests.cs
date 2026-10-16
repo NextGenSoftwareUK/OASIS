@@ -3,6 +3,7 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.IntegrationTests;
 
@@ -10,6 +11,88 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.IntegrationTests;
 [DoNotParallelize]
 public class GoogleHolonDeleteTests
 {
+    [DataTestMethod]
+    [DataRow(false,0)] [DataRow(true,0)]
+    [DataRow(false,1)] [DataRow(true,1)]
+    [DataRow(false,2)] [DataRow(true,2)]
+    public async Task V2HardDeleteReplicatesOnlyAcknowledgedSuccess(bool synchronous,int mode)
+    {
+        Assert.AreEqual("127.0.0.1:18080",Environment.GetEnvironmentVariable("FIRESTORE_EMULATOR_HOST"));
+        var path=Path.GetFullPath("TestResults/GoogleRoutingFiles/tombstone-routing.db");
+        if(File.Exists(path)) Assert.Fail("Retained Google routing evidence exists; refusing overwrite.");
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        const string project="oasis-google-native";
+        var db=new FirestoreDbBuilder {ProjectId=project,EmulatorDetection=Google.Api.Gax.EmulatorDetection.EmulatorOnly}.Build();
+        var provider=new GoogleCloudOASIS(projectId:project,enableStorage:false,enableFirestore:true,enableBigQuery:false);
+        var sqlite=new NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS($"Data Source={path};Pooling=False");
+        var field=typeof(GoogleCloudOASIS).GetField("_firestoreDb",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+        var verified=false;
+        try
+        {
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);Assert.IsFalse((await sqlite.ActivateProviderAsync()).IsError);
+            var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {
+                HyperDriveMode=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2,StorageProviders=new(),SubscriptionConfig=new() {PlanType="Gold"}}};
+            var manager=new Core.Managers.ProviderManager(null,dna) {IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=true};
+            manager.RegisterProvider(provider);manager.RegisterProvider(sqlite);
+            var types=new[] {new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.GoogleCloudOASIS),
+                new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.SQLLiteDBOASIS)};
+            Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(types).IsError);
+            Assert.IsFalse(manager.SetAndReplaceAutoReplicationListForProviders(types).IsError);
+            var router=new Core.Managers.OASISHyperDrive.OASISHyperDrive(manager);
+            foreach(var primary in mode==0 ? types:types.Take(1))
+            {
+                var id=Guid.NewGuid();var document=db.Collection("holons").Document(id.ToString());var acknowledged=false;
+                try
+                {
+                    Assert.IsFalse((await provider.SaveHolonAsync(new Holon {Id=id,Name="google-original",IsActive=true},saveChildren:false)).IsError);acknowledged=true;
+                    Assert.IsFalse((await sqlite.SaveHolonAsync(new Holon {Id=id,Name="sqlite-original",IsActive=true},saveChildren:false)).IsError);
+                    var fault=new DeleteBoundaryClient(db.Client,document,mode==2,id);
+                    var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0;
+                    if(mode!=0) field.SetValue(provider,FirestoreDb.Create(project,fault));
+                    var request=new Core.StorageOperationRequest {Operation="DeleteHolon",HolonId=id,SoftDelete=false,PreferredProvider=primary.Value};
+                    var result=synchronous ? router.RouteRequest<IHolon>(request):await router.RouteRequestAsync<IHolon>(request);
+                    field.SetValue(provider,db);
+                    var native=await document.GetSnapshotAsync();
+                    if(mode==0)
+                    {
+                        Assert.IsFalse(result.IsError,result.Message);Assert.IsFalse(result.IsWarning,result.Message);
+                        Assert.AreEqual(id,result.Result.Id);
+                        Assert.AreEqual(primary.Value==Core.Enums.ProviderType.GoogleCloudOASIS ? "google-original":"sqlite-original",result.Result.Name);
+                        Assert.IsFalse(native.Exists);Assert.IsNull((await sqlite.LoadHolonAsync(id,loadChildren:false)).Result);
+                    }
+                    else
+                    {
+                        Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsFalse(result.IsSaved);
+                        Assert.AreEqual(1,fault.Attempts);
+                        Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
+                        Assert.AreEqual("sqlite-original",(await sqlite.LoadHolonAsync(id,loadChildren:false)).Result.Name);
+                        if(mode==1)
+                        {
+                            Assert.AreEqual(StorageLifecycleConflictException.ErrorCode,result.ErrorCode);Assert.AreEqual(0,fault.Acknowledgements);
+                            Assert.IsTrue(native.Exists);
+                            Assert.AreEqual("newer-owned-record",NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<Holon>(native.GetValue<string>("data_json")).Name);
+                        }
+                        else
+                        {
+                            Assert.IsFalse(native.Exists);Assert.AreEqual(1,fault.Acknowledgements);
+                            Assert.IsInstanceOfType(result.Exception,typeof(GoogleFirestoreMutationReconciliationException));
+                            var pending=(GoogleFirestoreMutationReconciliationException)result.Exception;
+                            Assert.AreSame(fault.Cause,pending.InnerException);Assert.AreEqual(document.Path,pending.DocumentPath);
+                            Assert.IsTrue(NativeMutationReconciliation.IsRequired(pending));
+                        }
+                    }
+                }
+                finally {field.SetValue(provider,db);if(acknowledged) await document.DeleteAsync();}
+            }
+            verified=true;
+        }
+        finally
+        {
+            field.SetValue(provider,db);await provider.DeActivateProviderAsync();await sqlite.DeActivateProviderAsync();
+            if(verified) foreach(var file in new[] {path,path+"-wal",path+"-shm"}) if(File.Exists(file)) File.Delete(file);
+        }
+    }
+
     [DataTestMethod]
     [DataRow(false,false)] [DataRow(false,true)]
     [DataRow(true,false)] [DataRow(true,true)]
