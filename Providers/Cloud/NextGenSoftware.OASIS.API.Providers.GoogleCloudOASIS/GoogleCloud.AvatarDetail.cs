@@ -57,12 +57,14 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 }
 
                 // Save avatar detail to Firestore with FULL property mapping
-                ArgumentNullException.ThrowIfNull(avatarDetail);
-                if(avatarDetail.Id==Guid.Empty) avatarDetail.Id=Guid.NewGuid();
-                var docRef = _firestoreDb.Collection("avatarDetails").Document(avatarDetail.Id.ToString());
-                var avatarDetailData = EncodeAvatarDetail(avatarDetail);
+                var snapshot=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<AvatarDetail>(
+                    NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(avatarDetail));
+                if(snapshot.Id==Guid.Empty) snapshot.Id=Guid.NewGuid();
+                var docRef = _firestoreDb.Collection("avatarDetails").Document(snapshot.Id.ToString());
+                var avatarDetailData = EncodeAvatarDetail(snapshot);
                 
                 await ObserveFirestoreMutationAsync(()=>docRef.SetAsync(avatarDetailData),docRef.Path);
+                avatarDetail.Id=snapshot.Id;
                 
                 result.Result = avatarDetail;
                 result.IsSaved = true;

@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 Google native15/15 passes22s: four sync/async avatar/profile-detail official SDK outage cases preserve caller IDs/provider keys until acknowledgement, retain attempted fully qualified document identity in reconciliation error, then independently verify a separate healthy save publishes matching stored identity. Detached canonical snapshots replace pre-ack caller mutation. Initial fixture path-prefix failures corrected, not misreported as production regression proof. Durable outcome recovery/physical ack loss/full interfaces/live service/hosted release still open.
+
 2026-10-16 Google native11/11 passes14s, zero skips: four active/deleted combinations independently verify native isActive/isDeleted match canonical payload. Two mismatches reproduced before changing SaveHolon isDeleted from !IsActive to core IsDeleted. Existing V2 and lifecycle evidence retained. No existing-data rewrite or broad read-policy change; full certification remains open.
 
 2026-10-16 Google native7/7 passes14s after reproducing2inactive-but-undeleted lifecycle failures. Shared transaction now uses core IsDeleted instead of !IsActive for tombstone selection/conflicts. Sync/async active/inactive pair tests verify raw initial state, exact actor/timestamp/data, repeat and hard deletion. Existing V2 cases retained; broad interface/history/recovery/live/hosted gates remain open.
