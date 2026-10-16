@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+Solana update-origin follow-up: existing avatar/detail/holon/bulk updates retain stored creation origin (including unknown/null), and only confirmed saves publish origin back to source/return objects. Forty new controlled provider-boundary cases pass within full unit162/162 (1s,zero skips). Actual native finality/routing, malformed optional origin and full audit/DTO/hosted/recovery gates remain open; no chain submission this turn.
+
 Solana envelope follow-up: VersionId/IsPublic/nullable creation-provider/OASIS origin now map through avatar/detail/holon encrypted typed memos. Six encrypted round trips and three missing-legacy-field cases pass within full maintained unit122/122 (2s,zero skips). No plaintext index/ACL/publication change, no generated legacy IDs or version history. Live finalized validation still blocked at retained505; full DTO/native V2/hosted/recovery gates remain open.
 
 Solana native refresh (2026-10-15 local/16UTC): retained Agave4.3.0 inspection returns finalized505/no finalized fixture signatures; fresh log repeats vote-switch stake0 at508. No transaction submitted/reset/warp/replay/download; owned node stopped. Runner inspection no longer reads client signing/encryption files, loads Solnet or builds consumer; actual RPC run succeeds with Get-Content forbidden. Full live finality remains unresolved. Source audit confirms missing VersionId/IsPublic/creation-origin envelope fields in Solana DTO adapters as next implementation gap; encrypted payload mapping still required, not yet complete. Priority order unchanged.
