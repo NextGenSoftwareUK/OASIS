@@ -52,7 +52,7 @@ public partial class EthereumOASISIntegrationTests
                 Assert.IsTrue(balance.IsLoaded);
                 Assert.AreEqual(1, balance.LoadedCount);
                 var nativeBalance = await web3.Eth.GetBalance.SendRequestAsync(request.WalletAddress);
-                Assert.AreEqual((double)Nethereum.Util.UnitConversion.Convert.FromWei(nativeBalance.Value), balance.Result);
+                Assert.AreEqual(double.Parse(Nethereum.Util.UnitConversion.Convert.FromWei(nativeBalance.Value).ToString(System.Globalization.CultureInfo.InvariantCulture),System.Globalization.CultureInfo.InvariantCulture), balance.Result);
             }
             var empty = await provider.GetTransactionsAsync(new GetWeb3TransactionsRequest {
                 WalletAddress = "0x3333333333333333333333333333333333333333", FromBlock = height, ToBlock = height });

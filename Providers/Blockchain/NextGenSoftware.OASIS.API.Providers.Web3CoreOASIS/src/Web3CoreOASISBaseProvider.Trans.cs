@@ -376,131 +376,18 @@ public partial class Web3CoreOASISBaseProvider
         =>BurnExplicitErc20Async(request);
 
     public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
-    {
-        return LockTokenAsync(request).Result;
-    }
+        =>LockTokenAsync(request).GetAwaiter().GetResult();
 
-    public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
-    {
-        var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-        string errorMessage = "Error in LockTokenAsync method in Web3CoreOASIS. Reason: ";
-
-        try
-        {
-            if (!IsProviderActivated || _web3Client == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || 
-                string.IsNullOrWhiteSpace(request.FromWalletPrivateKey))
-            {
-                OASISErrorHandling.HandleError(ref result, "Token address and from wallet private key are required");
-                return result;
-            }
-
-            // Lock token by transferring to bridge pool
-            var bridgePoolAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
-            // Get token balance to determine lock amount
-            var erc20Abi = "[{\"constant\":true,\"inputs\":[{\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"name\":\"balance\",\"type\":\"uint256\"}],\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"type\":\"function\"}]";
-            var senderAccount = new Account(request.FromWalletPrivateKey);
-            var web3Client = new Web3(senderAccount, _hostURI);
-            var erc20Contract = web3Client.Eth.GetContract(erc20Abi, request.TokenAddress);
-            var balanceOfFunction = erc20Contract.GetFunction("balanceOf");
-            var balance = await balanceOfFunction.CallAsync<BigInteger>(senderAccount.Address);
-            var decimalsFunction = erc20Contract.GetFunction("decimals");
-            var decimals = await decimalsFunction.CallAsync<byte>();
-            var multiplier = BigInteger.Pow(10, decimals);
-            var lockAmount = balance > 0 ? (decimal)balance / (decimal)multiplier : 1m;
-
-            var sendRequest = new SendWeb3TokenRequest
-            {
-                FromTokenAddress = request.TokenAddress,
-                FromWalletPrivateKey = request.FromWalletPrivateKey,
-                ToWalletAddress = bridgePoolAddress,
-                Amount = lockAmount
-            };
-
-            return await SendTokenAsync(sendRequest);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-        return result;
-    }
+    public Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
+        =>ExecuteTokenEscrowAsync(request?.LockId??Guid.Empty,request?.TokenAddress,request?.EscrowContractAddress,
+            request?.LockedByAvatarId??Guid.Empty,request?.FromWalletPrivateKey,request?.FromWalletAddress,request?.Amount??0,false);
 
     public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request)
-    {
-        return UnlockTokenAsync(request).Result;
-    }
+        =>UnlockTokenAsync(request).GetAwaiter().GetResult();
 
-    public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
-    {
-        var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-        string errorMessage = "Error in UnlockTokenAsync method in Web3CoreOASIS. Reason: ";
-
-        try
-        {
-            if (!IsProviderActivated || _web3Client == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress))
-            {
-                OASISErrorHandling.HandleError(ref result, "Token address is required");
-                return result;
-            }
-
-            // Get recipient address from KeyManager using UnlockedByAvatarId
-            var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager.Instance, ProviderType.Value, request.UnlockedByAvatarId);
-            if (toWalletResult.IsError || string.IsNullOrWhiteSpace(toWalletResult.Result))
-            {
-                OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet address for avatar");
-                return result;
-            }
-
-            // Unlock token by transferring from bridge pool to recipient
-            var bridgePoolAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
-            var bridgePoolPrivateKey = _chainPrivateKey ?? string.Empty;
-
-            if (string.IsNullOrWhiteSpace(bridgePoolPrivateKey))
-            {
-                OASISErrorHandling.HandleError(ref result, "Bridge pool private key is not configured");
-                return result;
-            }
-
-            // Get unlock amount from bridge pool balance
-            var erc20Abi = "[{\"constant\":true,\"inputs\":[{\"name\":\"_owner\",\"type\":\"address\"}],\"name\":\"balanceOf\",\"outputs\":[{\"name\":\"balance\",\"type\":\"uint256\"}],\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"type\":\"function\"}]";
-            var bridgeAccount = new Account(bridgePoolPrivateKey);
-            var web3Client = new Web3(bridgeAccount, _hostURI);
-            var erc20Contract = web3Client.Eth.GetContract(erc20Abi, request.TokenAddress);
-            var balanceOfFunction = erc20Contract.GetFunction("balanceOf");
-            var balance = await balanceOfFunction.CallAsync<BigInteger>(bridgeAccount.Address);
-            var decimalsFunction = erc20Contract.GetFunction("decimals");
-            var decimals = await decimalsFunction.CallAsync<byte>();
-            var multiplier = BigInteger.Pow(10, decimals);
-            var unlockAmount = balance > 0 ? (decimal)balance / (decimal)multiplier : 1m;
-
-            var sendRequest = new SendWeb3TokenRequest
-            {
-                FromTokenAddress = request.TokenAddress,
-                FromWalletPrivateKey = bridgePoolPrivateKey,
-                ToWalletAddress = toWalletResult.Result,
-                Amount = unlockAmount
-            };
-
-            return await SendTokenAsync(sendRequest);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-        return result;
-    }
+    public Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
+        =>ExecuteTokenEscrowAsync(request?.LockId??Guid.Empty,request?.TokenAddress,request?.EscrowContractAddress,
+            request?.UnlockedByAvatarId??Guid.Empty,null,null,0,true);
 
     public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
     {
