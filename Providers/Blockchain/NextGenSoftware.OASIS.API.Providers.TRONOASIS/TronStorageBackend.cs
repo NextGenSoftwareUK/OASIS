@@ -111,6 +111,19 @@ public sealed class TronStorageBackend : IKeyValueBackend
         return Write("remove(string)", new[] { "string" }, new object[] { key }, cancellationToken);
     }
 
+    internal static void ValidatePage(string[] entries,BigInteger cursor,BigInteger next,BigInteger count,BigInteger? total,SortedSet<string> keys)
+    {
+        if(count<0 || next<cursor || next>count || next-cursor!=entries.Length
+            || entries.Length>256 || (total.HasValue && total!=count) || (next==cursor && next!=count))
+            throw new InvalidDataException("Storage pagination returned inconsistent cursor or total.");
+        var pageKeys=new HashSet<string>(StringComparer.Ordinal);
+        foreach(var entry in entries)
+            if(string.IsNullOrEmpty(entry) || keys.Contains(entry) || !pageKeys.Add(entry))
+                throw new InvalidDataException("Storage pagination returned invalid or duplicate keys.");
+        // A rejected page cannot publish even its valid prefix into the accumulated key set.
+        keys.UnionWith(pageKeys);
+    }
+
     public async Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(prefix);
@@ -128,14 +141,8 @@ public sealed class TronStorageBackend : IKeyValueBackend
             var entries = ((System.Collections.IEnumerable)page[0].Result).Cast<string>().ToArray();
             var next = (BigInteger)page[1].Result;
             var count = (BigInteger)page[2].Result;
-            if (count < 0 || next < cursor || next > count || next - cursor != entries.Length
-                || entries.Length > 256 || (total.HasValue && total != count) || (next == cursor && next != count))
-                throw new InvalidOperationException("Storage pagination returned inconsistent cursor or total.");
+            ValidatePage(entries,cursor,next,count,total,keys);
             total = count;
-            foreach (var entry in entries)
-            {
-                if (string.IsNullOrEmpty(entry) || !keys.Add(entry)) throw new InvalidOperationException("Storage pagination returned invalid or duplicate keys.");
-            }
             cursor = next;
         } while (cursor < total);
         if (await Revision() != revision) throw new InvalidOperationException("Storage changed during enumeration.");
