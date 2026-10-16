@@ -32,6 +32,9 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             var savedParent=await mongo.SaveHolonAsync(parent,saveChildren:false);savedParent.IsError.Should().BeFalse(savedParent.Message);
             var key=savedParent.Result.ProviderUniqueStorageKey[ProviderType.MongoDBOASIS];
             foreach(var node in new[] {root,child,grand,deleted}) (await mongo.SaveHolonAsync(node,saveChildren:false)).IsError.Should().BeFalse();
+            var embedded = await records.UpdateOneAsync(row=>row.HolonId==root.Id,
+                Builders<NativeHolon>.Update.Set(row=>row.Children,root.Children));
+            embedded.IsAcknowledged.Should().BeTrue();embedded.MatchedCount.Should().Be(1);
             (bool Children,bool Recursive,int Depth,int Initial)[] options={
                 (Children:false,Recursive:false,Depth:0,Initial:0),(true,false,0,0),(true,true,0,0),
                 (true,true,1,0),(true,true,2,0),(true,true,2,1),(true,true,1,1)};
