@@ -220,11 +220,13 @@ public partial class Web3CoreOASISBaseProvider
             var nft = new Web3NFT
             {
                 NFTTokenAddress = nftTokenAddress,
+                Title = name,
                 Symbol = symbol
             };
 
             result.Result = nft;
             result.IsError = false;
+            result.IsLoaded = true;
             result.Message = "NFT data loaded successfully.";
         }
         catch (Exception ex)

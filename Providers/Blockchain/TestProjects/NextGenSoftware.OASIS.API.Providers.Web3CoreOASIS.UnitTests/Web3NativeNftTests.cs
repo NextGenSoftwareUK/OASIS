@@ -38,6 +38,17 @@ public partial class Web3NativeStorageTests
         {
             var activated = await provider.ActivateProviderAsync();
             Assert.IsFalse(activated.IsError, activated.Message);
+            var metadata = await provider.LoadOnChainNFTDataAsync(receipt.ContractAddress);
+            Assert.IsFalse(metadata.IsError, metadata.Message);
+            Assert.IsTrue(metadata.IsLoaded);
+            Assert.AreEqual("Web3CoreOASIS", metadata.Result.Title);
+            Assert.AreEqual("MNFT", metadata.Result.Symbol);
+            Assert.AreEqual(receipt.ContractAddress, metadata.Result.NFTTokenAddress);
+            var syncMetadata = provider.LoadOnChainNFTData(receipt.ContractAddress);
+            Assert.IsFalse(syncMetadata.IsError, syncMetadata.Message);
+            Assert.IsTrue(syncMetadata.IsLoaded);
+            Assert.AreEqual(metadata.Result.Title, syncMetadata.Result.Title);
+            Assert.AreEqual(metadata.Result.Symbol, syncMetadata.Result.Symbol);
             foreach (var id in new[] { BigInteger.Zero, BigInteger.One << 63, (BigInteger.One << 256) - 1 })
             {
                 var seeded = await contract.GetFunction("seedToken").SendTransactionAndWaitForReceiptAsync(
