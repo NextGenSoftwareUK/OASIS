@@ -13,15 +13,19 @@ $previous=@{}
 foreach($name in $names){$previous[$name]=[Environment]::GetEnvironmentVariable($name)}
 try {
     $freeBefore=(Get-PSDrive C).Free
-    & wsl -d Ubuntu -- bash -lc 'test -x /var/tmp/oasis-runtimes/agave-4.3.0/solana-test-validator && test -f /var/tmp/oasis-solana/ledger/genesis.bin && test -f /var/tmp/oasis-solana/fixture-keypair.json && test -f /var/tmp/oasis-solana/storage-key'
+    $prerequisites='test -x /var/tmp/oasis-runtimes/agave-4.3.0/solana-test-validator && test -f /var/tmp/oasis-solana/ledger/genesis.bin'
+    if(!$InspectRecent){$prerequisites+=' && test -f /var/tmp/oasis-solana/fixture-keypair.json && test -f /var/tmp/oasis-solana/storage-key'}
+    & wsl -d Ubuntu -- bash -lc $prerequisites
     if($LASTEXITCODE){throw 'Retained runtime, ledger and keys are required; no download/reset/generation attempted.'}
     $version=(& wsl -d Ubuntu -- /var/tmp/oasis-runtimes/agave-4.3.0/solana-test-validator --version).Trim()
     if($version -ne 'solana-test-validator 4.3.0 (src:825efd18; feat:c9ad34d2, client:Agave)'){throw 'Retained runtime version differs.'}
     & wsl -d Ubuntu -- bash -lc 'test -z "$(pgrep -x solana-test-val)" && test -z "$(ss -ltnH sport = :18899)"'
     if($LASTEXITCODE){throw 'A validator or owned port is already active; refusing duplicate environment.'}
     $project=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.IntegrationTests.csproj'
-    & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
-    if($LASTEXITCODE){throw 'Consumer build failed; no validator started.'}
+    if(!$InspectRecent){
+        & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
+        if($LASTEXITCODE){throw 'Consumer build failed; no validator started.'}
+    }
     $owned=Start-Process -FilePath wsl.exe -ArgumentList @('-d','Ubuntu','--','/usr/bin/taskset','-c','0-3','/var/tmp/oasis-runtimes/agave-4.3.0/solana-test-validator','--ledger','/var/tmp/oasis-solana/ledger','--bind-address','127.0.0.1','--rpc-port','18899','--faucet-port','18900','--dynamic-port-range','18901-18927','--limit-ledger-size','10000','--rpc-pubsub-worker-threads','1','--rpc-pubsub-notification-threads','1','--quiet') -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $work 'validator-current.log') -RedirectStandardError (Join-Path $work 'validator-current.err')
     $deadline=[DateTime]::UtcNow.AddSeconds(30)
     $ready=$false
@@ -48,20 +52,23 @@ try {
         }
         if(!$rootAdvanced){throw "Validator finalized root did not advance from $($initialRoot.result); no test transaction submitted. Inspect retained consensus state without resetting it."}
     }
+    if($InspectRecent){
+        # Public fixture address verified against the retained genesis/key identity.
+        # Inspection never needs client signing/encryption keys or a .NET build.
+        $publicAddress='Fi4AJCtDCehEVc7CiQVcHC9t57BmKk3B6gtMjWqA4Ffr'
+        $body=@{jsonrpc='2.0';id=1;method='getSignaturesForAddress';params=@($publicAddress,@{limit=5;commitment='finalized'})} | ConvertTo-Json -Depth 5 -Compress
+        $recent=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body $body -TimeoutSec 5
+        if($recent.error){throw 'Read-only native signature inspection failed.'}
+        if($null -eq $recent.result){throw 'Native signature inspection omitted its result.'}
+        @{FinalizedSlot=$initialRoot.result;Count=@($recent.result).Count;Transactions=@($recent.result | Select-Object signature,slot,confirmationStatus,err)} | ConvertTo-Json -Depth 5 -Compress | Write-Output
+        return
+    }
     Add-Type -Path (Join-Path (Split-Path $project) 'bin/Debug/net10.0/Solnet.Wallet.dll')
     $secret=[byte[]](Get-Content -LiteralPath '\\wsl.localhost\Ubuntu\var\tmp\oasis-solana\fixture-keypair.json' -Raw | ConvertFrom-Json)
     $env:SOLANA_PRIVATE_KEY=[Solnet.Wallet.Utilities.Encoders]::Base58.EncodeData($secret)
     $env:SOLANA_PUBLIC_KEY=[Solnet.Wallet.Utilities.Encoders]::Base58.EncodeData([byte[]]$secret[32..63])
     $env:SOLANA_RPC_URL='http://127.0.0.1:18899'
     $env:OASIS_SOLANA_STORAGE_ENCRYPTION_KEY=(Get-Content -LiteralPath '\\wsl.localhost\Ubuntu\var\tmp\oasis-solana\storage-key' -Raw).Trim()
-    if($InspectRecent){
-        $body=@{jsonrpc='2.0';id=1;method='getSignaturesForAddress';params=@($env:SOLANA_PUBLIC_KEY,@{limit=5;commitment='finalized'})} | ConvertTo-Json -Depth 5 -Compress
-        $recent=Invoke-RestMethod -Uri $env:SOLANA_RPC_URL -Method Post -ContentType 'application/json' -Body $body -TimeoutSec 5
-        if($recent.error){throw 'Read-only native signature inspection failed.'}
-        if($null -eq $recent.result){throw 'Native signature inspection omitted its result.'}
-        @{FinalizedSlot=$initialRoot.result;Count=@($recent.result).Count;Transactions=@($recent.result | Select-Object signature,slot,confirmationStatus,err)} | ConvertTo-Json -Depth 5 -Compress | Write-Output
-        return
-    }
     $testStarted=[DateTime]::UtcNow
     $testArguments=@('test',$project,'--no-build','--no-restore','/m:2','/nr:false','--logger','trx;LogFileName=solana-validator-current.trx','--results-directory',$work,'-v:q')
     if($Diagnostics){$testArguments+=@('--diag',(Join-Path $work 'validator-test-current.diag.log'))}
