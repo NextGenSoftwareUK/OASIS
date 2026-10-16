@@ -108,15 +108,21 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
             try
             {
                 ArgumentNullException.ThrowIfNull(holon);
+                var source=holon;
+                holon=Deserialise<Holon>(Serialise(source))!;
                 if(holon.Id==Guid.Empty) holon.Id=Guid.NewGuid();
                 var key = HolonKey(holon);
+                holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS]=key;
                 var json = Serialise(holon);
                 var container = _serviceClient.GetBlobContainerClient(_holonContainer);
                 var blob = container.GetBlobClient(key);
                 using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
                 await ObserveBlobMutationAsync(()=>blob.UploadAsync(stream, overwrite: true),blob);
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = key;
-                result.Result = holon; result.Message = $"AzureStorageOASIS: Saved holon blob '{key}'.";
+                source.Id=holon.Id;
+                source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+                source.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = key;
+                result.Result = source;result.IsSaved=true; result.Message = $"AzureStorageOASIS: Saved holon blob '{key}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
@@ -365,15 +371,22 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
+                ArgumentNullException.ThrowIfNull(avatar);
+                var source=avatar;
+                avatar=Deserialise<Avatar>(Serialise(source))!;
                 if(avatar.Id==Guid.Empty) avatar.Id=Guid.NewGuid();
                 var key = avatar.Id.ToString();
+                avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS]=key;
                 var json = Serialise(avatar);
                 var container = _serviceClient.GetBlobContainerClient(_avatarContainer);
                 var blob = container.GetBlobClient(key);
                 using var stream = new MemoryStream(Encoding.UTF8.GetBytes(json));
                 await ObserveBlobMutationAsync(()=>blob.UploadAsync(stream, overwrite: true),blob);
-                avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = key;
-                result.Result = avatar; result.Message = $"AzureStorageOASIS: Saved avatar blob '{key}'.";
+                source.Id=avatar.Id;
+                source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+                source.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = key;
+                result.Result = source;result.IsSaved=true; result.Message = $"AzureStorageOASIS: Saved avatar blob '{key}'.";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
