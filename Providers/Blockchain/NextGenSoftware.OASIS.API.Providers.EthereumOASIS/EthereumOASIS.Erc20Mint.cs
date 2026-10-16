@@ -28,24 +28,13 @@ public partial class EthereumOASIS
                 result.ErrorCode = keys.ErrorCode;
                 return result;
             }
-            if (keys.Result == null || keys.Result.Count == 0 || keys.Result.Any(string.IsNullOrWhiteSpace))
-                throw new InvalidOperationException("Mint requires authorized Ethereum signing wallets.");
-            var accounts=keys.Result.Select(key=>new Nethereum.Web3.Accounts.Account(key,ChainId))
-                .GroupBy(account=>account.Address,StringComparer.OrdinalIgnoreCase).Select(group=>group.First()).ToList();
-            var selected=accounts[0];
-            if(accounts.Count>1)
+            var selected=await NextGenSoftware.OASIS.Providers.Shared.Evm.EvmMintAccountSelection.SelectAsync(
+                keys.Result,ChainId,()=>ResolveDefaultTokenMintWalletAsync(request.MintedByAvatarId));
+            if(selected.IsError)
             {
-                var wallet=await ResolveDefaultTokenMintWalletAsync(request.MintedByAvatarId);
-                if(wallet.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref result,wallet.Message,wallet.Exception);result.ErrorCode=wallet.ErrorCode;return result;
-                }
-                if(!Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(wallet.Result))
-                    throw new InvalidOperationException("Multiple Ethereum wallets require a valid configured default wallet address.");
-                selected=accounts.SingleOrDefault(account=>string.Equals(account.Address,wallet.Result,StringComparison.OrdinalIgnoreCase));
-                if(selected==null) throw new UnauthorizedAccessException("The default mint wallet has no authorized signing key.");
+                OASISErrorHandling.HandleError(ref result,selected.Message,selected.Exception);result.ErrorCode=selected.ErrorCode;return result;
             }
-            return await ExecuteErc20MutationCoreAsync(selected.PrivateKey, request.TokenAddress, request.ToWalletAddress, request.Amount, TokenMutation.Mint);
+            return await ExecuteErc20MutationCoreAsync(selected.Result.PrivateKey, request.TokenAddress, request.ToWalletAddress, request.Amount, TokenMutation.Mint);
         }
         catch (Exception cause)
         {
