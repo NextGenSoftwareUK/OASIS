@@ -299,19 +299,16 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         }
 
         private static NextGenSoftware.OASIS.API.Core.Objects.InventoryItem CloneInventoryItem(
-            NextGenSoftware.OASIS.API.Core.Objects.InventoryItem item, int quantity) =>
-            new NextGenSoftware.OASIS.API.Core.Objects.InventoryItem
-            {
-                Id = item.Id, Name = item.Name, Description = item.Description, HolonType = item.HolonType,
-                MetaData = item.MetaData == null ? null : new Dictionary<string, object>(item.MetaData),
-                Image2D = item.Image2D, Image2DURI = item.Image2DURI, Object3D = item.Object3D,
-                Object3DURI = item.Object3DURI, Quantity = quantity, Stack = item.Stack,
-                GameSource = item.GameSource, ItemType = item.ItemType, NftId = item.NftId,
-                GeoNFTId = item.GeoNFTId, Rarity = item.Rarity, MaxQuantity = item.MaxQuantity,
-                Weight = item.Weight, IsUsable = item.IsUsable, IsTradeable = item.IsTradeable,
-                AcquiredOn = item.AcquiredOn, LastUsedOn = item.LastUsedOn,
-                Properties = item.Properties == null ? null : new Dictionary<string, object>(item.Properties)
-            };
+            NextGenSoftware.OASIS.API.Core.Objects.InventoryItem item, int quantity)
+        {
+            // Owned inventory is a complete value, not a projection. Reuse the canonical
+            // storage codec so transfer does not silently discard inherited holon fields.
+            var moved = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson
+                .Deserialize<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>(
+                    NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(item));
+            moved.Quantity = quantity;
+            return moved;
+        }
 
         private static OASISResult<HyperDriveAvatarDetailProjection> GameplayRejected(string message) => new OASISResult<HyperDriveAvatarDetailProjection>
         { IsError = true, ErrorCode = "AVATAR_GAMEPLAY_REJECTED", Message = message };
