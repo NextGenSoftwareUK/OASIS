@@ -16,6 +16,8 @@ public static class SolanaEntitiesExtensions
             Address = avatarDetailDto.Address,
             Mobile = avatarDetailDto.Mobile,
             Username = avatarDetailDto.Username,
+            ActiveQuestId = avatarDetailDto.ActiveQuestId,
+            ActiveObjectiveId = avatarDetailDto.ActiveObjectiveId,
             Email = avatarDetailDto.Email,
             FirstName = avatarDetailDto.FirstName,
             LastName = avatarDetailDto.LastName,
