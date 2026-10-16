@@ -40,12 +40,15 @@ public partial class Neo4jOASIS
             AvatarDetail acknowledged;
             using (var session = _driver.AsyncSession())
             {
+                using var transaction = await session.BeginTransactionAsync();
                 var query = "MERGE (a:AvatarDetail {Id:$id}) SET a.Username=$username, a.Email=$email, a.ProviderKey=$id, a.SnapshotJson=$snapshot RETURN a";
                 dispatched = true;
-                var rows = await (await session.RunAsync(query, new { id = staged.Id.ToString(), username = staged.Username,
+                var rows = await (await transaction.RunAsync(query, new { id = staged.Id.ToString(), username = staged.Username,
                     email = staged.Email, snapshot = OasisJson.Serialize(staged) })).ToListAsync();
                 if (rows.Count != 1) throw new InvalidDataException("Neo4j detail save did not acknowledge exactly one record.");
                 acknowledged = ReadDetailNode(rows[0]["a"].As<Neo4j.Driver.INode>());
+                if (acknowledged.Id != staged.Id) throw new InvalidDataException("Neo4j detail save acknowledged another identity.");
+                await transaction.CommitAsync();
             }
             source.Id = acknowledged.Id;
             source.ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS] = acknowledged.Id.ToString();

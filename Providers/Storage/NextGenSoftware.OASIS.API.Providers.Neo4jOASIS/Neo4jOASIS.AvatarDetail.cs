@@ -23,62 +23,6 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         }
 
 
-        public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar Avatar)
-        {
-            var response = new OASISResult<IAvatar>();
-            try
-            {
-                // REAL Neo4j implementation for saving avatar
-                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
-                }
-
-                var staged = StageAvatar(Avatar);
-                var query = @"MERGE (a:Avatar {Id: $id}) 
-                            SET a.Username = $username, a.Email = $email, a.CreatedDate = $createdDate, a.ModifiedDate = $modifiedDate,
-                                a.ProviderKey = $id, a.SnapshotJson = $snapshot
-                            RETURN a";
-                var parameters = new 
-                { 
-                    id = staged.Id.ToString(),
-                    username = staged.Username,
-                    email = staged.Email,
-                    createdDate = staged.CreatedDate,
-                    modifiedDate = staged.ModifiedDate,
-                    snapshot = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(staged)
-                };
-                
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.RunAsync(query, parameters);
-                    var record = await result.SingleAsync();
-                    
-                    if (record != null)
-                    {
-                        var node = record["a"].As<Neo4j.Driver.INode>();
-                        response.Result = ReadAvatarNode(node);
-                        Avatar.Id = response.Result.Id;
-                        Avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS] = response.Result.Id.ToString();
-                        Avatar.IsNewHolon = false;
-                        response.IsSaved = true;
-                        response.IsError = false;
-                        response.Message = "Avatar saved successfully to Neo4j";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Failed to save avatar to Neo4j database");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error saving avatar to Neo4j: {ex.Message}");
-            }
-            return response;
-        }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar)
         {

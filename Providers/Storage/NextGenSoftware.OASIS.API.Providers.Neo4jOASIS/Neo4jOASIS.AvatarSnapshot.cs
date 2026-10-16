@@ -1,14 +1,52 @@
 using System;
 using System.IO;
+using System.Threading.Tasks;
 using Neo4j.Driver;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
+using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
 public partial class Neo4jOASIS
 {
+    public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar source)
+    {
+        var result = new OASISResult<IAvatar>();
+        var dispatched = false;
+        try
+        {
+            var staged = StageAvatar(source);
+            if (!IsProviderActivated || _driver == null) throw new InvalidOperationException("Neo4j provider is not activated.");
+            Avatar acknowledged;
+            using (var session = _driver.AsyncSession())
+            {
+                using var transaction = await session.BeginTransactionAsync();
+                const string query = "MERGE (a:Avatar {Id:$id}) SET a.Username=$username, a.Email=$email, a.ProviderKey=$id, a.SnapshotJson=$snapshot, a.CreatedDate=$createdDate, a.ModifiedDate=$modifiedDate RETURN a";
+                dispatched = true;
+                var rows = await (await transaction.RunAsync(query, new { id = staged.Id.ToString(), username = staged.Username,
+                    email = staged.Email, snapshot = OasisJson.Serialize(staged), createdDate = staged.CreatedDate, modifiedDate = staged.ModifiedDate })).ToListAsync();
+                if (rows.Count != 1) throw new InvalidDataException("Neo4j avatar save did not acknowledge exactly one record.");
+                acknowledged = ReadAvatarNode(rows[0]["a"].As<Neo4j.Driver.INode>());
+                if (acknowledged.Id != staged.Id) throw new InvalidDataException("Neo4j avatar save acknowledged another identity.");
+                await transaction.CommitAsync();
+            }
+            source.Id = acknowledged.Id;
+            source.ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS] = acknowledged.Id.ToString();
+            source.IsNewHolon = false;
+            result.Result = acknowledged; result.IsSaved = true;
+        }
+        catch (Exception cause)
+        {
+            result.IsError = true;
+            result.Exception = dispatched ? new Neo4jMutationReconciliationException(cause) : cause;
+            result.Message = result.Exception.Message;
+            if (!dispatched && (cause is ArgumentException || cause is InvalidDataException)) result.ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID";
+        }
+        return result;
+    }
+
     internal static Avatar StageAvatar(IAvatar source)
     {
         ArgumentNullException.ThrowIfNull(source);
