@@ -154,13 +154,18 @@ public partial class GoogleCloudOASIS : IAvatarTombstoneStorageProvider
     }
 
     private async Task<OASISResult<IAvatar>> ReadCanonicalAvatarSelectorAsync(string selector,bool email,int version)
+        => await ReadCanonicalAvatarSelectorAsync(selector,row=>string.Equals(email ? row.Email:row.Username,selector,StringComparison.OrdinalIgnoreCase),version);
+
+    private async Task<OASISResult<IAvatar>> ReadCanonicalAvatarSelectorAsync(string selector,Func<IAvatar,bool> predicate,int version)
     {
         var result=new OASISResult<IAvatar>();
         try {
             if(string.IsNullOrWhiteSpace(selector)) throw new ArgumentException("A nonblank avatar selector is required.");
+            ValidateFirestoreVersion(version);
             var loaded=await ReadCanonicalAvatarsAsync(version);
             if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IAvatar>,IAvatar>(loaded);
-            var matches=loaded.Result.Where(row=>string.Equals(email ? row.Email:row.Username,selector,StringComparison.OrdinalIgnoreCase)).Take(2).ToList();
+            if(loaded.Result==null) throw new InvalidDataException("Firestore avatar selector returned no collection.");
+            var matches=loaded.Result.Where(predicate).Take(2).ToList();
             if(matches.Count>1) throw new StorageIdentityAmbiguousException();
             if(matches.Count==0) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="No Firestore avatar matches selector.";}
             else {result.Result=matches[0];result.IsLoaded=true;}
@@ -168,6 +173,7 @@ public partial class GoogleCloudOASIS : IAvatarTombstoneStorageProvider
         catch(Exception cause) {
             OASISErrorHandling.HandleError(ref result,cause.Message,cause);
             if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
+            if(cause is ArgumentException || cause is NotSupportedException) result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
         }
         return result;
     }
