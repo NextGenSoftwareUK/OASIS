@@ -184,12 +184,15 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string ChainPrivateKey { get; set; }
         public long ChainId { get; set; }
         public string ContractAddress { get; set; }
+        public string TokenEscrowContractAddress { get; set; }
     }
 
     public class PolygonOASISProviderSettings : ProviderSettingsBase
     {
         public string ChainPrivateKey { get; set; }
+        public long ChainId { get; set; } = 137;
         public string ContractAddress { get; set; }
+        public string TokenEscrowContractAddress { get; set; }
         public string Abi { get; set; }
     }
 

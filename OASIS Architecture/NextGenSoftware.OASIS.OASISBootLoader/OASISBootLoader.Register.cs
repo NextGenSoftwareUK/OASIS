@@ -246,11 +246,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.ArbitrumOASIS:
                             {
-                                ArbitrumOASIS ArbitrumOASIS = new(
-                                    OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.ConnectionString,
-                                    OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.ChainPrivateKey,
-                                    OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.ChainId,
-                                    OASISDNA.OASIS.StorageProviders.ArbitrumOASIS.ContractAddress);
+                                var ArbitrumOASIS = EvmProviderFactory.CreateArbitrum(
+                                    OASISDNA.OASIS.StorageProviders.ArbitrumOASIS,OASISDNA.OASIS.HyperDriveMode,overrideConnectionString);
                                 ArbitrumOASIS.OnStorageProviderError += ArbitrumOASIS_StorageProviderError;
                                 result.Result = ArbitrumOASIS;
                             }
@@ -267,10 +264,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                             break;
                         case ProviderType.PolygonOASIS:
                             {
-                                PolygonOASIS PolygonOASIS = new(
-                                    OASISDNA.OASIS.StorageProviders.PolygonOASIS.ConnectionString,
-                                    OASISDNA.OASIS.StorageProviders.PolygonOASIS.ChainPrivateKey,
-                                    OASISDNA.OASIS.StorageProviders.PolygonOASIS.ContractAddress);
+                                var PolygonOASIS = EvmProviderFactory.CreatePolygon(
+                                    OASISDNA.OASIS.StorageProviders.PolygonOASIS,overrideConnectionString);
                                 PolygonOASIS.OnStorageProviderError += PolygonOASIS_StorageProviderError;
                                 result.Result = PolygonOASIS;
                             }

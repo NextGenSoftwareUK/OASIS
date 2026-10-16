@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj" />
+    <Compile Include="..\..\..\..\OASIS Architecture\NextGenSoftware.OASIS.OASISBootLoader\EvmProviderFactory.cs" Link="Production\EvmProviderFactory.cs" />
     <ProjectReference Include="..\..\..\Storage\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.PolygonOASIS\NextGenSoftware.OASIS.API.Providers.PolygonOASIS.csproj" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS\NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.csproj" />
