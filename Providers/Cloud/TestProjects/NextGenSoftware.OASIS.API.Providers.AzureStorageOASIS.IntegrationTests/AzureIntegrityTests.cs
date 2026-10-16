@@ -28,6 +28,7 @@ public partial class AzureStorageOASISIntegrationTests
         {
             Assert.IsFalse((await sqlite.ActivateProviderAsync()).IsError);
             if(kind==0) Assert.IsFalse((await sqlite.SaveAvatarAsync(new Avatar {Id=id,Username="owned-stale",IsActive=true,
+                ProviderWallets=new() {{Core.Enums.ProviderType.SolanaOASIS,new() {new Core.Objects.ProviderWallet {Id=Guid.NewGuid(),PublicKey="owned-stale",PrivateKey="owned-stale"}}}},
                 VerificationToken="owned-stale",ResetToken="owned-stale",RefreshTokens=new() {new Core.Objects.RefreshToken {Token="owned-stale"}},
                 AvatarType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User)})).IsError);
             else if(kind==1) Assert.IsFalse((await sqlite.SaveAvatarDetailAsync(new AvatarDetail {Id=id,Username="owned-stale",IsActive=true,XP=999})).IsError);
@@ -40,9 +41,9 @@ public partial class AzureStorageOASISIntegrationTests
                 new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.AzureStorageOASIS),
                 new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.SQLLiteDBOASIS)}).IsError);
             var router=new Core.Managers.OASISHyperDrive.OASISHyperDrive(manager);
-            var tokenOperations=new[] {"LoadAvatarByVerificationToken","LoadAvatarByResetToken","LoadAvatarByRefreshToken"};
+            var tokenOperations=new[] {"LoadAvatarByVerificationToken","LoadAvatarByResetToken","LoadAvatarByRefreshToken","LoadAvatarByPublicKey","LoadAvatarByPrivateKey"};
             Core.StorageOperationRequest TokenRequest(string operation,int version=0) => new() {
-                Operation=operation,VerificationToken="owned-stale",ResetToken="owned-stale",RefreshToken="owned-stale",
+                Operation=operation,VerificationToken="owned-stale",ResetToken="owned-stale",RefreshToken="owned-stale",PublicKey="owned-stale",PrivateKey="owned-stale",
                 Version=version,PreferredProvider=Core.Enums.ProviderType.AzureStorageOASIS};
             if(kind==0)
             {
