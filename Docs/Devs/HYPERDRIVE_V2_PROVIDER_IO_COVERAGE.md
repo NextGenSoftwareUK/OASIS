@@ -4,6 +4,8 @@
 
 ### Priority Mongo/SQLite contract audit (2026-10-15)
 
+SQLite split-read evidence: eight real concurrent WAL writer/read-interleaving cases pass through sync/async GUID/username/email/enumeration repository paths with multiple owners and two collections. Old returned parent/collection values stay consistent while later native readback proves the independent atomic update committed. Existing production behavior passed, no locking workaround added. Full direct suite336/336 passes24s. Other isolation modes, writer CAS, all query shapes and routed V2/HTTP/other-provider concurrency remain open.
+
 Heart-rate follow-up: SQLite now copies interface entries, persists explicit list sequence, loads/projects actual rows and replaces/clears them. Native additive migration/in-place upgrade preserves old samples with deterministic native-ID tie order, not recovered historical ordering. SQLite integration328/328 passes21s; real Mongo/SQLite V2 matrix4/4 passes1m32s with ordered replication and soft-delete preservation. Null/empty distinction, DateTime.Kind/cross-provider sub-millisecond precision, split-query concurrency snapshot, component failure paths/other collections and full hosted/release gates remain unverified.
 
 SQLite component fault follow-up:36 actual owner-scoped trigger rejections verify insert/update/delete failures on six component tables, original native cause/record identity, no deferred replay after unrelated saves in the reused context and independent persisted readback. Existing production cleanup passes; maintained direct suite321/321 passes25s. These are direct SQLite I/O tests, not routed V2 component-fault, process-crash or full-interface/hosted certification.
