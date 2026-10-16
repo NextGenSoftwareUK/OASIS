@@ -77,6 +77,13 @@ public static class SolanaEntitiesExtensions
             AvatarId = avatarDto.AvatarId,
             Email = avatarDto.Email,
             Password = avatarDto.Password,
+            VerificationToken = avatarDto.VerificationToken,
+            ResetToken = avatarDto.ResetToken,
+            ResetTokenExpires = avatarDto.ResetTokenExpires,
+            RefreshToken = avatarDto.RefreshToken,
+            RefreshTokens = avatarDto.RefreshTokens ?? new(),
+            ProviderWallets = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.DeserializeStored<Dictionary<ProviderType,List<IProviderWallet>>>(avatarDto.ProviderWalletsJson)
+                ?? throw new System.IO.InvalidDataException("Stored Solana avatar wallets must be a JSON object."),
             Username = avatarDto.UserName,
             FirstName = avatarDto.FirstName,
             LastName = avatarDto.LastName,
