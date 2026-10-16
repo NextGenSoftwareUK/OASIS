@@ -58,7 +58,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             (await mongo.ActivateProviderAsync()).IsError.Should().BeFalse();
             await VerifyMongoDefaultTextMasksAsync(mongo,synchronous);
             await VerifyMongoExtendedTextMasksAsync(mongo,synchronous);
-            await VerifyMongoNumericDateDefaultsAsync(mongo,synchronous);
+            await VerifyMongoNumericDateDefaultsAsync(mongo,sqlite,synchronous);
             await VerifyMongoSearchParentScopeAsync(mongo,sqlite,synchronous);
             await VerifyWalletKeySelectorsAsync(mongo,sqlite,synchronous);
             await VerifyCredentialReplicationAsync(mongo,sqlite,synchronous,mongoPrimary);

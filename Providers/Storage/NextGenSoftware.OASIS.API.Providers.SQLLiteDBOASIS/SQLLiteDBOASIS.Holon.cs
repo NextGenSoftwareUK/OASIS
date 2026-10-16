@@ -238,10 +238,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                         }
                         holons.AddRange(candidates.Where(h => MatchesGroups(group =>
                             (group.HolonType == HolonType.All || group.HolonType == h.HolonType) && (group switch {
-                            ISearchNumberGroup number => number.SearchHolons && number.HolonSearchParams?.Version == true && Compare(h.Version, number),
+                            ISearchNumberGroup number => number.SearchHolons && (number.HolonSearchParams?.Version ?? true) && Compare(h.Version, number),
                             ISearchDateGroup date => date.SearchHolons && (
-                                date.HolonSearchParams?.CreatedDate == true && CompareDate(h.CreatedDate, date) ||
-                                date.HolonSearchParams?.ModifiedDate == true && CompareDate(h.ModifiedDate, date) ||
+                                (date.HolonSearchParams?.CreatedDate ?? true) && CompareDate(h.CreatedDate, date) ||
+                                (date.HolonSearchParams?.ModifiedDate ?? true) && CompareDate(h.ModifiedDate, date) ||
                                 date.HolonSearchParams?.DeletedDate == true && CompareDate(h.DeletedDate, date)),
                             ISearchTextGroup text => (!text.SearchAvatars || text.SearchHolons) &&
                                 (MatchesIdentityAndMetadata(h, text,
@@ -263,10 +263,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     if (!avatarLoad.IsError && avatarLoad.Result != null)
                     {
                         avatars.AddRange(avatarLoad.Result.Where(a => (avatarParentScope==null || avatarParentScope.Contains(a.ParentHolonId)) && MatchesGroups(group => group switch {
-                            ISearchNumberGroup number => number.SearchAvatars && number.AvatarSearchParams?.Version == true && Compare(a.Version, number),
+                            ISearchNumberGroup number => number.SearchAvatars && (number.AvatarSearchParams?.Version ?? true) && Compare(a.Version, number),
                             ISearchDateGroup date => date.SearchAvatars && (
-                                date.AvatarSearchParams?.CreatedDate == true && CompareDate(a.CreatedDate, date) ||
-                                date.AvatarSearchParams?.ModifiedDate == true && CompareDate(a.ModifiedDate, date) ||
+                                (date.AvatarSearchParams?.CreatedDate ?? true) && CompareDate(a.CreatedDate, date) ||
+                                (date.AvatarSearchParams?.ModifiedDate ?? true) && CompareDate(a.ModifiedDate, date) ||
                                 date.AvatarSearchParams?.DeletedDate == true && CompareDate(a.DeletedDate, date)),
                             ISearchTextGroup text => (!text.SearchHolons || text.SearchAvatars) && (MatchesIdentityAndMetadata(a, text,
                                 text.AvatarSearchParams?.ProviderUniqueStorageKey == true || text.AvatarSearchParams?.SearchAllFields == true,
