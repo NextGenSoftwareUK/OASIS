@@ -433,6 +433,10 @@ public class GoogleNativeDetailTests
 
     private static async Task VerifyV2Async(GoogleCloudOASIS google,AvatarDetail detail)
     {
+        var credentialId=Guid.NewGuid();var walletId=Guid.NewGuid();var credential="owned-policy-"+credentialId;
+        var operations=new[] {"LoadAvatarByVerificationToken","LoadAvatarByResetToken","LoadAvatarByRefreshToken","LoadAvatarByPublicKey","LoadAvatarByPrivateKey"};
+        Core.StorageOperationRequest CredentialRequest(string operation)=>new() {Operation=operation,VerificationToken=credential,ResetToken=credential,
+            RefreshToken=credential,PublicKey=credential,PrivateKey=credential};
         var directory=Path.GetFullPath("TestResults/GoogleRoutingFiles");
         if(Directory.Exists(directory) && Directory.EnumerateFiles(directory,"*",SearchOption.AllDirectories).Any()) Assert.Fail("Owned routing files already exist.");
         var local=new NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.LocalFileOASIS(storageDirectory:directory);
@@ -488,6 +492,44 @@ public class GoogleNativeDetailTests
                 Assert.AreEqual(value.Karma,native.Result.Karma);Assert.AreEqual(value.Karma,secondary.Result.Karma);
                 Assert.AreEqual(detail.Inventory[0].Id,native.Result.Inventory.Single().Id);Assert.AreEqual(detail.Inventory[0].Id,secondary.Result.Inventory.Single().Id);
             }
+            foreach(var primary in providers)
+            foreach(var asynchronous in new[] {false,true})
+            {
+                var profile=new Avatar {Id=credentialId,Username="owned-policy-"+credentialId,IsActive=true,
+                    AvatarType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User),
+                    VerificationToken=credential,ResetToken=credential,RefreshTokens=new() {new RefreshToken {Token=credential}},
+                    ProviderWallets=new() {{Core.Enums.ProviderType.SolanaOASIS,new() {new ProviderWallet {Id=walletId,PublicKey=credential,PrivateKey=credential}}}}};
+                var request=new Core.StorageOperationRequest {Operation="SaveAvatar",Payload=profile,PreferredProvider=primary.Value};
+                var saved=asynchronous ? await router.RouteRequestAsync<Core.Interfaces.IAvatar>(request):router.RouteRequest<Core.Interfaces.IAvatar>(request);
+                Assert.IsFalse(saved.IsError,saved.Message);Assert.IsFalse(saved.IsWarning,saved.Message);
+                var detailRequest=new Core.StorageOperationRequest {Operation="SaveAvatarDetail",Payload=new AvatarDetail {Id=credentialId,IsActive=true},PreferredProvider=primary.Value};
+                var paired=asynchronous ? await router.RouteRequestAsync<Core.Interfaces.IAvatarDetail>(detailRequest):router.RouteRequest<Core.Interfaces.IAvatarDetail>(detailRequest);
+                Assert.IsFalse(paired.IsError,paired.Message);Assert.IsFalse(paired.IsWarning,paired.Message);
+                manager.IsAutoReplicationEnabled=false;
+                foreach(var store in providers)
+                foreach(var operation in operations)
+                {
+                    var readRequest=CredentialRequest(operation);readRequest.PreferredProvider=store.Value;
+                    var read=asynchronous ? await router.RouteRequestAsync<Core.Interfaces.IAvatar>(readRequest):router.RouteRequest<Core.Interfaces.IAvatar>(readRequest);
+                    Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(credentialId,read.Result.Id);
+                    Assert.AreEqual(walletId,read.Result.ProviderWallets[Core.Enums.ProviderType.SolanaOASIS].Single().Id);
+                }
+                manager.IsAutoReplicationEnabled=true;
+            }
+            manager.IsAutoReplicationEnabled=false;manager.IsAutoLoadBalanceEnabled=true;
+            foreach(var operation in operations)
+            {
+                var before=providers.Select(type=>manager.PerformanceMonitor.GetMetrics(type.Value).TotalRequests).ToArray();
+                for(var index=0;index<2;index++)
+                {
+                    var request=CredentialRequest(operation);
+                    var read=index==0 ? router.RouteRequest<Core.Interfaces.IAvatar>(request,Core.Enums.LoadBalancingStrategy.RoundRobin)
+                        :await router.RouteRequestAsync<Core.Interfaces.IAvatar>(request,Core.Enums.LoadBalancingStrategy.RoundRobin);
+                    Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(credentialId,read.Result.Id);
+                }
+                for(var index=0;index<2;index++) Assert.AreEqual(before[index]+1,manager.PerformanceMonitor.GetMetrics(providers[index].Value).TotalRequests);
+            }
+            manager.IsAutoLoadBalanceEnabled=false;
             manager.IsAutoReplicationEnabled=false;manager.IsAutoFailOverEnabled=true;
             Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(providers).IsError);
             var missing=Guid.NewGuid();
@@ -512,10 +554,22 @@ public class GoogleNativeDetailTests
                 Google.Api.Gax.Grpc.RetrySettings.FromConstantBackoff(1,TimeSpan.Zero,_=>false));
             var client=new Google.Cloud.Firestore.V1.FirestoreClientBuilder {
                 Endpoint="127.0.0.1:18083",ChannelCredentials=Grpc.Core.ChannelCredentials.Insecure,
-                Settings=new Google.Cloud.Firestore.V1.FirestoreSettings {GetDocumentSettings=settings,CommitSettings=settings}}.Build();
+                Settings=new Google.Cloud.Firestore.V1.FirestoreSettings {GetDocumentSettings=settings,CommitSettings=settings,RunQuerySettings=settings}}.Build();
             var unreachable=FirestoreDb.Create("oasis-google-native",client);
             try {
                 field.SetValue(google,unreachable);
+                foreach(var operation in operations)
+                foreach(var asynchronous in new[] {false,true})
+                {
+                    // Fresh contexts require a real SDK failure for each selector, not an already-open circuit.
+                    var failover=new Core.Managers.ProviderManager(null,dna) {IsAutoFailOverEnabled=true};failover.RegisterProvider(google);failover.RegisterProvider(local);
+                    Assert.IsFalse(failover.SetAndReplaceAutoFailOverListForProviders(providers).IsError);
+                    var fallback=new Core.Managers.OASISHyperDrive.OASISHyperDrive(failover);var request=CredentialRequest(operation);
+                    request.PreferredProvider=Core.Enums.ProviderType.GoogleCloudOASIS;
+                    var read=asynchronous ? await fallback.RouteRequestAsync<Core.Interfaces.IAvatar>(request):fallback.RouteRequest<Core.Interfaces.IAvatar>(request);
+                    Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(credentialId,read.Result.Id);
+                    foreach(var provider in providers) Assert.AreEqual(1L,failover.PerformanceMonitor.GetMetrics(provider.Value).TotalRequests);
+                }
                 foreach(var asynchronous in new[] {false,true}) {
                     var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests;
                     var request=new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {Operation="LoadAvatarDetail",AvatarId=detail.Id,PreferredProvider=Core.Enums.ProviderType.GoogleCloudOASIS};
@@ -538,6 +592,7 @@ public class GoogleNativeDetailTests
             }
             finally {field.SetValue(google,healthy);}
         }
-        finally {await local.DeleteAvatarDetailAsync(detail.Id,softDelete:false);await local.DeActivateProviderAsync();}
+        finally {await google.DeleteAvatarAsync(credentialId,false);await local.DeleteAvatarAsync(credentialId,false);
+            await local.DeleteAvatarDetailAsync(detail.Id,softDelete:false);await local.DeActivateProviderAsync();}
     }
 }
