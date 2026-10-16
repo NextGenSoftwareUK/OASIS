@@ -1,5 +1,7 @@
 # HyperDrive V2 current release gates
 
+2026-10-16 V2 nearby request/dispatch implemented (Coref2428d0): StorageOperationRequest now has GeoLatitude/GeoLongitude microdegrees and RadiusInMeters. GetAvatarsNearMe/GetHolonsNearMe route through IOASISNETProvider in both sync/async V2 storage switches; async routing honestly invokes that interface's existing synchronous method. Invalid coordinates/radius/type/nonzero historical version return HYPERDRIVE_NEARBY_REQUEST_INVALID before quota/provider selection, with no failover. Non-network providers return explicit capability error, eligible for existing failover policy. Reads are not replication mutations. Targeted current-source suite52/52pass6s/no skips adds four sync/async cases: actual SQLite profile+holon content and terminal partial-coordinate InvalidData, plus five invalid-input variants with zero provider metrics. This supersedes only the "not implemented" nearby dispatch audit below. Native cross-provider nearby load balancing/failover/capability skipping, manager/HTTP exposure, all provider combinations and immutable seven-service publishes remain UNPROVEN. Concurrent subscription source excluded from Core commit; working-source build is not immutable release evidence. No merge/deploy.
+
 ## Current gate re-audit — 2026-10-16, parent19295c6a6
 
 The latest direct nearby-interface corrections do not close V2 routing or release certification. Fresh read-only checks:

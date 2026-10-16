@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 V2 nearby dispatcher verification reused existing Core/SQLite/cache/fixed HyperDriveSqliteCurrent exclusive fixture. Core producer0errors/131warnings; targeted52/52pass6s/no skips; owned-data absent afterward. No new runtime/download/clone/environment. Core commit includes only two routing/request files, excludes concurrent subscription work; parent gitlink+Railway pin advance together. C free83,613,437,952bytes observed, not recovery claim. Pending chain/CosmosDB fixtures untouched.
+
 2026-10-16 release re-audit used read-only source scanners/git/manifest checks only; no runtime, builds, installs, downloads, clones or generated report directories. Committed-pin checks pass but actual checkouts fail; concurrent subscription files and mismatched dependency checkouts preserved. No attempt to recreate missing checkouts or delete source to force a green build. C free83,615,084,544bytes observed. Existing pending chain/CosmosDB fixtures unchanged.
 
 2026-10-16 Google nearby verification reused retained Firestore1.22.0 jar/Java256MiB/fixed GoogleCurrent report and existing fixtures; no download/install/new service environment. Native43/43pass29s;unit40/40pass1s/no skips. Expanded existing fixture mutates/restores only its owned avatar+holon metadata and reuses existing exact-ID cleanup; no new test database or persistent ledger. Runner exit0/owned Java stopped; ports independently checked below. Pending chain/CosmosDB fixtures untouched.
