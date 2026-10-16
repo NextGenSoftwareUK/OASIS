@@ -27,6 +27,7 @@ public partial class EthereumOASISIntegrationTests
     [DataRow(false,"approve-loss")] [DataRow(true,"approve-loss")]
     [DataRow(false,"lock-loss")] [DataRow(true,"lock-loss")]
     [DataRow(false,"unlock-loss")] [DataRow(true,"unlock-loss")]
+    [DataRow(false,"multi-wallet")] [DataRow(true,"multi-wallet")]
     public async Task NativeEscrowProviderUsesExplicitCustodyAndPreservesEachStage(bool synchronous,string scenario)
     {
         var (storage, storageAddress) = await CreateActivatedProviderAsync();
@@ -99,6 +100,7 @@ public partial class EthereumOASISIntegrationTests
             Assert.AreEqual(outsiderNonce,(await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(outsider)).Value);
             Assert.IsFalse((await escrow.GetFunction("deposits").CallDeserializingToObjectAsync<EthereumEscrowDeposit>(nativeId)).Released);
             provider.SigningKey=PrivateKey;
+            provider.MultipleWallets=scenario=="multi-wallet";
             var released=synchronous ? wallets.UnlockToken(unlockRequest):await wallets.UnlockTokenAsync(unlockRequest);
             if(scenario=="unlock-loss")
             {
@@ -156,9 +158,10 @@ public partial class EthereumOASISIntegrationTests
     {
         public string? LoseStage;public TransactionReceipt? Receipt;public int KeyCalls;
         public string SigningKey=PrivateKey;
+        public bool MultipleWallets;
         public readonly IOException Cause=new("Owned escrow response loss after actual confirmation.");
         protected override OASISResult<List<string>> ResolveTokenSigningKeys(Guid avatarId)
-        {KeyCalls++;return new OASISResult<List<string>>(new List<string>{SigningKey});}
+        {KeyCalls++;return new OASISResult<List<string>>(MultipleWallets ? new List<string>{Nethereum.Signer.EthECKey.GenerateKey().GetPrivateKey(),SigningKey,SigningKey}:new List<string>{SigningKey});}
         protected override async Task<TransactionReceipt> PollEscrowReceiptAsync(Web3 web3,string hash,string stage)
         {var receipt=await base.PollEscrowReceiptAsync(web3,hash,stage);if(stage==LoseStage){Receipt=receipt;throw Cause;}return receipt;}
     }

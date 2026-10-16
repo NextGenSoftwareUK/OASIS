@@ -45,24 +45,29 @@ public partial class EthereumOASIS : IOASISIdBoundTokenEscrowProvider
                 || string.Equals(TokenEscrowContractAddress, ContractAddress, StringComparison.OrdinalIgnoreCase)
                 || string.Equals(TokenEscrowContractAddress, "0x" + new string('0', 40), StringComparison.OrdinalIgnoreCase))
                 throw new ArgumentException("Explicit deposit/owner identity, token, positive lock amount and matching configured separate escrow are required.");
+            List<Account> candidates=null;
+            Account account=null;
             if (unlock)
             {
                 var keys = ResolveTokenSigningKeys(avatarId);
                 if (keys.IsError) { OASISErrorHandling.HandleError(ref result, keys.Message, keys.Exception); result.ErrorCode = keys.ErrorCode; return result; }
-                if (keys.Result == null || keys.Result.Count != 1 || string.IsNullOrWhiteSpace(keys.Result[0]))
-                    throw new ArgumentException("Release requires exactly one unambiguous depositor signing wallet.");
-                key = keys.Result[0];
+                if (keys.Result == null || keys.Result.Count == 0 || keys.Result.Any(string.IsNullOrWhiteSpace))
+                    throw new ArgumentException("Release requires authorized depositor signing wallets.");
+                candidates=keys.Result.Select(value=>new Account(value,ChainId)).GroupBy(value=>value.Address,StringComparer.OrdinalIgnoreCase).Select(group=>group.First()).ToList();
             }
-            if (string.IsNullOrWhiteSpace(key)) throw new ArgumentException("Depositor signing key is required.");
-            var account = new Account(key, ChainId);
-            if (!unlock && !string.Equals(account.Address, sender, StringComparison.OrdinalIgnoreCase))
-                throw new ArgumentException("Lock signing key does not match the explicit sender.");
+            else
+            {
+                if (string.IsNullOrWhiteSpace(key)) throw new ArgumentException("Depositor signing key is required.");
+                account=new Account(key,ChainId);
+                if(!string.Equals(account.Address,sender,StringComparison.OrdinalIgnoreCase))
+                    throw new ArgumentException("Lock signing key does not match the explicit sender.");
+            }
             if (!IsProviderActivated)
             {
                 var active = await ActivateProviderAsync();
                 if (active.IsError) { OASISErrorHandling.HandleError(ref result, active.Message, active.Exception); result.ErrorCode = active.ErrorCode; return result; }
             }
-            var web3 = CreateWeb3WithAccount(account, HostURI);
+            var web3 = unlock ? new Web3(HostURI):CreateWeb3WithAccount(account, HostURI);
             var code = await web3.Eth.GetCode.SendRequestAsync(TokenEscrowContractAddress);
             if (string.IsNullOrEmpty(code) || !code.StartsWith("0x", StringComparison.Ordinal)
                 || !string.Equals(Convert.ToHexString(SHA256.HashData(Convert.FromHexString(code.Substring(2)))).ToLowerInvariant(), TokenEscrowRuntimeSha256, StringComparison.Ordinal))
@@ -73,9 +78,17 @@ public partial class EthereumOASIS : IOASISIdBoundTokenEscrowProvider
             var record = await recordFunction.CallDeserializingToObjectAsync<EthereumEscrowDeposit>(nativeId);
             var empty = string.Equals(record.Owner, "0x" + new string('0', 40), StringComparison.OrdinalIgnoreCase);
             if ((!unlock && !empty) || (unlock && (empty || record.Released
-                || !string.Equals(record.Owner, account.Address, StringComparison.OrdinalIgnoreCase)
                 || !string.Equals(record.Token, tokenAddress, StringComparison.OrdinalIgnoreCase))))
                 throw new StorageLifecycleConflictException("Deposit identity is used, released, missing or not owned by this signer/token.");
+            if(unlock)
+            {
+                account=candidates.SingleOrDefault(value=>string.Equals(value.Address,record.Owner,StringComparison.OrdinalIgnoreCase));
+                if(account==null) throw new StorageLifecycleConflictException("No authorized avatar key owns the native escrow deposit.");
+                // Bind signing only after pinned runtime and native deposit ownership were verified.
+                web3=CreateWeb3WithAccount(account,HostURI);
+                escrow=web3.Eth.GetContract(EscrowAbi,TokenEscrowContractAddress);
+                recordFunction=escrow.GetFunction("deposits");
+            }
             var token = web3.Eth.GetContract(TokenAbi, tokenAddress);
             var balance = token.GetFunction("balanceOf");
             var ownerBefore = await balance.CallAsync<BigInteger>(account.Address);
