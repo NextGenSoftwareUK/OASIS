@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Shared search delta: avatar/holon collection read failures retain original Exception/ErrorCode instead of dropping terminal corruption classification; four red-before/green-after cases, Shared253/253pass1s. Shared base search still lacks full numeric/date/operators/masks/ownership/metadata/parent/options parity; this is not complete search/native/V2 acceptance.
+
 Cosmos shutdown finding resolved: idle sleep infinity isPID1 and ignoresTERM; node had stopped separately. Runner now refuses container signal unless no wasmd/exact idlePID1/retained identity verified, then closes idle holder explicitly. Read-only native1/1pass1s refreshed,280history/0matches/pending fingerprint unchanged; original outcome/V2 mutation gates remain open. Expected containerexit137 is idle holder, not ledger-node termination proof/failure.
 
 Cosmos retained native read-only refresh:1/1pass1s; original pending avatar/detail/holon absent with RecordNotFound,280indexed transactions/0exact-key matches. Reconciliation remains incomplete; absence does not prove non-submission, journal fingerprint unchanged. Retained container exited137/oom=false after stop grace exceeded; no replacement/reset/replay. This is current native read evidence only, not mutation/policy/interface completion.
