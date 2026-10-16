@@ -28,6 +28,26 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests
             Assert.AreEqual(ProviderType.HashgraphOASIS, providerType.Value);
         }
 
+        [DataTestMethod]
+        [DataRow(false)] [DataRow(true)]
+        public async Task CredentialValidationUsesSharedInterfaceBeforeAnyActivation(bool synchronous)
+        {
+            var storage=(IOASISStorageProvider)_provider;
+            foreach(var input in new[] {(" ",0),("owned-synthetic",-1)})
+            foreach(var kind in new[] {0,1,2,3,4})
+            {
+                var result=kind switch {
+                    0=>synchronous ? storage.LoadAvatarByVerificationToken(input.Item1,input.Item2):await storage.LoadAvatarByVerificationTokenAsync(input.Item1,input.Item2),
+                    1=>synchronous ? storage.LoadAvatarByResetToken(input.Item1,input.Item2):await storage.LoadAvatarByResetTokenAsync(input.Item1,input.Item2),
+                    2=>synchronous ? storage.LoadAvatarByRefreshToken(input.Item1,input.Item2):await storage.LoadAvatarByRefreshTokenAsync(input.Item1,input.Item2),
+                    3=>synchronous ? storage.LoadAvatarByPublicKey(input.Item1,input.Item2):await storage.LoadAvatarByPublicKeyAsync(input.Item1,input.Item2),
+                    _=>synchronous ? storage.LoadAvatarByPrivateKey(input.Item1,input.Item2):await storage.LoadAvatarByPrivateKeyAsync(input.Item1,input.Item2)};
+                Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",result.ErrorCode);Assert.IsTrue(result.IsError);
+                Assert.IsInstanceOfType(result.Exception,typeof(System.ArgumentException));Assert.IsNull(result.Result);
+                Assert.IsFalse(_provider.IsProviderActivated);
+            }
+        }
+
         [TestMethod]
         public void IsProviderActivated_ShouldBeFalseInitially()
         {

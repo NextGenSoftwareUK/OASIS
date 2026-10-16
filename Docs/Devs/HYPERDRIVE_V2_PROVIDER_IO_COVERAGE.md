@@ -19,7 +19,7 @@ Baseline parent `174397c70` / Core `ea61d9e`; latest retained reports were read 
 | ArbitrumOASIS Web3Core | Same4/4 wrapper suite includes actual Arbitrum; V2 boot selects shared implementation, known legacy-only cache refused | Not legacy provider certification, automatic hot replacement or public L2/hosted/durable proof |
 | Neo4jOASIS | Fresh native60/60 in22s at19:01:46Z against cached Coreea61d9e, retained official node | Revision-scoped native matrix, not every history/recovery/hosted/interface option |
 | CosmosBlockChainOASIS | Official SDK/retained wasmd and historical scoped native evidence; original replication journal still present | Reconcile original outcome without replay/reset; full current policy/interface/assets/billing/hosted matrix |
-| HashgraphOASIS | Official SDK/scoped historical testnet and receipt evidence | Funded tests deferred; all-in fee safety, native storage/policy/interface/recovery/hosted gates |
+| HashgraphOASIS | Official SDK/scoped historical testnet/receipt evidence; refreshed cached build and9/9 focused unit287ms prove inherited selector validation before activation. Shared191/191 controlled-backend cases prove credential contract only | No new live/testnet operation evidence. Funded tests deferred; all-in fee safety, native storage/policy/interface/recovery/hosted gates |
 | SuiOASIS | Official SDK/scoped historical native evidence; original prepared journal still present | Original-outcome reconciliation, complete policy/interface/recovery/hosted matrix; no state reset |
 | TRONOASIS | Official SDK/scoped historical node evidence; original pending transaction journal present | Original outcome unresolved; no mutation replay/reset; current full native policy/interface/recovery/hosted matrix |
 
