@@ -91,6 +91,16 @@ public partial class Web3CoreOASISBaseProvider
         try
         {
             var signer = _web3CoreOASIS;
+            var target = string.IsNullOrWhiteSpace(transaction.TokenAddress)
+                ? transaction.FromNFTTokenAddress : transaction.TokenAddress;
+            if (!string.IsNullOrWhiteSpace(transaction.TokenAddress) && !string.IsNullOrWhiteSpace(transaction.FromNFTTokenAddress)
+                && !string.Equals(transaction.TokenAddress, transaction.FromNFTTokenAddress, StringComparison.OrdinalIgnoreCase))
+                throw new ArgumentException("NFT token-contract addresses conflict.");
+            if (string.IsNullOrWhiteSpace(target)) target = _contractAddress;
+            if (!AddressUtil.Current.IsValidEthereumAddressHexFormat(target))
+                throw new ArgumentException("NFT token-contract address is invalid.");
+            var externalContract = !string.Equals(target, _contractAddress, StringComparison.OrdinalIgnoreCase);
+            var signingKey = string.IsNullOrWhiteSpace(transaction.OwnerPrivateKey) ? _chainPrivateKey : transaction.OwnerPrivateKey;
             if (!string.IsNullOrWhiteSpace(transaction.OwnerPrivateKey))
             {
                 var owner = new Account(transaction.OwnerPrivateKey, _expectedChainId);
@@ -98,8 +108,8 @@ public partial class Web3CoreOASISBaseProvider
                 {
                     if (signer.HasNativePreparation)
                         throw new InvalidOperationException("NFT signer differs from the admitted native preparation owner.");
-                    signer = new Web3CoreOASIS(transaction.OwnerPrivateKey, _hostURI, _contractAddress,
-                        Web3CoreOASISBaseProviderHelper.Abi, _expectedChainId);
+                    signer = signer.ForNftTransaction(transaction.OwnerPrivateKey, _contractAddress,
+                        Web3CoreOASISBaseProviderHelper.Abi);
                 }
             }
             if (!string.Equals(signer.SigningAddress, transaction.FromWalletAddress, StringComparison.OrdinalIgnoreCase))
@@ -107,7 +117,21 @@ public partial class Web3CoreOASISBaseProvider
                 OASISErrorHandling.HandleError(ref result, "NFT transfer sender does not match the signing account.");
                 return result;
             }
-            TransactionReceipt transactionReceipt = await signer.SendNFTAsync(
+            if (externalContract)
+            {
+                // Explicit standard ERC-721 target, not an ABI-guessing fallback.
+                if (_web3CoreOASIS.HasNativePreparation)
+                    throw new InvalidOperationException("NFT transaction target differs from the admitted native preparation owner.");
+                const string transferAbi = "[{\"type\":\"function\",\"name\":\"transferFrom\",\"inputs\":[{\"name\":\"from\",\"type\":\"address\"},{\"name\":\"to\",\"type\":\"address\"},{\"name\":\"tokenId\",\"type\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"}]";
+                var ownerOf = _web3Client.Eth.GetContract("[{\"type\":\"function\",\"name\":\"ownerOf\",\"inputs\":[{\"name\":\"tokenId\",\"type\":\"uint256\"}],\"outputs\":[{\"name\":\"owner\",\"type\":\"address\"}],\"stateMutability\":\"view\"}]", target).GetFunction("ownerOf");
+                var owner = await ownerOf.CallAsync<string>(tokenId);
+                if (!string.Equals(owner, transaction.FromWalletAddress, StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("NFT token is not owned by the supplied sender.");
+                signer = _web3CoreOASIS.ForNftTransaction(signingKey, target, transferAbi);
+            }
+            TransactionReceipt transactionReceipt = externalContract
+                ? await signer.TransferErc721Async(transaction.FromWalletAddress, transaction.ToWalletAddress, tokenId)
+                : await signer.SendNFTAsync(
                 transaction.FromWalletAddress,
                 transaction.ToWalletAddress,
                 tokenId,
@@ -125,7 +149,8 @@ public partial class Web3CoreOASISBaseProvider
                 Web3NFT = new Web3NFT()
                 {
                     MemoText = transaction.MemoText,
-                    MintTransactionHash = transactionHash
+                    NFTTokenAddress = target,
+                    SendNFTTransactionHash = transactionHash
                 },
                 TransactionResult = transactionHash
             };

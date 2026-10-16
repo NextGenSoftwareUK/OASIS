@@ -78,6 +78,30 @@ public partial class Web3NativeStorageTests
             Assert.IsTrue(alternateReceipt.Succeeded());
             Assert.AreEqual(alternate.Address.ToLowerInvariant(), alternateReceipt.From.ToLowerInvariant());
             Assert.AreEqual(recipient, (await contract.GetFunction("ownerOf").CallAsync<string>(alternateId)).ToLowerInvariant());
+            var externalDeployment = await web3.Eth.GetContractDeploymentHandler<NftBoundaryDeployment>()
+                .SendRequestAndWaitForReceiptAsync(new NftBoundaryDeployment { Gas = new HexBigInteger(8000000) });
+            Assert.IsTrue(externalDeployment.Succeeded());
+            var externalContract = web3.Eth.GetContract(ReadNftFixture()["abi"]!.ToString(), externalDeployment.ContractAddress);
+            Assert.IsTrue((await externalContract.GetFunction("seedToken").SendTransactionAndWaitForReceiptAsync(
+                account.Address, new HexBigInteger(500000), null, null, account.Address, alternateId)).Succeeded());
+            var conflict = await provider.SendNFTAsync(new SendWeb3NFTRequest {
+                FromWalletAddress = account.Address, ToWalletAddress = recipient, TokenId = "17", Amount = 1,
+                TokenAddress = externalDeployment.ContractAddress, FromNFTTokenAddress = receipt.ContractAddress });
+            Assert.IsTrue(conflict.IsError);
+            StringAssert.Contains(conflict.Message, "token-contract addresses conflict");
+            Assert.AreEqual(account.Address.ToLowerInvariant(),
+                (await externalContract.GetFunction("ownerOf").CallAsync<string>(alternateId)).ToLowerInvariant());
+            var externalTransfer = await provider.SendNFTAsync(new SendWeb3NFTRequest {
+                FromWalletAddress = account.Address, ToWalletAddress = recipient, TokenId = "17", Amount = 1,
+                TokenAddress = externalDeployment.ContractAddress });
+            Assert.IsFalse(externalTransfer.IsError, externalTransfer.Message);
+            var externalReceipt = await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(externalTransfer.Result.TransactionResult);
+            Assert.IsTrue(externalReceipt.Succeeded());
+            Assert.AreEqual(externalDeployment.ContractAddress.ToLowerInvariant(), externalReceipt.To.ToLowerInvariant());
+            Assert.AreEqual(recipient, (await externalContract.GetFunction("ownerOf").CallAsync<string>(alternateId)).ToLowerInvariant());
+            Assert.AreEqual(externalDeployment.ContractAddress, externalTransfer.Result.Web3NFT.NFTTokenAddress);
+            Assert.AreEqual(externalReceipt.TransactionHash, externalTransfer.Result.Web3NFT.SendNFTTransactionHash);
+            Assert.IsTrue(string.IsNullOrEmpty(externalTransfer.Result.Web3NFT.MintTransactionHash));
             foreach (var id in new[] { BigInteger.Zero, BigInteger.One << 63, (BigInteger.One << 256) - 1 })
             {
                 var seeded = await contract.GetFunction("seedToken").SendTransactionAndWaitForReceiptAsync(
