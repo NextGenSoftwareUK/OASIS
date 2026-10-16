@@ -743,6 +743,7 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
         var deleted = synchronous ? provider.DeleteAvatar(ids[0], softDelete) : await provider.DeleteAvatarAsync(ids[0], softDelete);
         deleted.IsError.Should().BeFalse(deleted.Message);
         deleted.Result.Should().BeTrue();
+        deleted.IsDeleted.Should().BeTrue();deleted.DeletedCount.Should().Be(1);deleted.IsSaved.Should().BeTrue();
         using var control = new DataContext(TestConnectionString);
         control.AvatarWalletStores.Count(row => row.AvatarId == ids[0].ToString()).Should().Be(softDelete ? 1 : 0);
         control.AvatarWalletStores.Count(row => row.AvatarId == ids[1].ToString()).Should().Be(1);
@@ -1030,6 +1031,7 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
         control.Database.ExecuteSqlRaw("CREATE TRIGGER reject_avatar_delete BEFORE DELETE ON Avatar BEGIN SELECT RAISE(ABORT, 'owned avatar deletion rejection'); END;");
         var rejected = synchronous ? provider.DeleteAvatar(avatar.Id, false) : await provider.DeleteAvatarAsync(avatar.Id, false);
         rejected.IsError.Should().BeTrue();
+        rejected.IsDeleted.Should().BeFalse();rejected.DeletedCount.Should().Be(0);rejected.IsSaved.Should().BeFalse();
         rejected.Exception.Should().NotBeNull();
         Core.Helpers.NativeMutationReconciliation.IsRequired(rejected.Exception).Should().BeFalse("the explicit transaction rolled back before any commit attempt");
         control.Database.ExecuteSqlRaw("DROP TRIGGER reject_avatar_delete;");
