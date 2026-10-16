@@ -35,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
     ///   region      — AWS region code, e.g. "eu-west-1"
     ///   serviceUrl  — optional endpoint URL for DynamoDB Local / LocalStack
     /// </summary>
-    public class DynamoDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class DynamoDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
     {
         private AmazonDynamoDBClient _client;
         private readonly Func<AmazonDynamoDBClient> _createClient;
@@ -314,39 +314,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
 
         // ─── Avatar deletion ──────────────────────────────────────────────────────
 
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                if (softDelete)
-                {
-                    var loaded = await LoadAvatarAsync(id);
-                    if (loaded.IsError || loaded.Result == null)
-                    {
-                        result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IAvatar,bool>(loaded);
-                        result.Result=false; result.IsSaved=false;
-                        if(!result.IsError) OASISErrorHandling.HandleError(ref result,$"DynamoDBOASIS: Avatar '{id}' not found.");
-                        return result;
-                    }
-                    var av = (Avatar)loaded.Result; av.DeletedDate = DateTime.UtcNow;
-                    await UpdateItemAsync(new UpdateItemRequest
-                    {
-                        TableName = "OasisAvatars",
-                        Key = new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } },
-                        UpdateExpression = "SET is_deleted = :d, data_json = :j",
-                        ExpressionAttributeValues = new Dictionary<string, AttributeValue> { [":d"] = new AttributeValue { BOOL = true }, [":j"] = new AttributeValue { S = Ser(av) } }
-                    });
-                }
-                else
-                {
-                    await DeleteItemAsync("OasisAvatars", new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } });
-                }
-                result.Result = true; result.IsError = false; result.Message = $"DynamoDBOASIS: Avatar '{id}' deleted.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
-            return result;
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+            => ApplyAvatarLifecycleAsync(id,softDelete);
 
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
         private async Task<OASISResult<bool>> DeleteSelectedAvatarAsync(Task<OASISResult<IAvatar>> lookup, bool softDelete)
