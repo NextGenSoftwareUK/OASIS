@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 AWS native41/41pass12s +unit29/29pass314ms: identity selectors use one paginated strongly consistent BASE-table scan (no GSI), preserve ambiguity/identity validation, and mark RecordNotFound. Actual V2 four selectors×syncasync refuse stale SQLite identity results with0secondary requests. Initial failure was IsError fixture assumption; existing V2 normalized absence contract inspected and exact synthetic read-only fixture reconciled before cleanup. Strong item reads are NOT scan snapshot isolation/transactional uniqueness; scale-efficient identity lookup/concurrency/history/recovery/live/hosted remain open.
+
 2026-10-16 Dynamo unit29/29pass312ms: all9avatar/detail read forms reject unsupported explicit historical/negative versions before SDK I/O, syncasync; previously ignored version and invoked latest SDK read (4new cases failed). Shared holon validation reused. Truthful rejection ONLY; actual historical archive/query/V2 support remains OPEN, not replaced by this guard.
 
 2026-10-16 AWS native39/39pass11s: four actual server conditional-rejection graph cases verify sync/async continuefalse stops after1attempt/no IDs, continuetrue skips rejected descendants but acknowledges independent2node branch (3attempts total) with exact partial IDs/native readback. Prior V2 unknown-commit and routing cases retained. Full failure matrix/history/concurrency/durable recovery/live/hosted gates still open.
