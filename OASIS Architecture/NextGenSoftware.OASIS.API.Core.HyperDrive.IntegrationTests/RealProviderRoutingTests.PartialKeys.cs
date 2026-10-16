@@ -54,6 +54,35 @@ public sealed partial class RealProviderRoutingTests
     }
 
     [Theory]
+    [InlineData(false,false)] [InlineData(true,false)] [InlineData(false,true)] [InlineData(true,true)]
+    public async Task MissingPrimaryDeleteNeverDeletesStaleSecondary(bool synchronous,bool avatar)
+    {
+        Directory.CreateDirectory(_root);var primary=new OwnedDiskProvider(new OwnedDiskKeys(FilesPath));
+        using var sqlite=new SQLLiteDBOASIS($"Data Source={SqlitePath};Pooling=False");
+        (await primary.ActivateProviderAsync()).IsError.Should().BeFalse();(await sqlite.ActivateProviderAsync()).IsError.Should().BeFalse();
+        try
+        {
+            var id=Guid.NewGuid();
+            if(avatar)(await sqlite.SaveAvatarAsync(new Avatar {Id=id,Username="owned-stale-delete",Email="stale@example.invalid",AvatarType=new EnumValue<AvatarType>(AvatarType.User),IsActive=true})).IsError.Should().BeFalse();
+            else (await sqlite.SaveHolonAsync(new Holon {Id=id,Name="owned-stale-delete"},saveChildren:false)).IsError.Should().BeFalse();
+            var manager=CreateManager(autoFailover:true,autoReplication:true);manager.RegisterProvider(primary);manager.RegisterProvider(sqlite);
+            var types=new[] {new EnumValue<ProviderType>(ProviderType.VercelKVOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)};
+            manager.SetAndReplaceAutoFailOverListForProviders(types).IsError.Should().BeFalse();manager.SetAndReplaceAutoReplicationListForProviders(types).IsError.Should().BeFalse();
+            var before=manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests??0;
+            var router=new OASISHyperDrive(manager);var request=new StorageOperationRequest {Operation=avatar ? "DeleteAvatar":"DeleteHolon",AvatarId=id,HolonId=id,SoftDelete=false,PreferredProvider=ProviderType.VercelKVOASIS};
+            void Missing<T>(Common.OASISResult<T> result)
+            {result.IsDeleted.Should().BeFalse();result.ErrorCode.Should().Be(Common.OASISResultErrorCodes.RecordNotFound);}
+            _preserveFixture=true;
+            if(avatar)Missing(synchronous ? router.RouteRequest<bool>(request):await router.RouteRequestAsync<bool>(request));
+            else Missing(synchronous ? router.RouteRequest<IHolon>(request):await router.RouteRequestAsync<IHolon>(request));
+            (manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests??0).Should().Be(before);
+            if(avatar)(await sqlite.LoadAvatarAsync(id)).Result.Id.Should().Be(id);else(await sqlite.LoadHolonAsync(id,loadChildren:false)).Result.Id.Should().Be(id);
+            _preserveFixture=false;
+        }
+        finally{await primary.DeActivateProviderAsync();}
+    }
+
+    [Theory]
     [InlineData(false,0)] [InlineData(true,0)] [InlineData(false,1)] [InlineData(true,1)] [InlineData(false,2)] [InlineData(true,2)]
     public async Task AcknowledgedPartialDeletesNeverFailOverOrReplicate(bool synchronous,int kind)
     {
