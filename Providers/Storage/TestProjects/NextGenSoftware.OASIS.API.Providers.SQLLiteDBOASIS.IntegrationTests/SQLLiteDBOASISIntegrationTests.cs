@@ -2558,6 +2558,7 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
             var avatar = new Avatar { Id = Guid.NewGuid(), Username = "owned-filter-search-" + Guid.NewGuid(),
                 Email = Guid.NewGuid() + "@test.invalid", CreatedByAvatarId = row.Item1,
                 DeletedDate = row.Item2 ? DateTime.UtcNow : DateTime.MinValue,
+                MetaData = new Dictionary<string,object> { ["Region"] = "match", ["Category"] = "match" },
                 AvatarType = new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User) };
             var saved = await provider.SaveAvatarAsync(avatar);
             saved.IsError.Should().BeFalse(saved.Message);
