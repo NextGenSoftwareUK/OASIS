@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
 
 internal static class MongoNativeRecordWriter
 {
-    internal static async Task<OASISResult<T>> SaveAsync<T>(IMongoCollection<T> records,T holon,bool updating,bool synchronous,bool overwriteCreationProvider=false) where T:HolonBase
+    internal static async Task<OASISResult<T>> SaveAsync<T>(IMongoCollection<T> records,T holon,bool updating,bool synchronous) where T:HolonBase
     {
         var entered=false;var validatingPayload=false;
         try
@@ -50,13 +50,16 @@ internal static class MongoNativeRecordWriter
                     return new OASISResult<T> {IsError=true,ErrorCode=StorageLifecycleConflictException.ErrorCode,Exception=conflict,Message=conflict.Message};
                 }
                 holon.Id=originalId;
+                var creation=BsonSerializer.Deserialize<T>(original);
+                holon.CreatedProviderType=creation.CreatedProviderType;
+                holon.CreatedOASISType=creation.CreatedOASISType;
                 observed=original;
                 // Whole-document equality also detects newly added fields. $literal keeps
                 // arbitrary metadata/unknown field values out of Mongo expression syntax.
                 expected=new BsonDocument {{"_id",nativeId},{"$expr",new BsonDocument("$eq",new BsonArray {
                     "$$ROOT",new BsonDocument("$literal",observed)})}};
             }
-            if(!updating && (overwriteCreationProvider || holon.CreatedProviderType==null)) holon.CreatedProviderType=new EnumValue<ProviderType>(ProviderType.MongoDBOASIS);
+            if(!updating && holon.CreatedProviderType==null) holon.CreatedProviderType=new EnumValue<ProviderType>(ProviderType.MongoDBOASIS);
             PrepareIdentity(holon);
             // Complete serialization before dispatch for inserts AND replacements. The
             // exact prepared BSON is what the SDK writes; no second serialization pass.

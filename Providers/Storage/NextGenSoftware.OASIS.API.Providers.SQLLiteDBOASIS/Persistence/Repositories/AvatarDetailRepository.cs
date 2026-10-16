@@ -622,6 +622,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 VersionId = avatarDetail.VersionId,
                 PreviousVersionId = avatarDetail.PreviousVersionId,
                 CustomHolonType = avatarDetail.CustomHolonType,
+                CreatedProviderType = avatarDetail.CreatedProviderType?.Value,
+                CreatedOASISType = avatarDetail.CreatedOASISType?.Value,
                 IsChanged = avatarDetail.IsChanged,
                 ModifiedByAvatarId = avatarDetail.ModifiedByAvatarId.ToString(),
                 ModifiedDate = avatarDetail.ModifiedDate,

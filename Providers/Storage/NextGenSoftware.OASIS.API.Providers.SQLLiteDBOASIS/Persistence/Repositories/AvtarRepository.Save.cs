@@ -475,6 +475,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 _dbContext.Avatars.Add(incoming);
                 return incoming;
             }
+            incoming.CreatedProviderType = existing.CreatedProviderType;
+            incoming.CreatedOASISType = existing.CreatedOASISType;
             _dbContext.Entry(existing).CurrentValues.SetValues(incoming);
             foreach (var token in existing.RefreshTokens.ToList())
             {
@@ -511,6 +513,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 VersionId = avatar.VersionId,
                 PreviousVersionId = avatar.PreviousVersionId,
                 CustomHolonType = avatar.CustomHolonType,
+                CreatedProviderType = avatar.CreatedProviderType?.Value ?? default,
+                CreatedOASISType = avatar.CreatedOASISType?.Value ?? default,
                 IsVerified = avatar.IsVerified,
                 RefreshTokens = (avatar.RefreshTokens ?? new List<NextGenSoftware.OASIS.API.Core.Objects.RefreshToken>())
                     .Select(token => new RefreshTokenModel(token) { AvatarId = avatar.Id.ToString() }).ToList(),
@@ -555,6 +559,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 VersionId = avatar.VersionId,
                 PreviousVersionId = avatar.PreviousVersionId,
                 CustomHolonType = avatar.CustomHolonType,
+                CreatedProviderType = new NextGenSoftware.Utilities.EnumValue<ProviderType>(avatar.CreatedProviderType),
+                CreatedOASISType = new NextGenSoftware.Utilities.EnumValue<OASISType>(avatar.CreatedOASISType),
                 RefreshTokens = avatar.RefreshTokens.Select(token => token.GetRefreshToken()).ToList(),
                 CreatedByAvatarId = avatar.CreatedByAvatarId == null ? Guid.Empty : Guid.Parse(avatar.CreatedByAvatarId),
                 ModifiedByAvatarId = avatar.ModifiedByAvatarId == null ? Guid.Empty : Guid.Parse(avatar.ModifiedByAvatarId),

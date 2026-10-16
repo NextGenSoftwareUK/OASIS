@@ -7,5 +7,5 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories;
 public partial class HolonRepository
 {
     private Task<OASISResult<Holon>> SaveNativeHolonAsync(Holon holon,bool updating,bool synchronous)
-        => MongoNativeRecordWriter.SaveAsync(_dbContext.Holon,holon,updating,synchronous,overwriteCreationProvider:true);
+        => MongoNativeRecordWriter.SaveAsync(_dbContext.Holon,holon,updating,synchronous);
 }
