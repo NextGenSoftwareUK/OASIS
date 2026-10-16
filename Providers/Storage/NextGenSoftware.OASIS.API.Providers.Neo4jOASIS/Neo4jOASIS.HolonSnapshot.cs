@@ -45,7 +45,6 @@ public partial class Neo4jOASIS
     private static async Task HydrateNativeChildrenAsync(IAsyncSession session, IHolon parent,
         bool recursive, int maximumDepth, int depth, HashSet<Guid> visited)
     {
-        if (maximumDepth != 0 && depth >= maximumDepth) return;
         var rows = await (await session.RunAsync("MATCH (p:Holon {Id:$id})-[:HAS_CHILD]->(h:Holon) RETURN h",
             new { id = parent.Id.ToString() })).ToListAsync();
         var selected = new List<IHolon>();
@@ -54,7 +53,8 @@ public partial class Neo4jOASIS
             var child = ReadHolonNode(row["h"].As<Neo4j.Driver.INode>());
             if (!visited.Add(child.Id)) throw new Core.Helpers.StorageLifecycleConflictException("Neo4j selected graph has a repeated identity or cycle.");
             if (child.ParentHolonId != parent.Id) throw new Core.Helpers.StorageLifecycleConflictException("Neo4j child snapshot conflicts with its native parent edge.");
-            if (recursive) await HydrateNativeChildrenAsync(session, child, true, maximumDepth, depth + 1, visited);
+            if (recursive && (maximumDepth == 0 || depth + 1 < maximumDepth))
+                await HydrateNativeChildrenAsync(session, child, true, maximumDepth, depth + 1, visited);
             selected.Add(child);
         }
         parent.Children = selected;

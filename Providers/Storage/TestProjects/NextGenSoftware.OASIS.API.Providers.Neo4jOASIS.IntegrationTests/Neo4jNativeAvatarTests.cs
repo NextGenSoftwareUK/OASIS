@@ -10,6 +10,62 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 public partial class Neo4jNativeAvatarTests
 {
     [TestMethod]
+    public async Task OwnedNativeCollectionParentAndMetadataReadsHydrateSelectedGraphs()
+    {
+        const string uri = "bolt://127.0.0.1:17687";
+        Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
+        using var raw = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
+        using var inspection = raw.AsyncSession();
+        Assert.AreEqual(0L, (await (await inspection.RunAsync("MATCH (h:Holon) RETURN count(h) AS count")).SingleAsync())["count"].As<long>());
+        var provider = new Provider(uri, "neo4j", "oasis-local-test-only");
+        try
+        {
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            var root = new Holon { Id = Guid.NewGuid(), HolonType = NextGenSoftware.OASIS.API.Core.Enums.HolonType.Holon };
+            var child = new Holon { Id = Guid.NewGuid(), HolonType = NextGenSoftware.OASIS.API.Core.Enums.HolonType.Avatar };
+            var leaf = new Holon { Id = Guid.NewGuid(), HolonType = NextGenSoftware.OASIS.API.Core.Enums.HolonType.Holon };
+            root.MetaData["selected"] = "root";
+            root.Children = new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> { child };
+            child.Children = new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> { leaf };
+            Assert.IsFalse((await provider.SaveHolonAsync(root)).IsError);
+            foreach (var sync in new[] { false, true })
+            foreach (var option in new[] { (Children:false, Recursive:true, Depth:0, Levels:0),
+                (Children:true, Recursive:false, Depth:0, Levels:1), (Children:true, Recursive:true, Depth:1, Levels:1),
+                (Children:true, Recursive:true, Depth:0, Levels:2) })
+            {
+                var collection = sync ? provider.LoadAllHolons(loadChildren:option.Children, recursive:option.Recursive, maxChildDepth:option.Depth)
+                    : await provider.LoadAllHolonsAsync(loadChildren:option.Children, recursive:option.Recursive, maxChildDepth:option.Depth);
+                Assert.IsFalse(collection.IsError, collection.Message); Assert.IsTrue(collection.IsLoaded);
+                var loaded = collection.Result.Single(record => record.Id == root.Id);
+                Assert.AreEqual(option.Levels > 0 ? 1 : 0, loaded.Children.Count());
+                if (option.Levels > 0) Assert.AreEqual(option.Levels > 1 ? 1 : 0, loaded.Children.Single().Children.Count());
+                var metadata = sync ? provider.LoadHolonsByMetaData("selected", "root", loadChildren:option.Children, recursive:option.Recursive, maxChildDepth:option.Depth)
+                    : await provider.LoadHolonsByMetaDataAsync("selected", "root", loadChildren:option.Children, recursive:option.Recursive, maxChildDepth:option.Depth);
+                Assert.IsFalse(metadata.IsError, metadata.Message); Assert.AreEqual(root.Id, metadata.Result.Single().Id);
+                Assert.AreEqual(option.Levels > 0 ? 1 : 0, metadata.Result.Single().Children.Count());
+                var parent = sync ? provider.LoadHolonsForParent(root.Id, loadChildren:option.Children, recursive:option.Recursive, maxChildDepth:option.Depth)
+                    : await provider.LoadHolonsForParentAsync(root.Id, loadChildren:option.Children, recursive:option.Recursive, maxChildDepth:option.Depth);
+                Assert.IsFalse(parent.IsError, parent.Message); Assert.AreEqual(child.Id, parent.Result.Single().Id);
+                Assert.AreEqual(option.Children && option.Recursive && option.Depth == 0 ? 1 : 0, parent.Result.Single().Children.Count());
+            }
+            var typed = await provider.LoadAllHolonsAsync(NextGenSoftware.OASIS.API.Core.Enums.HolonType.Avatar, loadChildren:false);
+            Assert.IsFalse(typed.IsError, typed.Message); Assert.AreEqual(child.Id, typed.Result.Single().Id);
+            var typedParent = await provider.LoadHolonsForParentAsync(root.Id, NextGenSoftware.OASIS.API.Core.Enums.HolonType.Holon, loadChildren:false);
+            Assert.IsFalse(typedParent.IsError, typedParent.Message); Assert.AreEqual(0, typedParent.Result.Count());
+            var initial = await provider.LoadAllHolonsAsync(maxChildDepth:1, curentChildDepth:1);
+            Assert.IsFalse(initial.IsError, initial.Message);
+            Assert.AreEqual(1, initial.Result.Single(record => record.Id == root.Id).Children.Count());
+            Assert.AreEqual(0, initial.Result.Single(record => record.Id == root.Id).Children.Single().Children.Count());
+            Assert.IsTrue((await provider.LoadAllHolonsAsync(maxChildDepth:-1)).IsError);
+            Assert.IsTrue((await provider.LoadHolonsForParentAsync(root.Id, curentChildDepth:-1)).IsError);
+            Assert.IsTrue((await provider.LoadHolonsByMetaDataAsync("selected", "root", maxChildDepth:-1)).IsError);
+            await (await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h",
+                new { ids = new[] { root.Id.ToString(), child.Id.ToString(), leaf.Id.ToString() } })).ConsumeAsync();
+        }
+        finally { await provider.DeActivateProviderAsync(); }
+    }
+
+    [TestMethod]
     public async Task OwnedNativePointGraphReadsHonorDepthAndRejectCorruptEdges()
     {
         const string uri = "bolt://127.0.0.1:17687";

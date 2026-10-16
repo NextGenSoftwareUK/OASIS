@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+Neo4j parent/collection/metadata graph reads now reuse native hydration with children/recursion/depth, initial-depth behavior aligned to existing shared provider and root type filtering. Native10/10 passes9s; new8option combinations across3read families + typed/initial-depth/negative cases, prior point/save/policy/commit-fault cases retained. Partial continuation/history/snapshot isolation/concurrent graph mutation/reparent-removal/full routed options remain unverified; no full certification.
+
 Neo4j GUID/key point graph loading now honors children/recursion/depth and validates selected node/edge parent identities/cycles. Native9/9 passes8s with32point-read combinations, negative-depth rejection and exact injected-cycle conflict; prior V2/replay-fence cases remain green. Both fromProvider flag values select native edges, not proof of separate manager-owned graph source. Parent/collection/metadata graph options, partial-read continuation/history/concurrency/routed graph acceptance remain open.
 
 Neo4j avatar/detail saves now explicit-transaction and unknown-commit fenced like holons, with caller/result publication only after commit+disposal and exact identity validation. Native V2 scenario12real committed acknowledgement-loss combinations across3types/syncasync/replicationonoff all preserve cause/marker,1commit,0secondary requests; physical committed data independently read and SQLite absence checked. Native8/8 passes8s, unit27/27 passes249ms, zero skips. Controlled SDK-boundary fault, not complete durable recovery/pair lifecycle/graph failure/history/options/hosted certification.

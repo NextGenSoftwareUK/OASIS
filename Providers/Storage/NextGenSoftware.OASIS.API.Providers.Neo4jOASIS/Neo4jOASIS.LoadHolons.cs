@@ -39,6 +39,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             try
             {
                 // REAL Neo4j implementation for loading holons for parent by ID
+                if (maxChildDepth < 0 || curentChildDepth < 0 || !Enum.IsDefined(typeof(HolonType), type))
+                    throw new ArgumentException("Defined holon type and nonnegative read depths are required.");
                 if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
                 {
                     OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
@@ -57,10 +59,15 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     foreach (var record in records)
                     {
                         var node = record["h"].As<Neo4j.Driver.INode>();
-                        holons.Add(ReadHolonNode(node));
+                        var child = ReadHolonNode(node);
+                        if (child.Id == id || child.ParentHolonId != id || holons.Any(existing => existing.Id == child.Id))
+                            throw new StorageLifecycleConflictException("Neo4j native child identity or parent edge is inconsistent.");
+                        if (loadChildren && recursive && (maxChildDepth == 0 || curentChildDepth + 1 < maxChildDepth))
+                            await HydrateNativeChildrenAsync(session, child, true, maxChildDepth, curentChildDepth + 1, new HashSet<Guid> { id, child.Id });
+                        holons.Add(child);
                     }
                     
-                    response.Result = holons;
+                    response.Result = holons.Where(child => type == HolonType.All || child.HolonType == type).ToList();
                     response.IsLoaded = true;
                     response.IsError = false;
                     response.Message = "Child holons loaded successfully from Neo4j";
@@ -119,6 +126,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             try
             {
                 // REAL Neo4j implementation for loading holons by metadata pairs
+                if (maxChildDepth < 0 || curentChildDepth < 0)
+                    throw new ArgumentException("Nonnegative read depths are required.");
                 if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
                 {
                     OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
@@ -140,15 +149,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                         var node = record["h"].As<Neo4j.Driver.INode>();
                         var holon = ReadHolonNode(node);
                         
-                        // Load children recursively if requested
-                        if (loadChildren && recursive && (maxChildDepth == 0 || curentChildDepth < maxChildDepth))
-                        {
-                            var childrenResult = await LoadHolonsForParentAsync(holon.Id, type, loadChildren, recursive, maxChildDepth, curentChildDepth + 1, continueOnError, loadChildrenFromProvider, version);
-                            if (!childrenResult.IsError && childrenResult.Result != null)
-                            {
-                                holon.Children = childrenResult.Result.ToList();
-                            }
-                        }
+                        if (loadChildren)
+                            await HydrateNativeChildrenAsync(session, holon, recursive, maxChildDepth, curentChildDepth, new HashSet<Guid> { holon.Id });
                         holons.Add(holon);
                     }
                     
@@ -177,23 +179,28 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             try
             {
                 // REAL Neo4j implementation for loading all holons
+                if (maxChildDepth < 0 || curentChildDepth < 0 || !Enum.IsDefined(typeof(HolonType), type))
+                    throw new ArgumentException("Defined holon type and nonnegative read depths are required.");
                 if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
                 {
                     OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
                     return response;
                 }
 
-                var query = "MATCH (h:Holon) RETURN h";
+                var query = "MATCH (h:Holon) WHERE $type = 'All' OR h.HolonType = $type RETURN h";
                 using (var session = _driver.AsyncSession())
                 {
-                    var result = await session.RunAsync(query);
+                    var result = await session.RunAsync(query, new { type = type.ToString() });
                     var records = await result.ToListAsync();
                     
                     var holons = new List<IHolon>();
                     foreach (var record in records)
                     {
                         var node = record["h"].As<Neo4j.Driver.INode>();
-                        holons.Add(ReadHolonNode(node));
+                        var holon = ReadHolonNode(node);
+                        if (loadChildren)
+                            await HydrateNativeChildrenAsync(session, holon, recursive, maxChildDepth, curentChildDepth, new HashSet<Guid> { holon.Id });
+                        holons.Add(holon);
                     }
                     
                     response.Result = holons;
