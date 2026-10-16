@@ -16,11 +16,15 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             var key="owned-key-"+Guid.NewGuid().ToString("N");
             Avatar Create(string suffix) => new() {Id=Guid.NewGuid(),Username=key+suffix,Email=key+suffix+"@example.invalid",IsActive=true,
                 AvatarType=new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User),
+                VerificationToken=key,ResetToken=key,RefreshToken=key+"legacy",RefreshTokens=new() {new RefreshToken {Token=key}},
                 ProviderWallets=new() {{ProviderType.SolanaOASIS,new() {new ProviderWallet {Id=Guid.NewGuid(),PublicKey=key,PrivateKey=key}}}}};
             var first=Create("first");var second=Create("second");
-            async Task<OASISResult<IAvatar>> Read(bool privateKey,string value,int version=0) => privateKey
-                ? synchronous ? store.LoadAvatarByPrivateKey(value,version):await store.LoadAvatarByPrivateKeyAsync(value,version)
-                : synchronous ? store.LoadAvatarByPublicKey(value,version):await store.LoadAvatarByPublicKeyAsync(value,version);
+            async Task<OASISResult<IAvatar>> Read(int kind,string value,int version=0) => kind switch {
+                0=>synchronous ? store.LoadAvatarByPublicKey(value,version):await store.LoadAvatarByPublicKeyAsync(value,version),
+                1=>synchronous ? store.LoadAvatarByPrivateKey(value,version):await store.LoadAvatarByPrivateKeyAsync(value,version),
+                2=>synchronous ? store.LoadAvatarByVerificationToken(value,version):await store.LoadAvatarByVerificationTokenAsync(value,version),
+                3=>synchronous ? store.LoadAvatarByResetToken(value,version):await store.LoadAvatarByResetTokenAsync(value,version),
+                _=>synchronous ? store.LoadAvatarByRefreshToken(value,version):await store.LoadAvatarByRefreshTokenAsync(value,version)};
             try
             {
                 (await store.SaveAvatarAsync(first)).IsError.Should().BeFalse();
@@ -35,9 +39,9 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 var staleType=store==mongo ? ProviderType.MongoDBOASIS:ProviderType.SQLLiteDBOASIS;
                 var primaryType=store==mongo ? ProviderType.SQLLiteDBOASIS:ProviderType.MongoDBOASIS;
                 var before=manager.PerformanceMonitor.GetMetrics(staleType)?.TotalRequests ?? 0;
-                foreach(var operation in new[] {"LoadAvatarByPublicKey","LoadAvatarByPrivateKey"})
+                foreach(var operation in new[] {"LoadAvatarByPublicKey","LoadAvatarByPrivateKey","LoadAvatarByVerificationToken","LoadAvatarByResetToken","LoadAvatarByRefreshToken"})
                 {
-                    var request=new StorageOperationRequest {Operation=operation,PublicKey=key,PrivateKey=key,PreferredProvider=primaryType};
+                    var request=new StorageOperationRequest {Operation=operation,PublicKey=key,PrivateKey=key,VerificationToken=key,ResetToken=key,RefreshToken=key,PreferredProvider=primaryType};
                     var absent=synchronous ? router.RouteRequest<IAvatar>(request):await router.RouteRequestAsync<IAvatar>(request);
                     absent.ErrorCode.Should().Be(OASISResultErrorCodes.RecordNotFound);absent.Result.Should().BeNull();
                     request.Version=-1;
@@ -45,21 +49,26 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                     invalid.ErrorCode.Should().Be("HYPERDRIVE_VERSION_INVALID");invalid.Result.Should().BeNull();
                 }
                 (manager.PerformanceMonitor.GetMetrics(staleType)?.TotalRequests ?? 0).Should().Be(before);
-                foreach(var privateKey in new[] {false,true})
+                foreach(var privateKey in Enumerable.Range(0,5))
                 {
                     var loaded=await Read(privateKey,key);loaded.IsError.Should().BeFalse(loaded.Message);loaded.IsLoaded.Should().BeTrue();loaded.Result.Id.Should().Be(first.Id);
                     var missing=await Read(privateKey,key+"missing");missing.ErrorCode.Should().Be(OASISResultErrorCodes.RecordNotFound);missing.Result.Should().BeNull();
                     var invalid=await Read(privateKey," ");invalid.IsError.Should().BeTrue();invalid.ErrorCode.Should().Be("HYPERDRIVE_PAYLOAD_INVALID");invalid.Exception.Should().BeAssignableTo<ArgumentException>();
                     var version=await Read(privateKey,key,-1);version.ErrorCode.Should().Be("HYPERDRIVE_PAYLOAD_INVALID");version.Exception.Should().BeAssignableTo<ArgumentException>();
                 }
+                (await Read(4,key+"legacy")).Result.Id.Should().Be(first.Id);
                 (await store.SaveAvatarAsync(second)).IsError.Should().BeFalse();
                 (await store.SaveAvatarDetailAsync(new AvatarDetail {Id=second.Id,Username=second.Username,Email=second.Email,IsActive=true})).IsError.Should().BeFalse();
-                foreach(var privateKey in new[] {false,true})
+                foreach(var privateKey in Enumerable.Range(0,5))
                 {
                     var ambiguous=await Read(privateKey,key);ambiguous.ErrorCode.Should().Be(OASISResultErrorCodes.AmbiguousIdentity);ambiguous.Result.Should().BeNull();
                 }
                 var deleted=await store.DeleteAvatarAsync(second.Id,true);deleted.IsError.Should().BeFalse(deleted.Message);
-                foreach(var privateKey in new[] {false,true}) (await Read(privateKey,key)).Result.Id.Should().Be(first.Id);
+                foreach(var privateKey in Enumerable.Range(0,5)) (await Read(privateKey,key)).Result.Id.Should().Be(first.Id);
+                (await Read(4,key+"legacy")).Result.Id.Should().Be(first.Id);
+                (await store.DeleteAvatarAsync(first.Id,true)).IsError.Should().BeFalse();
+                foreach(var kind in Enumerable.Range(0,5)) {var absent=await Read(kind,key);absent.ErrorCode.Should().Be(OASISResultErrorCodes.RecordNotFound);absent.Result.Should().BeNull();}
+                (await Read(4,key+"legacy")).ErrorCode.Should().Be(OASISResultErrorCodes.RecordNotFound);
             }
             finally {await store.DeleteAvatarAsync(first.Id,false);await store.DeleteAvatarAsync(second.Id,false);}
         }
