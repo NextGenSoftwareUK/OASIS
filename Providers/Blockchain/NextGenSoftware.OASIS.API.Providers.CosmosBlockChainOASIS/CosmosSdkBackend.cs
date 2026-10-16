@@ -38,7 +38,7 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
     public async Task<string> GetAsync(string key, CancellationToken cancellationToken = default)
     {
         var value = await InvokeAsync("get", new { key }, cancellationToken);
-        return value.ValueKind == JsonValueKind.Null ? null : value.GetString();
+        return StorageJsonResponse.NullableString(value);
     }
 
     public async Task PutAsync(string key, string value, CancellationToken cancellationToken = default)
@@ -67,12 +67,8 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
         {
             var page = await InvokeAsync("list", new { prefix, startAfter = cursor }, cancellationToken);
             var count = 0;
-            foreach (var element in page.EnumerateArray())
+            foreach (var key in StorageJsonResponse.KeyPage(page,prefix,cursor))
             {
-                var key = element.GetString();
-                if (key == null || !key.StartsWith(prefix, StringComparison.Ordinal)
-                    || (cursor != null && string.CompareOrdinal(key, cursor) <= 0))
-                    throw new InvalidDataException("Cosmos storage returned a non-advancing or out-of-prefix page.");
                 keys.Add(key);
                 cursor = key;
                 count++;

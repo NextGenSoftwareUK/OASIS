@@ -59,7 +59,7 @@ internal sealed class HederaStorageBackend : IKeyValueBackend
     {
         ArgumentNullException.ThrowIfNull(key);
         var result = await InvokeAsync("storageGet", key, null, null, false, cancellationToken);
-        return result.ValueKind == JsonValueKind.Null ? null : result.GetString();
+        return StorageJsonResponse.NullableString(result);
     }
 
     public async Task PutAsync(string key, string value, CancellationToken cancellationToken = default)
@@ -86,18 +86,7 @@ internal sealed class HederaStorageBackend : IKeyValueBackend
     {
         ArgumentNullException.ThrowIfNull(prefix);
         var result = await InvokeAsync("storageList", null, null, prefix, false, cancellationToken);
-        var keys = new List<string>();
-        string previous = null;
-        foreach (var item in result.EnumerateArray())
-        {
-            var key = item.GetString();
-            if (key == null || !key.StartsWith(prefix, StringComparison.Ordinal)
-                || (previous != null && string.CompareOrdinal(previous, key) >= 0))
-                throw new InvalidDataException("Hedera storage returned duplicate, unordered or out-of-prefix keys.");
-            keys.Add(key);
-            previous = key;
-        }
-        return keys;
+        return StorageJsonResponse.KeyPage(result,prefix);
     }
 
     public async Task VerifyAsync(CancellationToken cancellationToken = default)

@@ -21,7 +21,11 @@ public sealed class TronStorageBackendTests
         Assert.Equal(exists, result[0].Result);
         Assert.Equal(value, result[1].Result);
         var error = Assert.Throws<TargetInvocationException>(() => decode.Invoke(null, new object[] { new byte[31], new[] { "bool", "string" } }));
-        Assert.IsType<InvalidOperationException>(error.InnerException);
+        Assert.IsType<System.IO.InvalidDataException>(error.InnerException);
+        // Complete but noncanonical trailing words must also remain terminal data corruption.
+        var padded=data.AsSpan(4).ToArray().Concat(new byte[32]).ToArray();
+        var noncanonical=Assert.Throws<TargetInvocationException>(()=>decode.Invoke(null,new object[] {padded,new[] {"bool","string"}}));
+        Assert.IsType<System.IO.InvalidDataException>(noncanonical.InnerException);
     }
 
     [Fact]

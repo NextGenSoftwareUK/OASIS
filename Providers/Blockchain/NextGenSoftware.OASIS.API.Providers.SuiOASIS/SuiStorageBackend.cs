@@ -22,7 +22,7 @@ internal sealed class SuiStorageBackend : IKeyValueBackend
     public async Task<string> GetAsync(string key, CancellationToken cancellationToken = default)
     {
         var value = await _invoke("get", new { key }, cancellationToken);
-        return value.ValueKind == JsonValueKind.Null ? null : value.GetString();
+        return StorageJsonResponse.NullableString(value);
     }
 
     public async Task PutAsync(string key, string value, CancellationToken cancellationToken = default)
@@ -35,18 +35,7 @@ internal sealed class SuiStorageBackend : IKeyValueBackend
     {
         prefix ??= string.Empty;
         var response = await _invoke("list", new { prefix }, cancellationToken);
-        var keys = new List<string>();
-        string previous = null;
-        foreach (var item in response.EnumerateArray())
-        {
-            var key = item.GetString();
-            if (key == null || !key.StartsWith(prefix, StringComparison.Ordinal)
-                || (previous != null && string.CompareOrdinal(previous, key) >= 0))
-                throw new InvalidDataException("Sui storage returned duplicate, unordered or out-of-prefix keys.");
-            keys.Add(key);
-            previous = key;
-        }
-        return keys;
+        return StorageJsonResponse.KeyPage(response,prefix);
     }
 
     public async Task VerifyAsync(CancellationToken cancellationToken = default)
