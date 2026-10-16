@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 Dynamo version safety: existing cached official SDK read probes and fixed unit report used;29/29pass312ms. Probes reject any attempted SDK read locally, no network service/download/environment/data creation. No cleanup or reclaimed-space claim required.
+
 2026-10-16 AWS definite-rejection graph tests: same retained runtime/cache/fixed reports; native39/39pass11s. Actual rejected synthetic parent/descendant absence independently verified, exact acknowledged independent parent/child keys deleted after readback. No install/download/clone/new environment or broad dataset/cache cleanup.
 
 2026-10-16 AWS partial V2 graph verification: native35/35pass11s, retained runtime/cache/fixed SQLite routing fixture and reports reused. Actual root+child committed states independently reconciled before exact synthetic item deletion; no leaf existed. Verified fixture family cleanup follows deactivation; no install/download/new environment or unknown-chain ledger removal. Controlled post-ack SDK fault, not erased unknown physical outcomes.
