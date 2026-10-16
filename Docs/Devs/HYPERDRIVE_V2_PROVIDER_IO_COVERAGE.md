@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 AWS native35/35pass11s: actual V2 sync/async partial recursive saves with failover+replication enabled prove root ack/child real commit then controlled lost acknowledgement => exactly2commits, correct partial evidence/original child cause, no leaf submission, unpublished child/leaf caller IDs and0secondary requests/absent SQLite copies. Native readback confirms root/child parent link and absent descendants. Physical wire loss/durable recovery/full-interface/live/hosted gates remain open.
+
 2026-10-16 AWS native33/33pass12s: four actual V2 AWS↔SQLite sync/async generated-ID recursive graph saves prove no warning/error and matching independently reconstructed3node trees/parent links at both stores. Existing native31 retained. Normal graph routing/replication now proven for this scope; partial native graph faults, options/concurrency/history/recovery/live/hosted remain open.
 
 2026-10-16 AWS native31/31pass10s +Dynamo unit25/25pass307ms: graph saves now honor child selection/recursion/depth with per-node native items/parent IDs and post-ack source publication. Six child-selection cases failed before implementation. Real SDK raw/readback tree assertions, controlled zero-write invalid graph and uncertainty-stop cases added; canonical navigation-exclusion contract preserved. Sequential graph writes are NOT atomic; native partial graph faults, V2 graph replication/history/full-interface/live/hosted gates remain open.
