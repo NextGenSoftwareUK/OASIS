@@ -17,8 +17,13 @@ public partial class Web3NativeStorageTests
         public NftBoundaryDeployment() : base((string)ReadNftFixture()["bytecode"]!) { }
     }
 
-    private static JObject ReadNftFixture() => JObject.Parse(File.ReadAllText(Path.Combine(
-        Path.GetDirectoryName(Environment.GetEnvironmentVariable("WEB3CORE_NATIVE_FIXTURE"))!, "web3-nft-boundary.json")));
+    public sealed class NftNoOpDeployment : ContractDeploymentMessage
+    {
+        public NftNoOpDeployment() : base((string)ReadNftFixture("web3-nft-noop.json")["bytecode"]!) { }
+    }
+
+    private static JObject ReadNftFixture(string filename = "web3-nft-boundary.json") => JObject.Parse(File.ReadAllText(Path.Combine(
+        Path.GetDirectoryName(Environment.GetEnvironmentVariable("WEB3CORE_NATIVE_FIXTURE"))!, filename)));
 
     [TestMethod]
     public async Task ActualPolygonNftTransfersPreserveUint256IdsAndRejectWrongSigner()
@@ -102,6 +107,25 @@ public partial class Web3NativeStorageTests
             Assert.AreEqual(externalDeployment.ContractAddress, externalTransfer.Result.Web3NFT.NFTTokenAddress);
             Assert.AreEqual(externalReceipt.TransactionHash, externalTransfer.Result.Web3NFT.SendNFTTransactionHash);
             Assert.IsTrue(string.IsNullOrEmpty(externalTransfer.Result.Web3NFT.MintTransactionHash));
+            var noOpDeployment = await web3.Eth.GetContractDeploymentHandler<NftNoOpDeployment>()
+                .SendRequestAndWaitForReceiptAsync(new NftNoOpDeployment { Gas = new HexBigInteger(8000000) });
+            Assert.IsTrue(noOpDeployment.Succeeded());
+            var noOp = web3.Eth.GetContract(ReadNftFixture("web3-nft-noop.json")["abi"]!.ToString(), noOpDeployment.ContractAddress);
+            Assert.IsTrue((await noOp.GetFunction("seedToken").SendTransactionAndWaitForReceiptAsync(
+                account.Address, new HexBigInteger(500000), null, null, account.Address, alternateId)).Succeeded());
+            var noOpTransfer = await provider.SendNFTAsync(new SendWeb3NFTRequest {
+                FromWalletAddress = account.Address, ToWalletAddress = recipient, TokenId = "17", Amount = 1,
+                TokenAddress = noOpDeployment.ContractAddress });
+            Assert.IsTrue(noOpTransfer.IsError);
+            Assert.IsFalse(noOpTransfer.IsSaved);
+            Assert.IsNull(noOpTransfer.Result);
+            Assert.IsInstanceOfType(noOpTransfer.Exception, typeof(Web3MutationReconciliationException));
+            var noOpEvidence = (Web3MutationReconciliationException)noOpTransfer.Exception;
+            Assert.AreEqual(noOpEvidence.ObservedReceipt.TransactionHash, noOpEvidence.OriginalTransactionId);
+            Assert.IsTrue(noOpEvidence.ObservedReceipt.Succeeded(), "Native success must not become API success without ownership change.");
+            Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(noOpEvidence));
+            Assert.AreEqual(account.Address.ToLowerInvariant(),
+                (await noOp.GetFunction("ownerOf").CallAsync<string>(alternateId)).ToLowerInvariant());
             foreach (var id in new[] { BigInteger.Zero, BigInteger.One << 63, (BigInteger.One << 256) - 1 })
             {
                 var seeded = await contract.GetFunction("seedToken").SendTransactionAndWaitForReceiptAsync(

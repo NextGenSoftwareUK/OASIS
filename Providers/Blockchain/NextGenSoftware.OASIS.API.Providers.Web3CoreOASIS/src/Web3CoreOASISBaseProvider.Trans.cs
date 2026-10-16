@@ -117,6 +117,7 @@ public partial class Web3CoreOASISBaseProvider
                 OASISErrorHandling.HandleError(ref result, "NFT transfer sender does not match the signing account.");
                 return result;
             }
+            Function externalOwnerOf = null;
             if (externalContract)
             {
                 // Explicit standard ERC-721 target, not an ABI-guessing fallback.
@@ -124,6 +125,7 @@ public partial class Web3CoreOASISBaseProvider
                     throw new InvalidOperationException("NFT transaction target differs from the admitted native preparation owner.");
                 const string transferAbi = "[{\"type\":\"function\",\"name\":\"transferFrom\",\"inputs\":[{\"name\":\"from\",\"type\":\"address\"},{\"name\":\"to\",\"type\":\"address\"},{\"name\":\"tokenId\",\"type\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"}]";
                 var ownerOf = _web3Client.Eth.GetContract("[{\"type\":\"function\",\"name\":\"ownerOf\",\"inputs\":[{\"name\":\"tokenId\",\"type\":\"uint256\"}],\"outputs\":[{\"name\":\"owner\",\"type\":\"address\"}],\"stateMutability\":\"view\"}]", target).GetFunction("ownerOf");
+                externalOwnerOf = ownerOf;
                 var owner = await ownerOf.CallAsync<string>(tokenId);
                 if (!string.Equals(owner, transaction.FromWalletAddress, StringComparison.OrdinalIgnoreCase))
                     throw new InvalidOperationException("NFT token is not owned by the supplied sender.");
@@ -142,6 +144,21 @@ public partial class Web3CoreOASISBaseProvider
                 new BigInteger(transaction.Amount),
                 transaction.MemoText ?? string.Empty
             );
+            if (externalOwnerOf != null)
+            {
+                try
+                {
+                    if (transactionReceipt.BlockNumber == null)
+                        throw new InvalidDataException("NFT receipt has no block for ownership verification.");
+                    var owner = await externalOwnerOf.CallAsync<string>(new BlockParameter(transactionReceipt.BlockNumber), tokenId);
+                    if (!string.Equals(owner, transaction.ToWalletAddress, StringComparison.OrdinalIgnoreCase))
+                        throw new InvalidDataException("NFT transfer receipt did not establish recipient ownership.");
+                }
+                catch (Exception cause)
+                {
+                    throw new Web3MutationReconciliationException(transactionReceipt.TransactionHash, transactionReceipt, cause);
+                }
+            }
             string transactionHash = transactionReceipt.TransactionHash;
 
             IWeb3NFTTransactionResponse response = new Web3NFTTransactionResponse
