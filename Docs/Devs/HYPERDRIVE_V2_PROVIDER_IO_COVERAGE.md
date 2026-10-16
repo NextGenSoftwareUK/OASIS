@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 DynamoDB unit21/21 and AWS native23/23pass11s: SDK RequestId retained separately as SdkRequestId, never reported as OriginalTransactionId. Regression proves shared reconciliation collector returns no invented native receipt while preserving original exception and replay fence. One unit failed before fix. Durable recovery/live service/full-interface/hosted gates remain open.
+
 2026-10-16 AWS native23/23 passes10s, zero skips: six actual-commit/controlled SDK-acknowledgement failures for profile/detail/holon syncasync preserve attempted table/key/original cause and no longer mutate caller IDs/provider keys. All6 failed before detached-snapshot source fix. Independent consistent reads prove real stored rows, exactly1commit. Prior V2/transaction race tests retained. Physical ack loss/durable recovery/full interfaces/live service/hosted gates remain open.
 
 2026-10-16 Google native17/17 passes26s: added sync/async direct holon outage regressions, both failed before fix with premature generated caller ID. Detached canonical direct-write snapshot now publishes caller ID/key only on acknowledgement; separate healthy save independently verifies stored identity. Prior profile/detail, graphs, lifecycle and V2 tests retained. Durable reconciliation/all-interface/live service/hosted gates remain open.
