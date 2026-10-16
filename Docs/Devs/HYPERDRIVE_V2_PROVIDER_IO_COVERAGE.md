@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+Shared EVM collection metadata read now preserves actual on-chain name in Title and signals IsLoaded after successful name/symbol calls. Native red-before/green-after for actual Polygon collection read, with sync+async exact field checks. Full retained runner Ethereum91/91 +59contractassertions +Web3native2/2 passes; transfer quantity/token-ID/signer checks retained. Scope is collection-level contract-address metadata, not token-specific metadata or bridge proof. No full-provider completion claim.
+
 ERC-721 quantity contract/API now both require exactly one, replacing insufficient API positive-whole-number check. Native direct amount0/2 calls revert with exact quantity reason and retain ownership for all three boundary IDs; public amount2 fails before submission; amount1 receipts and wrong-signer rejection remain green. Final native2/2 passes24s, Ethereum91/91 and59 contract assertions pass, focused15/15 passes54ms. Solidity ABI unchanged but deployment bytecode must be upgraded/verified separately; no claim existing hosted contracts changed. Bridge gates remain open.
 
 Fresh local NFT transfer receipt proof: actual activated Polygon wrapper against inherited production sendNFT; three native IDs0/2^63/uint256-max all transfer with successful receipts and independently verified ownership; three configured-wrong-signer attempts fail and leave ownership unchanged. Test-only derived mint hook seeds boundary IDs without changing production transfer. Runner requires Web3 native2/2, passes24s; Ethereum91/91 passes20s and59 contract assertions pass. No real-Mongo-outbox flag in this invocation, no public-chain proof, no bridge source/finality/replay proof, no full certification.
