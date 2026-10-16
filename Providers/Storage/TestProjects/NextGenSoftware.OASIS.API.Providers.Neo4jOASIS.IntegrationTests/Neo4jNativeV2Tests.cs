@@ -208,6 +208,33 @@ public partial class Neo4jNativeAvatarTests
                 }
                 finally { field.SetValue(neo, healthy); }
             }
+            manager.IsAutoReplicationEnabled = true;
+            foreach (var primary in providers)
+            foreach (var asynchronous in new[] { false, true })
+            {
+                var pairId = Guid.NewGuid(); var username = "owned-replica-" + pairId.ToString("N");
+                var neoProfile = new Avatar { Id = pairId, Username = username, FirstName = "neo-owned", AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
+                var sqliteProfile = new Avatar { Id = pairId, Username = username, FirstName = "sqlite-owned", AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
+                var neoDetail = new AvatarDetail { Id = pairId, Username = username, XP = 111 };
+                var sqliteDetail = new AvatarDetail { Id = pairId, Username = username, XP = 222 };
+                neoDetail.Inventory.Add(new Core.Objects.InventoryItem { Id = Guid.NewGuid(), Name = "neo-owned-inventory" });
+                sqliteDetail.Inventory.Add(new Core.Objects.InventoryItem { Id = Guid.NewGuid(), Name = "sqlite-owned-inventory" });
+                Assert.IsFalse((await neo.SaveAvatarAsync(neoProfile)).IsError); Assert.IsFalse((await neo.SaveAvatarDetailAsync(neoDetail)).IsError);
+                Assert.IsFalse((await sqlite.SaveAvatarAsync(sqliteProfile)).IsError); Assert.IsFalse((await sqlite.SaveAvatarDetailAsync(sqliteDetail)).IsError);
+                var request = new StorageOperationRequest { Operation = "DeleteAvatar", AvatarId = pairId, SoftDelete = true, PreferredProvider = primary.Value };
+                var deleted = asynchronous ? await router.RouteRequestAsync<bool>(request) : router.RouteRequest<bool>(request);
+                Assert.IsFalse(deleted.IsError, deleted.Message); Assert.IsFalse(deleted.IsWarning, deleted.Message); Assert.IsTrue(deleted.Result);
+                var np = await neo.LoadAvatarAsync(pairId); var nd = await neo.LoadAvatarDetailAsync(pairId);
+                var sp = await sqlite.LoadAvatarAsync(pairId); var sd = await sqlite.LoadAvatarDetailAsync(pairId);
+                Assert.IsFalse(np.IsError, np.Message); Assert.IsFalse(nd.IsError, nd.Message);
+                Assert.IsFalse(sp.IsError, sp.Message); Assert.IsFalse(sd.IsError, sd.Message);
+                Assert.IsFalse(np.Result.IsActive); Assert.IsFalse(nd.Result.IsActive); Assert.IsFalse(sp.Result.IsActive); Assert.IsFalse(sd.Result.IsActive);
+                Assert.AreEqual(np.Result.DeletedDate, nd.Result.DeletedDate); Assert.AreEqual(np.Result.DeletedDate, sp.Result.DeletedDate); Assert.AreEqual(np.Result.DeletedDate, sd.Result.DeletedDate);
+                Assert.AreEqual("neo-owned", np.Result.FirstName); Assert.AreEqual("sqlite-owned", sp.Result.FirstName);
+                Assert.AreEqual(111L, nd.Result.XP); Assert.AreEqual(222L, sd.Result.XP);
+                Assert.AreEqual("neo-owned-inventory", nd.Result.Inventory.Single().Name); Assert.AreEqual("sqlite-owned-inventory", sd.Result.Inventory.Single().Name);
+                Assert.IsFalse((await neo.DeleteAvatarAsync(pairId, false)).IsError); Assert.IsFalse((await sqlite.DeleteAvatarAsync(pairId, false)).IsError);
+            }
             using var cleanup = raw.AsyncSession();
             await (await cleanup.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h", new { ids = new[] { id.ToString(), branch.Id.ToString(), descendant.Id.ToString() } })).ConsumeAsync();
             verified = true;
