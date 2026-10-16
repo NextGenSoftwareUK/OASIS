@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 Google holon projection regression: reused retained Firestore runtime/cache/fixed reports; first11-case run9pass/2fail documented mismatched native deletion projection, final11/11pass14s. Four exact synthetic holon document IDs cleaned in finally; no collection-wide deletion, runtime/install/download/new environment or existing production-data rewrite.
+
 2026-10-16 Google inactive-state regression: same retained emulator/cache/fixed report reused. First7-case run5pass/2fail reproduced invalid empty tombstone timestamp; after root-cause fix7/7pass14s. Exact synthetic document cleanup only; no new runtime/archive/environment or broad data cleanup. Prior compact failure assertions documented, latest TRX retained.
 
 2026-10-16 AWS routed hard-delete verification: existing retained DynamoDB Local runtime and fixed AWSProviderEvidence/artifacts reports reused;17/17 native passes10s. No runtime/download/clone/new environment. Test lifecycle uses actual routed deletion rather than separate direct-provider cleanup, independently verifies absence before successful fixture DB removal. No broad user-table/cache/ledger cleanup or global reclaim claim.
