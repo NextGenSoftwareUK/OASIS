@@ -28,6 +28,7 @@ public partial class AzureStorageOASISIntegrationTests
         {
             Assert.IsFalse((await sqlite.ActivateProviderAsync()).IsError);
             if(kind==0) Assert.IsFalse((await sqlite.SaveAvatarAsync(new Avatar {Id=id,Username="owned-stale",IsActive=true,
+                VerificationToken="owned-stale",ResetToken="owned-stale",RefreshTokens=new() {new Core.Objects.RefreshToken {Token="owned-stale"}},
                 AvatarType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User)})).IsError);
             else if(kind==1) Assert.IsFalse((await sqlite.SaveAvatarDetailAsync(new AvatarDetail {Id=id,Username="owned-stale",IsActive=true,XP=999})).IsError);
             else Assert.IsFalse((await sqlite.SaveHolonAsync(new Holon {Id=id,Name="owned-stale",IsActive=true},saveChildren:false)).IsError);
@@ -39,6 +40,23 @@ public partial class AzureStorageOASISIntegrationTests
                 new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.AzureStorageOASIS),
                 new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.SQLLiteDBOASIS)}).IsError);
             var router=new Core.Managers.OASISHyperDrive.OASISHyperDrive(manager);
+            var tokenOperations=new[] {"LoadAvatarByVerificationToken","LoadAvatarByResetToken","LoadAvatarByRefreshToken"};
+            Core.StorageOperationRequest TokenRequest(string operation,int version=0) => new() {
+                Operation=operation,VerificationToken="owned-stale",ResetToken="owned-stale",RefreshToken="owned-stale",
+                Version=version,PreferredProvider=Core.Enums.ProviderType.AzureStorageOASIS};
+            if(kind==0)
+            {
+                var secondaryBefore=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0;
+                foreach(var operation in tokenOperations)
+                {
+                    var missing=synchronous ? router.RouteRequest<IAvatar>(TokenRequest(operation)):await router.RouteRequestAsync<IAvatar>(TokenRequest(operation));
+                    Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,missing.ErrorCode);Assert.IsNull(missing.Result);
+                    var invalid=synchronous ? router.RouteRequest<IAvatar>(TokenRequest(operation,1)):await router.RouteRequestAsync<IAvatar>(TokenRequest(operation,1));
+                    Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",invalid.ErrorCode);Assert.IsNull(invalid.Result);
+                    Assert.IsInstanceOfType(invalid.Exception,typeof(NotSupportedException));
+                }
+                Assert.AreEqual(secondaryBefore,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
+            }
             var json=kind==3 ? NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(
                 new Holon {Id=id,CustomKey="different-owned-key",Name="owned-key-mismatch",IsActive=true}):"{ invalid canonical JSON";
             Assert.AreEqual(201,(await blob.UploadAsync(BinaryData.FromString(json))).GetRawResponse().Status);uploaded=true;
@@ -70,6 +88,9 @@ public partial class AzureStorageOASISIntegrationTests
                     else Corrupt(synchronous ? router.RouteRequest<IHolon>(request):await router.RouteRequestAsync<IHolon>(request));
                 }
             }
+            if(kind==0)
+                foreach(var operation in tokenOperations)
+                    Corrupt(synchronous ? router.RouteRequest<IAvatar>(TokenRequest(operation)):await router.RouteRequestAsync<IAvatar>(TokenRequest(operation)));
             Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
             Assert.AreEqual(json,(await blob.DownloadContentAsync()).Value.Content.ToString());
             if(kind==0) Assert.AreEqual(id,(await sqlite.LoadAvatarAsync(id)).Result.Id);

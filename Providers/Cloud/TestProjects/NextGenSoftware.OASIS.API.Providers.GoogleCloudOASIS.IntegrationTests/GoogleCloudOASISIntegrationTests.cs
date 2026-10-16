@@ -6,7 +6,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.IntegrationTests;
 
 [TestClass]
 [DoNotParallelize]
-public sealed class GoogleCloudOASISIntegrationTests
+public sealed partial class GoogleCloudOASISIntegrationTests
 {
     private GoogleCloudOASIS _provider = null!;
 
