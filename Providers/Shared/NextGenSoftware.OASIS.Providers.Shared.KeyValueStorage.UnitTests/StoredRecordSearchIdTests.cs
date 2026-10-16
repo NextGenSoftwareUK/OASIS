@@ -8,6 +8,23 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 public class StoredRecordSearchIdTests
 {
     [TestMethod]
+    public void ExtendedTextMasksRespectAvatarIdMetadataScopeAndCredentialExclusion()
+    {
+        var record=new Avatar {Id=Guid.NewGuid(),Title="selected-title",VerificationToken="excluded-secret",MetaData=new() {{"avatar-only","selected-metadata"}}};
+        var group=new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup {SearchAvatars=true,SearchHolons=true,
+            HolonType=NextGenSoftware.OASIS.API.Core.Enums.HolonType.All,SearchQuery=record.Id.ToString(),
+            AvatarSearchParams=new NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar.SearchAvatarParams {AvatarId=true}};
+        Assert.IsTrue(StoredRecordSearch.MatchesTextFields(record,true,group));
+        group.SearchQuery="selected-metadata";
+        group.AvatarSearchParams=new NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar.SearchAvatarParams {MetaData=true};
+        group.HolonSearchParams=new NextGenSoftware.OASIS.API.Core.Interfaces.SearchHolonParams {MetaData=true,MetaDataKey="not-an-avatar-key"};
+        Assert.IsTrue(StoredRecordSearch.MatchesTextFields(record,true,group));
+        group.SearchQuery="excluded-secret";
+        group.AvatarSearchParams=new NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar.SearchAvatarParams {SearchAllFields=true};
+        Assert.IsFalse(StoredRecordSearch.MatchesTextFields(record,true,group));
+    }
+
+    [TestMethod]
     public void ProviderKeySearchIsLiteralAndDoesNotSearchOtherFieldsOrProviderNames()
     {
         var record=new Holon {Id=Guid.NewGuid(),Name="unrelated",ProviderUniqueStorageKey=new() {{NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SolanaOASIS,"owned.[key]+value"}}};
