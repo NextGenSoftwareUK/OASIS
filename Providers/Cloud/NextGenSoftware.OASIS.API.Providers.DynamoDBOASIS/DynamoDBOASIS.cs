@@ -75,6 +75,10 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 throw new System.IO.InvalidDataException("DynamoDB canonical record identity differs from its native key.");
             if(item.TryGetValue("is_deleted",out var deleted) && deleted.BOOL!=record.IsDeleted)
                 throw new System.IO.InvalidDataException("DynamoDB deletion projection differs from canonical record.");
+            if(record is IAvatar || record is IAvatarDetail)
+                foreach(var field in new[] {"username","email"})
+                    if(item.TryGetValue(field,out var projected) && projected.S!=CanonicalIdentityValue(record,field))
+                        throw new System.IO.InvalidDataException("DynamoDB identity projection differs from canonical record.");
             if(record is IHolon holon)
             {
                 if(item.TryGetValue("parentHolonId",out var parent) && parent.S!=holon.ParentHolonId.ToString())
@@ -90,6 +94,13 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             if(!item.TryGetValue("id",out var key) || !Guid.TryParse(key.S,out var id))
                 throw new System.IO.InvalidDataException("DynamoDB native record identity is invalid.");
             return ReadStoredIdentity<T>(item,id);
+        }
+
+        private static string CanonicalIdentityValue(IHolonBase record,string field)
+        {
+            if(record is IAvatar avatar) return (field=="username" ? avatar.Username:avatar.Email) ?? string.Empty;
+            if(record is IAvatarDetail detail) return (field=="username" ? detail.Username:detail.Email) ?? string.Empty;
+            throw new ArgumentException("Canonical avatar or detail required.",nameof(record));
         }
 
         private static async Task<T> ObserveMutationAsync<T>(Func<Task<T>> mutation,string table,string key)
@@ -276,9 +287,6 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             {
                 TableName = tableName,
                 ConsistentRead = true,
-                FilterExpression = "#k = :v",
-                ExpressionAttributeNames = new Dictionary<string, string> { ["#k"] = keyName },
-                ExpressionAttributeValues = new Dictionary<string, AttributeValue> { [":v"] = new AttributeValue { S = keyValue } },
             };
             T? match = null;
             do
@@ -288,6 +296,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 {
                     var avatar=ReadStoredIdentity<T>(item);
                     if(avatar.IsDeleted) continue;
+                    if(!string.Equals(CanonicalIdentityValue(avatar,keyName),keyValue,StringComparison.Ordinal)) continue;
                     if(match!=null) throw new StorageIdentityAmbiguousException();
                     match=avatar;
                 }
