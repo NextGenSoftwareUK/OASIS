@@ -67,6 +67,30 @@ public sealed class MongoGraphAcknowledgementTests
             Assert.False(loaded.IsError, loaded.Message);
             Assert.Equal(child.Id, Assert.Single(loaded.Result.Children).Id);
             Assert.Equal(leaf.Id, Assert.Single(Assert.Single(loaded.Result.Children).Children).Id);
+            foreach (var bounded in new[] { false, true })
+            {
+                var unselected = new Holon { Name = "unselected owned descendant" };
+                var selected = new Holon { Name = "selected owned child", Children = new List<IHolon> { unselected } };
+                var parent = new Holon { Name = "selected owned root", Children = new List<IHolon> { selected } };
+                var limited = synchronous
+                    ? provider.SaveHolon(parent, recursive: bounded, maxChildDepth: bounded ? 1 : 0, saveChildrenOnProvider: true)
+                    : await provider.SaveHolonAsync(parent, recursive: bounded, maxChildDepth: bounded ? 1 : 0, saveChildrenOnProvider: true);
+                Assert.False(limited.IsError, limited.Message + " " + limited.Exception);
+                Assert.Equal(2, limited.SavedCount);
+                Assert.NotEqual(Guid.Empty, selected.Id);
+                Assert.Equal(parent.Id, selected.ParentHolonId);
+                Assert.Equal(Guid.Empty, unselected.Id);
+                Assert.Equal(Guid.Empty, unselected.ParentHolonId);
+                foreach (var fromProvider in new[] { false, true })
+                {
+                    var persisted = await provider.LoadHolonAsync(parent.Id, loadChildrenFromProvider: fromProvider);
+                    Assert.False(persisted.IsError, persisted.Message);
+                    var persistedChild = Assert.Single(persisted.Result.Children);
+                    Assert.Equal(selected.Id, persistedChild.Id);
+                    Assert.Empty(persistedChild.Children);
+                }
+            }
+            Assert.Equal(7L, await native.CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
             verified = true;
         }
         finally
