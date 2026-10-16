@@ -57,7 +57,7 @@ public partial class AzureCosmosDBOASIS
                 if(detail!=null) {await avatarDetailRepository.DeleteAsync(id.ToString());acknowledged.Add("avatarDetailItems");}
                 await avatarRepository.DeleteAsync(id.ToString());acknowledged.Add("avatarItems");
             }
-            result.Result=true;result.IsSaved=acknowledged.Count>0;
+            result.Result=true;result.IsSaved=acknowledged.Count>0;result.IsDeleted=true;result.DeletedCount=1;
         }
         catch(Exception cause)
         {
@@ -83,7 +83,7 @@ public partial class AzureCosmosDBOASIS
         try
         {
             await holonRepository.DeleteAsync(record.Id.ToString());
-            result.Result=record;result.IsSaved=true;
+            result.Result=record;result.IsSaved=true;result.IsDeleted=true;result.DeletedCount=1;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;

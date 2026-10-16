@@ -34,7 +34,7 @@ try {
     if($reportFile.LastWriteTimeUtc -lt $testsStarted){throw 'Cosmos DB native report is stale; no verification claim permitted.'}
     [xml]$report=Get-Content -LiteralPath $reportFile.FullName -Raw
     $counts=$report.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 9 -or [int]$counts.passed -ne 9 -or [int]$counts.notExecuted -ne 0) {throw 'Expected all nine native Cosmos DB tests passed, no skips.'}
+    if([int]$counts.total -ne 17 -or [int]$counts.passed -ne 17 -or [int]$counts.notExecuted -ne 0) {throw 'Expected all seventeen native Cosmos DB tests passed, no skips.'}
 }
 finally {
     $env:OASIS_COSMOSDB_NATIVE=$previous
