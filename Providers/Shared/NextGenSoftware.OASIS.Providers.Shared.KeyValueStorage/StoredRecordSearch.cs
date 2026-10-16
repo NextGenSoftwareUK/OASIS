@@ -50,10 +50,13 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 if(record is not ISemanticHolon semantic) return false;
                 var parent=semantic.ParentHolonId;
                 var visited=new HashSet<Guid>();
-                var parents=holons.ToDictionary(row=>row.Id,row=>row.ParentHolonId);
+                var parents=new Dictionary<Guid,Guid>();
+                foreach(var row in holons)
+                    if(row==null || row.Id==Guid.Empty || !parents.TryAdd(row.Id,row.ParentHolonId))
+                        throw new System.IO.InvalidDataException("Stored-record search parent graph contains an invalid or duplicate identity.");
                 while(parent != search.ParentId && parent != Guid.Empty && search.Recursive)
                 {
-                    if(!visited.Add(parent)) throw new InvalidOperationException("Stored-record search parent graph contains a cycle.");
+                    if(!visited.Add(parent)) throw new System.IO.InvalidDataException("Stored-record search parent graph contains a cycle.");
                     parent=parents.TryGetValue(parent,out var next) ? next : Guid.Empty;
                 }
                 if(parent != search.ParentId) return false;
