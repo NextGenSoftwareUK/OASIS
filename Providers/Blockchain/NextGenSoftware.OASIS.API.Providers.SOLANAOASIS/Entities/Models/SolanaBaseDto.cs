@@ -19,4 +19,13 @@ public abstract class SolanaBaseDto
     public int Version { get; set; }
     public Guid PreviousVersionId { get; set; }
     public bool IsDeleted { get; set; }
+
+    internal bool HasValidCreationOrigin() =>
+        (!CreatedProviderType.HasValue || Enum.IsDefined(typeof(NextGenSoftware.OASIS.API.Core.Enums.ProviderType), CreatedProviderType.Value)) &&
+        (!CreatedOASISType.HasValue || Enum.IsDefined(typeof(NextGenSoftware.OASIS.API.Core.Enums.OASISType), CreatedOASISType.Value));
+}
+
+internal sealed class SolanaOriginValidationException : ArgumentException
+{
+    internal SolanaOriginValidationException() : base("Solana creation origin must contain defined provider and OASIS enum values, or be absent.") { }
 }
