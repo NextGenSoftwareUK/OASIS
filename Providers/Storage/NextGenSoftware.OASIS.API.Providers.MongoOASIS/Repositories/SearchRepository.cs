@@ -18,7 +18,7 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 {
-    public class SearchRepository : ISearchRepository
+    public partial class SearchRepository : ISearchRepository
     {
         private MongoDbContext _dbContext;
 
@@ -65,8 +65,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
         private async Task<OASISResult<ISearchResults>> SearchCoreAsync(ISearchParams searchParams, bool synchronous)
         {
             var currentGroupType=HolonType.All;
+            HashSet<Guid> parentScope=null;
             async Task<List<T>> Read<T>(IMongoCollection<T> collection, FilterDefinition<T> filter)
             {
+                if(parentScope!=null)
+                {
+                    if(typeof(T)!=typeof(Holon)) return new List<T>();
+                    filter &= (FilterDefinition<T>)(object)Builders<Holon>.Filter.In(row=>row.HolonId,parentScope);
+                }
                 if(currentGroupType!=HolonType.All)
                     filter &= Builders<T>.Filter.Eq("HolonType",currentGroupType);
                 return synchronous ? collection.Find(filter).ToList()
@@ -80,6 +86,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
 
             try
             {
+                if(searchParams.ParentId!=Guid.Empty)
+                    parentScope=await ReadSearchParentScopeAsync(searchParams.ParentId,searchParams.Recursive,synchronous).ConfigureAwait(false);
                 bool isFirstGroup = true;
 
                 foreach (ISearchGroupBase searchGroup in searchParams.SearchGroups ?? new List<ISearchGroupBase>())
@@ -129,8 +137,6 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         if (searchTextGroup.SearchHolons)
                         {
                             var filter = HolonRepository.BuildHolonTypeFilter(HolonType.All);
-                            if (searchParams.ParentId != Guid.Empty)
-                                filter &= Builders<Holon>.Filter.Eq(row => row.ParentHolonId, searchParams.ParentId);
                             if(ExtendedTextMask(searchTextGroup.HolonSearchParams,"Name","Description"))
                             {
                                 var candidates=await Read(_dbContext.Holon,filter).ConfigureAwait(false);
