@@ -59,6 +59,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             await VerifyMongoDefaultTextMasksAsync(mongo,synchronous);
             await VerifyMongoExtendedTextMasksAsync(mongo,synchronous);
             await VerifyMongoNumericDateDefaultsAsync(mongo,synchronous);
+            await VerifyMongoSearchParentScopeAsync(mongo,synchronous);
             await VerifyWalletKeySelectorsAsync(mongo,sqlite,synchronous);
             await VerifyCredentialReplicationAsync(mongo,sqlite,synchronous,mongoPrimary);
             await VerifyCredentialRoutingPoliciesAsync(mongo,sqlite,synchronous);
