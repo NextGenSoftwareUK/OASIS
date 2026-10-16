@@ -5,6 +5,35 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.IntegrationTests
 public partial class AzureStorageOASISIntegrationTests
 {
     [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)]
+    [DataRow(false,true)] [DataRow(true,true)]
+    public async Task HolonNativeKeyMatchesCanonicalCustomKey(bool synchronous,bool validGuidCustomKey)
+    {
+        var id=Guid.NewGuid();var key=validGuidCustomKey ? Guid.NewGuid().ToString():"owned-key-"+id;
+        var record=new Holon {Id=id,CustomKey=validGuidCustomKey ? key:"different-owned-key",Name="owned-key-integrity",IsActive=true};
+        var blob=_service.GetBlobContainerClient(_containers[0]).GetBlobClient(key);
+        var json=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(record);
+        Assert.AreEqual(201,(await blob.UploadAsync(BinaryData.FromString(json))).GetRawResponse().Status);
+        var loaded=synchronous ? _provider.LoadHolon(key,loadChildren:false):await _provider.LoadHolonAsync(key,loadChildren:false);
+        var all=synchronous ? _provider.LoadAllHolons(loadChildren:false):await _provider.LoadAllHolonsAsync(loadChildren:false);
+        if(validGuidCustomKey)
+        {
+            Assert.IsFalse(loaded.IsError,loaded.Message);Assert.IsTrue(loaded.IsLoaded);Assert.AreEqual(id,loaded.Result.Id);
+            Assert.IsFalse(all.IsError,all.Message);Assert.AreEqual(id,all.Result.Single().Id);
+            var logical=synchronous ? _provider.LoadHolon(Guid.Parse(key),loadChildren:false):await _provider.LoadHolonAsync(Guid.Parse(key),loadChildren:false);
+            Assert.IsTrue(logical.IsError);Assert.IsNull(logical.Result);Assert.IsInstanceOfType(logical.Exception,typeof(InvalidDataException));
+        }
+        else
+        {
+            Assert.IsTrue(loaded.IsError);Assert.IsNull(loaded.Result);Assert.IsFalse(loaded.IsLoaded);
+            Assert.IsInstanceOfType(loaded.Exception,typeof(InvalidDataException));
+            Assert.IsTrue(all.IsError);Assert.IsNull(all.Result);Assert.IsFalse(all.IsLoaded);
+            Assert.IsInstanceOfType(all.Exception,typeof(InvalidDataException));
+        }
+        Assert.AreEqual(json,(await blob.DownloadContentAsync()).Value.Content.ToString());
+    }
+
+    [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     public async Task HolonCollectionsAndExportsAcknowledgeCompleteReads(bool synchronous)
     {
