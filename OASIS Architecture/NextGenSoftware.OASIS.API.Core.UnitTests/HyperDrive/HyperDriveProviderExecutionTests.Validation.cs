@@ -1,6 +1,7 @@
 using FluentAssertions;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
 using NextGenSoftware.Utilities;
@@ -9,6 +10,42 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive;
 
 public sealed partial class HyperDriveProviderExecutionTests
 {
+    public static IEnumerable<object[]> InvalidGraphWrites()
+    {
+        foreach(var operation in new[]{"SaveHolon","SaveHolons"})
+        foreach(var children in new[]{false,true})
+        foreach(var synchronous in new[]{false,true})
+        {
+            yield return new object[]{operation,children,synchronous,false};
+            if(operation=="SaveHolons") yield return new object[]{operation,children,synchronous,true};
+        }
+    }
+
+    [Theory]
+    [MemberData(nameof(InvalidGraphWrites))]
+    public async Task NegativeGraphWriteDepthNeverDispatchesMutation(string operation,bool children,bool synchronous,bool current)
+    {
+        var primary=CreateActiveProvider();var secondary=CreateActiveProvider(ProviderType.LocalFileOASIS,"secondary");
+        var dna=CreateDna(HyperDriveModes.V2);dna.OASIS.SubscriptionConfig.PlanType="Gold";
+        var manager=new ProviderManager(null,dna){IsAutoFailOverEnabled=true,IsAutoLoadBalanceEnabled=true,IsAutoReplicationEnabled=true};
+        manager.RegisterProvider(primary.Object);manager.RegisterProvider(secondary.Object);
+        var types=new[]{new EnumValue<ProviderType>(ProviderType.MongoDBOASIS),new EnumValue<ProviderType>(ProviderType.LocalFileOASIS)};
+        manager.SetAndReplaceAutoFailOverListForProviders(types);manager.SetAndReplaceAutoLoadBalanceListForProviders(types);manager.SetAndReplaceAutoReplicationListForProviders(types);
+        var source=new NextGenSoftware.OASIS.API.Core.Holons.Holon();
+        var request=new StorageOperationRequest {Operation=operation,Payload=operation=="SaveHolon" ? source:new IHolon[]{source},SaveChildren=children,MaxChildDepth=current ? 0:-1,CurrentChildDepth=current ? -1:0};
+        var router=new OASISHyperDrive(manager);
+        void Check<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result)
+        {
+            result.IsError.Should().BeTrue();result.Result.Should().BeNull();result.IsSaved.Should().BeFalse();
+            result.ErrorCode.Should().Be("HYPERDRIVE_DEPTH_INVALID");result.Exception.Should().BeOfType<ArgumentOutOfRangeException>();
+        }
+        Check(synchronous ? router.RouteRequest<object>(request):await router.RouteRequestAsync<object>(request));
+        Check(await router.LoadBalanceRequestAsync<object>(request));Check(await router.FailoverRequestAsync<object>(request));Check(await router.ReplicateRequestAsync<object>(request));
+        manager.LastProviderSelectionDiagnostic.Should().BeNull();router.LastFailoverDiagnostic.Should().BeNull();router.LastReplicationDiagnostic.Should().BeNull();
+        source.Id.Should().BeEmpty();
+        foreach(var provider in new[]{primary,secondary}) provider.Invocations.Should().NotContain(call=>call.Method.Name.StartsWith("Save",StringComparison.Ordinal));
+    }
+
     public static IEnumerable<object[]> InvalidCollectionQueries()
     {
         foreach(var operation in new[]{"LoadAllHolons","LoadHolonsForParent","LoadHolonsForParentByProviderKey","LoadHolonsByMetaData","LoadHolonsByMetaDataPairs"})

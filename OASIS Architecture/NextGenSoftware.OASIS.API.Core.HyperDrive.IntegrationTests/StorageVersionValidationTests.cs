@@ -10,6 +10,30 @@ public sealed partial class RealProviderRoutingTests
 {
     [Theory]
     [InlineData(false)] [InlineData(true)]
+    public async Task InvalidGraphWritesCannotCreateNativeDatabase(bool synchronous)
+    {
+        Directory.CreateDirectory(_root);using var sqlite=new SQLLiteDBOASIS($"Data Source={SqlitePath};Pooling=False");
+        var manager=CreateManager(autoFailover:true,autoReplication:true,autoLoadBalance:true);manager.RegisterProvider(sqlite);
+        var router=new OASISHyperDrive(manager);
+        foreach(var operation in new[]{"SaveHolon","SaveHolons"})
+        foreach(var children in new[]{false,true})
+        foreach(var current in operation=="SaveHolons" ? new[]{false,true}:new[]{false})
+        {
+            var source=new NextGenSoftware.OASIS.API.Core.Holons.Holon();
+            var request=new StorageOperationRequest {Operation=operation,Payload=operation=="SaveHolon" ? source:new NextGenSoftware.OASIS.API.Core.Interfaces.IHolon[]{source},
+                SaveChildren=children,MaxChildDepth=current ? 0:-1,CurrentChildDepth=current ? -1:0,PreferredProvider=ProviderType.SQLLiteDBOASIS};
+            var result=synchronous ? router.RouteRequest<object>(request):await router.RouteRequestAsync<object>(request);
+            result.ErrorCode.Should().Be("HYPERDRIVE_DEPTH_INVALID");result.Result.Should().BeNull();result.IsSaved.Should().BeFalse();
+            (await router.LoadBalanceRequestAsync<object>(request)).ErrorCode.Should().Be(result.ErrorCode);
+            (await router.FailoverRequestAsync<object>(request)).ErrorCode.Should().Be(result.ErrorCode);
+            (await router.ReplicateRequestAsync<object>(request)).ErrorCode.Should().Be(result.ErrorCode);
+            sqlite.IsProviderActivated.Should().BeFalse();source.Id.Should().BeEmpty();
+        }
+        File.Exists(SqlitePath).Should().BeFalse();
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
     public async Task InvalidCollectionQueriesCannotActivateNativeSqlite(bool synchronous)
     {
         Directory.CreateDirectory(_root);using var sqlite=new SQLLiteDBOASIS($"Data Source={SqlitePath};Pooling=False");
