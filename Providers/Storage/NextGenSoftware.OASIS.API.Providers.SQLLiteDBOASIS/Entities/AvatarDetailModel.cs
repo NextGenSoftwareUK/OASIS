@@ -194,7 +194,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
                 this.HeartRates.Add(model);
             }
 
-            foreach(InventoryItem item in source.Inventory){
+            foreach(var item in source.Inventory ?? new List<IInventoryItem>()){
 
                 InventoryItemModel model=new InventoryItemModel(item);
                 model.AvatarId=this.Id;

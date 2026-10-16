@@ -366,7 +366,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         foreach (var item in avatarDetailEntity.Inventory)
                         {
-                            var model = new InventoryItemModel((InventoryItem)item) { AvatarId = existing.Id };
+                            var model = new InventoryItemModel(item) { AvatarId = existing.Id };
                             existing.InventoryItems.Add(model);
                         }
                     }
@@ -462,7 +462,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     {
                         foreach (var item in AvatarDetailEntity.Inventory)
                         {
-                            var model = new InventoryItemModel((InventoryItem)item) { AvatarId = existing.Id };
+                            var model = new InventoryItemModel(item) { AvatarId = existing.Id };
                             existing.InventoryItems.Add(model);
                         }
                     }
@@ -665,7 +665,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 foreach (var item in avatarDetail.Inventory)
                 {
-                    var invModel = new InventoryItemModel((InventoryItem)item) { AvatarId = model.Id };
+                    var invModel = new InventoryItemModel(item) { AvatarId = model.Id };
                     model.InventoryItems.Add(invModel);
                 }
             }
