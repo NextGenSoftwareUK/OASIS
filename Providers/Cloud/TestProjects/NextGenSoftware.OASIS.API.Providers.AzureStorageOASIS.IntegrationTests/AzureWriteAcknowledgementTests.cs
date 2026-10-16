@@ -19,6 +19,7 @@ public partial class AzureStorageOASISIntegrationTests
         public required BlobServiceClient Healthy;
         public readonly IOException Cause=new("Controlled loss after real SDK blob upload acknowledgement.");
         public string Container="",Blob="";public int Commits;
+        public int FailOnCommit=1;
         public LostUploadService():base("UseDevelopmentStorage=true") { }
         public override BlobContainerClient GetBlobContainerClient(string name)=>new LostUploadContainer(Healthy.GetBlobContainerClient(name),this);
     }
@@ -34,7 +35,9 @@ public partial class AzureStorageOASISIntegrationTests
         public LostUploadBlob(BlobClient healthy,LostUploadService owner):base("UseDevelopmentStorage=true",healthy.BlobContainerName,healthy.Name) {_healthy=healthy;_owner=owner;}
         private Response<BlobContentInfo> Lose(Response<BlobContentInfo> response)
         {
-            Assert.AreEqual(201,response.GetRawResponse().Status);_owner.Commits++;_owner.Container=_healthy.BlobContainerName;_owner.Blob=_healthy.Name;throw _owner.Cause;
+            Assert.AreEqual(201,response.GetRawResponse().Status);_owner.Commits++;_owner.Container=_healthy.BlobContainerName;_owner.Blob=_healthy.Name;
+            if(_owner.Commits==_owner.FailOnCommit) throw _owner.Cause;
+            return response;
         }
         public override async Task<Response<BlobContentInfo>> UploadAsync(Stream content,bool overwrite=false,CancellationToken cancellationToken=default)
             =>Lose(await _healthy.UploadAsync(content,overwrite,cancellationToken));
