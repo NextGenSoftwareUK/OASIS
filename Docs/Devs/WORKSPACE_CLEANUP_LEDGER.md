@@ -1,5 +1,9 @@
 # Workspace cleanup ledger and repeatable checks
 
+Ethereum nearby final runner exit0, wrapper4/4pass42s. Owned local EVM stopped by runner; free bytes before83,627,905,024 after83,627,405,312 (not a recovery claim). Fixed logs/reports reused; disposable fixture reproducible from retained compiler/runtime. No installations, archives, clones or duplicated environments.
+
+2026-10-16 Ethereum nearby verification reused retained Node/Hardhat/solc0.8.26/cache, fixed EthereumCurrent reports/logs and local chain31337 loopback18545. No download/install/new environment; per-test contracts use the existing disposable local ledger only, no public funds.113/113suitepass22s includes four pre-RPC validation cases;59Solidity assertions pass. Wrapper native checks still running at this entry. No Solana/Sui/TRON/Cosmos pending ledger/reset/replay or CosmosDB denied fixture touched.
+
 MongoDB final V2 run4/4pass1m45s; runner exit0. Existing owned log12,367,575bytes compacted by runner to64,231byte tail, database/runtime untouched. Fixed report overwritten. No chain fixture/reset/replay; no installation archive or duplicate environment created.
 
 2026-10-16 MongoDB nearby verification reused installed Mongo8.3.11 and SubscriptionUsageCurrent/mongo-data replica, existing SDK/runtime/cache. Missing unit-test assets regenerated with local C:/Users/david/.nuget/packages source only; no download/install/new environment. Unit9/9, init1/1 and selected native44/44pass34s/no skips. Fixed owned nearby DB checked absent before activation and dropped only after all assertions; failure retains it. Existing runner stops only its owned Mongo process and bounds its log; unrelated Mongo process is not stopped. Retained main data directory/key/chain pending fixtures unchanged; compact fixed reports retained.
