@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 shared caller-publication fix:123/123unitpass978ms using existing in-memory test backend/runtime/cache; Sui/Cosmos/TRON/Hashgraph bounded library builds only. No chain process/resume/reset, package install/download/clone/new environment or synthetic ledger removal. No production retention/deletion policy change. Partial-key tests independently inspect acknowledged controlled-backend records/archive before fixture disposal; not claimed real SDK/native evidence.
+
 2026-10-16 Ethereum/Web3 refresh: same cached Node/Hardhat/solc/runtime, fixed EthereumCurrent/Web3CoreCurrent fixtures/reports and retained DPAPI key.93/93native22s,59contract assertions,4/4Web3native43s pass. No download/install/clone/new environment/public-chain spend or pending-chain ledger reset. Owned EVM stopped, loopback18545/18546 absent; free C runner before84,461,428,736bytes/after84,452,708,352bytes. Runner warning-noise-only build flag change; no disposable archives created.
 
 2026-10-16 SQLite negative-version guards:375/375integration27s,4/4unit379ms,42/42targetedV26s using same existing .NET/cache/test fixture lifecycle and fixed sqlite-routing-integrity-current.trx. Disposed-context regression performs no native database access. No installs/downloads/clones/new environment or broad deletion. No archive schema/runtime allocated; history remains open.

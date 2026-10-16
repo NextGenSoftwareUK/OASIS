@@ -56,7 +56,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         private string VersionPrefix(string recordKey) => $"{KeyPrefix}version/{recordKey[KeyPrefix.Length..]}/";
         private string VersionKey(string recordKey, int version) => $"{VersionPrefix(recordKey)}{version:D10}";
 
-        private async Task StampVersionAsync(string recordKey, IHolonBase entity, IHolonBase previous)
+        private async Task StampVersionAsync(string recordKey, IHolonBase entity, IHolonBase previous,List<string> acknowledged=null)
         {
             if (entity.VersionId == Guid.Empty) entity.VersionId = Guid.NewGuid();
             if (previous == null)
@@ -66,7 +66,11 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             }
 
             if (IsVersionControlEnabled)
-                await Backend.PutAsync(VersionKey(recordKey, previous.Version), OasisJson.Serialize(previous));
+            {
+                var historyKey=VersionKey(recordKey,previous.Version);
+                await Backend.PutAsync(historyKey, OasisJson.Serialize(previous));
+                acknowledged?.Add(historyKey);
+            }
 
             entity.Version = previous.Version + 1;
             entity.PreviousVersionId = previous.VersionId;
@@ -207,11 +211,25 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         #region Avatars
 
+        private async Task PutAcknowledgedAsync(string key,string value,List<string> acknowledged)
+        {
+            await Backend.PutAsync(key,value);acknowledged.Add(key);
+        }
+
+        private void PublishSavedMetadata(IHolonBase source,IHolonBase saved)
+        {
+            source.Id=saved.Id;source.Version=saved.Version;source.VersionId=saved.VersionId;source.PreviousVersionId=saved.PreviousVersionId;
+            source.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
+            source.ProviderUniqueStorageKey[StorageType]=saved.ProviderUniqueStorageKey[StorageType];
+        }
+
         public override async Task<OASISResult<IAvatar>> SaveAvatarAsync(IAvatar avatar)
         {
+            var source=avatar;var acknowledged=new List<string>();
             try
             {
                 if (avatar == null) return Fail<IAvatar>("Avatar is required.");
+                avatar=OasisJson.Deserialize<IAvatar>(OasisJson.Serialize(source));
                 if (avatar.Id == Guid.Empty) avatar.Id = Guid.NewGuid();
                 avatar.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                 avatar.ProviderUniqueStorageKey[StorageType] = avatar.Id.ToString();
@@ -228,19 +246,20 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                     if (owner.HasValue && owner.Value != avatar.Id) return Fail<IAvatar>($"Email '{avatar.Email}' is already registered.");
                 }
 
-                await StampVersionAsync(AvatarKey(avatar.Id), avatar, previous);
-                await Backend.PutAsync(AvatarKey(avatar.Id), OasisJson.Serialize(avatar));
-                if (!string.IsNullOrWhiteSpace(avatar.Username)) await Backend.PutAsync(UsernameKey(avatar.Username), avatar.Id.ToString());
-                if (!string.IsNullOrWhiteSpace(avatar.Email)) await Backend.PutAsync(EmailKey(avatar.Email), avatar.Id.ToString());
+                await StampVersionAsync(AvatarKey(avatar.Id), avatar, previous,acknowledged);
+                await PutAcknowledgedAsync(AvatarKey(avatar.Id), OasisJson.Serialize(avatar),acknowledged);
+                if (!string.IsNullOrWhiteSpace(avatar.Username)) await PutAcknowledgedAsync(UsernameKey(avatar.Username), avatar.Id.ToString(),acknowledged);
+                if (!string.IsNullOrWhiteSpace(avatar.Email)) await PutAcknowledgedAsync(EmailKey(avatar.Email), avatar.Id.ToString(),acknowledged);
                 // Validate replacements before any writes, and retire old indexes only after the new record/indexes exist.
                 if (previous != null && !string.IsNullOrWhiteSpace(previous.Username) && !string.Equals(previous.Username, avatar.Username, StringComparison.OrdinalIgnoreCase))
                     await Backend.DeleteAsync(UsernameKey(previous.Username));
                 if (previous != null && !string.IsNullOrWhiteSpace(previous.Email) && !string.Equals(previous.Email, avatar.Email, StringComparison.OrdinalIgnoreCase))
                     await Backend.DeleteAsync(EmailKey(previous.Email));
 
-                return new OASISResult<IAvatar>(avatar) { IsSaved = true, Message = $"Avatar {avatar.Id} saved to {Name}." };
+                PublishSavedMetadata(source,avatar);
+                return new OASISResult<IAvatar>(source) { IsSaved = true, Message = $"Avatar {avatar.Id} saved to {Name}." };
             }
-            catch (Exception ex) { return Fail<IAvatar>($"Error saving avatar: {ex.Message}", ex); }
+            catch (Exception ex) { return Fail<IAvatar>($"Error saving avatar: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar avatar) => SaveAvatarAsync(avatar).GetAwaiter().GetResult();
@@ -377,17 +396,20 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail)
         {
+            var source=avatarDetail;var acknowledged=new List<string>();
             try
             {
                 if (avatarDetail == null) return Fail<IAvatarDetail>("Avatar detail is required.");
                 if (avatarDetail.Id == Guid.Empty) return Fail<IAvatarDetail>("Avatar detail must carry its avatar's id.");
+                avatarDetail=OasisJson.Deserialize<IAvatarDetail>(OasisJson.Serialize(source));
                 avatarDetail.ProviderUniqueStorageKey ??= new Dictionary<ProviderType, string>();
                 avatarDetail.ProviderUniqueStorageKey[StorageType] = avatarDetail.Id.ToString();
-                await StampVersionAsync(AvatarDetailKey(avatarDetail.Id), avatarDetail, await ReadAsync<IAvatarDetail>(AvatarDetailKey(avatarDetail.Id)));
-                await Backend.PutAsync(AvatarDetailKey(avatarDetail.Id), OasisJson.Serialize(avatarDetail));
-                return new OASISResult<IAvatarDetail>(avatarDetail) { IsSaved = true, Message = $"Avatar detail {avatarDetail.Id} saved to {Name}." };
+                await StampVersionAsync(AvatarDetailKey(avatarDetail.Id), avatarDetail, await ReadAsync<IAvatarDetail>(AvatarDetailKey(avatarDetail.Id)),acknowledged);
+                await PutAcknowledgedAsync(AvatarDetailKey(avatarDetail.Id), OasisJson.Serialize(avatarDetail),acknowledged);
+                PublishSavedMetadata(source,avatarDetail);
+                return new OASISResult<IAvatarDetail>(source) { IsSaved = true, Message = $"Avatar detail {avatarDetail.Id} saved to {Name}." };
             }
-            catch (Exception ex) { return Fail<IAvatarDetail>($"Error saving avatar detail: {ex.Message}", ex); }
+            catch (Exception ex) { return Fail<IAvatarDetail>($"Error saving avatar detail: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
         }
 
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatarDetail) => SaveAvatarDetailAsync(avatarDetail).GetAwaiter().GetResult();

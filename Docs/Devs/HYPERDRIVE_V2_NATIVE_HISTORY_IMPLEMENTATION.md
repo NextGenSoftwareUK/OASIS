@@ -41,6 +41,8 @@ Use the existing reusable native runtimes and fixed evidence directories. No new
 
 SQLite negative-version boundary is now verified separately (2026-10-16): disposed-context matrices prove local argument failure before database access; latest/current-version regression remains green. This does not satisfy the retention/linkage/transactional history matrix below.
 
+Shared key/value avatar/detail save snapshots now preserve caller version metadata on failed saves. An acknowledged archive followed by failed current write returns exact acknowledged-key reconciliation evidence; unit tests inspect both archive and unchanged current payload. Archive/current writes remain separate/non-atomic, first-write uncertainty remains backend-owned, and this is not native transactional-history or durable-recovery completion. No hard-deletion/retention policy changed.
+
 - Avatar, avatar detail, holon: create1 → update2 → update3, then independent native archive/current readback and provider loads0/1/2/3/missing.
 - Verify VersionId uniqueness and PreviousVersionId linkage, full inventory/metadata/derived payload preservation, no caller mutation on failed acknowledgement.
 - Sync/async ID/key/username/email/collection/parent/metadata/export routes; changed selectors; historical tombstones and hard-deletion policy.
