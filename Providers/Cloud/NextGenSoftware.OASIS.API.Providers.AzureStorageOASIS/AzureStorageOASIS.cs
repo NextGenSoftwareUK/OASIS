@@ -235,7 +235,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 }
                 var project=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphProjection.Create(holons,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,
                     source=>Deserialise<Holon>(Serialise(source))!);
-                result.Result = holons.Where(row=>type==HolonType.All || row.HolonType==type).Select(project).ToList();
+                result.Result = holons.Where(row=>type==HolonType.All || row.HolonType==type).Select(project).ToList();result.IsLoaded=true;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
