@@ -7,6 +7,24 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class StoredRecordSearchIdTests
 {
+    [TestMethod]
+    public void JsonElementMetadataUsesActualValuesWithoutInferringDatesOrSearchingCredentials()
+    {
+        var linked=Guid.NewGuid();var secret=Guid.NewGuid();
+        using var document=System.Text.Json.JsonDocument.Parse("{\"score\":8181,\"when\":\"2020-01-02T00:00:00Z\",\"linked\":\""+linked+"\",\"PrivateKey\":\""+secret+"\"}");
+        var record=new Holon {Id=Guid.NewGuid(),MetaData=new() {{"nested",document.RootElement.Clone()}}};
+        var group=new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchNumberGroup {Number=8181,
+            NumberOperator=NextGenSoftware.OASIS.API.Core.Enums.SearchOperatorType.EqualTo,
+            HolonSearchParams=new NextGenSoftware.OASIS.API.Core.Interfaces.SearchHolonParams {MetaData=true}};
+        Assert.IsTrue(StoredRecordSearch.MatchesSelectedFields(record,false,group));
+        Assert.IsTrue(StoredRecordSearch.MatchesTextIds(record,linked.ToString()));
+        Assert.IsFalse(StoredRecordSearch.MatchesTextIds(record,secret.ToString()));
+        var date=new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchDateGroup {Date=new DateTime(2020,1,2,0,0,0,DateTimeKind.Utc),
+            DateOperator=NextGenSoftware.OASIS.API.Core.Enums.SearchOperatorType.EqualTo,
+            HolonSearchParams=new NextGenSoftware.OASIS.API.Core.Interfaces.SearchHolonParams {MetaData=true}};
+        Assert.IsFalse(StoredRecordSearch.MatchesSelectedFields(record,false,date));
+    }
+
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     public void MetadataPredicateKeepsAllAnyEmptyNullAndInvariantScalarSemantics(bool any)
