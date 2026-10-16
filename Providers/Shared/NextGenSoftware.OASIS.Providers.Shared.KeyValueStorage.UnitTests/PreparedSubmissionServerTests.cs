@@ -32,9 +32,10 @@ public class PreparedSubmissionServerTests
         foreach(var id in skipApproval?new[]{"mutation"}:new[]{"approval",replaceSecond?"replacement":"mutation"}){
             using var client=new NamedPipeClientStream(".",name,PipeDirection.InOut,PipeOptions.Asynchronous);
             await client.ConnectAsync(deadline.Token);
-            using var writer=new StreamWriter(client,new UTF8Encoding(false),leaveOpen:true){AutoFlush=true};
             using var reader=new StreamReader(client,new UTF8Encoding(false,true),leaveOpen:true);
-            await writer.WriteLineAsync(JsonSerializer.Serialize(new{protocol="oasis.native-preparation.v1",evidence=new{transactionHash=id,signedTransactionBase64="AQID"}}));
+            // Send one unbuffered frame: rejected stages close the server pipe, so a later
+            // StreamWriter.Dispose flush races that intentional close and masks the protocol assertion.
+            await client.WriteAsync(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new{protocol="oasis.native-preparation.v1",evidence=new{transactionHash=id,signedTransactionBase64="AQID"}})+"\n"),deadline.Token);
             var reply=await reader.ReadLineAsync(deadline.Token);
             if(id=="replacement")Assert.IsNull(reply);
             else{using var parsed=JsonDocument.Parse(reply);Assert.AreEqual(id,parsed.RootElement.GetProperty("transactionHash").GetString());}

@@ -48,6 +48,17 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 found.Result.SearchResultAvatars.Select(row=>row.Id).Should().BeEquivalentTo(expectedAvatars);
                 found.Result.NumberOfResults.Should().Be(expectedHolons.Length+expectedAvatars.Length);
             }
+            foreach(var target in new[] {name.Id,avatars[0].Id})
+            {
+                var group=new SearchTextGroup {SearchHolons=true,SearchAvatars=true,SearchIds=true,SearchQuery=target.ToString(),
+                    HolonType=HolonType.All,HolonSearchParams=new SearchHolonParams(),AvatarSearchParams=new AvatarMask()};
+                var query=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new() {group}};
+                var found=synchronous ? mongo.Search(query,loadChildren:false):await mongo.SearchAsync(query,loadChildren:false);
+                found.IsError.Should().BeFalse(found.Exception?.ToString() ?? found.Message);
+                found.Result.SearchResultHolons.Select(row=>row.Id).Should().BeEquivalentTo(target==name.Id ? new[] {target}:Array.Empty<Guid>());
+                found.Result.SearchResultAvatars.Select(row=>row.Id).Should().BeEquivalentTo(target==name.Id ? Array.Empty<Guid>():new[] {target});
+                found.Result.NumberOfResults.Should().Be(1);
+            }
         }
         finally
         {
