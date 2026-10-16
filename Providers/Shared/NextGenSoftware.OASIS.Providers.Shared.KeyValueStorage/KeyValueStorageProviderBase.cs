@@ -569,19 +569,37 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             try {roots=holons.ToList();ValidateSaveForest(roots,saveChildren,recursive,maxChildDepth,curentChildDepth);}
             catch(Exception cause) {return Fail<IEnumerable<IHolon>>($"Invalid holon batch: {cause.Message}",cause);}
             var saved = new List<IHolon>();
+            var acknowledged=new HashSet<string>(StringComparer.Ordinal);var failures=new List<Exception>();
+            Exception BatchFailure()
+            {
+                var cause=failures.Count==1 ? failures[0]:new AggregateException(failures);
+                return acknowledged.Count==0 ? cause:new KeyValuePartialMutationException(StorageType,acknowledged,cause);
+            }
             foreach (var holon in roots)
             {
                 var r = await SaveHolonInternalAsync(holon, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError);
+                if(r.IsSaved && r.Result!=null) acknowledged.Add(HolonKey(r.Result.Id));
+                CollectAcknowledgedKeyEvidence(r.Exception,acknowledged);
                 if (r.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"{Name}: error saving holon {holon?.Id}: {r.Message}", r.Exception);
+                    failures.Add(r.Exception ?? new InvalidOperationException(r.Message));
+                    OASISErrorHandling.HandleError(ref result, $"{Name}: error saving holon {holon?.Id}: {r.Message}", BatchFailure());
                     if (!continueOnError || NativeMutationReconciliation.IsRequired(r.Exception)) return result;
                 }
                 else saved.Add(r.Result);
             }
+            if(failures.Count>0) result.Exception=BatchFailure();
             result.Result = saved;
             result.IsSaved = !result.IsError;
             return result;
+        }
+
+        private static void CollectAcknowledgedKeyEvidence(Exception cause,HashSet<string> acknowledged)
+        {
+            if(cause==null) return;
+            if(cause is KeyValuePartialMutationException partial) acknowledged.UnionWith(partial.AcknowledgedKeys);
+            if(cause is AggregateException aggregate) foreach(var inner in aggregate.InnerExceptions) CollectAcknowledgedKeyEvidence(inner,acknowledged);
+            else CollectAcknowledgedKeyEvidence(cause.InnerException,acknowledged);
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
