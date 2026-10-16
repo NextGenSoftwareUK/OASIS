@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-16 nearby capability mismatch verified with actual LocalFile(no network interface)+SQLite: four syncasync×failover-on/off cases each test both record kinds. Disabled policy yields explicit capability error without secondary call; enabled policy returns real SQLite GUID and secondary metrics increase. Empty LocalFile collections preserved. Targeted56/56pass7s/no skips. Earlier nearby capability-gap notes superseded only for this scoped test; no all-provider/HTTP/release claim.
+
 2026-10-16 Azure/SQLite V2 nearby acceptance expanded to four syncasync×avatar/holon cases; native70/70pass23s/no skips. Both direct preferred-store identities (Username for profiles,Name for holons), measured-latency selection, real closed-port failure/fallback and terminal coordinate-corruption/no-secondary-read evidence verified. Original full record kind-specific content tests remain separate. No capability mismatch/manager/HTTP/all-provider/release completion claim.
 
 2026-10-16 nearby V2 policy proof extends beyond direct provider tests: actual Azure/SQLite sync+async holon reads, both preferred-store identities, measured-latency Performance routing and closed-port Azure failover pass. Native stored partial-coordinate integrity is terminal despite enabled failover/replication: zero extra SQLite route, both source/secondary unchanged on independent reads. Full Azure68/68nativepass19s/no skips. Not avatar policy/capability mismatch/HTTP/full-provider coverage; existing broader release gates stay open.
