@@ -118,7 +118,8 @@ jobs:
           # .Embedded.Holochain070 one version each. --no-incremental so each variant really gets its own conductors.
           foreach ($variant in @("both", "0.7.1", "0.7.0")) {
             foreach ($proj in $projects[0..1]) {
-              dotnet pack $proj --configuration Release --output .\nupkgs --no-incremental -p:Embedded=true -p:EmbeddedHolochain=$variant
+              dotnet build $proj --configuration Release --no-incremental -p:Embedded=true -p:EmbeddedHolochain=$variant
+              if ($LASTEXITCODE -eq 0) { dotnet pack $proj --configuration Release --output .\nupkgs --no-build -p:Embedded=true -p:EmbeddedHolochain=$variant }
               if ($LASTEXITCODE -ne 0) { $failed++; Write-Host "PACK FAILED (embedded $variant): $proj" }
             }
           }
