@@ -22,7 +22,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             ContractResolver = new SkipHolonNavigationResolver(),
             NullValueHandling = NullValueHandling.Ignore,
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-            DateTimeZoneHandling = DateTimeZoneHandling.Utc
+            DateTimeZoneHandling = DateTimeZoneHandling.Utc,
+            Converters = { new JsonElementValueConverter() }
         };
 
         public static string Serialize<T>(T value) => JsonConvert.SerializeObject(value, typeof(T), Settings);
@@ -40,6 +41,18 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         }
 
         public static object Deserialize(string json, Type type) => JsonConvert.DeserializeObject(json, type, Settings);
+
+        // System.Text.Json object dictionaries contain JsonElement values. Persist their JSON value,
+        // never CLR implementation/type metadata that the storage binder must correctly reject.
+        private sealed class JsonElementValueConverter : JsonConverter
+        {
+            public override bool CanConvert(Type objectType) => objectType == typeof(System.Text.Json.JsonElement);
+            public override bool CanRead => false;
+            public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
+                => writer.WriteRawValue(((System.Text.Json.JsonElement)value).GetRawText());
+            public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+                => throw new NotSupportedException("JSON values are read through the existing canonical serializer.");
+        }
 
         private sealed class OasisTypesOnlyBinder : ISerializationBinder
         {
