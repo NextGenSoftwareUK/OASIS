@@ -48,34 +48,6 @@ public partial class GoogleCloudOASIS
         return result;
     }
 
-    private sealed record PlannedFirestoreHolon(IHolon Source,Holon Snapshot);
-
-    private static (List<IHolon> Roots,List<PlannedFirestoreHolon> Nodes) PlanFirestoreGraph(IEnumerable<IHolon> input,bool children,bool recursive,int depth,int initialDepth)
-    {
-        ArgumentNullException.ThrowIfNull(input);
-        if(depth<0 || initialDepth<0) throw new ArgumentOutOfRangeException(nameof(depth));
-        var roots=input.ToList();
-        if(roots.Count==0) throw new ArgumentException("A nonempty graph is required.");
-        var references=new HashSet<IHolon>(ReferenceEqualityComparer.Instance);
-        var identities=new HashSet<Guid>();
-        var nodes=new List<PlannedFirestoreHolon>();
-        void Visit(IHolon source,int current,Guid? parent)
-        {
-            if(source==null || !references.Add(source)) throw new ArgumentException("Selected Firestore graph has null/repeated nodes or a cycle.");
-            var id=source.Id==Guid.Empty ? Guid.NewGuid():source.Id;
-            if(!identities.Add(id)) throw new ArgumentException("Selected Firestore graph has duplicate identities.");
-            if(parent.HasValue && source.ParentHolonId!=Guid.Empty && source.ParentHolonId!=parent.Value)
-                throw new ArgumentException("Selected Firestore child has a conflicting parent identity.");
-            var snapshot=OasisJson.Deserialize<Holon>(OasisJson.Serialize(source));
-            snapshot.Id=id;snapshot.ParentHolonId=parent ?? source.ParentHolonId;
-            nodes.Add(new PlannedFirestoreHolon(source,snapshot));
-            if(children && (depth==0 || current<depth) && (recursive || current==initialDepth))
-                foreach(var child in source.Children ?? Enumerable.Empty<IHolon>()) Visit(child,current+1,id);
-        }
-        foreach(var root in roots) Visit(root,initialDepth,null);
-        return (roots,nodes);
-    }
-
     private async Task<OASISResult<IEnumerable<IHolon>>> ExportCanonicalOwnedHolonsAsync(Guid owner,int version)
     {
         var result=new OASISResult<IEnumerable<IHolon>>();

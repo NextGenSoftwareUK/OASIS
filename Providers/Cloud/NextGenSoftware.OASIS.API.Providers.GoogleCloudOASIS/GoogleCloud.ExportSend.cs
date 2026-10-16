@@ -93,7 +93,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             var saved = new List<IHolon>();
             var failures=new List<Exception>();
             try {
-                var plan=PlanFirestoreGraph(holons,saveChildren,recursive,maxChildDepth,curentChildDepth);
+                var plan=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphWritePlan.Create(holons,saveChildren,recursive,maxChildDepth,curentChildDepth);
                 var failedParents=new HashSet<Guid>();
                 foreach(var node in plan.Nodes) {
                     if(failedParents.Contains(node.Snapshot.ParentHolonId)) {
