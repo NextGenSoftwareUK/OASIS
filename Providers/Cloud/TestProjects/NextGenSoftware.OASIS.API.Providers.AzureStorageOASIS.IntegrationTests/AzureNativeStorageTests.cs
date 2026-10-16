@@ -134,6 +134,10 @@ public class AzureNativeStorageTests
         if(Directory.Exists(directory) && Directory.EnumerateFiles(directory,"*",SearchOption.AllDirectories).Any())
             Assert.Fail("Owned Azure routing fixture contains prior files; refusing overwrite.");
         var local=new NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.LocalFileOASIS(storageDirectory:directory);
+        var credentialId=Guid.NewGuid();var walletId=Guid.NewGuid();var credential="owned-policy-"+credentialId;
+        var credentialOperations=new[] {"LoadAvatarByVerificationToken","LoadAvatarByResetToken","LoadAvatarByRefreshToken","LoadAvatarByPublicKey","LoadAvatarByPrivateKey"};
+        Core.StorageOperationRequest CredentialRequest(string operation)=>new() {Operation=operation,VerificationToken=credential,ResetToken=credential,
+            RefreshToken=credential,PublicKey=credential,PrivateKey=credential};
         Assert.IsFalse((await local.ActivateProviderAsync()).IsError);
         try {
             Assert.IsFalse((await local.SaveHolonAsync(new Holon {Id=native.Id,Name="distinct-local"},saveChildren:false)).IsError);
@@ -184,6 +188,45 @@ public class AzureNativeStorageTests
                 Assert.AreEqual(value.Name,(await azure.LoadHolonAsync(native.Id,loadChildren:false)).Result.Name);
                 Assert.AreEqual(value.Name,(await local.LoadHolonAsync(native.Id,loadChildren:false)).Result.Name);
             }
+            foreach(var primary in providers)
+            foreach(var asynchronous in new[] {false,true})
+            {
+                var profile=new Avatar {Id=credentialId,Username="owned-policy-"+credentialId,IsActive=true,
+                    AvatarType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User),
+                    VerificationToken=credential,ResetToken=credential,RefreshTokens=new() {new RefreshToken {Token=credential}},
+                    ProviderWallets=new() {{Core.Enums.ProviderType.SolanaOASIS,new() {new ProviderWallet {Id=walletId,PublicKey=credential,PrivateKey=credential}}}}};
+                var request=new Core.StorageOperationRequest {Operation="SaveAvatar",Payload=profile,PreferredProvider=primary.Value};
+                var saved=asynchronous ? await router.RouteRequestAsync<Core.Interfaces.IAvatar>(request):router.RouteRequest<Core.Interfaces.IAvatar>(request);
+                Assert.IsFalse(saved.IsError,saved.Message);Assert.IsFalse(saved.IsWarning,saved.Message);
+                var detailRequest=new Core.StorageOperationRequest {Operation="SaveAvatarDetail",Payload=new AvatarDetail {Id=credentialId,IsActive=true},PreferredProvider=primary.Value};
+                var detail=asynchronous ? await router.RouteRequestAsync<Core.Interfaces.IAvatarDetail>(detailRequest):router.RouteRequest<Core.Interfaces.IAvatarDetail>(detailRequest);
+                Assert.IsFalse(detail.IsError,detail.Message);Assert.IsFalse(detail.IsWarning,detail.Message);
+                // Disable replication while reading so exact provider reads cannot be repaired by an alternate store.
+                manager.IsAutoReplicationEnabled=false;
+                foreach(var store in providers)
+                foreach(var operation in credentialOperations)
+                {
+                    var readRequest=CredentialRequest(operation);readRequest.PreferredProvider=store.Value;
+                    var read=asynchronous ? await router.RouteRequestAsync<Core.Interfaces.IAvatar>(readRequest):router.RouteRequest<Core.Interfaces.IAvatar>(readRequest);
+                    Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(credentialId,read.Result.Id);
+                    Assert.AreEqual(walletId,read.Result.ProviderWallets[Core.Enums.ProviderType.SolanaOASIS].Single().Id);
+                }
+                manager.IsAutoReplicationEnabled=true;
+            }
+            manager.IsAutoReplicationEnabled=false;manager.IsAutoLoadBalanceEnabled=true;
+            foreach(var operation in credentialOperations)
+            {
+                var before=providers.Select(type=>manager.PerformanceMonitor.GetMetrics(type.Value).TotalRequests).ToArray();
+                for(var index=0;index<2;index++)
+                {
+                    var request=CredentialRequest(operation);
+                    var read=index==0 ? router.RouteRequest<Core.Interfaces.IAvatar>(request,Core.Enums.LoadBalancingStrategy.RoundRobin)
+                        :await router.RouteRequestAsync<Core.Interfaces.IAvatar>(request,Core.Enums.LoadBalancingStrategy.RoundRobin);
+                    Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(credentialId,read.Result.Id);
+                }
+                for(var index=0;index<2;index++) Assert.AreEqual(before[index]+1,manager.PerformanceMonitor.GetMetrics(providers[index].Value).TotalRequests);
+            }
+            manager.IsAutoLoadBalanceEnabled=false;
             manager.IsAutoReplicationEnabled=false;manager.IsAutoFailOverEnabled=true;
             Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(providers).IsError);
             var missingId=Guid.NewGuid();
@@ -209,6 +252,18 @@ public class AzureNativeStorageTests
             options.Retry.MaxRetries=0;options.Retry.NetworkTimeout=TimeSpan.FromSeconds(2);
             try {
                 field.SetValue(azure,new BlobServiceClient(new Uri("http://127.0.0.1:10003/devstoreaccount1"),options));
+                foreach(var operation in credentialOperations)
+                foreach(var asynchronous in new[] {false,true})
+                {
+                    // Independent contexts require a real SDK attempt for each selector, not an open circuit.
+                    var failover=new Core.Managers.ProviderManager(null,dna) {IsAutoFailOverEnabled=true};failover.RegisterProvider(azure);failover.RegisterProvider(local);
+                    Assert.IsFalse(failover.SetAndReplaceAutoFailOverListForProviders(providers).IsError);
+                    var fallback=new Core.Managers.OASISHyperDrive.OASISHyperDrive(failover);var request=CredentialRequest(operation);
+                    request.PreferredProvider=Core.Enums.ProviderType.AzureStorageOASIS;
+                    var read=asynchronous ? await fallback.RouteRequestAsync<Core.Interfaces.IAvatar>(request):fallback.RouteRequest<Core.Interfaces.IAvatar>(request);
+                    Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(credentialId,read.Result.Id);
+                    foreach(var provider in providers) Assert.AreEqual(1L,failover.PerformanceMonitor.GetMetrics(provider.Value).TotalRequests);
+                }
                 foreach(var asynchronous in new[] {false,true}) {
                     var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.LocalFileOASIS).TotalRequests;
                     var request=new NextGenSoftware.OASIS.API.Core.StorageOperationRequest {
@@ -232,6 +287,7 @@ public class AzureNativeStorageTests
             }
             finally {field.SetValue(azure,healthy);}
         }
-        finally {await local.DeleteHolonAsync(native.Id);await local.DeActivateProviderAsync();}
+        finally {await azure.DeleteAvatarAsync(credentialId,false);await local.DeleteAvatarAsync(credentialId,false);
+            await local.DeleteHolonAsync(native.Id);await local.DeActivateProviderAsync();}
     }
 }
