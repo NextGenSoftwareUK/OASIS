@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 Google native7/7 passes14s after reproducing2inactive-but-undeleted lifecycle failures. Shared transaction now uses core IsDeleted instead of !IsActive for tombstone selection/conflicts. Sync/async active/inactive pair tests verify raw initial state, exact actor/timestamp/data, repeat and hard deletion. Existing V2 cases retained; broad interface/history/recovery/live/hosted gates remain open.
+
 2026-10-16 AWS native17/17 passes10s, zero skips: four existing V2 lifecycle cases now route hard deletion after soft deletion with replication enabled, AWS/SQLite primary and sync/async combinations. Independent official SDK consistent reads plus SQLite loads prove both profile/detail records removed from both stores. Assertion expansion, not extra test count. Fresh-active hard deletion across all races, durable recovery/live service/full interfaces/hosted certification remain open.
 
 2026-10-16 Google↔SQLite actual V2 matrix strengthened: four sync/async×primary scenarios assert nonempty actor propagation through soft deletion and routed hard-delete replication; independently both Firestore documents and both SQLite records absent. Same5/5 native suite passes14s, zero skips. Expanded assertion coverage, not extra test count or full-provider certification.
