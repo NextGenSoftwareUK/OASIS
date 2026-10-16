@@ -1,6 +1,8 @@
 using Google.Cloud.Firestore;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.OASIS.API.Core.Holons;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
 
 namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.IntegrationTests;
 
@@ -8,6 +10,79 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.IntegrationTests;
 [DoNotParallelize]
 public class GoogleIntegrityTests
 {
+    [DataTestMethod]
+    [DataRow(0,false)] [DataRow(0,true)]
+    [DataRow(1,false)] [DataRow(1,true)]
+    [DataRow(2,false)] [DataRow(2,true)]
+    public async Task V2CorruptPrimaryDoesNotReadStaleSecondary(int kind,bool synchronous)
+    {
+        Assert.AreEqual("127.0.0.1:18080",Environment.GetEnvironmentVariable("FIRESTORE_EMULATOR_HOST"));
+        var path=Path.GetFullPath("TestResults/GoogleRoutingFiles/tombstone-routing.db");
+        if(File.Exists(path)) Assert.Fail("Retained Google SQLite evidence exists; refusing overwrite.");
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        const string project="oasis-google-native";
+        var db=new FirestoreDbBuilder {ProjectId=project,EmulatorDetection=Google.Api.Gax.EmulatorDetection.EmulatorOnly}.Build();
+        var provider=new GoogleCloudOASIS(projectId:project,enableStorage:false,enableFirestore:true,enableBigQuery:false);
+        var sqlite=new NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS($"Data Source={path};Pooling=False");
+        var id=Guid.NewGuid();
+        var document=db.Collection(kind==0 ? "avatars":kind==1 ? "avatarDetails":"holons").Document(id.ToString());
+        const string json="{ invalid canonical JSON";
+        var acknowledged=false;var verified=false;
+        try
+        {
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            Assert.IsFalse((await sqlite.ActivateProviderAsync()).IsError);
+            if(kind==0) Assert.IsFalse((await sqlite.SaveAvatarAsync(new Avatar {Id=id,Username="owned-stale",IsActive=true,
+                AvatarType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User)})).IsError);
+            else if(kind==1) Assert.IsFalse((await sqlite.SaveAvatarDetailAsync(new AvatarDetail {Id=id,Username="owned-stale",IsActive=true,XP=999})).IsError);
+            else Assert.IsFalse((await sqlite.SaveHolonAsync(new Holon {Id=id,Name="owned-stale",IsActive=true},saveChildren:false)).IsError);
+            var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {
+                HyperDriveMode=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2,StorageProviders=new(),SubscriptionConfig=new() {PlanType="Gold"}}};
+            var manager=new Core.Managers.ProviderManager(null,dna) {IsAutoFailOverEnabled=true};
+            manager.RegisterProvider(provider);manager.RegisterProvider(sqlite);
+            Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(new[] {
+                new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.GoogleCloudOASIS),
+                new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.SQLLiteDBOASIS)}).IsError);
+            var router=new Core.Managers.OASISHyperDrive.OASISHyperDrive(manager);
+            await document.CreateAsync(new Dictionary<string,object> {{"id",id.ToString()},{"data_json",json},{"isActive",true},{"isDeleted",false}});
+            acknowledged=true;
+            var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0;
+            foreach(var collection in new[] {false,true})
+            {
+                var request=new Core.StorageOperationRequest {Operation=kind==0 ? collection ? "LoadAllAvatars":"LoadAvatar":kind==1
+                    ? collection ? "LoadAllAvatarDetails":"LoadAvatarDetail":collection ? "LoadAllHolons":"LoadHolon",
+                    AvatarId=id,HolonId=id,LoadChildren=false,PreferredProvider=Core.Enums.ProviderType.GoogleCloudOASIS};
+                if(kind==0)
+                {
+                    if(collection) Corrupt(synchronous ? router.RouteRequest<IEnumerable<IAvatar>>(request):await router.RouteRequestAsync<IEnumerable<IAvatar>>(request));
+                    else Corrupt(synchronous ? router.RouteRequest<IAvatar>(request):await router.RouteRequestAsync<IAvatar>(request));
+                }
+                else if(kind==1)
+                {
+                    if(collection) Corrupt(synchronous ? router.RouteRequest<IEnumerable<IAvatarDetail>>(request):await router.RouteRequestAsync<IEnumerable<IAvatarDetail>>(request));
+                    else Corrupt(synchronous ? router.RouteRequest<IAvatarDetail>(request):await router.RouteRequestAsync<IAvatarDetail>(request));
+                }
+                else
+                {
+                    if(collection) Corrupt(synchronous ? router.RouteRequest<IEnumerable<IHolon>>(request):await router.RouteRequestAsync<IEnumerable<IHolon>>(request));
+                    else Corrupt(synchronous ? router.RouteRequest<IHolon>(request):await router.RouteRequestAsync<IHolon>(request));
+                }
+            }
+            Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
+            Assert.AreEqual(json,(await document.GetSnapshotAsync()).GetValue<string>("data_json"));
+            if(kind==0) Assert.AreEqual(id,(await sqlite.LoadAvatarAsync(id)).Result.Id);
+            else if(kind==1) Assert.AreEqual(999L,(await sqlite.LoadAvatarDetailAsync(id)).Result.XP);
+            else Assert.AreEqual("owned-stale",(await sqlite.LoadHolonAsync(id,loadChildren:false)).Result.Name);
+            verified=true;
+        }
+        finally
+        {
+            if(acknowledged) await document.DeleteAsync();
+            await provider.DeActivateProviderAsync();await sqlite.DeActivateProviderAsync();
+            if(verified) foreach(var file in new[] {path,path+"-wal",path+"-shm"}) if(File.Exists(file)) File.Delete(file);
+        }
+    }
+
     [DataTestMethod]
     [DataRow(0,false)] [DataRow(0,true)]
     [DataRow(1,false)] [DataRow(1,true)]
