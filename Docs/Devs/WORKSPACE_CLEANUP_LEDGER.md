@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 Azure integrity verification: retained Azurite3.37.0/runtime/cache/fixed AzureCurrent reports reused; final24/24nativepass14s, unit13/13pass259ms. Exact deliberately malformed acknowledged blobs deleted in finally; same fixed AzureRoutingFiles/lifecycle.db family removed only after full verified pass/deactivation. No new runtime/download/clone/environment or user-data repair/unknown-ledger removal. Existing in-memory fixture and ownership lease retained.
+
 2026-10-16 AWS corrupt lifecycle matrix: same retained runtime/cache/fixed SQLite routing fixture/reports; native51/51pass13s.16deliberately corrupt synthetic pairs independently verified unchanged/no dispatched mutation before exact-ID source cleanup. SQLite test family removed only after complete verification/deactivation; no unknown chain evidence/user data removed. No install/download/clone/new environment. C:85,105,098,752bytes free during run; no global reclaim claim.
 
 2026-10-16 collection/holon integrity verification: cached SDK unit49/49pass341ms; same retained AWS runtime native49/49pass12s. Exact acknowledged synthetic corrupt holon item removed in finally; prior avatar/detail corrupt fixture cleanup retained. Existing fixed reports/environment reused; owned18000/18001 listeners absent afterward. No installation/download/clone/new environment, user-data repair or unknown-ledger deletion.
