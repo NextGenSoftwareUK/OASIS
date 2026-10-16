@@ -64,6 +64,15 @@ public partial class SolanaOASIS
         return account;
     }
 
+    private async Task<string> BurnLegacySplAsync(Account signer,PublicKey mint,decimal amount)
+    {
+        var decimals=await ReadLegacyMintDecimalsAsync(mint);var raw=SplRawAmount(amount,decimals);
+        var source=AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(signer.PublicKey,mint);
+        var account=await ReadLegacyTokenAccountAsync(source,mint,signer.PublicKey,false);
+        if(account.Amount<raw) throw new ArgumentException("SPL burn balance is insufficient.");
+        return await SubmitTokenInstructionsAsync(signer,new[]{TokenProgram.BurnChecked(mint,source,signer.PublicKey,raw,decimals)},null);
+    }
+
     private async Task<string> SendLegacySplAsync(Account signer,PublicKey recipient,PublicKey mint,decimal amount,string memo)
     {
         var decimals=await ReadLegacyMintDecimalsAsync(mint);var raw=SplRawAmount(amount,decimals);
@@ -72,11 +81,18 @@ public partial class SolanaOASIS
         var sourceAccount=await ReadLegacyTokenAccountAsync(source,mint,signer.PublicKey,false);
         if(sourceAccount.Amount<raw) throw new ArgumentException("Sender SPL token balance is insufficient.");
         var destinationAccount=await ReadLegacyTokenAccountAsync(destination,mint,recipient,true);
+        var instructions=new System.Collections.Generic.List<Solnet.Rpc.Models.TransactionInstruction>();
+        if(destinationAccount==null) instructions.Add(AssociatedTokenAccountProgram.CreateAssociatedTokenAccount(signer.PublicKey,recipient,mint));
+        instructions.Add(TokenProgram.TransferChecked(source,destination,raw,decimals,signer.PublicKey,mint));
+        return await SubmitTokenInstructionsAsync(signer,instructions,memo);
+    }
+
+    private async Task<string> SubmitTokenInstructionsAsync(Account signer,System.Collections.Generic.IEnumerable<Solnet.Rpc.Models.TransactionInstruction> instructions,string memo)
+    {
         var block=await _rpcClient.GetLatestBlockHashAsync();
         if(!block.WasSuccessful || string.IsNullOrWhiteSpace(block.Result?.Value?.Blockhash)) throw new InvalidOperationException("Solana writable blockhash was unavailable.");
         var builder=new TransactionBuilder().SetRecentBlockHash(block.Result.Value.Blockhash).SetFeePayer(signer.PublicKey);
-        if(destinationAccount==null) builder.AddInstruction(AssociatedTokenAccountProgram.CreateAssociatedTokenAccount(signer.PublicKey,recipient,mint));
-        builder.AddInstruction(TokenProgram.TransferChecked(source,destination,raw,decimals,signer.PublicKey,mint));
+        foreach(var instruction in instructions) builder.AddInstruction(instruction);
         if(!string.IsNullOrEmpty(memo)) builder.AddInstruction(MemoProgram.NewMemoV2(memo));
         return await new SolanaRepository(signer,_rpcClient).SubmitSignedTransactionAsync(builder.Build(signer));
     }
