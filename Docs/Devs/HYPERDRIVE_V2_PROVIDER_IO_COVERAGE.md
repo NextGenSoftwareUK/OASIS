@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 AWS native31/31pass10s +Dynamo unit25/25pass307ms: graph saves now honor child selection/recursion/depth with per-node native items/parent IDs and post-ack source publication. Six child-selection cases failed before implementation. Real SDK raw/readback tree assertions, controlled zero-write invalid graph and uncertainty-stop cases added; canonical navigation-exclusion contract preserved. Sequential graph writes are NOT atomic; native partial graph faults, V2 graph replication/history/full-interface/live/hosted gates remain open.
+
 2026-10-16 DynamoDB unit21/21 and AWS native23/23pass11s: SDK RequestId retained separately as SdkRequestId, never reported as OriginalTransactionId. Regression proves shared reconciliation collector returns no invented native receipt while preserving original exception and replay fence. One unit failed before fix. Durable recovery/live service/full-interface/hosted gates remain open.
 
 2026-10-16 AWS native23/23 passes10s, zero skips: six actual-commit/controlled SDK-acknowledgement failures for profile/detail/holon syncasync preserve attempted table/key/original cause and no longer mutate caller IDs/provider keys. All6 failed before detached-snapshot source fix. Independent consistent reads prove real stored rows, exactly1commit. Prior V2/transaction race tests retained. Physical ack loss/durable recovery/full interfaces/live service/hosted gates remain open.
