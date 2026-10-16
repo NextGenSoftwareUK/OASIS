@@ -14,6 +14,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/Helpers/HolonWriteOwnership.cs" Link="Production/HolonWriteOwnership.cs" />
+    <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/NftBurnExecution.cs" Link="Production/NftBurnExecution.cs" />
     <ProjectReference Include="..\..\Providers\Storage\NextGenSoftware.OASIS.API.Providers.MongoOASIS\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
     <ProjectReference Include="..\..\Providers\Blockchain\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS\NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj" />
