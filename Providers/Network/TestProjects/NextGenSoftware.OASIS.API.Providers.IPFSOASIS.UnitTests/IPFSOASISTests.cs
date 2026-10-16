@@ -22,6 +22,57 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests
 	public class IPFSOASISTests
 	{
         [Fact]
+        public async Task NearbyReadsEncryptedCanonicalLocationsUnderNonEnglishCulture()
+        {
+            foreach(var avatars in new[] {false,true})
+            await WithOwnedProvider(async provider => {
+                var records=new List<IHolonBase>();
+                for(var i=0;i<4;i++)
+                {
+                    IHolonBase record=avatars ? new Avatar {Username="nearby-"+i,FirstName="complete profile"}:new Holon();
+                    record.Id=Guid.NewGuid();record.Description="complete record";record.IsActive=i!=2;
+                    record.HolonType=avatars ? NextGenSoftware.OASIS.API.Core.Enums.HolonType.Avatar:NextGenSoftware.OASIS.API.Core.Enums.HolonType.Park;
+                    record.MetaData=new Dictionary<string,object> {{"proof","preserved"}};
+                    if(i!=3) {record.MetaData["Latitude"]=i==1 ? "30.002":"30.0005";record.MetaData["Longitude"]="20";}
+                    records.Add(record);
+                    if(avatars) {var saved=await provider.SaveAvatarAsync((IAvatar)record);Assert.False(saved.IsError,saved.Message);}
+                    else {var saved=await provider.SaveHolonAsync((IHolon)record,saveChildren:false);Assert.False(saved.IsError,saved.Message);}
+                }
+                var net=(IOASISNETProvider)provider;var prior=System.Globalization.CultureInfo.CurrentCulture;
+                try
+                {
+                    System.Globalization.CultureInfo.CurrentCulture=new System.Globalization.CultureInfo("fr-FR");
+                    if(avatars)
+                    {
+                        var near=net.GetAvatarsNearMe(30000000,20000000,100);
+                        Assert.False(near.IsError,near.Message);Assert.True(near.IsLoaded);
+                        var found=Assert.Single(near.Result);Assert.Equal(records[0].Id,found.Id);Assert.Equal("complete profile",found.FirstName);
+                        Assert.Equal("preserved",found.MetaData["proof"].ToString());
+                        Assert.Empty(net.GetAvatarsNearMe(30000000,20000000,0).Result);
+                        records[0].MetaData["Latitude"]="NaN";
+                        var saved=await provider.SaveAvatarAsync((IAvatar)records[0]);Assert.False(saved.IsError,saved.Message);
+                        var corrupt=net.GetAvatarsNearMe(30000000,20000000,100);
+                        Assert.True(corrupt.IsError);Assert.False(corrupt.IsLoaded);Assert.Null(corrupt.Result);Assert.IsType<InvalidDataException>(corrupt.Exception);
+                    }
+                    else
+                    {
+                        var near=net.GetHolonsNearMe(30000000,20000000,100,NextGenSoftware.OASIS.API.Core.Enums.HolonType.Park);
+                        Assert.False(near.IsError,near.Message);Assert.True(near.IsLoaded);
+                        var found=Assert.Single(near.Result);Assert.Equal(records[0].Id,found.Id);Assert.Equal("complete record",found.Description);
+                        Assert.Equal("preserved",found.MetaData["proof"].ToString());
+                        Assert.Empty(net.GetHolonsNearMe(30000000,20000000,100,NextGenSoftware.OASIS.API.Core.Enums.HolonType.Holon).Result);
+                        Assert.Empty(net.GetHolonsNearMe(30000000,20000000,0,NextGenSoftware.OASIS.API.Core.Enums.HolonType.All).Result);
+                        records[0].MetaData.Remove("Longitude");
+                        var saved=await provider.SaveHolonAsync((IHolon)records[0],saveChildren:false);Assert.False(saved.IsError,saved.Message);
+                        var corrupt=net.GetHolonsNearMe(30000000,20000000,100,NextGenSoftware.OASIS.API.Core.Enums.HolonType.All);
+                        Assert.True(corrupt.IsError);Assert.False(corrupt.IsLoaded);Assert.Null(corrupt.Result);Assert.IsType<InvalidDataException>(corrupt.Exception);
+                    }
+                }
+                finally {System.Globalization.CultureInfo.CurrentCulture=prior;}
+            });
+        }
+
+        [Fact]
         public async Task GraphChildFailuresRetainReceiptsAndRespectContinuation()
         {
             foreach(var synchronous in new[] {false,true})

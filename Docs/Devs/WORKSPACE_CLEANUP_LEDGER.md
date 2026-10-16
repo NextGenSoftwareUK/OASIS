@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 IPFS nearby work reused pinned Kubo0.43.1/offline repository/DPAPI key/SDK caches/fixed reports and exclusive environment lease. Native7/7pass9s; non-native52/52pass151ms. Existing owned fixture preserves preexisting pins, removes only newly created synthetic pins and owned-dna.json after verified assertions; runner GC removed370unpinnedblocks. Runner exit0; daemon18547/18548 absent. Free bytes before83,621,621,760 after83,620,188,160 (not recovery claim). No downloads/installations/new environments, private key changes or unrelated/pending-chain fixture deletion.
+
 2026-10-16 Solana nearby offline verification reused existing checkout, SDK, cached dependencies and unit output. Producer build0errors/6warnings;206/206unitpass2s/no skips. No downloads/restores/installations/runtime start, new service, new test DB or chain submission. Generated in-memory test accounts have no funds and are not persisted. Retained Solana ledger/tower and other unknown-outcome fixtures untouched; C free83,625,603,072bytes after bounded work, not a recovery claim.
 
 Ethereum nearby final runner exit0, wrapper4/4pass42s. Owned local EVM stopped by runner; free bytes before83,627,905,024 after83,627,405,312 (not a recovery claim). Fixed logs/reports reused; disposable fixture reproducible from retained compiler/runtime. No installations, archives, clones or duplicated environments.
