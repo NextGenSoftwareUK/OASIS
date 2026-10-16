@@ -52,8 +52,8 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 var request=new StorageOperationRequest {Operation=operation=="graph" ? "SaveHolon":operation,
                     Payload=operation=="graph" ? good:new List<IHolon>{good,bad},SaveChildren=operation=="graph",ChildrenFromProvider=operation=="graph",PreferredProvider=ProviderType.MongoDBOASIS};
                 if(operation=="Import") AssertMongoBatchPayloadFailure(synchronous ? router.RouteRequest<bool>(request):await router.RouteRequestAsync<bool>(request));
-                else if(operation=="SaveHolons") AssertMongoBatchPayloadFailure(synchronous ? router.RouteRequest<IEnumerable<IHolon>>(request):await router.RouteRequestAsync<IEnumerable<IHolon>>(request));
-                else AssertMongoBatchPayloadFailure(synchronous ? router.RouteRequest<IHolon>(request):await router.RouteRequestAsync<IHolon>(request));
+                else if(operation=="SaveHolons") AssertMongoBatchPayloadFailure(synchronous ? router.RouteRequest<IEnumerable<IHolon>>(request):await router.RouteRequestAsync<IEnumerable<IHolon>>(request), canonicalPreflight:true);
+                else AssertMongoBatchPayloadFailure(synchronous ? router.RouteRequest<IHolon>(request):await router.RouteRequestAsync<IHolon>(request), canonicalPreflight:true);
                 var stopped=await admin.RunCommandAsync<BsonDocument>(new BsonDocument {{"configureFailPoint","failCommand"},{"mode","off"}});
                 stopped["count"].ToInt64().Should().Be(configured["count"].ToInt64(),"no native insert/update may be attempted before all payloads serialize");
                 (manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0).Should().Be(before);
@@ -83,10 +83,17 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
         }
     }
 
-    private static void AssertMongoBatchPayloadFailure<T>(OASISResult<T> result)
+    private static void AssertMongoBatchPayloadFailure<T>(OASISResult<T> result, bool canonicalPreflight=false)
     {
         result.IsError.Should().BeTrue();result.IsSaved.Should().BeFalse();result.ErrorCode.Should().Be("HYPERDRIVE_PAYLOAD_INVALID");
-        result.Exception.Should().BeAssignableTo<BsonSerializationException>();result.Exception!.GetBaseException().Should().BeOfType<NotSupportedException>();
+        // Graph snapshots now reject unsupported payloads before entering the BSON transaction boundary.
+        // Import still uses BSON preparation. Both must remain terminal and dispatch no native writes.
+        if(canonicalPreflight) result.Exception.Should().BeOfType<Newtonsoft.Json.JsonSerializationException>();
+        else
+        {
+            result.Exception.Should().BeAssignableTo<BsonSerializationException>();
+            result.Exception!.GetBaseException().Should().BeOfType<NotSupportedException>();
+        }
         Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception).Should().BeFalse();
     }
 

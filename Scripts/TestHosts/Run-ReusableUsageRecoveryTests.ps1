@@ -106,7 +106,7 @@ try{
         if($mongoFile.LastWriteTimeUtc -lt $mongoStarted){throw 'Mongo native report is stale.'}
         [xml]$mongoEvidence=Get-Content -LiteralPath $mongoFile.FullName -Raw
         $mongoCounts=$mongoEvidence.TestRun.ResultSummary.Counters
-        $expectedMongo=if($MongoTransactions){44}else{1}
+        $expectedMongo=if($MongoTransactions){46}else{1}
         if([int]$mongoCounts.total -ne $expectedMongo -or [int]$mongoCounts.passed -ne $expectedMongo -or [int]$mongoCounts.notExecuted -ne 0){throw 'Expected complete selected Mongo native suite without skips.'}
     }elseif($HederaPreparedOwners){
         $env:OASIS_HEDERA_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/SdkBridge/bridge.mjs'
