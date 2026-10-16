@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 V2 partial-key tests:48/48targetedpass6s using existing HyperDriveSqliteCurrent lease/owned-data/files/SQLite and fixed TRX. Actual disk adapter stores bounded synthetic JSON files at SHA256-derived filenames (no key-path traversal/new environment). Native file payloads and secondary emptiness verified before fixture cleanup; failure preserves fixture. No install/download/clone/chain process/reset. Free C84,408,123,392bytes after verification. Local I/O evidence explicitly not cloud SDK certification.
+
 2026-10-16 shared holon publication:129/129unitpass973ms plus bounded four-chain library builds using existing .NET/cache/in-memory fixtures. No install/download/clone/new environment, pending-chain resume/reset or unknown ledger cleanup. Controlled-backend partial records independently inspected; do not equate with native chain receipt proof.
 
 2026-10-16 shared caller-publication fix:123/123unitpass978ms using existing in-memory test backend/runtime/cache; Sui/Cosmos/TRON/Hashgraph bounded library builds only. No chain process/resume/reset, package install/download/clone/new environment or synthetic ledger removal. No production retention/deletion policy change. Partial-key tests independently inspect acknowledged controlled-backend records/archive before fixture disposal; not claimed real SDK/native evidence.
