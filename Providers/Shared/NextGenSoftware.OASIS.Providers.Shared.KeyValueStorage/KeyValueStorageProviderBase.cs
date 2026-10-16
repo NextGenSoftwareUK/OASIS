@@ -459,6 +459,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public async Task<OASISResult<bool>> DeleteAvatarDetailAsync(Guid id, bool softDelete = true)
         {
+            var acknowledged=new List<string>();
             try
             {
                 if (id == Guid.Empty) return Fail<bool>("Avatar detail ID is required.");
@@ -472,12 +473,12 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 }
                 else
                 {
-                    await DeleteVersionsAsync(AvatarDetailKey(id));
-                    await Backend.DeleteAsync(AvatarDetailKey(id));
+                    await DeleteVersionsAsync(AvatarDetailKey(id),acknowledged);
+                    await DeleteAcknowledgedAsync(AvatarDetailKey(id),acknowledged);
                 }
                 return new OASISResult<bool>(true) { IsDeleted = true, Message = "Avatar detail deleted." };
             }
-            catch (Exception ex) { return Fail<bool>("Error deleting avatar detail.", ex); }
+            catch (Exception ex) { return Fail<bool>("Error deleting avatar detail.",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
         }
 
         public OASISResult<bool> DeleteAvatarDetail(Guid id, bool softDelete = true)
@@ -742,18 +743,19 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
         {
+            var acknowledged=new List<string>();
             try
             {
                 var holon = await ReadAsync<IHolon>(HolonKey(id));
                 if (holon == null) return Fail<IHolon>($"Holon {id} not found.");
-                if (holon.ParentHolonId != Guid.Empty) await Backend.DeleteAsync(ParentKey(holon.ParentHolonId, id));
+                if (holon.ParentHolonId != Guid.Empty) await DeleteAcknowledgedAsync(ParentKey(holon.ParentHolonId, id),acknowledged);
                 foreach (var childLink in await Backend.ListKeysAsync(ParentPrefix(id)))
-                    await Backend.DeleteAsync(childLink);
-                await DeleteVersionsAsync(HolonKey(id));
-                await Backend.DeleteAsync(HolonKey(id));
+                    await DeleteAcknowledgedAsync(childLink,acknowledged);
+                await DeleteVersionsAsync(HolonKey(id),acknowledged);
+                await DeleteAcknowledgedAsync(HolonKey(id),acknowledged);
                 return new OASISResult<IHolon>(holon) { IsDeleted = true, Message = $"Holon {id} deleted from {Name}." };
             }
-            catch (Exception ex) { return Fail<IHolon>($"Error deleting holon {id}: {ex.Message}", ex); }
+            catch (Exception ex) { return Fail<IHolon>($"Error deleting holon {id}: {ex.Message}",acknowledged.Count>0 ? new KeyValuePartialMutationException(StorageType,acknowledged,ex):ex); }
         }
 
         public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).GetAwaiter().GetResult();
