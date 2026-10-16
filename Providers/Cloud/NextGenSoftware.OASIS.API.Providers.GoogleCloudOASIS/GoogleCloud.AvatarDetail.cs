@@ -128,6 +128,9 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                     return result;
                 }
 
+                var source=holon;
+                holon=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<Holon>(
+                    NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(source));
                 if (holon.Id == Guid.Empty)
                     holon.Id = Guid.NewGuid();
                 holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
@@ -167,8 +170,11 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 
                 holonData["data_json"]=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(holon);
                 await ObserveFirestoreMutationAsync(()=>docRef.SetAsync(holonData),docRef.Path);
+                source.Id=holon.Id;
+                source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+                source.ProviderUniqueStorageKey[Core.Enums.ProviderType.GoogleCloudOASIS]=holon.Id.ToString();
                 
-                result.Result = holon;
+                result.Result = source;
                 result.IsSaved = true;
                 result.IsError = false;
                 result.Message = "Holon saved successfully to Google Cloud Firestore with full property mapping";

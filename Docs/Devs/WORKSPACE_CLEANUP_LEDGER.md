@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 Google holon publication regression: retained runtime/cache/fixed reports reused; first17-case run15pass/2fail reproduced premature caller IDs, final17/17pass26s. Test-owned exact generated healthy document IDs independently read then deleted. No new installation/download/clone/environment, unrelated data or unknown-chain evidence cleanup.
+
 2026-10-16 Google save acknowledgement verification: reused same retained Firestore/runtime/cache/fixed reports, final15/15pass22s. Fault calls use reserved unreachable18083; no live Google credentials/billing. Separate healthy operations create exact owned generated document IDs, independently verify and delete only those documents. Initial fixture wrongly expected collection-relative DocumentPath; fixed to native fully qualified format, with no guard/data bypass. No install/download/clone/new environment or broad cleanup.
 
 2026-10-16 Google holon projection regression: reused retained Firestore runtime/cache/fixed reports; first11-case run9pass/2fail documented mismatched native deletion projection, final11/11pass14s. Four exact synthetic holon document IDs cleaned in finally; no collection-wide deletion, runtime/install/download/new environment or existing production-data rewrite.
