@@ -81,6 +81,13 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             return record;
         }
 
+        private static T ReadStoredIdentity<T>(Dictionary<string,AttributeValue> item) where T:class,IHolonBase
+        {
+            if(!item.TryGetValue("id",out var key) || !Guid.TryParse(key.S,out var id))
+                throw new System.IO.InvalidDataException("DynamoDB native record identity is invalid.");
+            return ReadStoredIdentity<T>(item,id);
+        }
+
         private static async Task<T> ObserveMutationAsync<T>(Func<Task<T>> mutation,string table,string key)
         {
             try {return await mutation();}
@@ -275,9 +282,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 foreach(var item in response.Items)
                 {
                     if(item.TryGetValue("is_deleted",out var deleted) && deleted.BOOL) continue;
-                    if(!item.TryGetValue("id",out var id) || !Guid.TryParse(id.S,out var nativeId))
-                        throw new System.IO.InvalidDataException("Stored DynamoDB native identity is invalid.");
-                    var avatar=ReadStoredIdentity<T>(item,nativeId);
+                    var avatar=ReadStoredIdentity<T>(item);
                     if(avatar.IsDeleted) continue;
                     if(match!=null) throw new StorageIdentityAmbiguousException();
                     match=avatar;
@@ -327,8 +332,8 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                     items.AddRange(scanResp.Items);
                 } while (scanResp.LastEvaluatedKey?.Any() == true);
 
-                var avatars = items.Where(i => !(i.TryGetValue("is_deleted", out var d) && d.BOOL)).Select(i => Des<Avatar>(i["data_json"].S)).Where(a => a != null).Cast<IAvatar>().ToList();
-                result.Result = avatars; result.IsError = false; result.Message = $"DynamoDBOASIS: Loaded {avatars.Count} avatar(s).";
+                var avatars = items.Where(i => !(i.TryGetValue("is_deleted", out var d) && d.BOOL)).Select(i => ReadStoredIdentity<Avatar>(i)).Cast<IAvatar>().ToList();
+                result.Result = avatars; result.IsLoaded=true; result.IsError = false; result.Message = $"DynamoDBOASIS: Loaded {avatars.Count} avatar(s).";
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
@@ -436,7 +441,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try { ValidateRecordVersion(version); ScanResponse? sr = null; var items = new List<Dictionary<string, AttributeValue>>(); do { var req = new ScanRequest { TableName = "OasisAvatarDetails" }; if (sr?.LastEvaluatedKey?.Any() == true) req.ExclusiveStartKey = sr.LastEvaluatedKey; sr = await _client.ScanAsync(req); items.AddRange(sr.Items); } while (sr.LastEvaluatedKey?.Any() == true); var details = items.Select(i => Des<AvatarDetail>(i["data_json"].S)).Where(d => d != null).Cast<IAvatarDetail>().ToList(); result.Result = details; result.IsError = false; result.Message = $"DynamoDBOASIS: Loaded {details.Count} detail(s)."; }
+            try { ValidateRecordVersion(version); ScanResponse? sr = null; var items = new List<Dictionary<string, AttributeValue>>(); do { var req = new ScanRequest { TableName = "OasisAvatarDetails" }; if (sr?.LastEvaluatedKey?.Any() == true) req.ExclusiveStartKey = sr.LastEvaluatedKey; sr = await _client.ScanAsync(req); items.AddRange(sr.Items); } while (sr.LastEvaluatedKey?.Any() == true); var details = items.Select(i => ReadStoredIdentity<AvatarDetail>(i)).Cast<IAvatarDetail>().ToList(); result.Result = details; result.IsLoaded=true; result.IsError = false; result.Message = $"DynamoDBOASIS: Loaded {details.Count} detail(s)."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -538,8 +543,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 if(id==Guid.Empty) throw new ArgumentException("A nonempty holon identity is required.",nameof(id));
                 var resp = await _client.GetItemAsync(new GetItemRequest {TableName="OasisHolons",ConsistentRead=true,Key=new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } }});
                 if (resp.Item == null || !resp.Item.Any() || (resp.Item.TryGetValue("is_deleted", out var del) && del.BOOL)) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No holon for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
-                var holon = Des<Holon>(resp.Item["data_json"].S); if (holon == null) { OASISErrorHandling.HandleError(ref result, "DynamoDBOASIS: Deserialise failed."); return result; }
-                if(holon.Id!=id) throw new InvalidOperationException("Stored DynamoDB holon identity does not match its key.");
+                var holon = ReadStoredIdentity<Holon>(resp.Item,id);
                 var records=loadChildren && loadChildrenFromProvider ? await ScanHolonsAsync():new List<IHolon> {holon};
                 result.Result = CreateGraphProjection(records,loadChildren,recursive,maxChildDepth,0,loadChildrenFromProvider)(holon);
                 result.IsLoaded=true;
@@ -564,7 +568,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 sr = await _client.ScanAsync(req);
                 items.AddRange(sr.Items);
             } while (sr.LastEvaluatedKey?.Any() == true);
-            return items.Where(i => !(i.TryGetValue("is_deleted", out var d) && d.BOOL)).Select(i => Des<Holon>(i["data_json"].S)).Where(h => h != null).Cast<IHolon>().ToList();
+            return items.Where(i => !(i.TryGetValue("is_deleted", out var d) && d.BOOL)).Select(i => ReadStoredIdentity<Holon>(i)).Cast<IHolon>().ToList();
         }
 
         private static async Task<List<Dictionary<string,AttributeValue>>> ReadQueryItemsAsync(Func<QueryRequest,Task<QueryResponse>> query,QueryRequest request)
@@ -609,7 +613,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                     KeyConditionExpression = "parentHolonId = :pid",
                     ExpressionAttributeValues = new Dictionary<string, AttributeValue> { [":pid"] = new AttributeValue { S = id.ToString() } }
                 });
-                var holons = items.Where(i => !(i.TryGetValue("is_deleted", out var d) && d.BOOL) && (type == HolonType.All || (i.TryGetValue("holon_type", out var ht) && ht.N == ((int)type).ToString()))).Select(i => Des<Holon>(i["data_json"].S)).Where(h => h != null).Cast<IHolon>().ToList();
+                var holons = items.Where(i => !(i.TryGetValue("is_deleted", out var d) && d.BOOL) && (type == HolonType.All || (i.TryGetValue("holon_type", out var ht) && ht.N == ((int)type).ToString()))).Select(i => ReadStoredIdentity<Holon>(i)).Cast<IHolon>().ToList();
                 var records=loadChildren && loadChildrenFromProvider ? await ScanHolonsAsync():holons;
                 var project=CreateGraphProjection(records,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider);
                 result.Result = holons.Select(project).ToList(); result.IsLoaded=true;

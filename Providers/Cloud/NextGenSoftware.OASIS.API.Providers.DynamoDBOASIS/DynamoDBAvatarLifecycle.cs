@@ -59,8 +59,7 @@ public partial class DynamoDBOASIS : IAvatarTombstoneStorageProvider
             var profileItem=await ReadLifecycleItemAsync("OasisAvatars",id);
             if(profileItem.Count==0) return new OASISResult<bool>(false) {IsError=true,ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="Avatar not found in DynamoDB."};
             var profileJson=LifecycleJson(profileItem,id);
-            var profile=Des<Avatar>(profileJson) ?? throw new InvalidDataException("Avatar snapshot is null.");
-            if(profile.Id!=id) throw new InvalidDataException("Avatar snapshot identity differs from its key.");
+            var profile=ReadStoredIdentity<Avatar>(profileItem,id);
             if(supplied!=null && profile.IsDeleted && (profile.DeletedDate!=supplied.DeletedAtUtc || profile.DeletedByAvatarId!=supplied.DeletedByAvatarId))
                 throw new StorageLifecycleConflictException("Avatar has a conflicting committed tombstone.");
             var detailItem=await ReadLifecycleItemAsync("OasisAvatarDetails",id);
@@ -79,8 +78,7 @@ public partial class DynamoDBOASIS : IAvatarTombstoneStorageProvider
             else
             {
                 var detailJson=LifecycleJson(detailItem,id);
-                var detail=Des<AvatarDetail>(detailJson) ?? throw new InvalidDataException("Avatar detail snapshot is null.");
-                if(detail.Id!=id) throw new InvalidDataException("Avatar detail snapshot identity differs from its key.");
+                var detail=ReadStoredIdentity<AvatarDetail>(detailItem,id);
                 if(softDelete)
                 {
                     if(detail.IsDeleted && (detail.DeletedDate!=tombstone.DeletedAtUtc || detail.DeletedByAvatarId!=tombstone.DeletedByAvatarId))
