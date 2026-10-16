@@ -7,6 +7,43 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive;
 
 public sealed class ImportGraphSnapshotTests
 {
+    [Fact]
+    public void FlatAttemptsPublishOnlyAcknowledgedIdentityAndPerProviderKeys()
+    {
+        var root=new Holon {Name="caller root"};var child=new Holon {Name="caller child"};root.Children.Add(child);
+        var plan=ImportGraphSnapshot.Create(new IHolon[]{root});
+        var first=plan.CreateFlatAttempt();first.Should().HaveCount(2);first.Should().OnlyContain(row=>row.Children.Count==0);
+        first[1].ParentHolonId.Should().Be(first[0].Id);root.Id.Should().BeEmpty();child.Id.Should().BeEmpty();
+        first[0].ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS]="native-first";
+        first[0].Name="provider should not overwrite caller values";
+        plan.PublishAcknowledgedAttempt(first,NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS);
+        root.Id.Should().Be(first[0].Id);child.Id.Should().Be(first[1].Id);child.ParentHolonId.Should().Be(root.Id);
+        root.Name.Should().Be("caller root");root.Children.Single().Should().BeSameAs(child);
+        root.ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS].Should().Be("native-first");
+        var replica=plan.CreateFlatAttempt();replica[0].Id.Should().Be(root.Id);
+        replica[0].ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.IPFSOASIS]="native-replica";
+        plan.PublishAcknowledgedAttempt(replica,NextGenSoftware.OASIS.API.Core.Enums.ProviderType.IPFSOASIS);
+        root.ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS].Should().Be("native-first");
+        root.ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.IPFSOASIS].Should().Be("native-replica");
+    }
+
+    [Theory]
+    [InlineData("wrong-id")] [InlineData("wrong-parent")] [InlineData("wrong-count")] [InlineData("caller-edited")]
+    public void InvalidAcknowledgementCannotPartiallyPublishEarlierNodes(string mode)
+    {
+        var root=new Holon();var child=new Holon();root.Children.Add(child);
+        var plan=ImportGraphSnapshot.Create(new IHolon[]{root});var attempt=plan.CreateFlatAttempt();
+        if(mode=="wrong-id") attempt[1].Id=Guid.NewGuid();
+        if(mode=="wrong-parent") attempt[1].ParentHolonId=Guid.NewGuid();
+        if(mode=="wrong-count") attempt.RemoveAt(1);
+        if(mode=="caller-edited") child.Id=Guid.NewGuid();
+        var childId=child.Id;
+        Action publish=()=>plan.PublishAcknowledgedAttempt(attempt,NextGenSoftware.OASIS.API.Core.Enums.ProviderType.MongoDBOASIS);
+        if(mode=="caller-edited") publish.Should().Throw<InvalidOperationException>();
+        else publish.Should().Throw<System.IO.InvalidDataException>();
+        root.Id.Should().BeEmpty();child.Id.Should().Be(childId);child.ParentHolonId.Should().BeEmpty();
+    }
+
     public sealed class OwnedDerivedHolon : Holon { public string OwnedValue {get;set;}=""; }
 
     [Fact]
