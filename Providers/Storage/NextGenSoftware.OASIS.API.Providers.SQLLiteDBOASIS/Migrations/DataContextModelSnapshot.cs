@@ -1231,6 +1231,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.HeartRateEntryModel", b =>
                 {
+                    b.Property<int>("SequenceIndex").HasColumnType("INTEGER");
                     b.Property<long>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER");

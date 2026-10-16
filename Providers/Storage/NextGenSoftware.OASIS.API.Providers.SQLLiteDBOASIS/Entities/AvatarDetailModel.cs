@@ -186,10 +186,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
                 this.Gifts.Add(new AvatarGiftModel(gift));
             }
 
-            foreach(HeartRateEntry heartRate in source.HeartRateData ?? new List<NextGenSoftware.OASIS.API.Core.Interfaces.Avatar.IHeartRateEntry>()){
+            foreach(var heartRate in source.HeartRateData ?? new List<NextGenSoftware.OASIS.API.Core.Interfaces.Avatar.IHeartRateEntry>()){
 
                 HeartRateEntryModel model=new HeartRateEntryModel(heartRate);
                 model.AvatarId=this.Id;
+                model.SequenceIndex=this.HeartRates.Count;
                 this.HeartRates.Add(model);
             }
 

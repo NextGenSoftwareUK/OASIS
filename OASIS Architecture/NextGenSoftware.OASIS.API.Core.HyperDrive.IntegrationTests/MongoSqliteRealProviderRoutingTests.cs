@@ -1420,6 +1420,9 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 standaloneDetail.Skills=new AvatarSkills {Fishing=17,Science=29,Languages=43};
                 standaloneDetail.SuperPowers=new AvatarSuperPowers {Flight=19,Telepathy=37,FreezeBreath=47};
                 standaloneDetail.HumanDesign=new HumanDesign {Type="owned-replicated-type"};
+                standaloneDetail.HeartRateData=new List<NextGenSoftware.OASIS.API.Core.Interfaces.Avatar.IHeartRateEntry> {
+                    new NextGenSoftware.OASIS.API.Core.Objects.Avatar.HeartRateEntry {HeartRateValue=73,TimeStamp=new DateTime(2026,10,16,1,1,0,DateTimeKind.Utc)},
+                    new NextGenSoftware.OASIS.API.Core.Objects.Avatar.HeartRateEntry {HeartRateValue=87,TimeStamp=new DateTime(2026,10,16,1,0,0,DateTimeKind.Utc)}};
                 var saveIdentity = new StorageOperationRequest { Operation = "SaveAvatar", Payload = standaloneAvatar, PreferredProvider = request.PreferredProvider };
                 var savedIdentity = synchronous ? router.RouteRequest<IAvatar>(saveIdentity) : await router.RouteRequestAsync<IAvatar>(saveIdentity);
                 savedIdentity.IsError.Should().BeFalse(savedIdentity.Message);
@@ -1435,6 +1438,8 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                     persisted.Attributes.Should().BeEquivalentTo(standaloneDetail.Attributes);persisted.Aura.Should().BeEquivalentTo(standaloneDetail.Aura);
                     persisted.Skills.Should().BeEquivalentTo(standaloneDetail.Skills);persisted.SuperPowers.Should().BeEquivalentTo(standaloneDetail.SuperPowers);
                     persisted.HumanDesign.Should().BeEquivalentTo(standaloneDetail.HumanDesign);
+                    persisted.HeartRateData.Select(x=>x.HeartRateValue).Should().Equal(standaloneDetail.HeartRateData.Select(x=>x.HeartRateValue));
+                    persisted.HeartRateData.Select(x=>x.TimeStamp.Ticks).Should().Equal(standaloneDetail.HeartRateData.Select(x=>x.TimeStamp.Ticks));
                 }
                 var deleteDetail = new StorageOperationRequest { Operation = operation, AvatarId = standaloneAvatar.Id,
                     Username = standaloneAvatar.Username, Email = standaloneAvatar.Email, SoftDelete = softDelete, PreferredProvider = request.PreferredProvider };
@@ -1456,6 +1461,8 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                         loaded.Attributes.Should().BeEquivalentTo(standaloneDetail.Attributes);loaded.Aura.Should().BeEquivalentTo(standaloneDetail.Aura);
                         loaded.Skills.Should().BeEquivalentTo(standaloneDetail.Skills);loaded.SuperPowers.Should().BeEquivalentTo(standaloneDetail.SuperPowers);
                         loaded.HumanDesign.Should().BeEquivalentTo(standaloneDetail.HumanDesign);
+                        loaded.HeartRateData.Select(x=>x.HeartRateValue).Should().Equal(standaloneDetail.HeartRateData.Select(x=>x.HeartRateValue));
+                        loaded.HeartRateData.Select(x=>x.TimeStamp.Ticks).Should().Equal(standaloneDetail.HeartRateData.Select(x=>x.TimeStamp.Ticks));
                     }
                     (await provider.LoadAvatarDetailAsync(detail.Id)).Result.Karma.Should().Be(456);
                 }
