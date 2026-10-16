@@ -97,7 +97,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Infrastructure.Serial
                     return reader.ReadString();
 
                 case BsonType.DateTime:
-                    return reader.ReadDateTime();
+                    return DateTimeOffset.FromUnixTimeMilliseconds(reader.ReadDateTime()).UtcDateTime;
 
                 case BsonType.ObjectId:
                     return reader.ReadObjectId().ToString();
