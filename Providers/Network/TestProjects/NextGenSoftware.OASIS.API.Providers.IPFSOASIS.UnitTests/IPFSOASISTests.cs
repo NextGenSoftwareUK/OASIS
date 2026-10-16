@@ -19,7 +19,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests
 
     [Collection("Owned IPFS")]
     [Trait("Category","NativeIPFS")]
-	public class IPFSOASISTests
+	public partial class IPFSOASISTests
 	{
         [Fact]
         public async Task HistoricalCollectionsFilterAndProjectRetainedVersionsNotCurrentRows()
