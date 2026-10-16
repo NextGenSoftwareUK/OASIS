@@ -172,6 +172,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             result.Result.Version = avatarResult.Result.Version;
             result.Result.VersionId = avatarResult.Result.VersionId;
             result.Result.IsActive = avatarResult.Result.IsActive;
+            result.Result.IsPublic = avatarResult.Result.IsPublic;
             //result.Result.CustomKey = avatarResult.Result.CustomKey;
 
             if (mapChildren)
@@ -223,6 +224,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisAvatar.Version = avatar.Result.Version;
             oasisAvatar.VersionId = avatar.Result.VersionId;
             oasisAvatar.IsActive = avatar.Result.IsActive;
+            oasisAvatar.IsPublic = avatar.Result.IsPublic;
             oasisAvatar.Portrait = avatar.Result.Portrait;
             oasisAvatar.UmaJson = avatar.Result.UmaJson;
             oasisAvatar.Model3D = avatar.Result.Model3D;
@@ -471,6 +473,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.PreviousVersionId = avatar.PreviousVersionId;
             mongoAvatar.VersionId = avatar.VersionId;
             mongoAvatar.IsActive = avatar.IsActive;
+            mongoAvatar.IsPublic = avatar.IsPublic;
             //mongoAvatar.CustomKey = avatar.CustomKey;
 
             if (mapChildren)
@@ -579,6 +582,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.PreviousVersionId = avatar.PreviousVersionId;
             mongoAvatar.VersionId = avatar.VersionId;
             mongoAvatar.IsActive = avatar.IsActive;
+            mongoAvatar.IsPublic = avatar.IsPublic;
 
             //AvatarDetail Properties
             mongoAvatar.ActiveQuestId = avatar.ActiveQuestId;
@@ -837,6 +841,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisHolon.VersionId = holon.VersionId;
             oasisHolon.PreviousVersionId = holon.PreviousVersionId;
             oasisHolon.IsActive = holon.IsActive;
+            oasisHolon.IsPublic = holon.IsPublic;
 
             return oasisHolon;
         }
@@ -953,6 +958,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoHolon.VersionId = holon.VersionId;
             mongoHolon.PreviousVersionId = holon.PreviousVersionId;
             mongoHolon.IsActive = holon.IsActive;
+            mongoHolon.IsPublic = holon.IsPublic;
 
             return mongoHolon;
         }

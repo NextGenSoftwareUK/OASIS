@@ -19,6 +19,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         [Required, Key]
         public String Id{ set; get; }
         public string MetaDataJson { get; set; } = "{}";
+        public bool IsPublic { get; set; }
 
         public string Name { get; set; }
         public string Description { get; set; }
@@ -150,6 +151,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
 
             this.Version=source.Version;
             this.IsActive=source.IsActive;
+            this.IsPublic=source.IsPublic;
             this.IsChanged = source.IsChanged;
             this.IsNewHolon = source.IsNewHolon;
 
@@ -267,6 +269,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
 
             item.Version=this.Version;
             item.IsActive=this.IsActive;
+            item.IsPublic=this.IsPublic;
             item.IsChanged = this.IsChanged;
             item.IsNewHolon = this.IsNewHolon;
 

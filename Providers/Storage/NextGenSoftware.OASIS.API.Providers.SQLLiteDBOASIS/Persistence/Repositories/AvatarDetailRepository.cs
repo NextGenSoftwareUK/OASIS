@@ -357,6 +357,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.DeletedDate = avatarDetailEntity.DeletedDate;
                     existing.FavouriteColour = avatarDetailEntity.FavouriteColour;
                     existing.IsActive = avatarDetailEntity.IsActive;
+                    existing.IsPublic = avatarDetailEntity.IsPublic;
                     existing.IsChanged = avatarDetailEntity.IsChanged;
                     existing.ModifiedByAvatarId = avatarDetailEntity.ModifiedByAvatarId.ToString();
                     existing.ModifiedDate = avatarDetailEntity.ModifiedDate;
@@ -447,6 +448,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                     existing.DeletedDate = AvatarDetailEntity.DeletedDate;
                     existing.FavouriteColour = AvatarDetailEntity.FavouriteColour;
                     existing.IsActive = AvatarDetailEntity.IsActive;
+                    existing.IsPublic = AvatarDetailEntity.IsPublic;
                     existing.IsChanged = AvatarDetailEntity.IsChanged;
                     existing.ModifiedByAvatarId = AvatarDetailEntity.ModifiedByAvatarId.ToString();
                     existing.ModifiedDate = AvatarDetailEntity.ModifiedDate;
@@ -567,6 +569,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 DeletedDate = avatarDetailEntity.DeletedDate,
                 FavouriteColour = avatarDetailEntity.FavouriteColour,
                 IsActive = avatarDetailEntity.IsActive,
+                IsPublic = avatarDetailEntity.IsPublic,
                 IsChanged = avatarDetailEntity.IsChanged,
                 ModifiedByAvatarId = Guid.Parse(avatarDetailEntity.ModifiedByAvatarId),
                 ModifiedDate = avatarDetailEntity.ModifiedDate,
@@ -606,6 +609,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 DeletedDate = avatarDetail.DeletedDate,
                 FavouriteColour = avatarDetail.FavouriteColour,
                 IsActive = avatarDetail.IsActive,
+                IsPublic = avatarDetail.IsPublic,
                 IsChanged = avatarDetail.IsChanged,
                 ModifiedByAvatarId = avatarDetail.ModifiedByAvatarId.ToString(),
                 ModifiedDate = avatarDetail.ModifiedDate,

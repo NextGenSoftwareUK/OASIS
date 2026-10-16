@@ -301,6 +301,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", b =>
                 {
+                    b.Property<bool>("IsPublic").HasColumnType("INTEGER");
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
@@ -493,6 +494,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarModel", b =>
                 {
+                    b.Property<bool>("IsPublic").HasColumnType("INTEGER");
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
 
@@ -1250,6 +1252,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.HolonModel", b =>
                 {
+                    b.Property<bool>("IsPublic").HasColumnType("INTEGER");
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
 

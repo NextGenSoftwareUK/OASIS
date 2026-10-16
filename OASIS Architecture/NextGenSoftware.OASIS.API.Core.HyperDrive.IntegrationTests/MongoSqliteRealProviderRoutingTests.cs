@@ -79,6 +79,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             var request = new StorageOperationRequest { Operation = "SaveHolon", Payload = holon, SaveChildren = false, PreferredProvider = mongoPrimary ? ProviderType.MongoDBOASIS : ProviderType.SQLLiteDBOASIS };
             var router = new OASISHyperDrive(manager);
             await VerifyDimensionReplicationAsync(mongo,sqlite,router,synchronous,mongoPrimary);
+            await VerifySqliteVisibilityUpgradeAsync(sqlite,dbPath,synchronous);
             await VerifyMongoHolonDeleteOutcomesAsync(mongo,sqlite,manager,router,synchronous);
             var replicatedDeletionId=Guid.NewGuid(); var replicatedActor=Guid.NewGuid();
             foreach(var store in new IOASISStorageProvider[] {mongo,sqlite})
@@ -1647,11 +1648,13 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             (await sqlite.LoadAvatarAsync(avatar.Id)).Result.Should().BeNull();
             (await mongo.LoadAvatarDetailAsync(detail.Id)).Result.Should().BeNull();
             (await sqlite.LoadAvatarDetailAsync(detail.Id)).Result.Should().BeNull();
-            using (var control = new DataContext($"Data Source={dbPath};Pooling=False")) control.Database.ExecuteSqlRaw("DROP TABLE Holon;");
             manager.IsAutoReplicationEnabled = false;
             manager.IsAutoFailOverEnabled = true;
             manager.SetAndReplaceAutoFailOverListForProviders(new[] { new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS), new EnumValue<ProviderType>(ProviderType.MongoDBOASIS) }).IsError.Should().BeFalse();
             manager.SetAndActivateCurrentStorageProvider(sqlite).IsError.Should().BeFalse();
+            // Configure the healthy provider first, then induce the real outage.
+            // Activation must not report success for a database missing a required table.
+            using (var control = new DataContext($"Data Source={dbPath};Pooling=False")) control.Database.ExecuteSqlRaw("DROP TABLE Holon;");
             var fallbackHolon = new Holon { Id = Guid.NewGuid(), Name = "real-mongo-fallback" };
             var fallbackRequest = new StorageOperationRequest { Operation = "SaveHolon", Payload = fallbackHolon, SaveChildren = false };
             var fallback = synchronous ? router.RouteRequest<IHolon>(fallbackRequest) : await router.RouteRequestAsync<IHolon>(fallbackRequest);
