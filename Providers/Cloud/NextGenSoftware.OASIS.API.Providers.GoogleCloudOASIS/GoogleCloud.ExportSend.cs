@@ -30,9 +30,10 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
 {
     public partial class GoogleCloudOASIS
     {
+        [Obsolete("Authenticate through AvatarManager, then use authorized ID-based storage reads.")]
         public OASISResult<IHolon> LoadHolon(string username, string password, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
-            return LoadHolonAsync(username, password, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
+            return LoadHolonAsync(username, password, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
         }
 
         public async Task<OASISResult<IHolon>> LoadHolonByEmailAsync(string email, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)

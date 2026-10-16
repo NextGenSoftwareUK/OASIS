@@ -11,6 +11,17 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
     public class GoogleCloudOASISProviderTests
     {
         [DataTestMethod]
+        [DataRow(false)] [DataRow(true)]
+        public async Task CredentialHolonOverloadRejectsBeforeStorageAccess(bool synchronous)
+        {
+            var provider=new FailedActivationProvider();
+            var result=synchronous ? provider.LoadHolon("owned-user","wrong-password"):await provider.LoadHolonAsync("owned-user","wrong-password");
+            Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsFalse(result.IsLoaded);
+            Assert.AreEqual("OASIS_CREDENTIAL_STORAGE_READ_UNSUPPORTED",result.ErrorCode);
+            Assert.IsInstanceOfType(result.Exception,typeof(System.NotSupportedException));
+            Assert.AreEqual(0,provider.Activations);
+        }
+        [DataTestMethod]
         [DataRow(false,1)] [DataRow(true,1)]
         [DataRow(false,-1)] [DataRow(true,-1)]
         public async Task ExplicitAvatarVersionsNeverSilentlyReadLatest(bool synchronous,int version)
