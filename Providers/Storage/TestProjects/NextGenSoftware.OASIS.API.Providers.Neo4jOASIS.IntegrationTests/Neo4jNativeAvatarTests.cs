@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 
 [TestClass]
 [DoNotParallelize]
-public class Neo4jNativeAvatarTests
+public partial class Neo4jNativeAvatarTests
 {
     [TestMethod]
     public async Task OwnedNativeSelectedGraphsHonorSaveDepthRecursionAndBulkInitialDepth()

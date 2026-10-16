@@ -17,103 +17,16 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 {
     public partial class Neo4jOASIS
     {
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var response = new OASISResult<IHolon>();
-            try
-            {
-                // Implement real Neo4j holon loading
-                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
-                }
-
-                try
-                {
-                    // Create Neo4j query to load holon by ID
-                    var query = "MATCH (h:Holon {Id: $id}) RETURN h";
-                    var parameters = new { id = id.ToString() };
-                    
-                    // Execute REAL Neo4j query using Neo4j.Driver
-                    using (var session = _driver.AsyncSession())
-                    {
-                        var result = await session.RunAsync(query, parameters);
-                        var record = await result.SingleAsync();
-                        
-                        if (record != null)
-                        {
-                            var node = record["h"].As<Neo4j.Driver.INode>();
-                            response.Result = ReadHolonNode(node);
-                            response.IsLoaded = true;
-                            response.IsError = false;
-                            response.Message = "Holon loaded successfully from Neo4j";
-                        }
-                        else
-                        {
-                            OASISErrorHandling.HandleError(ref response, "Holon not found in Neo4j database");
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Error loading holon from Neo4j: {ex.Message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading holon from Neo4j: {ex.Message}");
-            }
-            return response;
-        }
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => ReadHolonRootAsync("Id", id.ToString());
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var response = new OASISResult<IHolon>();
-            try
-            {
-                // REAL Neo4j implementation for loading holon by provider key
-                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
-                }
-
-                var query = "MATCH (h:Holon {ProviderKey: $providerKey}) RETURN h";
-                var parameters = new { providerKey };
-                
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.RunAsync(query, parameters);
-                    var record = await result.SingleAsync();
-                    
-                    if (record != null)
-                    {
-                        var node = record["h"].As<Neo4j.Driver.INode>();
-                        response.Result = ReadHolonNode(node);
-                            response.IsLoaded = true;
-                        response.IsError = false;
-                        response.Message = "Holon loaded successfully from Neo4j by provider key";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Holon not found in Neo4j database");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading holon by provider key from Neo4j: {ex.Message}");
-            }
-            return response;
-        }
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => ReadHolonRootAsync("ProviderKey", providerKey);
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {

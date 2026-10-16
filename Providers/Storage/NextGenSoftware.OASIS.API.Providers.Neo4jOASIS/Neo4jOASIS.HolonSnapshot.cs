@@ -13,6 +13,31 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
 public partial class Neo4jOASIS
 {
+    private async Task<OASISResult<IHolon>> ReadHolonRootAsync(string field, string value)
+    {
+        var result = new OASISResult<IHolon>();
+        try
+        {
+            if (field != "Id" && field != "ProviderKey") throw new ArgumentException("Unknown holon selector.");
+            if (!IsProviderActivated || _driver == null) throw new InvalidOperationException("Neo4j provider is not activated.");
+            using (var session = _driver.AsyncSession())
+            {
+                var rows = await (await session.RunAsync("MATCH (h:Holon {" + field + ":$value}) RETURN h", new { value })).ToListAsync();
+                if (rows.Count == 0) return new OASISResult<IHolon> { IsError = true, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Holon not found in Neo4j." };
+                if (rows.Count != 1) throw new Core.Helpers.StorageLifecycleConflictException("Neo4j holon identity is not unique.");
+                result.Result = ReadHolonNode(rows[0]["h"].As<Neo4j.Driver.INode>());
+            }
+            result.IsLoaded = true;
+        }
+        catch (Exception cause)
+        {
+            result.IsError = true; result.Exception = cause; result.Message = cause.Message;
+            if (cause is InvalidDataException || cause is Core.Helpers.StorageLifecycleConflictException)
+                result.ErrorCode = Core.Helpers.StorageLifecycleConflictException.ErrorCode;
+        }
+        return result;
+    }
+
     private static Holon ReadHolonNode(Neo4j.Driver.INode node)
     {
         if (!node.Properties.TryGetValue("SnapshotJson", out var json) || json is not string snapshot || string.IsNullOrWhiteSpace(snapshot))
