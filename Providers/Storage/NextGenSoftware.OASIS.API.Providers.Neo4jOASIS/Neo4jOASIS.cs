@@ -12,6 +12,10 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using Neo4j.Driver;
+using System.Threading;
+using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests")]
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 {
@@ -21,9 +25,14 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         public string Username { get; set; }
         public string Password { get; set; }
         public bool IsVersionControlEnabled { get; set; }
-        private readonly IDriver _driver;
+        private IDriver _driver;
+        private readonly Func<IDriver> _driverFactory;
+        private readonly SemaphoreSlim _lifecycleGate = new(1, 1);
 
         public Neo4jOASIS(string host, string username, string password)
+            : this(host, username, password, null) { }
+
+        internal Neo4jOASIS(string host, string username, string password, Func<IDriver> driverFactory)
         {
             this.ProviderName = "Neo4jOASIS";
             this.ProviderDescription = "Neo4j Provider";
@@ -34,20 +43,27 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             Username = username;
             Password = password;
             
-            // Initialize Neo4j driver for REAL database operations
-            var uri = Uri.TryCreate(host, UriKind.Absolute, out var configuredUri) &&
+            _driverFactory = driverFactory ?? CreateDriver;
+            _driver = _driverFactory();
+        }
+
+        private IDriver CreateDriver()
+        {
+            var uri = Uri.TryCreate(Host, UriKind.Absolute, out var configuredUri) &&
                       (configuredUri.Scheme == "bolt" || configuredUri.Scheme == "neo4j")
                 ? configuredUri.AbsoluteUri
-                : $"bolt://{host}:7687";
-            _driver = GraphDatabase.Driver(uri, AuthTokens.Basic(username, password));
+                : $"bolt://{Host}:7687";
+            return GraphDatabase.Driver(uri, AuthTokens.Basic(Username, Password));
         }
 
         public override OASISResult<bool> ActivateProvider() => ActivateProviderAsync().GetAwaiter().GetResult();
 
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
+            await _lifecycleGate.WaitAsync();
             try
             {
+                _driver ??= _driverFactory();
                 await _driver.VerifyConnectivityAsync();
                 IsProviderActivated = true;
                 return new OASISResult<bool>(true);
@@ -57,6 +73,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                 IsProviderActivated = false;
                 return new OASISResult<bool>(false) { IsError = true, Message = $"Neo4j activation failed: {ex.Message}", Exception = ex };
             }
+            finally { _lifecycleGate.Release(); }
         }
 
         public override OASISResult<bool> DeActivateProvider()
@@ -64,9 +81,11 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
+            await _lifecycleGate.WaitAsync();
             try
             {
-                await _driver.CloseAsync();
+                if (_driver != null) await _driver.CloseAsync();
+                _driver = null;
                 IsProviderActivated = false;
                 return new OASISResult<bool>(true);
             }
@@ -74,6 +93,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             {
                 return new OASISResult<bool>(false) { IsError = true, Message = $"Neo4j deactivation failed: {ex.Message}", Exception = ex };
             }
+            finally { _lifecycleGate.Release(); }
         }
 
     }
