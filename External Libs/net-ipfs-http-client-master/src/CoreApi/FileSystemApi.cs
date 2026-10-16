@@ -173,16 +173,10 @@ namespace Ipfs.Http
         /// </returns>
         public async Task<String> ReadAllTextAsync(string path, CancellationToken cancel = default(CancellationToken))
         {
-            try
+            using (var data = await ReadFileAsync(path, cancel))
+            using (var text = new StreamReader(data))
             {
-                using (var data = await ReadFileAsync(path, cancel))
-                using (var text = new StreamReader(data))
-                {
-                    return await text.ReadToEndAsync();
-                }
-            }catch(Exception ex)
-            {
-                return ex.Message;
+                return await text.ReadToEndAsync();
             }
         }
 

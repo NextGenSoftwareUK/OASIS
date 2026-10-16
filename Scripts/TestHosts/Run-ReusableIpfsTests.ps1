@@ -1,4 +1,5 @@
 #Requires -Version 7.0
+param([switch]$ReconcileV2,[switch]$NetworkDiagnostic)
 $ErrorActionPreference='Stop'
 $taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $taskRoot 'TestResults/IPFSCurrent'
@@ -36,6 +37,9 @@ try {
     $project=Join-Path $taskRoot 'Providers/Network/TestProjects/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests.csproj'
     $providerProject=Join-Path $taskRoot 'Providers/Network/NextGenSoftware.OASIS.API.Providers.IPFSOASIS/NextGenSoftware.OASIS.API.Providers.IPFSOASIS.csproj'
     $sharedProject=Join-Path $taskRoot 'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj'
+    $ipfsClientProject=Join-Path $taskRoot 'External Libs/net-ipfs-http-client-master/src/IpfsHttpClient.csproj'
+    & dotnet build $ipfsClientProject --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+    if($LASTEXITCODE){throw 'IPFS SDK producer build failed.'}
     & dotnet build $sharedProject --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
     if($LASTEXITCODE){throw 'Shared storage build failed.'}
     $sqliteProject=Join-Path $taskRoot 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj'
@@ -57,16 +61,19 @@ try {
     } while(!$ready -and [DateTime]::UtcNow -lt $deadline)
     if(!$ready){throw "Pinned offline daemon readiness failed: $lastObservation"}
     $started=[DateTime]::UtcNow
-    & dotnet test $project --no-build --no-restore --filter Category=NativeIPFS --logger 'trx;LogFileName=ipfs-native-current.trx' --results-directory $work -v:q
+    $filter=if($NetworkDiagnostic){'Category=IPFSNetworkDiagnostic'}elseif($ReconcileV2){'Category=IPFSFixtureReconciliation'}else{'Category=NativeIPFS'}
+    $reportName=if($NetworkDiagnostic){'ipfs-network-current.trx'}elseif($ReconcileV2){'ipfs-reconciliation-current.trx'}else{'ipfs-native-current.trx'}
+    & dotnet test $project --no-build --no-restore --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
     if($LASTEXITCODE){throw 'Native IPFS storage verification failed.'}
     $collected=@(& $binary repo gc --quiet)
     if($LASTEXITCODE){throw 'Owned repository garbage collection failed; inspect retained content.'}
     Write-Output "Owned offline repository garbage-collected $($collected.Count) unpinned blocks."
-    $report=Get-Item -LiteralPath (Join-Path $work 'ipfs-native-current.trx')
+    $report=Get-Item -LiteralPath (Join-Path $work $reportName)
     if($report.LastWriteTimeUtc -lt $started){throw 'Native report stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 7 -or [int]$counts.passed -ne 7 -or [int]$counts.notExecuted -ne 0){throw 'Expected seven real passing cases, no skips.'}
+    $expected=if($ReconcileV2 -or $NetworkDiagnostic){1}else{11}
+    if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw "Expected $expected passing selected cases, no skips."}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
     try {
