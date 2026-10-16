@@ -6,7 +6,8 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests;
 
 [TestClass]
-public class AWSOASISIntegrationTests
+[DoNotParallelize]
+public partial class AWSOASISIntegrationTests
 {
     [TestMethod]
     public async Task ActualV2RoundRobinAndBidirectionalReplication()
@@ -134,7 +135,8 @@ public class AWSOASISIntegrationTests
     [TestInitialize]
     public async Task Setup()
     {
-        string endpoint = Environment.GetEnvironmentVariable("DYNAMODB_SERVICE_URL") ?? "http://127.0.0.1:8000";
+        const string endpoint = "http://127.0.0.1:18000";
+        Assert.AreEqual(endpoint,Environment.GetEnvironmentVariable("DYNAMODB_SERVICE_URL"),"Owned reusable DynamoDB Local runner required.");
         _provider = new AWSOASIS("us-east-1", "fakeMyKeyId", "fakeSecretAccessKey", endpoint);
         var activated = await _provider.ActivateProviderAsync();
         Assert.IsFalse(activated.IsError, activated.Message);
