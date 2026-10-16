@@ -321,7 +321,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 ScanResponse? scanResp = null;
                 do
                 {
-                    var req = new ScanRequest { TableName = "OasisAvatars" };
+                    var req = new ScanRequest { TableName = "OasisAvatars", ConsistentRead=true };
                     if (scanResp?.LastEvaluatedKey?.Any() == true) req.ExclusiveStartKey = scanResp.LastEvaluatedKey;
                     scanResp = await _client.ScanAsync(req);
                     items.AddRange(scanResp.Items);
@@ -436,7 +436,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try { ValidateRecordVersion(version); ScanResponse? sr = null; var items = new List<Dictionary<string, AttributeValue>>(); do { var req = new ScanRequest { TableName = "OasisAvatarDetails" }; if (sr?.LastEvaluatedKey?.Any() == true) req.ExclusiveStartKey = sr.LastEvaluatedKey; sr = await _client.ScanAsync(req); items.AddRange(sr.Items); } while (sr.LastEvaluatedKey?.Any() == true); var details = items.Select(i => ReadStoredIdentity<AvatarDetail>(i)).Cast<IAvatarDetail>().ToList(); result.Result = details; result.IsLoaded=true; result.IsError = false; result.Message = $"DynamoDBOASIS: Loaded {details.Count} detail(s)."; }
+            try { ValidateRecordVersion(version); ScanResponse? sr = null; var items = new List<Dictionary<string, AttributeValue>>(); do { var req = new ScanRequest { TableName = "OasisAvatarDetails", ConsistentRead=true }; if (sr?.LastEvaluatedKey?.Any() == true) req.ExclusiveStartKey = sr.LastEvaluatedKey; sr = await _client.ScanAsync(req); items.AddRange(sr.Items); } while (sr.LastEvaluatedKey?.Any() == true); var details = items.Select(i => ReadStoredIdentity<AvatarDetail>(i)).Cast<IAvatarDetail>().ToList(); result.Result = details; result.IsLoaded=true; result.IsError = false; result.Message = $"DynamoDBOASIS: Loaded {details.Count} detail(s)."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -557,7 +557,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             ScanResponse? sr = null;
             do
             {
-                var req = new ScanRequest { TableName = "OasisHolons" };
+                var req = new ScanRequest { TableName = "OasisHolons", ConsistentRead=true };
                 if (filterExpr != null) { req.FilterExpression = filterExpr; req.ExpressionAttributeValues = exprVals; }
                 if (sr?.LastEvaluatedKey?.Any() == true) req.ExclusiveStartKey = sr.LastEvaluatedKey;
                 sr = await _client.ScanAsync(req);
@@ -601,14 +601,9 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             try
             {
                 ValidateGraphRead(maxChildDepth,curentChildDepth,version);
-                var items = await ReadQueryItemsAsync(request=>_client.QueryAsync(request),new QueryRequest
-                {
-                    TableName = "OasisHolons",
-                    IndexName = "parentHolonId-index",
-                    KeyConditionExpression = "parentHolonId = :pid",
-                    ExpressionAttributeValues = new Dictionary<string, AttributeValue> { [":pid"] = new AttributeValue { S = id.ToString() } }
-                });
-                var holons = items.Where(i => !(i.TryGetValue("is_deleted", out var d) && d.BOOL) && (type == HolonType.All || (i.TryGetValue("holon_type", out var ht) && ht.N == ((int)type).ToString()))).Select(i => ReadStoredIdentity<Holon>(i)).Cast<IHolon>().ToList();
+                var holons=(await ScanHolonsAsync("parentHolonId = :pid",new Dictionary<string,AttributeValue> {
+                    [":pid"]=new AttributeValue {S=id.ToString()}}))
+                    .Where(row=>row.ParentHolonId==id && (type==HolonType.All || row.HolonType==type)).ToList();
                 var records=loadChildren && loadChildrenFromProvider ? await ScanHolonsAsync():holons;
                 var project=CreateGraphProjection(records,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider);
                 result.Result = holons.Select(project).ToList(); result.IsLoaded=true;
