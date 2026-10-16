@@ -62,109 +62,37 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return GetHolonsNearMeAsync(geoLat, geoLong, radiusInMeters, Type).Result.Result;
         }
 
-        public async Task<OASISResult<IEnumerable<IHolon>>> GetHolonsNearMeAsync(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                // Use LoadHolonsByMetaData to find holons of the specified type within the radius
-                var holonsResult = await LoadHolonsByMetaDataAsync("HolonType", Type.ToString(), Type);
-                if (holonsResult.IsError)
-                {
-                    result.IsError = true;
-                    result.Message = holonsResult.Message;
-                    return result;
-                }
-                
-                // Filter holons by geo location using the radius calculation
-                var nearbyHolons = new List<IHolon>();
-                foreach (var holon in holonsResult.Result)
-                {
-                    if (holon.MetaData != null && 
-                        holon.MetaData.ContainsKey("Latitude") && 
-                        holon.MetaData.ContainsKey("Longitude"))
-                    {
-                        if (double.TryParse(holon.MetaData["Latitude"]?.ToString(), out double holonLat) &&
-                            double.TryParse(holon.MetaData["Longitude"]?.ToString(), out double holonLong))
-                        {
-                            // Calculate distance using Haversine formula
-                            double distance = NextGenSoftware.OASIS.API.Core.Helpers.GeoHelper.CalculateDistance(geoLat, geoLong, holonLat, holonLong);
-                            if (distance <= radiusInMeters)
-                            {
-                                nearbyHolons.Add(holon);
-                            }
-                        }
-                    }
-                }
-                
-                result.Result = nearbyHolons;
-                result.IsError = false;
-                result.Message = $"Retrieved {nearbyHolons.Count} holons of type {Type} within {radiusInMeters}m of ({geoLat}, {geoLong})";
-            }
-            catch (Exception ex)
-            {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"Error retrieving holons near me: {ex.Message}");
-            }
-            return result;
-        }
+        public Task<OASISResult<IEnumerable<IHolon>>> GetHolonsNearMeAsync(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
+            => ReadNearbyRecordsAsync(geoLat, geoLong, radiusInMeters,
+                () => LoadAllHolonsAsync(HolonType.All, loadChildren: false), Type);
 
         public IEnumerable<IAvatar> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
         {
             return GetAvatarsNearMeAsync(geoLat, geoLong, radiusInMeters).Result.Result;
         }
 
-        public async Task<OASISResult<IEnumerable<IAvatar>>> GetAvatarsNearMeAsync(long geoLat, long geoLong, int radiusInMeters)
+        public Task<OASISResult<IEnumerable<IAvatar>>> GetAvatarsNearMeAsync(long geoLat, long geoLong, int radiusInMeters)
+            => ReadNearbyRecordsAsync(geoLat, geoLong, radiusInMeters, () => LoadAllAvatarsAsync());
+
+        private async Task<OASISResult<IEnumerable<T>>> ReadNearbyRecordsAsync<T>(long latitude, long longitude, int radius,
+            Func<Task<OASISResult<IEnumerable<T>>>> load, HolonType type = HolonType.All) where T : IHolonBase
         {
-            var result = new OASISResult<IEnumerable<IAvatar>>();
+            var result = new OASISResult<IEnumerable<T>>();
             try
             {
-                // Use LoadHolonsByMetaData to find avatars within the specified radius
-                // First, we need to search for avatars with geo coordinates in their metadata
-                var avatarsResult = await LoadHolonsByMetaDataAsync("HolonType", "Avatar", HolonType.Avatar);
-                if (avatarsResult.IsError)
-                {
-                    result.IsError = true;
-                    result.Message = avatarsResult.Message;
-                    return result;
-                }
-                
-                // Filter avatars by geo location using the radius calculation
-                var nearbyAvatars = new List<IAvatar>();
-                foreach (var holon in avatarsResult.Result)
-                {
-                    if (holon.MetaData != null && 
-                        holon.MetaData.ContainsKey("Latitude") && 
-                        holon.MetaData.ContainsKey("Longitude"))
-                    {
-                        if (double.TryParse(holon.MetaData["Latitude"]?.ToString(), out double avatarLat) &&
-                            double.TryParse(holon.MetaData["Longitude"]?.ToString(), out double avatarLong))
-                        {
-                            // Calculate distance using Haversine formula (simplified)
-                            double distance = NextGenSoftware.OASIS.API.Core.Helpers.GeoHelper.CalculateDistance(geoLat, geoLong, avatarLat, avatarLong);
-                            if (distance <= radiusInMeters)
-                            {
-                                nearbyAvatars.Add(new Avatar
-                                {
-                                    Id = holon.Id,
-                                    Username = holon.MetaData?.ContainsKey("Username") == true ? holon.MetaData["Username"]?.ToString() : holon.Name,
-                                    Email = holon.MetaData?.ContainsKey("Email") == true ? holon.MetaData["Email"]?.ToString() : null,
-                                    CreatedDate = holon.CreatedDate,
-                                    ModifiedDate = holon.ModifiedDate
-                                });
-                            }
-                        }
-                    }
-                }
-                
-                result.Result = nearbyAvatars;
-                result.IsError = false;
-                result.Message = $"Retrieved {nearbyAvatars.Count} avatars within {radiusInMeters}m of ({geoLat}, {geoLong})";
+                var query = new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordLocationQuery(latitude, longitude, radius);
+                if (!Enum.IsDefined(typeof(HolonType), type)) throw new ArgumentOutOfRangeException(nameof(type));
+                var loaded = await load();
+                if (loaded.IsError) return loaded;
+                result = NextGenSoftware.OASIS.API.Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>, IEnumerable<T>>(loaded);
+                result.Result = query.Select(loaded.Result, row => row.IsActive && !row.IsDeleted && (type == HolonType.All || row.HolonType == type));
+                result.IsLoaded = true;
             }
-            catch (Exception ex)
+            catch (Exception cause)
             {
-                result.Exception = ex;
-                OASISErrorHandling.HandleError(ref result, $"Error retrieving avatars near me: {ex.Message}");
+                result.Result = null;
+                result.IsLoaded = false;
+                OASISErrorHandling.HandleError(ref result, cause.Message, cause);
             }
             return result;
         }
