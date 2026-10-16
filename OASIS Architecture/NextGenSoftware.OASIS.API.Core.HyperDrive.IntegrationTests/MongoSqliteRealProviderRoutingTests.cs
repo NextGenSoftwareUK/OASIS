@@ -1412,7 +1412,9 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 var standaloneAvatar = new Avatar { Id = Guid.NewGuid(), Username = Guid.NewGuid().ToString(), Email = Guid.NewGuid() + "@standalone.invalid",
                     AvatarType = new EnumValue<AvatarType>(AvatarType.User) };
                 var standaloneDetail = new AvatarDetail { Id = standaloneAvatar.Id, Username = standaloneAvatar.Username, Email = standaloneAvatar.Email, Karma = 123,
-                    Inventory = new List<IInventoryItem> { new InventoryItem { Id = Guid.NewGuid(), Name = "standalone-owned-seed", Quantity = 3 } } };
+                    Inventory = new List<IInventoryItem> { new InventoryItem { Id = Guid.NewGuid(), Name = "standalone-owned-seed", Quantity = 3,
+                        Image2D=new byte[] {0,17,255},Object3D=new byte[] {255,0,23,41},
+                        Image2DURI=new Uri("https://example.test/seed.png"),Object3DURI=new Uri("models/seed.glb",UriKind.Relative) } } };
                 standaloneDetail.Stats.HP.Current = 37;
                 standaloneDetail.ActiveQuestId=Guid.NewGuid();
                 standaloneDetail.ActiveObjectiveId=Guid.NewGuid();
@@ -1437,6 +1439,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 {
                     var persisted=(await componentStore.LoadAvatarDetailAsync(standaloneDetail.Id)).Result;
                     persisted.Model3D.Should().Be(standaloneDetail.Model3D);
+                    AssertInventoryMedia(persisted.Inventory.Single(),standaloneDetail.Inventory.Single());
                     persisted.ActiveQuestId.Should().Be(standaloneDetail.ActiveQuestId);
                     persisted.ActiveObjectiveId.Should().Be(standaloneDetail.ActiveObjectiveId);
                     persisted.Attributes.Should().BeEquivalentTo(standaloneDetail.Attributes);persisted.Aura.Should().BeEquivalentTo(standaloneDetail.Aura);
@@ -1448,6 +1451,10 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 // Clearing tracking is a real update, not permission to retain an earlier quest.
                 standaloneDetail.ActiveQuestId=null;
                 standaloneDetail.ActiveObjectiveId=null;
+                standaloneDetail.Inventory.Single().Image2D=null;
+                standaloneDetail.Inventory.Single().Object3D=null;
+                standaloneDetail.Inventory.Single().Image2DURI=null;
+                standaloneDetail.Inventory.Single().Object3DURI=null;
                 var clearedTracking=synchronous ? router.RouteRequest<IAvatarDetail>(saveDetail) : await router.RouteRequestAsync<IAvatarDetail>(saveDetail);
                 clearedTracking.IsError.Should().BeFalse(clearedTracking.Message);
                 clearedTracking.IsWarning.Should().BeFalse();
@@ -1455,6 +1462,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 {
                     var cleared=(await trackingStore.LoadAvatarDetailAsync(standaloneDetail.Id)).Result;
                     cleared.ActiveQuestId.Should().BeNull();
+                    AssertInventoryMedia(cleared.Inventory.Single(),standaloneDetail.Inventory.Single());
                     cleared.ActiveObjectiveId.Should().BeNull();
                 }
                 var deleteDetail = new StorageOperationRequest { Operation = operation, AvatarId = standaloneAvatar.Id,
@@ -1474,6 +1482,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                         loaded.Inventory.Single().Name.Should().Be("standalone-owned-seed");
                         loaded.Stats.HP.Current.Should().Be(37);
                         loaded.Model3D.Should().Be(standaloneDetail.Model3D);
+                        AssertInventoryMedia(loaded.Inventory.Single(),standaloneDetail.Inventory.Single());
                         loaded.ActiveQuestId.Should().BeNull();
                         loaded.ActiveObjectiveId.Should().BeNull();
                         loaded.Attributes.Should().BeEquivalentTo(standaloneDetail.Attributes);loaded.Aura.Should().BeEquivalentTo(standaloneDetail.Aura);
