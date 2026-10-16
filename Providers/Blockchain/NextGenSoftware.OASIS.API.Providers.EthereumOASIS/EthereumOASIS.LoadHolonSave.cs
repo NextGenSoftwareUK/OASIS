@@ -67,8 +67,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 }
                 foreach(var node in plan.Nodes)
                 {
-                    var receipt=await _nextGenSoftwareOasisService.CreateHolonRequestAndWaitForReceiptAsync(
-                        HashUtility.GetNumericHash(node.Record.Id.ToString()),node.Record.Id.ToString(),node.Payload);
+                    var receipt=await SubmitStorageRequestAsync(new ContractDefinition.CreateHolonFunction {
+                        EntityId=HashUtility.GetNumericHash(node.Record.Id.ToString()),HolonId=node.Record.Id.ToString(),Info=node.Payload });
                     if(!StorageReceiptSucceeded(receipt))
                     {
                         OASISErrorHandling.HandleError(ref result,"Ethereum graph write reverted.");
@@ -95,8 +95,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             try
             {
                 var holonEntityId = HashUtility.GetNumericHash(id.ToString());
-                var requestTransaction = Web3Client.Eth.GetContractHandler(ContractAddress)
-                    .SendRequestAndWaitForReceiptAsync(new ContractDefinition.DeleteHolonByIdentityFunction { EntityId=holonEntityId, Identity=id.ToString() }).GetAwaiter().GetResult();
+                var requestTransaction = SubmitStorageRequestAsync(new ContractDefinition.DeleteHolonByIdentityFunction { EntityId=holonEntityId, Identity=id.ToString() }).GetAwaiter().GetResult();
 
                 if (!StorageReceiptSucceeded(requestTransaction))
                 {
@@ -127,8 +126,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             try
             {
                 var holonEntityId = HashUtility.GetNumericHash(id.ToString());
-                var requestTransaction = await Web3Client.Eth.GetContractHandler(ContractAddress)
-                    .SendRequestAndWaitForReceiptAsync(new ContractDefinition.DeleteHolonByIdentityFunction { EntityId=holonEntityId, Identity=id.ToString() });
+                var requestTransaction = await SubmitStorageRequestAsync(new ContractDefinition.DeleteHolonByIdentityFunction { EntityId=holonEntityId, Identity=id.ToString() });
 
                 if (!StorageReceiptSucceeded(requestTransaction))
                 {

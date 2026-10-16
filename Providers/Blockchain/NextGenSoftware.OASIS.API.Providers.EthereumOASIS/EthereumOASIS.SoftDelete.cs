@@ -52,7 +52,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 request.ExpectedDetailHash=Nethereum.Util.Sha3Keccack.Current.CalculateHash(Encoding.UTF8.GetBytes(detailInfo));
                 request.DetailInfo=SerializePrivateStorage("avatar-detail",detail);
             }
-            var receipt=await Web3Client.Eth.GetContractHandler(ContractAddress).SendRequestAndWaitForReceiptAsync(request);
+            var receipt=await SubmitStorageRequestAsync(request);
             return (receipt,tombstone,false);
         }
     }
