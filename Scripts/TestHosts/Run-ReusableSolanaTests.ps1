@@ -1,6 +1,7 @@
 #Requires -Version 7.0
-param([switch]$Diagnostics,[switch]$InspectRecent)
+param([switch]$Diagnostics,[switch]$InspectRecent,[ValidateRange(2,120)][int]$ObservationSeconds=2)
 $ErrorActionPreference='Stop'
+if(!$InspectRecent -and $ObservationSeconds -ne 2){throw 'ObservationSeconds is only supported for keyless InspectRecent mode.'}
 $taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $taskRoot 'TestResults/SolanaCurrent'
 New-Item -ItemType Directory -Force -Path $work | Out-Null
@@ -70,13 +71,19 @@ try {
         $votes=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body '{"jsonrpc":"2.0","id":1,"method":"getVoteAccounts"}' -TimeoutSec 3
         if($votes.error -or $null -eq $votes.result){throw 'Read-only vote account inspection failed.'}
         # Observe the same live validator, without client keys, submissions, warp or reset.
-        Start-Sleep -Seconds 2
-        if($owned.HasExited){throw 'Owned validator exited during read-only consensus observation.'}
-        $rootAfter=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body $slotBody -TimeoutSec 3
-        if($rootAfter.error -or $null -eq $rootAfter.result){throw 'Read-only final root observation failed.'}
+        $observationDeadline=[DateTime]::UtcNow.AddSeconds($ObservationSeconds)
+        $observedRoots=[Collections.Generic.List[long]]::new()
+        do {
+            Start-Sleep -Seconds 2
+            if($owned.HasExited){throw 'Owned validator exited during read-only consensus observation.'}
+            $rootAfter=Invoke-RestMethod -Uri 'http://127.0.0.1:18899' -Method Post -ContentType 'application/json' -Body $slotBody -TimeoutSec 3
+            if($rootAfter.error -or $null -eq $rootAfter.result){throw 'Read-only final root observation failed.'}
+            $observedRoots.Add([long]$rootAfter.result)
+        } while([DateTime]::UtcNow -lt $observationDeadline)
         @{Genesis=$genesis.result;FinalizedSlot=$initialRoot.result;FinalizedAfterObservation=$rootAfter.result;Slots=$slots;
             CurrentVotes=@($votes.result.current | Select-Object votePubkey,nodePubkey,activatedStake,lastVote,rootSlot);
             DelinquentVotes=@($votes.result.delinquent | Select-Object votePubkey,nodePubkey,activatedStake,lastVote,rootSlot);
+            ObservationSeconds=$ObservationSeconds;ObservedFinalizedRoots=@($observedRoots);
             Count=@($recent.result).Count;Transactions=@($recent.result | Select-Object signature,slot,confirmationStatus,err)} | ConvertTo-Json -Depth 6 -Compress | Write-Output
         return
     }
