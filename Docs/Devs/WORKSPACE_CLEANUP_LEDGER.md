@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 Core collection-validation verification reused same cached SDK/build inputs/fixed HyperDriveSqliteCurrent logs.575Core/82isolatedlocalrouting/4focusedpreflight pass; broad integration163pass20fail recorded separately, no attempt to install/start missing chain environments or replay fenced state. Invalid queries create no SQLite database. Existing normal routing cleanup retained; source/subscription/pending ledger evidence preserved. Observed free82,154,782,720bytes. No new downloads/clones/env/deployment.
+
 2026-10-16 Google enum-preflight verification reused retained runtime/cache/fixed reports:44unit/47native pass (native28s); no installation/download/new env. Two red-before input-regression cases retained in GoogleCurrent/google-type-before.trx. Native fixtures cleaned by existing verified cleanup and owned Java stopped. Observed free82,151,096,320bytes during run. Source/concurrent subscription changes and unrelated pending ledgers preserved.
 
 2026-10-16 Google credential-overload correction reused same source/cache/retained Firestore1.22.0 runtime and fixed reports: two unit regressions red before, full42unit/47native pass after (native28s). Existing storage fixtures cleaned by bounded runner and owned emulator stopped. No new install/download/clone/environment or hosted writes; observed C free82,152,419,328bytes during run. Concurrent subscription changes untouched. Compact before-fix report google-credential-before.trx retained alongside current reports.

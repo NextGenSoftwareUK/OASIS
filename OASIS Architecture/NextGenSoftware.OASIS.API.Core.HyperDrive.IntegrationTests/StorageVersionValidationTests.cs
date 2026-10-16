@@ -10,6 +10,28 @@ public sealed partial class RealProviderRoutingTests
 {
     [Theory]
     [InlineData(false)] [InlineData(true)]
+    public async Task InvalidCollectionQueriesCannotActivateNativeSqlite(bool synchronous)
+    {
+        Directory.CreateDirectory(_root);using var sqlite=new SQLLiteDBOASIS($"Data Source={SqlitePath};Pooling=False");
+        var manager=CreateManager(autoFailover:true,autoReplication:true,autoLoadBalance:true);manager.RegisterProvider(sqlite);
+        var router=new OASISHyperDrive(manager);
+        foreach(var operation in new[]{"LoadAllHolons","LoadHolonsForParent","LoadHolonsForParentByProviderKey","LoadHolonsByMetaData","LoadHolonsByMetaDataPairs"})
+        foreach(var field in new[]{"type","depth","currentDepth"})
+        {
+            var request=new StorageOperationRequest {Operation=operation,HolonId=Guid.NewGuid(),ProviderKey=Guid.NewGuid().ToString(),MetaKey="owned",MetaValue="value",
+                MetaKeyValuePairs=new Dictionary<string,string>{{"owned","value"}},HolonType=field=="type" ? (HolonType)int.MaxValue:HolonType.All,
+                MaxChildDepth=field=="depth" ? -1:0,CurrentChildDepth=field=="currentDepth" ? -1:0,PreferredProvider=ProviderType.SQLLiteDBOASIS};
+            var result=synchronous ? router.RouteRequest<object>(request):await router.RouteRequestAsync<object>(request);
+            result.IsError.Should().BeTrue();result.Result.Should().BeNull();result.IsLoaded.Should().BeFalse();
+            result.ErrorCode.Should().Be(field=="type" ? "HYPERDRIVE_HOLON_TYPE_INVALID":"HYPERDRIVE_DEPTH_INVALID");
+            sqlite.IsProviderActivated.Should().BeFalse();manager.LastProviderSelectionDiagnostic.Should().BeNull();
+            (manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0).Should().Be(0);
+        }
+        File.Exists(SqlitePath).Should().BeFalse("malformed queries must not create native storage");
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
     public async Task NegativeStorageVersionsFailBeforeProviderSelection(bool synchronous)
     {
         Directory.CreateDirectory(_root);using var sqlite=new SQLLiteDBOASIS($"Data Source={SqlitePath};Pooling=False");
