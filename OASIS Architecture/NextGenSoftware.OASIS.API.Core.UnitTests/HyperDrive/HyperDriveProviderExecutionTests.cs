@@ -5265,7 +5265,7 @@ public sealed partial class HyperDriveProviderExecutionTests
     {
         var avatarId = Guid.NewGuid();
         var detail = new Mock<IAvatarDetail>().Object;
-        var holons = new[] { new Mock<IHolon>().Object };
+        var holons = new IHolon[] { new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=Guid.NewGuid(),Name="owned import fixture"} };
         var karma = new KarmaAkashicRecord();
         var provider = CreateActiveProvider();
         provider.Setup(x => x.DeleteAvatarAsync("avatar-provider-key", false)).ReturnsAsync(new OASISResult<bool>(true));
@@ -5273,7 +5273,7 @@ public sealed partial class HyperDriveProviderExecutionTests
             .ReturnsAsync(new OASISResult<KarmaAkashicRecord>(karma));
         provider.Setup(x => x.RemoveKarmaFromAvatarAsync(detail, default, default, "source", "description", "https://source"))
             .ReturnsAsync(new OASISResult<KarmaAkashicRecord>(karma));
-        provider.Setup(x => x.ImportAsync(holons)).ReturnsAsync(new OASISResult<bool>(true));
+        provider.Setup(x => x.ImportAsync(It.Is<IEnumerable<IHolon>>(rows=>rows.Count()==1 && rows.First().Id==holons[0].Id))).ReturnsAsync(new OASISResult<bool>(true));
         provider.Setup(x => x.ExportAllDataForAvatarByIdAsync(avatarId, 7)).ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(holons));
         provider.Setup(x => x.ExportAllDataForAvatarByUsernameAsync("edge", 7)).ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(holons));
         provider.Setup(x => x.ExportAllDataForAvatarByEmailAsync("edge@example.com", 7)).ReturnsAsync(new OASISResult<IEnumerable<IHolon>>(holons));
@@ -5383,13 +5383,13 @@ public sealed partial class HyperDriveProviderExecutionTests
     {
         var avatarId = Guid.NewGuid();
         var detail = new Mock<IAvatarDetail>().Object;
-        var holons = new[] { new Mock<IHolon>().Object };
+        var holons = new IHolon[] { new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=Guid.NewGuid(),Name="owned import fixture"} };
         var karma = new KarmaAkashicRecord();
         var provider = CreateActiveProvider();
         provider.Setup(x => x.DeleteAvatar("avatar-provider-key", false)).Returns(new OASISResult<bool>(true));
         provider.Setup(x => x.AddKarmaToAvatar(detail, default, default, "source", "description", null))
             .Returns(new OASISResult<KarmaAkashicRecord>(karma));
-        provider.Setup(x => x.Import(holons)).Returns(new OASISResult<bool>(true));
+        provider.Setup(x => x.Import(It.Is<IEnumerable<IHolon>>(rows=>rows.Count()==1 && rows.First().Id==holons[0].Id))).Returns(new OASISResult<bool>(true));
         provider.Setup(x => x.ExportAllDataForAvatarById(avatarId, 3)).Returns(new OASISResult<IEnumerable<IHolon>>(holons));
         provider.Setup(x => x.ExportAll(3)).Returns(new OASISResult<IEnumerable<IHolon>>(holons));
         var manager = new ProviderManager(null);

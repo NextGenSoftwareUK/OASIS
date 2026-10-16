@@ -1,5 +1,9 @@
 # Workspace cleanup ledger and repeatable checks
 
+Final routed-import Mongo refresh4/4pass1m53s after precise canonical exception-boundary assertion update. Both runs reused same installed Mongo8.3.11/replica directory27029, no duplicate setup/download. Initial failed run's log bounded8,682,963→65,080bytes by existing owned-log helper; native per-test DB/SQLite fixture cleanup unchanged, owned process stopped. Final compact fixed report retained; no new environment/public funds/pending chain replay. Passing initializer is separate from four routing cases.
+
+2026-10-16 routed-import verification reused existing Core/shared/SQLite/IPFS builds and retained Kubo0.43.1 repo/key.614unit/88localrouting/11nativeIPFS pass, both Core targets build. Invalid/uncertain unit cases in-memory; native import graph data cleaned by verified test teardown, GC472 unpinned blocks, daemon stopped. Final IPFS free before82,093,056,000 after82,093,551,616bytes. Red-before reports retained at fixed HyperDriveSqliteCurrent paths; no installs/downloads/new env/clones/public fees. Pending native ledgers and concurrent subscription source preserved/excluded. Retained Mongo validation run separate, no duplicate setup.
+
 2026-10-16 import publication helper tests in-memory only, reused Core cache/fixed reports.599Corepass2s, both targets build; no native runtime/service/DB/ledger or download/new environment/clone. No fixture deletion necessary. Pending native evidence and concurrent subscription work preserved.
 
 2026-10-16 detached import staging primitive tests are in-memory only, reuse cached Core build/runtime/fixed report.594Corepass1s; both frameworks built in existing paths. No native service/ledger/DB or new install/environment/download/clone involved, pending evidence and concurrent subscription work preserved. No disposable native fixture created.
