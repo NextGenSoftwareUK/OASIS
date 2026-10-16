@@ -58,12 +58,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 }
                 if(parent != search.ParentId) return false;
             }
-            if(search.FilterByMetaData?.Count > 0)
-            {
-                bool Has(KeyValuePair<string,string> pair) => record.MetaData != null && record.MetaData.TryGetValue(pair.Key,out var value)
-                    && value != null && string.Equals(Convert.ToString(value,CultureInfo.InvariantCulture),pair.Value,StringComparison.Ordinal);
-                if(search.MetaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All ? !search.FilterByMetaData.All(Has) : !search.FilterByMetaData.Any(Has)) return false;
-            }
+            if(!MatchesMetadata(record.MetaData,search.FilterByMetaData,search.MetaKeyValuePairMatchMode)) return false;
             bool? combined=null;
             foreach(var group in search.SearchGroups ?? new List<ISearchGroupBase>())
             {
@@ -107,6 +102,15 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public static bool MatchesTextIds(IHolonBase record,string query)
             => MatchesTextIdentifiers(record,query,searchIds:true,searchProviderKeys:false);
+
+        public static bool MatchesMetadata(IDictionary<string,object> metadata,IDictionary<string,string> filter,MetaKeyValuePairMatchMode mode)
+        {
+            if(mode!=MetaKeyValuePairMatchMode.All && mode!=MetaKeyValuePairMatchMode.Any) throw new ArgumentOutOfRangeException(nameof(mode));
+            if(filter==null || filter.Count==0) return true;
+            bool Has(KeyValuePair<string,string> pair)=>metadata!=null && metadata.TryGetValue(pair.Key,out var value)
+                && value!=null && string.Equals(Convert.ToString(value,CultureInfo.InvariantCulture),pair.Value,StringComparison.Ordinal);
+            return mode==MetaKeyValuePairMatchMode.All ? filter.All(Has):filter.Any(Has);
+        }
 
         public static bool MatchesTextFields(IHolonBase record,bool avatar,ISearchTextGroup group)
             => MatchesSearchFields(record,avatar,group);
