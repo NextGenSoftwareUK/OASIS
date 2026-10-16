@@ -44,15 +44,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                         if (record != null)
                         {
                             var node = record["h"].As<Neo4j.Driver.INode>();
-                            response.Result = new Holon 
-                            { 
-                                Id = Guid.Parse(node["Id"].As<string>()),
-                                Name = node["Name"].As<string>(),
-                                Description = node["Description"].As<string>(),
-                                HolonType = Enum.Parse<HolonType>(node["HolonType"].As<string>()),
-                                CreatedDate = node["CreatedDate"].As<DateTime>(),
-                                ModifiedDate = node["ModifiedDate"].As<DateTime>()
-                            };
+                            response.Result = ReadHolonNode(node);
+                            response.IsLoaded = true;
                             response.IsError = false;
                             response.Message = "Holon loaded successfully from Neo4j";
                         }
@@ -103,15 +96,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     if (record != null)
                     {
                         var node = record["h"].As<Neo4j.Driver.INode>();
-                        response.Result = new Holon 
-                        { 
-                            Id = Guid.Parse(node["Id"].As<string>()),
-                            Name = node["Name"].As<string>(),
-                            Description = node["Description"].As<string>(),
-                            HolonType = Enum.Parse<HolonType>(node["HolonType"].As<string>()),
-                            CreatedDate = node["CreatedDate"].As<DateTime>(),
-                            ModifiedDate = node["ModifiedDate"].As<DateTime>()
-                        };
+                        response.Result = ReadHolonNode(node);
+                            response.IsLoaded = true;
                         response.IsError = false;
                         response.Message = "Holon loaded successfully from Neo4j by provider key";
                     }
@@ -158,18 +144,11 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     foreach (var record in records)
                     {
                         var node = record["h"].As<Neo4j.Driver.INode>();
-                        holons.Add(new Holon 
-                        { 
-                            Id = Guid.Parse(node["Id"].As<string>()),
-                            Name = node["Name"].As<string>(),
-                            Description = node["Description"].As<string>(),
-                            HolonType = Enum.Parse<HolonType>(node["HolonType"].As<string>()),
-                            CreatedDate = node["CreatedDate"].As<DateTime>(),
-                            ModifiedDate = node["ModifiedDate"].As<DateTime>()
-                        });
+                        holons.Add(ReadHolonNode(node));
                     }
                     
                     response.Result = holons;
+                    response.IsLoaded = true;
                     response.IsError = false;
                     response.Message = "Child holons loaded successfully from Neo4j";
                 }
@@ -269,15 +248,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     foreach (var record in records)
                     {
                         var node = record["h"].As<Neo4j.Driver.INode>();
-                        var holon = new Holon 
-                        { 
-                            Id = Guid.Parse(node["Id"].As<string>()),
-                            Name = node["Name"].As<string>(),
-                            Description = node["Description"].As<string>(),
-                            HolonType = Enum.Parse<HolonType>(node["HolonType"].As<string>()),
-                            CreatedDate = node["CreatedDate"].As<DateTime>(),
-                            ModifiedDate = node["ModifiedDate"].As<DateTime>()
-                        };
+                        var holon = ReadHolonNode(node);
                         
                         // Load children recursively if requested
                         if (loadChildren && recursive && (maxChildDepth == 0 || curentChildDepth < maxChildDepth))
@@ -292,6 +263,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     }
                     
                     response.Result = holons;
+                    response.IsLoaded = true;
                     response.IsError = false;
                     response.Message = $"Successfully loaded {holons.Count} holons by metadata from Neo4j";
                 }
@@ -331,18 +303,11 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     foreach (var record in records)
                     {
                         var node = record["h"].As<Neo4j.Driver.INode>();
-                        holons.Add(new Holon 
-                        { 
-                            Id = Guid.Parse(node["Id"].As<string>()),
-                            Name = node["Name"].As<string>(),
-                            Description = node["Description"].As<string>(),
-                            HolonType = Enum.Parse<HolonType>(node["HolonType"].As<string>()),
-                            CreatedDate = node["CreatedDate"].As<DateTime>(),
-                            ModifiedDate = node["ModifiedDate"].As<DateTime>()
-                        });
+                        holons.Add(ReadHolonNode(node));
                     }
                     
                     response.Result = holons;
+                    response.IsLoaded = true;
                     response.IsError = false;
                     response.Message = "All holons loaded successfully from Neo4j";
                 }
@@ -360,143 +325,16 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var response = new OASISResult<IHolon>();
-            try
-            {
-                // Implement real Neo4j holon saving
-                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
-                }
-
-                try
-                {
-                    // Create Neo4j query to save holon
-                    var query = @"MERGE (h:Holon {Id: $id})
-                                ON CREATE SET h.CreatedDate = $createdDate
-                                SET h.Name = $name, h.Description = $description, h.HolonType = $holonType,
-                                    h.ModifiedDate = $modifiedDate
-                                RETURN h";
-                    var parameters = new 
-                    { 
-                        id = holon.Id.ToString(),
-                        name = holon.Name,
-                        description = holon.Description,
-                        holonType = holon.HolonType.ToString(),
-                        createdDate = holon.CreatedDate,
-                        modifiedDate = holon.ModifiedDate
-                    };
-                    
-                    // Execute REAL Neo4j query using Neo4j.Driver
-                    using (var session = _driver.AsyncSession())
-                    {
-                        var result = await session.RunAsync(query, parameters);
-                        var record = await result.SingleAsync();
-                        
-                        if (record != null)
-                        {
-                            var node = record["h"].As<Neo4j.Driver.INode>();
-                            response.Result = new Holon 
-                            { 
-                                Id = Guid.Parse(node["Id"].As<string>()),
-                                Name = node["Name"].As<string>(),
-                                Description = node["Description"].As<string>(),
-                                HolonType = Enum.Parse<HolonType>(node["HolonType"].As<string>()),
-                                CreatedDate = node["CreatedDate"].As<DateTime>(),
-                                ModifiedDate = node["ModifiedDate"].As<DateTime>()
-                            };
-                            response.IsError = false;
-                            response.Message = "Holon saved successfully to Neo4j";
-                        }
-                        else
-                        {
-                            OASISErrorHandling.HandleError(ref response, "Failed to save holon to Neo4j database");
-                        }
-                    }
-                }
-                catch (Exception ex)
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Error saving holon to Neo4j: {ex.Message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error saving holon to Neo4j: {ex.Message}");
-            }
-            return response;
-        }
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveOneHolonSnapshotAsync(holon);
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             return SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                // REAL Neo4j implementation for saving multiple holons
-                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
-                }
-
-                var savedHolons = new List<IHolon>();
-                using (var session = _driver.AsyncSession())
-                {
-                    foreach (var holon in holons)
-                    {
-                        var query = @"MERGE (h:Holon {Id: $id})
-                                    ON CREATE SET h.CreatedDate = $createdDate
-                                    SET h.Name = $name, h.Description = $description, h.HolonType = $holonType,
-                                        h.ModifiedDate = $modifiedDate
-                                    RETURN h";
-                        var parameters = new 
-                        { 
-                            id = holon.Id.ToString(),
-                            name = holon.Name,
-                            description = holon.Description,
-                            holonType = holon.HolonType.ToString(),
-                            createdDate = holon.CreatedDate,
-                            modifiedDate = holon.ModifiedDate
-                        };
-                        
-                        var result = await session.RunAsync(query, parameters);
-                        var record = await result.SingleAsync();
-                        
-                        if (record != null)
-                        {
-                            var node = record["h"].As<Neo4j.Driver.INode>();
-                            savedHolons.Add(new Holon 
-                            { 
-                                Id = Guid.Parse(node["Id"].As<string>()),
-                                Name = node["Name"].As<string>(),
-                                Description = node["Description"].As<string>(),
-                                HolonType = Enum.Parse<HolonType>(node["HolonType"].As<string>()),
-                                CreatedDate = node["CreatedDate"].As<DateTime>(),
-                                ModifiedDate = node["ModifiedDate"].As<DateTime>()
-                            });
-                        }
-                    }
-                }
-                
-                response.Result = savedHolons;
-                response.IsError = false;
-                response.Message = "Holons saved successfully to Neo4j";
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error saving holons to Neo4j: {ex.Message}");
-            }
-            return response;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => SaveHolonSnapshotsAsync(holons);
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
