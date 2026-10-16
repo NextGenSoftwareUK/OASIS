@@ -9,6 +9,19 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 public sealed class TronStorageBackendTests
 {
     [Theory]
+    [InlineData("string",false)] [InlineData("string",true)]
+    [InlineData("string[]",false)] [InlineData("string[]",true)]
+    public void MalformedDynamicOffsetsRemainTerminalWithOriginalDecoderCause(string type,bool overflowing)
+    {
+        var payload=new byte[32];
+        if(overflowing)Array.Fill(payload,(byte)255);else payload[31]=64;
+        var decode=typeof(TronStorageBackend).GetMethod("Decode",BindingFlags.Static|BindingFlags.NonPublic)!;
+        var error=Assert.Throws<TargetInvocationException>(()=>decode.Invoke(null,new object[] {payload,new[] {type}}));
+        var invalid=Assert.IsType<System.IO.InvalidDataException>(error.InnerException);
+        if(overflowing)Assert.IsType<OverflowException>(invalid.InnerException);
+    }
+
+    [Theory]
     [InlineData(false, "")]
     [InlineData(true, "")]
     [InlineData(true, "秘密🌱")]
