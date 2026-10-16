@@ -272,34 +272,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                var blob = _serviceClient.GetBlobContainerClient(_holonContainer).GetBlobClient(id.ToString());
-                await ObserveBlobMutationAsync(()=>blob.DeleteIfExistsAsync(),blob);
-                result.Result = new Holon { Id = id };
-                result.Message = $"AzureStorageOASIS: Deleted holon blob '{id}'.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+            => DeleteCanonicalHolonAsync(id.ToString(),id);
         public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).Result;
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                var blob = _serviceClient.GetBlobContainerClient(_holonContainer).GetBlobClient(providerKey);
-                await ObserveBlobMutationAsync(()=>blob.DeleteIfExistsAsync(),blob);
-                result.Result = new Holon { CustomKey = providerKey };
-                result.Message = $"AzureStorageOASIS: Deleted holon blob '{providerKey}'.";
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+            => DeleteCanonicalHolonAsync(providerKey);
         public override OASISResult<IHolon> DeleteHolon(string providerKey) => DeleteHolonAsync(providerKey).Result;
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
