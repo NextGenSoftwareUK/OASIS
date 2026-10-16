@@ -288,6 +288,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                     var inv = item;
                     var copy = new InventoryItem
                     {
+                        PublishedSTARNETHolon = inv.PublishedSTARNETHolon == null ? null : (byte[])inv.PublishedSTARNETHolon.Clone(),
                         Name = inv.Name,
                         Description = inv.Description,
                         Quantity = inv.Quantity,
@@ -648,6 +649,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
                     var inv = item;
                     var mongoInv = new InventoryItem
                     {
+                        PublishedSTARNETHolon = inv.PublishedSTARNETHolon == null ? null : (byte[])inv.PublishedSTARNETHolon.Clone(),
                         Name = inv.Name,
                         Description = inv.Description,
                         Quantity = inv.Quantity,

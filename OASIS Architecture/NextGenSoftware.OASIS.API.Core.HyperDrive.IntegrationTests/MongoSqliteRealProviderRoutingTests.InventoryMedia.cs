@@ -27,6 +27,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
         actual.Quantity.Should().Be(expected.Quantity);
         actual.Image2D.Should().BeEquivalentTo(expected.Image2D,options=>options.WithStrictOrdering());
         actual.Object3D.Should().BeEquivalentTo(expected.Object3D,options=>options.WithStrictOrdering());
+        actual.PublishedSTARNETHolon.Should().BeEquivalentTo(expected.PublishedSTARNETHolon,options=>options.WithStrictOrdering());
         (actual.Image2DURI?.OriginalString).Should().Be(expected.Image2DURI?.OriginalString);
         (actual.Object3DURI?.OriginalString).Should().Be(expected.Object3DURI?.OriginalString);
     }
