@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-16 Ethereum IOASISNETProvider nearby now uses shared validated location filter over decrypted canonical records; preserves underlying errors/warnings and success load flags, rejects bad request before RPC and corrupt stored coordinates rather than silently skipping. Retained local chain31337 suite113/113pass22s (includes four local validation cases),59 contract assertions pass. Two native nearby cases independently verify actual saved records under fr-FR; no V2 nearby dispatch, indexed spatial scaling, public Ethereum or rollup-network certification.
+
 MongoDB final nearby-source regression: four native Mongo/SQLite V2 matrix cases pass1m45s/no skips after corrected collection/filter implementation. Existing test scope retained; no claim of nearby V2 dispatch or complete provider verification.
 
 2026-10-16 MongoDB priority nearby gap fixed using existing native collection loaders plus shared coordinate filter: no HolonType metadata prerequisite, no fake sparse Avatar reconstruction, no degree/microdegree mixup, local invalid input and terminal stored-location corruption. Unit9/9; selected replica native44/44pass34s/no skips. Test fixture fixed oasis_owned_nearby_current refuses prior existence; only drops its own DB after successful assertions. Real SDK collection reads, not native geospatial-index pushdown or V2 nearby dispatch. Full provider certification remains open.
