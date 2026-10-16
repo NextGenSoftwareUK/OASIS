@@ -15,6 +15,7 @@ public sealed partial class RealProviderRoutingTests
     {
         private readonly string _directory;
         public string FailurePrefix;public int Attempts;public readonly List<string> Acknowledged=new();
+        public string DeleteFailureKey;public readonly List<string> DeletedKeys=new();
         public readonly IOException Cause=new("Owned failed later key write after earlier disk acknowledgement.");
         public OwnedDiskKeys(string directory) {_directory=directory;Directory.CreateDirectory(directory);}
         private string PathFor(string key)=>Path.Combine(_directory,Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(key)))+".json");
@@ -29,7 +30,9 @@ public sealed partial class RealProviderRoutingTests
             Attempts++;if(FailurePrefix!=null && key.StartsWith(FailurePrefix,StringComparison.Ordinal)) throw Cause;
             await File.WriteAllTextAsync(PathFor(key),System.Text.Json.JsonSerializer.Serialize(new Dictionary<string,string> {{"key",key},{"value",value}}),token);Acknowledged.Add(key);
         }
-        public Task DeleteAsync(string key,CancellationToken token=default) {File.Delete(PathFor(key));return Task.CompletedTask;}
+        public Task DeleteAsync(string key,CancellationToken token=default) {
+            if(key==DeleteFailureKey)throw Cause;
+            File.Delete(PathFor(key));DeletedKeys.Add(key);return Task.CompletedTask;}
         public async Task<IReadOnlyList<string>> ListKeysAsync(string prefix,CancellationToken token=default)
         {
             var keys=new List<string>();foreach(var path in Directory.GetFiles(_directory,"*.json")) {
@@ -48,6 +51,48 @@ public sealed partial class RealProviderRoutingTests
     {
         public OwnedDiskProvider(IKeyValueBackend backend):base(backend)
         {ProviderName="Owned disk key-value test adapter";ProviderType=new EnumValue<ProviderType>(Core.Enums.ProviderType.VercelKVOASIS);ProviderCategory=new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocal);}
+    }
+
+    [Theory]
+    [InlineData(false,0)] [InlineData(true,0)] [InlineData(false,1)] [InlineData(true,1)] [InlineData(false,2)] [InlineData(true,2)]
+    public async Task AcknowledgedPartialDeletesNeverFailOverOrReplicate(bool synchronous,int kind)
+    {
+        Directory.CreateDirectory(_root);var backend=new OwnedDiskKeys(FilesPath);var primary=new OwnedDiskProvider(backend) {IsVersionControlEnabled=true};
+        using var sqlite=new SQLLiteDBOASIS($"Data Source={SqlitePath};Pooling=False");
+        (await primary.ActivateProviderAsync()).IsError.Should().BeFalse();(await sqlite.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var id=Guid.NewGuid();
+        try
+        {
+            foreach(var store in new IOASISStorageProvider[] {primary,sqlite})
+            {
+                var profile=await store.SaveAvatarAsync(new Avatar {Id=id,Username="owned-delete",Email="owned-delete@example.invalid",IsActive=true,AvatarType=new EnumValue<AvatarType>(AvatarType.User)});
+                profile.IsError.Should().BeFalse(profile.Message);
+                (await store.SaveAvatarDetailAsync(new AvatarDetail {Id=id,IsActive=true,XP=10})).IsError.Should().BeFalse();
+                (await store.SaveHolonAsync(new Holon {Id=id,ParentHolonId=Guid.NewGuid(),Name="owned-delete"},saveChildren:false)).IsError.Should().BeFalse();
+            }
+            // Ensure detail hard deletion has an acknowledged historical step before its root failure.
+            (await primary.SaveAvatarDetailAsync(new AvatarDetail {Id=id,IsActive=true,XP=20})).IsError.Should().BeFalse();
+            backend.DeleteFailureKey="oasis/"+(kind==0 ? "avatar/":kind==1 ? "avatardetail/":"holon/")+id.ToString("N");
+            backend.DeletedKeys.Clear();
+            var manager=CreateManager(autoFailover:true,autoReplication:true);manager.RegisterProvider(primary);manager.RegisterProvider(sqlite);
+            var types=new[] {new EnumValue<ProviderType>(ProviderType.VercelKVOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)};
+            manager.SetAndReplaceAutoFailOverListForProviders(types).IsError.Should().BeFalse();manager.SetAndReplaceAutoReplicationListForProviders(types).IsError.Should().BeFalse();
+            var router=new OASISHyperDrive(manager);var before=manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests??0;
+            var request=new StorageOperationRequest {Operation=kind==0 ? "DeleteAvatar":kind==1 ? "DeleteAvatarDetail":"DeleteHolon",AvatarId=id,HolonId=id,SoftDelete=false,PreferredProvider=ProviderType.VercelKVOASIS};
+            _preserveFixture=true;
+            KeyValuePartialMutationException Pending<T>(Common.OASISResult<T> result)
+            {result.IsError.Should().BeTrue();result.IsDeleted.Should().BeFalse();return result.Exception.Should().BeOfType<KeyValuePartialMutationException>().Which;}
+            var marker=kind==2 ? Pending(synchronous ? router.RouteRequest<IHolon>(request):await router.RouteRequestAsync<IHolon>(request))
+                :Pending(synchronous ? router.RouteRequest<bool>(request):await router.RouteRequestAsync<bool>(request));
+            marker.InnerException.Should().BeSameAs(backend.Cause);marker.AcknowledgedKeys.Should().BeEquivalentTo(backend.DeletedKeys);backend.DeletedKeys.Should().NotBeEmpty();
+            (manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests??0).Should().Be(before);
+            (await backend.GetAsync(backend.DeleteFailureKey)).Should().NotBeNullOrEmpty();
+            foreach(var key in backend.DeletedKeys)(await backend.GetAsync(key)).Should().BeNull();
+            (await sqlite.LoadAvatarAsync(id)).Result.Id.Should().Be(id);(await sqlite.LoadAvatarDetailAsync(id)).Result.XP.Should().Be(10);
+            (await sqlite.LoadHolonAsync(id,loadChildren:false)).Result.Id.Should().Be(id);
+            _preserveFixture=false;
+        }
+        finally {await primary.DeActivateProviderAsync();}
     }
 
     [Theory]

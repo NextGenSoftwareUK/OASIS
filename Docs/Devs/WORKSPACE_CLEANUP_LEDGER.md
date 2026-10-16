@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 V2 partial-delete acceptance reused fixed guarded HyperDriveSqliteCurrent owned-data/exclusive lease, disk adapter and real SQLite; partial12/12pass3s/full local routing98/98pass9s. Initial new fixture failed profile seeding before fault injection, corrected explicit User/email fields; no shipping validation weakened. Successful normal fixture disposal removed owned generated files/DB, no new environment/download/install/clone/runtime/node or protected ledger/source/userdata/credential removal. Fixed compact reports overwritten in place.
+
 2026-10-16 shared selector-delete propagation reused existing SDK/build outputs and in-memory test backend. Four failing baseline cases retained in selector-delete-before-current.trx; finalShared225/225pass1s/four provider library builds. No node/runtime/download/install/clone/new environment or protected ledger/source/userdata/credential removal. Compact fixed reports reused.
 
 2026-10-16 shared detail/holon deletion work reused existing SDK/build outputs and in-memory backend. Four red-before cases retained in detail-holon-delete-before-current.trx; finalShared221/221pass1s and four provider builds. No runtime/node/download/install/clone/new environment or protected ledger/source/userdata/credential deletion. Fixed compact report paths reused.
