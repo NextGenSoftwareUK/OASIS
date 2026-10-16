@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 Mongo verification reused installed8.3.11 runtime, existing single-node replica directory/cache and fixed reports. No download/install/new checkout/runtime. Native V2 matrix4/4pass1m45s; initialization1/1 and maintained units10/10 pass. Runner stops only its owned Mongo process and tests remove their synthetic database/owned SQLite fixture, retaining the reusable replica data. Other mongod processes remain outside scope. No source/credentials/pending chain fixtures deleted.
+
 2026-10-16 SQLite acknowledgement regression reused existing cached producer/test outputs and fixed compact reports. No restore/download/install/new runtime/worktree; no deletion. Final-source 5 unit/381 integration tests pass; C: observed 83,128,336,384 bytes free during verification. No unrelated subscription edits staged.
 
 2026-10-16 SQLite priority verification reused the existing task checkout/cache/build outputs and fixed TestResults/HyperDriveSqliteCurrent directory. No restore, installation, download, new worktree/runtime/service. Retained two compact current TRX reports (381 integration and 4 unit tests, no skips). Nothing deleted. C: free after verification 83,130,048,512 bytes; observation, not a recovered-space claim.
