@@ -165,33 +165,19 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            OASISResult<IHolon> res = new OASISResult<IHolon>();
-
-            try
-            {
-                res.Result = await SaveHolonToFile(holon);
-                res.IsSaved = res.Result != null;
-            }
-            catch(Exception cause)
-            {
-                OASISErrorHandling.HandleError(ref res,"IPFS holon save failed: "+cause.Message,cause);
-            }
-            return res;
+            var saved=await SaveSelectedGraphAsync(new[] {holon},saveChildren,recursive,maxChildDepth,0,continueOnError);
+            return new OASISResult<IHolon> {Result=saved.IsError ? null:holon,IsError=saved.IsError,IsSaved=saved.IsSaved,
+                ErrorCode=saved.ErrorCode,Exception=saved.Exception,Message=saved.Message};
         }
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            return SaveHolonsAsync(holons, saveChildren).Result;
+            return SaveHolonsAsync(holons,saveChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,saveChildrenOnProvider).GetAwaiter().GetResult();
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            List<IHolon> savedHolons = new List<IHolon>();
-
-            foreach (var holon in holons)
-                savedHolons.Add(await SaveHolonToFile(holon));
-
-            return new OASISResult<IEnumerable<IHolon>>(savedHolons);
+            return await SaveSelectedGraphAsync(holons,saveChildren,recursive,maxChildDepth,curentChildDepth,continueOnError);
         }
 
         OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)

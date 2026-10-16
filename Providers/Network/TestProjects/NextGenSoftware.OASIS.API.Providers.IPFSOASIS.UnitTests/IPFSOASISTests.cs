@@ -21,6 +21,47 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests
     [Trait("Category","NativeIPFS")]
 	public class IPFSOASISTests
 	{
+        [Fact]
+        public async Task SelectedGraphOptionsControlActualIndexedWrites()
+        {
+            await WithOwnedProvider(async provider => {
+                foreach(var synchronous in new[] {false,true})
+                foreach(var bulk in new[] {false,true})
+                foreach(var option in new (bool Children,bool Recursive,int Maximum,int Initial,int Expected)[] {(false,true,0,0,1),
+                    (true,false,0,0,2),(true,true,1,0,2),(true,true,2,0,3),(true,true,1,1,1)})
+                {
+                    if(!bulk && option.Initial!=0) continue;
+                    var root=new Holon {Id=Guid.NewGuid(),Name="graph root"};
+                    var child=new Holon {Id=Guid.NewGuid(),Name="graph child"};
+                    var grandchild=new Holon {Id=Guid.NewGuid(),Name="graph grandchild"};
+                    root.Children=new List<IHolon>{child};child.Children=new List<IHolon>{grandchild};
+                    if(bulk)
+                    {
+                        var saved=synchronous ? provider.SaveHolons(new[] {root},option.Children,option.Recursive,option.Maximum,option.Initial)
+                            :await provider.SaveHolonsAsync(new[] {root},option.Children,option.Recursive,option.Maximum,option.Initial);
+                        Assert.False(saved.IsError,saved.Message);Assert.True(saved.IsSaved);
+                    }
+                    else
+                    {
+                        var saved=synchronous ? provider.SaveHolon(root,option.Children,option.Recursive,option.Maximum)
+                            :await provider.SaveHolonAsync(root,option.Children,option.Recursive,option.Maximum);
+                        Assert.False(saved.IsError,saved.Message);Assert.True(saved.IsSaved);
+                    }
+                    var rows=new[] {root,child,grandchild};
+                    for(var index=0;index<rows.Length;index++)
+                    {
+                        var read=await provider.LoadHolonAsync(rows[index].Id,loadChildren:false);
+                        if(index>=option.Expected) Assert.Null(read.Result);
+                        else
+                        {
+                            Assert.False(read.IsError,read.Message);Assert.Equal(rows[index].Name,read.Result.Name);
+                            Assert.Equal(index==0 ? Guid.Empty:rows[index-1].Id,read.Result.ParentHolonId);
+                        }
+                    }
+                }
+            });
+        }
+
         private static async Task WithOwnedProvider(Func<IPFSOASIS,Task> action)
         {
             const string endpoint="http://127.0.0.1:18547";
