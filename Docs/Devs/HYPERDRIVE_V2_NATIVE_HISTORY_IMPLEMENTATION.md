@@ -39,6 +39,8 @@ Use the existing reusable native runtimes and fixed evidence directories. No new
 
 ## Acceptance matrix (all currently unproven as a complete native-history feature)
 
+SQLite negative-version boundary is now verified separately (2026-10-16): disposed-context matrices prove local argument failure before database access; latest/current-version regression remains green. This does not satisfy the retention/linkage/transactional history matrix below.
+
 - Avatar, avatar detail, holon: create1 → update2 → update3, then independent native archive/current readback and provider loads0/1/2/3/missing.
 - Verify VersionId uniqueness and PreviousVersionId linkage, full inventory/metadata/derived payload preservation, no caller mutation on failed acknowledgement.
 - Sync/async ID/key/username/email/collection/parent/metadata/export routes; changed selectors; historical tombstones and hard-deletion policy.

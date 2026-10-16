@@ -204,6 +204,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var row = ReadUniqueAvatar(_dbContext.Avatars.Where(p => p.Username == username && p.Password == password && (version == 0 || p.Version == version)));
                 var avatarEntities = row == null ? null : GetAvatarFromEntity(row);
                 return new OASISResult<IAvatar>
@@ -231,6 +232,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var row = ReadUniqueAvatar(_dbContext.Avatars.Where(p => p.Username == username && (version == 0 || p.Version == version)));
                 var avatarEntities = row == null ? null : GetAvatarFromEntity(row);
                 return new OASISResult<IAvatar>
@@ -258,6 +260,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var row = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(p => p.Username == username && p.Password == password && (version == 0 || p.Version == version)));
                 var avatarEntity = row == null ? null : GetAvatarFromEntity(row);
                 if (avatarEntity == null)
@@ -293,6 +296,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var rows = await _dbContext.Avatars.AsNoTracking()
                     .Where(p => (version == 0 || p.Version == version)).ToListAsync();
                 var avatarEntities = rows
@@ -323,6 +327,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var avatarEntities = _dbContext.Avatars.AsNoTracking()
                     .Where(p => (version == 0 || p.Version == version))
                     .ToList()
@@ -353,6 +358,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var row = ReadUniqueAvatar(_dbContext.Avatars.Where(p => p.Username == avatarUsername && (version == 0 || p.Version == version)));
                 var avatarEntity = row == null ? null : GetAvatarFromEntity(row);
                 if (avatarEntity == null)
@@ -388,6 +394,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var row = await _dbContext.Avatars.AsNoTracking().FirstOrDefaultAsync(p => p.Id == Id.ToString() && (version == 0 || p.Version == version));
                 var avatarEntities = row == null ? null : GetAvatarFromEntity(row);
                 if (avatarEntities == null)

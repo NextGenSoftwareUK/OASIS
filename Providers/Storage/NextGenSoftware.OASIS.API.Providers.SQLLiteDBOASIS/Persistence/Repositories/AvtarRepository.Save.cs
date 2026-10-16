@@ -22,6 +22,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var row = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(p => p.Email == avatarEmail && (version == 0 || p.Version == version)));
                 var avatarEntity = row == null ? null : GetAvatarFromEntity(row);
                 if (avatarEntity == null)
@@ -57,6 +58,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var row = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(p => p.Username == avatarUsername && (version == 0 || p.Version == version)));
                 var avatarEntity = row == null ? null : GetAvatarFromEntity(row);
                 if (avatarEntity == null)
@@ -92,6 +94,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var row = _dbContext.Avatars.AsNoTracking().FirstOrDefault(p => p.Id == Id.ToString() && (version == 0 || p.Version == version));
                 var avatarEntity = row == null ? null : GetAvatarFromEntity(row);
                 if (avatarEntity == null)
@@ -127,6 +130,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var row = ReadUniqueAvatar(_dbContext.Avatars.Where(p => p.Email == avatarEmail && (version == 0 || p.Version == version)));
                 var avatarEntity = row == null ? null : GetAvatarFromEntity(row);
                 if (avatarEntity == null)
@@ -162,6 +166,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var entity = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(p => p.Username == username && (version == 0 || p.Version == version)));
                 var avatarEntity = entity == null ? null : GetAvatarFromEntity(entity);
                 if (avatarEntity == null)
@@ -197,6 +202,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var avatarEntity = await _dbContext.Avatars
                     .SingleOrDefaultAsync(p => p.LocalProviderKey == providerKey && (version == 0 || p.Version == version));
                 
@@ -238,6 +244,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var avatarEntity = _dbContext.Avatars
                     .SingleOrDefault(p => p.LocalProviderKey == providerKey && (version == 0 || p.Version == version));
                 
@@ -279,6 +286,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 ArgumentException.ThrowIfNullOrWhiteSpace(verificationToken);
                 var avatarEntity = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(p => p.VerificationToken == verificationToken && (version == 0 || p.Version == version)));
                 if (avatarEntity != null)
@@ -296,6 +304,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 ArgumentException.ThrowIfNullOrWhiteSpace(verificationToken);
                 var avatarEntity = ReadUniqueAvatar(_dbContext.Avatars.Where(p => p.VerificationToken == verificationToken && (version == 0 || p.Version == version)));
                 if (avatarEntity != null)
@@ -313,6 +322,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 ArgumentException.ThrowIfNullOrWhiteSpace(resetToken);
                 var avatarEntity = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(p => p.ResetToken == resetToken && (version == 0 || p.Version == version)));
                 if (avatarEntity != null)
@@ -330,6 +340,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 ArgumentException.ThrowIfNullOrWhiteSpace(resetToken);
                 var avatarEntity = ReadUniqueAvatar(_dbContext.Avatars.Where(p => p.ResetToken == resetToken && (version == 0 || p.Version == version)));
                 if (avatarEntity != null)
@@ -347,6 +358,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 ArgumentException.ThrowIfNullOrWhiteSpace(refreshToken);
                 var avatarEntity = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(p => (p.RefreshToken == refreshToken || p.RefreshTokens.Any(t => t.Token == refreshToken)) && (version == 0 || p.Version == version)));
                 if (avatarEntity != null)
@@ -364,6 +376,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 ArgumentException.ThrowIfNullOrWhiteSpace(refreshToken);
                 var avatarEntity = ReadUniqueAvatar(_dbContext.Avatars.Where(p => (p.RefreshToken == refreshToken || p.RefreshTokens.Any(t => t.Token == refreshToken)) && (version == 0 || p.Version == version)));
                 if (avatarEntity != null)

@@ -38,6 +38,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var avatarDetailEntity =
                     DetailState().AsNoTracking()
                         .Where(x => x.Id == id.ToString() && (version == 0 || x.Version == version))
@@ -76,6 +77,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var rows = DetailState().AsNoTracking()
                         .Where(x => x.Email == avatarEmail && (version == 0 || x.Version == version))
                         .Take(2).ToList();
@@ -112,6 +114,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var rows = DetailState().AsNoTracking()
                         .Where(x => x.Username == avatarUsername && (version == 0 || x.Version == version))
                         .Take(2).ToList();
@@ -148,6 +151,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var obj = await DetailState().AsNoTracking()
                     .Where(x => x.Id == id.ToString() && (version == 0 || x.Version == version))
                     .FirstOrDefaultAsync();
@@ -184,6 +188,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var rows = await DetailState().AsNoTracking()
                     .Where(x => x.Username == avatarUsername && (version == 0 || x.Version == version))
                     .Take(2).ToListAsync();
@@ -220,6 +225,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var rows = await DetailState().AsNoTracking()
                     .Where(x => x.Email == avatarEmail && (version == 0 || x.Version == version))
                     .Take(2).ToListAsync();
@@ -256,6 +262,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var avatarDetailEntities = 
                     DetailState().AsNoTracking()
                     .Where(x => (version == 0 || x.Version == version))
@@ -287,6 +294,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
         {
             try
             {
+                SqliteReadVersion.Validate(version);
                 var rows = await DetailState().AsNoTracking()
                     .Where(x => version == 0 || x.Version == version)
                     .ToListAsync();
