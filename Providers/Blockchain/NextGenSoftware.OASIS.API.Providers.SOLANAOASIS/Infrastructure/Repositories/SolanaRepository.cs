@@ -105,12 +105,15 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
         var record=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<T>(content) ?? throw new InvalidOperationException("Finalized Solana memo has no record content.");
         if(record.Id == Guid.Empty || record.Version < 0)
             throw new InvalidOperationException("Solana storage record has invalid identity/version.");
+        if(!record.HasValidCreationOrigin())
+            throw new System.IO.InvalidDataException("Stored Solana record has an invalid creation origin.");
         return record;
     }
 
     private static void ValidateStorageEntity(SolanaBaseDto entity)
     {
         ArgumentNullException.ThrowIfNull(entity);
+        if(!entity.HasValidCreationOrigin()) throw new SolanaOriginValidationException();
         if(entity.Id==Guid.Empty || entity.Version<0)
             throw new ArgumentException("Solana storage requires a nonempty identity and nonnegative version.",nameof(entity));
     }

@@ -7,7 +7,7 @@ public static class OasisEntitiesExtensions
         if (avatar == null)
             throw new ArgumentNullException(nameof(avatar));
 
-        return new SolanaAvatarDto()
+        return CheckedStorageRecord(new SolanaAvatarDto()
         {
             Email = avatar.Email,
             Id = avatar.Id,
@@ -28,7 +28,7 @@ public static class OasisEntitiesExtensions
             Version = avatar.Version,
             IsDeleted = !avatar.IsActive,
             PreviousVersionId = avatar.PreviousVersionId
-        };
+        });
     }
 
     public static SolanaAvatarDetailDto GetSolanaAvatarDetailDto(this IAvatarDetail avatarDetail)
@@ -36,7 +36,7 @@ public static class OasisEntitiesExtensions
         if (avatarDetail == null)
             throw new ArgumentNullException(nameof(avatarDetail));
 
-        return new SolanaAvatarDetailDto()
+        return CheckedStorageRecord(new SolanaAvatarDetailDto()
         {
             Address = avatarDetail.Address,
             Id = avatarDetail.Id,
@@ -85,7 +85,7 @@ public static class OasisEntitiesExtensions
             Version = avatarDetail.Version,
             IsDeleted = !avatarDetail.IsActive,
             PreviousVersionId = avatarDetail.PreviousVersionId
-        };
+        });
     }
 
     public static SolanaHolonDto GetSolanaHolonDto(this IHolon holon)
@@ -93,7 +93,7 @@ public static class OasisEntitiesExtensions
         if (holon == null)
             throw new ArgumentNullException(nameof(holon));
 
-        return new SolanaHolonDto()
+        return CheckedStorageRecord(new SolanaHolonDto()
         {
             Id = holon.Id,
             VersionId = holon.VersionId,
@@ -134,7 +134,13 @@ public static class OasisEntitiesExtensions
             IsActive = holon.IsActive,
             IsDeleted = !holon.IsActive,
             PreviousVersionId = holon.PreviousVersionId,
-        };
+        });
+    }
+
+    private static T CheckedStorageRecord<T>(T record) where T : SolanaBaseDto
+    {
+        if(!record.HasValidCreationOrigin()) throw new SolanaOriginValidationException();
+        return record;
     }
 
     public static IWeb3NFT ToOasisNft(this GetNftMetadataResult nft) =>

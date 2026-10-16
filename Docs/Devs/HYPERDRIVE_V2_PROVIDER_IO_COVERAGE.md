@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+Solana malformed-origin gap closed at controlled boundaries: 34 regression cases red before fix, now full 196/196 unit suite green (1s, zero skips). Defined-or-null provider/OASIS origins enforced before direct repository signing-key/RPC access and API reference reads; corrupt stored origin rejected as storage data, not caller payload. Owned input errors are terminal payload errors; partial mutation evidence is preserved. Actual native finality/V2 routing, audit/history/DTO completeness and hosted/recovery gates are not proven by this suite. Continue the user-prioritized mainstream providers before smaller-chain gaps.
+
 Solana update-origin follow-up: existing avatar/detail/holon/bulk updates retain stored creation origin (including unknown/null), and only confirmed saves publish origin back to source/return objects. Forty new controlled provider-boundary cases pass within full unit162/162 (1s,zero skips). Actual native finality/routing, malformed optional origin and full audit/DTO/hosted/recovery gates remain open; no chain submission this turn.
 
 Solana envelope follow-up: VersionId/IsPublic/nullable creation-provider/OASIS origin now map through avatar/detail/holon encrypted typed memos. Six encrypted round trips and three missing-legacy-field cases pass within full maintained unit122/122 (2s,zero skips). No plaintext index/ACL/publication change, no generated legacy IDs or version history. Live finalized validation still blocked at retained505; full DTO/native V2/hosted/recovery gates remain open.

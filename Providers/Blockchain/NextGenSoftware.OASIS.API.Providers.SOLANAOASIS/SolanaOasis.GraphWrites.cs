@@ -121,6 +121,8 @@ public partial class SolanaOASIS
         }
         catch(Exception cause)
         {
+            if(committed.Count==0 && cause is SolanaOriginValidationException)
+                result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
             var evidence=committed.Count>0 ? new SolanaPartialMutationException(committed,cause):cause;
             OASISErrorHandling.HandleError(ref result,"Solana selected graph save failed: "+cause.Message,evidence);
         }
