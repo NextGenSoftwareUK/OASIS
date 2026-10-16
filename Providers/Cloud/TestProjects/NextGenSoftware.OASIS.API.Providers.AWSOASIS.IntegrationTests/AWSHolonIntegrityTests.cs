@@ -10,6 +10,55 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests;
 public partial class AWSOASISIntegrationTests
 {
     [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public async Task V2AvatarDeletionProjectionDoesNotReadStaleSecondary(bool synchronous,bool canonicalDeleted)
+    {
+        var path=Path.GetFullPath("TestResults/AWSRoutingFiles/delete-routing.db");
+        if(File.Exists(path)) Assert.Fail("Retained routing evidence exists; refusing overwrite.");
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        var sqlite=new NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS($"Data Source={path};Pooling=False");
+        var id=Guid.NewGuid();var username="owned-avatar-projection-"+id.ToString("N");
+        var json=OasisJson.Serialize(new Avatar {Id=id,Username=username,IsActive=true,
+            DeletedDate=canonicalDeleted ? new DateTime(2026,10,16,0,0,0,DateTimeKind.Utc):DateTime.MinValue});
+        var acknowledged=false;var verified=false;
+        try
+        {
+            Assert.IsFalse((await sqlite.ActivateProviderAsync()).IsError);
+            Assert.IsFalse((await sqlite.SaveAvatarAsync(new Avatar {Id=id,Username=username,FirstName="owned-stale",IsActive=true,
+                AvatarType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User)})).IsError);
+            var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {
+                HyperDriveMode=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2,StorageProviders=new(),SubscriptionConfig=new() {PlanType="Gold"}}};
+            var manager=new Core.Managers.ProviderManager(null,dna) {IsAutoFailOverEnabled=true};
+            manager.RegisterProvider(_provider);manager.RegisterProvider(sqlite);
+            Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(new[] {
+                new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.AWSOASIS),
+                new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.SQLLiteDBOASIS)}).IsError);
+            var router=new Core.Managers.OASISHyperDrive.OASISHyperDrive(manager);
+            Assert.AreEqual(System.Net.HttpStatusCode.OK,(await Client.PutItemAsync(new PutItemRequest {TableName="OasisAvatars",Item=new() {
+                ["id"]=new() {S=id.ToString()},["username"]=new() {S=username},
+                ["is_deleted"]=new() {BOOL=!canonicalDeleted},["data_json"]=new() {S=json}}})).HttpStatusCode);acknowledged=true;
+            void Corrupt<T>(OASISResult<T> r) {Assert.IsTrue(r.IsError);Assert.IsNull(r.Result);Assert.IsFalse(r.IsLoaded);Assert.IsInstanceOfType(r.Exception,typeof(InvalidDataException));}
+            var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0;
+            foreach(var operation in new[] {"LoadAvatar","LoadAllAvatars","LoadAvatarByUsername"})
+            {
+                var request=new Core.StorageOperationRequest {Operation=operation,AvatarId=id,Username=username,PreferredProvider=Core.Enums.ProviderType.AWSOASIS};
+                if(operation=="LoadAllAvatars") Corrupt(synchronous ? router.RouteRequest<IEnumerable<IAvatar>>(request):await router.RouteRequestAsync<IEnumerable<IAvatar>>(request));
+                else Corrupt(synchronous ? router.RouteRequest<IAvatar>(request):await router.RouteRequestAsync<IAvatar>(request));
+            }
+            Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
+            var raw=(await Client.GetItemAsync(new GetItemRequest {TableName="OasisAvatars",Key=Key(id),ConsistentRead=true})).Item;
+            Assert.AreEqual(json,raw["data_json"].S);Assert.AreEqual(!canonicalDeleted,raw["is_deleted"].BOOL);
+            Assert.AreEqual("owned-stale",(await sqlite.LoadAvatarAsync(id)).Result.FirstName);verified=true;
+        }
+        finally
+        {
+            if(acknowledged) await Client.DeleteItemAsync(new DeleteItemRequest {TableName="OasisAvatars",Key=Key(id)});
+            await sqlite.DeActivateProviderAsync();
+            if(verified) foreach(var file in new[] {path,path+"-wal",path+"-shm"}) if(File.Exists(file)) File.Delete(file);
+        }
+    }
+
+    [DataTestMethod]
     [DataRow(false,false,false)] [DataRow(true,false,false)] [DataRow(false,true,false)] [DataRow(true,true,false)]
     [DataRow(false,false,true)] [DataRow(true,false,true)] [DataRow(false,true,true)] [DataRow(true,true,true)]
     public async Task NativeDeletionProjectionCannotHideOrResurrectRecords(bool synchronous,bool avatar,bool canonicalDeleted)
