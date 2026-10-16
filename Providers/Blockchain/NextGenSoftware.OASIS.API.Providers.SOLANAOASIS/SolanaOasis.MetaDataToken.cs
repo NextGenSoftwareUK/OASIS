@@ -45,23 +45,14 @@ public partial class SolanaOASIS
                 throw new ArgumentException("Explicit sender signing key, sender address and recipient address are required.");
             if(!string.IsNullOrWhiteSpace(request.OwnerPublicKey) && request.OwnerPublicKey!=request.FromWalletAddress)
                 throw new ArgumentException("Owner public key must match the sender address.");
-            var signer=new Account(key,request.FromWalletAddress);
-            var challenge=System.Text.Encoding.UTF8.GetBytes("oasis/solana/token-signer/v1");
-            if(!signer.Verify(challenge,signer.Sign(challenge))) throw new ArgumentException("Sender signing key does not match its public address.");
+            var signer=ExplicitTokenSigner(key,request.FromWalletAddress);
             var recipient=new PublicKey(request.ToWalletAddress);
             if(!string.IsNullOrWhiteSpace(request.FromTokenAddress))
             {
                 var splSignature=await SendLegacySplAsync(signer,recipient,new PublicKey(request.FromTokenAddress),request.Amount,request.MemoText);
                 result.Result=new TransactionResponse{TransactionResult=splSignature};result.IsSaved=true;return result;
             }
-            var block=await _rpcClient.GetLatestBlockHashAsync();
-            if(!block.WasSuccessful || string.IsNullOrWhiteSpace(block.Result?.Value?.Blockhash))
-                throw new InvalidOperationException("Solana writable blockhash was unavailable.");
-            var builder=new TransactionBuilder().SetRecentBlockHash(block.Result.Value.Blockhash).SetFeePayer(signer.PublicKey)
-                .AddInstruction(SystemProgram.Transfer(signer.PublicKey,recipient,amount));
-            if(!string.IsNullOrEmpty(request.MemoText)) builder.AddInstruction(MemoProgram.NewMemoV2(request.MemoText));
-            var signed=builder.Build(signer);
-            var signature=await new SolanaRepository(signer,_rpcClient).SubmitSignedTransactionAsync(signed);
+            var signature=await SubmitTokenInstructionsAsync(signer,new[]{SystemProgram.Transfer(signer.PublicKey,recipient,amount)},request.MemoText);
             result.Result=new TransactionResponse{TransactionResult=signature};result.IsSaved=true;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,"Solana token transfer failed.",cause);}
@@ -80,8 +71,29 @@ public partial class SolanaOASIS
     public Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
         => Task.FromResult(UnimplementedSolanaTokenMutation("mint",request));
     public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)=>BurnTokenAsync(request).GetAwaiter().GetResult();
-    public Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
-        => Task.FromResult(UnimplementedSolanaTokenMutation("burn",request));
+    public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
+    {
+        var result=new OASISResult<ITransactionResponse>();
+        try
+        {
+            if(request==null) throw new ArgumentNullException(nameof(request));
+            if(request.Amount<=0 || string.IsNullOrWhiteSpace(request.TokenAddress)) throw new ArgumentException("A mint address and positive exact burn amount are required.");
+            var signer=ExplicitTokenSigner(request.OwnerPrivateKey,request.OwnerPublicKey);
+            var signature=await BurnLegacySplAsync(signer,new PublicKey(request.TokenAddress),request.Amount);
+            result.Result=new TransactionResponse{TransactionResult=signature};result.IsSaved=true;
+        }
+        catch(Exception cause) {OASISErrorHandling.HandleError(ref result,"Solana token burn failed.",cause);}
+        return result;
+    }
+
+    private static Account ExplicitTokenSigner(string key,string address)
+    {
+        if(string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(address)) throw new ArgumentException("An explicit signing key and its public address are required.");
+        var signer=new Account(key,address);
+        var challenge=System.Text.Encoding.UTF8.GetBytes("oasis/solana/token-signer/v1");
+        if(!signer.Verify(challenge,signer.Sign(challenge))) throw new ArgumentException("Signing key does not match its public address.");
+        return signer;
+    }
 
     private static OASISResult<ITransactionResponse> UnimplementedSolanaTokenMutation(string operation,object request)
     {
