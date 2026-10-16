@@ -218,7 +218,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                         return result;
                     }
                 }
-                return await _holonRepository.ImportAtomicAsync(importRoots.Select(holon => DataHelper.ConvertOASISHolonToMongoEntity(holon)), PreserveCreationAuditFields);
+                return await _holonRepository.ImportAtomicAsync(importRoots.Select(holon => DataHelper.ConvertOASISHolonToMongoEntity(holon)), PreserveCreationAuditFields).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

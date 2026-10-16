@@ -12,9 +12,9 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
     {
         private async Task<OASISResult<IHolon>> SaveGraphAtomicAsync(IHolon root, bool recursive, int maxChildDepth)
         {
-            var saved = await SaveGraphsAtomicAsync(new[] { root }, true, recursive, maxChildDepth, 0, true);
+            var saved = await SaveGraphsAtomicAsync(new[] { root }, true, recursive, maxChildDepth, 0, true).ConfigureAwait(false);
             return new OASISResult<IHolon> { Result = saved.IsError ? null : saved.Result.Single(),
-                IsError = saved.IsError, IsSaved = saved.IsSaved, Message = saved.Message,
+                IsError = saved.IsError, IsSaved = saved.IsSaved, IsWarning = saved.IsWarning, WarningCount = saved.WarningCount, SavedCount = saved.SavedCount, Message = saved.Message,
                 Exception = saved.Exception, ErrorCode = saved.ErrorCode };
         }
 
@@ -70,7 +70,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                             throw response.Exception ?? new InvalidOperationException("Mongo graph response conversion failed.");
                         responses.Add(response.Result);
                     }
-                });
+                }).ConfigureAwait(false);
                 if (saved.IsError)
                 {
                     result.IsError = true;
@@ -81,6 +81,11 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
                 }
                 result.Result = responses;
                 result.IsSaved = true;
+                result.SavedCount = saved.SavedCount;
+                result.IsWarning = saved.IsWarning;
+                result.WarningCount = saved.WarningCount;
+                result.Exception = saved.Exception;
+                result.Message = saved.Message;
             }
             catch (Exception error)
             {
