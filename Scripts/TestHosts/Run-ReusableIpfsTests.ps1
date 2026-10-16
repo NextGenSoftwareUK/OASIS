@@ -72,7 +72,7 @@ try {
     if($report.LastWriteTimeUtc -lt $started){throw 'Native report stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    $expected=if($ReconcileV2 -or $NetworkDiagnostic -or $ReconcileNative -or $ReconcileRootVersion){1}else{12}
+    $expected=if($ReconcileV2 -or $NetworkDiagnostic -or $ReconcileNative -or $ReconcileRootVersion){1}else{13}
     if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw "Expected $expected passing selected cases, no skips."}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
