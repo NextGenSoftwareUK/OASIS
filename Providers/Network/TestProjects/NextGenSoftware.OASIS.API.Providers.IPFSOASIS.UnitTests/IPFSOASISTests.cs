@@ -22,6 +22,51 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests
 	public class IPFSOASISTests
 	{
         [Fact]
+        public async Task GraphChildFailuresRetainReceiptsAndRespectContinuation()
+        {
+            foreach(var synchronous in new[] {false,true})
+            foreach(var continueOnError in new[] {false,true})
+            foreach(var acknowledgedFailure in new[] {false,true})
+                await WithOwnedProvider(async provider => {
+                    var root=new Holon {Id=Guid.NewGuid(),Name="fault root"};
+                    var child=new Holon {Id=Guid.NewGuid(),Name="fault child"};
+                    var grandchild=new Holon {Id=Guid.NewGuid(),Name="must skip descendant"};
+                    var sibling=new Holon {Id=Guid.NewGuid(),Name="independent sibling"};
+                    root.Children=new List<IHolon>{child,sibling};child.Children=new List<IHolon>{grandchild};
+                    var resolver=typeof(IPFSOASIS).GetField("_storageKeyResolver",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+                    var prior=resolver.GetValue(provider);var calls=0;
+                    var cause=new InvalidOperationException("owned graph key fault");
+                    resolver.SetValue(provider,(Func<byte[]>)(()=> {
+                        calls++;
+                        // Root record/index=1/2; child index read=3, record=4, publication=5.
+                        if(calls==(acknowledgedFailure ? 5:4)) throw cause;
+                        return Convert.FromBase64String(Environment.GetEnvironmentVariable("OASIS_IPFS_STORAGE_ENCRYPTION_KEY")!);
+                    }));
+                    NextGenSoftware.OASIS.Common.OASISResult<IHolon> result;
+                    try {result=synchronous ? provider.SaveHolon(root,continueOnError:continueOnError)
+                        :await provider.SaveHolonAsync(root,continueOnError:continueOnError);}
+                    finally {resolver.SetValue(provider,prior);}
+                    Assert.True(result.IsError);Assert.False(result.IsSaved);Assert.Null(result.Result);
+                    var evidence=Assert.IsType<IPFSRecordPublicationException>(result.Exception);
+                    var expectedSibling=continueOnError && !acknowledgedFailure;
+                    Assert.Equal(acknowledgedFailure || expectedSibling ? 2:1,evidence.AcknowledgedRecordCids.Count);
+                    Assert.Equal(root.ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.IPFSOASIS],evidence.RecordCid);
+                    Assert.Empty(child.ProviderUniqueStorageKey);Assert.Empty(grandchild.ProviderUniqueStorageKey);
+                    Assert.NotNull((await provider.LoadHolonAsync(root.Id,loadChildren:false)).Result);
+                    Assert.Null((await provider.LoadHolonAsync(child.Id,loadChildren:false)).Result);
+                    Assert.Null((await provider.LoadHolonAsync(grandchild.Id,loadChildren:false)).Result);
+                    Assert.Equal(expectedSibling,(await provider.LoadHolonAsync(sibling.Id,loadChildren:false)).Result!=null);
+                    if(acknowledgedFailure)
+                    {
+                        var publication=Assert.IsType<IPFSRecordPublicationException>(evidence.InnerException);
+                        Assert.Same(cause,publication.InnerException);
+                        Assert.StartsWith("oasis-aes256gcm-gzip-v2:",await provider.IPFSClient.FileSystem.ReadAllTextAsync((Cid)publication.RecordCid));
+                    }
+                    else Assert.Same(cause,evidence.InnerException);
+                });
+        }
+
+        [Fact]
         public async Task SelectedGraphOptionsControlActualIndexedWrites()
         {
             await WithOwnedProvider(async provider => {
