@@ -9,6 +9,17 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests;
 [TestClass]
 public class Neo4jAvatarSnapshotTests
 {
+    [DataTestMethod]
+    [DataRow("malformed")] [DataRow("typed")] [DataRow("type-name")]
+    public void StoredSnapshotJsonErrorsAreTerminalIntegrityFailures(string kind)
+    {
+        var id=Guid.NewGuid();
+        var json=kind=="malformed" ? "not-json":kind=="typed" ? $"{{\"Id\":\"{id}\",\"Version\":\"not-an-integer\"}}"
+            :$"{{\"$type\":\"System.IO.FileInfo, System.Private.CoreLib\",\"Id\":\"{id}\"}}";
+        var error=Assert.ThrowsException<InvalidDataException>(()=>Provider.ReadAvatarSnapshot(json,id.ToString()));
+        Assert.IsInstanceOfType(error.InnerException,typeof(Newtonsoft.Json.JsonException));
+    }
+
     [TestMethod]
     public void PopulatedAvatarPreservesFieldsOutsideOldScalarProjectionWithoutMutatingSource()
     {

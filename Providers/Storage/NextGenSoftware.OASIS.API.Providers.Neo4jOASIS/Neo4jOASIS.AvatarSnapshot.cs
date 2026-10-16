@@ -61,7 +61,7 @@ public partial class Neo4jOASIS
     internal static Avatar ReadAvatarSnapshot(string json, string indexedId)
     {
         if (string.IsNullOrWhiteSpace(json)) throw new InvalidDataException("Neo4j avatar canonical snapshot is missing.");
-        var avatar = OasisJson.Deserialize<Avatar>(json);
+        var avatar = OasisJson.DeserializeStored<Avatar>(json);
         if (avatar == null || !Guid.TryParse(indexedId, out var id) || id == Guid.Empty || avatar.Id != id)
             throw new InvalidDataException("Neo4j avatar snapshot identity differs from its index.");
         return avatar;
