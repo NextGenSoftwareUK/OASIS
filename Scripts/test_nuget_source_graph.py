@@ -5,6 +5,14 @@ from nuget_source_graph import Graph, compare, resolve_baseline, load_receipts, 
 
 
 class SourceGraphTests(unittest.TestCase):
+    def test_selected_publisher_version_targets_are_not_treated_as_global_inputs(self):
+        item = dict(packageId="Component", previousVersion="2.0.6", root=str(Path.cwd()), current="new", project="X.csproj")
+        receipt = {("component", "2.0.6"): {"packagingProfile": {"releaseVersion": "2.0.6"}}}
+        with patch("nuget_source_graph.resolve_baseline", return_value="old"), \
+             patch("nuget_source_graph.compare", return_value=dict(changed=False, baselineFingerprint="same", sourceFingerprint="same", changedInputs=[])):
+            result = compare_publication(item, receipt)
+        self.assertTrue(result["changed"])
+        self.assertIn("publication:packagingProfile", result["changedInputs"])
     def test_standalone_receipt_requires_exact_catalog_identity(self):
         receipt = {"kind": "standalone", "ownerCommit": "a" * 40,
                    "ownerUrl": "https://github.com/owner/component", "dependencies": {}}
