@@ -56,6 +56,7 @@ public partial class AWSOASISIntegrationTests
             Assert.IsFalse((await sqlite.ActivateProviderAsync()).IsError);
             var id=Guid.NewGuid();var username="owned-stale-"+id.ToString("N");var email=username+"@example.invalid";
             Assert.IsFalse((await sqlite.SaveAvatarAsync(new Avatar {Id=id,Username=username,Email=email,IsActive=true,
+                ProviderWallets=new() {{Core.Enums.ProviderType.SolanaOASIS,new() {new Core.Objects.ProviderWallet {Id=Guid.NewGuid(),PublicKey=username,PrivateKey=username}}}},
                 VerificationToken=username,ResetToken=username,RefreshTokens=new() {new Core.Objects.RefreshToken {Token=username}},
                 AvatarType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User)})).IsError);
             Assert.IsFalse((await sqlite.SaveAvatarDetailAsync(new AvatarDetail {Id=id,Username=username,Email=email,IsActive=true,XP=999})).IsError);
@@ -82,9 +83,9 @@ public partial class AWSOASISIntegrationTests
                 if(detail) Missing(synchronous ? router.RouteRequest<IAvatarDetail>(request):await router.RouteRequestAsync<IAvatarDetail>(request));
                 else Missing(synchronous ? router.RouteRequest<IAvatar>(request):await router.RouteRequestAsync<IAvatar>(request));
             }
-            foreach(var operation in new[] {"LoadAvatarByVerificationToken","LoadAvatarByResetToken","LoadAvatarByRefreshToken"})
+            foreach(var operation in new[] {"LoadAvatarByVerificationToken","LoadAvatarByResetToken","LoadAvatarByRefreshToken","LoadAvatarByPublicKey","LoadAvatarByPrivateKey"})
             {
-                var request=new Core.StorageOperationRequest {Operation=operation,VerificationToken=username,ResetToken=username,RefreshToken=username,
+                var request=new Core.StorageOperationRequest {Operation=operation,VerificationToken=username,ResetToken=username,RefreshToken=username,PublicKey=username,PrivateKey=username,
                     PreferredProvider=Core.Enums.ProviderType.AWSOASIS};
                 Missing(synchronous ? router.RouteRequest<IAvatar>(request):await router.RouteRequestAsync<IAvatar>(request));
                 request.Version=1;
@@ -124,9 +125,9 @@ public partial class AWSOASISIntegrationTests
                     else Corrupt(synchronous ? router.RouteRequest<IAvatar>(selector):await router.RouteRequestAsync<IAvatar>(selector));
                 }
                 if(!detail)
-                foreach(var operation in new[] {"LoadAvatarByVerificationToken","LoadAvatarByResetToken","LoadAvatarByRefreshToken"})
+                foreach(var operation in new[] {"LoadAvatarByVerificationToken","LoadAvatarByResetToken","LoadAvatarByRefreshToken","LoadAvatarByPublicKey","LoadAvatarByPrivateKey"})
                 {
-                    var tokenRequest=new Core.StorageOperationRequest {Operation=operation,VerificationToken=username,ResetToken=username,RefreshToken=username,
+                    var tokenRequest=new Core.StorageOperationRequest {Operation=operation,VerificationToken=username,ResetToken=username,RefreshToken=username,PublicKey=username,PrivateKey=username,
                         PreferredProvider=Core.Enums.ProviderType.AWSOASIS};
                     Corrupt(synchronous ? router.RouteRequest<IAvatar>(tokenRequest):await router.RouteRequestAsync<IAvatar>(tokenRequest));
                 }
