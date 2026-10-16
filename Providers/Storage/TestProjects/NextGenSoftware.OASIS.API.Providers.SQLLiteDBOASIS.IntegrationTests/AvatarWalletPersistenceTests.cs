@@ -13,6 +13,56 @@ public partial class SQLLiteDBOASISIntegrationTests
 {
     [Theory]
     [InlineData(false)] [InlineData(true)]
+    public async Task ExistingAvatarSchemaGainsWalletColumnWithoutChangingProfile(bool synchronous)
+    {
+        var id=Guid.NewGuid();
+        using(var provider=new SQLLiteDBOASIS(TestConnectionString))
+        {
+            (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+            (await provider.SaveAvatarAsync(new Avatar {Id=id,Username="owned-upgrade",Email="upgrade@example.invalid",FirstName="retained",
+                IsActive=true,AvatarType=new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User),MetaData=new() {{"marker","retained"}}})).IsError.Should().BeFalse();
+        }
+        using(var control=new DataContext(TestConnectionString))
+            await control.Database.ExecuteSqlRawAsync("ALTER TABLE Avatar DROP COLUMN ProviderWalletsJson");
+        using(var provider=new SQLLiteDBOASIS(TestConnectionString))
+        {
+            var active=synchronous ? provider.ActivateProvider():await provider.ActivateProviderAsync();active.IsError.Should().BeFalse(active.Message);
+            var loaded=synchronous ? provider.LoadAvatar(id):await provider.LoadAvatarAsync(id);
+            loaded.IsError.Should().BeFalse(loaded.Message);loaded.Result.Username.Should().Be("owned-upgrade");
+            loaded.Result.Email.Should().Be("upgrade@example.invalid");loaded.Result.FirstName.Should().Be("retained");
+            loaded.Result.MetaData["marker"].ToString().Should().Be("retained");loaded.Result.ProviderWallets.Should().BeEmpty();
+            loaded.Result.ProviderWallets[ProviderType.SolanaOASIS]=new() {new ProviderWallet {Id=Guid.NewGuid(),PublicKey="owned-upgraded-key"}};
+            (synchronous ? provider.SaveAvatar(loaded.Result):await provider.SaveAvatarAsync(loaded.Result)).IsError.Should().BeFalse();
+            (synchronous ? provider.ActivateProvider():await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+            (await provider.LoadAvatarByPublicKeyAsync("owned-upgraded-key")).Result.Id.Should().Be(id);
+        }
+    }
+
+    [Fact]
+    public async Task WalletColumnUpgradeRollsBackWhenLaterSchemaValidationFails()
+    {
+        using(var provider=new SQLLiteDBOASIS(TestConnectionString))
+            (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        using(var control=new DataContext(TestConnectionString))
+        {
+            await control.Database.ExecuteSqlRawAsync("ALTER TABLE Avatar DROP COLUMN ProviderWalletsJson");
+            await control.Database.ExecuteSqlRawAsync("DROP TABLE HeartRateEntry");
+        }
+        using(var provider=new SQLLiteDBOASIS(TestConnectionString))
+        {
+            var active=await provider.ActivateProviderAsync();active.IsError.Should().BeTrue();provider.IsProviderActivated.Should().BeFalse();
+        }
+        using(var control=new DataContext(TestConnectionString))
+        {
+            await control.Database.OpenConnectionAsync();
+            using var command=control.Database.GetDbConnection().CreateCommand();
+            command.CommandText="SELECT count(*) FROM pragma_table_info('Avatar') WHERE name='ProviderWalletsJson'";
+            Convert.ToInt64(await command.ExecuteScalarAsync()).Should().Be(0);
+        }
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
     public async Task AvatarWalletsSurviveReopenAndEditAndCorruptionIsNotAbsence(bool synchronous)
     {
         var id=Guid.NewGuid();var walletId=Guid.NewGuid();
