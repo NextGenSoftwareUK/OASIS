@@ -19,6 +19,14 @@ for (const name of ['LegacyStorageProtocolFixture','UnsupportedStorageProtocolFi
   fs.writeFileSync(path.join(folder,name+'.json'),JSON.stringify({abi:fixture.abi,bytecode:'0x'+fixture.evm.bytecode.object}));
 }
 const contractRoot = path.join(root,'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EthereumOASIS/Contracts');
+const escrowOutput = JSON.parse(solc.compile(JSON.stringify({language:'Solidity',
+  sources:{'OASISTokenEscrow.sol':{content:fs.readFileSync(path.join(contractRoot,'OASISTokenEscrow.sol'),'utf8')}},
+  settings:{evmVersion:'paris',optimizer:{enabled:true,runs:200},outputSelection:{'*':{'*':['abi','evm.bytecode.object','evm.deployedBytecode.object']}}}})));
+const escrowErrors=(escrowOutput.errors||[]).filter(item=>item.severity==='error');
+if(escrowErrors.length)throw new Error(escrowErrors.map(item=>item.formattedMessage).join('\n'));
+const escrow=escrowOutput.contracts['OASISTokenEscrow.sol'].OASISTokenEscrow;
+fs.writeFileSync(path.join(folder,'token-escrow.json'),JSON.stringify({compiler:solc.version(),abi:escrow.abi,
+  bytecode:'0x'+escrow.evm.bytecode.object,runtimeBytecode:'0x'+escrow.evm.deployedBytecode.object}));
 const files = ['NextGenSoftwareOASIS.sol','Core/Entities/Avatar.sol','Core/Entities/AvatarDetail.sol','Core/Entities/Holon.sol'];
 const sources = Object.fromEntries(files.map(file => [file,{content:fs.readFileSync(path.join(contractRoot,file),'utf8')}]));
 const nativeOutput = JSON.parse(solc.compile(JSON.stringify({language:'Solidity',sources,settings:{evmVersion:'paris',
