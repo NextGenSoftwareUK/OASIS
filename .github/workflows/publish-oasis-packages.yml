@@ -2,8 +2,8 @@ name: Publish OASIS NuGet Packages (selected)
 
 # Light, manual publish of a chosen set of OASIS packages (the global release, global-release.yml, publishes everything).
 # The projects listed get release_version; every other OASIS project they depend on is pinned at base_version (what is
-# already on NuGet), via .github/release/PinOASISVersions.targets. Before anything is pushed, every dependency of every
-# package is checked to exist on nuget.org or in this batch (.github/release/verify-nupkg-dependencies.ps1), so a broken
+# already on NuGet), via .github/publishing/PinOASISVersions.targets. Before anything is pushed, every dependency of every
+# package is checked to exist on nuget.org or in this batch (.github/publishing/verify-nupkg-dependencies.ps1), so a broken
 # package (e.g. one depending on a version that was never published) can't go out.
 #
 # The default set fixes STAR's install chain: IPFSOASIS 2.0.4 depended on Ipfs.Http.Client >= 0.42 (not on NuGet), and
@@ -80,7 +80,7 @@ jobs:
         run: |
           $projects = $env:PROJECTS.Split(';') | ForEach-Object { $_.Trim() } | Where-Object { $_ }
           $names = ($projects | ForEach-Object { [IO.Path]::GetFileNameWithoutExtension($_) }) -join '%3B'
-          $targets = (Resolve-Path .github/release/PinOASISVersions.targets).Path
+          $targets = (Resolve-Path .github/publishing/PinOASISVersions.targets).Path
           New-Item -ItemType Directory -Force -Path ..\nupkgs | Out-Null
           $failed = 0
           foreach ($proj in $projects) {
@@ -96,7 +96,7 @@ jobs:
 
       - name: Verify every dependency resolves (nuget.org or this batch)
         shell: pwsh
-        run: ./OASIS/.github/release/verify-nupkg-dependencies.ps1 -Folder nupkgs
+        run: ./OASIS/.github/publishing/verify-nupkg-dependencies.ps1 -Folder nupkgs
 
       - name: Zip each package's assemblies (GitHub release assets)
         shell: pwsh
