@@ -61,7 +61,13 @@ public sealed class TronStorageBackend : IKeyValueBackend
                 }
             }
         }).ToArray();
-        var decoded = new FunctionCallDecoder().DecodeOutput("0x" + Convert.ToHexString(bytes), outputs);
+        List<ParameterOutput> decoded;
+        try { decoded = new FunctionCallDecoder().DecodeOutput("0x" + Convert.ToHexString(bytes), outputs); }
+        catch(Exception error) when(error is OverflowException || error is ArgumentException || error is IndexOutOfRangeException)
+        {
+            // Output types were validated above; these are malformed remote ABI values, not SDK transport failures.
+            throw new InvalidDataException("Storage query returned malformed ABI values.",error);
+        }
         foreach (var output in decoded)
         {
             if (output.Result is string text) StrictUtf8.GetByteCount(text);

@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 TRON decoder follow-up reused existing SDK/cache/build outputs. Baseline6pass/4fail compact report retained as tron-storage-decoder-before-current.trx; final focused10/10pass104ms. No node/runtime/environment started or installed, no downloads/clones/ledger resets/mutation replays/source/userdata/credential removal. Original pending transaction evidence remains protected; fixed reports retained.
+
 2026-10-16 chain storage response-boundary fix reused existing SDK/cache/build outputs only: Shared213/213pass1s, Sui/Cosmos/Hashgraph/TRON libraries build, focused TRON backend6/6pass526ms. No chain runtime started, no downloads/installs/clones/new environments or ledger/credential/source/userdata removal. Original pending journals preserved; fixed compact shared/TRON reports retained. C free78853861376during bytes is systemwide observation only, not attributed recovery.
 
 2026-10-16 Google credential-policy extension reused retained official Firestore1.22.0/Java runtime and existing fixed SDK/build/fixture/report directories. Native49/49pass30s. Existing finally requests exact synthetic avatar/detail hard-delete, normal local fixture teardown/owned emulator stop;18080–18083 confirmed closed. No new install/download/clone/environment/protected ledger reset/source/userdata/credential removal. C free78835347456after bytes is systemwide observation only. Fixed compact report retained; dependency manifest/seven Dockerfiles/parent gitlink check passes, not hosted/publish proof.

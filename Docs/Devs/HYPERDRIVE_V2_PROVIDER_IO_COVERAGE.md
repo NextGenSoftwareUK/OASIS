@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+TRON decoder follow-up: focused storage10/10pass104ms after reproducing overflowing dynamic offsets escaping as OverflowException. Narrow remote-decoder exception translation preserves original cause under terminal InvalidDataException; configured output type validation/network exceptions unchanged. Prior6-case boundary evidence superseded for this focused class only; no new live-node/V2/recovery evidence.
+
 Latest chain response-boundary delta: Sui/Cosmos/Hashgraph now use strict shared get/list response-shape owner, malformed shape/order/prefix/cursor is terminal InvalidDataException instead of generic InvalidOperationException. Shared213/213pass1s and three provider builds; no fresh native-chain evidence. TRON two explicit ABI integrity guards now terminal InvalidDataException; focused storage backend6/6pass526ms, library builds; other decoder error paths remain open. This supplements (does not complete) the chain rows below; pending outcomes untouched.
 
 Baseline parent `174397c70` / Core `ea61d9e`; latest retained reports were read directly, not inferred from prior chat or green source scans. This table overrides older status/“current”/PASS labels below. Counts are scoped and overlapping; do not sum them. None proves all relevant interfaces, options, retained history, durable recovery and hosted authenticated V2 orchestration. See `HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md` for immutable/hosted gates and exact protected-journal fingerprints.
