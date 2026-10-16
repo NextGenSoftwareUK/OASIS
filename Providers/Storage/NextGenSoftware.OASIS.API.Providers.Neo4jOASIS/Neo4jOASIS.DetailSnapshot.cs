@@ -18,7 +18,7 @@ public partial class Neo4jOASIS
     {
         if (!node.Properties.TryGetValue("SnapshotJson", out var json) || json is not string snapshot || string.IsNullOrWhiteSpace(snapshot))
             throw new InvalidDataException("Neo4j avatar-detail canonical snapshot is missing.");
-        var detail = OasisJson.Deserialize<AvatarDetail>(snapshot);
+        var detail = OasisJson.DeserializeStored<AvatarDetail>(snapshot);
         if (detail == null || !Guid.TryParse(node["Id"].As<string>(), out var id) || id == Guid.Empty || detail.Id != id)
             throw new InvalidDataException("Neo4j avatar-detail snapshot identity differs from its index.");
         return detail;
