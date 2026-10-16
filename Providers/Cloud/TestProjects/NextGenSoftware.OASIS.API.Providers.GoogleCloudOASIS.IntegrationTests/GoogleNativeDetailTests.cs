@@ -7,6 +7,7 @@ using NextGenSoftware.OASIS.Common;
 namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.IntegrationTests;
 
 [TestClass]
+[DoNotParallelize]
 public class GoogleNativeDetailTests
 {
     [TestMethod]

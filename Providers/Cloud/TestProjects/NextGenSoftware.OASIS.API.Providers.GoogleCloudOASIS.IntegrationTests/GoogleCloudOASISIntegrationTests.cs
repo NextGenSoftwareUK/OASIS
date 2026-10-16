@@ -5,6 +5,7 @@ using NextGenSoftware.OASIS.API.Core.Holons;
 namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.IntegrationTests;
 
 [TestClass]
+[DoNotParallelize]
 public sealed class GoogleCloudOASISIntegrationTests
 {
     private GoogleCloudOASIS _provider = null!;
@@ -12,12 +13,10 @@ public sealed class GoogleCloudOASISIntegrationTests
     [TestInitialize]
     public async Task Setup()
     {
-        string emulatorHost = Environment.GetEnvironmentVariable("FIRESTORE_EMULATOR_HOST")
-            ?? throw new InvalidOperationException("FIRESTORE_EMULATOR_HOST must identify a running official Firestore emulator.");
-        Assert.IsFalse(string.IsNullOrWhiteSpace(emulatorHost));
+        Assert.AreEqual("127.0.0.1:18080",Environment.GetEnvironmentVariable("FIRESTORE_EMULATOR_HOST"),"Use the owned reusable Firestore runner.");
 
         _provider = new GoogleCloudOASIS(
-            projectId: Environment.GetEnvironmentVariable("GOOGLE_CLOUD_PROJECT") ?? "oasis-integration",
+            projectId: "oasis-google-native",
             enableStorage: false,
             enableFirestore: true,
             enableBigQuery: false);
@@ -85,7 +84,7 @@ public sealed class GoogleCloudOASISIntegrationTests
     [TestCleanup]
     public async Task Cleanup()
     {
-        if (_provider.IsProviderActivated)
+        if (_provider != null && _provider.IsProviderActivated)
             await _provider.DeActivateProviderAsync();
     }
 }
