@@ -137,12 +137,18 @@ public sealed class Web3CoreOASIS
     }
 
     internal Web3CoreOASIS ForNftTransaction(string privateKey, string contractAddress, string abi)
+        =>ForContractTransaction(privateKey,contractAddress,abi);
+
+    internal Web3CoreOASIS ForContractTransaction(string privateKey,string contractAddress,string abi)
     {
         var sdk = new Web3CoreOASIS(privateKey, _blockchainUrl, contractAddress, abi, _chainId, _mutationGate);
         if (HasNativePreparation)
-            throw new InvalidOperationException("NFT transaction target or signer differs from the admitted native preparation owner.");
+            throw new InvalidOperationException("Contract transaction target or signer differs from the admitted native preparation owner.");
         return sdk;
     }
+
+    internal Task<TransactionReceipt> MintErc20Async(string recipient,BigInteger amount)
+        =>SendAndWaitForReceiptAsync(_web3.Eth.GetContract(_abi,_contractAddress).GetFunction("mint"),recipient,amount);
 
     internal Task<TransactionReceipt> TransferErc721Async(string from, string to, BigInteger tokenId)
         => SendAndWaitForReceiptAsync(_web3.Eth.GetContract(_abi, _contractAddress).GetFunction("transferFrom"), from, to, tokenId);

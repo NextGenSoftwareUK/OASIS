@@ -428,77 +428,11 @@ public partial class Web3CoreOASISBaseProvider
 
     public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
     {
-        return MintTokenAsync(request).Result;
+        return MintTokenAsync(request).GetAwaiter().GetResult();
     }
 
-    public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
-    {
-        var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-        string errorMessage = "Error in MintTokenAsync method in Web3CoreOASIS. Reason: ";
-
-        try
-        {
-            if (!IsProviderActivated || _web3Client == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            if (request == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "Mint request is required");
-                return result;
-            }
-
-            // Get token address from contract address or use default
-            var tokenAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
-            
-            // Get private key from KeyManager using MintedByAvatarId
-            var keysResult = KeyManager.Instance.GetProviderPrivateKeysForAvatarById(request.MintedByAvatarId, ProviderType.Value);
-            if (keysResult.IsError || keysResult.Result == null || keysResult.Result.Count == 0)
-            {
-                OASISErrorHandling.HandleError(ref result, "Could not retrieve private key for avatar");
-                return result;
-            }
-
-            var senderAccount = new Account(keysResult.Result[0]);
-            var web3Client = new Web3(senderAccount, _hostURI);
-            var mintToAddress = senderAccount.Address; // Use sender address as default
-            var mintAmount = 1m; // Default amount
-
-            // ERC20 mint function ABI
-            var erc20Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"type\":\"function\"}]";
-            var erc20Contract = web3Client.Eth.GetContract(erc20Abi, tokenAddress);
-            var decimalsFunction = erc20Contract.GetFunction("decimals");
-            var decimals = await decimalsFunction.CallAsync<byte>();
-            var multiplier = BigInteger.Pow(10, decimals);
-            var amountBigInt = new BigInteger(mintAmount * (decimal)multiplier);
-            var mintFunction = erc20Contract.GetFunction("mint");
-            var receipt = await mintFunction.SendTransactionAndWaitForReceiptAsync(
-                senderAccount.Address, 
-                new HexBigInteger(600000), 
-                null, 
-                null, 
-                mintToAddress, 
-                amountBigInt);
-
-            if (receipt.HasErrors() == true)
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "ERC-20 mint failed."));
-                return result;
-            }
-
-            result.Result.TransactionResult = receipt.TransactionHash;
-            result.IsError = false;
-            result.Message = "Token minted successfully.";
-            TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-        return result;
-    }
+    public Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
+        =>MintExplicitErc20Async(request);
 
     public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
     {
