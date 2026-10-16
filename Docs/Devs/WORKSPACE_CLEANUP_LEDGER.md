@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 Azure avatar read flags: retained Azurite/cache/fixed report reused,56/56nativepass15s and15/15unitpass. Added exact synthetic avatar inside existing per-test owned-container lifecycle; container cleanup/owned Node shutdown unchanged. No install/download/clone/new environment or unrelated data deletion. Source-only acknowledgement fix, no migration or broad cleanup.
+
 2026-10-16 Google avatar-key/version correction: same checkout/cache/pinned Firestore/fixed report reused;39/39unit and43/43nativepass29s. Existing native fixture cleanup/owned Java shutdown retained. No install/download/clone/duplicate environment or broad deletion; replaced obsolete source query is Git-recoverable, not data migration/deletion.
 
 2026-10-16 Google V2 delete matrix:43/43nativepass32s using same Firestore runtime/cache/fixed report and GoogleRoutingFiles/tombstone-routing.db fixture. Exact acknowledged native synthetic paths cleaned after independent state assertions; SQLite family removed only after full verification/deactivation (otherwise retained/refused overwrite). Runner stopped owned Java/released lease. No install/download/clone/new environment or unknown-ledger cleanup. Free C observed85,069,701,120bytes during run; no historical-space reclamation claim.
