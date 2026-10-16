@@ -2,6 +2,8 @@
 
 ## Current acceptance summary
 
+2026-10-16 21:25 UTC: Exact merged-master CI38963926133 SUCCESS at6b44df81cbd4ea0fd26dea6944f3c0e3cd26f2de. Dispatched full global workflow again on repaired master with publish=false, full first-party NuGet packing (not plan-only), Automatic versions, OASIS/STAR, Native/MCP, standalone Edge, both OGEngine profiles and Edge Unity; optional components none. Await actual integrated result. No registry/GitHub publication or live deployment approval authorized by this proof run.
+
 2026-10-16 20:40 UTC: PR490 exact3951510fa6e69a8df84d5e1653001f17f163646a completed all applicable checks successfully, including coverage; normally merged with head matching and no admin/force bypass. Repair scope is standalone publication receipt/source graph/tests, producer evidence and status documentation; no runtime dependency rollback. Next verify exact merged-master CI, then dispatch the full global workflow with publish=false once. Planner-only success is not substituted for full integrated builds.
 
 2026-10-16 20:10 UTC: **Hosted planner-only38958437922 SUCCESS** for the standalone receipt repair, with no packing/publication and all deliberately unselected component jobs skipped. This proves registry/provenance planning, not integrated builds. Requested standard trusted-master promotion to carry the tested planner/source-graph repair through normal parent PR/checks; PR489 remains already merged. Full nonpublishing global master run must follow checked repair promotion.
