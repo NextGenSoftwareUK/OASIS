@@ -10,7 +10,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS;
 
 internal static class Web3SignedPreparation
 {
-    internal static void Verify(byte[] signed,string hash,BigInteger chain,string sender,string contract,byte[] data)
+    internal static void Verify(byte[] signed,string hash,BigInteger chain,string sender,string contract,byte[] data,BigInteger? expectedValue=null)
     {
         if(signed==null || signed.Length==0 || chain<=0) throw new InvalidDataException("Original signed EVM bytes and positive chain identity required.");
         var transaction=TransactionFactory.CreateTransaction(signed);
@@ -32,7 +32,7 @@ internal static class Web3SignedPreparation
                 target=dynamicFee.ReceiverAddress.HexToByteArray();callData=dynamicFee.Data.HexToByteArray();break;
             default: throw new InvalidDataException("Prepared EVM transaction type requires an explicit verified decoder.");
         }
-        if(actualChain!=chain || value!=BigInteger.Zero || !CryptographicOperations.FixedTimeEquals(target,contract.HexToByteArray())
+        if(actualChain!=chain || value!=(expectedValue??BigInteger.Zero) || !CryptographicOperations.FixedTimeEquals(target,contract.HexToByteArray())
             || !CryptographicOperations.FixedTimeEquals(callData,data))
             throw new InvalidDataException("Signed EVM preparation chain, contract, value or calldata differs from admitted mutation.");
     }
