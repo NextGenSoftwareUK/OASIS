@@ -293,6 +293,11 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         private static async Task<T?> ReadUniqueIdentityAsync<T>(Func<ScanRequest, Task<ScanResponse>> read, string tableName, string keyName, string keyValue) where T:class,IHolonBase
         {
             if(string.IsNullOrWhiteSpace(keyValue)) throw new ArgumentException("Avatar selector must not be blank.",nameof(keyValue));
+            return await ReadUniqueIdentityAsync<T>(read,tableName,record=>string.Equals(CanonicalIdentityValue(record,keyName),keyValue,StringComparison.Ordinal));
+        }
+
+        private static async Task<T?> ReadUniqueIdentityAsync<T>(Func<ScanRequest, Task<ScanResponse>> read,string tableName,Func<T,bool> matches) where T:class,IHolonBase
+        {
             var request = new ScanRequest
             {
                 TableName = tableName,
@@ -306,7 +311,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 {
                     var avatar=ReadStoredIdentity<T>(item);
                     if(avatar.IsDeleted) continue;
-                    if(!string.Equals(CanonicalIdentityValue(avatar,keyName),keyValue,StringComparison.Ordinal)) continue;
+                    if(!matches(avatar)) continue;
                     if(match!=null) throw new StorageIdentityAmbiguousException();
                     match=avatar;
                 }
@@ -336,6 +341,48 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         }
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string email, int version = 0) => LoadAvatarByEmailAsync(email, version).Result;
+
+        private async Task<OASISResult<IAvatar>> LoadAvatarByTokenAsync(string token,Func<Avatar,bool> matches,int version)
+        {
+            var result=new OASISResult<IAvatar>();
+            try
+            {
+                ValidateRecordVersion(version);
+                if(string.IsNullOrWhiteSpace(token)) throw new ArgumentException("A nonempty avatar token is required.",nameof(token));
+                var avatar=await ReadUniqueIdentityAsync<Avatar>(request=>_client.ScanAsync(request),"OasisAvatars",matches);
+                if(avatar==null)
+                {
+                    OASISErrorHandling.HandleError(ref result,"DynamoDBOASIS: Avatar token was not found.");
+                    result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
+                    return result;
+                }
+                result.Result=avatar;result.IsLoaded=true;
+            }
+            catch(StorageIdentityAmbiguousException ex)
+            {
+                result.Exception=ex;OASISErrorHandling.HandleError(ref result,ex.Message);
+                result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
+            }
+            catch(Exception ex)
+            {
+                result.Exception=ex;OASISErrorHandling.HandleError(ref result,"DynamoDBOASIS: Avatar token lookup failed.");
+                if(ex is ArgumentException || ex is NotSupportedException) result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
+            }
+            return result;
+        }
+
+        public override Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string token,int version=0)
+            => LoadAvatarByTokenAsync(token,avatar=>string.Equals(avatar.VerificationToken,token,StringComparison.Ordinal),version);
+        public override OASISResult<IAvatar> LoadAvatarByVerificationToken(string token,int version=0)
+            => LoadAvatarByVerificationTokenAsync(token,version).GetAwaiter().GetResult();
+        public override Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string token,int version=0)
+            => LoadAvatarByTokenAsync(token,avatar=>string.Equals(avatar.ResetToken,token,StringComparison.Ordinal),version);
+        public override OASISResult<IAvatar> LoadAvatarByResetToken(string token,int version=0)
+            => LoadAvatarByResetTokenAsync(token,version).GetAwaiter().GetResult();
+        public override Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string token,int version=0)
+            => LoadAvatarByTokenAsync(token,avatar=>avatar.RefreshTokens?.Any(value=>value!=null && string.Equals(value.Token,token,StringComparison.Ordinal))==true,version);
+        public override OASISResult<IAvatar> LoadAvatarByRefreshToken(string token,int version=0)
+            => LoadAvatarByRefreshTokenAsync(token,version).GetAwaiter().GetResult();
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string pk, int version = 0) { if (Guid.TryParse(pk, out Guid id)) return await LoadAvatarAsync(id, version); var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, $"DynamoDBOASIS: Invalid GUID '{pk}'."); return r; }
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string pk, int version = 0) => LoadAvatarByProviderKeyAsync(pk, version).Result;
 

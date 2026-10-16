@@ -56,6 +56,7 @@ public partial class AWSOASISIntegrationTests
             Assert.IsFalse((await sqlite.ActivateProviderAsync()).IsError);
             var id=Guid.NewGuid();var username="owned-stale-"+id.ToString("N");var email=username+"@example.invalid";
             Assert.IsFalse((await sqlite.SaveAvatarAsync(new Avatar {Id=id,Username=username,Email=email,IsActive=true,
+                VerificationToken=username,ResetToken=username,RefreshTokens=new() {new Core.Objects.RefreshToken {Token=username}},
                 AvatarType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User)})).IsError);
             Assert.IsFalse((await sqlite.SaveAvatarDetailAsync(new AvatarDetail {Id=id,Username=username,Email=email,IsActive=true,XP=999})).IsError);
             Assert.AreEqual(id,(await sqlite.LoadAvatarByUsernameAsync(username)).Result.Id);
@@ -80,6 +81,17 @@ public partial class AWSOASISIntegrationTests
                     Username=username,Email=email,PreferredProvider=Core.Enums.ProviderType.AWSOASIS};
                 if(detail) Missing(synchronous ? router.RouteRequest<IAvatarDetail>(request):await router.RouteRequestAsync<IAvatarDetail>(request));
                 else Missing(synchronous ? router.RouteRequest<IAvatar>(request):await router.RouteRequestAsync<IAvatar>(request));
+            }
+            foreach(var operation in new[] {"LoadAvatarByVerificationToken","LoadAvatarByResetToken","LoadAvatarByRefreshToken"})
+            {
+                var request=new Core.StorageOperationRequest {Operation=operation,VerificationToken=username,ResetToken=username,RefreshToken=username,
+                    PreferredProvider=Core.Enums.ProviderType.AWSOASIS};
+                Missing(synchronous ? router.RouteRequest<IAvatar>(request):await router.RouteRequestAsync<IAvatar>(request));
+                request.Version=1;
+                var invalid=synchronous ? router.RouteRequest<IAvatar>(request):await router.RouteRequestAsync<IAvatar>(request);
+                Assert.IsTrue(invalid.IsError);Assert.IsNull(invalid.Result);
+                Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",invalid.ErrorCode);
+                Assert.IsInstanceOfType(invalid.Exception,typeof(NotSupportedException));
             }
             Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
             var other=Guid.NewGuid();
@@ -110,6 +122,13 @@ public partial class AWSOASISIntegrationTests
                         Username=username,Email=email,PreferredProvider=Core.Enums.ProviderType.AWSOASIS};
                     if(detail) Corrupt(synchronous ? router.RouteRequest<IAvatarDetail>(selector):await router.RouteRequestAsync<IAvatarDetail>(selector));
                     else Corrupt(synchronous ? router.RouteRequest<IAvatar>(selector):await router.RouteRequestAsync<IAvatar>(selector));
+                }
+                if(!detail)
+                foreach(var operation in new[] {"LoadAvatarByVerificationToken","LoadAvatarByResetToken","LoadAvatarByRefreshToken"})
+                {
+                    var tokenRequest=new Core.StorageOperationRequest {Operation=operation,VerificationToken=username,ResetToken=username,RefreshToken=username,
+                        PreferredProvider=Core.Enums.ProviderType.AWSOASIS};
+                    Corrupt(synchronous ? router.RouteRequest<IAvatar>(tokenRequest):await router.RouteRequestAsync<IAvatar>(tokenRequest));
                 }
                 await Client.DeleteItemAsync(new Amazon.DynamoDBv2.Model.DeleteItemRequest {TableName=table,Key=Key(id)});
             }
