@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 typed graph-write acceptance reused existing Core/SQLite/LocalFile/fixed lease/output; no downloads/installs/runtime/new environments. Core526/526unitpass; expanded targeted80pass/4fail of84; selected4/4fail recheck independently identifies IHolon JSON-instantiation error. Compact typed-write-graph-open.trx retained. Existing synthetic fixed filesystem/SQLite fixture cleanup reused; no uncertain chain operations or pending data touched. Core commit stages only request/router; unrelated subscription changes excluded. Explicit red release gate retained, no merge/deploy.
+
 2026-10-16 typed graph read validation reused existing Core/SQLite/cached outputs/fixed test lease/reports. Producer0errors/131warnings;targeted78/78pass7s,Core526/526pass2s. No restore/download/install/runtime/environment creation or unknown fixture changes. Existing owned-data cleanup reused; concurrent subscription source excluded from Core commit.
 
 2026-10-16 typed version verification reused existing Core/SQLite/cache/fixed routing and Core reports, no restores/downloads/installs/runtimes/environments. Core build0errors/131warnings;targeted74/74pass7s,full Core526/526pass1s. Existing lease/owned fixture cleanup reused; no pending chain/CosmosDB/user data touched. Core commit stages only two request classes/router, excludes concurrent subscription files.
