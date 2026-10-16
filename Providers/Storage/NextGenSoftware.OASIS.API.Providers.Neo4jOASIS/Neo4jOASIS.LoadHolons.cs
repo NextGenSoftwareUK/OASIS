@@ -212,32 +212,9 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     return response;
                 }
 
-                // Build WHERE clause for metadata matching
-                var whereClauses = new List<string>();
-                foreach (var kvp in metaKeyValuePairs)
-                {
-                    if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All)
-                    {
-                        whereClauses.Add($"h.MetaData.`{kvp.Key}` = $metaValue_{kvp.Key}");
-                    }
-                    else
-                    {
-                        whereClauses.Add($"h.MetaData.`{kvp.Key}` CONTAINS $metaValue_{kvp.Key}");
-                    }
-                }
-
-                var typeFilter = type == HolonType.All ? "" : " AND h.HolonType = $holonType";
-                var query = $"MATCH (h:Holon) WHERE {string.Join(" AND ", whereClauses)}{typeFilter} RETURN h";
-                
-                var parameters = new Dictionary<string, object>();
-                foreach (var kvp in metaKeyValuePairs)
-                {
-                    parameters[$"metaValue_{kvp.Key}"] = kvp.Value;
-                }
-                if (type != HolonType.All)
-                {
-                    parameters["holonType"] = type.ToString();
-                }
+                var planned = MetadataLookupQuery(metaKeyValuePairs, metaKeyValuePairMatchMode, type);
+                var query = planned.Query;
+                var parameters = planned.Parameters;
                 
                 using (var session = _driver.AsyncSession())
                 {
