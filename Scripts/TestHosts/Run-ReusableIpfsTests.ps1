@@ -57,7 +57,7 @@ try {
     } while(!$ready -and [DateTime]::UtcNow -lt $deadline)
     if(!$ready){throw "Pinned offline daemon readiness failed: $lastObservation"}
     $started=[DateTime]::UtcNow
-    & dotnet test $project --no-build --no-restore --filter FullyQualifiedName~IPFSNativeStorageTests --logger 'trx;LogFileName=ipfs-native-current.trx' --results-directory $work -v:q
+    & dotnet test $project --no-build --no-restore --filter Category=NativeIPFS --logger 'trx;LogFileName=ipfs-native-current.trx' --results-directory $work -v:q
     if($LASTEXITCODE){throw 'Native IPFS storage verification failed.'}
     $collected=@(& $binary repo gc --quiet)
     if($LASTEXITCODE){throw 'Owned repository garbage collection failed; inspect retained content.'}
@@ -66,7 +66,7 @@ try {
     if($report.LastWriteTimeUtc -lt $started){throw 'Native report stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0){throw 'Expected one real passing case, no skips.'}
+    if([int]$counts.total -ne 4 -or [int]$counts.passed -ne 4 -or [int]$counts.notExecuted -ne 0){throw 'Expected four real passing cases, no skips.'}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
     try {

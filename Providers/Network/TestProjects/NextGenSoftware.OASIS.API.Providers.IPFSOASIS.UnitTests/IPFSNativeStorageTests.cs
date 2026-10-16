@@ -20,6 +20,8 @@ using NextGenSoftware.OASIS.API.Core.Objects.Search;
 
 namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests;
 
+[Collection("Owned IPFS")]
+[Trait("Category","NativeIPFS")]
 public class IPFSNativeStorageTests
 {
     [Fact]
