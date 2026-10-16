@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-16 Core1f625b1 exhausted-failover cause preservation: sync/async automatic and explicit async entrypoints keep zero/single/multiple native causes (null/original/AggregateException in order). Nine controlled tests red6/green3 before, allgreen after; full Core633pass2s. Real SQLite/LocalFile routing90pass11s regression, no skips. Exhausted code/diagnostics/order and terminal unknown-write rules unchanged. This closes exception retention only, NOT all-provider failover or restart/hosted certification.
+
 2026-10-16 Core96ba97f preserves async default-wallet storage/identity lookup Exception/ErrorCode through ID/username/email wrappers. Five new controlled single-provider boundary cases, full Core624/624pass2s. Failover disabled only in these boundary tests; initial622pass2fail revealed independent exhausted-failover exception loss. Native/hosted and exhausted aggregate-cause routing remain open, not certified by wallet tests; no legacy expansion.
 
 2026-10-16 Core1b2bce1 default-wallet boundary: ID/username/email reject multiple default flags before decryption, preserving encrypted records/flags and returning no wallet. Three red-before cases now pass; full Core619/619pass2s. Single/missing-default semantics retained. Ethereum/shared EVM selectors consume this existing manager boundary. This is controlled storage-fixture manager coverage, not live hosted key admission or atomic default-write proof.
