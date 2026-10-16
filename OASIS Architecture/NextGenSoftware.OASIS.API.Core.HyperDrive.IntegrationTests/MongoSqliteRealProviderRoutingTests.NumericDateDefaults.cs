@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 
 public sealed partial class MongoSqliteRealProviderRoutingTests
 {
-    private static async Task VerifyMongoNumericDateDefaultsAsync(MongoDBOASIS mongo,bool synchronous)
+    private static async Task VerifyMongoNumericDateDefaultsAsync(MongoDBOASIS mongo,NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS sqlite,bool synchronous)
     {
         var created=new DateTime(2020,1,2,0,0,0,DateTimeKind.Utc);var modified=created.AddYears(1);
         var park=new Holon {Id=Guid.NewGuid(),Version=7,Name="owned numeric park",HolonType=HolonType.Park,CreatedDate=created,ModifiedDate=modified};
@@ -74,6 +74,37 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             var empty=synchronous ? mongo.Search(new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=null!})
                 :await mongo.SearchAsync(new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=null!});
             empty.IsError.Should().BeFalse(empty.Exception?.ToString() ?? empty.Message);empty.Result.NumberOfResults.Should().Be(0);
+            (await sqlite.ActivateProviderAsync()).IsError.Should().BeFalse();
+            foreach(var row in new[] {park,quest}) (await sqlite.SaveHolonAsync(row,saveChildren:false)).IsError.Should().BeFalse();
+            (await sqlite.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+            (await sqlite.SaveAvatarDetailAsync(new AvatarDetail {Id=avatar.Id,IsActive=true})).IsError.Should().BeFalse();
+            var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {
+                HyperDriveMode=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2,StorageProviders=new(),SubscriptionConfig=new() {PlanType="Gold"}}};
+            var manager=new Managers.ProviderManager(null,dna) {IsAutoLoadBalanceEnabled=true,IsAutoFailOverEnabled=false,IsAutoReplicationEnabled=false};
+            manager.RegisterProvider(mongo);manager.RegisterProvider(sqlite);
+            var types=new[] {ProviderType.MongoDBOASIS,ProviderType.SQLLiteDBOASIS};
+            manager.SetAndReplaceAutoLoadBalanceListForProviders(types.Select(type=>new EnumValue<ProviderType>(type))).IsError.Should().BeFalse();
+            var router=new Managers.OASISHyperDrive.OASISHyperDrive(manager);
+            foreach(var date in new[] {false,true})
+            {
+                ISearchGroupBase group=date ? new SearchDateGroup {Date=created,DateOperator=SearchOperatorType.EqualTo}:
+                    new SearchNumberGroup {Number=7,NumberOperator=SearchOperatorType.EqualTo};
+                group.SearchAvatars=true;group.SearchHolons=true;group.HolonType=HolonType.All;
+                var query=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new() {group}};
+                var before=types.Select(type=>manager.PerformanceMonitor.GetMetrics(type)?.TotalRequests??0).ToArray();
+                for(var index=0;index<2;index++)
+                {
+                    var request=new StorageOperationRequest {Operation="Search",SearchParams=query,LoadChildren=false};
+                    var result=synchronous ? router.RouteRequest<NextGenSoftware.OASIS.API.Core.Interfaces.Search.ISearchResults>(request,LoadBalancingStrategy.RoundRobin):
+                        await router.RouteRequestAsync<NextGenSoftware.OASIS.API.Core.Interfaces.Search.ISearchResults>(request,LoadBalancingStrategy.RoundRobin);
+                    result.IsError.Should().BeFalse(result.Exception?.ToString() ?? result.Message);
+                    result.Result.SearchResultHolons.Select(row=>row.Id).Should().BeEquivalentTo(ids);
+                    result.Result.SearchResultAvatars.Select(row=>row.Id).Should().BeEquivalentTo(new[] {avatar.Id});
+                }
+                for(var index=0;index<2;index++) manager.PerformanceMonitor.GetMetrics(types[index]).TotalRequests.Should().Be(before[index]+1);
+            }
+            (await sqlite.DeleteAvatarAsync(avatar.Id,false)).IsError.Should().BeFalse();
+            foreach(var id in ids) (await sqlite.DeleteHolonAsync(id)).IsError.Should().BeFalse();
         }
         finally
         {
