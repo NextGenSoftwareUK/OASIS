@@ -71,7 +71,7 @@ public partial class Neo4jOASIS : IAvatarTombstoneStorageProvider
                 var node = found[0]["a"].As<Neo4j.Driver.INode>();
                 if (!node.Properties.TryGetValue("SnapshotJson", out var json)) throw new InvalidDataException("Neo4j avatar canonical snapshot is missing.");
                 var indexedId=ReadNativeIdentity(node).ToString();
-                var original = ReadAvatarSnapshot(json as string, indexedId);
+                var original = ReadAvatarNode(node);
                 if (supplied != null && original.IsDeleted && (original.DeletedDate != supplied.DeletedAtUtc || original.DeletedByAvatarId != supplied.DeletedByAvatarId))
                     throw new StorageLifecycleConflictException("Neo4j profile has a conflicting committed tombstone.");
                 var plan = PlanAvatarDelete(json as string, indexedId, softDelete, supplied?.DeletedAtUtc ?? DateTime.UtcNow);
