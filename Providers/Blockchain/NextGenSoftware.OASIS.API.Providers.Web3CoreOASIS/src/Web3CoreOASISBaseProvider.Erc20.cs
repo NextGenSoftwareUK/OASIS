@@ -31,6 +31,13 @@ public partial class Web3CoreOASISBaseProvider
     protected virtual OASISResult<List<string>> ResolveErc20MintSigningKeys(Guid avatarId)
         =>KeyManager.Instance.GetProviderPrivateKeysForAvatarById(avatarId,ProviderType.Value);
 
+    protected virtual async Task<OASISResult<string>> ResolveDefaultErc20MintWalletAsync(Guid avatarId)
+    {
+        var wallet=await WalletManager.Instance.GetAvatarDefaultWalletByIdAsync(avatarId,ProviderType.Value);
+        return new OASISResult<string>{Result=wallet.Result?.WalletAddress,IsError=wallet.IsError,
+            Message=wallet.Message,Exception=wallet.Exception,ErrorCode=wallet.ErrorCode};
+    }
+
     private async Task<OASISResult<ITransactionResponse>> MintExplicitErc20Async(IMintWeb3TokenRequest request)
     {
         var result=new OASISResult<ITransactionResponse>();
@@ -44,10 +51,10 @@ public partial class Web3CoreOASISBaseProvider
             if(!_expectedChainId.HasValue || _expectedChainId.Value<=0) throw new InvalidOperationException("ERC20 minting requires an explicit chain identity.");
             var keys=ResolveErc20MintSigningKeys(request.MintedByAvatarId);
             if(keys.IsError){OASISErrorHandling.HandleError(ref result,keys.Message,keys.Exception);result.ErrorCode=keys.ErrorCode;return result;}
-            if(keys.Result==null || keys.Result.Count==0 || keys.Result.Any(string.IsNullOrWhiteSpace)) throw new ArgumentException("An authorized minter key is required.");
-            var accounts=keys.Result.Select(key=>new Account(key,_expectedChainId)).GroupBy(account=>account.Address,StringComparer.OrdinalIgnoreCase).Select(group=>group.First()).ToList();
-            if(accounts.Count!=1) throw new InvalidOperationException("Shared ERC20 minting requires one unambiguous authorized account.");
-            return await ExecuteExplicitErc20Async(accounts[0],request.TokenAddress,request.ToWalletAddress,request.Amount,ExplicitTokenMutation.Mint);
+            var selected=await NextGenSoftware.OASIS.Providers.Shared.Evm.EvmMintAccountSelection.SelectAsync(
+                keys.Result,_expectedChainId.Value,()=>ResolveDefaultErc20MintWalletAsync(request.MintedByAvatarId));
+            if(selected.IsError){OASISErrorHandling.HandleError(ref result,selected.Message,selected.Exception);result.ErrorCode=selected.ErrorCode;return result;}
+            return await ExecuteExplicitErc20Async(selected.Result,request.TokenAddress,request.ToWalletAddress,request.Amount,ExplicitTokenMutation.Mint);
         }
         catch(Exception cause){OASISErrorHandling.HandleError(ref result,"Shared EVM mint preparation failed.",cause);if(cause is ArgumentException) result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";}
         return result;

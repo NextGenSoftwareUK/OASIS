@@ -8,6 +8,34 @@ namespace NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.UnitTests;
 public sealed class Web3Erc20MintGuardTests
 {
     [DataTestMethod]
+    [DataRow("missing")] [DataRow("unowned")] [DataRow("denied")] [DataRow("aliases")]
+    public async Task DefaultMintWalletMustMatchAnAuthorizedAccountBeforeActivation(string mode)
+    {
+        var provider=new SelectionProvider();
+        if(mode=="aliases") provider.Keys=new(){provider.Key,provider.Key[2..]};
+        provider.Default=mode=="denied" ? new(){IsError=true,Exception=provider.Cause,Message="owned default denial",ErrorCode="OWNED_DEFAULT_DENIED"}
+            :new(){Result=mode=="unowned" ? new Nethereum.Web3.Accounts.Account("0x"+new string('3',64)).Address:null!};
+        var result=await provider.MintTokenAsync(Request());
+        Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsFalse(result.IsSaved);
+        Assert.AreEqual(mode=="aliases" ? 1:0,provider.Activations);Assert.AreEqual(mode=="aliases" ? 0:1,provider.DefaultReads);
+        if(mode is "denied" or "aliases") Assert.AreSame(provider.Cause,result.Exception);
+        if(mode=="denied") Assert.AreEqual("OWNED_DEFAULT_DENIED",result.ErrorCode);
+        if(mode=="missing") Assert.IsInstanceOfType(result.Exception,typeof(InvalidOperationException));
+        if(mode=="unowned") Assert.IsInstanceOfType(result.Exception,typeof(UnauthorizedAccessException));
+    }
+
+    private sealed class SelectionProvider():Web3CoreOASISBaseProvider("http://127.0.0.1:1","0x"+new string('1',64),"0x"+new string('3',40),31337)
+    {
+        public readonly string Key="0x"+new string('1',64);
+        public List<string> Keys=new(){"0x"+new string('1',64),"0x"+new string('2',64)};
+        public OASISResult<string> Default=new();public int Activations,DefaultReads;
+        public readonly IOException Cause=new("owned default/activation refusal");
+        protected override OASISResult<List<string>> ResolveErc20MintSigningKeys(Guid avatarId)=>new(){Result=Keys};
+        protected override Task<OASISResult<string>> ResolveDefaultErc20MintWalletAsync(Guid avatarId){DefaultReads++;return Task.FromResult(Default);}
+        public override Task<OASISResult<bool>> ActivateProviderAsync(){Activations++;return Task.FromResult(new OASISResult<bool>{IsError=true,Exception=Cause,Message="owned activation refusal"});}
+    }
+
+    [DataTestMethod]
     [DataRow("wrong-sender")] [DataRow("conflicting-key")] [DataRow("zero-amount")]
     [DataRow("zero-recipient")] [DataRow("missing-key")] [DataRow("malformed-token")]
     public async Task InvalidTransferCannotSelectOperatorOrIgnoreExplicitSigner(string mode)
