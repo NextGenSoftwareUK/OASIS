@@ -85,6 +85,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests
             Assert.AreEqual(333, converted.Result.Karma);
         }
 
+        [TestMethod]
+        public void NativeCodeGenesis_WithoutGenerator_DoesNotAcknowledgeSuccessOrActivateStorage()
+        {
+            NextGenSoftware.OASIS.API.Core.Interfaces.IOASISSuperStar generator = _provider;
+            Assert.IsFalse(generator.NativeCodeGenesis(null!, null!, null!));
+            Assert.IsFalse(_provider.IsProviderActivated);
+        }
+
         [TestCleanup]
         public void Cleanup()
         {

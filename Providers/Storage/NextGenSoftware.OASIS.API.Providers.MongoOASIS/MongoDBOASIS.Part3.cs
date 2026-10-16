@@ -103,7 +103,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
         {
             // Mongo currently does not generate native code from STAR metadata.
-            return true;
+            return false;
         }
 
         OASISResult<IEnumerable<IAvatar>> IOASISNETProvider.GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
