@@ -143,79 +143,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             return GetTransactionsAsync(request).Result;
         }
 
-        public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
-        {
-            var result = new OASISResult<IList<IWalletTransaction>>();
-            try
+        public Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
+            =>NextGenSoftware.OASIS.Providers.Shared.Evm.EvmWalletHistory.ReadAsync(request,async ()=>
             {
-                if (request == null || !Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(request.WalletAddress))
-                    throw new ArgumentException("A valid Ethereum wallet address is required.", nameof(request));
-                var first = new BigInteger(request.FromBlock ?? 0);
-                if (request.ToBlock.HasValue && (request.ToBlock.Value < first || new BigInteger(request.ToBlock.Value) - first >= 1000))
-                    throw new ArgumentOutOfRangeException(nameof(request), "Choose an inclusive range of at most 1000 blocks.");
                 if (!IsProviderActivated || Web3Client == null)
                 {
                     var active = await ActivateProviderAsync();
-                    if (active.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, active.Message, active.Exception);
-                        result.ErrorCode = active.ErrorCode;
-                        return result;
-                    }
+                    if(active.IsError) return new OASISResult<Web3>{IsError=true,Message=active.Message,Exception=active.Exception,ErrorCode=active.ErrorCode};
                 }
-                var tip = (await Web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync()).Value;
-                var last = request.ToBlock.HasValue ? new BigInteger(request.ToBlock.Value) : tip;
-                if (first > last || last > tip || last - first >= 1000)
-                    throw new ArgumentOutOfRangeException(nameof(request), "Choose an available inclusive range of at most 1000 blocks using FromBlock and ToBlock.");
-                var transactions = new List<IWalletTransaction>();
-                string previousHash = null;
-                for (var height = first; height <= last; height++)
-                {
-                    var block = await Web3Client.Eth.Blocks.GetBlockWithTransactionsByNumber.SendRequestAsync(
-                        new Nethereum.RPC.Eth.DTOs.BlockParameter(new HexBigInteger(height)));
-                    if (block?.Number?.Value != height || string.IsNullOrWhiteSpace(block.BlockHash) || block.Transactions == null)
-                        throw new InvalidDataException("Ethereum returned an incomplete transaction-history block.");
-                    if (previousHash != null && !string.Equals(block.ParentHash, previousHash, StringComparison.OrdinalIgnoreCase))
-                        throw new InvalidDataException("Ethereum transaction-history range changed during the read.");
-                    foreach (var transaction in block.Transactions)
-                    {
-                        if (!string.Equals(transaction.From, request.WalletAddress, StringComparison.OrdinalIgnoreCase)
-                            && !string.Equals(transaction.To, request.WalletAddress, StringComparison.OrdinalIgnoreCase)) continue;
-                        var receipt = await Web3Client.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(transaction.TransactionHash);
-                        if (receipt?.Status == null || receipt.BlockNumber?.Value != height
-                            || !string.Equals(receipt.BlockHash, block.BlockHash, StringComparison.OrdinalIgnoreCase)
-                            || !string.Equals(receipt.TransactionHash, transaction.TransactionHash, StringComparison.OrdinalIgnoreCase))
-                            throw new InvalidDataException("Ethereum transaction-history receipt does not match its block.");
-                        transactions.Add(new NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response.WalletTransaction {
-                            NativeTransactionId = transaction.TransactionHash,
-                            FromWalletAddress = transaction.From, ToWalletAddress = transaction.To ?? receipt.ContractAddress,
-                            RawAmount = transaction.Value.Value.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                            AmountUnit = "wei", Amount = (double)Nethereum.Util.UnitConversion.Convert.FromWei(transaction.Value.Value),
-                            NativeOperation = "top-level transaction", NativeExecutionResult = receipt.Status.Value == 1 ? "succeeded" : "reverted",
-                            NativeError = receipt.Status.Value == 1 ? null : "EVM execution reverted; requested value was not applied.",
-                            CreatedDate = DateTimeOffset.FromUnixTimeSeconds((long)block.Timestamp.Value).UtcDateTime,
-                            TransactionType = string.Equals(transaction.From, request.WalletAddress, StringComparison.OrdinalIgnoreCase) ? TransactionType.Debit : TransactionType.Credit,
-                            TransactionCategory = TransactionCategory.Other, Description = "Mined top-level Ethereum transaction; excludes internal calls and token events."
-                        });
-                    }
-                    previousHash = block.BlockHash;
-                }
-                // Recheck the captured anchor so a reorganization cannot silently mix two histories.
-                var anchor = await Web3Client.Eth.Blocks.GetBlockWithTransactionsByNumber.SendRequestAsync(
-                    new Nethereum.RPC.Eth.DTOs.BlockParameter(new HexBigInteger(last)));
-                if (!string.Equals(anchor?.BlockHash, previousHash, StringComparison.OrdinalIgnoreCase))
-                    throw new InvalidDataException("Ethereum transaction-history anchor changed during the read.");
-                result.Result = transactions;
-                result.IsLoaded = true;
-                result.LoadedCount = transactions.Count;
-                result.Message = $"Top-level mined transactions in inclusive blocks {first}-{last}; excludes internal calls and token events.";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error getting transactions: {ex.Message}", ex);
-            }
-            return result;
-        }
+                return new OASISResult<Web3>{Result=Web3Client};
+            });
 
         public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
         {
