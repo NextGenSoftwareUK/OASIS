@@ -176,7 +176,9 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
             var avatar=new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=Guid.NewGuid(),Username="owned-user"};
             Dictionary<string,Amazon.DynamoDBv2.Model.AttributeValue> Row(bool deleted) => new() {
                 ["id"]=new() {S=avatar.Id.ToString()}, ["is_deleted"]=new() {BOOL=deleted},
-                ["data_json"]=new() {S=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(avatar)}
+                ["data_json"]=new() {S=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(
+                    new NextGenSoftware.OASIS.API.Core.Holons.Avatar {Id=avatar.Id,Username=avatar.Username,
+                        DeletedDate=deleted ? new DateTime(2026,10,16,0,0,0,DateTimeKind.Utc):DateTime.MinValue})}
             };
             int calls=0;
             Func<Amazon.DynamoDBv2.Model.ScanRequest,Task<Amazon.DynamoDBv2.Model.ScanResponse>> query=request=> {

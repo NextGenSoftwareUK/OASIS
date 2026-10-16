@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 AWS deletion projection tests:79/79nativepass14s,57/57unitpass359ms using retained runtime/cache/fixed reports. Exact synthetic SDK keys removed after unchanged payload/flag readback; owned Java stopped. No install/download/clone/new environment/user-record migration or broad deletion. Canonical tombstone correction is unit fixture source only, Git-recoverable.
+
 2026-10-16 AWS V2 projection matrix:71/71nativepass14s, same retained runtime/cache/fixed report/delete-routing.db fixture. Native exact acknowledged synthetic key removed after readback; SQLite family removed only after complete verified assertions/deactivation, otherwise retained. Owned Java stopped/lease released. No downloads/installs/clones/new environment/broad data cleanup. Free C observed84,693,442,560bytes during run.
 
 2026-10-16 AWS parent/type projection integrity:67/67nativepass14s and57/57unitpass with same retained DynamoDBLocal/cache/fixed reports. Exact synthetic item keys removed after canonical payload readback; owned Java shutdown and fixture cleanup retained. No download/install/clone/new environment or user-record migration/deletion. Free C observed84,703,264,768bytes during final run.

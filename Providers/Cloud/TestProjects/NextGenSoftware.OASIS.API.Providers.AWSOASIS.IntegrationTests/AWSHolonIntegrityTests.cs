@@ -10,6 +10,38 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests;
 public partial class AWSOASISIntegrationTests
 {
     [DataTestMethod]
+    [DataRow(false,false,false)] [DataRow(true,false,false)] [DataRow(false,true,false)] [DataRow(true,true,false)]
+    [DataRow(false,false,true)] [DataRow(true,false,true)] [DataRow(false,true,true)] [DataRow(true,true,true)]
+    public async Task NativeDeletionProjectionCannotHideOrResurrectRecords(bool synchronous,bool avatar,bool canonicalDeleted)
+    {
+        var id=Guid.NewGuid();var table=avatar ? "OasisAvatars":"OasisHolons";
+        var deleted=canonicalDeleted ? DateTime.UtcNow:DateTime.MinValue;
+        var json=avatar ? OasisJson.Serialize(new Avatar {Id=id,Username="owned-deletion-projection",DeletedDate=deleted,IsActive=true})
+            :OasisJson.Serialize(new Holon {Id=id,Name="owned-deletion-projection",DeletedDate=deleted,IsActive=true});
+        Assert.AreEqual(System.Net.HttpStatusCode.OK,(await Client.PutItemAsync(new PutItemRequest {TableName=table,Item=new() {
+            ["id"]=new() {S=id.ToString()},["username"]=new() {S="owned-deletion-projection"},["is_deleted"]=new() {BOOL=!canonicalDeleted},["data_json"]=new() {S=json}}})).HttpStatusCode);
+        try
+        {
+            void Corrupt<T>(OASISResult<T> r) {Assert.IsTrue(r.IsError);Assert.IsNull(r.Result);Assert.IsFalse(r.IsLoaded);Assert.IsInstanceOfType(r.Exception,typeof(InvalidDataException));}
+            if(avatar)
+            {
+                Corrupt(synchronous ? _provider.LoadAvatar(id):await _provider.LoadAvatarAsync(id));
+                Corrupt(synchronous ? _provider.LoadAllAvatars():await _provider.LoadAllAvatarsAsync());
+                Corrupt(synchronous ? _provider.LoadAvatarByUsername("owned-deletion-projection"):await _provider.LoadAvatarByUsernameAsync("owned-deletion-projection"));
+            }
+            else
+            {
+                Corrupt(synchronous ? _provider.LoadHolon(id,loadChildren:false):await _provider.LoadHolonAsync(id,loadChildren:false));
+                Corrupt(synchronous ? _provider.LoadAllHolons(loadChildren:false):await _provider.LoadAllHolonsAsync(loadChildren:false));
+                Corrupt(synchronous ? _provider.LoadHolonsForParent(Guid.NewGuid(),loadChildren:false):await _provider.LoadHolonsForParentAsync(Guid.NewGuid(),loadChildren:false));
+            }
+            var raw=(await Client.GetItemAsync(new GetItemRequest {TableName=table,Key=Key(id),ConsistentRead=true})).Item;
+            Assert.AreEqual(json,raw["data_json"].S);Assert.AreEqual(!canonicalDeleted,raw["is_deleted"].BOOL);
+        }
+        finally {await Client.DeleteItemAsync(new DeleteItemRequest {TableName=table,Key=Key(id)});}
+    }
+
+    [DataTestMethod]
     [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
     public async Task V2ProjectionCorruptionDoesNotReadStaleSecondary(bool synchronous,bool wrongType)
     {
