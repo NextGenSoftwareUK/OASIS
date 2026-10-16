@@ -71,7 +71,21 @@ public partial class Neo4jOASIS
     {
         if (!node.Properties.TryGetValue("SnapshotJson", out var json))
             throw new InvalidDataException("Neo4j avatar canonical snapshot is missing.");
-        return ReadAvatarSnapshot(json as string, ReadNativeIdentity(node).ToString());
+        var avatar=ReadAvatarSnapshot(json as string, ReadNativeIdentity(node).ToString());
+        ValidateNativeLookupProjection(node,"Username",avatar.Username);
+        ValidateNativeLookupProjection(node,"Email",avatar.Email);
+        return avatar;
+    }
+
+    private static void ValidateNativeLookupProjection(Neo4j.Driver.INode node,string field,string canonical)
+    {
+        if(!node.Properties.TryGetValue(field,out var value))
+        {
+            if(canonical==null) return; // Neo4j represents a null property by its absence.
+            throw new InvalidDataException("Neo4j native lookup projection is missing: "+field);
+        }
+        if(value is not string text || !string.Equals(text,canonical,StringComparison.Ordinal))
+            throw new InvalidDataException("Neo4j native lookup projection differs from its canonical record: "+field);
     }
 
     private static Guid ReadNativeIdentity(Neo4j.Driver.INode node)

@@ -43,25 +43,28 @@ public partial class Neo4jNativeAvatarTests
         {
             Assert.IsFalse((await neo.ActivateProviderAsync()).IsError);
             Assert.IsFalse((await backup.ActivateProviderAsync()).IsError);
-            if(label=="Avatar") Assert.IsFalse((await neo.SaveAvatarAsync(new Avatar {Id=id,Username="owned primary"})).IsError);
-            else if(label=="AvatarDetail") Assert.IsFalse((await neo.SaveAvatarDetailAsync(new AvatarDetail {Id=id,Username="owned primary",XP=7})).IsError);
+            if(label=="Avatar") Assert.IsFalse((await neo.SaveAvatarAsync(new Avatar {Id=id,Username="owned primary",Email="primary@example.invalid"})).IsError);
+            else if(label=="AvatarDetail") Assert.IsFalse((await neo.SaveAvatarDetailAsync(new AvatarDetail {Id=id,Username="owned primary",Email="primary@example.invalid",XP=7})).IsError);
             else Assert.IsFalse((await neo.SaveHolonAsync(new Holon {Id=id,Name="owned primary"},saveChildren:false)).IsError);
-            Assert.IsFalse((await backup.SaveAvatarAsync(new Avatar {Id=id,Username="stale avatar",AvatarType=new EnumValue<AvatarType>(AvatarType.User)})).IsError);
-            Assert.IsFalse((await backup.SaveAvatarDetailAsync(new AvatarDetail {Id=id,Username="stale detail",XP=41})).IsError);
+            Assert.IsFalse((await backup.SaveAvatarAsync(new Avatar {Id=id,Username="stale avatar",Email="stale@example.invalid",AvatarType=new EnumValue<AvatarType>(AvatarType.User)})).IsError);
+            Assert.IsFalse((await backup.SaveAvatarDetailAsync(new AvatarDetail {Id=id,Username="stale detail",Email="stale@example.invalid",XP=41})).IsError);
             Assert.IsFalse((await backup.SaveHolonAsync(new Holon {Id=id,Name="stale holon"},saveChildren:false)).IsError);
             var dna=new OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings()}};
             dna.OASIS.SubscriptionConfig.PlanType="Gold";
-            var manager=new ProviderManager(null,dna) {IsAutoFailOverEnabled=true};
+            var manager=new ProviderManager(null,dna) {IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=true};
             manager.RegisterProvider(neo);manager.RegisterProvider(backup);
             Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(new[] {new EnumValue<ProviderType>(ProviderType.Neo4jOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)}).IsError);
+            Assert.IsFalse(manager.SetAndReplaceAutoReplicationListForProviders(new[] {new EnumValue<ProviderType>(ProviderType.Neo4jOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)}).IsError);
             var router=new OASISHyperDrive(manager);
-            async Task Check<T>(string operation)
+            async Task Check<T>(string operation,string? selector=null)
             {
                 var request=new StorageOperationRequest {Operation=operation,HolonId=id,AvatarId=operation=="LoadAllHolons" ? Guid.Empty:id,LoadChildren=false,PreferredProvider=ProviderType.Neo4jOASIS};
+                request.Username=selector;request.Email=selector;request.SoftDelete=false;
                 if(operation=="Search") request.SearchParams=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new List<ISearchGroupBase> {
                     new SearchTextGroup {SearchQuery="owned",SearchAvatars=label=="Avatar",SearchHolons=label=="Holon",HolonType=HolonType.All}}};
                 var result=synchronous ? router.RouteRequest<T>(request):await router.RouteRequestAsync<T>(request);
-                Assert.IsTrue(result.IsError,result.Message);Assert.IsFalse(result.IsLoaded);Assert.IsNull(result.Result);
+                Assert.IsTrue(result.IsError,result.Message);Assert.IsFalse(result.IsLoaded);Assert.IsFalse(result.IsDeleted);Assert.IsFalse(result.IsSaved);
+                if(typeof(T)==typeof(bool)) Assert.AreEqual(false,(object)result.Result!);else Assert.IsNull(result.Result);
                 Assert.IsInstanceOfType(result.Exception,typeof(InvalidDataException));
                 if(!nativeIdentity) Assert.IsInstanceOfType(result.Exception.InnerException,typeof(Newtonsoft.Json.JsonException));
             }
@@ -80,6 +83,35 @@ public partial class Neo4jNativeAvatarTests
                 var retained=(await (await session.RunAsync("MATCH (n:"+label+" {ProviderKey:$key}) RETURN n.Id AS id,n.SnapshotJson AS snapshot",new {key=id.ToString()})).SingleAsync());
                 Assert.AreEqual(nativeIdentity ? originalSnapshot:corruption,retained["snapshot"]);
                 if(nativeIdentity) Assert.AreEqual(corruption,retained["id"]);
+            }
+            if(nativeIdentity && label!="Holon")
+            {
+                await (await session.RunAsync("MATCH (n:"+label+" {ProviderKey:$key}) SET n.Id=$key RETURN n.Id",new {key=id.ToString()})).ConsumeAsync();
+                foreach(var field in new[] {"Username","Email"})
+                {
+                    var original=field=="Username" ? "owned primary":"primary@example.invalid";
+                    var stale=field=="Email" ? "stale@example.invalid":label=="Avatar" ? "stale avatar":"stale detail";
+                    foreach(var corruption in new object?[] {null,42L,stale})
+                    {
+                        await (await session.RunAsync("MATCH (n:"+label+" {ProviderKey:$key}) SET n."+field+"=$corruption RETURN n.ProviderKey",new {key=id.ToString(),corruption})).ConsumeAsync();
+                        if(label=="Avatar") {await Check<IAvatar>("LoadAvatar");await Check<IEnumerable<IAvatar>>("LoadAllAvatars");}
+                        else {await Check<IAvatarDetail>("LoadAvatarDetail");await Check<IEnumerable<IAvatarDetail>>("LoadAllAvatarDetails");}
+                        if(corruption is string selector)
+                        {
+                            if(label=="Avatar")
+                            {
+                                await Check<IAvatar>(field=="Username" ? "LoadAvatarByUsername":"LoadAvatarByEmail",selector);
+                                await Check<bool>(field=="Username" ? "DeleteAvatarByUsername":"DeleteAvatarByEmail",selector);
+                            }
+                            else await Check<IAvatarDetail>(field=="Username" ? "LoadAvatarDetailByUsername":"LoadAvatarDetailByEmail",selector);
+                        }
+                        var retained=(await (await session.RunAsync("MATCH (n:"+label+" {ProviderKey:$key}) RETURN n."+field+" AS value,n.SnapshotJson AS snapshot",new {key=id.ToString()})).SingleAsync());
+                        Assert.AreEqual(corruption,retained["value"]);Assert.AreEqual(originalSnapshot,retained["snapshot"].As<string>());
+                    }
+                    await (await session.RunAsync("MATCH (n:"+label+" {ProviderKey:$key}) SET n."+field+"=$value RETURN n.ProviderKey",new {key=id.ToString(),value=original})).ConsumeAsync();
+                    if(label=="Avatar") Assert.IsFalse((await neo.LoadAvatarAsync(id)).IsError);
+                    else Assert.IsFalse((await neo.LoadAvatarDetailAsync(id)).IsError);
+                }
             }
             Assert.AreEqual(0L,manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
             Assert.AreEqual("stale avatar",(await backup.LoadAvatarAsync(id)).Result.Username);

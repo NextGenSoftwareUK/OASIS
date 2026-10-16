@@ -18,13 +18,32 @@ public class Neo4jNativeIdentityTests
                 :throw new InvalidOperationException("Unexpected node call: "+method.Name);
     }
 
-    private static object Read(string kind,Guid id,Dictionary<string,object> properties)
+    private static object Read(string kind,Guid id,Dictionary<string,object> properties,bool populated=false)
     {
         IHolonBase source=kind=="avatar" ? new Avatar {Id=id}:kind=="detail" ? new AvatarDetail {Id=id}:new Holon {Id=id};
+        if(populated && source is IAvatar avatar) {avatar.Username="current";avatar.Email="current@example.invalid";}
+        if(populated && source is IAvatarDetail detail) {detail.Username="current";detail.Email="current@example.invalid";}
         properties["SnapshotJson"]=OasisJson.Serialize(source);
         var node=DispatchProxy.Create<Neo4j.Driver.INode,NodeProbe>();((NodeProbe)node).Values=properties;
         var method=kind=="avatar" ? "ReadAvatarNode":kind=="detail" ? "ReadDetailNode":"ReadHolonNode";
         return typeof(Provider).GetMethod(method,BindingFlags.NonPublic|BindingFlags.Static)!.Invoke(null,new object[] {node})!;
+    }
+
+    [DataTestMethod]
+    [DataRow("avatar","Username")] [DataRow("avatar","Email")]
+    [DataRow("detail","Username")] [DataRow("detail","Email")]
+    public void NativeLookupProjectionMustMatchCanonicalValue(string kind,string field)
+    {
+        var id=Guid.NewGuid();
+        var valid=new Dictionary<string,object> {{"Id",id.ToString()},{"Username","current"},{"Email","current@example.invalid"}};
+        Assert.AreEqual(id,((IHolonBase)Read(kind,id,new(valid),true)).Id);
+        foreach(var corruption in new object?[] {null,42L,"stale lookup"})
+        {
+            var values=new Dictionary<string,object>(valid);
+            if(corruption==null) values.Remove(field);else values[field]=corruption;
+            var error=Assert.ThrowsException<TargetInvocationException>(()=>Read(kind,id,values,true));
+            Assert.IsInstanceOfType(error.InnerException,typeof(InvalidDataException));
+        }
     }
 
     [DataTestMethod]
