@@ -63,6 +63,15 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
         }
 
         [TestMethod]
+        public void NearbyUndefinedTypeFailsBeforeActivation()
+        {
+            var provider=new FailedActivationProvider();
+            var result=((IOASISNETProvider)provider).GetHolonsNearMe(0,0,100,(HolonType)int.MaxValue);
+            Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsFalse(result.IsLoaded);
+            Assert.IsInstanceOfType(result.Exception,typeof(System.ArgumentOutOfRangeException));Assert.AreEqual(0,provider.Activations);
+        }
+
+        [TestMethod]
         public async Task TombstoneCapabilityRejectsNullBeforeActivationAndPreservesFailure()
         {
             var provider=new FailedActivationProvider();

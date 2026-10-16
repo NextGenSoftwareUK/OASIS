@@ -40,7 +40,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             => ReadNearbyAsync(geoLat,geoLong,radiusInMeters,()=>LoadAllAvatarsAsync()).GetAwaiter().GetResult();
 
         OASISResult<IEnumerable<IHolon>> IOASISNETProvider.GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
-            => ReadNearbyAsync(geoLat,geoLong,radiusInMeters,()=>LoadAllHolonsAsync(Type,loadChildren:false)).GetAwaiter().GetResult();
+            => ReadNearbyAsync(geoLat,geoLong,radiusInMeters,()=>LoadAllHolonsAsync(HolonType.All,loadChildren:false),Type).GetAwaiter().GetResult();
 
         // Additional missing methods with full object mapping
         public async Task<OASISResult<IHolon>> LoadHolonAsync(string username, string password, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
