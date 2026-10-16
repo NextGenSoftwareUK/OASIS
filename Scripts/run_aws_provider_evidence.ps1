@@ -92,7 +92,7 @@ try {
         'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AWSOASIS/NextGenSoftware.OASIS.API.Providers.AWSOASIS.csproj',
         $testProject
     )) {
-        & dotnet build $project -c Release -f net10.0 --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
+        & dotnet build (Join-Path $root $project) -c Release -f net10.0 --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if ($LASTEXITCODE -ne 0) { throw "Cached producer/consumer build failed: $project. Restore missing dependencies once into the shared cache before retrying." }
     }
 
@@ -105,10 +105,13 @@ try {
     Wait-LoopbackPort $Port
 
     $env:DYNAMODB_SERVICE_URL = "http://127.0.0.1:$Port"
-    & dotnet test $testProject -c Release --no-build --no-restore `
+    $testsStarted=[DateTime]::UtcNow
+    & dotnet test (Join-Path $root $testProject) -c Release --no-build --no-restore `
         /m:2 /nr:false /p:UseSharedCompilation=false --logger 'trx;LogFileName=aws-provider.trx' --results-directory $artifacts -v:minimal
     if ($LASTEXITCODE -ne 0) { throw "AWSOASIS provider evidence failed with exit code $LASTEXITCODE." }
-    [xml]$report = Get-Content -LiteralPath (Join-Path $artifacts 'aws-provider.trx') -Raw
+    $reportFile=Get-Item -LiteralPath (Join-Path $artifacts 'aws-provider.trx') -ErrorAction Stop
+    if($reportFile.LastWriteTimeUtc -lt $testsStarted){throw 'AWS native report is stale; no verification claim permitted.'}
+    [xml]$report = Get-Content -LiteralPath $reportFile.FullName -Raw
     $counters = $report.TestRun.ResultSummary.Counters
     if ([int]$counters.total -ne 5 -or [int]$counters.passed -ne 5 -or [int]$counters.notExecuted -ne 0) {
         throw 'Expected exactly five passing native AWS tests without skips.'
