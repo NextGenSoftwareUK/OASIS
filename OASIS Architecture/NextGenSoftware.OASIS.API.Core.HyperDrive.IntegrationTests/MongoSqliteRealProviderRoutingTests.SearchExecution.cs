@@ -33,6 +33,35 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             result.Result.SearchResultHolons.Select(hit=>hit.Id).Should().Equal(matches ? new[] {root.Id}:Array.Empty<Guid>());
         }
 
+        (bool Children,bool Recursive,int Depth)[] options={(false,true,0),(true,false,0),(true,true,1),(true,true,2)};
+        foreach(var version in new[] {0,root.Version,root.Version-1})
+        foreach(var option in options)
+        {
+            var request=new StorageOperationRequest {Operation="Search",PreferredProvider=ProviderType.MongoDBOASIS,Version=version,
+                LoadChildren=option.Children,Recursive=option.Recursive,MaxChildDepth=option.Depth,
+                SearchParams=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new() {Text()}}};
+            var result=synchronous ? router.RouteRequest<ISearchResults>(request):await router.RouteRequestAsync<ISearchResults>(request);
+            result.IsError.Should().BeFalse(result.Exception?.ToString() ?? result.Message);result.IsLoaded.Should().BeTrue();
+            var exists=version==0 || version==root.Version;
+            result.Result.NumberOfResults.Should().Be(exists ? 1:0);
+            if(!exists) {result.Result.SearchResultHolons.Should().BeEmpty();continue;}
+            var selected=result.Result.SearchResultHolons.Should().ContainSingle().Which;
+            selected.Version.Should().Be(root.Version);
+            if(!option.Children) selected.Children.Should().BeEmpty();
+            else
+            {
+                var child=selected.Children.Should().ContainSingle().Which;
+                child.Name.Should().Be("embedded child");
+                if(!option.Recursive || option.Depth==1) child.Children.Should().BeEmpty();
+                else child.Children.Should().ContainSingle().Which.Name.Should().Be("embedded grandchild");
+            }
+        }
+        var invalid=new StorageOperationRequest {Operation="Search",PreferredProvider=ProviderType.MongoDBOASIS,
+            SearchParams=new SearchParams {SearchOnlyForCurrentAvatar=false,MetaKeyValuePairMatchMode=(MetaKeyValuePairMatchMode)999,SearchGroups=new() {Text()}}};
+        var rejected=synchronous ? router.RouteRequest<ISearchResults>(invalid):await router.RouteRequestAsync<ISearchResults>(invalid);
+        rejected.IsError.Should().BeTrue();rejected.Result.Should().BeNull();rejected.ErrorCode.Should().Be("HYPERDRIVE_PAYLOAD_INVALID");
+        rejected.Exception.Should().BeOfType<ArgumentOutOfRangeException>();
+
         // Observe caller-context captures without blocking or throwing from a continuation.
         var context=new RecordingSearchContext();
         var previous=SynchronizationContext.Current;
