@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-16 current native Azure Storage70/70pass23s and AWS DynamoDB-backed105/105pass16s,0skips. Retained official Azurite/DynamoDB Local + real Azure Blob/AWS DynamoDB SDKs, cached builds0errors. Tested V2 graph/lifecycle/nearby replication/selection/failover and integrity/unknown-outcome guards; controlled injection not physical cloud failure certification. No new install/download; owned daemons stopped/portsclosed. CloudIAM/hosted/full-service/full-interface/durable recovery gates remain OPEN; DynamoDB proof does not imply S3 or other AWS APIs implemented/tested.
+
 2026-10-16 Solana seeded native SOL transfer history: exact lamports/third destination index, canonical bincode seed length/UTF8/trailing owner validation. Installed SDK6.1 generic decoder uses wrong destination index; implementation avoids that incorrect output, fixtures use actual SDK builder.306offlinepass2s/build0errors2warnings; no native/fullV2 certification. Remaining SPL/history/native/hosted gaps in current release gates. Reused caches/environment, no download/install.
 
 2026-10-16 Solana public balance now initializes via existing activation lifecycle, preserves activation/SDK causes and codes. Four pre-fix failures corrected;301offlinepass2s/build0errors2warnings. Not live/full V2 wallet proof. SDK6.1 token history model lacks token owner; historical owner identity must not be inferred from current account state. SPL model extension/native/hosted/full-interface gates remain open; existing environment reused without downloads.
