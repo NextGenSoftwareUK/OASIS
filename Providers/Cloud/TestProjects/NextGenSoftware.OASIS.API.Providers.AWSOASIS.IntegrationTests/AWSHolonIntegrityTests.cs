@@ -11,6 +11,56 @@ public partial class AWSOASISIntegrationTests
 {
     [DataTestMethod]
     [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public async Task V2ProjectionCorruptionDoesNotReadStaleSecondary(bool synchronous,bool wrongType)
+    {
+        var path=Path.GetFullPath("TestResults/AWSRoutingFiles/delete-routing.db");
+        if(File.Exists(path)) Assert.Fail("Retained routing evidence exists; refusing overwrite.");
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        var sqlite=new NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS($"Data Source={path};Pooling=False");
+        var id=Guid.NewGuid();var parent=Guid.NewGuid();var nativeParent=wrongType ? parent:Guid.NewGuid();
+        var record=new Holon {Id=id,ParentHolonId=parent,Name="owned-projection-mismatch",IsActive=true};
+        var json=OasisJson.Serialize(record);var acknowledged=false;var verified=false;
+        try
+        {
+            Assert.IsFalse((await sqlite.ActivateProviderAsync()).IsError);
+            Assert.IsFalse((await sqlite.SaveHolonAsync(new Holon {Id=id,ParentHolonId=parent,Name="owned-stale",IsActive=true},saveChildren:false)).IsError);
+            var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {
+                HyperDriveMode=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2,StorageProviders=new(),SubscriptionConfig=new() {PlanType="Gold"}}};
+            var manager=new Core.Managers.ProviderManager(null,dna) {IsAutoFailOverEnabled=true};
+            manager.RegisterProvider(_provider);manager.RegisterProvider(sqlite);
+            Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(new[] {
+                new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.AWSOASIS),
+                new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.SQLLiteDBOASIS)}).IsError);
+            var router=new Core.Managers.OASISHyperDrive.OASISHyperDrive(manager);
+            Assert.AreEqual(System.Net.HttpStatusCode.OK,(await Client.PutItemAsync(new PutItemRequest {TableName="OasisHolons",Item=new() {
+                ["id"]=new() {S=id.ToString()},["parentHolonId"]=new() {S=nativeParent.ToString()},
+                ["holon_type"]=new() {N=((int)record.HolonType+(wrongType ? 1:0)).ToString()},["data_json"]=new() {S=json}}})).HttpStatusCode);
+            acknowledged=true;
+            void Corrupt<T>(OASISResult<T> result) {Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsFalse(result.IsLoaded);Assert.IsInstanceOfType(result.Exception,typeof(InvalidDataException));}
+            var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0;
+            foreach(var operation in new[] {"LoadHolon","LoadAllHolons","LoadHolonsForParent"})
+            {
+                var request=new Core.StorageOperationRequest {Operation=operation,HolonId=operation=="LoadHolonsForParent" ? parent:id,
+                    LoadChildren=false,PreferredProvider=Core.Enums.ProviderType.AWSOASIS};
+                if(operation=="LoadHolon") Corrupt(synchronous ? router.RouteRequest<IHolon>(request):await router.RouteRequestAsync<IHolon>(request));
+                else Corrupt(synchronous ? router.RouteRequest<IEnumerable<IHolon>>(request):await router.RouteRequestAsync<IEnumerable<IHolon>>(request));
+            }
+            Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
+            var raw=(await Client.GetItemAsync(new GetItemRequest {TableName="OasisHolons",Key=Key(id),ConsistentRead=true})).Item;
+            Assert.AreEqual(json,raw["data_json"].S);Assert.AreEqual(nativeParent.ToString(),raw["parentHolonId"].S);
+            Assert.AreEqual("owned-stale",(await sqlite.LoadHolonAsync(id,loadChildren:false)).Result.Name);
+            verified=true;
+        }
+        finally
+        {
+            if(acknowledged) await Client.DeleteItemAsync(new DeleteItemRequest {TableName="OasisHolons",Key=Key(id)});
+            await sqlite.DeActivateProviderAsync();
+            if(verified) foreach(var file in new[] {path,path+"-wal",path+"-shm"}) if(File.Exists(file)) File.Delete(file);
+        }
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
     public async Task NativeHolonProjectionMismatchIsNotSilentlyFiltered(bool synchronous,bool wrongType)
     {
         var id=Guid.NewGuid();var parent=Guid.NewGuid();
