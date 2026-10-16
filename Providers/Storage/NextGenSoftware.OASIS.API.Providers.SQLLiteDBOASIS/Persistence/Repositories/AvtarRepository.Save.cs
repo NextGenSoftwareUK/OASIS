@@ -523,6 +523,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Id = id.ToString(),
                 LocalProviderKey = keys[ProviderType.SQLLiteDBOASIS],
                 ProviderKeysJson = System.Text.Json.JsonSerializer.Serialize(keys),
+                ProviderWalletsJson = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(avatar.ProviderWallets ?? new Dictionary<ProviderType,List<IProviderWallet>>()),
                 MetaDataJson = System.Text.Json.JsonSerializer.Serialize(avatar.MetaData ?? new Dictionary<string,object>()),
                 Version = avatar.Version,
                 IsActive = avatar.IsActive,
@@ -566,6 +567,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Email = avatar.Email,
                 FirstName = avatar.FirstName,
                 Id = Guid.Parse(avatar.Id),
+                ProviderWallets = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.DeserializeStored<Dictionary<ProviderType,List<IProviderWallet>>>(avatar.ProviderWalletsJson)
+                    ?? throw new System.IO.InvalidDataException("Stored avatar wallets must be a JSON object."),
                 MetaData = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string,object>>(avatar.MetaDataJson)
                     ?? throw new System.IO.InvalidDataException("Stored avatar metadata must be a JSON object."),
                 ProviderUniqueStorageKey = System.Text.Json.JsonSerializer.Deserialize<Dictionary<ProviderType,string>>(avatar.ProviderKeysJson)
