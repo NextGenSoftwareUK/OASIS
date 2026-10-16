@@ -238,7 +238,8 @@ public class GoogleNativeDetailTests
                     new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.GoogleCloudOASIS),
                     new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.SQLLiteDBOASIS)}).IsError);
                 var router=new Core.Managers.OASISHyperDrive.OASISHyperDrive(manager);
-                var profile=new Avatar {Id=id,IsActive=true,Username="owned-"+id,Email=id+"@example.invalid",FirstName="replicated profile",
+                var actor=Guid.NewGuid();
+                var profile=new Avatar {Id=id,IsActive=true,Username="owned-"+id,Email=id+"@example.invalid",FirstName="replicated profile",DeletedByAvatarId=actor,
                     AvatarType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User),
                     MetaData=new Dictionary<string,object> {{"replicated-field","replicated-value"}}};
                 var profileRequest=new Core.StorageOperationRequest {Operation="SaveAvatar",Payload=profile,PreferredProvider=primary};
@@ -266,6 +267,7 @@ public class GoogleNativeDetailTests
                 var deleted=asynchronous ? await router.RouteRequestAsync<bool>(request):router.RouteRequest<bool>(request);
                 Assert.IsFalse(deleted.IsError,deleted.Message);Assert.IsFalse(deleted.IsWarning,deleted.Message);Assert.IsTrue(deleted.Result);
                 Assert.IsTrue(Core.Helpers.AvatarTombstoneEvidence.TryGet(deleted,out var committed));
+                Assert.AreEqual(actor,committed.DeletedByAvatarId);
                 var googleAvatar=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<Avatar>(
                     (await db.Collection("avatars").Document(id.ToString()).GetSnapshotAsync()).GetValue<string>("data_json"));
                 var googleDetail=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<AvatarDetail>(
@@ -279,6 +281,12 @@ public class GoogleNativeDetailTests
                 }
                 Assert.AreEqual(321,googleDetail.XP);Assert.AreEqual(999,sqlDetail.XP);
                 Assert.AreEqual(id,googleDetail.Inventory.Single().Id);Assert.AreEqual(id,sqlDetail.Inventory.Single().Id);
+                var hardRequest=new Core.StorageOperationRequest {Operation="DeleteAvatar",AvatarId=id,SoftDelete=false,PreferredProvider=primary};
+                var hard=asynchronous ? await router.RouteRequestAsync<bool>(hardRequest):router.RouteRequest<bool>(hardRequest);
+                Assert.IsFalse(hard.IsError,hard.Message);Assert.IsFalse(hard.IsWarning,hard.Message);Assert.IsTrue(hard.Result);
+                Assert.IsFalse((await db.Collection("avatars").Document(id.ToString()).GetSnapshotAsync()).Exists);
+                Assert.IsFalse((await db.Collection("avatarDetails").Document(id.ToString()).GetSnapshotAsync()).Exists);
+                Assert.IsNull((await sqlite.LoadAvatarAsync(id)).Result);Assert.IsNull((await sqlite.LoadAvatarDetailAsync(id)).Result);
             }
             verified=true;
         }
