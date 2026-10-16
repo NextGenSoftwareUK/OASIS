@@ -11,6 +11,21 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 public class DeleteAcknowledgementTests
 {
     [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public async Task MiskeyedRootDeleteCannotRemoveForeignIndexesOrLinks(bool synchronous,bool avatar)
+    {
+        var backend=new InMemoryBackend();var provider=new TestProvider(backend);var id=Guid.NewGuid();
+        var key="oasis/"+(avatar ? "avatar/":"holon/")+id.ToString("N");
+        var foreign=Guid.NewGuid();
+        if(avatar)Assert.IsFalse((await provider.SaveAvatarAsync(new Avatar {Id=foreign,Username="foreign"})).IsError);
+        else Assert.IsFalse((await provider.SaveHolonAsync(new Holon {Id=foreign,ParentHolonId=Guid.NewGuid()},saveChildren:false)).IsError);
+        backend.Items[key]=backend.Items["oasis/"+(avatar ? "avatar/":"holon/")+foreign.ToString("N")];
+        var before=backend.Items.OrderBy(pair=>pair.Key).ToArray();Exception failure;
+        if(avatar){var result=synchronous ? provider.DeleteAvatar(id,false):await provider.DeleteAvatarAsync(id,false);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsDeleted);failure=result.Exception;}
+        else {var result=synchronous ? provider.DeleteHolon(id):await provider.DeleteHolonAsync(id);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsDeleted);failure=result.Exception;}
+        Assert.IsInstanceOfType(failure,typeof(System.IO.InvalidDataException));CollectionAssert.AreEqual(before,backend.Items.OrderBy(pair=>pair.Key).ToArray());
+    }
+    [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     public async Task CurrentIndexCanSelectEarlierRenamedRecord(bool email)
     {

@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Shared delete ID binding delta: GUID avatar/holon deletion now invokes existing current record-ID/key validator before mutations; four corrected canonical-fixture regressions red-before/green-after, Shared235/235pass1s. No new native/V2/atomic/save-path certification.
+
 Shared index integrity delta: username/email lookup validates current referenced avatar owns requested normalized identity before historical selection; foreign-avatar index cannot authorize read/delete. Four red-before/green-after corruption cases plus two renamed-history/normalization positives; Shared231/231pass1s. No native chain/cloud/V2 corruption injection or atomic snapshot certification.
 
 Shared GUID-delete absence delta: missing avatar/holon now carries RecordNotFound. Actual V2 regression reproduced stale-secondary avatar deletion before fix; four new cases verify zero secondary requests and preserved stale rows after fix. Local routing102/102pass10s/Shared225/225pass1s. Not native chain/cloud SDK absence or durable/hosted certification.
