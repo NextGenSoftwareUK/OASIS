@@ -4,6 +4,8 @@
 
 ### Priority Mongo/SQLite contract audit (2026-10-15)
 
+SQLite singleton-component follow-up: existing relational attributes/aura/skills/superpowers/HumanDesign/stats now centrally loaded and explicitly updated/removed/recreated; concrete DTO projection and Model3D persistence repaired. SQLite integration285/285 passes22s with four independent-reader component lifecycles. Actual Mongo/SQLite V2 matrix4/4 passes1m41s with populated component replication and soft-delete preservation. Collection components, failed-component-save recovery, update/removal replication, full DTO and hosted/release gates remain unverified.
+
 Creation-origin follow-up: Mongo no longer relabels a supplied origin during first replica insertion; ordinary native updates and import updates retain persisted creation-provider/OASIS types. SQLite active mappings preserve explicit origin and keep it on updates omitting fields. Real V2 matrix4/4 passes1m45s; SQLite integration281/281 passes23s. Unspecified INITIAL origin in SQLite nonnullable enum columns remains an explicit representation gap, along with origin-specific graph/import assertions and other full-interface/hosted gates.
 
 Version/type identity follow-up: SQLite holon/profile/detail stores now preserve supplied VersionId/PreviousVersionId/CustomHolonType; Mongo profile/detail custom-type mapping repaired. Actual V2 two-cycle replication matrix4/4 passes1m44s and SQLite integration281/281 passes21s. Additive native migration and in-place EnsureCreated upgrades retain rows and default missing IDs to empty, NOT fabricated history. Version generation/history, other inherited fields and hosted/all-interface release gates remain open.
