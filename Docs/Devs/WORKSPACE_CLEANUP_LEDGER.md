@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 AWS write-publication verification: reused existing retained DynamoDB Local/Java/.NET caches/fixed reports. First23-case run17pass/6fail reproduced generated caller-ID mutation after independently read actual commit; final23/23pass10s. Only exact synthetic committed item keys deleted after assertions; owned in-memory runtime stopped by runner. No install/download/clone/new environment or broad user-data/cache cleanup. Failure is explicitly injected after known SDK acknowledgement, not unknown physical ledger state.
+
 2026-10-16 Google holon publication regression: retained runtime/cache/fixed reports reused; first17-case run15pass/2fail reproduced premature caller IDs, final17/17pass26s. Test-owned exact generated healthy document IDs independently read then deleted. No new installation/download/clone/environment, unrelated data or unknown-chain evidence cleanup.
 
 2026-10-16 Google save acknowledgement verification: reused same retained Firestore/runtime/cache/fixed reports, final15/15pass22s. Fault calls use reserved unreachable18083; no live Google credentials/billing. Separate healthy operations create exact owned generated document IDs, independently verify and delete only those documents. Initial fixture wrongly expected collection-relative DocumentPath; fixed to native fully qualified format, with no guard/data bypass. No install/download/clone/new environment or broad cleanup.
