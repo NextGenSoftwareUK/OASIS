@@ -19,6 +19,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
     private static async Task VerifyMongoHolonSaveWriteConcernAsync(MongoDBOASIS fault,MongoDBOASIS healthy,SQLLiteDBOASIS sqlite,
         OASISDNA dna,IMongoDatabase admin,string app,bool synchronous,IMongoCollection<NativeHolon> records)
     {
+        await VerifyMongoSerializationFailuresAsync(healthy,sqlite,dna,synchronous,records.Database);
         await VerifyMongoAvatarSaveWriteConcernAsync(fault,healthy,sqlite,dna,admin,app,synchronous,records.Database);
         var manager=new ProviderManager(null,dna){IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=true};
         manager.RegisterProvider(fault);manager.RegisterProvider(sqlite);

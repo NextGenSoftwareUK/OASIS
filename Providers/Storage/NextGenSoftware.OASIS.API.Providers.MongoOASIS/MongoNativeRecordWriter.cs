@@ -18,7 +18,7 @@ internal static class MongoNativeRecordWriter
 {
     internal static async Task<OASISResult<T>> SaveAsync<T>(IMongoCollection<T> records,T holon,bool updating,bool synchronous,bool overwriteCreationProvider=false) where T:HolonBase
     {
-        var entered=false;
+        var entered=false;var validatingPayload=false;
         try
         {
             if(holon==null) throw new ArgumentNullException(nameof(holon));
@@ -58,11 +58,13 @@ internal static class MongoNativeRecordWriter
             }
             if(!updating && (overwriteCreationProvider || holon.CreatedProviderType==null)) holon.CreatedProviderType=new EnumValue<ProviderType>(ProviderType.MongoDBOASIS);
             PrepareIdentity(holon);
-            var collection=records.WithWriteConcern(WriteConcern.WMajority.With(journal:true));
-            BsonDocument replacement=null;
+            // Complete serialization before dispatch for inserts AND replacements. The
+            // exact prepared BSON is what the SDK writes; no second serialization pass.
+            validatingPayload=true;
+            var replacement=holon.ToBsonDocument(records.DocumentSerializer);
+            validatingPayload=false;
             if(updating)
             {
-                replacement=holon.ToBsonDocument(records.DocumentSerializer);
                 var mapped=new HashSet<string>(BsonClassMap.LookupClassMap(typeof(T)).AllMemberMaps.Select(member=>member.ElementName),StringComparer.Ordinal);
                 mapped.Add("_t");
                 // Retain top-level schema fields this CLR model cannot express. Known
@@ -70,10 +72,10 @@ internal static class MongoNativeRecordWriter
                 foreach(var field in observed)
                     if(!mapped.Contains(field.Name) && !replacement.Contains(field.Name)) replacement.Add(field.Name,field.Value.DeepClone());
             }
+            var writer=raw.WithWriteConcern(WriteConcern.WMajority.With(journal:true));
             entered=true;
             if(updating)
             {
-                var writer=raw.WithWriteConcern(WriteConcern.WMajority.With(journal:true));
                 var replaced=synchronous ? writer.ReplaceOne(expected,replacement):await writer.ReplaceOneAsync(expected,replacement).ConfigureAwait(false);
                 if(!replaced.IsAcknowledged) throw new InvalidDataException("Mongo record update was not acknowledged.");
                 if(replaced.MatchedCount==0)
@@ -82,8 +84,8 @@ internal static class MongoNativeRecordWriter
                     return new OASISResult<T> {IsError=true,ErrorCode=StorageLifecycleConflictException.ErrorCode,Exception=conflict,Message=conflict.Message};
                 }
             }
-            else if(synchronous) collection.InsertOne(holon);
-            else await collection.InsertOneAsync(holon).ConfigureAwait(false);
+            else if(synchronous) writer.InsertOne(replacement);
+            else await writer.InsertOneAsync(replacement).ConfigureAwait(false);
             return new OASISResult<T> {Result=holon,IsSaved=true,SavedCount=1};
         }
         catch(Exception cause)
@@ -95,7 +97,7 @@ internal static class MongoNativeRecordWriter
             return new OASISResult<T> {IsError=true,Exception=failure,
                 ErrorCode=cause is StorageLifecycleConflictException ? StorageLifecycleConflictException.ErrorCode
                     :cause is StorageIdentityAmbiguousException ? OASISResultErrorCodes.AmbiguousIdentity
-                    :!entered && cause is ArgumentException ? "HYPERDRIVE_PAYLOAD_INVALID":null,
+                    :!entered && (cause is ArgumentException || validatingPayload && cause is BsonSerializationException) ? "HYPERDRIVE_PAYLOAD_INVALID":null,
                 Message="Mongo record save failed."};
         }
     }
