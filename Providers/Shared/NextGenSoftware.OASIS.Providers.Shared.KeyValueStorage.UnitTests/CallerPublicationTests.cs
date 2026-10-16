@@ -11,6 +11,40 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 public class CallerPublicationTests
 {
     [DataTestMethod]
+    [DataRow(true,true,0,0,3)] [DataRow(true,true,1,0,1)] [DataRow(true,true,2,0,2)]
+    [DataRow(true,false,0,0,2)] [DataRow(false,true,0,0,1)] [DataRow(true,false,0,1,1)]
+    public async Task SharedPreflightPreservesExistingDepthSelection(bool children,bool recursive,int limit,int initial,int expected)
+    {
+        var backend=new InMemoryBackend();var provider=new TestProvider(backend);
+        var root=new Holon();var child=new Holon();var leaf=new Holon();
+        root.Children=new System.Collections.Generic.List<IHolon> {child};child.Children=new System.Collections.Generic.List<IHolon> {leaf};
+        var result=await provider.SaveHolonsAsync(new[] {root},saveChildren:children,recursive:recursive,maxChildDepth:limit,curentChildDepth:initial);
+        Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.IsSaved);Assert.AreNotEqual(Guid.Empty,root.Id);
+        Assert.AreEqual(expected,backend.Items.Keys.Count(key=>key.StartsWith("oasis/holon/",StringComparison.Ordinal)));
+        if(expected>=2) {Assert.AreNotEqual(Guid.Empty,child.Id);Assert.AreEqual(root.Id,child.ParentHolonId);} else Assert.AreEqual(Guid.Empty,child.Id);
+        if(expected==3) {Assert.AreNotEqual(Guid.Empty,leaf.Id);Assert.AreEqual(child.Id,leaf.ParentHolonId);} else Assert.AreEqual(Guid.Empty,leaf.Id);
+    }
+
+    [DataTestMethod]
+    [DataRow(false,"duplicate-root")] [DataRow(true,"duplicate-root")]
+    [DataRow(false,"shared-child")] [DataRow(true,"shared-child")]
+    [DataRow(false,"parent")] [DataRow(true,"parent")]
+    [DataRow(false,"negative-depth")] [DataRow(true,"negative-depth")]
+    public async Task EntireSelectedBatchIsValidatedBeforeFirstWrite(bool synchronous,string invalid)
+    {
+        var backend=new InMemoryBackend();var provider=new TestProvider(backend);
+        var first=new Holon {Id=Guid.NewGuid()};var second=new Holon {Id=invalid=="duplicate-root" ? first.Id:Guid.NewGuid()};
+        var child=new Holon();
+        if(invalid=="shared-child") {first.Children=new System.Collections.Generic.List<IHolon> {child};second.Children=new System.Collections.Generic.List<IHolon> {child};}
+        if(invalid=="parent") {child.ParentHolonId=Guid.NewGuid();first.Children=new System.Collections.Generic.List<IHolon> {child};}
+        var before=OasisJson.Serialize(child);
+        var result=synchronous ? provider.SaveHolons(new[] {first,second},maxChildDepth:invalid=="negative-depth" ? -1:0)
+            :await provider.SaveHolonsAsync(new[] {first,second},maxChildDepth:invalid=="negative-depth" ? -1:0);
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsSaved);Assert.IsNull(result.Result);
+        Assert.AreEqual(0,backend.Items.Count);Assert.AreEqual(before,OasisJson.Serialize(child));
+    }
+
+    [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     public async Task HolonParentIndexFailureRetainsRecordEvidenceWithoutPublishing(bool synchronous)
     {

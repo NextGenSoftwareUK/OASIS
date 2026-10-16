@@ -507,7 +507,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             try
             {
                 if (holon == null) return Fail<IHolon>("Holon is required.");
-                ValidateSaveTree(holon, saveChildren, recursive, maxChildDepth, depth, new List<IHolon>());
+                ValidateSaveForest(new[] {holon}, saveChildren, recursive, maxChildDepth, depth);
                 holon=OasisJson.Deserialize<IHolon>(OasisJson.Serialize(source));
                 if(parent.HasValue) holon.ParentHolonId=parent.Value;
                 if (holon.Id == Guid.Empty) holon.Id = Guid.NewGuid();
@@ -547,24 +547,29 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
             => SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, saveChildrenOnProvider).GetAwaiter().GetResult();
 
-        private static void ValidateSaveTree(IHolon holon, bool saveChildren, bool recursive, int maxChildDepth, int depth, List<IHolon> ancestors)
+        private static void ValidateSaveForest(IEnumerable<IHolon> roots,bool saveChildren,bool recursive,int maxChildDepth,int depth)
         {
-            if (holon == null) throw new ArgumentException("Child holon is required.");
-            if (ancestors.Any(parent => ReferenceEquals(parent, holon) || (holon.Id != Guid.Empty && parent.Id == holon.Id)))
-                throw new System.IO.InvalidDataException("Cyclic holon child graph cannot be saved recursively.");
-            var reachedDepth = maxChildDepth > 0 && depth + 1 >= maxChildDepth;
-            if (!saveChildren || holon.Children == null || (depth != 0 && !recursive) || reachedDepth) return;
-            ancestors.Add(holon);
-            foreach (var child in holon.Children) ValidateSaveTree(child, saveChildren, recursive, maxChildDepth, depth + 1, ancestors);
-            ancestors.RemoveAt(ancestors.Count - 1);
+            if(maxChildDepth<0 || depth<0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
+            var selected=roots.ToList();if(selected.Count==0) return;
+            // This provider's existing depth limit counts the root as level one.
+            var children=saveChildren && (depth==0 || recursive) && (maxChildDepth==0 || depth+1<maxChildDepth);
+            try {HolonGraphWritePlan.Create(selected,children,recursive,maxChildDepth==0 ? 0:maxChildDepth-1,depth);}
+            catch(ArgumentException cause)
+            {
+                // Preserve the existing terminal invalid-graph boundary while sharing one graph validator.
+                throw new System.IO.InvalidDataException("Cyclic holon child graph or conflicting/repeated graph selection cannot be saved.",cause);
+            }
         }
 
         public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             var result = new OASISResult<IEnumerable<IHolon>>();
             if (holons == null) return Fail<IEnumerable<IHolon>>("Holons are required.");
+            List<IHolon> roots;
+            try {roots=holons.ToList();ValidateSaveForest(roots,saveChildren,recursive,maxChildDepth,curentChildDepth);}
+            catch(Exception cause) {return Fail<IEnumerable<IHolon>>($"Invalid holon batch: {cause.Message}",cause);}
             var saved = new List<IHolon>();
-            foreach (var holon in holons)
+            foreach (var holon in roots)
             {
                 var r = await SaveHolonInternalAsync(holon, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError);
                 if (r.IsError)
