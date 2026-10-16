@@ -25,18 +25,29 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             // prior EnsureCreated schema without touching any user database.
             using(var control=new DataContext($"Data Source={ownedFixturePath};Pooling=False"))
             {
-                control.Database.ExecuteSqlRaw("ALTER TABLE Holon DROP COLUMN IsPublic");
-                control.Database.ExecuteSqlRaw("ALTER TABLE Avatar DROP COLUMN IsPublic");
-                control.Database.ExecuteSqlRaw("ALTER TABLE AvatarDetail DROP COLUMN IsPublic");
+                foreach(var table in new[] {"Holon","Avatar","AvatarDetail"})
+                    foreach(var column in new[] {"IsPublic","VersionId","PreviousVersionId","CustomHolonType"})
+                        control.Database.ExecuteSqlRaw($"ALTER TABLE \"{table}\" DROP COLUMN \"{column}\"");
             }
             var activated=synchronous ? sqlite.ActivateProvider():await sqlite.ActivateProviderAsync();
             activated.IsError.Should().BeFalse(activated.Message);
             (await sqlite.LoadAvatarAsync(id)).Result.IsPublic.Should().BeFalse();
             (await sqlite.LoadAvatarDetailAsync(id)).Result.IsPublic.Should().BeFalse();
             (await sqlite.LoadHolonAsync(holonId,loadChildren:false)).Result.IsPublic.Should().BeFalse();
+            foreach(var old in new NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase[] {
+                (await sqlite.LoadAvatarAsync(id)).Result,(await sqlite.LoadAvatarDetailAsync(id)).Result,
+                (await sqlite.LoadHolonAsync(holonId,loadChildren:false)).Result})
+            {
+                old.VersionId.Should().BeEmpty();old.PreviousVersionId.Should().BeEmpty();old.CustomHolonType.Should().BeNull();
+            }
+            var version=Guid.NewGuid();var previous=Guid.NewGuid();
             foreach(var visible in new[] {true,false})
             {
                 avatar.IsPublic=visible;detail.IsPublic=visible;holon.IsPublic=visible;
+                foreach(var incoming in new NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase[] {avatar,detail,holon})
+                {
+                    incoming.VersionId=version;incoming.PreviousVersionId=previous;incoming.CustomHolonType="owned-schema-type";
+                }
                 (synchronous ? sqlite.SaveAvatar(avatar):await sqlite.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
                 (synchronous ? sqlite.SaveAvatarDetail(detail):await sqlite.SaveAvatarDetailAsync(detail)).IsError.Should().BeFalse();
                 (synchronous ? sqlite.SaveHolon(holon,saveChildren:false):await sqlite.SaveHolonAsync(holon,saveChildren:false)).IsError.Should().BeFalse();
@@ -45,6 +56,11 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 var loadedDetail=synchronous ? sqlite.LoadAvatarDetail(id):await sqlite.LoadAvatarDetailAsync(id);
                 loadedDetail.Result.IsPublic.Should().Be(visible);loadedDetail.Result.Karma.Should().Be(31);loadedDetail.Result.XP.Should().Be(47);
                 (await sqlite.LoadHolonAsync(holonId,loadChildren:false)).Result.IsPublic.Should().Be(visible);
+                foreach(var retained in new NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase[] {loaded.Result,loadedDetail.Result,
+                    (await sqlite.LoadHolonAsync(holonId,loadChildren:false)).Result})
+                {
+                    retained.VersionId.Should().Be(version);retained.PreviousVersionId.Should().Be(previous);retained.CustomHolonType.Should().Be("owned-schema-type");
+                }
             }
             // Reopening an already upgraded schema is idempotent.
             (synchronous ? sqlite.ActivateProvider():await sqlite.ActivateProviderAsync()).IsError.Should().BeFalse();

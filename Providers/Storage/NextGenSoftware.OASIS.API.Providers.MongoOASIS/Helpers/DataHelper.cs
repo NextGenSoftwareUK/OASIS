@@ -173,6 +173,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             result.Result.VersionId = avatarResult.Result.VersionId;
             result.Result.IsActive = avatarResult.Result.IsActive;
             result.Result.IsPublic = avatarResult.Result.IsPublic;
+            result.Result.CustomHolonType = avatarResult.Result.CustomHolonType;
             //result.Result.CustomKey = avatarResult.Result.CustomKey;
 
             if (mapChildren)
@@ -225,6 +226,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             oasisAvatar.VersionId = avatar.Result.VersionId;
             oasisAvatar.IsActive = avatar.Result.IsActive;
             oasisAvatar.IsPublic = avatar.Result.IsPublic;
+            oasisAvatar.CustomHolonType = avatar.Result.CustomHolonType;
             oasisAvatar.Portrait = avatar.Result.Portrait;
             oasisAvatar.UmaJson = avatar.Result.UmaJson;
             oasisAvatar.Model3D = avatar.Result.Model3D;
@@ -474,6 +476,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.VersionId = avatar.VersionId;
             mongoAvatar.IsActive = avatar.IsActive;
             mongoAvatar.IsPublic = avatar.IsPublic;
+            mongoAvatar.CustomHolonType = avatar.CustomHolonType;
             //mongoAvatar.CustomKey = avatar.CustomKey;
 
             if (mapChildren)
@@ -583,6 +586,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             mongoAvatar.VersionId = avatar.VersionId;
             mongoAvatar.IsActive = avatar.IsActive;
             mongoAvatar.IsPublic = avatar.IsPublic;
+            mongoAvatar.CustomHolonType = avatar.CustomHolonType;
 
             //AvatarDetail Properties
             mongoAvatar.ActiveQuestId = avatar.ActiveQuestId;

@@ -4,6 +4,8 @@
 
 ### Priority Mongo/SQLite contract audit (2026-10-15)
 
+Version/type identity follow-up: SQLite holon/profile/detail stores now preserve supplied VersionId/PreviousVersionId/CustomHolonType; Mongo profile/detail custom-type mapping repaired. Actual V2 two-cycle replication matrix4/4 passes1m44s and SQLite integration281/281 passes21s. Additive native migration and in-place EnsureCreated upgrades retain rows and default missing IDs to empty, NOT fabricated history. Version generation/history, other inherited fields and hosted/all-interface release gates remain open.
+
 IsPublic follow-up: Mongo and SQLite holon/profile/detail persistence now retains visibility flags. Native V2 healthy public→private replication/round-trip matrix4/4 passes1m44s; SQLite integration281/281 passes21s and unit4/4 passes. In-place EnsureCreated schema upgrade and separate native migration Up/Down preserve synthetic rows/default private. Authorization/redaction/encryption, complete historical schema lineage, all-field parity and hosted gates remain open; see release gates for exact boundaries.
 
 Inherited dimension follow-up: Mongo holon/avatar-detail conversions now map DimensionLevel/SubDimensionLevel both ways. Real V2 two-cycle healthy replication checks pass with Mongo/SQLite primaries and independent readback from both stores, full selected matrix4/4 in1m43s. Dimension query/history/all-field/hosted coverage is not inferred.

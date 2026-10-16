@@ -21,9 +21,9 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
         try
         {
             var profile=new Avatar {Id=id,Username=name,Email=name+"@test.local",FirstName="preserve",VersionId=profileVersion,IsPublic=true,
-                AvatarType=new EnumValue<AvatarType>(AvatarType.User),MetaData=new() {{"profile-marker","retained"},{"integer",42},{"flag",true}}};
+                CustomHolonType="owned-profile-type",AvatarType=new EnumValue<AvatarType>(AvatarType.User),MetaData=new() {{"profile-marker","retained"},{"integer",42},{"flag",true}}};
             var detail=new AvatarDetail {Id=id,Username=name,Email=profile.Email,VersionId=detailVersion,Karma=101,XP=202,IsPublic=true,
-                MetaData=new() {{"detail-marker","retained"}},Model3D="model://owned-fixture",DimensionLevel=DimensionLevel.Fifth,SubDimensionLevel=SubDimensionLevel.Seventh,
+                CustomHolonType="owned-detail-type",MetaData=new() {{"detail-marker","retained"}},Model3D="model://owned-fixture",DimensionLevel=DimensionLevel.Fifth,SubDimensionLevel=SubDimensionLevel.Seventh,
                 Attributes=new AvatarAttributes {Strength=11,Speed=12,Dexterity=13,Toughness=14,Wisdom=15,Intelligence=16,Magic=17,Vitality=18,Endurance=19},
                 DimensionLevelIds=new Dictionary<DimensionLevel,Guid> {{DimensionLevel.Third,Guid.NewGuid()},{DimensionLevel.Fifth,Guid.NewGuid()}},
                 HeartRateData=new List<NextGenSoftware.OASIS.API.Core.Interfaces.Avatar.IHeartRateEntry> {
@@ -42,11 +42,13 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 loaded.Result.MetaData["integer"].ToString().Should().Be("42");loaded.Result.MetaData["flag"].Should().Be(true);
                 loaded.Result.VersionId.Should().Be(profileVersion);
                 loaded.Result.IsPublic.Should().Be(pass==0);
+                loaded.Result.CustomHolonType.Should().Be(profile.CustomHolonType);
                 var loadedDetail=synchronous ? mongo.LoadAvatarDetail(id):await mongo.LoadAvatarDetailAsync(id);
                 loadedDetail.IsError.Should().BeFalse(loadedDetail.Message);loadedDetail.Result.VersionId.Should().Be(detailVersion);
                 loadedDetail.Result.MetaData.Should().ContainKey("detail-marker").WhoseValue.Should().Be("retained");
                 loadedDetail.Result.Karma.Should().Be(101);loadedDetail.Result.XP.Should().Be(202);
                 loadedDetail.Result.IsPublic.Should().Be(pass==0);
+                loadedDetail.Result.CustomHolonType.Should().Be(detail.CustomHolonType);
                 loadedDetail.Result.Model3D.Should().Be(detail.Model3D);
                 loadedDetail.Result.DimensionLevel.Should().Be(detail.DimensionLevel);loadedDetail.Result.SubDimensionLevel.Should().Be(detail.SubDimensionLevel);
                 loadedDetail.Result.Attributes.Should().BeEquivalentTo(detail.Attributes);

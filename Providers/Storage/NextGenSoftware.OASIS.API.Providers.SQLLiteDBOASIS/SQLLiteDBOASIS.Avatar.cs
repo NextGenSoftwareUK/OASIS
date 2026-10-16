@@ -33,7 +33,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 else
                     await _appDataContext.Database.EnsureCreatedAsync();
 
-                await EnsureVisibilitySchemaAsync().ConfigureAwait(false);
+                await EnsureRecordSchemaAsync().ConfigureAwait(false);
 
                 result.Result = true;
                 IsProviderActivated = true;
@@ -58,7 +58,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 else
                     _appDataContext.Database.EnsureCreated();
 
-                EnsureVisibilitySchemaAsync().GetAwaiter().GetResult();
+                EnsureRecordSchemaAsync().GetAwaiter().GetResult();
 
                 result.Result = true;
                 IsProviderActivated = true;

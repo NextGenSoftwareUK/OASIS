@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
@@ -8,8 +9,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS;
 public partial class SQLLiteDBOASIS
 {
     // EnsureCreated databases have no migration history. Upgrade the same database,
-    // atomically and fail closed: old records must never become public by default.
-    private async Task EnsureVisibilitySchemaAsync()
+    // atomically and fail closed: old records stay private; no version IDs invented.
+    private async Task EnsureRecordSchemaAsync()
     {
         using var transaction=await _appDataContext.Database.BeginTransactionAsync().ConfigureAwait(false);
         var connection=_appDataContext.Database.GetDbConnection();
@@ -18,18 +19,25 @@ public partial class SQLLiteDBOASIS
             using var command=connection.CreateCommand();
             command.Transaction=transaction.GetDbTransaction();
             command.CommandText=$"PRAGMA table_info(\"{table}\")";
-            var found=false;var exists=false;
+            var found=new HashSet<string>(StringComparer.Ordinal);var exists=false;
             using(var reader=await command.ExecuteReaderAsync().ConfigureAwait(false))
                 while(await reader.ReadAsync().ConfigureAwait(false))
                 {
                     exists=true;
-                    if(string.Equals(reader.GetString(1),"IsPublic",StringComparison.Ordinal)) found=true;
+                    found.Add(reader.GetString(1));
                 }
             if(!exists) throw new InvalidOperationException($"Required SQLite table {table} is missing.");
-            if(!found)
+            foreach(var column in new Dictionary<string,string> {
+                {"IsPublic","INTEGER NOT NULL DEFAULT 0"},
+                {"VersionId","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"},
+                {"PreviousVersionId","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"},
+                {"CustomHolonType","TEXT NULL"}})
             {
-                command.CommandText=$"ALTER TABLE \"{table}\" ADD COLUMN \"IsPublic\" INTEGER NOT NULL DEFAULT 0";
-                await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+                if(!found.Contains(column.Key))
+                {
+                    command.CommandText=$"ALTER TABLE \"{table}\" ADD COLUMN \"{column.Key}\" {column.Value}";
+                    await command.ExecuteNonQueryAsync().ConfigureAwait(false);
+                }
             }
         }
         await transaction.CommitAsync().ConfigureAwait(false);

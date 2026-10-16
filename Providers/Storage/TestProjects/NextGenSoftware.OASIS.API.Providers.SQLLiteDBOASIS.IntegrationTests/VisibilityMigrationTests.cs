@@ -17,6 +17,7 @@ public sealed class VisibilityMigrationTests
         context.Database.OpenConnection();
         var connection=context.Database.GetDbConnection();
         context.GetService<IMigrationsAssembly>().Migrations.Should().ContainKey("20261015000000_AddRecordVisibility");
+        context.GetService<IMigrationsAssembly>().Migrations.Should().ContainKey("20261015010000_AddRecordIdentity");
         foreach(var table in new[] {"Holon","Avatar","AvatarDetail"})
         {
             using var setup=connection.CreateCommand();
@@ -25,15 +26,24 @@ public sealed class VisibilityMigrationTests
         }
         var migration=new AddRecordVisibility();var generator=context.GetService<IMigrationsSqlGenerator>();
         foreach(var command in generator.Generate(migration.UpOperations)) context.Database.ExecuteSqlRaw(command.CommandText);
+        var identity=new AddRecordIdentity();
+        foreach(var command in generator.Generate(identity.UpOperations)) context.Database.ExecuteSqlRaw(command.CommandText);
         foreach(var table in new[] {"Holon","Avatar","AvatarDetail"})
         {
             using var check=connection.CreateCommand();
             check.CommandText=$"SELECT IsPublic FROM \"{table}\" WHERE Id='owned-row'";
             Convert.ToInt64(check.ExecuteScalar()).Should().Be(0);
+            check.CommandText=$"SELECT VersionId FROM \"{table}\" WHERE Id='owned-row'";
+            Guid.Parse((string)check.ExecuteScalar()!).Should().BeEmpty();
+            check.CommandText=$"SELECT PreviousVersionId FROM \"{table}\" WHERE Id='owned-row'";
+            Guid.Parse((string)check.ExecuteScalar()!).Should().BeEmpty();
+            check.CommandText=$"SELECT CustomHolonType FROM \"{table}\" WHERE Id='owned-row'";
+            check.ExecuteScalar().Should().Be(DBNull.Value);
             check.CommandText=$"UPDATE \"{table}\" SET IsPublic=1 WHERE Id='owned-row'";check.ExecuteNonQuery();
             check.CommandText=$"SELECT IsPublic FROM \"{table}\" WHERE Id='owned-row'";
             Convert.ToInt64(check.ExecuteScalar()).Should().Be(1);
         }
+        foreach(var command in generator.Generate(identity.DownOperations)) context.Database.ExecuteSqlRaw(command.CommandText);
         foreach(var command in generator.Generate(migration.DownOperations)) context.Database.ExecuteSqlRaw(command.CommandText);
         foreach(var table in new[] {"Holon","Avatar","AvatarDetail"})
         {
