@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 Solana nearby offline verification reused existing checkout, SDK, cached dependencies and unit output. Producer build0errors/6warnings;206/206unitpass2s/no skips. No downloads/restores/installations/runtime start, new service, new test DB or chain submission. Generated in-memory test accounts have no funds and are not persisted. Retained Solana ledger/tower and other unknown-outcome fixtures untouched; C free83,625,603,072bytes after bounded work, not a recovery claim.
+
 Ethereum nearby final runner exit0, wrapper4/4pass42s. Owned local EVM stopped by runner; free bytes before83,627,905,024 after83,627,405,312 (not a recovery claim). Fixed logs/reports reused; disposable fixture reproducible from retained compiler/runtime. No installations, archives, clones or duplicated environments.
 
 2026-10-16 Ethereum nearby verification reused retained Node/Hardhat/solc0.8.26/cache, fixed EthereumCurrent reports/logs and local chain31337 loopback18545. No download/install/new environment; per-test contracts use the existing disposable local ledger only, no public funds.113/113suitepass22s includes four pre-RPC validation cases;59Solidity assertions pass. Wrapper native checks still running at this entry. No Solana/Sui/TRON/Cosmos pending ledger/reset/replay or CosmosDB denied fixture touched.
