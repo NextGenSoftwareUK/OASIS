@@ -4,7 +4,7 @@ pragma solidity ^0.8.20;
 // Test-only ABI-compatible storage: proves real prior commit + later rejection.
 contract RejectSecondHolon {
     address public immutable storageOwner = msg.sender;
-    uint256 public constant storageProtocolVersion = 2;
+    uint256 public constant storageProtocolVersion = 3;
     struct Holon { uint256 EntityId; string HolonId; string Info; }
     mapping(uint256 => Holon) private records;
     uint256 private writes;
@@ -22,5 +22,5 @@ contract LegacyStorageProtocolFixture {
 
 contract UnsupportedStorageProtocolFixture {
     address public immutable storageOwner = msg.sender;
-    uint256 public constant storageProtocolVersion = 1;
+    uint256 public constant storageProtocolVersion = 2;
 }
