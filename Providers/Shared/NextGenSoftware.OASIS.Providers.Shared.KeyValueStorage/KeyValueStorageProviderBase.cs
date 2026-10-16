@@ -348,7 +348,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             try
             {
                 var avatar = await ReadAsync<IAvatar>(AvatarKey(id));
-                if (avatar == null) return Fail<bool>($"Avatar {id} not found.");
+                if (avatar == null) return Fail<bool>($"Avatar {id} not found.",errorCode:OASISResultErrorCodes.RecordNotFound);
 
                 if (softDelete)
                 {
@@ -747,7 +747,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             try
             {
                 var holon = await ReadAsync<IHolon>(HolonKey(id));
-                if (holon == null) return Fail<IHolon>($"Holon {id} not found.");
+                if (holon == null) return Fail<IHolon>($"Holon {id} not found.",errorCode:OASISResultErrorCodes.RecordNotFound);
                 if (holon.ParentHolonId != Guid.Empty) await DeleteAcknowledgedAsync(ParentKey(holon.ParentHolonId, id),acknowledged);
                 foreach (var childLink in await Backend.ListKeysAsync(ParentPrefix(id)))
                     await DeleteAcknowledgedAsync(childLink,acknowledged);
