@@ -108,7 +108,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             }
             if(IPFSClient == null) throw new InvalidOperationException("An active IPFS client is required to read the configured lookup root.");
             var json=UnprotectIndex(await LoadStringToJson(address));
-            var loaded=DeserializeLookup(json);
+            Dictionary<string,HolonResume> loaded;
+            try { loaded=DeserializeLookup(json); }
+            catch(JsonException cause) { throw new InvalidDataException("IPFS stored private index JSON is invalid.",cause); }
             _idLookup=loaded;
             return _idLookup;
         }

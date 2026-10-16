@@ -33,7 +33,7 @@ public partial class IPFSOASIS
     private string UnprotectIndex(string envelope)
     {
         using var codec=OpenPrivateCodec();
-        return codec.Decrypt(PrivateIndexContext,envelope);
+        return DecryptStoredPayload(codec,PrivateIndexContext,envelope);
     }
 
     private static string RecordContext(string kind,Guid id)
@@ -54,15 +54,23 @@ public partial class IPFSOASIS
     {
         var context=RecordContext(kind,id);
         using var codec=OpenPrivateCodec();
-        return codec.Decrypt(context,envelope);
+        return DecryptStoredPayload(codec,context,envelope);
+    }
+
+    private static string DecryptStoredPayload(EncryptedRecordCodec codec,string context,string envelope)
+    {
+        try { return codec.Decrypt(context,envelope); }
+        catch(Exception cause) when(cause is CryptographicException or FormatException or System.Text.DecoderFallbackException)
+        {
+            throw new InvalidDataException("IPFS stored private payload is invalid or cannot be authenticated.",cause);
+        }
     }
 
     private async Task<T> ReadPrivateRecordAsync<T>(string cid,string kind,Guid id) where T:class,IHolonBase
     {
-        var context=RecordContext(kind,id);
-        using var codec=OpenPrivateCodec();
-        var json=codec.Decrypt(context,await LoadStringToJson(cid));
-        var record=OasisJson.Deserialize<T>(json) ?? throw new InvalidDataException("IPFS private blob has no entity content.");
+        var envelope=await LoadStringToJson(cid);
+        var json=UnprotectRecord(kind,id,envelope);
+        var record=OasisJson.DeserializeStored<T>(json) ?? throw new InvalidDataException("IPFS private blob has no entity content.");
         if(record.Id!=id) throw new InvalidDataException("IPFS private blob identity disagrees with its authenticated index.");
         record.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
         record.ProviderUniqueStorageKey[Core.Enums.ProviderType.IPFSOASIS]=cid;
