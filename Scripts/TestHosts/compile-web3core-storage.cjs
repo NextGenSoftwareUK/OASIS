@@ -7,7 +7,7 @@ const contractRoot=path.join(runtime,'Contracts');
 const entry='Web3CoreOASIS.sol';
 const output=JSON.parse(solc.compile(JSON.stringify({language:'Solidity',
   sources:{[entry]:{content:fs.readFileSync(path.join(contractRoot,entry),'utf8')},
-    'NftBoundaryFixture.sol':{content:'pragma solidity ^0.8.20; import "./Web3CoreOASIS.sol"; contract NftBoundaryFixture is Web3CoreOASIS { function seedToken(address recipient, uint256 tokenId) external onlyOwner { _safeMint(recipient, tokenId); } }'}},
+    'NftBoundaryFixture.sol':{content:'pragma solidity ^0.8.20; import "./Web3CoreOASIS.sol"; contract NftBoundaryFixture is Web3CoreOASIS { function seedToken(address recipient, uint256 tokenId) external onlyOwner { _safeMint(recipient, tokenId); } } contract NftNoOpFixture is NftBoundaryFixture { function transferFrom(address, address, uint256) public override {} }'}},
   settings:{evmVersion:'paris',optimizer:{enabled:true,runs:200},outputSelection:{'*':{'*':['abi','evm.bytecode.object']}}}}),
   {import:file=>{
     const resolved=path.resolve(contractRoot,file);
@@ -30,4 +30,6 @@ fs.writeFileSync(path.join(folder,'web3-storage.json'),JSON.stringify({compiler:
 // Test-only mint hook seeds boundary IDs; inherited production sendNFT is unchanged.
 const nftFixture=output.contracts['NftBoundaryFixture.sol'].NftBoundaryFixture;
 fs.writeFileSync(path.join(folder,'web3-nft-boundary.json'),JSON.stringify({compiler:solc.version(),abi:nftFixture.abi,bytecode:nftFixture.evm.bytecode.object}));
+const noOpFixture=output.contracts['NftBoundaryFixture.sol'].NftNoOpFixture;
+fs.writeFileSync(path.join(folder,'web3-nft-noop.json'),JSON.stringify({compiler:solc.version(),abi:noOpFixture.abi,bytecode:noOpFixture.evm.bytecode.object}));
 console.log(JSON.stringify({compiler:solc.version(),pageFunctions:3,bytecodeBytes:contract.evm.bytecode.object.length/2}));
