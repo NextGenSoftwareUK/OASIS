@@ -1416,6 +1416,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                         Image2D=new byte[] {0,17,255},Object3D=new byte[] {255,0,23,41},
                         Image2DURI=new Uri("https://example.test/seed.png"),Object3DURI=new Uri("models/seed.glb",UriKind.Relative) } } };
                 standaloneDetail.Stats.HP.Current = 37;
+                standaloneDetail.Inventory[0]=AsInventoryInterface(standaloneDetail.Inventory[0]);
                 standaloneDetail.ActiveQuestId=Guid.NewGuid();
                 standaloneDetail.ActiveObjectiveId=Guid.NewGuid();
                 standaloneDetail.Model3D="model://replicated-component";
