@@ -13,19 +13,22 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
 public partial class Neo4jOASIS
 {
-    private async Task<OASISResult<IHolon>> ReadHolonRootAsync(string field, string value)
+    private async Task<OASISResult<IHolon>> ReadHolonRootAsync(string field, string value, bool children, bool recursive, int maximumDepth)
     {
         var result = new OASISResult<IHolon>();
         try
         {
             if (field != "Id" && field != "ProviderKey") throw new ArgumentException("Unknown holon selector.");
+            if (maximumDepth < 0) throw new ArgumentOutOfRangeException(nameof(maximumDepth));
             if (!IsProviderActivated || _driver == null) throw new InvalidOperationException("Neo4j provider is not activated.");
             using (var session = _driver.AsyncSession())
             {
                 var rows = await (await session.RunAsync("MATCH (h:Holon {" + field + ":$value}) RETURN h", new { value })).ToListAsync();
                 if (rows.Count == 0) return new OASISResult<IHolon> { IsError = true, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Holon not found in Neo4j." };
                 if (rows.Count != 1) throw new Core.Helpers.StorageLifecycleConflictException("Neo4j holon identity is not unique.");
-                result.Result = ReadHolonNode(rows[0]["h"].As<Neo4j.Driver.INode>());
+                var root = ReadHolonNode(rows[0]["h"].As<Neo4j.Driver.INode>());
+                if (children) await HydrateNativeChildrenAsync(session, root, recursive, maximumDepth, 0, new HashSet<Guid> { root.Id });
+                result.Result = root;
             }
             result.IsLoaded = true;
         }
@@ -34,8 +37,27 @@ public partial class Neo4jOASIS
             result.IsError = true; result.Exception = cause; result.Message = cause.Message;
             if (cause is InvalidDataException || cause is Core.Helpers.StorageLifecycleConflictException)
                 result.ErrorCode = Core.Helpers.StorageLifecycleConflictException.ErrorCode;
+            else if (cause is ArgumentException) result.ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID";
         }
         return result;
+    }
+
+    private static async Task HydrateNativeChildrenAsync(IAsyncSession session, IHolon parent,
+        bool recursive, int maximumDepth, int depth, HashSet<Guid> visited)
+    {
+        if (maximumDepth != 0 && depth >= maximumDepth) return;
+        var rows = await (await session.RunAsync("MATCH (p:Holon {Id:$id})-[:HAS_CHILD]->(h:Holon) RETURN h",
+            new { id = parent.Id.ToString() })).ToListAsync();
+        var selected = new List<IHolon>();
+        foreach (var row in rows)
+        {
+            var child = ReadHolonNode(row["h"].As<Neo4j.Driver.INode>());
+            if (!visited.Add(child.Id)) throw new Core.Helpers.StorageLifecycleConflictException("Neo4j selected graph has a repeated identity or cycle.");
+            if (child.ParentHolonId != parent.Id) throw new Core.Helpers.StorageLifecycleConflictException("Neo4j child snapshot conflicts with its native parent edge.");
+            if (recursive) await HydrateNativeChildrenAsync(session, child, true, maximumDepth, depth + 1, visited);
+            selected.Add(child);
+        }
+        parent.Children = selected;
     }
 
     private static Holon ReadHolonNode(Neo4j.Driver.INode node)
