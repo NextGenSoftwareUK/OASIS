@@ -31,6 +31,7 @@ contract OwnedErc20Fixture {
     bool public immutable noOp;
     uint256 public totalSupply;
     mapping(address => uint256) public balanceOf;
+    mapping(address => mapping(address => uint256)) public allowance;
     event Transfer(address indexed from, address indexed to, uint256 value);
     constructor(uint8 precision, bool noOpMutation) {
         decimals = precision;
@@ -44,6 +45,20 @@ contract OwnedErc20Fixture {
         balanceOf[msg.sender] -= amount;
         balanceOf[to] += amount;
         emit Transfer(msg.sender, to, amount);
+        return true;
+    }
+    function approve(address spender, uint256 amount) external returns (bool) {
+        allowance[msg.sender][spender] = amount;
+        return true;
+    }
+    function transferFrom(address from, address to, uint256 amount) external returns (bool) {
+        if (noOp) return false;
+        require(allowance[from][msg.sender] >= amount, "Insufficient allowance");
+        require(to != address(0) && balanceOf[from] >= amount, "Invalid transferFrom");
+        allowance[from][msg.sender] -= amount;
+        balanceOf[from] -= amount;
+        balanceOf[to] += amount;
+        emit Transfer(from, to, amount);
         return true;
     }
     function burn(uint256 amount) external {
