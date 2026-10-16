@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 Google↔SQLite actual V2 matrix strengthened: four sync/async×primary scenarios assert nonempty actor propagation through soft deletion and routed hard-delete replication; independently both Firestore documents and both SQLite records absent. Same5/5 native suite passes14s, zero skips. Expanded assertion coverage, not extra test count or full-provider certification.
+
 2026-10-16 Google native5/5 passes14s, zero skips after actual2/5 failure reproduced empty lifecycle actor. Existing Firestore transaction now preserves stored DeletedByAvatarId. New sync/async tests independently verify paired canonical timestamp/actor/data preservation, repeat deletion, hard removal. Prior3 native tests retained. Full-interface/live service/Storage/BigQuery/recovery and hosted release gates remain open.
 
 2026-10-16 Azure Blob native12/12 passes, zero skips: existing profile/detail lifecycle and incoming tombstone idempotence/conflict; actual V2 Azure↔SQLite sync/async soft/hard replication; actual SDK second-mutation outage after first real acknowledgement preserves exact paths/cause and fences replay/replication with zero secondary requests. Per-blob ETags are NOT pair atomicity. Concurrent absent-detail creation, durable recovery, physical ack loss, complete interfaces/live Azure/hosted release remain open.
