@@ -68,8 +68,52 @@ public partial class SolanaOASIS
     }
 
     public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)=>MintTokenAsync(request).GetAwaiter().GetResult();
-    public Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
-        => Task.FromResult(UnimplementedSolanaTokenMutation("mint",request));
+    public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
+    {
+        var result=new OASISResult<ITransactionResponse>();string signature=null;
+        try
+        {
+            if(request==null) throw new ArgumentNullException(nameof(request));
+            if(request.MintedByAvatarId==Guid.Empty || request.Amount<=0 || string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.ToWalletAddress))
+                throw new ArgumentException("An avatar, existing SPL mint, recipient and positive amount are required.");
+            var mint=new PublicKey(request.TokenAddress);var recipient=new PublicKey(request.ToWalletAddress);
+            var keys=ResolveTokenSigningKeys(request.MintedByAvatarId);
+            if(keys.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result,keys.Message,keys.Exception);result.ErrorCode=keys.ErrorCode;return result;
+            }
+            if(keys.Result==null || keys.Result.Count!=1 || string.IsNullOrWhiteSpace(keys.Result[0]))
+                throw new InvalidOperationException("SPL minting requires exactly one unambiguous avatar signing wallet.");
+            var state=await ReadLegacyMintAsync(mint);
+            if(state.MintAuthority==null) throw new UnauthorizedAccessException("SPL mint authority has been revoked.");
+            Account signer;
+            try {signer=ExplicitTokenSigner(keys.Result[0],state.MintAuthority.Key);}
+            catch(ArgumentException cause) {throw new UnauthorizedAccessException("Avatar signing wallet is not the mint authority.",cause);}
+            var raw=SplRawAmount(request.Amount,state.Decimals);
+            if(raw>ulong.MaxValue-state.Supply) throw new ArgumentOutOfRangeException(nameof(request.Amount),"SPL mint supply would overflow.");
+            var destination=AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(recipient,mint);
+            var before=await ReadLegacyTokenAccountAsync(destination,mint,recipient,true);
+            var balance=before?.Amount ?? 0;
+            if(raw>ulong.MaxValue-balance) throw new ArgumentOutOfRangeException(nameof(request.Amount),"SPL recipient balance would overflow.");
+            var instructions=new List<Solnet.Rpc.Models.TransactionInstruction>();
+            if(before==null) instructions.Add(AssociatedTokenAccountProgram.CreateAssociatedTokenAccount(signer.PublicKey,recipient,mint));
+            instructions.Add(TokenProgram.MintToChecked(mint,destination,signer.PublicKey,raw,state.Decimals));
+            signature=await SubmitTokenInstructionsAsync(signer,instructions,request.MemoText);
+            var afterMint=await ReadLegacyMintAsync(mint);var after=await ReadLegacyTokenAccountAsync(destination,mint,recipient,false);
+            if(afterMint.Supply!=state.Supply+raw || after.Amount!=balance+raw)
+                throw new System.IO.InvalidDataException("Finalized SPL mint supply or recipient effect differs from the requested mint.");
+            result.Result=new TransactionResponse{TransactionResult=signature};result.IsSaved=true;
+        }
+        catch(Exception cause)
+        {
+            if(signature!=null && cause is not SolanaTransactionReconciliationException) cause=new SolanaTransactionReconciliationException(signature,cause);
+            OASISErrorHandling.HandleError(ref result,"Solana token mint failed.",cause);
+        }
+        return result;
+    }
+
+    protected virtual OASISResult<List<string>> ResolveTokenSigningKeys(Guid avatarId)
+        => KeyManager.GetProviderPrivateKeysForAvatarById(avatarId,Core.Enums.ProviderType.SolanaOASIS);
     public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)=>BurnTokenAsync(request).GetAwaiter().GetResult();
     public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
     {
@@ -95,12 +139,4 @@ public partial class SolanaOASIS
         return signer;
     }
 
-    private static OASISResult<ITransactionResponse> UnimplementedSolanaTokenMutation(string operation,object request)
-    {
-        var result=new OASISResult<ITransactionResponse>();
-        Exception cause=request==null ? new ArgumentNullException(nameof(request))
-            :new NotSupportedException("Solana token "+operation+" is not implemented; no transaction was submitted.");
-        OASISErrorHandling.HandleError(ref result,cause.Message,cause);result.ErrorCode="SOLANA_TOKEN_OPERATION_UNAVAILABLE";
-        return result;
-    }
 }
