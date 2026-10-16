@@ -156,7 +156,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             // itself: update the matching document, otherwise create the first document for it.
             // Do not use CreatedDate or IsNewHolon here: both are lifecycle/audit state and are not
             // a durable cross-client storage key.
-            var mongoHolon = DataHelper.ConvertOASISHolonToMongoEntity(holon);
+            var mongoHolon = DataHelper.ConvertOASISHolonToMongoEntity(holon, saveChildren);
             var persistedHolon = await _holonRepository.GetHolonAsync(mongoHolon.HolonId);
             PreserveCreationAuditFields(mongoHolon, persistedHolon);
             var saveResult = persistedHolon == null
@@ -173,7 +173,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             if (graphError != null) return graphError;
             if (saveChildren && saveChildrenOnProvider && holon.Children != null && holon.Children.Any())
                 return SaveGraphAtomicAsync(holon, recursive, maxChildDepth).GetAwaiter().GetResult();
-            var mongoHolon = DataHelper.ConvertOASISHolonToMongoEntity(holon);
+            var mongoHolon = DataHelper.ConvertOASISHolonToMongoEntity(holon, saveChildren);
             var persistedHolon = _holonRepository.GetHolon(mongoHolon.HolonId);
             PreserveCreationAuditFields(mongoHolon, persistedHolon);
             var saveResult = persistedHolon == null

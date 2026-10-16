@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Driver;
@@ -12,6 +13,37 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoOASIS.IntegrationTests;
 
 public sealed class MongoGraphAcknowledgementTests
 {
+    private readonly Xunit.Abstractions.ITestOutputHelper _output;
+    public MongoGraphAcknowledgementTests(Xunit.Abstractions.ITestOutputHelper output) => _output = output;
+
+    [Fact]
+    [Trait("Category", "OwnedFixtureReconciliation")]
+    public async Task ReconcileAcknowledgedRootOnlyFixture()
+    {
+        const string uri = "mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        if (Environment.GetEnvironmentVariable("OASIS_MONGO_REPLICA_SET_CONNECTION") != uri)
+            throw new InvalidOperationException("Owned reusable runner required.");
+        var client = new MongoClient(uri);
+        const string name = "hyperdrive_mongo_graph_ack_fixture";
+        var database = client.GetDatabase(name);
+        using var collections = await database.ListCollectionNamesAsync();
+        foreach (var collection in await collections.ToListAsync())
+            if (collection != "Holon")
+                Assert.Equal(0L, await database.GetCollection<BsonDocument>(collection).CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+        var rows = await database.GetCollection<BsonDocument>("Holon").Find(FilterDefinition<BsonDocument>.Empty).ToListAsync();
+        Assert.Equal(8, rows.Count);
+        var expected = new Dictionary<string, int> {
+            {"owned root",1}, {"reject-owned-child",1}, {"owned leaf",1},
+            {"selected owned root",2}, {"selected owned child",2}, {"owned root-only",1} };
+        Assert.Equal(expected.Count, rows.Select(row => row["Name"].AsString).Distinct().Count());
+        foreach (var pair in expected) Assert.Equal(pair.Value, rows.Count(row => row["Name"].AsString == pair.Key));
+        foreach (var row in rows)
+            _output.WriteLine(row.ToJson()); // Preserve exact synthetic native snapshots in the compact reconciliation TRX.
+        await client.DropDatabaseAsync(name);
+        using var remaining = await client.ListDatabaseNamesAsync();
+        Assert.DoesNotContain(name, await remaining.ToListAsync());
+    }
+
     [Theory]
     [InlineData(true)]
     [InlineData(false)]
@@ -91,6 +123,25 @@ public sealed class MongoGraphAcknowledgementTests
                 }
             }
             Assert.Equal(7L, await native.CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
+            foreach (var onProvider in new[] { false, true })
+            {
+                var excluded = new Holon { Name = "excluded root-only child" };
+                var rootOnly = new Holon { Id = Guid.NewGuid(), Name = "owned root-only", Children = new List<IHolon> { excluded } };
+                var rootSaved = synchronous
+                    ? provider.SaveHolon(rootOnly, saveChildren: false, saveChildrenOnProvider: onProvider)
+                    : await provider.SaveHolonAsync(rootOnly, saveChildren: false, saveChildrenOnProvider: onProvider);
+                Assert.False(rootSaved.IsError, rootSaved.Message + " " + rootSaved.Exception);
+                Assert.True(rootSaved.IsSaved);
+                Assert.Equal(Guid.Empty, excluded.Id);
+                Assert.Equal(Guid.Empty, excluded.ParentHolonId);
+                foreach (var fromProvider in new[] { false, true })
+                {
+                    var rootRead = await provider.LoadHolonAsync(rootOnly.Id, loadChildrenFromProvider: fromProvider);
+                    Assert.False(rootRead.IsError, rootRead.Message + " " + rootRead.Exception);
+                    Assert.Empty(rootRead.Result.Children);
+                }
+            }
+            Assert.Equal(9L, await native.CountDocumentsAsync(FilterDefinition<BsonDocument>.Empty));
             verified = true;
         }
         finally
