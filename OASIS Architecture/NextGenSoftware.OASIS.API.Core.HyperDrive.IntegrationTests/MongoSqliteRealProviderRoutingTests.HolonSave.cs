@@ -20,6 +20,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
         OASISDNA dna,IMongoDatabase admin,string app,bool synchronous,IMongoCollection<NativeHolon> records)
     {
         await VerifyMongoSerializationFailuresAsync(healthy,sqlite,dna,synchronous,records.Database);
+        await VerifyMongoAvatarIdentityRoundTripAsync(healthy,synchronous,records.Database);
         await VerifyMongoAtomicWriteConflictAsync(fault,healthy,sqlite,dna,admin,app,synchronous,records);
         await VerifyMongoAvatarTransactionConflictsAsync(fault,healthy,sqlite,dna,admin,app,synchronous,records.Database);
         await VerifyMongoAvatarCommitAcknowledgementsAsync(fault,healthy,sqlite,dna,admin,app,synchronous,records.Database);
