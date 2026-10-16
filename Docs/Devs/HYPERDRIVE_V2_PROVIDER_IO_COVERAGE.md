@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 Google native17/17 passes26s: added sync/async direct holon outage regressions, both failed before fix with premature generated caller ID. Detached canonical direct-write snapshot now publishes caller ID/key only on acknowledgement; separate healthy save independently verifies stored identity. Prior profile/detail, graphs, lifecycle and V2 tests retained. Durable reconciliation/all-interface/live service/hosted gates remain open.
+
 2026-10-16 Google native15/15 passes22s: four sync/async avatar/profile-detail official SDK outage cases preserve caller IDs/provider keys until acknowledgement, retain attempted fully qualified document identity in reconciliation error, then independently verify a separate healthy save publishes matching stored identity. Detached canonical snapshots replace pre-ack caller mutation. Initial fixture path-prefix failures corrected, not misreported as production regression proof. Durable outcome recovery/physical ack loss/full interfaces/live service/hosted release still open.
 
 2026-10-16 Google native11/11 passes14s, zero skips: four active/deleted combinations independently verify native isActive/isDeleted match canonical payload. Two mismatches reproduced before changing SaveHolon isDeleted from !IsActive to core IsDeleted. Existing V2 and lifecycle evidence retained. No existing-data rewrite or broad read-policy change; full certification remains open.
