@@ -105,6 +105,7 @@ public partial class Neo4jNativeAvatarTests
                 }
             }
             finally { field.SetValue(neo, healthy); }
+            foreach (var operation in new[] { "SaveHolon", "SaveAvatar", "SaveAvatarDetail" })
             foreach (var replication in new[] { false, true })
             foreach (var asynchronous in new[] { false, true })
             {
@@ -117,9 +118,27 @@ public partial class Neo4jNativeAvatarTests
                 try
                 {
                     field.SetValue(neo, proxy);
-                    var request = new StorageOperationRequest { Operation = "SaveHolon", Payload = new Holon { Id = committedId, Name = "actually committed before acknowledgement loss" },
+                    object payload = operation == "SaveAvatar" ? new Avatar { Id = committedId, Username = "committed-owner" }
+                        : operation == "SaveAvatarDetail" ? new AvatarDetail { Id = committedId, XP = 4321, Karma = 321 }
+                        : new Holon { Id = committedId, Name = "actually committed before acknowledgement loss" };
+                    var request = new StorageOperationRequest { Operation = operation, Payload = payload,
                         SaveChildren = false, PreferredProvider = ProviderType.Neo4jOASIS };
-                    var failed = asynchronous ? await router.RouteRequestAsync<IHolon>(request) : router.RouteRequest<IHolon>(request);
+                    (bool IsError, bool IsSaved, Exception Exception) failed;
+                    if (operation == "SaveAvatar")
+                    {
+                        var answer = asynchronous ? await router.RouteRequestAsync<IAvatar>(request) : router.RouteRequest<IAvatar>(request);
+                        failed = (answer.IsError, answer.IsSaved, answer.Exception);
+                    }
+                    else if (operation == "SaveAvatarDetail")
+                    {
+                        var answer = asynchronous ? await router.RouteRequestAsync<IAvatarDetail>(request) : router.RouteRequest<IAvatarDetail>(request);
+                        failed = (answer.IsError, answer.IsSaved, answer.Exception);
+                    }
+                    else
+                    {
+                        var answer = asynchronous ? await router.RouteRequestAsync<IHolon>(request) : router.RouteRequest<IHolon>(request);
+                        failed = (answer.IsError, answer.IsSaved, answer.Exception);
+                    }
                     Assert.IsTrue(failed.IsError); Assert.IsFalse(failed.IsSaved);
                     Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(failed.Exception));
                     Assert.AreSame(cause, failed.Exception.GetBaseException());
@@ -128,12 +147,28 @@ public partial class Neo4jNativeAvatarTests
                         "Neither failover nor replication may replay an uncertain native mutation.");
                 }
                 finally { field.SetValue(neo, healthy); }
-                var committed = await neo.LoadHolonAsync(committedId, loadChildren:false);
-                Assert.IsFalse(committed.IsError, committed.Message);
-                Assert.AreEqual("actually committed before acknowledgement loss", committed.Result.Name);
-                Assert.IsNull((await sqlite.LoadHolonAsync(committedId, loadChildren:false)).Result);
+                if (operation == "SaveAvatar")
+                {
+                    var committed = await neo.LoadAvatarAsync(committedId);
+                    Assert.IsFalse(committed.IsError, committed.Message); Assert.AreEqual("committed-owner", committed.Result.Username);
+                    Assert.IsNull((await sqlite.LoadAvatarAsync(committedId)).Result);
+                }
+                else if (operation == "SaveAvatarDetail")
+                {
+                    var committed = await neo.LoadAvatarDetailAsync(committedId);
+                    Assert.IsFalse(committed.IsError, committed.Message); Assert.AreEqual(4321L, committed.Result.XP); Assert.AreEqual(321L, committed.Result.Karma);
+                    Assert.IsNull((await sqlite.LoadAvatarDetailAsync(committedId)).Result);
+                }
+                else
+                {
+                    var committed = await neo.LoadHolonAsync(committedId, loadChildren:false);
+                    Assert.IsFalse(committed.IsError, committed.Message);
+                    Assert.AreEqual("actually committed before acknowledgement loss", committed.Result.Name);
+                    Assert.IsNull((await sqlite.LoadHolonAsync(committedId, loadChildren:false)).Result);
+                }
                 using var exactCleanup = raw.AsyncSession();
-                await (await exactCleanup.RunAsync("MATCH (h:Holon {Id:$id}) DETACH DELETE h", new { id = committedId.ToString() })).ConsumeAsync();
+                var label = operation == "SaveAvatar" ? "Avatar" : operation == "SaveAvatarDetail" ? "AvatarDetail" : "Holon";
+                await (await exactCleanup.RunAsync("MATCH (h:" + label + " {Id:$id}) DETACH DELETE h", new { id = committedId.ToString() })).ConsumeAsync();
             }
             using var cleanup = raw.AsyncSession();
             await (await cleanup.RunAsync("MATCH (h:Holon {Id:$id}) DETACH DELETE h", new { id = id.ToString() })).ConsumeAsync();
