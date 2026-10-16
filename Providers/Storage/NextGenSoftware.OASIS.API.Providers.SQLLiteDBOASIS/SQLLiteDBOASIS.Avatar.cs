@@ -187,12 +187,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
+                var query = new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordLocationQuery(geoLat, geoLong, radiusInMeters);
                 if (!IsProviderActivated)
                 {
                     var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
                         return result;
                     }
                 }
@@ -200,31 +201,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                 var avatarsResult = _avatarRepository.LoadAllAvatars();
                 if (avatarsResult.IsError || avatarsResult.Result == null)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}", avatarsResult.Exception);
                     return result;
                 }
 
-                var centerLat = geoLat / 1e6d;
-                var centerLng = geoLong / 1e6d;
+                var nearby = query.Select(avatarsResult.Result, avatar => avatar.IsActive && !avatar.IsDeleted);
 
-                var nearby = new List<IAvatar>();
-                foreach (var avatar in avatarsResult.Result)
-                {
-                    if (avatar.MetaData != null &&
-                        avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
-                        avatar.MetaData.TryGetValue("Longitude", out var lngObj) &&
-                        double.TryParse(latObj?.ToString(), out var lat) &&
-                        double.TryParse(lngObj?.ToString(), out var lng))
-                    {
-                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
-                        if (distance <= radiusInMeters)
-                            nearby.Add(avatar);
-                    }
-                }
-
+                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IAvatar>, IEnumerable<IAvatar>>(avatarsResult);
                 result.Result = nearby;
                 result.IsError = false;
                 result.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
+                result.IsLoaded = true;
             }
             catch (Exception ex)
             {
@@ -238,44 +225,32 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                var query = new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordLocationQuery(geoLat, geoLong, radiusInMeters);
+                if (!Enum.IsDefined(typeof(HolonType), Type)) throw new ArgumentOutOfRangeException(nameof(Type));
                 if (!IsProviderActivated)
                 {
                     var activateResult = ActivateProviderAsync().GetAwaiter().GetResult();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref result, $"Failed to activate SQLite provider: {activateResult.Message}", activateResult.Exception);
                         return result;
                     }
                 }
 
-                var holonsResult = _holonRepository.LoadAllHolons(Type, true, true, 0, 0, true, 0);
+                var holonsResult = _holonRepository.LoadAllHolons(HolonType.All, true, true, 0, 0, true, 0);
                 if (holonsResult.IsError || holonsResult.Result == null)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}", holonsResult.Exception);
                     return result;
                 }
 
-                var centerLat = geoLat / 1e6d;
-                var centerLng = geoLong / 1e6d;
+                var nearby = query.Select(holonsResult.Result, holon => holon.IsActive && !holon.IsDeleted && (Type == HolonType.All || holon.HolonType == Type));
 
-                var nearby = new List<IHolon>();
-                foreach (var holon in holonsResult.Result)
-                {
-                    if (holon.MetaData != null &&
-                        holon.MetaData.TryGetValue("Latitude", out var latObj) &&
-                        holon.MetaData.TryGetValue("Longitude", out var lngObj) &&
-                        double.TryParse(latObj?.ToString(), out var lat) &&
-                        double.TryParse(lngObj?.ToString(), out var lng))
-                    {
-                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
-                        if (distance <= radiusInMeters)
-                            nearby.Add(holon);
-                    }
-                }
-
+                result = OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>, IEnumerable<IHolon>>(holonsResult);
                 result.Result = nearby;
                 result.IsError = false;
                 result.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
+                result.IsLoaded = true;
             }
             catch (Exception ex)
             {
