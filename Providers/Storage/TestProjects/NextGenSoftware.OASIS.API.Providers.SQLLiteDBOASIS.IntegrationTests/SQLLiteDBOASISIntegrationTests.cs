@@ -259,7 +259,14 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
         else
         {
             read.IsError.Should().BeFalse(read.Message);
-            read.Result.Children.Should().BeEmpty("excluded children cannot bridge to grandchildren");
+            if(condition=="version")
+            {
+                read.Result.Version.Should().Be(3);read.Result.Children.Should().ContainSingle();
+                read.Result.Children.Single().Version.Should().Be(4);
+                read.Result.Children.Single().Children.Should().ContainSingle();
+                read.Result.Children.Single().Children.Single().Id.Should().Be(grandchild.Id);
+            }
+            else read.Result.Children.Should().BeEmpty("deleted children cannot bridge to grandchildren");
         }
     }
 
