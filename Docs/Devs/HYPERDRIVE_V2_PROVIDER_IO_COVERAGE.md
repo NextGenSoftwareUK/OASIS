@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 Azure native42/42pass14s: actual V2 graph replication4normal Azure/SQLite primary×syncasync combinations proves matching generated trees;2partial SDK acknowledgement-boundary cases prove2real uploads, exact partial/uncertain evidence,0secondary requests and no leaf submission with independent native/SQLite reads. Four new top-level tests total, previous38 retained. Physical wire loss/concurrency/durable recovery/history/all interfaces/live/hosted remain open.
+
 2026-10-16 shared selected graph planner: Azure native38/38 +unit15/15; AWS native51/51 +unit49/49; Google native17/17 +unit32/32, all zero skips. Existing Dynamo/Google planners consolidated, Azure child options now implemented with post-ack source publication/native-key collision guard.6Azure child cases failed before fix. Native blobs/parent links/readback and controlled zero-write invalid preflight verified. Sequential writes NOT atomic; Azure routed graph fault/replication/durability and complete release/interface gates remain open.
 
 2026-10-16 Azure native30/30pass14s +unit13/13pass266ms:6actual-commit/controlled SDK-acknowledgement failures reproduced pre-ack caller ID mutation. Direct profile/detail/holon writes now use canonical detached snapshots and publish IDs/keys only after ack; independent native read/original cause/blob-key evidence verified. Existing V2 cases retained. Batch graph planning/publication still OPEN alongside durable recovery/pair atomicity/history/live/hosted gates.
