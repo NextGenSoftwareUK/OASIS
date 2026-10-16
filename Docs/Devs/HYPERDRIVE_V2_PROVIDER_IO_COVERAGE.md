@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+Solana native refresh (2026-10-15 local/16UTC): retained Agave4.3.0 inspection returns finalized505/no finalized fixture signatures; fresh log repeats vote-switch stake0 at508. No transaction submitted/reset/warp/replay/download; owned node stopped. Runner inspection no longer reads client signing/encryption files, loads Solnet or builds consumer; actual RPC run succeeds with Get-Content forbidden. Full live finality remains unresolved. Source audit confirms missing VersionId/IsPublic/creation-origin envelope fields in Solana DTO adapters as next implementation gap; encrypted payload mapping still required, not yet complete. Priority order unchanged.
+
 ### Priority Mongo/SQLite contract audit (2026-10-15)
 
 SQLite split-read evidence: eight real concurrent WAL writer/read-interleaving cases pass through sync/async GUID/username/email/enumeration repository paths with multiple owners and two collections. Old returned parent/collection values stay consistent while later native readback proves the independent atomic update committed. Existing production behavior passed, no locking workaround added. Full direct suite336/336 passes24s. Other isolation modes, writer CAS, all query shapes and routed V2/HTTP/other-provider concurrency remain open.
