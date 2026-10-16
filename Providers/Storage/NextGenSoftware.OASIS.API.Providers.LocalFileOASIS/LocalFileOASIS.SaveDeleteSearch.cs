@@ -21,222 +21,24 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
 {
     public partial class LocalFileOASIS
     {
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var holonFilePath = Path.Combine(_holonDirectory, $"{id}.json");
-                if (File.Exists(holonFilePath))
-                {
-                    var jsonContent = await File.ReadAllTextAsync(holonFilePath);
-                    var holon = JsonConvert.DeserializeObject<Holon>(jsonContent);
-                    
-                    // Version zero requests the latest persisted document, not literal version zero.
-                    if (holon != null && (version == 0 || holon.Version == version))
-                    {
-                        // Load children if requested
-                        if (loadChildren && holon.Children != null && holon.Children.Any() && maxChildDepth > 0)
-                        {
-                            var loadedChildren = new List<IHolon>();
-                            foreach (var child in holon.Children)
-                            {
-                                var childResult = await LoadHolonAsync(child.Id, loadChildren, recursive, maxChildDepth - 1, continueOnError, loadChildrenFromProvider, version);
-                                if (!childResult.IsError && childResult.Result != null)
-                                {
-                                    loadedChildren.Add(childResult.Result);
-                                }
-                                else if (childResult.IsError && !continueOnError)
-                                {
-                                    OASISErrorHandling.HandleError(ref result, $"Error loading child holon: {childResult.Message}");
-                                    return result;
-                                }
-                            }
-                            holon.Children = loadedChildren;
-                        }
-
-                        result.Result = holon;
-                        result.IsError = false;
-                        result.IsLoaded = true;
-                        result.Message = "Holon loaded successfully";
-                    }
-                    else
-                    {
-                        result.IsError = false;
-                        result.IsLoaded = false;
-                        result.Message = holon == null ? "Holon file corrupted" : $"Holon version {version} not found";
-                    }
-                }
-                else
-                {
-                    result.IsError = false;
-                    result.IsLoaded = false;
-                    result.Message = "Holon file not found";
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holon: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => ReadSingleGraphAsync(row=>row.Id==id,loadChildren,recursive,maxChildDepth,version,id);
 
         public override OASISResult<IHolon> LoadHolon(Guid id, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             return LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IHolon>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Search for holon by provider key in holon directory
-                if (Directory.Exists(_holonDirectory))
-                {
-                    var jsonFiles = Directory.GetFiles(_holonDirectory, "*.json");
-                    foreach (var file in jsonFiles)
-                    {
-                        try
-                        {
-                            var jsonContent = await File.ReadAllTextAsync(file);
-                            var holon = JsonConvert.DeserializeObject<Holon>(jsonContent);
-                            
-                            if (holon != null && holon.ProviderUniqueStorageKey != null && 
-                                holon.ProviderUniqueStorageKey.ContainsKey(Core.Enums.ProviderType.LocalFileOASIS) &&
-                                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.LocalFileOASIS] == providerKey &&
-                                (version == 0 || holon.Version == version))
-                            {
-                                // Load children if requested
-                                if (loadChildren && holon.Children != null && holon.Children.Any() && maxChildDepth > 0)
-                                {
-                                    var loadedChildren = new List<IHolon>();
-                                    foreach (var child in holon.Children)
-                                    {
-                                        var childResult = await LoadHolonAsync(child.Id, loadChildren, recursive, maxChildDepth - 1, continueOnError, loadChildrenFromProvider, version);
-                                        if (!childResult.IsError && childResult.Result != null)
-                                        {
-                                            loadedChildren.Add(childResult.Result);
-                                        }
-                                        else if (childResult.IsError && !continueOnError)
-                                        {
-                                            OASISErrorHandling.HandleError(ref result, $"Error loading child holon: {childResult.Message}");
-                                            return result;
-                                        }
-                                    }
-                                    holon.Children = loadedChildren;
-                                }
-
-                                result.Result = holon;
-                                result.IsError = false;
-                                result.IsLoaded = true;
-                                result.Message = "Holon loaded successfully by provider key";
-                                return result;
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            // Continue searching other files
-                            LoggingManager.Log($"Error reading holon file {file}: {ex.Message}", NextGenSoftware.Logging.LogType.Warning);
-                        }
-                    }
-                }
-
-                result.IsError = false;
-                result.IsLoaded = false;
-                result.Message = "Holon not found by provider key";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holon by provider key: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => ReadSingleGraphAsync(row=>row.ProviderUniqueStorageKey!=null && row.ProviderUniqueStorageKey.TryGetValue(Core.Enums.ProviderType.LocalFileOASIS,out var key) && key==providerKey,loadChildren,recursive,maxChildDepth,version);
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             return LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Parent membership is defined by each persisted child's ParentHolonId,
-                // not by a potentially stale embedded parent snapshot.
-                var stored = await LoadAllHolonsAsync(HolonType.All, false, false, 0, 0, continueOnError, loadChildrenFromProvider, version);
-                if (stored.IsError) return stored;
-                if (stored.Result == null) throw new InvalidOperationException("Parent query returned no holon collection.");
-                var children = stored.Result.Where(child => child.ParentHolonId == id).ToList();
-                
-                // Filter by type if specified
-                if (type != HolonType.All)
-                {
-                    children = children.Where(c => c.HolonType == type).ToList();
-                }
-
-                // Load children recursively if requested
-                if (loadChildren && children.Any() && maxChildDepth > curentChildDepth)
-                {
-                    var loadedChildren = new List<IHolon>();
-                    foreach (var child in children)
-                    {
-                        var childResult = await LoadHolonAsync(child.Id, loadChildren, recursive, maxChildDepth - curentChildDepth - 1, continueOnError, loadChildrenFromProvider, version);
-                        if (!childResult.IsError && childResult.Result != null)
-                        {
-                            loadedChildren.Add(childResult.Result);
-                        }
-                        else if (childResult.IsError && !continueOnError)
-                        {
-                            OASISErrorHandling.HandleError(ref result, $"Error loading child holon: {childResult.Message}");
-                            return result;
-                        }
-                    }
-                    children = loadedChildren;
-                }
-
-                result.Result = children;
-                result.IsError = false;
-                result.IsLoaded = true;
-                result.Message = $"Loaded {children.Count()} holons for parent";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons for parent: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => ReadParentGraphAsync(id,type,loadChildren,recursive,maxChildDepth,curentChildDepth,continueOnError,loadChildrenFromProvider,version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(Guid id, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
@@ -263,262 +65,24 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
             return LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var matchingHolons = new List<IHolon>();
-                
-                if (Directory.Exists(_holonDirectory))
-                {
-                    var jsonFiles = Directory.GetFiles(_holonDirectory, "*.json");
-                    foreach (var file in jsonFiles)
-                    {
-                        try
-                        {
-                            var jsonContent = await File.ReadAllTextAsync(file);
-                            var holon = JsonConvert.DeserializeObject<Holon>(jsonContent);
-                            
-                            if (holon != null && (version == 0 || holon.Version == version) &&
-                                (type == HolonType.All || holon.HolonType == type) &&
-                                holon.MetaData != null && holon.MetaData.ContainsKey(metaKey) &&
-                                holon.MetaData[metaKey]?.ToString() == metaValue)
-                            {
-                                // Load children if requested
-                                if (loadChildren && holon.Children != null && holon.Children.Any() && maxChildDepth > curentChildDepth)
-                                {
-                                    var loadedChildren = new List<IHolon>();
-                                    foreach (var child in holon.Children)
-                                    {
-                                        var childResult = await LoadHolonAsync(child.Id, loadChildren, recursive, maxChildDepth - curentChildDepth - 1, continueOnError, loadChildrenFromProvider, version);
-                                        if (!childResult.IsError && childResult.Result != null)
-                                        {
-                                            loadedChildren.Add(childResult.Result);
-                                        }
-                                        else if (childResult.IsError && !continueOnError)
-                                        {
-                                            OASISErrorHandling.HandleError(ref result, $"Error loading child holon: {childResult.Message}");
-                                            return result;
-                                        }
-                                    }
-                                    holon.Children = loadedChildren;
-                                }
-
-                                matchingHolons.Add(holon);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            if (!continueOnError)
-                            {
-                                OASISErrorHandling.HandleError(ref result, $"Error reading holon file {file}: {ex.Message}", ex);
-                                return result;
-                            }
-                            LoggingManager.Log($"Error reading holon file {file}: {ex.Message}", NextGenSoftware.Logging.LogType.Warning);
-                        }
-                    }
-                }
-
-                result.Result = matchingHolons;
-                result.IsError = false;
-                result.IsLoaded = true;
-                result.Message = $"Loaded {matchingHolons.Count} holons by metadata";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => ReadGraphMetadataAsync(new Dictionary<string,string> {{metaKey ?? string.Empty,metaValue}},MetaKeyValuePairMatchMode.All,type,loadChildren,recursive,maxChildDepth,curentChildDepth,version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(string metaKey, string metaValue, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             return LoadHolonsByMetaDataAsync(metaKey, metaValue, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var matchingHolons = new List<IHolon>();
-                
-                if (Directory.Exists(_holonDirectory))
-                {
-                    var jsonFiles = Directory.GetFiles(_holonDirectory, "*.json");
-                    foreach (var file in jsonFiles)
-                    {
-                        try
-                        {
-                            var jsonContent = await File.ReadAllTextAsync(file);
-                            var holon = JsonConvert.DeserializeObject<Holon>(jsonContent);
-                            
-                            if (holon != null && (version == 0 || holon.Version == version) &&
-                                (type == HolonType.All || holon.HolonType == type) &&
-                                holon.MetaData != null)
-                            {
-                                bool matches = false;
-                                if (metaKeyValuePairMatchMode == MetaKeyValuePairMatchMode.All)
-                                {
-                                    matches = metaKeyValuePairs.All(kvp => holon.MetaData.ContainsKey(kvp.Key) && holon.MetaData[kvp.Key]?.ToString() == kvp.Value);
-                                }
-                                else // Or
-                                {
-                                    matches = metaKeyValuePairs.Any(kvp => holon.MetaData.ContainsKey(kvp.Key) && holon.MetaData[kvp.Key]?.ToString() == kvp.Value);
-                                }
-
-                                if (matches)
-                                {
-                                    // Load children if requested
-                                    if (loadChildren && holon.Children != null && holon.Children.Any() && maxChildDepth > curentChildDepth)
-                                    {
-                                        var loadedChildren = new List<IHolon>();
-                                        foreach (var child in holon.Children)
-                                        {
-                                            var childResult = await LoadHolonAsync(child.Id, loadChildren, recursive, maxChildDepth - curentChildDepth - 1, continueOnError, loadChildrenFromProvider, version);
-                                            if (!childResult.IsError && childResult.Result != null)
-                                            {
-                                                loadedChildren.Add(childResult.Result);
-                                            }
-                                            else if (childResult.IsError && !continueOnError)
-                                            {
-                                                OASISErrorHandling.HandleError(ref result, $"Error loading child holon: {childResult.Message}");
-                                                return result;
-                                            }
-                                        }
-                                        holon.Children = loadedChildren;
-                                    }
-
-                                    matchingHolons.Add(holon);
-                                }
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            if (!continueOnError)
-                            {
-                                OASISErrorHandling.HandleError(ref result, $"Error reading holon file {file}: {ex.Message}", ex);
-                                return result;
-                            }
-                            LoggingManager.Log($"Error reading holon file {file}: {ex.Message}", NextGenSoftware.Logging.LogType.Warning);
-                        }
-                    }
-                }
-
-                result.Result = matchingHolons;
-                result.IsError = false;
-                result.IsLoaded = true;
-                result.Message = $"Loaded {matchingHolons.Count} holons by metadata pairs";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading holons by metadata pairs: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsByMetaDataAsync(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => ReadGraphMetadataAsync(metaKeyValuePairs,metaKeyValuePairMatchMode,type,loadChildren,recursive,maxChildDepth,curentChildDepth,version);
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsByMetaData(Dictionary<string, string> metaKeyValuePairs, MetaKeyValuePairMatchMode metaKeyValuePairMatchMode, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
         {
             return LoadHolonsByMetaDataAsync(metaKeyValuePairs, metaKeyValuePairMatchMode, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
-        {
-            var result = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate LocalFile provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                var holons = new List<IHolon>();
-                
-                if (Directory.Exists(_holonDirectory))
-                {
-                    var jsonFiles = Directory.GetFiles(_holonDirectory, "*.json");
-                    foreach (var file in jsonFiles)
-                    {
-                        try
-                        {
-                            var jsonContent = await File.ReadAllTextAsync(file);
-                            var holon = JsonConvert.DeserializeObject<Holon>(jsonContent);
-                            
-                            if (holon != null && (version == 0 || holon.Version == version) &&
-                                (type == HolonType.All || holon.HolonType == type))
-                            {
-                                // Load children if requested
-                                if (loadChildren && holon.Children != null && holon.Children.Any() && maxChildDepth > curentChildDepth)
-                                {
-                                    var loadedChildren = new List<IHolon>();
-                                    foreach (var child in holon.Children)
-                                    {
-                                        var childResult = await LoadHolonAsync(child.Id, loadChildren, recursive, maxChildDepth - curentChildDepth - 1, continueOnError, loadChildrenFromProvider, version);
-                                        if (!childResult.IsError && childResult.Result != null)
-                                        {
-                                            loadedChildren.Add(childResult.Result);
-                                        }
-                                        else if (childResult.IsError && !continueOnError)
-                                        {
-                                            OASISErrorHandling.HandleError(ref result, $"Error loading child holon: {childResult.Message}");
-                                            return result;
-                                        }
-                                    }
-                                    holon.Children = loadedChildren;
-                                }
-
-                                holons.Add(holon);
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            if (!continueOnError)
-                            {
-                                OASISErrorHandling.HandleError(ref result, $"Error reading holon file {file}: {ex.Message}", ex);
-                                return result;
-                            }
-                            LoggingManager.Log($"Error reading holon file {file}: {ex.Message}", NextGenSoftware.Logging.LogType.Warning);
-                        }
-                    }
-                }
-
-                result.Result = holons;
-                result.IsError = false;
-                result.IsLoaded = true;
-                result.Message = $"Loaded {holons.Count} holons";
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error loading all holons: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public override Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonsAsync(HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
+            => ReadGraphAsync(_=>true,type,loadChildren,recursive,maxChildDepth,curentChildDepth,version);
 
     }
 }

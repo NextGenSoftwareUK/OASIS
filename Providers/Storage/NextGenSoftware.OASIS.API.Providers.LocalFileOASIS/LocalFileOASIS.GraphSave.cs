@@ -28,6 +28,8 @@ public partial class LocalFileOASIS
                     if(node.Snapshot.CreatedDate==DateTime.MinValue) node.Snapshot.CreatedDate=DateTime.UtcNow;
                     node.Snapshot.ModifiedDate=DateTime.MinValue;node.Snapshot.ModifiedByAvatarId=Guid.Empty;
                 }
+                node.Snapshot.ProviderUniqueStorageKey ??= new();
+                node.Snapshot.ProviderUniqueStorageKey.TryAdd(NextGenSoftware.OASIS.API.Core.Enums.ProviderType.LocalFileOASIS,node.Snapshot.Id.ToString());
                 staged.Add((node,path,OasisJson.Serialize(node.Snapshot)));
             }
             if(!IsProviderActivated)
@@ -44,6 +46,8 @@ public partial class LocalFileOASIS
                 write.Node.Source.Id=write.Node.Snapshot.Id;write.Node.Source.ParentHolonId=write.Node.Snapshot.ParentHolonId;
                 write.Node.Source.CreatedDate=write.Node.Snapshot.CreatedDate;write.Node.Source.CreatedByAvatarId=write.Node.Snapshot.CreatedByAvatarId;
                 write.Node.Source.CreatedProviderType=write.Node.Snapshot.CreatedProviderType;
+                write.Node.Source.ProviderUniqueStorageKey ??= new();
+                write.Node.Source.ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.LocalFileOASIS]=write.Node.Snapshot.ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.LocalFileOASIS];
             }
             result.Result=source;result.IsSaved=true;result.SavedCount=acknowledged.Count;
         }
