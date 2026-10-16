@@ -34,6 +34,12 @@ public class GoogleNativeDetailTests
                 MetaData=new Dictionary<string,object> {{"profile-field","profile-value"},{"Latitude",-33.0},{"Longitude",151.0}}};
             var avatarSaved=await provider.SaveAvatarAsync(avatar);Assert.IsFalse(avatarSaved.IsError,avatarSaved.Message);Assert.IsTrue(avatarSaved.IsSaved);
             var avatarRead=await provider.LoadAvatarAsync(avatarId);Assert.IsFalse(avatarRead.IsError,avatarRead.Message);
+            var keyReadAvatar=await provider.LoadAvatarByProviderKeyAsync(avatarId.ToString());
+            Assert.IsFalse(keyReadAvatar.IsError,keyReadAvatar.Message);Assert.IsTrue(keyReadAvatar.IsLoaded);
+            Assert.AreEqual(avatarId,keyReadAvatar.Result.Id);Assert.AreEqual(avatarRead.Result.Username,keyReadAvatar.Result.Username);
+            Assert.AreEqual(avatarRead.Result.Email,keyReadAvatar.Result.Email);
+            var keyReadSync=provider.LoadAvatarByProviderKey(avatarId.ToString());
+            Assert.IsFalse(keyReadSync.IsError,keyReadSync.Message);Assert.AreEqual(avatarId,keyReadSync.Result.Id);
             Assert.AreEqual("Owned",avatarRead.Result.FirstName);Assert.AreEqual("profile-value",avatarRead.Result.MetaData["profile-field"]);
             Assert.AreEqual(avatarId,(await provider.LoadAvatarByUsernameAsync("OWNED-AVATAR")).Result.Id);
             Assert.AreEqual(avatarId,provider.LoadAvatarByEmail("OWNED-AVATAR@EXAMPLE.INVALID").Result.Id);

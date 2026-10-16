@@ -11,6 +11,29 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
     public class GoogleCloudOASISProviderTests
     {
         [DataTestMethod]
+        [DataRow(false,1)] [DataRow(true,1)]
+        [DataRow(false,-1)] [DataRow(true,-1)]
+        public async Task ExplicitAvatarVersionsNeverSilentlyReadLatest(bool synchronous,int version)
+        {
+            var provider=new FailedActivationProvider();var id=System.Guid.NewGuid();
+            void Check<T>(NextGenSoftware.OASIS.Common.OASISResult<T> result)
+            {
+                Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsLoaded);Assert.IsNull(result.Result);
+                Assert.IsInstanceOfType(result.Exception,version<0 ? typeof(System.ArgumentOutOfRangeException):typeof(System.NotSupportedException));
+            }
+            Check(synchronous ? provider.LoadAvatar(id,version):await provider.LoadAvatarAsync(id,version));
+            Check(synchronous ? provider.LoadAvatarByProviderKey(id.ToString(),version):await provider.LoadAvatarByProviderKeyAsync(id.ToString(),version));
+            Check(synchronous ? provider.LoadAvatarByUsername("owned",version):await provider.LoadAvatarByUsernameAsync("owned",version));
+            Check(synchronous ? provider.LoadAvatarByEmail("owned@example.invalid",version):await provider.LoadAvatarByEmailAsync("owned@example.invalid",version));
+            Check(synchronous ? provider.LoadAllAvatars(version):await provider.LoadAllAvatarsAsync(version));
+            Check(synchronous ? provider.LoadAvatarDetail(id,version):await provider.LoadAvatarDetailAsync(id,version));
+            Check(synchronous ? provider.LoadAvatarDetailByUsername("owned",version):await provider.LoadAvatarDetailByUsernameAsync("owned",version));
+            Check(synchronous ? provider.LoadAvatarDetailByEmail("owned@example.invalid",version):await provider.LoadAvatarDetailByEmailAsync("owned@example.invalid",version));
+            Check(synchronous ? provider.LoadAllAvatarDetails(version):await provider.LoadAllAvatarDetailsAsync(version));
+            Assert.AreEqual(0,provider.Activations);
+        }
+
+        [DataTestMethod]
         [DataRow("DecodeAvatar")]
         [DataRow("DecodeAvatarDetail")]
         [DataRow("DecodeHolon")]

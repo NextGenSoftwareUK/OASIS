@@ -19,9 +19,15 @@ public partial class GoogleCloudOASIS
         catch(Exception cause) {throw new GoogleFirestoreMutationReconciliationException(documentPath,cause);}
     }
 
+    private static void ValidateFirestoreVersion(int version)
+    {
+        if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
+        if(version!=0) throw new NotSupportedException("Firestore canonical reads currently support latest version (0) only.");
+    }
+
     private async Task<OASISResult<bool>> EnsureDetailStoreAsync(int version)
     {
-        if(version!=0) throw new NotSupportedException("Firestore detail reads currently support latest version (0) only.");
+        ValidateFirestoreVersion(version);
         if(!IsProviderActivated) {
             var active=await ActivateProviderAsync();
             if(active.IsError) return active;
@@ -65,7 +71,7 @@ public partial class GoogleCloudOASIS
         var result=new OASISResult<IAvatarDetail>();
         try {
             if(string.IsNullOrWhiteSpace(selector)) throw new ArgumentException("A nonblank avatar selector is required.");
-            if(version!=0) throw new NotSupportedException("Firestore detail selectors currently support latest version (0) only.");
+            ValidateFirestoreVersion(version);
             if(field!="username" && field!="email") throw new ArgumentException("Unknown avatar detail selector field.",nameof(field));
             var loaded=await ReadCanonicalDetailsAsync(version);
             if(loaded.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IAvatarDetail>,IAvatarDetail>(loaded);
