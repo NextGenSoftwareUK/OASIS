@@ -11,6 +11,10 @@ public static class OasisEntitiesExtensions
         {
             Email = avatar.Email,
             Id = avatar.Id,
+            VersionId = avatar.VersionId,
+            IsPublic = avatar.IsPublic,
+            CreatedProviderType = avatar.CreatedProviderType?.Value,
+            CreatedOASISType = avatar.CreatedOASISType?.Value,
             Password = avatar.Password,
             AvatarId = avatar.AvatarId,
             UserName = avatar.Username,
@@ -36,6 +40,10 @@ public static class OasisEntitiesExtensions
         {
             Address = avatarDetail.Address,
             Id = avatarDetail.Id,
+            VersionId = avatarDetail.VersionId,
+            IsPublic = avatarDetail.IsPublic,
+            CreatedProviderType = avatarDetail.CreatedProviderType?.Value,
+            CreatedOASISType = avatarDetail.CreatedOASISType?.Value,
             Mobile = avatarDetail.Mobile,
             Level = avatarDetail.Level,
             XP = avatarDetail.XP,
@@ -88,6 +96,10 @@ public static class OasisEntitiesExtensions
         return new SolanaHolonDto()
         {
             Id = holon.Id,
+            VersionId = holon.VersionId,
+            IsPublic = holon.IsPublic,
+            CreatedProviderType = holon.CreatedProviderType?.Value,
+            CreatedOASISType = holon.CreatedOASISType?.Value,
             Name = holon.Name,
             Description = holon.Description,
             ParentHolonId = holon.ParentHolonId,

@@ -9,6 +9,10 @@ public static class SolanaEntitiesExtensions
         return new AvatarDetail()
         {
             Id = avatarDetailDto.Id,
+            VersionId = avatarDetailDto.VersionId,
+            IsPublic = avatarDetailDto.IsPublic,
+            CreatedProviderType = avatarDetailDto.CreatedProviderType.HasValue ? new EnumValue<ProviderType>(avatarDetailDto.CreatedProviderType.Value) : null,
+            CreatedOASISType = avatarDetailDto.CreatedOASISType.HasValue ? new EnumValue<OASISType>(avatarDetailDto.CreatedOASISType.Value) : null,
             Address = avatarDetailDto.Address,
             Mobile = avatarDetailDto.Mobile,
             Username = avatarDetailDto.Username,
@@ -64,6 +68,10 @@ public static class SolanaEntitiesExtensions
         return new Avatar()
         {
             Id = avatarDto.Id,
+            VersionId = avatarDto.VersionId,
+            IsPublic = avatarDto.IsPublic,
+            CreatedProviderType = avatarDto.CreatedProviderType.HasValue ? new EnumValue<ProviderType>(avatarDto.CreatedProviderType.Value) : null,
+            CreatedOASISType = avatarDto.CreatedOASISType.HasValue ? new EnumValue<OASISType>(avatarDto.CreatedOASISType.Value) : null,
             AvatarId = avatarDto.AvatarId,
             Email = avatarDto.Email,
             Password = avatarDto.Password,
@@ -97,6 +105,10 @@ public static class SolanaEntitiesExtensions
         return new Holon()
         {
             Id = holonDto.Id,
+            VersionId = holonDto.VersionId,
+            IsPublic = holonDto.IsPublic,
+            CreatedProviderType = holonDto.CreatedProviderType.HasValue ? new EnumValue<ProviderType>(holonDto.CreatedProviderType.Value) : null,
+            CreatedOASISType = holonDto.CreatedOASISType.HasValue ? new EnumValue<OASISType>(holonDto.CreatedOASISType.Value) : null,
             Name = holonDto.Name,
             Description = holonDto.Description,
             ParentHolonId = holonDto.ParentHolonId,

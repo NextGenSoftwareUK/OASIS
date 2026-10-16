@@ -11,6 +11,11 @@ public abstract class SolanaBaseDto
         _ => throw new InvalidOperationException("Unsupported Solana storage record type.")
     };
     public Guid Id { get; set; }
+    // Part of the encrypted record, never a public lookup-index exemption.
+    public Guid VersionId { get; set; }
+    public bool IsPublic { get; set; }
+    public NextGenSoftware.OASIS.API.Core.Enums.ProviderType? CreatedProviderType { get; set; }
+    public NextGenSoftware.OASIS.API.Core.Enums.OASISType? CreatedOASISType { get; set; }
     public int Version { get; set; }
     public Guid PreviousVersionId { get; set; }
     public bool IsDeleted { get; set; }
