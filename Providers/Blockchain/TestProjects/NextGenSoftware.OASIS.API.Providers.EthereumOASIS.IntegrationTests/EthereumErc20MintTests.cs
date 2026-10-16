@@ -15,17 +15,19 @@ public partial class EthereumOASISIntegrationTests
     [DataRow(false, "normal")] [DataRow(true, "normal")]
     [DataRow(false, "noop")] [DataRow(true, "noop")]
     [DataRow(false, "receipt-loss")] [DataRow(true, "receipt-loss")]
+    [DataRow(false, "multi-wallet")] [DataRow(true, "multi-wallet")]
     public async Task NativeMintUsesExplicitContractRecipientAmountAndNativeEvidence(bool synchronous, string scenario)
     {
         var (storage, address) = await CreateActivatedProviderAsync();
-        var provider = new MintFixtureProvider(Host, PrivateKey, ChainId, address) { LoseReceipt = scenario == "receipt-loss" };
+        var provider = new MintFixtureProvider(Host, PrivateKey, ChainId, address) { LoseReceipt = scenario == "receipt-loss",MultipleWallets=scenario=="multi-wallet" };
+        var normal=scenario is "normal" or "multi-wallet";
         try
         {
-            foreach (var decimals in scenario == "normal" ? new byte[] { 6, 30 } : new byte[] { 6 })
+            foreach (var decimals in normal ? new byte[] { 6, 30 } : new byte[] { 6 })
             {
                 var token = await CreateTokenAsync(decimals, scenario == "noop");
                 var owner = new Account(PrivateKey, ChainId).Address;
-                foreach (var recipient in scenario == "normal" ? new[] { owner, "0x2222222222222222222222222222222222222222" }
+                foreach (var recipient in normal ? new[] { owner, "0x2222222222222222222222222222222222222222" }
                     : new[] { "0x2222222222222222222222222222222222222222" })
                 {
                     var before = await token.GetFunction("balanceOf").CallAsync<BigInteger>(recipient);
@@ -35,7 +37,7 @@ public partial class EthereumOASISIntegrationTests
                     var minted = synchronous ? provider.MintToken(request) : await provider.MintTokenAsync(request);
                     Assert.AreEqual(request.MintedByAvatarId, provider.LastAvatar);
                     var units = 2345678 * BigInteger.Pow(10, decimals - 6);
-                    if (scenario == "normal")
+                    if (normal)
                     {
                         Assert.IsFalse(minted.IsError, minted.Message + " " + minted.Exception);
                         Assert.IsTrue(minted.IsSaved); Assert.AreEqual(1, minted.SavedCount);
@@ -86,14 +88,16 @@ public partial class EthereumOASISIntegrationTests
     {
         public Guid LastAvatar;
         public int KeyCalls;
-        public bool LoseReceipt, DenySigner;
+        public bool LoseReceipt, DenySigner,MultipleWallets;
         public readonly IOException Cause = new("Owned mint signer/receipt fault.");
         protected override OASISResult<List<string>> ResolveTokenSigningKeys(Guid avatarId)
         {
             LastAvatar=avatarId;KeyCalls++;
             return DenySigner ? new OASISResult<List<string>> {IsError=true,ErrorCode="OASIS_PRIVATE_KEY_ACCESS_DENIED",Exception=Cause,Message="Owned denied signer"}
-                : new OASISResult<List<string>>(new List<string> {PrivateKey});
+                : new OASISResult<List<string>>(MultipleWallets ? new List<string>{Nethereum.Signer.EthECKey.GenerateKey().GetPrivateKey(),PrivateKey}:new List<string> {PrivateKey});
         }
+        protected override Task<OASISResult<string>> ResolveDefaultTokenMintWalletAsync(Guid avatarId)
+            =>Task.FromResult(new OASISResult<string>{Result=new Account(PrivateKey,ChainId).Address});
         protected override async Task<TransactionReceipt> PollTokenReceiptAsync(Web3 web3, string hash)
         {
             var receipt = await base.PollTokenReceiptAsync(web3, hash);
