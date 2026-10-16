@@ -6,6 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
 using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
+using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
 using NextGenSoftware.OASIS.API.Providers.PolygonOASIS;
 
 namespace NextGenSoftware.OASIS.API.Providers.PolygonOASIS.UnitTests
@@ -234,7 +235,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolygonOASIS.UnitTests
         public void GetPlayersNearMe_ShouldReturnNotSupported()
         {
             // Act
-            var result = _provider.GetPlayersNearMe();
+            var result = _provider.GetAvatarsNearMe(0,0,1000);
 
             // Assert
             Assert.IsTrue(result.IsError);
@@ -259,7 +260,7 @@ namespace NextGenSoftware.OASIS.API.Providers.PolygonOASIS.UnitTests
             var transaction = new WalletTransactionRequest();
 
             // Act
-            var result = await _provider.SendTransactionAsync(transaction);
+            var result = await _provider.SendTransactionAsync(transaction.FromWalletAddress,transaction.ToWalletAddress,transaction.Amount,transaction.MemoText);
 
             // Assert
             Assert.IsTrue(result.IsError);
