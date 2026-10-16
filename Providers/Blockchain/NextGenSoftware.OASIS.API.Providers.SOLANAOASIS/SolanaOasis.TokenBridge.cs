@@ -162,16 +162,24 @@ public partial class SolanaOASIS
 
     public OASISResult<double> GetBalance(IGetWeb3WalletBalanceRequest request)
     {
-        return GetBalanceAsync(request).Result;
+        return GetBalanceAsync(request).GetAwaiter().GetResult();
     }
 
     public async Task<OASISResult<double>> GetBalanceAsync(IGetWeb3WalletBalanceRequest request)
     {
         OASISResult<double> result = new OASISResult<double>();
-        DateTimeOffset date = DateTimeOffset.UtcNow;
-
         try
         {
+            if(request==null || string.IsNullOrWhiteSpace(request.WalletAddress)) throw new ArgumentException("A wallet address is required.");
+            if(!IsProviderActivated)
+            {
+                var activation=await ActivateProviderAsync();
+                if(activation.IsError)
+                {
+                    OASISErrorHandling.HandleError(ref result,activation.Message,activation.Exception);
+                    result.ErrorCode=activation.ErrorCode;return result;
+                }
+            }
             OASISResult<decimal> solResult = await _solanaService.GetAccountBalanceAsync(request);
 
             if (solResult.IsError)
@@ -179,7 +187,7 @@ public partial class SolanaOASIS
                 OASISErrorHandling.HandleError(ref result,
                     solResult.Message,
                     solResult.Exception);
-
+                result.ErrorCode=solResult.ErrorCode;
                 return result;
             }
             else
@@ -187,7 +195,7 @@ public partial class SolanaOASIS
         }
         catch (Exception e)
         {
-            OASISErrorHandling.HandleError(ref result, $"Unknown error occured: {e}");
+            OASISErrorHandling.HandleError(ref result, $"Solana balance read failed: {e.Message}", e);
         }
 
         return result;
