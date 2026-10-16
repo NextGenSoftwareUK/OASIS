@@ -9,11 +9,12 @@ public sealed class DynamoDBMutationReconciliationException : Exception, INative
     public string TableName { get; }
     public string RecordKey { get; }
     // DynamoDB has no transaction hash for ordinary item writes; do not invent one.
-    public string OriginalTransactionId { get; }
+    public string OriginalTransactionId => string.Empty;
+    public string SdkRequestId { get; }
     public DynamoDBMutationReconciliationException(string tableName,string recordKey,Exception cause)
         :base("DynamoDB mutation outcome requires reconciliation before cross-provider replay.",cause)
     {
         TableName=tableName; RecordKey=recordKey;
-        OriginalTransactionId=(cause as Amazon.Runtime.AmazonServiceException)?.RequestId ?? string.Empty;
+        SdkRequestId=(cause as Amazon.Runtime.AmazonServiceException)?.RequestId ?? string.Empty;
     }
 }
