@@ -8,6 +8,25 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 public class StoredRecordSearchIdTests
 {
     [TestMethod]
+    public void ExtendedComparisonsUseSelectedTypedMetadataAndAllFields()
+    {
+        var when=new DateTime(2020,1,2,0,0,0,DateTimeKind.Utc);
+        var record=new Holon {Id=Guid.NewGuid(),Version=7,MetaData=new() {{"score",8181},{"when",when}}};
+        var number=new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchNumberGroup {SearchHolons=true,
+            HolonType=NextGenSoftware.OASIS.API.Core.Enums.HolonType.All,Number=8181,NumberOperator=NextGenSoftware.OASIS.API.Core.Enums.SearchOperatorType.EqualTo,
+            HolonSearchParams=new NextGenSoftware.OASIS.API.Core.Interfaces.SearchHolonParams {MetaData=true,MetaDataKey="score"}};
+        Assert.IsTrue(StoredRecordSearch.MatchesSearchFields(record,false,number));
+        number.HolonSearchParams.MetaDataKey="when";Assert.IsFalse(StoredRecordSearch.MatchesSearchFields(record,false,number));
+        number.HolonSearchParams=new NextGenSoftware.OASIS.API.Core.Interfaces.SearchHolonParams {SearchAllFields=true};
+        number.Number=7;Assert.IsTrue(StoredRecordSearch.MatchesSearchFields(record,false,number));
+        var date=new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchDateGroup {SearchHolons=true,
+            HolonType=NextGenSoftware.OASIS.API.Core.Enums.HolonType.All,Date=when,DateOperator=NextGenSoftware.OASIS.API.Core.Enums.SearchOperatorType.EqualTo,
+            HolonSearchParams=new NextGenSoftware.OASIS.API.Core.Interfaces.SearchHolonParams {MetaData=true,MetaDataKey="when"}};
+        Assert.IsTrue(StoredRecordSearch.MatchesSearchFields(record,false,date));
+        date.Date=when.AddDays(1);Assert.IsFalse(StoredRecordSearch.MatchesSearchFields(record,false,date));
+    }
+
+    [TestMethod]
     public void ExtendedTextMasksRespectAvatarIdMetadataScopeAndCredentialExclusion()
     {
         var record=new Avatar {Id=Guid.NewGuid(),Title="selected-title",VerificationToken="excluded-secret",MetaData=new() {{"avatar-only","selected-metadata"}}};

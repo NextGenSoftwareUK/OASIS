@@ -24,6 +24,8 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
         var ids=new[] {park.Id,quest.Id};
         try
         {
+            var metadataDate=created.AddYears(8);
+            foreach(var row in new IHolonBase[] {park,quest,avatar}) {row.MetaData["score"]=8181;row.MetaData["when"]=metadataDate;}
             foreach(var row in new[] {park,quest}) (await mongo.SaveHolonAsync(row,saveChildren:false)).IsError.Should().BeFalse();
             (await mongo.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
             // Normal saves stamp modification audit time. Seed the synthetic date-query fixture explicitly.
@@ -32,7 +34,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             (await mongo.Database.Avatar.UpdateOneAsync(row=>row.HolonId==avatar.Id,
                 Builders<NativeAvatar>.Update.Set(row=>row.ModifiedDate,modified))).MatchedCount.Should().Be(1);
             foreach(var kind in new[] {"number","created","modified"})
-            foreach(var mask in new[] {"omitted","empty","selected"})
+            foreach(var mask in new[] {"omitted","empty","selected","all"})
             foreach(var type in new[] {HolonType.All,HolonType.Park,HolonType.Quest,HolonType.Avatar})
             {
                 ISearchGroupBase group=kind=="number"
@@ -41,8 +43,8 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 group.SearchHolons=true;group.SearchAvatars=true;group.HolonType=type;
                 if(mask!="omitted")
                 {
-                    group.HolonSearchParams=new SearchHolonParams {Version=mask=="selected",ModifiedDate=mask=="selected"};
-                    group.AvatarSearchParams=new AvatarMask {Version=mask=="selected",ModifiedDate=mask=="selected"};
+                    group.HolonSearchParams=new SearchHolonParams {Version=mask=="selected",ModifiedDate=mask=="selected",SearchAllFields=mask=="all"};
+                    group.AvatarSearchParams=new AvatarMask {Version=mask=="selected",ModifiedDate=mask=="selected",SearchAllFields=mask=="all"};
                 }
                 var query=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new() {group}};
                 var result=synchronous ? mongo.Search(query,loadChildren:false):await mongo.SearchAsync(query,loadChildren:false);
@@ -53,6 +55,21 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 result.Result.SearchResultHolons.Select(row=>row.Id).Should().BeEquivalentTo(expectedHolons,"kind={0}, mask={1}, type={2}",kind,mask,type);
                 result.Result.SearchResultAvatars.Select(row=>row.Id).Should().BeEquivalentTo(expectedAvatars,"kind={0}, mask={1}, type={2}",kind,mask,type);
                 result.Result.NumberOfResults.Should().Be(expectedHolons.Length+expectedAvatars.Length);
+            }
+            foreach(var group in new ISearchGroupBase[] {
+                new SearchNumberGroup {Number=8181,NumberOperator=SearchOperatorType.EqualTo},
+                new SearchDateGroup {Date=metadataDate,DateOperator=SearchOperatorType.EqualTo}})
+            {
+                group.SearchHolons=true;group.SearchAvatars=true;group.HolonType=HolonType.All;
+                group.HolonSearchParams=new SearchHolonParams {MetaData=true,MetaDataKey=group is SearchNumberGroup ? "score":"when"};
+                group.AvatarSearchParams=new AvatarMask {MetaData=true};
+                var query=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new() {group}};
+                var result=synchronous ? mongo.Search(query,loadChildren:false):await mongo.SearchAsync(query,loadChildren:false);
+                result.IsError.Should().BeFalse(result.Exception?.ToString() ?? result.Message);
+                var loaded=(await mongo.LoadHolonAsync(park.Id,loadChildren:false)).Result;
+                var metadataEvidence=string.Join(",",loaded.MetaData.Select(pair=>pair.Key+"="+pair.Value+"("+pair.Value?.GetType().FullName+")"));
+                result.Result.SearchResultHolons.Select(row=>row.Id).Should().BeEquivalentTo(ids,"group={0}, stored metadata={1}",group.GetType().Name,metadataEvidence);
+                result.Result.SearchResultAvatars.Select(row=>row.Id).Should().BeEquivalentTo(new[] {avatar.Id});
             }
             var empty=synchronous ? mongo.Search(new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=null!})
                 :await mongo.SearchAsync(new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=null!});
