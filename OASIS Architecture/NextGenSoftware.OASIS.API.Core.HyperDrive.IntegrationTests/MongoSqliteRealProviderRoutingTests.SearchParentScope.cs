@@ -20,12 +20,20 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
         var records=new[] {parent,child,grand,outside};var ids=records.Select(row=>row.Id).ToArray();
         var avatar=new Avatar {Id=Guid.NewGuid(),Username=text,Version=7272,CreatedDate=when,
             AvatarType=new NextGenSoftware.Utilities.EnumValue<AvatarType>(AvatarType.User)};
+        var direct=new Avatar {Id=Guid.NewGuid(),Username=text+"direct",ParentHolonId=parent.Id,Version=7272,CreatedDate=when,AvatarType=avatar.AvatarType};
+        var linked=new Avatar {Id=Guid.NewGuid(),Username=text+"linked",ParentHolonId=child.Id,Version=7272,CreatedDate=when,AvatarType=avatar.AvatarType};
+        var avatarIds=new[] {avatar.Id,direct.Id,linked.Id};
         var nativeKeys=Array.Empty<string>();
         try
         {
             foreach(var record in records) (await mongo.SaveHolonAsync(record,saveChildren:false)).IsError.Should().BeFalse();
             nativeKeys=(await mongo.Database.Holon.Find(row=>ids.Contains(row.HolonId)).Project(row=>row.Id).ToListAsync()).ToArray();
             (await mongo.SaveAvatarAsync(avatar)).IsError.Should().BeFalse();
+            foreach(var record in new[] {direct,linked})
+            {
+                (await mongo.SaveAvatarAsync(record)).IsError.Should().BeFalse();
+                (await mongo.LoadAvatarAsync(record.Id)).Result.ParentHolonId.Should().Be(record.ParentHolonId);
+            }
             foreach(var recursive in new[] {false,true})
             foreach(var type in new[] {HolonType.All,HolonType.Park})
             foreach(var kind in new[] {"text","number","date"})
@@ -41,7 +49,8 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 result.IsError.Should().BeFalse(result.Exception?.ToString() ?? result.Message);
                 var expected=(recursive ? new[] {child,grand}:new[] {child}).Where(row=>type==HolonType.All || row.HolonType==type).Select(row=>row.Id);
                 result.Result.SearchResultHolons.Select(row=>row.Id).Should().BeEquivalentTo(expected,"kind={0}, recursive={1}, type={2}",kind,recursive,type);
-                result.Result.SearchResultAvatars.Should().BeEmpty("avatars have no semantic parent link");
+                var expectedAvatars=type==HolonType.All ? recursive ? new[] {direct.Id,linked.Id}:new[] {direct.Id}:Array.Empty<Guid>();
+                result.Result.SearchResultAvatars.Select(row=>row.Id).Should().BeEquivalentTo(expectedAvatars);
             }
             (await sqlite.ActivateProviderAsync()).IsError.Should().BeFalse();
             (await sqlite.SaveHolonAsync(child,saveChildren:false)).IsError.Should().BeFalse();
@@ -86,7 +95,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
         finally
         {
             await mongo.Database.Holon.DeleteManyAsync(row=>ids.Contains(row.HolonId)||nativeKeys.Contains(row.Id));
-            await mongo.Database.Avatar.DeleteManyAsync(row=>row.HolonId==avatar.Id);
+            await mongo.Database.Avatar.DeleteManyAsync(row=>avatarIds.Contains(row.HolonId));
         }
     }
 }
