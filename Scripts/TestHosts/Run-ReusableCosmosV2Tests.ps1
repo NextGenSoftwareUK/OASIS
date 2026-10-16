@@ -69,7 +69,7 @@ finally {
     }
     if ($containerStarted) {
         try {
-            & wsl -d Ubuntu -u root -- podman stop oasis-wasmd
+            & wsl -d Ubuntu -u root -- bash /mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/stop-owned-cosmos-test-container.sh
             if ($LASTEXITCODE -ne 0) { throw 'Owned Cosmos container stop failed; inspect before resuming.' }
         } catch { $failures.Add($_.Exception) }
     }
