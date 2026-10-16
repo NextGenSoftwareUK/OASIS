@@ -437,8 +437,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
 
         // ─── IOASISNETProvider ────────────────────────────────────────────────────
         public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radiusInMeters)
-        { var r = new OASISResult<IEnumerable<IAvatar>>(); OASISErrorHandling.HandleError(ref r, "AzureStorageOASIS: Geolocation not supported."); return r; }
+            => ReadNearbyAsync(geoLat,geoLong,radiusInMeters,()=>LoadAllAvatarsAsync()).GetAwaiter().GetResult();
         public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radiusInMeters, HolonType Type)
-        { var r = new OASISResult<IEnumerable<IHolon>>(); OASISErrorHandling.HandleError(ref r, "AzureStorageOASIS: Geolocation not supported."); return r; }
+            => ReadNearbyAsync(geoLat,geoLong,radiusInMeters,()=>LoadAllHolonsAsync(HolonType.All,loadChildren:false),Type).GetAwaiter().GetResult();
     }
 }

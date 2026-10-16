@@ -14,6 +14,23 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS;
 
 public partial class AzureStorageOASIS
 {
+    private async Task<OASISResult<IEnumerable<T>>> ReadNearbyAsync<T>(long latitude,long longitude,int radius,
+        Func<Task<OASISResult<IEnumerable<T>>>> load,HolonType type=HolonType.All) where T:IHolonBase
+    {
+        var result=new OASISResult<IEnumerable<T>>();
+        try
+        {
+            var query=new StoredRecordLocationQuery(latitude,longitude,radius);
+            if(!Enum.IsDefined(typeof(HolonType),type)) throw new ArgumentOutOfRangeException(nameof(type));
+            var loaded=await load();if(loaded.IsError) return loaded;
+            result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<T>,IEnumerable<T>>(loaded);
+            result.Result=query.Select(loaded.Result,row=>row.IsActive && !row.IsDeleted && (type==HolonType.All || row.HolonType==type));
+            result.IsLoaded=true;
+        }
+        catch(Exception cause) {result.Result=null;result.IsLoaded=false;OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
+        return result;
+    }
+
     private async Task<OASISResult<IEnumerable<IHolon>>> ExportOwnedHolonsAsync(Guid owner,int version)
     {
         var result=new OASISResult<IEnumerable<IHolon>>();
