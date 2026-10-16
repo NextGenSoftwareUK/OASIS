@@ -60,6 +60,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             await VerifyMongoNumericDateDefaultsAsync(mongo,synchronous);
             await VerifyWalletKeySelectorsAsync(mongo,sqlite,synchronous);
             await VerifyCredentialReplicationAsync(mongo,sqlite,synchronous,mongoPrimary);
+            await VerifyCredentialRoutingPoliciesAsync(mongo,sqlite,synchronous);
             (await sqlite.ActivateProviderAsync()).IsError.Should().BeFalse();
             var deletionId=Guid.NewGuid(); var deletingActor=Guid.NewGuid();
             (await mongo.SaveAvatarAsync(new Avatar {Id=deletionId,Username="owned tombstone primary",IsActive=true,DeletedByAvatarId=deletingActor,AvatarType=new EnumValue<AvatarType>(AvatarType.User)})).IsError.Should().BeFalse();
