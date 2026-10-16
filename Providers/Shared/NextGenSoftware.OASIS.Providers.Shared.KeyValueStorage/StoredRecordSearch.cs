@@ -14,6 +14,9 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
     public static class StoredRecordSearch
     {
         public static void Validate(ISearchParams searchParams,int version,int maxChildDepth)
+            => Validate(searchParams,version,maxChildDepth,supportsHistory:false);
+
+        public static void Validate(ISearchParams searchParams,int version,int maxChildDepth,bool supportsHistory)
         {
                 ArgumentNullException.ThrowIfNull(searchParams);
                 if(searchParams.SearchOnlyForCurrentAvatar && searchParams.AvatarId == Guid.Empty)
@@ -34,7 +37,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                     if(group.AvatarSearchParams?.SearchAvatarWalletParams != null)
                         throw new NotSupportedException("Stored-record wallet-field search is not implemented.");
                 }
-                if(version != 0) throw new NotSupportedException("Stored-record search history is not implemented; only current version 0 is supported.");
+                if(version != 0 && !supportsHistory) throw new NotSupportedException("Stored-record search history is not implemented; only current version 0 is supported.");
+                if(supportsHistory && version<0) throw new ArgumentOutOfRangeException(nameof(version));
                 if(maxChildDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
         }
 

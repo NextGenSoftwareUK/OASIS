@@ -88,7 +88,7 @@ public class IPFSNativeStorageTests
             Assert.Equal(child.Id,Assert.Single((await provider.LoadHolonsForParentAsync(parentKey,loadChildren:false)).Result).Id);
             Assert.Equal(child.Id,Assert.Single(provider.LoadHolonsForParent(parentKey,loadChildren:false).Result).Id);
             Assert.Empty((await provider.LoadHolonsForParentAsync(child.ProviderUniqueStorageKey[ProviderType.IPFSOASIS],loadChildren:false)).Result);
-            Assert.Throws<NotSupportedException>(()=>provider.LoadHolonsForParent(parentKey,version:1));
+            Assert.Empty(provider.LoadHolonsForParent(parentKey,version:1).Result);
             var grandchild=new Holon {Id=Guid.NewGuid(),ParentHolonId=child.Id,Name="owned-native-grandchild",HolonType=HolonType.Holon};
             await provider.SaveHolonToFile(grandchild);
             ownedCids.Add(grandchild.ProviderUniqueStorageKey[ProviderType.IPFSOASIS]); ownedCids.Add(dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
@@ -102,9 +102,9 @@ public class IPFSNativeStorageTests
             Assert.Equal(grandchild.Id,Assert.Single(Assert.Single(allGraph.Result.Single(row=>row.Id==id).Children).Children).Id);
             var shallowAll=await provider.LoadAllHolonsAsync(HolonType.All,loadChildren:false,loadChildrenFromProvider:true);
             Assert.All(shallowAll.Result,row=>Assert.Empty(row.Children));
-            Assert.IsType<NotSupportedException>(provider.LoadAllHolons(HolonType.All,version:1).Exception);
-            Assert.IsType<NotSupportedException>(provider.LoadAllAvatars(version:1).Exception);
-            Assert.IsType<NotSupportedException>(provider.LoadAllAvatarDetails(version:1).Exception);
+            Assert.Equal(id,Assert.Single(provider.LoadAllHolons(HolonType.All,version:1).Result).Id);
+            Assert.Equal(id,Assert.Single(provider.LoadAllAvatars(version:1).Result).Id);
+            Assert.Equal(id,Assert.Single(provider.LoadAllAvatarDetails(version:1).Result).Id);
             var query=new SearchParams {SearchOnlyForCurrentAvatar=false,MetaKeyValuePairMatchMode=MetaKeyValuePairMatchMode.All,
                 SearchGroups=new() {new SearchTextGroup {SearchHolons=true,HolonType=HolonType.All,SearchQuery="owned-native-child",HolonSearchParams=new SearchHolonParams {Name=true}}}};
             var searched=await provider.SearchAsync(query);
@@ -113,7 +113,7 @@ public class IPFSNativeStorageTests
             Assert.Equal(grandchild.Id,Assert.Single(searched.Result.SearchResultHolons[0].Children).Id);
             var noChildren=provider.Search(query,loadChildren:false);
             Assert.False(noChildren.IsError,noChildren.Message); Assert.Empty(Assert.Single(noChildren.Result.SearchResultHolons).Children);
-            Assert.IsType<NotSupportedException>(provider.Search(query,version:1).Exception);
+            Assert.Equal(0,provider.Search(query,version:1).Result.NumberOfResults);
             query.FilterByMetaData=new Dictionary<string,string> {{"biome","owned-park"}};
             Assert.Equal(child.Id,Assert.Single((await provider.SearchAsync(query,loadChildren:false)).Result.SearchResultHolons).Id);
             query.FilterByMetaData["biome"]="not-this-park";
@@ -128,14 +128,14 @@ public class IPFSNativeStorageTests
             Assert.Empty((await provider.LoadHolonsByMetaDataAsync(pairs,MetaKeyValuePairMatchMode.All)).Result);
             Assert.Empty(provider.LoadHolonsByMetaData("Biome","owned-park").Result);
             Assert.IsType<ArgumentException>((await provider.LoadHolonsByMetaDataAsync(" ","value")).Exception);
-            Assert.IsType<NotSupportedException>(provider.LoadHolonsByMetaData("biome","owned-park",version:1).Exception);
+            Assert.Empty(provider.LoadHolonsByMetaData("biome","owned-park",version:1).Result);
             var exportById=await provider.ExportAllDataForAvatarByIdAsync(id);
             Assert.False(exportById.IsError,exportById.Message); Assert.True(exportById.IsLoaded);
             Assert.Equal(child.Id,Assert.Single(exportById.Result).Id);
             Assert.Equal(child.Id,Assert.Single(provider.ExportAllDataForAvatarByEmail(avatar.Email.ToUpperInvariant()).Result).Id);
             Assert.Equal(child.Id,Assert.Single((await provider.ExportAllDataForAvatarByUsernameAsync(avatar.Username)).Result).Id);
             Assert.Equal(3,provider.ExportAll().Result.Count());
-            Assert.IsType<NotSupportedException>(provider.ExportAll(version:1).Exception);
+            Assert.Equal(id,Assert.Single(provider.ExportAll(version:1).Result).Id);
             Assert.IsType<ArgumentException>(provider.ExportAllDataForAvatarById(Guid.Empty).Exception);
             var preImportRoot=dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
             var invalidImport=await provider.ImportAsync(new IHolon[] {new Holon {Id=Guid.NewGuid()},new Holon()});
@@ -184,7 +184,7 @@ public class IPFSNativeStorageTests
             Assert.Equal(holon.Name,(await provider.LoadHolonAsync(id,loadChildren:false)).Result.Name);
             Assert.Equal(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,provider.LoadHolon(id,loadChildren:false,version:3).ErrorCode);
             Assert.IsType<ArgumentOutOfRangeException>(provider.LoadHolon(id,version:-1).Exception);
-            Assert.IsType<NotSupportedException>(provider.LoadHolon(id,loadChildrenFromProvider:true,version:1).Exception);
+            Assert.Empty(provider.LoadHolon(id,loadChildrenFromProvider:true,version:1).Result.Children);
             var missingId=Guid.NewGuid();
             var missing=await provider.LoadHolonAsync(missingId,loadChildren:false);
             Assert.True(missing.IsError); Assert.Null(missing.Result);
@@ -207,7 +207,7 @@ public class IPFSNativeStorageTests
             {
                 // A captured index is authoritative even if the configured root changes afterward.
                 dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress="not-a-cid";
-                var read=(Task<List<Holon>>)snapshotReader.Invoke(provider,new object[] {snapshot,"holon",new Func<HolonResume,bool>(row=>row.ParentHolonId==child.Id)})!;
+                var read=(Task<List<Holon>>)snapshotReader.Invoke(provider,new object[] {snapshot,"holon",new Func<HolonResume,bool>(row=>row.ParentHolonId==child.Id),0})!;
                 Assert.Equal(grandchild.Id,Assert.Single(await read).Id);
             }
             finally {dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress=currentRoot;}

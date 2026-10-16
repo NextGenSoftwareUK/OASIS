@@ -293,8 +293,6 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             {
                 if(!validSelector) throw new ArgumentException("A nonempty IPFS holon selector is required.");
                 if (version < 0) throw new ArgumentOutOfRangeException(nameof(version));
-                if (version != 0 && loadChildren && childrenFromProvider)
-                    throw new NotSupportedException("Historical provider-child graph reads require a historical index snapshot; current children cannot be mixed with a historical root.");
                 if (maxDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
                 var snapshot = await LoadLookupToJson();
                 var matches = snapshot.Where(entry => entry.Value?.RecordKind == "holon" && select(entry.Value)).Take(2).ToList();
@@ -307,7 +305,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 if(root==null) return new OASISResult<IHolon> {IsError=true,ErrorCount=1,
                     ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="The requested IPFS holon version was not found."};
                 var records = loadChildren && childrenFromProvider
-                    ? await ReadIndexSnapshotAsync<Holon>(snapshot, "holon", row => true)
+                    ? await ReadIndexSnapshotAsync<Holon>(snapshot, "holon", row => true,version)
                     : new List<Holon> { root };
                 var project = HolonGraphProjection.Create(records, loadChildren, recursive, maxDepth, 0, childrenFromProvider,
                     source => OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
