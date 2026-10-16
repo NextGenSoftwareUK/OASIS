@@ -303,7 +303,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         }
 
         public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-            => SaveOneHolonSnapshotAsync(holon);
+            => SaveOneHolonSnapshotAsync(holon, saveChildren, recursive, maxChildDepth);
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
@@ -311,7 +311,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
         }
 
         public override Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-            => SaveHolonSnapshotsAsync(holons);
+            => SaveHolonSnapshotsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth);
 
         public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
