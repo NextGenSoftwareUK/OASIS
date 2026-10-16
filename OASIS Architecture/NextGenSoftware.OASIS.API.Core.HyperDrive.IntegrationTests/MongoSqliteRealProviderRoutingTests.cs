@@ -1414,6 +1414,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 var standaloneDetail = new AvatarDetail { Id = standaloneAvatar.Id, Username = standaloneAvatar.Username, Email = standaloneAvatar.Email, Karma = 123,
                     Inventory = new List<IInventoryItem> { new InventoryItem { Id = Guid.NewGuid(), Name = "standalone-owned-seed", Quantity = 3,
                         Image2D=new byte[] {0,17,255},Object3D=new byte[] {255,0,23,41},
+                        PublishedSTARNETHolon=new byte[] {19,0,255,42},
                         Image2DURI=new Uri("https://example.test/seed.png"),Object3DURI=new Uri("models/seed.glb",UriKind.Relative) } } };
                 standaloneDetail.Stats.HP.Current = 37;
                 standaloneDetail.Inventory[0]=AsInventoryInterface(standaloneDetail.Inventory[0]);
@@ -1454,6 +1455,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 standaloneDetail.ActiveObjectiveId=null;
                 standaloneDetail.Inventory.Single().Image2D=null;
                 standaloneDetail.Inventory.Single().Object3D=null;
+                standaloneDetail.Inventory.Single().PublishedSTARNETHolon=null;
                 standaloneDetail.Inventory.Single().Image2DURI=null;
                 standaloneDetail.Inventory.Single().Object3DURI=null;
                 var clearedTracking=synchronous ? router.RouteRequest<IAvatarDetail>(saveDetail) : await router.RouteRequestAsync<IAvatarDetail>(saveDetail);
