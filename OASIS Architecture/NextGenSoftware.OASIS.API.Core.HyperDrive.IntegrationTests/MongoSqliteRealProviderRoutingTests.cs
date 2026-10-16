@@ -52,6 +52,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             throw new InvalidOperationException("Existing fixture requires inspection; refusing overwrite or cleanup.");
         try
         {
+            await VerifyMongoActivationRecoveryAsync(uri,databaseName,client.GetDatabase("admin"),synchronous);
             var mongo = new MongoDBOASIS(uri,databaseName);
             using var sqlite = new SQLLiteDBOASIS($"Data Source={dbPath};Pooling=False");
             (await mongo.ActivateProviderAsync()).IsError.Should().BeFalse();
