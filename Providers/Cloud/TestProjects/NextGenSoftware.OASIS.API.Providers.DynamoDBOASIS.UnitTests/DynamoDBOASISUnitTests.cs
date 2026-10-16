@@ -7,6 +7,19 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.UnitTests
     [TestClass]
     public class DynamoDBOASISProviderTests
     {
+        [TestMethod]
+        public void AwsRequestCorrelationIsNotAnOriginalTransactionReceipt()
+        {
+            var sdk=new Amazon.DynamoDBv2.AmazonDynamoDBException("owned SDK failure") {RequestId="owned-request-correlation"};
+            var evidence=new DynamoDBMutationReconciliationException("OasisHolons","owned-key",sdk);
+            Assert.AreSame(sdk,evidence.InnerException);
+            Assert.AreEqual("owned-request-correlation",sdk.RequestId);
+            Assert.AreEqual(string.Empty,evidence.OriginalTransactionId);
+            Assert.AreEqual(sdk.RequestId,evidence.SdkRequestId);
+            Assert.AreEqual(0,NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.OriginalTransactionIds(evidence).Count);
+            Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(evidence));
+        }
+
         private sealed class PartialWriter : DynamoDBOASIS
         {
             public int Writes;
