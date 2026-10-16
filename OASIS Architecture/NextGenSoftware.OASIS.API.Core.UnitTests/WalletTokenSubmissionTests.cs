@@ -31,16 +31,17 @@ public sealed class WalletTokenSubmissionTests
         var request = new UnlockWeb4TokenRequest
         {
             ProviderType = new EnumValue<ProviderType>(ProviderType.HashgraphOASIS), UnlockedByAvatarId = Guid.NewGuid(),
-            Web3TokenId = Guid.NewGuid(), TokenAddress = "0.0.3001", WaitTillTokenUnlocked = true, AttemptToUnlockEveryXSeconds = 0
+            Web3TokenId = Guid.NewGuid(), LockId = Guid.NewGuid(), EscrowContractAddress = "0.0.9001",
+            TokenAddress = "0.0.3001", WaitTillTokenUnlocked = true, AttemptToUnlockEveryXSeconds = 0
         };
         var expected = new OASISResult<ITransactionResponse>(new TransactionResponse { TransactionResult = "original-unlock-id" })
         { IsError = outcome == "readback", Message = "original release readback detail" };
         var count = 0;
+        IUnlockWeb3TokenRequest? submitted = null;
         OASISResult<ITransactionResponse> Submit(IUnlockWeb3TokenRequest projected)
         {
             count++;
-            Assert.Equal(request.UnlockedByAvatarId, projected.UnlockedByAvatarId);
-            Assert.Equal(request.Web3TokenId, projected.Web3TokenId); Assert.Equal(request.TokenAddress, projected.TokenAddress);
+            submitted = projected;
             if (outcome == "throw") throw new InvalidOperationException("original-unlock-id needs reconciliation");
             return outcome == "null" ? null! : expected;
         }
@@ -51,6 +52,11 @@ public sealed class WalletTokenSubmissionTests
         var manager = new WalletManager(null, dna, providers);
         var actual = asynchronous ? await manager.UnlockTokenAsync(request) : manager.UnlockToken(request);
         Assert.Equal(1, count);
+        Assert.NotNull(submitted);
+        Assert.Equal(request.UnlockedByAvatarId, submitted.UnlockedByAvatarId);
+        Assert.Equal(request.Web3TokenId, submitted.Web3TokenId); Assert.Equal(request.TokenAddress, submitted.TokenAddress);
+        Assert.Equal(request.LockId, submitted.LockId);
+        Assert.Equal(request.EscrowContractAddress, submitted.EscrowContractAddress);
         if (outcome is "success" or "readback")
         {
             Assert.Same(expected, actual); Assert.Equal("original release readback detail", actual.Message);
@@ -68,20 +74,18 @@ public sealed class WalletTokenSubmissionTests
         var request = new LockWeb4TokenRequest
         {
             ProviderType = new EnumValue<ProviderType>(ProviderType.HashgraphOASIS), LockedByAvatarId = Guid.NewGuid(),
-            Web3TokenId = Guid.NewGuid(), TokenAddress = "0.0.3001", FromWalletAddress = "0.0.1001",
+            Web3TokenId = Guid.NewGuid(), LockId = Guid.NewGuid(), Amount = 12.345678m, EscrowContractAddress = "0.0.9001",
+            TokenAddress = "0.0.3001", FromWalletAddress = "0.0.1001",
             FromWalletPrivateKey = "test-only-key", WaitTillTokenLocked = true, AttemptToLockEveryXSeconds = 0
         };
         var expected = new OASISResult<ITransactionResponse>(new TransactionResponse { TransactionResult = "original-lock-id" })
         { IsError = true, Message = "confirmed approval; mutation readback failed" };
         var count = 0;
+        ILockWeb3TokenRequest? submitted = null;
         OASISResult<ITransactionResponse> Submit(ILockWeb3TokenRequest projected)
         {
             count++;
-            Assert.Equal(request.LockedByAvatarId, projected.LockedByAvatarId);
-            Assert.Equal(request.FromWalletAddress, projected.FromWalletAddress);
-            Assert.Equal(request.FromWalletPrivateKey, projected.FromWalletPrivateKey);
-            Assert.Equal(request.Web3TokenId, projected.Web3TokenId);
-            Assert.Equal(request.TokenAddress, projected.TokenAddress);
+            submitted = projected;
             return expected;
         }
         provider.Setup(p => p.LockToken(It.IsAny<ILockWeb3TokenRequest>())).Returns((ILockWeb3TokenRequest r) => Submit(r));
@@ -90,6 +94,15 @@ public sealed class WalletTokenSubmissionTests
         var providers = new ProviderManager(null, dna); Assert.True(providers.RegisterProvider(provider.Object));
         var manager = new WalletManager(null, dna, providers);
         var actual = asynchronous ? await manager.LockTokenAsync(request) : manager.LockToken(request);
+        Assert.NotNull(submitted);
+        Assert.Equal(request.LockedByAvatarId, submitted.LockedByAvatarId);
+        Assert.Equal(request.FromWalletAddress, submitted.FromWalletAddress);
+        Assert.Equal(request.FromWalletPrivateKey, submitted.FromWalletPrivateKey);
+        Assert.Equal(request.Web3TokenId, submitted.Web3TokenId);
+        Assert.Equal(request.TokenAddress, submitted.TokenAddress);
+        Assert.Equal(request.LockId, submitted.LockId);
+        Assert.Equal(request.Amount, submitted.Amount);
+        Assert.Equal(request.EscrowContractAddress, submitted.EscrowContractAddress);
         Assert.Equal(1, count); Assert.Same(expected, actual);
         Assert.Equal("confirmed approval; mutation readback failed", actual.Message);
     }
