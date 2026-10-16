@@ -19,6 +19,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public InventoryItemModel(){}
         public InventoryItemModel(NextGenSoftware.OASIS.API.Core.Interfaces.IInventoryItem source){
             this.ItemId = source.Id;
+            this.Image2D = source.Image2D == null ? null : (byte[])source.Image2D.Clone();
+            this.Object3D = source.Object3D == null ? null : (byte[])source.Object3D.Clone();
+            this.Image2DURI = source.Image2DURI;
+            this.Object3DURI = source.Object3DURI;
             this.PropertiesJson = System.Text.Json.JsonSerializer.Serialize(source.Properties);
             this.MetaDataJson = System.Text.Json.JsonSerializer.Serialize(source.MetaData ?? new System.Collections.Generic.Dictionary<string, object>());
             this.Name = source.Name;
@@ -45,6 +49,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public InventoryItem GetInventoryItem(){
             InventoryItem item = new InventoryItem();
             item.Id = this.ItemId;
+            item.Image2D = this.Image2D == null ? null : (byte[])this.Image2D.Clone();
+            item.Object3D = this.Object3D == null ? null : (byte[])this.Object3D.Clone();
+            item.Image2DURI = this.Image2DURI;
+            item.Object3DURI = this.Object3DURI;
             item.Properties = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, object>>(this.PropertiesJson);
             item.MetaData = System.Text.Json.JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string, object>>(this.MetaDataJson)
                 ?? throw new System.IO.InvalidDataException("Stored inventory metadata must be a JSON object.");
