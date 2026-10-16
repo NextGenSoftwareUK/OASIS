@@ -288,10 +288,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 SqliteReadVersion.Validate(version);
                 ArgumentException.ThrowIfNullOrWhiteSpace(verificationToken);
-                var avatarEntity = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(p => p.VerificationToken == verificationToken && (version == 0 || p.Version == version)));
+                var avatarEntity = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(p => p.VerificationToken == verificationToken && p.DeletedDate == DateTime.MinValue && (version == 0 || p.Version == version)));
                 if (avatarEntity != null)
                     return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
-                return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Avatar not found" };
             }
             catch (Exception ex)
             {
@@ -306,10 +306,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 SqliteReadVersion.Validate(version);
                 ArgumentException.ThrowIfNullOrWhiteSpace(verificationToken);
-                var avatarEntity = ReadUniqueAvatar(_dbContext.Avatars.Where(p => p.VerificationToken == verificationToken && (version == 0 || p.Version == version)));
+                var avatarEntity = ReadUniqueAvatar(_dbContext.Avatars.Where(p => p.VerificationToken == verificationToken && p.DeletedDate == DateTime.MinValue && (version == 0 || p.Version == version)));
                 if (avatarEntity != null)
                     return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
-                return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Avatar not found" };
             }
             catch (Exception ex)
             {
@@ -324,10 +324,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 SqliteReadVersion.Validate(version);
                 ArgumentException.ThrowIfNullOrWhiteSpace(resetToken);
-                var avatarEntity = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(p => p.ResetToken == resetToken && (version == 0 || p.Version == version)));
+                var avatarEntity = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(p => p.ResetToken == resetToken && p.DeletedDate == DateTime.MinValue && (version == 0 || p.Version == version)));
                 if (avatarEntity != null)
                     return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
-                return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Avatar not found" };
             }
             catch (Exception ex)
             {
@@ -342,10 +342,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 SqliteReadVersion.Validate(version);
                 ArgumentException.ThrowIfNullOrWhiteSpace(resetToken);
-                var avatarEntity = ReadUniqueAvatar(_dbContext.Avatars.Where(p => p.ResetToken == resetToken && (version == 0 || p.Version == version)));
+                var avatarEntity = ReadUniqueAvatar(_dbContext.Avatars.Where(p => p.ResetToken == resetToken && p.DeletedDate == DateTime.MinValue && (version == 0 || p.Version == version)));
                 if (avatarEntity != null)
                     return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
-                return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Avatar not found" };
             }
             catch (Exception ex)
             {
@@ -360,10 +360,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 SqliteReadVersion.Validate(version);
                 ArgumentException.ThrowIfNullOrWhiteSpace(refreshToken);
-                var avatarEntity = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(p => (p.RefreshToken == refreshToken || p.RefreshTokens.Any(t => t.Token == refreshToken)) && (version == 0 || p.Version == version)));
+                var avatarEntity = await ReadUniqueAvatarAsync(_dbContext.Avatars.Where(p => (p.RefreshToken == refreshToken || p.RefreshTokens.Any(t => t.Token == refreshToken)) && p.DeletedDate == DateTime.MinValue && (version == 0 || p.Version == version)));
                 if (avatarEntity != null)
                     return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
-                return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Avatar not found" };
             }
             catch (Exception ex)
             {
@@ -378,10 +378,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             {
                 SqliteReadVersion.Validate(version);
                 ArgumentException.ThrowIfNullOrWhiteSpace(refreshToken);
-                var avatarEntity = ReadUniqueAvatar(_dbContext.Avatars.Where(p => (p.RefreshToken == refreshToken || p.RefreshTokens.Any(t => t.Token == refreshToken)) && (version == 0 || p.Version == version)));
+                var avatarEntity = ReadUniqueAvatar(_dbContext.Avatars.Where(p => (p.RefreshToken == refreshToken || p.RefreshTokens.Any(t => t.Token == refreshToken)) && p.DeletedDate == DateTime.MinValue && (version == 0 || p.Version == version)));
                 if (avatarEntity != null)
                     return new OASISResult<IAvatar> { IsLoaded = true, IsError = false, Message = "Avatar loaded successfully", Result = GetAvatarFromEntity(avatarEntity) };
-                return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, Message = "Avatar not found" };
+                return new OASISResult<IAvatar> { IsLoaded = false, IsError = false, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Avatar not found" };
             }
             catch (Exception ex)
             {
