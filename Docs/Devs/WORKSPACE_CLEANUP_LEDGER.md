@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 generic graph-depth verification reused existing Core build cache/local SQLite tests/fixed HyperDriveSqliteCurrent reports:587unit/84localrouting pass;12red-before cases retained in graph-depth-before.trx. Invalid writes create no DB/IDs; normal synthetic local fixtures cleaned by existing teardown. No runtime download/install/new env/clone, no pending chain mutation or broad cleanup. Concurrent subscription source untouched/excluded from commit.
+
 2026-10-16 explicit V2 entry-point validation used existing Core/cache/local SQLite fixtures/fixed reports only:575unit/82localrouting pass, thirty expanded red-before assertions retained in explicit-validation-before.trx. Invalid requests do not activate/create native DB. No runtime installation/new environment/clone or cloud/chain start, pending ledgers preserved. Unrelated subscription edits excluded from source commit but present in local build; immutable deployment still separate.
 
 2026-10-16 Cosmos signer bridge2/2 and dedicated MongoV24/4pass1m51s reused existing Node fixture/installed Mongo8.3.11/cache/fixed directories. Cosmos synthetic wallet map cleared by test finally; no chain RPC/ledger mutation. Mongo retained one replica-data directory, per-test native DB/SQLite files cleaned by current runner, owned process stopped. No download/install/clone/new environment; existing pending chain evidence untouched. C free observed82,147,516,416bytes before Mongo run; reports retained at existing fixed paths. No broad-space-recovery claim.
