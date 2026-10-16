@@ -63,6 +63,7 @@
 
   <ItemGroup>
     <!-- PrivateAssets: not a NuGet dependency (Ipfs.Http.Client 0.42 isn't on NuGet); its DLL is packed into lib/ instead (see below). -->
+    <PackageReference Include="Ipfs.Core" Version="0.55.0" />
     <ProjectReference Include="..\..\..\External Libs\net-ipfs-http-client-master\src\IpfsHttpClient.csproj" PrivateAssets="all" />
     <ProjectReference Include="..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" Condition="Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
     <PackageReference Include="NextGenSoftware.OASIS.API.Core" Version="2.0.0" Condition="!Exists('..\..\..\OASIS Architecture\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj')" />
