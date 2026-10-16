@@ -22,6 +22,7 @@ public sealed class ServicePoliciesTests
     public void EveryBusinessTransportUsesExplicitIncludedRequestPolicy(int service, string route)
     {
         var context = new DefaultHttpContext(); context.Request.Path = route;
+        context.Request.Method = HttpMethods.Post;
         context.SetEndpoint(new Endpoint(_ => Task.CompletedTask, new EndpointMetadataCollection(), "business"));
         var policy = Resolve(service, context);
         Assert.NotNull(policy); Assert.Equal("api.request", policy.MeterCategory);
@@ -40,6 +41,7 @@ public sealed class ServicePoliciesTests
         context.Request.Path = "/api/health"; Assert.Null(Resolve(service, context));
         context.Request.Path = "/swagger/v1/swagger.json"; Assert.Null(Resolve(service, context));
         context.Request.Path = "/api/healthcare/create";
+        context.Request.Method = HttpMethods.Post;
         Assert.NotNull(Resolve(service, context)); // Segment boundary: a business route must not inherit health exemption.
         context.SetEndpoint(null); Assert.Null(Resolve(service, context));
     }
