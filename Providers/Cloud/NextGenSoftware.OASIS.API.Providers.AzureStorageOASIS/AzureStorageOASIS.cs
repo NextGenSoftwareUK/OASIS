@@ -390,32 +390,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
         { return await WriteDetailAsync(avatar); }
         public override OASISResult<IAvatarDetail> SaveAvatarDetail(IAvatarDetail avatar) => SaveAvatarDetailAsync(avatar).Result;
 
-        public override async Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            try {
-                if(id==Guid.Empty) throw new ArgumentException("A nonempty avatar identity is required.");
-                var blob=_serviceClient.GetBlobContainerClient(_avatarContainer).GetBlobClient(id.ToString());
-                var downloaded=(await blob.DownloadContentAsync()).Value;
-                var avatar=Deserialise<Avatar>(downloaded.Content.ToString()) ?? throw new InvalidDataException("Azure avatar record is null.");
-                if(avatar.Id!=id) throw new InvalidDataException("Azure avatar identity does not match blob key.");
-                var condition=new BlobRequestConditions {IfMatch=downloaded.Details.ETag};
-                if(softDelete) {
-                    if(avatar.IsDeleted) {result.Result=true;return result;}
-                    avatar.IsActive=false;avatar.DeletedDate=DateTime.UtcNow;
-                    var payload=BinaryData.FromString(Serialise(avatar));
-                    await ObserveBlobMutationAsync(()=>blob.UploadAsync(payload,new BlobUploadOptions {Conditions=condition}),blob);
-                }
-                else await ObserveBlobMutationAsync(()=>blob.DeleteAsync(DeleteSnapshotsOption.IncludeSnapshots,condition),blob);
-                result.Result=true;result.IsDeleted=true;
-            }
-            catch(Azure.RequestFailedException cause) when(cause.Status==412) {
-                result.Exception=cause;OASISErrorHandling.HandleError(ref result,cause.Message);
-                result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
-            }
-            catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
-            return result;
-        }
+        public override Task<OASISResult<bool>> DeleteAvatarAsync(Guid id, bool softDelete = true)
+            => ApplyAvatarLifecycleAsync(id,softDelete);
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).Result;
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
         {

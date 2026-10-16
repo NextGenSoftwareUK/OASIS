@@ -14,7 +14,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.IntegrationTests
     /// </summary>
     [TestClass]
     [DoNotParallelize]
-    public class AzureStorageOASISIntegrationTests
+    public partial class AzureStorageOASISIntegrationTests
     {
         private AzureStorageOASIS _provider = null!;
         private bool _live;

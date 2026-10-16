@@ -12,7 +12,7 @@ $previous=$env:OASIS_AZURE_NATIVE_TEST
 try {
     Push-Location $root
     $project='Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.IntegrationTests.csproj'
-    foreach($producer in @('Providers/Storage/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj','Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS/NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.csproj',$project)) {
+    foreach($producer in @('Providers/Storage/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj','Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj','Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS/NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS.csproj',$project)) {
         & dotnet build $producer --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if($LASTEXITCODE) {throw "Cached build failed: $producer"}
     }
@@ -33,7 +33,7 @@ try {
     if($reportFile.LastWriteTimeUtc -lt $started){throw 'Azure native report is stale; no verification claim permitted.'}
     [xml]$report=Get-Content -LiteralPath $reportFile.FullName -Raw
     $counts=$report.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 6 -or [int]$counts.passed -ne 6 -or [int]$counts.notExecuted -ne 0) {throw 'Expected six native tests passed, no skips.'}
+    if([int]$counts.total -ne 12 -or [int]$counts.passed -ne 12 -or [int]$counts.notExecuted -ne 0) {throw 'Expected twelve native tests passed, no skips.'}
 }
 finally {
     $env:OASIS_AZURE_NATIVE_TEST=$previous
