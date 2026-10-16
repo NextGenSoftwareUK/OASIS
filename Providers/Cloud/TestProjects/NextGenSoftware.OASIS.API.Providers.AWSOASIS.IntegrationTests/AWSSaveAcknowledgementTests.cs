@@ -15,13 +15,15 @@ public partial class AWSOASISIntegrationTests
         public required AmazonDynamoDBClient Healthy;
         public readonly IOException Cause=new("Controlled loss after actual SDK PutItem acknowledgement.");
         public int Commits;
+        public int FailOnCommit=1;
         public LostPutAcknowledgementClient():base(new BasicAWSCredentials("fakeMyKeyId","fakeSecretAccessKey"),
             new AmazonDynamoDBConfig {ServiceURL="http://127.0.0.1:18000",AuthenticationRegion="us-east-1",UseHttp=true}) { }
         public override async Task<PutItemResponse> PutItemAsync(PutItemRequest request,CancellationToken cancellationToken=default)
         {
             var response=await Healthy.PutItemAsync(request,cancellationToken);
             Assert.AreEqual(System.Net.HttpStatusCode.OK,response.HttpStatusCode);
-            Commits++;throw Cause;
+            Commits++;if(Commits==FailOnCommit) throw Cause;
+            return response;
         }
     }
 
