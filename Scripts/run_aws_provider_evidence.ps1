@@ -88,6 +88,7 @@ try {
         'OASIS Architecture/NextGenSoftware.OASIS.API.Core/NextGenSoftware.OASIS.API.Core.csproj',
         'Providers/Shared/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage/NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.csproj',
         'Providers/Storage/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj',
+        'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj',
         'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.csproj',
         'Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AWSOASIS/NextGenSoftware.OASIS.API.Providers.AWSOASIS.csproj',
         $testProject
@@ -113,8 +114,8 @@ try {
     if($reportFile.LastWriteTimeUtc -lt $testsStarted){throw 'AWS native report is stale; no verification claim permitted.'}
     [xml]$report = Get-Content -LiteralPath $reportFile.FullName -Raw
     $counters = $report.TestRun.ResultSummary.Counters
-    if ([int]$counters.total -ne 5 -or [int]$counters.passed -ne 5 -or [int]$counters.notExecuted -ne 0) {
-        throw 'Expected exactly five passing native AWS tests without skips.'
+    if ([int]$counters.total -ne 11 -or [int]$counters.passed -ne 11 -or [int]$counters.notExecuted -ne 0) {
+        throw 'Expected exactly eleven passing native AWS tests without skips.'
     }
 
     [ordered]@{
