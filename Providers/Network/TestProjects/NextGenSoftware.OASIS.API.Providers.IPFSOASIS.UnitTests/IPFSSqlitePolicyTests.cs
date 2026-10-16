@@ -123,7 +123,10 @@ public sealed class IPFSSqlitePolicyTests
             }
             Assert.False(File.Exists(missingPath));
 
-            var corrupt=await ipfs.IPFSClient.FileSystem.AddTextAsync("owned invalid encrypted index");cids.Add(corrupt.Id.ToString());
+            var protect=typeof(IPFSOASIS).GetMethod("ProtectIndex",BindingFlags.Instance|BindingFlags.NonPublic)!;
+            foreach(var invalidPayload in new[]{"owned invalid encrypted index",(string)protect.Invoke(ipfs,new object[]{"{invalid stored json"})!})
+            {
+            var corrupt=await ipfs.IPFSClient.FileSystem.AddTextAsync(invalidPayload);cids.Add(corrupt.Id.ToString());
             var corruptionManager=Manager(sqlite);corruptionManager.IsAutoFailOverEnabled=true;
             Assert.False(corruptionManager.SetAndReplaceAutoFailOverListForProviders(types).IsError);
             var beforeSecondary=corruptionManager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0;
@@ -136,6 +139,7 @@ public sealed class IPFSSqlitePolicyTests
                 Assert.Equal(beforeSecondary,corruptionManager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
             }
             finally {dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress=rootBefore;}
+            }
             Assert.Equal("native-ipfs-marker",(await ipfs.LoadHolonAsync(marker,loadChildren:false)).Result.Name);
             Assert.Equal("native-sqlite-marker",(await sqlite.LoadHolonAsync(marker,loadChildren:false)).Result.Name);
             verified=true;

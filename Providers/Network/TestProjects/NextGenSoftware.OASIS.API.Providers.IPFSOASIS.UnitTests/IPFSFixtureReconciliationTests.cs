@@ -12,6 +12,55 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests;
 public sealed class IPFSFixtureReconciliationTests(ITestOutputHelper output)
 {
     [Fact]
+    [Trait("Category","IPFSNativeFixtureReconciliation")]
+    public async Task ReleaseVerifiedInterruptedNativeReadFixture()
+    {
+        const string endpoint="http://127.0.0.1:18547";
+        Assert.Equal(endpoint,Environment.GetEnvironmentVariable("OASIS_IPFS_TEST_RPC"));
+        var directory=new DirectoryInfo(AppContext.BaseDirectory);
+        while(directory!=null && !File.Exists(Path.Combine(directory.FullName,"Scripts/TestHosts/Run-ReusableIpfsTests.ps1"))) directory=directory.Parent;
+        Assert.NotNull(directory);
+        var path=Path.Combine(directory!.FullName,"TestResults","IPFSCurrent","owned-dna.json");
+        Assert.Equal(path,Environment.GetEnvironmentVariable("OASIS_IPFS_TEST_DNA_PATH"));
+        Assert.False(File.Exists(Path.Combine(Path.GetDirectoryName(path)!,"v2-routing.db")));
+        var dna=JsonConvert.DeserializeObject<OASISDNA>(await File.ReadAllTextAsync(path))!;
+        Assert.Equal(endpoint,dna.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
+        var root=dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
+        var provider=new IPFSOASIS(dna,path);
+        var priorDna=OASISDNAManager.OASISDNA;var priorPath=OASISDNAManager.OASISDNAPath;
+        var cids=new HashSet<string> {root};var verified=false;
+        try
+        {
+            Assert.False((await provider.ActivateProviderAsync()).IsError);
+            var index=await provider.LoadLookupToJson();Assert.Equal(6,index.Count);
+            var avatars=await provider.LoadAllAvatarsAsync();Assert.False(avatars.IsError,avatars.Message);
+            var avatar=Assert.Single(avatars.Result);Assert.Equal("owned-native-avatar",avatar.Username);Assert.Equal("owned@example.invalid",avatar.Email);
+            var details=await provider.LoadAllAvatarDetailsAsync();Assert.False(details.IsError,details.Message);
+            var detail=Assert.Single(details.Result);Assert.Equal(avatar.Id,detail.Id);Assert.Equal(321,detail.XP);Assert.Equal(29,detail.Karma);
+            var item=Assert.Single(detail.Inventory);Assert.Equal("owned oak seed",item.Name);Assert.Equal(5,item.Quantity);
+            var rows=new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>();
+            foreach(var entry in index.Values.Where(row=>row.RecordKind=="holon"))
+            {
+                var loaded=await provider.LoadHolonAsync(entry.Id,loadChildren:false);Assert.False(loaded.IsError,loaded.Message);rows.Add(loaded.Result);
+            }
+            Assert.Equal(4,rows.Count);
+            Assert.Equal(new[]{"owned-native-child","owned-native-grandchild","owned-native-holon","owned-partial-import"},rows.Select(row=>row.Name).OrderBy(value=>value,StringComparer.Ordinal));
+            var parent=rows.Single(row=>row.Name=="owned-native-holon");Assert.Equal(avatar.Id,parent.Id);
+            var child=rows.Single(row=>row.Name=="owned-native-child");Assert.Equal(parent.Id,child.ParentHolonId);
+            Assert.Equal(child.Id,rows.Single(row=>row.Name=="owned-native-grandchild").ParentHolonId);
+            foreach(var entry in index){cids.Add(entry.Key);output.WriteLine($"Verified native fixture {entry.Value.RecordKind}/{entry.Value.Id:D} CID={entry.Key}");}
+            output.WriteLine($"Verified native fixture root={root}");verified=true;
+        }
+        finally {await provider.DeActivateProviderAsync();OASISDNAManager.OASISDNA=priorDna;OASISDNAManager.OASISDNAPath=priorPath;}
+        if(verified)
+        {
+            var client=new Ipfs.Http.IpfsClient(endpoint);
+            foreach(var cid in cids) Assert.Contains((await client.Pin.RemoveAsync((Cid)cid)).Select(value=>value.ToString()),value=>value==cid);
+            File.Delete(path);
+            output.WriteLine("Released seven verified current pins and exact synthetic DNA; unknown earlier pins/local files retained.");
+        }
+    }
+    [Fact]
     [Trait("Category","IPFSNetworkDiagnostic")]
     public async Task ClosedEndpointCannotReturnStoredContent()
     {
