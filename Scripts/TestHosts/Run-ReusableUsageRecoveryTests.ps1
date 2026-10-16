@@ -13,6 +13,7 @@ if($MongoProjection -and $MongoTransactions){throw 'Choose projection-only or tr
 if($SuiMintOwner -and $ReconcileControlledMintOwner){throw 'Choose verification or explicit controlled-fixture reconciliation, not both.'}
 if($HederaPreparedOwners -and ($SuiMintOwner -or $ReconcileControlledMintOwner)){throw 'Choose one provider owner suite.'}
 $taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+. (Join-Path $PSScriptRoot 'Limit-OwnedMongoLog.ps1')
 $work=Join-Path $taskRoot 'TestResults/SubscriptionUsageCurrent'
 $data=Join-Path $work 'mongo-data'
 $runtime='C:\Program Files\MongoDB\Server\8.3\bin\mongod.exe'
@@ -36,6 +37,7 @@ try{
     if(Get-NetTCPConnection -State Listen -LocalPort 27029 -ErrorAction SilentlyContinue){throw 'Owned port already in use; no process will be stopped.'}
     if([IO.Path]::GetFullPath($data) -ne (Join-Path $taskRoot 'TestResults/SubscriptionUsageCurrent/mongo-data')){throw 'Unexpected owned data path.'}
     New-Item -ItemType Directory -Force -Path $data | Out-Null
+    Limit-OwnedMongoLog -WorkDirectory $work
     $mongoArguments=@('--dbpath',$data,'--bind_ip','127.0.0.1','--port','27029','--replSet','oasisRecoveryRs','--wiredTigerCacheSizeGB','0.25','--oplogSize','32','--logpath',(Join-Path $work 'mongo-current.log'),'--logappend')
     if($MongoV2 -or $AuthorityLedger){$mongoArguments+=@('--setParameter','enableTestCommands=1')}
     $owned=Start-Process -FilePath $runtime -ArgumentList $mongoArguments -PassThru -WindowStyle Hidden
@@ -116,6 +118,7 @@ try{
         if($owned){
             if(!$owned.HasExited){$owned.Kill();if(!$owned.WaitForExit(10000)){throw 'Owned Mongo did not terminate.'}}
             $owned.Dispose()
+            Limit-OwnedMongoLog -WorkDirectory $work
         }
     }finally{
         foreach($name in $prior.Keys){
