@@ -10,6 +10,39 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests;
 public partial class AWSOASISIntegrationTests
 {
     [DataTestMethod]
+    [DataRow(false,false,false)] [DataRow(true,false,false)] [DataRow(false,true,false)] [DataRow(true,true,false)]
+    [DataRow(false,false,true)] [DataRow(true,false,true)] [DataRow(false,true,true)] [DataRow(true,true,true)]
+    public async Task NativeIdentityProjectionsMustMatchCanonicalRecord(bool synchronous,bool detail,bool wrongEmail)
+    {
+        var id=Guid.NewGuid();var table=detail ? "OasisAvatarDetails":"OasisAvatars";
+        var json=detail ? OasisJson.Serialize(new AvatarDetail {Id=id,Username="owned-canonical",Email="canonical@example.invalid",IsActive=true})
+            :OasisJson.Serialize(new Avatar {Id=id,Username="owned-canonical",Email="canonical@example.invalid",IsActive=true});
+        var username=wrongEmail ? "owned-canonical":"owned-wrong";var email=wrongEmail ? "wrong@example.invalid":"canonical@example.invalid";
+        await Client.PutItemAsync(new PutItemRequest {TableName=table,Item=new() {
+            ["id"]=new() {S=id.ToString()},["username"]=new() {S=username},["email"]=new() {S=email},["data_json"]=new() {S=json}}});
+        try
+        {
+            void Corrupt<T>(OASISResult<T> r) {Assert.IsTrue(r.IsError);Assert.IsNull(r.Result);Assert.IsFalse(r.IsLoaded);Assert.IsInstanceOfType(r.Exception,typeof(InvalidDataException));}
+            if(detail)
+            {
+                Corrupt(synchronous ? _provider.LoadAvatarDetail(id):await _provider.LoadAvatarDetailAsync(id));
+                Corrupt(synchronous ? _provider.LoadAllAvatarDetails():await _provider.LoadAllAvatarDetailsAsync());
+                Corrupt(synchronous ? _provider.LoadAvatarDetailByUsername("owned-canonical"):await _provider.LoadAvatarDetailByUsernameAsync("owned-canonical"));
+                Corrupt(synchronous ? _provider.LoadAvatarDetailByEmail("canonical@example.invalid"):await _provider.LoadAvatarDetailByEmailAsync("canonical@example.invalid"));
+            }
+            else
+            {
+                Corrupt(synchronous ? _provider.LoadAvatar(id):await _provider.LoadAvatarAsync(id));
+                Corrupt(synchronous ? _provider.LoadAllAvatars():await _provider.LoadAllAvatarsAsync());
+                Corrupt(synchronous ? _provider.LoadAvatarByUsername("owned-canonical"):await _provider.LoadAvatarByUsernameAsync("owned-canonical"));
+                Corrupt(synchronous ? _provider.LoadAvatarByEmail("canonical@example.invalid"):await _provider.LoadAvatarByEmailAsync("canonical@example.invalid"));
+            }
+            Assert.AreEqual(json,(await Client.GetItemAsync(new GetItemRequest {TableName=table,Key=Key(id),ConsistentRead=true})).Item["data_json"].S);
+        }
+        finally {await Client.DeleteItemAsync(new DeleteItemRequest {TableName=table,Key=Key(id)});}
+    }
+
+    [DataTestMethod]
     [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
     public async Task V2AvatarDeletionProjectionDoesNotReadStaleSecondary(bool synchronous,bool canonicalDeleted)
     {
