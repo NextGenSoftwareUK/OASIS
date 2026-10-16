@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-16 Core9ceb9ac centralizes negative StorageOperationRequest.Version rejection before selection/quota in both router paths. Two syncasync cases test21 operation names, no provider activation/requests/native DB, terminal validation code; targeted72/72pass7s. This avoids relying on uneven provider guards but does not implement history or verify runtime behavior of every named operation. Concurrent subscription source excluded; immutable/hosted gates remain open.
+
 2026-10-16 LocalFile provider-key avatar version omission fixed. Native filesystem+SQLite V2 syncasync cases reproduced requested1 returning7 before correction; now latest0/exact7 succeed,missing1 remains terminal empty without stale SQLite fallback. Targeted70/70pass7s. Positive current-version filtering does not prove immutable historical versions; archive/history gates remain open.
 
 2026-10-16 V2 LocalFile/SQLite integrity gate: stored avatar/detail JSON now uses existing converters with typed InvalidData wrapping; null is not authoritative absence, and inner scans cannot swallow typed corruption.68/68targetedpass6s includes12 actual file-corruption cases across syncasync/kinds/payloads and point/selector/collection routes. Secondary metrics0, source bytes/backup unchanged; restored valid reads healthy. Generic I/O scan continuation, native identity/schema/history remain open; no claim all provider errors are fixed.
