@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 V2 nearby policy tests reused retained Azurite runtime/in-memory64MiB service, SDKs, SQLite and fixed AzureCurrent report/exclusive runner. Native68/68pass19s/no skips; two added cases use fixed AzureRoutingFiles/nearby.db and refuse prior existence. Verified cases dispose SQLite then remove only exact owned db/-wal/-shm; Azure existing fixture owns its exact containers. No downloads/new environments/ledger resets. Runner exit0; no unrelated process stopped; pending chain/CosmosDB evidence untouched.
+
 2026-10-16 V2 nearby dispatcher verification reused existing Core/SQLite/cache/fixed HyperDriveSqliteCurrent exclusive fixture. Core producer0errors/131warnings; targeted52/52pass6s/no skips; owned-data absent afterward. No new runtime/download/clone/environment. Core commit includes only two routing/request files, excludes concurrent subscription work; parent gitlink+Railway pin advance together. C free83,613,437,952bytes observed, not recovery claim. Pending chain/CosmosDB fixtures untouched.
 
 2026-10-16 release re-audit used read-only source scanners/git/manifest checks only; no runtime, builds, installs, downloads, clones or generated report directories. Committed-pin checks pass but actual checkouts fail; concurrent subscription files and mismatched dependency checkouts preserved. No attempt to recreate missing checkouts or delete source to force a green build. C free83,615,084,544bytes observed. Existing pending chain/CosmosDB fixtures unchanged.
