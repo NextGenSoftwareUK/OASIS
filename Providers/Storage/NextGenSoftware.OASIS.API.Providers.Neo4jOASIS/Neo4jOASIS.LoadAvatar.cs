@@ -22,6 +22,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             var response = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
+                ValidateCurrentAvatarVersion(version);
                 // REAL Neo4j implementation for loading all avatars
                 if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
                 {
@@ -61,188 +62,32 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             return LoadAllAvatarsAsync(version).Result;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
-        {
-            var response = new OASISResult<IAvatar>();
-            try
-            {
-                // REAL Neo4j implementation for loading avatar by ID
-                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
-                }
-
-                var query = "MATCH (a:Avatar {Id: $id}) RETURN a";
-                var parameters = new { id = id.ToString() };
-                
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.RunAsync(query, parameters);
-                    var record = await result.SingleAsync();
-                    
-                    if (record != null)
-                    {
-                        var node = record["a"].As<Neo4j.Driver.INode>();
-                        response.Result = ReadAvatarNode(node);
-                        response.IsLoaded = true;
-                        response.IsError = false;
-                        response.Message = "Avatar loaded successfully from Neo4j";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Avatar not found in Neo4j database");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar from Neo4j: {ex.Message}");
-            }
-            return response;
-        }
+public override Task<OASISResult<IAvatar>> LoadAvatarAsync(Guid id, int version = 0)
+            => ReadOneAvatarAsync("Id",id.ToString(),version);
 
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0)
         {
             return LoadAvatarAsync(id, version).Result;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
-        {
-            var response = new OASISResult<IAvatar>();
-            try
-            {
-                // REAL Neo4j implementation for loading avatar by provider key
-                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
-                }
-
-                var query = "MATCH (a:Avatar {ProviderKey: $providerKey}) RETURN a";
-                var parameters = new { providerKey };
-                
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.RunAsync(query, parameters);
-                    var record = await result.SingleAsync();
-                    
-                    if (record != null)
-                    {
-                        var node = record["a"].As<Neo4j.Driver.INode>();
-                        response.Result = ReadAvatarNode(node);
-                        response.IsLoaded = true;
-                        response.IsError = false;
-                        response.Message = "Avatar loaded successfully from Neo4j by provider key";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Avatar not found in Neo4j database");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by provider key from Neo4j: {ex.Message}");
-            }
-            return response;
-        }
+public override Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
+            => ReadOneAvatarAsync("ProviderKey",providerKey,version);
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0)
         {
             return LoadAvatarByProviderKeyAsync(providerKey, version).Result;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
-        {
-            var response = new OASISResult<IAvatar>();
-            try
-            {
-                // REAL Neo4j implementation for loading avatar by username
-                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
-                }
-
-                var query = "MATCH (a:Avatar {Username: $username}) RETURN a";
-                var parameters = new { username = avatarUsername };
-                
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.RunAsync(query, parameters);
-                    var record = await result.SingleAsync();
-                    
-                    if (record != null)
-                    {
-                        var node = record["a"].As<Neo4j.Driver.INode>();
-                        response.Result = ReadAvatarNode(node);
-                        response.IsLoaded = true;
-                        response.IsError = false;
-                        response.Message = "Avatar loaded successfully from Neo4j by username";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Avatar not found in Neo4j database");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by username from Neo4j: {ex.Message}");
-            }
-            return response;
-        }
+public override Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string avatarUsername, int version = 0)
+            => ReadOneAvatarAsync("Username",avatarUsername,version);
 
         public override OASISResult<IAvatar> LoadAvatarByUsername(string avatarUsername, int version = 0)
         {
             return LoadAvatarByUsernameAsync(avatarUsername, version).Result;
         }
 
-        public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
-        {
-            var response = new OASISResult<IAvatar>();
-            try
-            {
-                // REAL Neo4j implementation for loading avatar by email
-                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
-                }
-
-                var query = "MATCH (a:Avatar {Email: $email}) RETURN a";
-                var parameters = new { email = avatarEmail };
-                
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.RunAsync(query, parameters);
-                    var record = await result.SingleAsync();
-                    
-                    if (record != null)
-                    {
-                        var node = record["a"].As<Neo4j.Driver.INode>();
-                        response.Result = ReadAvatarNode(node);
-                        response.IsLoaded = true;
-                        response.IsError = false;
-                        response.Message = "Avatar loaded successfully from Neo4j by email";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Avatar not found in Neo4j database");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error loading avatar by email from Neo4j: {ex.Message}");
-            }
-            return response;
-        }
+public override Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string avatarEmail, int version = 0)
+            => ReadOneAvatarAsync("Email",avatarEmail,version);
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string avatarEmail, int version = 0)
         {

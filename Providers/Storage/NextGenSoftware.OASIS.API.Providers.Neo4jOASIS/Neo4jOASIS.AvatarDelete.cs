@@ -28,7 +28,7 @@ public partial class Neo4jOASIS : IAvatarTombstoneStorageProvider
         return DeleteAvatarRecordAsync("Id", tombstone.AvatarId.ToString(), true, tombstone);
     }
 
-    internal static string AvatarDeleteSelection(string field)
+    internal static string AvatarSelectionQuery(string field)
     {
         if (field != "Id" && field != "ProviderKey" && field != "Username" && field != "Email")
             throw new ArgumentException("Unknown avatar selector.", nameof(field));
@@ -64,7 +64,7 @@ public partial class Neo4jOASIS : IAvatarTombstoneStorageProvider
             if (!IsProviderActivated || _driver == null) throw new InvalidOperationException("Neo4j provider is not activated.");
             using (var session = _driver.AsyncSession())
             {
-                var found = await (await session.RunAsync(AvatarDeleteSelection(field), new { value })).ToListAsync();
+                var found = await (await session.RunAsync(AvatarSelectionQuery(field), new { value })).ToListAsync();
                 if (found.Count == 0)
                     return new OASISResult<bool>(false) { IsError = true, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Avatar not found in Neo4j." };
                 if (found.Count != 1) throw new StorageLifecycleConflictException("Neo4j avatar selector is not unique.");

@@ -55,11 +55,11 @@ public class Neo4jAvatarDeleteTests
     [DataTestMethod]
     [DataRow("Id")] [DataRow("ProviderKey")] [DataRow("Email")] [DataRow("Username")]
     public void SelectorValuesRemainParameterized(string field)
-        => StringAssert.Contains(Provider.AvatarDeleteSelection(field), ": $value");
+        => StringAssert.Contains(Provider.AvatarSelectionQuery(field), ": $value");
 
     [TestMethod]
     public void UnrecognizedSelectorCannotBecomeCypher()
-        => Assert.ThrowsException<ArgumentException>(() => Provider.AvatarDeleteSelection("Id}) DETACH DELETE a //"));
+        => Assert.ThrowsException<ArgumentException>(() => Provider.AvatarSelectionQuery("Id}) DETACH DELETE a //"));
 
     [TestMethod]
     public void UncertainMutationRetainsCauseWithoutInventingTransactionId()
