@@ -425,31 +425,31 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
 
         // ── Settings ──────────────────────────────────────────────────────────────
 
-        public async Task<bool> UpdateHyperDriveSettings(Guid avatarId, Dictionary<string, object> settings)
+        public async Task<bool> UpdateHyperDriveSettings(Guid avatarId, [GraphQLType(typeof(HotChocolate.Types.AnyType))] Dictionary<string, object> settings)
         {
             var result = await SettingsManager.Instance.UpdateHyperDriveSettingsAsync(avatarId, settings);
             return !result.IsError;
         }
 
-        public async Task<bool> UpdateSystemSettings(Guid avatarId, Dictionary<string, object> settings)
+        public async Task<bool> UpdateSystemSettings(Guid avatarId, [GraphQLType(typeof(HotChocolate.Types.AnyType))] Dictionary<string, object> settings)
         {
             var result = await SettingsManager.Instance.UpdateSystemSettingsAsync(avatarId, settings);
             return !result.IsError;
         }
 
-        public async Task<bool> UpdateSubscriptionSettings(Guid avatarId, Dictionary<string, object> settings)
+        public async Task<bool> UpdateSubscriptionSettings(Guid avatarId, [GraphQLType(typeof(HotChocolate.Types.AnyType))] Dictionary<string, object> settings)
         {
             var result = await SettingsManager.Instance.UpdateSubscriptionSettingsAsync(avatarId, settings);
             return !result.IsError;
         }
 
-        public async Task<bool> UpdateNotificationSettings(Guid avatarId, Dictionary<string, object> settings)
+        public async Task<bool> UpdateNotificationSettings(Guid avatarId, [GraphQLType(typeof(HotChocolate.Types.AnyType))] Dictionary<string, object> settings)
         {
             var result = await SettingsManager.Instance.UpdateNotificationSettingsAsync(avatarId, settings);
             return !result.IsError;
         }
 
-        public async Task<bool> UpdatePrivacySettings(Guid avatarId, Dictionary<string, object> settings)
+        public async Task<bool> UpdatePrivacySettings(Guid avatarId, [GraphQLType(typeof(HotChocolate.Types.AnyType))] Dictionary<string, object> settings)
         {
             var result = await SettingsManager.Instance.UpdatePrivacySettingsAsync(avatarId, settings);
             return !result.IsError;
@@ -582,7 +582,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.GraphQL
             return !result.IsError;
         }
 
-        public async Task<bool> UpdateNodeConfig(Dictionary<string, object> config)
+        public async Task<bool> UpdateNodeConfig([GraphQLType(typeof(HotChocolate.Types.AnyType))] Dictionary<string, object> config)
         {
             var result = await (await Controllers.ONODEController.GetOnodeManagerStaticAsync()).UpdateNodeConfigAsync(config);
             return !result.IsError;
