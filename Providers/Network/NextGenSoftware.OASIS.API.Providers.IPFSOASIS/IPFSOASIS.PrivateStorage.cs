@@ -113,6 +113,17 @@ public partial class IPFSOASIS
         return await ReadIndexSnapshotAsync<T>(lookup,kind,predicate,version);
     }
 
+    private async Task<(List<NextGenSoftware.OASIS.API.Core.Holons.Holon> Roots,List<NextGenSoftware.OASIS.API.Core.Holons.Holon> Graph)>
+        ReadHolonProjectionSnapshotAsync(int version,bool loadChildren,bool fromProvider)
+    {
+        if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
+        var lookup=await LoadLookupToJson();
+        var roots=await ReadIndexSnapshotAsync<NextGenSoftware.OASIS.API.Core.Holons.Holon>(lookup,"holon",row=>true,version);
+        var graph=version!=0 && loadChildren && fromProvider
+            ? await ReadIndexSnapshotAsync<NextGenSoftware.OASIS.API.Core.Holons.Holon>(lookup,"holon",row=>true,0):roots;
+        return (roots,graph);
+    }
+
     private async Task<OASISResult<IEnumerable<T>>> ReadPrivateCollectionResultAsync<T>(string kind,int version) where T:class,IHolonBase
     {
         var result=new OASISResult<IEnumerable<T>>();

@@ -1,5 +1,5 @@
 #Requires -Version 7.0
-param([switch]$ReconcileV2,[switch]$NetworkDiagnostic,[switch]$ReconcileNative)
+param([switch]$ReconcileV2,[switch]$NetworkDiagnostic,[switch]$ReconcileNative,[switch]$ReconcileRootVersion)
 $ErrorActionPreference='Stop'
 $taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $taskRoot 'TestResults/IPFSCurrent'
@@ -61,8 +61,8 @@ try {
     } while(!$ready -and [DateTime]::UtcNow -lt $deadline)
     if(!$ready){throw "Pinned offline daemon readiness failed: $lastObservation"}
     $started=[DateTime]::UtcNow
-    $filter=if($ReconcileNative){'Category=IPFSNativeFixtureReconciliation'}elseif($NetworkDiagnostic){'Category=IPFSNetworkDiagnostic'}elseif($ReconcileV2){'Category=IPFSFixtureReconciliation'}else{'Category=NativeIPFS'}
-    $reportName=if($ReconcileNative){'ipfs-native-reconciliation-current.trx'}elseif($NetworkDiagnostic){'ipfs-network-current.trx'}elseif($ReconcileV2){'ipfs-reconciliation-current.trx'}else{'ipfs-native-current.trx'}
+    $filter=if($ReconcileRootVersion){'Category=IPFSRootVersionReconciliation'}elseif($ReconcileNative){'Category=IPFSNativeFixtureReconciliation'}elseif($NetworkDiagnostic){'Category=IPFSNetworkDiagnostic'}elseif($ReconcileV2){'Category=IPFSFixtureReconciliation'}else{'Category=NativeIPFS'}
+    $reportName=if($ReconcileRootVersion){'ipfs-root-version-reconciliation-current.trx'}elseif($ReconcileNative){'ipfs-native-reconciliation-current.trx'}elseif($NetworkDiagnostic){'ipfs-network-current.trx'}elseif($ReconcileV2){'ipfs-reconciliation-current.trx'}else{'ipfs-native-current.trx'}
     & dotnet test $project --no-build --no-restore --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
     if($LASTEXITCODE){throw 'Native IPFS storage verification failed.'}
     $collected=@(& $binary repo gc --quiet)
@@ -72,7 +72,7 @@ try {
     if($report.LastWriteTimeUtc -lt $started){throw 'Native report stale.'}
     [xml]$trx=Get-Content -LiteralPath $report.FullName
     $counts=$trx.TestRun.ResultSummary.Counters
-    $expected=if($ReconcileV2 -or $NetworkDiagnostic -or $ReconcileNative){1}else{12}
+    $expected=if($ReconcileV2 -or $NetworkDiagnostic -or $ReconcileNative -or $ReconcileRootVersion){1}else{12}
     if([int]$counts.total -ne $expected -or [int]$counts.passed -ne $expected -or [int]$counts.notExecuted -ne 0){throw "Expected $expected passing selected cases, no skips."}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
