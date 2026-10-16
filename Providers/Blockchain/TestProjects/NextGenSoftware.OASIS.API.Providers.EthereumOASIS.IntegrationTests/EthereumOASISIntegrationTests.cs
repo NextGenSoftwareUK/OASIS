@@ -19,7 +19,7 @@ using NextGenSoftware.Utilities;
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests;
 
 [TestClass]
-public class EthereumOASISIntegrationTests
+public partial class EthereumOASISIntegrationTests
 {
     private const string DefaultHost = "http://127.0.0.1:8545";
     // Ganache's documented deterministic development key. It has no value outside the disposable chain.
