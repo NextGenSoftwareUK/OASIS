@@ -15,6 +15,7 @@ public partial class AzureStorageOASISIntegrationTests
     [DataRow(0,false)] [DataRow(0,true)]
     [DataRow(1,false)] [DataRow(1,true)]
     [DataRow(2,false)] [DataRow(2,true)]
+    [DataRow(3,false)] [DataRow(3,true)]
     public async Task V2MalformedBlobsDoNotReadStaleSecondary(int kind,bool synchronous)
     {
         var path=Path.GetFullPath("TestResults/AzureRoutingFiles/lifecycle.db");
@@ -38,13 +39,14 @@ public partial class AzureStorageOASISIntegrationTests
                 new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.AzureStorageOASIS),
                 new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.SQLLiteDBOASIS)}).IsError);
             var router=new Core.Managers.OASISHyperDrive.OASISHyperDrive(manager);
-            const string json="{ invalid canonical JSON";
+            var json=kind==3 ? NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(
+                new Holon {Id=id,CustomKey="different-owned-key",Name="owned-key-mismatch",IsActive=true}):"{ invalid canonical JSON";
             Assert.AreEqual(201,(await blob.UploadAsync(BinaryData.FromString(json))).GetRawResponse().Status);uploaded=true;
             void Corrupt<T>(OASISResult<T> result)
             {
                 Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsFalse(result.IsLoaded);
                 Assert.IsInstanceOfType(result.Exception,typeof(InvalidDataException));
-                Assert.IsInstanceOfType(result.Exception.InnerException,typeof(Newtonsoft.Json.JsonException));
+                if(kind!=3) Assert.IsInstanceOfType(result.Exception.InnerException,typeof(Newtonsoft.Json.JsonException));
             }
             var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0;
             foreach(var collection in new[] {false,true})
