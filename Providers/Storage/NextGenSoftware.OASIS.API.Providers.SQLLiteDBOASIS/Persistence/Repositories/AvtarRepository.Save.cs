@@ -386,6 +386,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 avatarEntity = AddOrUpdateAvatar(CreateAvatarModel(avatar));
                 persistenceEntered = true;
                 _dbContext.SaveChanges();
+                avatar.Id=Guid.Parse(avatarEntity.Id);
                 return new OASISResult<IAvatar>
                 {
                     IsSaved = true,
@@ -417,6 +418,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 avatarEntity = AddOrUpdateAvatar(CreateAvatarModel(avatar));
                 persistenceEntered = true;
                 await _dbContext.SaveChangesAsync();
+                avatar.Id=Guid.Parse(avatarEntity.Id);
                 //return Avatar;
                 return new OASISResult<IAvatar>
                 {
@@ -495,15 +497,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
 
         public AvatarModel CreateAvatarModel(IAvatar avatar)
         {
+            ArgumentNullException.ThrowIfNull(avatar);
+            var id=avatar.Id==Guid.Empty ? Guid.NewGuid():avatar.Id;
             var keys = avatar.ProviderUniqueStorageKey == null ? new Dictionary<ProviderType,string>() : new Dictionary<ProviderType,string>(avatar.ProviderUniqueStorageKey);
-            if (!keys.ContainsKey(ProviderType.SQLLiteDBOASIS)) keys[ProviderType.SQLLiteDBOASIS] = avatar.Id.ToString();
+            if (!keys.ContainsKey(ProviderType.SQLLiteDBOASIS)) keys[ProviderType.SQLLiteDBOASIS] = id.ToString();
             ArgumentException.ThrowIfNullOrWhiteSpace(keys[ProviderType.SQLLiteDBOASIS]);
             return new()
             {
                 AcceptTerms = avatar.AcceptTerms,
                 Email = avatar.Email,
                 FirstName = avatar.FirstName,
-                Id = avatar.Id.ToString(),
+                Id = id.ToString(),
                 LocalProviderKey = keys[ProviderType.SQLLiteDBOASIS],
                 ProviderKeysJson = System.Text.Json.JsonSerializer.Serialize(keys),
                 MetaDataJson = System.Text.Json.JsonSerializer.Serialize(avatar.MetaData ?? new Dictionary<string,object>()),
@@ -517,7 +521,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 CreatedOASISType = avatar.CreatedOASISType?.Value ?? default,
                 IsVerified = avatar.IsVerified,
                 RefreshTokens = (avatar.RefreshTokens ?? new List<NextGenSoftware.OASIS.API.Core.Objects.RefreshToken>())
-                    .Select(token => new RefreshTokenModel(token) { AvatarId = avatar.Id.ToString() }).ToList(),
+                    .Select(token => new RefreshTokenModel(token) { AvatarId = id.ToString() }).ToList(),
                 CreatedByAvatarId = avatar.CreatedByAvatarId.ToString(),
                 ModifiedByAvatarId = avatar.ModifiedByAvatarId.ToString(),
                 DeletedByAvatarId = avatar.DeletedByAvatarId.ToString(),
