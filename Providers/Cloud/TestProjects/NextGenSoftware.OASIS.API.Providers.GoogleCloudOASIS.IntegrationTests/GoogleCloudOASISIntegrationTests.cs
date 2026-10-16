@@ -15,11 +15,8 @@ public sealed class GoogleCloudOASISIntegrationTests
     {
         Assert.AreEqual("127.0.0.1:18080",Environment.GetEnvironmentVariable("FIRESTORE_EMULATOR_HOST"),"Use the owned reusable Firestore runner.");
 
-        _provider = new GoogleCloudOASIS(
-            projectId: "oasis-google-native",
-            enableStorage: false,
-            enableFirestore: true,
-            enableBigQuery: false);
+        _provider = NextGenSoftware.OASIS.OASISBootLoader.CloudProviderFactory.CreateGoogle(new NextGenSoftware.OASIS.API.DNA.GoogleCloudOASISProviderSettings
+            {ProjectId="oasis-google-native",EnableStorage=false,EnableFirestore=true,EnableBigQuery=false});
         var activation = await _provider.ActivateProviderAsync();
         Assert.IsFalse(activation.IsError, activation.Message);
         Assert.IsTrue(activation.Result);

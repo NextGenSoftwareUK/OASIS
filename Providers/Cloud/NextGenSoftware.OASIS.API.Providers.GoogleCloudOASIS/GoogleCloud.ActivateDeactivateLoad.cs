@@ -40,6 +40,14 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
         public override async Task<OASISResult<bool>> ActivateProviderAsync()
         {
             OASISResult<bool> result = new OASISResult<bool>();
+            if(!_enableStorage && !_enableFirestore && !_enableBigQuery)
+            {
+                IsProviderActivated=false;
+                var cause=new InvalidOperationException("At least one Google Cloud service must be enabled before activation.");
+                OASISErrorHandling.HandleError(ref result,cause.Message,cause);
+                result.ErrorCode="GOOGLE_CLOUD_SERVICE_REQUIRED";
+                return result;
+            }
             if(IsProviderActivated) return new OASISResult<bool>(true);
 
             try
@@ -100,7 +108,7 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
                 IsProviderActivated = true;
                 result.Result = true;
                 result.IsError = false;
-                result.Message = "Google Cloud provider activated successfully with all services initialized";
+                result.Message = "Google Cloud provider activated successfully with configured services initialized.";
             }
             catch (Exception e)
             {

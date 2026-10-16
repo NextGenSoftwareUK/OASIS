@@ -552,15 +552,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.GoogleCloudOASIS:
                             {
-                                GoogleCloudOASIS googleCloudOASIS = new GoogleCloudOASIS(
-                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.ProjectId,
-                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.BucketName,
-                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.CredentialsPath,
-                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.FirestoreDatabaseId,
-                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.BigQueryDatasetId,
-                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.EnableStorage,
-                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.EnableFirestore,
-                                    OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS.EnableBigQuery);
+                                var googleCloudOASIS = CloudProviderFactory.CreateGoogle(OASISDNA.OASIS.StorageProviders.GoogleCloudOASIS);
                                 result.Result = googleCloudOASIS;
                             }
                             break;
