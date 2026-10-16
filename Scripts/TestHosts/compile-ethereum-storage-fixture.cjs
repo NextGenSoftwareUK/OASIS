@@ -20,11 +20,15 @@ for (const name of ['LegacyStorageProtocolFixture','UnsupportedStorageProtocolFi
 }
 const contractRoot = path.join(root,'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EthereumOASIS/Contracts');
 const escrowOutput = JSON.parse(solc.compile(JSON.stringify({language:'Solidity',
-  sources:{'OASISTokenEscrow.sol':{content:fs.readFileSync(path.join(contractRoot,'OASISTokenEscrow.sol'),'utf8')}},
+  sources:{'OASISTokenEscrow.sol':{content:fs.readFileSync(path.join(contractRoot,'OASISTokenEscrow.sol'),'utf8').replace(/\r\n/g,'\n')}},
   settings:{evmVersion:'paris',optimizer:{enabled:true,runs:200},outputSelection:{'*':{'*':['abi','evm.bytecode.object','evm.deployedBytecode.object']}}}})));
 const escrowErrors=(escrowOutput.errors||[]).filter(item=>item.severity==='error');
 if(escrowErrors.length)throw new Error(escrowErrors.map(item=>item.formattedMessage).join('\n'));
 const escrow=escrowOutput.contracts['OASISTokenEscrow.sol'].OASISTokenEscrow;
+const escrowHash=require('node:crypto').createHash('sha256').update(Buffer.from(escrow.evm.deployedBytecode.object,'hex')).digest('hex');
+const escrowAdapter=fs.readFileSync(path.join(contractRoot,'../EthereumOASIS.Escrow.cs'),'utf8');
+if(!escrowAdapter.includes('TokenEscrowRuntimeSha256 = "'+escrowHash+'"'))
+  throw new Error('Escrow adapter runtime hash differs from reviewed pinned source compilation.');
 fs.writeFileSync(path.join(folder,'token-escrow.json'),JSON.stringify({compiler:solc.version(),abi:escrow.abi,
   bytecode:'0x'+escrow.evm.bytecode.object,runtimeBytecode:'0x'+escrow.evm.deployedBytecode.object}));
 const files = ['NextGenSoftwareOASIS.sol','Core/Entities/Avatar.sol','Core/Entities/AvatarDetail.sol','Core/Entities/Holon.sol'];

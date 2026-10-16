@@ -235,7 +235,10 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                     OASISDNA.OASIS.StorageProviders.EthereumOASIS.ConnectionString,
                                     OASISDNA.OASIS.StorageProviders.EthereumOASIS.ChainPrivateKey,
                                     OASISDNA.OASIS.StorageProviders.EthereumOASIS.ChainId,
-                                    OASISDNA.OASIS.StorageProviders.EthereumOASIS.ContractAddress);
+                                    OASISDNA.OASIS.StorageProviders.EthereumOASIS.ContractAddress)
+                                {
+                                    TokenEscrowContractAddress = OASISDNA.OASIS.StorageProviders.EthereumOASIS.TokenEscrowContractAddress
+                                };
                                 ethereumProvider.OnStorageProviderError += EthereumOASIS_StorageProviderError;
                                 result.Result = ethereumProvider;
                             }
