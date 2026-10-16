@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 AWS V2 avatar deletion-flag matrix:87/87nativepass15s, retained runtime/cache/fixed report and same delete-routing.db. Exact acknowledged synthetic profile removed after unchanged native+secondary readback; SQLite family removed only after verified/deactivated. Owned Java stopped/lease released. No download/install/clone/new environment/broad deletion. Free C observed84,090,949,632bytes during run; unrelated disk changes not attributed to this scope.
+
 2026-10-16 AWS V2 deletion-flag tests:83/83nativepass14s with retained runtime/cache/fixed report/delete-routing.db. Exact acknowledged synthetic SDK key removed after unchanged-state verification; SQLite family removed only after verified/deactivated; owned Java stopped/lease released. No downloads/installs/clones/new environment/broad deletion. Free C observed84,329,971,712bytes during run; report does not attribute unrelated disk changes.
 
 2026-10-16 AWS deletion projection tests:79/79nativepass14s,57/57unitpass359ms using retained runtime/cache/fixed reports. Exact synthetic SDK keys removed after unchanged payload/flag readback; owned Java stopped. No install/download/clone/new environment/user-record migration or broad deletion. Canonical tombstone correction is unit fixture source only, Git-recoverable.
