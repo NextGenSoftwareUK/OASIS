@@ -110,8 +110,29 @@ try {
 }
 finally {
     if ($process) {
+        # Process.WaitForExit waits for hc itself, not all descendants killed by
+        # Kill(entireProcessTree). Retain owned child handles before termination
+        # and await their exit before starting lifecycle tests.
+        $snapshot = @(Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId)
+        $ownedIds = [Collections.Generic.HashSet[int]]::new()
+        [void]$ownedIds.Add($process.Id)
+        do {
+            $added = $false
+            foreach ($item in $snapshot) {
+                if ($ownedIds.Contains([int]$item.ParentProcessId) -and $ownedIds.Add([int]$item.ProcessId)) { $added = $true }
+            }
+        } while ($added)
+        $children = @($ownedIds | Where-Object { $_ -ne $process.Id } | ForEach-Object {
+            Get-Process -Id $_ -ErrorAction SilentlyContinue
+        })
         if (-not $process.HasExited) { $process.Kill($true) }
         $process.WaitForExit()
+        foreach ($child in $children) {
+            try {
+                if (-not $child.WaitForExit(30000)) { throw "Owned conductor child PID $($child.Id) failed to exit within 30 seconds." }
+            }
+            finally { $child.Dispose() }
+        }
         $stdout.GetAwaiter().GetResult() | Set-Content -LiteralPath (Join-Path $fixture 'conductor.stdout.log')
         $stderr.GetAwaiter().GetResult() | Set-Content -LiteralPath (Join-Path $fixture 'conductor.stderr.log')
         $process.Dispose()
@@ -123,6 +144,7 @@ finally {
 # The upstream lifecycle tests intentionally kill conductor processes. Keep them
 # isolated from the shared-conductor suite, but require their own release report.
 if (@(Get-Process -Name holochain,hc,'holochain-0.7.0','hc-0.7.0' -ErrorAction SilentlyContinue).Count) {
+    Get-Process -Name holochain,hc,'holochain-0.7.0','hc-0.7.0' -ErrorAction SilentlyContinue | Select-Object Id,ProcessName
     throw 'A conductor survived shared-suite teardown; auto-start tests must not run against it.'
 }
 $autoNames = @('HOLONET_LIVE_AUTOSTART','HOLONET_LIVE_EMBEDDED','HOLONET_LIVE_HOLOCHAIN_BIN','HOLONET_LIVE_HC_BIN')
