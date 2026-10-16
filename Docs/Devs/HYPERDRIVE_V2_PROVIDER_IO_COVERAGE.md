@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Cosmos shutdown finding resolved: idle sleep infinity isPID1 and ignoresTERM; node had stopped separately. Runner now refuses container signal unless no wasmd/exact idlePID1/retained identity verified, then closes idle holder explicitly. Read-only native1/1pass1s refreshed,280history/0matches/pending fingerprint unchanged; original outcome/V2 mutation gates remain open. Expected containerexit137 is idle holder, not ledger-node termination proof/failure.
+
 Cosmos retained native read-only refresh:1/1pass1s; original pending avatar/detail/holon absent with RecordNotFound,280indexed transactions/0exact-key matches. Reconciliation remains incomplete; absence does not prove non-submission, journal fingerprint unchanged. Retained container exited137/oom=false after stop grace exceeded; no replacement/reset/replay. This is current native read evidence only, not mutation/policy/interface completion.
 
 V2 paired soft-delete failure delta: local routing104/104pass10s includes new sync/async second-put failure with original exception/exact acknowledgement, zero secondary requests and unchanged active SQLite profile/detail. Four chain libraries refreshed0errors after latest shared fixes. Controlled disk backend, not native SDK/durable/hosted proof; shared latest249/249pass1s.
