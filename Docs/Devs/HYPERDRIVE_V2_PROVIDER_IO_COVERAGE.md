@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+V2 partial-delete delta: six new sync/async avatar/detail/holon hard-delete cases execute shared provider over actual owned disk files plus real SQLite secondary. Original failure/acknowledged deleted keys preserved, failed primary root remains, zero secondary requests and unchanged secondary rows. Partial12/12pass3s/full local routing98/98pass9s. Controlled disk fault, NOT native chain/cloud deletion or durable/hosted proof; pending original outcomes untouched.
+
 Shared selector-delete delta: profile/detail username/email deletion preserves original exceptions and RecordNotFound codes instead of losing classification in wrappers; detail load/save failures preserve code too. Four new red-before/green-after controlled cases; Shared225/225pass1s/four chain library builds. No new native or actual V2 backup-metric certification; other open interface/recovery/hosted gates remain.
 
 Shared delete follow-up: detail/holon hard-delete history/link acknowledgements now use existing partial-mutation marker on later failure. Four new red-before/green-after controlled cases; Shared221/221pass1s and four chain libraries rebuild. Other recovery/interface/native/V2/hosted requirements remain open; previous full provider-unit reports not newly rerun.
