@@ -15,6 +15,18 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 [TestClass]
 public class SolanaCommonIdentityTests
 {
+    [DataTestMethod]
+    [DataRow(true)] [DataRow(false)]
+    public void AvatarDetailTrackedQuestSurvivesStoredRoundTrip(bool tracked)
+    {
+        var source=new AvatarDetail {Id=Guid.NewGuid(),ActiveQuestId=tracked ? Guid.NewGuid():null,
+            ActiveObjectiveId=tracked ? Guid.NewGuid():null};
+        var dto=source.GetSolanaAvatarDetailDto();
+        var loaded=((SolanaAvatarDetailDto)Read(typeof(SolanaAvatarDetailDto),OasisJson.Serialize(dto))).GetAvatarDetail();
+        Assert.AreEqual(source.ActiveQuestId,loaded.ActiveQuestId);
+        Assert.AreEqual(source.ActiveObjectiveId,loaded.ActiveObjectiveId);
+    }
+
     private static IHolonBase Source(string kind) => kind switch {
         "avatar"=>new Avatar(),"detail"=>new AvatarDetail(),_=>new Holon()};
     private static SolanaBaseDto Stored(IHolonBase source) => source switch {
