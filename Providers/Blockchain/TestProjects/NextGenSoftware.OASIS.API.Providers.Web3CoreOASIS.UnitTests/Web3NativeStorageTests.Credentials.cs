@@ -74,6 +74,7 @@ public partial class Web3NativeStorageTests
             Assert.IsFalse((await provider.DeleteAvatarAsync(first.Id,false)).IsError);
             Assert.IsFalse((await provider.DeleteAvatarAsync(second.Id,false)).IsError);
             await NoStaleSecondary(OASISResultErrorCodes.RecordNotFound);
+            await VerifyCredentialReplicationAsync(provider,sqlite,key,synchronous);
             await sqlite.DeActivateProviderAsync();
             }
             File.Delete(path);
