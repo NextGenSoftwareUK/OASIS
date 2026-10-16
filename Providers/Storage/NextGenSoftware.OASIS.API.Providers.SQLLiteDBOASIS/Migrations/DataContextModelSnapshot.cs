@@ -301,6 +301,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarDetailModel", b =>
                 {
+                    b.Property<Guid>("VersionId").HasColumnType("TEXT");
+                    b.Property<Guid>("PreviousVersionId").HasColumnType("TEXT");
+                    b.Property<string>("CustomHolonType").HasColumnType("TEXT");
                     b.Property<bool>("IsPublic").HasColumnType("INTEGER");
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -494,6 +497,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarModel", b =>
                 {
+                    b.Property<Guid>("VersionId").HasColumnType("TEXT");
+                    b.Property<Guid>("PreviousVersionId").HasColumnType("TEXT");
+                    b.Property<string>("CustomHolonType").HasColumnType("TEXT");
                     b.Property<bool>("IsPublic").HasColumnType("INTEGER");
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
@@ -1252,6 +1258,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.HolonModel", b =>
                 {
+                    b.Property<Guid>("VersionId").HasColumnType("TEXT");
+                    b.Property<Guid>("PreviousVersionId").HasColumnType("TEXT");
+                    b.Property<string>("CustomHolonType").HasColumnType("TEXT");
                     b.Property<bool>("IsPublic").HasColumnType("INTEGER");
                     b.Property<string>("Id")
                         .HasColumnType("TEXT");
