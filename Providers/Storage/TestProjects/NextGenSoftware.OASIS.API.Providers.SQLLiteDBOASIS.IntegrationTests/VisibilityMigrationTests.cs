@@ -11,6 +11,27 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 public sealed class VisibilityMigrationTests
 {
     [Fact]
+    public void InventoryMediaMigrationRetainsLegacyRow()
+    {
+        using var context=new DataContext("Data Source=:memory:");context.Database.OpenConnection();
+        context.GetService<IMigrationsAssembly>().Migrations.Should().ContainKey("20261016010000_AddInventoryMedia");
+        context.Database.ExecuteSqlRaw("CREATE TABLE AvatarInventory (Id INTEGER PRIMARY KEY,Quantity INTEGER NOT NULL); INSERT INTO AvatarInventory VALUES(1,7)");
+        var migration=new AddInventoryMedia();var generator=context.GetService<IMigrationsSqlGenerator>();
+        foreach(var command in generator.Generate(migration.UpOperations)) context.Database.ExecuteSqlRaw(command.CommandText);
+        using var check=context.Database.GetDbConnection().CreateCommand();
+        foreach(var column in new[] {"Image2D","Object3D","Image2DURI","Object3DURI"})
+        {
+            check.CommandText=$"SELECT {column} FROM AvatarInventory WHERE Id=1";
+            check.ExecuteScalar().Should().Be(DBNull.Value);
+        }
+        check.CommandText="UPDATE AvatarInventory SET Image2D=X'0011FF',Object3D=X'FF001729',Image2DURI='https://example.test/image',Object3DURI='models/seed.glb' WHERE Id=1";
+        check.ExecuteNonQuery();
+        check.CommandText="SELECT Image2D FROM AvatarInventory WHERE Id=1";((byte[])check.ExecuteScalar()!).Should().Equal(0,17,255);
+        foreach(var command in generator.Generate(migration.DownOperations)) context.Database.ExecuteSqlRaw(command.CommandText);
+        check.CommandText="SELECT Quantity FROM AvatarInventory WHERE Id=1";Convert.ToInt32(check.ExecuteScalar()).Should().Be(7);
+    }
+
+    [Fact]
     public void TrackingMigrationRetainsLegacyRowAndDefaultsToNull()
     {
         using var context=new DataContext("Data Source=:memory:");context.Database.OpenConnection();
