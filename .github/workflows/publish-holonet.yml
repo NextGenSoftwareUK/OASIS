@@ -1,8 +1,13 @@
 name: Publish HoloNET NuGet Packages
 
-# Manual HoloNET-only publish, run from OASIS because this repo holds PRIVATE_SUBMODULE_PAT and NUGET_API_KEY.
-# The global release (global-release.yml) still publishes HoloNET too, from the commits pinned in
-# Docker/oasis-dependency-versions.env.
+# Light, manual HoloNET-only publish (the global release, global-release.yml, also publishes HoloNET, from the commits
+# pinned in Docker/oasis-dependency-versions.env, along with everything else). Runs from OASIS because this repo holds
+# PRIVATE_SUBMODULE_PAT (for the private HoloNET submodules) and NUGET_API_KEY.
+#
+# Packs and pushes, in order:
+#   1. the NextGenSoftware libraries HoloNET depends on (Logging, Logging.NLog, WebSocket, Utilities, ErrorHandling, CLI.Engine)
+#   2. HoloNET Client, ORM (+ Embedded variants), HDK, HyperNET, Manager and API
+# Pushes use --skip-duplicate, so versions already on NuGet are left alone.
 
 on:
   workflow_dispatch:
@@ -12,9 +17,13 @@ on:
         type: string
         default: main
       libraries_ref:
-        description: NextGenSoftware-Libraries branch, tag or commit to build against
+        description: NextGenSoftware-Libraries branch, tag or commit to build against (and publish)
         type: string
         default: main
+      publish_libraries:
+        description: Also pack and push the NextGenSoftware libraries
+        type: boolean
+        default: true
       publish:
         description: Push to NuGet.org (off = build and pack only)
         type: boolean
@@ -46,7 +55,29 @@ jobs:
         with:
           dotnet-version: '10.x'
 
-      - name: Build
+      - name: Pack NextGenSoftware libraries
+        if: inputs.publish_libraries
+        shell: pwsh
+        working-directory: NextGenSoftware-Libraries
+        run: |
+          New-Item -ItemType Directory -Force -Path ..\nupkgs-libraries | Out-Null
+          $projects = @(
+            "NextGenSoftware.ErrorHandling\NextGenSoftware.ErrorHandling.csproj",
+            "NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj",
+            "NextGenSoftware.CLI.Engine\NextGenSoftware.CLI.Engine.csproj",
+            "NextGenSoftware.Logging\NextGenSoftware.Logging.csproj",
+            "NextGenSoftware.Logging.NLog\NextGenSoftware.Logging.NLog.csproj",
+            "NextGenSoftware.WebSocket\NextGenSoftware.WebSocket.csproj"
+          )
+          $failed = 0
+          foreach ($proj in $projects) {
+            dotnet pack $proj --configuration Release --output ..\nupkgs-libraries
+            if ($LASTEXITCODE -ne 0) { $failed++; Write-Host "PACK FAILED: $proj" }
+          }
+          Get-ChildItem ..\nupkgs-libraries\*.nupkg | ForEach-Object { Write-Host $_.Name }
+          if ($failed -gt 0) { exit 1 }
+
+      - name: Build HoloNET
         shell: pwsh
         working-directory: holochain-client-csharp
         run: |
@@ -65,7 +96,7 @@ jobs:
           }
           if ($failed -gt 0) { exit 1 }
 
-      - name: Pack
+      - name: Pack HoloNET
         shell: pwsh
         working-directory: holochain-client-csharp
         run: |
@@ -95,19 +126,24 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: holonet-nupkgs
-          path: holochain-client-csharp/nupkgs/*.nupkg
+          path: |
+            nupkgs-libraries/*.nupkg
+            holochain-client-csharp/nupkgs/*.nupkg
 
-      - name: Push to NuGet.org
+      - name: Push to NuGet.org (libraries first, then HoloNET)
         if: inputs.publish
         shell: pwsh
-        working-directory: holochain-client-csharp
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
           if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) { throw 'NUGET_API_KEY is required.' }
           $pushFailed = 0
-          Get-ChildItem .\nupkgs\*.nupkg | ForEach-Object {
-            dotnet nuget push $_.FullName --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --skip-duplicate
+          $packages = @()
+          if (Test-Path .\nupkgs-libraries) { $packages += Get-ChildItem .\nupkgs-libraries\*.nupkg }
+          $packages += Get-ChildItem .\holochain-client-csharp\nupkgs\*.nupkg
+          foreach ($package in $packages) {
+            Write-Host "Pushing $($package.Name)..."
+            dotnet nuget push $package.FullName --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --skip-duplicate
             if ($LASTEXITCODE -ne 0) { $pushFailed++ }
           }
           if ($pushFailed -gt 0) { exit 1 }
