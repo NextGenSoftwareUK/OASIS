@@ -28,6 +28,10 @@ on:
         description: Push to NuGet.org (off = build and pack only)
         type: boolean
         default: false
+      release_tag:
+        description: Also create/update this holochain-client-csharp GitHub release (e.g. v4.4.1) with every package + a zip of each attached (blank = skip; needs publish)
+        type: string
+        default: ''
 
 jobs:
   publish:
@@ -170,3 +174,37 @@ jobs:
             if ($LASTEXITCODE -ne 0) { $pushFailed++ }
           }
           if ($pushFailed -gt 0) { exit 1 }
+
+      - name: GitHub release with every package attached
+        if: inputs.publish && inputs.release_tag != ''
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          TAG: ${{ inputs.release_tag }}
+        run: |
+          $repo = 'holochain-open-dev/holochain-client-csharp'
+          $version = $env:TAG.TrimStart('v')
+          New-Item -ItemType Directory -Force -Path release-assets | Out-Null
+          $packages = @(Get-ChildItem holochain-client-csharp/nupkgs/*.nupkg)
+          if (Test-Path nupkgs-libraries) { $packages += Get-ChildItem nupkgs-libraries/*.nupkg }
+          foreach ($p in $packages | Where-Object { $_.Name -like "*.$version.nupkg" -or $_.DirectoryName -like '*nupkgs-libraries*' }) {
+            Copy-Item $p.FullName release-assets/
+            $dir = Join-Path $env:RUNNER_TEMP $p.BaseName
+            Expand-Archive $p.FullName -DestinationPath $dir -Force
+            Remove-Item -Recurse -Force (Join-Path $dir '_rels'), (Join-Path $dir 'package'), (Join-Path $dir '*.nuspec') -ErrorAction SilentlyContinue
+            Remove-Item -LiteralPath (Join-Path $dir '[Content_Types].xml') -Force -ErrorAction SilentlyContinue
+            Compress-Archive -Path (Join-Path $dir '*') -DestinationPath "release-assets/$($p.BaseName).zip" -Force
+          }
+          # Notes: this version's CHANGELOG section.
+          $log = Get-Content holochain-client-csharp/CHANGELOG.md -Raw
+          $m = [regex]::Match($log, "(?ms)^## v$([regex]::Escape($version)).*?(?=^## v)")
+          $notes = if ($m.Success) { $m.Value } else { "HoloNET $version" }
+          $notes += "`n`nFull history: https://github.com/$repo/blob/main/CHANGELOG.md"
+          Set-Content release-notes.md $notes
+          gh release view $env:TAG --repo $repo 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            git -C holochain-client-csharp tag $env:TAG 2>$null
+            gh release create $env:TAG --repo $repo --target (git -C holochain-client-csharp rev-parse HEAD) --title "HoloNET $version" --notes-file release-notes.md
+          }
+          gh release upload $env:TAG (Get-ChildItem release-assets/*).FullName --repo $repo --clobber
+
