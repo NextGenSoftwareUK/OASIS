@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Shared delete recovery delta: GUID avatar hard-delete now retains acknowledged index/history/detail/profile deletions under existing native-reconciliation marker if later work fails. Four controlled sync/async regressions fail before/pass after; Shared217/217pass1s and Sui/Cosmos/Hashgraph/TRON libraries rebuild. This does not refresh previous full provider-unit reports or prove live/native/durable/atomic/other-delete-path behavior; original pending outcomes remain untouched.
+
 Full unit refresh (not live certification): TRON310/310pass3s, Sui102/102pass2m17s, Cosmos136/136pass2m11s, Hashgraph47/47pass25s, all zero skips. Cosmos/Hashgraph use existing owned Mongo27029/retained SDK bridges; direct runs first failed required harness setup (Cosmos1, Hashgraph8), not provider regressions. Existing runner now has -HederaPreparedOwners -HederaFull with fresh/exact47/no-skip evidence gate. Original pending journal fingerprints unchanged; no chain replay/reset. These supersede earlier narrowly refreshed unit counts only, not native/V2/durable/hosted open gates.
 
 TRON pagination follow-up: current focused storage16/16pass98ms adds terminal cursor/total/duplicate/empty/cross-page-key checks and all-or-nothing page-key publication; valid unsorted keys and empty final page retained. Provider/consumer builds pass. No new live-node/V2/recovery proof; original pending journal fingerprint verified unchanged.
