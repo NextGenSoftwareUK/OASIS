@@ -101,6 +101,9 @@ public partial class AWSOASISIntegrationTests
                 }
                 if(detail) Corrupt(synchronous ? router.RouteRequest<IAvatarDetail>(request):await router.RouteRequestAsync<IAvatarDetail>(request));
                 else Corrupt(synchronous ? router.RouteRequest<IAvatar>(request):await router.RouteRequestAsync<IAvatar>(request));
+                var collection=new Core.StorageOperationRequest {Operation=detail ? "LoadAllAvatarDetails":"LoadAllAvatars",PreferredProvider=Core.Enums.ProviderType.AWSOASIS};
+                if(detail) Corrupt(synchronous ? router.RouteRequest<IEnumerable<IAvatarDetail>>(collection):await router.RouteRequestAsync<IEnumerable<IAvatarDetail>>(collection));
+                else Corrupt(synchronous ? router.RouteRequest<IEnumerable<IAvatar>>(collection):await router.RouteRequestAsync<IEnumerable<IAvatar>>(collection));
                 foreach(var byEmail in new[] {false,true})
                 {
                     var selector=new Core.StorageOperationRequest {Operation=(detail ? "LoadAvatarDetailBy":"LoadAvatarBy")+(byEmail ? "Email":"Username"),
