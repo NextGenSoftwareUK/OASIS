@@ -1414,6 +1414,8 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 var standaloneDetail = new AvatarDetail { Id = standaloneAvatar.Id, Username = standaloneAvatar.Username, Email = standaloneAvatar.Email, Karma = 123,
                     Inventory = new List<IInventoryItem> { new InventoryItem { Id = Guid.NewGuid(), Name = "standalone-owned-seed", Quantity = 3 } } };
                 standaloneDetail.Stats.HP.Current = 37;
+                standaloneDetail.ActiveQuestId=Guid.NewGuid();
+                standaloneDetail.ActiveObjectiveId=Guid.NewGuid();
                 standaloneDetail.Model3D="model://replicated-component";
                 standaloneDetail.Attributes=new AvatarAttributes {Strength=11,Wisdom=23,Endurance=31};
                 standaloneDetail.Aura=new AvatarAura {Level=7,Brightness=41,ColourGreen=53};
@@ -1435,11 +1437,25 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 {
                     var persisted=(await componentStore.LoadAvatarDetailAsync(standaloneDetail.Id)).Result;
                     persisted.Model3D.Should().Be(standaloneDetail.Model3D);
+                    persisted.ActiveQuestId.Should().Be(standaloneDetail.ActiveQuestId);
+                    persisted.ActiveObjectiveId.Should().Be(standaloneDetail.ActiveObjectiveId);
                     persisted.Attributes.Should().BeEquivalentTo(standaloneDetail.Attributes);persisted.Aura.Should().BeEquivalentTo(standaloneDetail.Aura);
                     persisted.Skills.Should().BeEquivalentTo(standaloneDetail.Skills);persisted.SuperPowers.Should().BeEquivalentTo(standaloneDetail.SuperPowers);
                     persisted.HumanDesign.Should().BeEquivalentTo(standaloneDetail.HumanDesign);
                     persisted.HeartRateData.Select(x=>x.HeartRateValue).Should().Equal(standaloneDetail.HeartRateData.Select(x=>x.HeartRateValue));
                     persisted.HeartRateData.Select(x=>x.TimeStamp.Ticks).Should().Equal(standaloneDetail.HeartRateData.Select(x=>x.TimeStamp.Ticks));
+                }
+                // Clearing tracking is a real update, not permission to retain an earlier quest.
+                standaloneDetail.ActiveQuestId=null;
+                standaloneDetail.ActiveObjectiveId=null;
+                var clearedTracking=synchronous ? router.RouteRequest<IAvatarDetail>(saveDetail) : await router.RouteRequestAsync<IAvatarDetail>(saveDetail);
+                clearedTracking.IsError.Should().BeFalse(clearedTracking.Message);
+                clearedTracking.IsWarning.Should().BeFalse();
+                foreach(var trackingStore in new IOASISStorageProvider[] {mongo,sqlite})
+                {
+                    var cleared=(await trackingStore.LoadAvatarDetailAsync(standaloneDetail.Id)).Result;
+                    cleared.ActiveQuestId.Should().BeNull();
+                    cleared.ActiveObjectiveId.Should().BeNull();
                 }
                 var deleteDetail = new StorageOperationRequest { Operation = operation, AvatarId = standaloneAvatar.Id,
                     Username = standaloneAvatar.Username, Email = standaloneAvatar.Email, SoftDelete = softDelete, PreferredProvider = request.PreferredProvider };
@@ -1458,6 +1474,8 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                         loaded.Inventory.Single().Name.Should().Be("standalone-owned-seed");
                         loaded.Stats.HP.Current.Should().Be(37);
                         loaded.Model3D.Should().Be(standaloneDetail.Model3D);
+                        loaded.ActiveQuestId.Should().BeNull();
+                        loaded.ActiveObjectiveId.Should().BeNull();
                         loaded.Attributes.Should().BeEquivalentTo(standaloneDetail.Attributes);loaded.Aura.Should().BeEquivalentTo(standaloneDetail.Aura);
                         loaded.Skills.Should().BeEquivalentTo(standaloneDetail.Skills);loaded.SuperPowers.Should().BeEquivalentTo(standaloneDetail.SuperPowers);
                         loaded.HumanDesign.Should().BeEquivalentTo(standaloneDetail.HumanDesign);
