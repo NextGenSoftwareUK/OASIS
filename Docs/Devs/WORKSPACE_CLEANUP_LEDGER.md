@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 AWS V2 graph matrix: native33/33pass12s using same retained DynamoDB Local/cache/fixed reports and existing fixed AWSRoutingFiles/delete-routing.db fixture path (no new per-run directory/copy). Exact generated graph item IDs cleaned after independent readback; SQLite fixture family removed only after full verified pass/deactivation. No installation/download/new environment, broad data cleanup or global reclaim claim.
+
 2026-10-16 AWS graph-save verification: same retained runtime/caches/fixed reports reused. Initial31-case run25pass/6fail proved ignored selected children; final31/31pass10s and unit25/25pass307ms. Intermediate embedded-navigation test assumption corrected against existing shared serializer contract. Exact synthetic root/child/leaf native items removed in finally; no new runtime/download/clone/environment or broad cleanup. Existing unknown other-chain evidence untouched.
 
 2026-10-16 DynamoDB receipt evidence verification: cached SDK unit21/21 and retained-runtime AWS native23/23pass11s. Same fixed reports/runtime/cache reused; no installs/downloads/new environments. Request-correlation regression uses official SDK exception object locally; does not contact a public service or claim a live receipt. Existing exact-owned native fixture cleanup unchanged.

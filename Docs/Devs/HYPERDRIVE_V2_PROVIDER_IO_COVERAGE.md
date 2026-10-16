@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 AWS native33/33pass12s: four actual V2 AWS↔SQLite sync/async generated-ID recursive graph saves prove no warning/error and matching independently reconstructed3node trees/parent links at both stores. Existing native31 retained. Normal graph routing/replication now proven for this scope; partial native graph faults, options/concurrency/history/recovery/live/hosted remain open.
+
 2026-10-16 AWS native31/31pass10s +Dynamo unit25/25pass307ms: graph saves now honor child selection/recursion/depth with per-node native items/parent IDs and post-ack source publication. Six child-selection cases failed before implementation. Real SDK raw/readback tree assertions, controlled zero-write invalid graph and uncertainty-stop cases added; canonical navigation-exclusion contract preserved. Sequential graph writes are NOT atomic; native partial graph faults, V2 graph replication/history/full-interface/live/hosted gates remain open.
 
 2026-10-16 DynamoDB unit21/21 and AWS native23/23pass11s: SDK RequestId retained separately as SdkRequestId, never reported as OriginalTransactionId. Regression proves shared reconciliation collector returns no invented native receipt while preserving original exception and replay fence. One unit failed before fix. Durable recovery/live service/full-interface/hosted gates remain open.
