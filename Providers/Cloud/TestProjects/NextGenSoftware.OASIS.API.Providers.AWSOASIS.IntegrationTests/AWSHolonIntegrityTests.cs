@@ -42,15 +42,17 @@ public partial class AWSOASISIntegrationTests
     }
 
     [DataTestMethod]
-    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
-    public async Task V2ProjectionCorruptionDoesNotReadStaleSecondary(bool synchronous,bool wrongType)
+    [DataRow(false,0)] [DataRow(true,0)] [DataRow(false,1)] [DataRow(true,1)]
+    [DataRow(false,2)] [DataRow(true,2)] [DataRow(false,3)] [DataRow(true,3)]
+    public async Task V2ProjectionCorruptionDoesNotReadStaleSecondary(bool synchronous,int mode)
     {
         var path=Path.GetFullPath("TestResults/AWSRoutingFiles/delete-routing.db");
         if(File.Exists(path)) Assert.Fail("Retained routing evidence exists; refusing overwrite.");
         Directory.CreateDirectory(Path.GetDirectoryName(path)!);
         var sqlite=new NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS($"Data Source={path};Pooling=False");
-        var id=Guid.NewGuid();var parent=Guid.NewGuid();var nativeParent=wrongType ? parent:Guid.NewGuid();
-        var record=new Holon {Id=id,ParentHolonId=parent,Name="owned-projection-mismatch",IsActive=true};
+        var id=Guid.NewGuid();var parent=Guid.NewGuid();var nativeParent=mode==0 ? Guid.NewGuid():parent;
+        var record=new Holon {Id=id,ParentHolonId=parent,Name="owned-projection-mismatch",IsActive=true,
+            DeletedDate=mode==3 ? new DateTime(2026,10,16,0,0,0,DateTimeKind.Utc):DateTime.MinValue};
         var json=OasisJson.Serialize(record);var acknowledged=false;var verified=false;
         try
         {
@@ -66,7 +68,8 @@ public partial class AWSOASISIntegrationTests
             var router=new Core.Managers.OASISHyperDrive.OASISHyperDrive(manager);
             Assert.AreEqual(System.Net.HttpStatusCode.OK,(await Client.PutItemAsync(new PutItemRequest {TableName="OasisHolons",Item=new() {
                 ["id"]=new() {S=id.ToString()},["parentHolonId"]=new() {S=nativeParent.ToString()},
-                ["holon_type"]=new() {N=((int)record.HolonType+(wrongType ? 1:0)).ToString()},["data_json"]=new() {S=json}}})).HttpStatusCode);
+                ["holon_type"]=new() {N=((int)record.HolonType+(mode==1 ? 1:0)).ToString()},
+                ["is_deleted"]=new() {BOOL=mode>=2 ? !record.IsDeleted:record.IsDeleted},["data_json"]=new() {S=json}}})).HttpStatusCode);
             acknowledged=true;
             void Corrupt<T>(OASISResult<T> result) {Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsFalse(result.IsLoaded);Assert.IsInstanceOfType(result.Exception,typeof(InvalidDataException));}
             var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0;
@@ -80,6 +83,7 @@ public partial class AWSOASISIntegrationTests
             Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
             var raw=(await Client.GetItemAsync(new GetItemRequest {TableName="OasisHolons",Key=Key(id),ConsistentRead=true})).Item;
             Assert.AreEqual(json,raw["data_json"].S);Assert.AreEqual(nativeParent.ToString(),raw["parentHolonId"].S);
+            Assert.AreEqual(mode>=2 ? !record.IsDeleted:record.IsDeleted,raw["is_deleted"].BOOL);
             Assert.AreEqual("owned-stale",(await sqlite.LoadHolonAsync(id,loadChildren:false)).Result.Name);
             verified=true;
         }
