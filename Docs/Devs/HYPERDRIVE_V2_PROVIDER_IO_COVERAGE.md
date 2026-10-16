@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-16 IPFS refreshed against retained real offline Kubo 0.43.1: 6/6 native pass in 10 s; 48/48 non-native pass in 166 ms. Source audit confirms graph publication accumulates actual acknowledged record CIDs, retains original failure and stops after native uncertainty; Firestore and Ethereum also have separate partial-batch evidence paths, so the shared-base change is not assumed to cover them. Ethereum first-submission SDK transport uncertainty remains a separate open gate; receipt-validation tests alone do not prove it. IPFS concurrency/history/full V2/hosted acceptance remain open.
+
 2026-10-16 shared batch regression evidence: 151/151 shared tests and 48/48 targeted V2 tests pass. Eight new controlled-backend tests prove prior root acknowledgements survive a later ordinary or native-uncertain failure, preserve original transaction identifiers, and stop on native uncertainty. Acknowledged logical keys are evidence, not exhaustive native receipts or restart recovery. Four chain consumers compile; no live chain was run. Mainstream-provider priority remains MongoDB/SQLite, Ethereum/Solana, IPFS, AWS/Azure/GoogleCloud/CosmosDB, Polygon/Arbitrum, Neo4j, remaining chains, then SOLID/ActivityPub.
 
 ## Current evidence summary — supersedes historical entries below
