@@ -61,16 +61,11 @@ internal static class MongoNativeRecordWriter
             // Complete serialization before dispatch for inserts AND replacements. The
             // exact prepared BSON is what the SDK writes; no second serialization pass.
             validatingPayload=true;
-            var replacement=holon.ToBsonDocument(records.DocumentSerializer);
+            var replacement=SerializePayload(records,holon);
             validatingPayload=false;
             if(updating)
             {
-                var mapped=new HashSet<string>(BsonClassMap.LookupClassMap(typeof(T)).AllMemberMaps.Select(member=>member.ElementName),StringComparer.Ordinal);
-                mapped.Add("_t");
-                // Retain top-level schema fields this CLR model cannot express. Known
-                // fields still obey replacement semantics; nested schema evolution is separate.
-                foreach(var field in observed)
-                    if(!mapped.Contains(field.Name) && !replacement.Contains(field.Name)) replacement.Add(field.Name,field.Value.DeepClone());
+                RetainUnknownFields<T>(replacement,observed);
             }
             var writer=raw.WithWriteConcern(WriteConcern.WMajority.With(journal:true));
             entered=true;
@@ -100,6 +95,17 @@ internal static class MongoNativeRecordWriter
                     :!entered && (cause is ArgumentException || validatingPayload && cause is BsonSerializationException) ? "HYPERDRIVE_PAYLOAD_INVALID":null,
                 Message="Mongo record save failed."};
         }
+    }
+    internal static BsonDocument SerializePayload<T>(IMongoCollection<T> collection,T record) where T:HolonBase
+        => record.ToBsonDocument(collection.DocumentSerializer);
+
+    internal static void RetainUnknownFields<T>(BsonDocument replacement,BsonDocument observed) where T:HolonBase
+    {
+        var mapped=new HashSet<string>(BsonClassMap.LookupClassMap(typeof(T)).AllMemberMaps.Select(member=>member.ElementName),StringComparer.Ordinal);
+        mapped.Add("_t");
+        // Only unknown top-level fields merge. Known fields retain replacement semantics.
+        foreach(var field in observed)
+            if(!mapped.Contains(field.Name) && !replacement.Contains(field.Name)) replacement.Add(field.Name,field.Value.DeepClone());
     }
     internal static void PrepareIdentity<T>(T record) where T:HolonBase
     {
