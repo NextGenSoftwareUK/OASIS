@@ -55,6 +55,13 @@ foreach (var (service, assembly, sourcePath) in services)
                 throw new InvalidOperationException($"{service}: root typename execution failed.");
         }
         finally { await probe.DisposeAsync(); }
+        var introspection = await executor.ExecuteAsync("query AuditSchema { __schema { queryType { fields { name } } mutationType { fields { name } } } }");
+        try
+        {
+            if (introspection is IOperationResult metadata && metadata.Errors?.Count > 0)
+                throw new InvalidOperationException($"{service}: schema introspection failed: {string.Join("; ", metadata.Errors.Select(e => e.Message))}");
+        }
+        finally { await introspection.DisposeAsync(); }
         if (service == "WEB4")
         {
             var settings = schema.MutationType!.Fields["updateHyperDriveSettings"].Arguments["settings"];
