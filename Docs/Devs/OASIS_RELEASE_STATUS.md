@@ -2,6 +2,8 @@
 
 ## Current acceptance summary
 
+2026-10-16 20:40 UTC: PR490 exact3951510fa6e69a8df84d5e1653001f17f163646a completed all applicable checks successfully, including coverage; normally merged with head matching and no admin/force bypass. Repair scope is standalone publication receipt/source graph/tests, producer evidence and status documentation; no runtime dependency rollback. Next verify exact merged-master CI, then dispatch the full global workflow with publish=false once. Planner-only success is not substituted for full integrated builds.
+
 2026-10-16 20:10 UTC: **Hosted planner-only38958437922 SUCCESS** for the standalone receipt repair, with no packing/publication and all deliberately unselected component jobs skipped. This proves registry/provenance planning, not integrated builds. Requested standard trusted-master promotion to carry the tested planner/source-graph repair through normal parent PR/checks; PR489 remains already merged. Full nonpublishing global master run must follow checked repair promotion.
 
 2026-10-16 19:55 UTC: CI38954999629 SUCCESS at exacte401a587035a5b3bc917d76317168a77322cf563. Dispatched planner-only global38958437922 from Development with publish=false, nuget_plan_only=true and every runtime/component selection false. This verifies registry/provenance planning without packing or duplicate publication; it is not full integrated release proof. Await its actual result before checked repair promotion/global master rerun.
