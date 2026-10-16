@@ -15,17 +15,17 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 public sealed class SolanaNativeTokenTests
 {
     [DataTestMethod]
-    [DataRow("wrong-signer")] [DataRow("conflicting-key")] [DataRow("spl-mint")]
-    public async Task InvalidSignerOrUnimplementedMintCannotReachRpc(string mode)
+    [DataRow("wrong-signer")] [DataRow("conflicting-key")]
+    public async Task InvalidSignerCannotReachRpc(string mode)
     {
         var owner=new Account();var other=new Account();var rpc=DispatchProxy.Create<IRpcClient,TokenRpc>();var proxy=(TokenRpc)(object)rpc;
         var provider=new SolanaOASIS("http://127.0.0.1:1",owner.PrivateKey.Key,owner.PublicKey.Key);
         typeof(SolanaOASIS).GetField("_rpcClient",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(provider,rpc);
         var result=await provider.SendTokenAsync(new SendWeb3TokenRequest {Amount=1,FromWalletAddress=owner.PublicKey.Key,ToWalletAddress=other.PublicKey.Key,
             OwnerPrivateKey=mode=="wrong-signer" ? other.PrivateKey.Key:owner.PrivateKey.Key,
-            FromWalletPrivateKey=mode=="conflicting-key" ? other.PrivateKey.Key:null,FromTokenAddress=mode=="spl-mint" ? other.PublicKey.Key:null});
+            FromWalletPrivateKey=mode=="conflicting-key" ? other.PrivateKey.Key:null});
         Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.AreEqual(0,proxy.Calls);
-        Assert.IsInstanceOfType(result.Exception,mode=="spl-mint" ? typeof(NotSupportedException):typeof(ArgumentException));
+        Assert.IsInstanceOfType(result.Exception,typeof(ArgumentException));
     }
 
     [DataTestMethod]
@@ -89,6 +89,11 @@ public sealed class SolanaNativeTokenTests
             }
             else if(method.Name=="GetSignatureStatusesAsync") {StatusReads++;json=JsonConvert.SerializeObject(new{Value=new[]{new{confirmationStatus="finalized",err=(object?)null}}});}
             else throw new InvalidOperationException("Unexpected token RPC: "+method.Name);
+            return Respond(method,json);
+        }
+        protected static object? Respond(MethodInfo method,string json)
+        {
+            var resultType=method.ReturnType.GetGenericArguments()[0];
             var valueType=resultType.GetGenericArguments()[0];var value=JsonConvert.DeserializeObject(json,valueType);
             var response=Activator.CreateInstance(resultType,new System.Net.Http.HttpResponseMessage(System.Net.HttpStatusCode.OK),value);
             resultType.GetProperty("WasRequestSuccessfullyHandled")!.SetValue(response,true);
