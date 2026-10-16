@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 canonical serializer move reused existing Core/shared/IPFS cache and retained Kubo/key/repo.589Core/174shared/11nativeIPFS pass; Core cross-target build reused same outputs (no new environment/download). Owned IPFS test data cleaned/GC444 and daemon stopped. Free bytes before82,083,594,240 after82,081,550,336; builds caused output growth, no broad reclamation claim. Required compact reports retained, pending chain data/concurrent subscription edits untouched. No clone/install/deployment.
+
 2026-10-16 import-reference preflight tests reused existing Core/cache/fixed SQLite evidence paths.589unit/86localrouting pass; two red-before cases retained in import-reference-before.trx. Invalid batches never activate/create database or assign caller IDs; existing local fixtures cleaned by teardown. No installation/download/new environment/clone or chain replay, concurrent subscription work preserved and excluded.
 
 2026-10-16 generic graph-depth verification reused existing Core build cache/local SQLite tests/fixed HyperDriveSqliteCurrent reports:587unit/84localrouting pass;12red-before cases retained in graph-depth-before.trx. Invalid writes create no DB/IDs; normal synthetic local fixtures cleaned by existing teardown. No runtime download/install/new env/clone, no pending chain mutation or broad cleanup. Concurrent subscription source untouched/excluded from commit.
