@@ -176,7 +176,9 @@ try {
     $env:HOLONET_LIVE_HC_BIN = Join-Path $extracted 'hc.exe'
     & dotnet test $Project --configuration $Configuration -p:Embedded=true --filter 'FullyQualifiedName~LiveConductorAutoStartTests' --logger 'trx;LogFileName=holonet-auto-start.trx' --results-directory $ResultsDirectory --nologo
     if ($LASTEXITCODE -ne 0) { throw 'Isolated HoloNET auto-start release tests failed.' }
-    Assert-CompleteTestReport (Join-Path $ResultsDirectory 'holonet-auto-start.trx') 11
+    # Pinned source inventory: four facts + three two-row theories = ten cases.
+    # The historical eleventh skip was shared Live_RetrieveAgentPubKeyAndDnaHash_FromHcClient.
+    Assert-CompleteTestReport (Join-Path $ResultsDirectory 'holonet-auto-start.trx') 10
 }
 finally {
     foreach ($name in $autoNames) { [Environment]::SetEnvironmentVariable($name, $autoSaved[$name]) }
