@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-16 Core096f153 typed LoadHolonRequest now carries native graph read options rather than silently relying on defaults. Both route paths forward options/version; local negative-depth guard precedes selection. Native SQLite four syncasync×fromProvider tests cover disabled children/direct/bounded/full recursion; targeted78/78pass7s,Core526/526pass2s. ContinueOnError forwarding is implemented but arbitrary child-failure behavior is not certified by these cases. No all-provider/history/hosted completion claim.
+
 2026-10-16 Core3ee56fb typed LoadAvatarRequest/LoadHolonRequest gain Version0/latest default and exact positive forwarding in both native syncasync dispatch paths. Existing central version validation now covers typed requests; real SQLite tests verify0/7/1/-1 for both record kinds and no provider requests for negatives. Targeted74/74pass7s,Core526/526pass1s. No history archive, WEB5 identity semantics, hosted deployment or all-provider completion claim.
 
 2026-10-16 retained TRON reconciliation refresh: same ledger/genesis verified after existing launcher recovery; originaldb05ea6d... transaction and full/solidity receipt endpoints all return empty. No mutation replay, no new environment; unchanged pending fence retained. Node returned to stopped state(exited143,falseOOM). This is current negative lookup evidence, not a known rejected/never-submitted transaction or passing mutation/replication test. Higher-priority provider gates also remain incomplete.
