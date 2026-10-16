@@ -649,17 +649,25 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             var result = new OASISResult<IHolon>();
             try
             {
-                var loaded = await LoadHolonAsync(id); if (loaded.IsError || loaded.Result == null) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: Holon '{id}' not found."); return result; }
-                var holon = (Holon)loaded.Result; holon.DeletedDate = DateTime.UtcNow;
-                await UpdateItemAsync(new UpdateItemRequest
+                if(id==Guid.Empty) throw new ArgumentException("A nonempty holon identity is required.");
+                var item=await ReadLifecycleItemAsync("OasisHolons",id);
+                if(item.Count==0) return new OASISResult<IHolon> {IsError=true,ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="DynamoDB holon not found."};
+                ReadStoredIdentity<Holon>(item,id);
+                var expected=item["data_json"].S;
+                var original=await ObserveMutationAsync(async()=>
                 {
-                    TableName = "OasisHolons",
-                    Key = new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } },
-                    UpdateExpression = "SET is_deleted = :d, data_json = :j",
-                    ExpressionAttributeValues = new Dictionary<string, AttributeValue> { [":d"] = new AttributeValue { BOOL = true }, [":j"] = new AttributeValue { S = Ser(holon) } }
-                });
-                result.Result = holon; result.IsError = false; result.Message = $"DynamoDBOASIS: Holon '{id}' soft-deleted.";
+                    var deleted=await _client.DeleteItemAsync(new DeleteItemRequest {TableName="OasisHolons",Key=LifecycleKey(id),ReturnValues=ReturnValue.ALL_OLD,
+                        ConditionExpression="data_json = :expected",ExpressionAttributeValues=new() {{":expected",new AttributeValue {S=expected}}}});
+                    if(deleted.HttpStatusCode!=System.Net.HttpStatusCode.OK || deleted.Attributes==null
+                        || !deleted.Attributes.TryGetValue("data_json",out var oldJson) || oldJson.S!=expected)
+                        throw new System.IO.InvalidDataException("DynamoDB holon deletion lacks matching native acknowledgement.");
+                    return ReadStoredIdentity<Holon>(deleted.Attributes,id);
+                },"OasisHolons",id.ToString());
+                original.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
+                original.ProviderUniqueStorageKey[StorageProviderType]=id.ToString();
+                result.Result=original;result.IsSaved=true;result.IsDeleted=true;result.DeletedCount=1;
             }
+            catch(ConditionalCheckFailedException cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);result.ErrorCode=StorageLifecycleConflictException.ErrorCode;}
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
         }

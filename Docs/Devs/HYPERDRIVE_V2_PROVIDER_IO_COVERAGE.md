@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 AWS native57/57pass13s +unit49/49pass349ms: bare holon delete corrected from unconditional soft update to V2-required conditional hard DeleteItem with validated ALL_OLD acknowledgement.6new cases failed before fix; native absence/original metadata/structured missing and real SDK concurrent-change preservation proven. Soft deletion remains tombstone save. Routed delete fault/replication/durability/history/full-interface/live/hosted gates still open.
+
 2026-10-16 Azure native54/54pass14s: actual V2 hard holon-delete replication4normal primary×syncasync cases plus2real412 conflict and2controlled post-real-delete-ack failures prove preserved original result/evidence, unchanged secondary/0secondary requests on failure and exactly1native delete attempt. Initial SoftDelete default fixture error reconciled before exact synthetic DB cleanup; source guard retained. Physical loss/durability/history/all interfaces/live/hosted remain open.
 
 2026-10-16 Azure native48/48pass14s +unit15/15pass272ms: holon deletes return real canonical original only after ETag-conditioned native acknowledgement, structured missing and original real412 conflict.6new regressions failed before fix; real SDK interleaving preserves newer blob. V2 delete replication/partial-ack matrix/durability/history/live/hosted still open; not graph-atomic deletion.
