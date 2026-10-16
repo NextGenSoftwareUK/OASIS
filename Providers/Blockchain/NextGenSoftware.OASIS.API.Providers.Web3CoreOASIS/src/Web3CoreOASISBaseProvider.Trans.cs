@@ -353,78 +353,11 @@ public partial class Web3CoreOASISBaseProvider
 
     public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
     {
-        return SendTokenAsync(request).Result;
+        return SendTokenAsync(request).GetAwaiter().GetResult();
     }
 
-    public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
-    {
-        var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-        string errorMessage = "Error in SendTokenAsync method in Web3CoreOASIS. Reason: ";
-
-        try
-        {
-            if (!IsProviderActivated || _web3Client == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            if (request == null || string.IsNullOrWhiteSpace(request.FromTokenAddress) || 
-                string.IsNullOrWhiteSpace(request.ToWalletAddress))
-            {
-                OASISErrorHandling.HandleError(ref result, "Token address and to wallet address are required");
-                return result;
-            }
-
-            // Get private key from request or KeyManager
-            string privateKey = null;
-            if (!string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
-                privateKey = request.OwnerPrivateKey;
-            else if (request is SendWeb3TokenRequest sendRequest && !string.IsNullOrWhiteSpace(sendRequest.FromWalletPrivateKey))
-                privateKey = sendRequest.FromWalletPrivateKey;
-            
-            if (string.IsNullOrWhiteSpace(privateKey))
-            {
-                OASISErrorHandling.HandleError(ref result, "Private key is required (OwnerPrivateKey or FromWalletPrivateKey)");
-                return result;
-            }
-
-            var senderAccount = new Account(privateKey);
-            var web3Client = new Web3(senderAccount, _hostURI);
-
-            // ERC20 transfer ABI
-            var erc20Abi = "[{\"constant\":true,\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"type\":\"function\"},{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"transfer\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"type\":\"function\"}]";
-            var erc20Contract = web3Client.Eth.GetContract(erc20Abi, request.FromTokenAddress);
-            var decimalsFunction = erc20Contract.GetFunction("decimals");
-            var decimals = await decimalsFunction.CallAsync<byte>();
-            var multiplier = BigInteger.Pow(10, decimals);
-            var amountBigInt = new BigInteger(request.Amount * (decimal)multiplier);
-            var transferFunction = erc20Contract.GetFunction("transfer");
-            var receipt = await transferFunction.SendTransactionAndWaitForReceiptAsync(
-                senderAccount.Address, 
-                new HexBigInteger(600000), 
-                null, 
-                null, 
-                request.ToWalletAddress, 
-                amountBigInt);
-
-            if (receipt.HasErrors() == true)
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "ERC-20 transfer failed."));
-                return result;
-            }
-
-            result.Result.TransactionResult = receipt.TransactionHash;
-            result.IsError = false;
-            result.Message = "Token sent successfully.";
-            TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-        return result;
-    }
+    public Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
+        =>SendExplicitErc20Async(request);
 
     public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
     {
