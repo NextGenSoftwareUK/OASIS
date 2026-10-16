@@ -26,9 +26,10 @@ public partial class SolanaOASIS
             || (tx.Meta.Error==null)!=(signature.Error==null))
             throw new InvalidDataException("Solana transaction details do not match the native signature, slot or execution result.");
         var rows=new List<IWalletTransaction>();var message=tx.Transaction.Message;
-        for(var index=0;index<message.Instructions.Length;index++)
+        foreach(var entry in NativeHistoryInstructions(tx))
         {
-            var instruction=message.Instructions[index];
+            var instruction=entry.Instruction;
+            if(instruction==null) throw new InvalidDataException("Solana history contains a null instruction.");
             if(instruction.ProgramIdIndex<0 || instruction.ProgramIdIndex>=message.AccountKeys.Length)
                 throw new InvalidDataException("Solana instruction program index is invalid.");
             if(message.AccountKeys[instruction.ProgramIdIndex]!=SystemProgram.ProgramIdKey.Key) continue;
@@ -46,10 +47,29 @@ public partial class SolanaOASIS
                 NativeExecutionResult=summary.NativeExecutionResult,NativeError=summary.NativeError,
                 FromWalletAddress=from,ToWalletAddress=to,RawAmount=raw.ToString(CultureInfo.InvariantCulture),AmountUnit="lamports",
                 Amount=(double)(raw/1_000_000_000m),CreatedDate=summary.CreatedDate,
-                Description=$"Finalized Solana slot {signature.Slot}, top-level instruction {index}; requested SOL transfer, execution status determines whether applied."
+                Description=$"Finalized Solana slot {signature.Slot}, {entry.Location}; requested SOL transfer, execution status determines whether applied."
             });
         }
         if(rows.Count==0) rows.Add(summary);
         return rows;
+    }
+
+    private static IEnumerable<(InstructionInfo Instruction,string Location)> NativeHistoryInstructions(TransactionMetaSlotInfo transaction)
+    {
+        var instructions=transaction.Transaction.Message.Instructions;
+        var groups=new Dictionary<int,InstructionInfo[]>();
+        if(transaction.Meta.InnerInstructions!=null)
+            foreach(var group in transaction.Meta.InnerInstructions)
+            {
+                if(group==null || group.Index<0 || group.Index>=instructions.Length || group.Instructions==null || groups.ContainsKey(group.Index))
+                    throw new InvalidDataException("Solana inner-instruction parent groups are invalid or duplicated.");
+                groups.Add(group.Index,group.Instructions);
+            }
+        for(var index=0;index<instructions.Length;index++)
+        {
+            yield return (instructions[index],$"top-level instruction {index}");
+            if(groups.TryGetValue(index,out var inner))
+                for(var offset=0;offset<inner.Length;offset++) yield return (inner[offset],$"inner instruction {index}:{offset}");
+        }
     }
 }

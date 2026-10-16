@@ -15,19 +15,21 @@ public sealed class SolanaHistoryTransferTests
     [DataRow("valid")] [DataRow("failed")] [DataRow("multiple")]
     [DataRow("missing")] [DataRow("wrong-slot")] [DataRow("wrong-signature")]
     [DataRow("wrong-status")] [DataRow("truncated")] [DataRow("bad-index")]
+    [DataRow("inner")] [DataRow("bad-parent")] [DataRow("duplicate-parent")] [DataRow("null-inner")]
     public async Task HistoryReadsExactSdkTransferDataAndRejectsUnverifiableDetails(string mode)
     {
         var rpc=DispatchProxy.Create<IRpcClient,TransferRpc>();var proxy=(TransferRpc)(object)rpc;proxy.Mode=mode;
         var operatorAccount=new Account();var provider=new SolanaOASIS("http://127.0.0.1:1",operatorAccount.PrivateKey.Key,operatorAccount.PublicKey.Key);
         typeof(SolanaOASIS).GetField("_rpcClient",BindingFlags.NonPublic|BindingFlags.Instance)!.SetValue(provider,rpc);
         var result=await provider.GetTransactionsAsync(new GetWeb3TransactionsRequest{WalletAddress=proxy.Sender.PublicKey.Key});
-        if(mode is "valid" or "failed" or "multiple")
+        if(mode is "valid" or "failed" or "multiple" or "inner")
         {
-            Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.AreEqual(mode=="multiple" ? 2:1,result.Result.Count);
+            Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.AreEqual(mode is "multiple" or "inner" ? 2:1,result.Result.Count);
             var row=result.Result[0];Assert.AreEqual("1234567890123456789",row.RawAmount);Assert.AreEqual("lamports",row.AmountUnit);
             Assert.AreEqual(proxy.Sender.PublicKey.Key,row.FromWalletAddress);Assert.AreEqual(proxy.Recipient.PublicKey.Key,row.ToWalletAddress);
             Assert.AreEqual(mode=="failed" ? "failed":"succeeded",row.NativeExecutionResult);
-            if(mode=="multiple") Assert.AreEqual("1",result.Result[1].RawAmount);
+            if(mode is "multiple" or "inner") Assert.AreEqual("1",result.Result[1].RawAmount);
+            if(mode=="inner") StringAssert.Contains(result.Result[1].Description,"inner instruction 0:0");
         }
         else {Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsInstanceOfType(result.Exception,typeof(InvalidDataException));}
         Assert.AreEqual(2,proxy.Calls);
@@ -46,11 +48,17 @@ public sealed class SolanaHistoryTransferTests
             if(Mode=="truncated") data=data[..^1];
             var instructions=new List<object>{new{ProgramIdIndex=2,Accounts=new[]{Mode=="bad-index" ? 7:1,0},Data=Encoders.Base58.EncodeData(data)}};
             if(Mode=="multiple") instructions.Add(new{ProgramIdIndex=2,Accounts=new[]{1,0},Data=Encoders.Base58.EncodeData(SystemProgram.Transfer(Sender.PublicKey,Recipient.PublicKey,1).Data)});
+            object[]? inner=null;
+            if(Mode is "inner" or "bad-parent" or "duplicate-parent" or "null-inner")
+            {
+                var group=new{Index=Mode=="bad-parent" ? 5:0,Instructions=Mode=="null-inner" ? null:new[]{new{ProgramIdIndex=2,Accounts=new[]{1,0},Data=Encoders.Base58.EncodeData(SystemProgram.Transfer(Sender.PublicKey,Recipient.PublicKey,1).Data)}}};
+                inner=Mode=="duplicate-parent" ? new object[]{group,group}:new object[]{group};
+            }
             // Recipient precedes sender: account-list order must not determine the direction.
             return Respond(method,Newtonsoft.Json.JsonConvert.SerializeObject(new{Slot=Mode=="wrong-slot" ? 11:10,
                 Transaction=new{Signatures=new[]{Mode=="wrong-signature" ? "other":"owned-signature"},
                     Message=new{AccountKeys=new[]{Recipient.PublicKey.Key,Sender.PublicKey.Key,SystemProgram.ProgramIdKey.Key},Instructions=instructions}},
-                Meta=new{Error=Mode=="wrong-status" ? new{Type="AccountNotFound"}:error}}));
+                Meta=new{Error=Mode=="wrong-status" ? new{Type="AccountNotFound"}:error,InnerInstructions=inner}}));
         }
     }
 }
