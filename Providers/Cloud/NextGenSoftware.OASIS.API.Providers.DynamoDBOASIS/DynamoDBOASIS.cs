@@ -73,6 +73,13 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             var record=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.DeserializeStored<T>(json.S);
             if(record==null || record.Id!=requested)
                 throw new System.IO.InvalidDataException("DynamoDB canonical record identity differs from its native key.");
+            if(record is IHolon holon)
+            {
+                if(item.TryGetValue("parentHolonId",out var parent) && parent.S!=holon.ParentHolonId.ToString())
+                    throw new System.IO.InvalidDataException("DynamoDB parent projection differs from canonical record.");
+                if(item.TryGetValue("holon_type",out var type) && type.N!=((int)holon.HolonType).ToString(System.Globalization.CultureInfo.InvariantCulture))
+                    throw new System.IO.InvalidDataException("DynamoDB type projection differs from canonical record.");
+            }
             return record;
         }
 
@@ -551,14 +558,13 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string pk, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) { if (Guid.TryParse(pk, out Guid id)) return await LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version); var r = new OASISResult<IHolon>(); OASISErrorHandling.HandleError(ref r, $"DynamoDBOASIS: Invalid GUID '{pk}'."); return r; }
         public override OASISResult<IHolon> LoadHolon(string pk, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0) => LoadHolonAsync(pk, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
 
-        private async Task<List<IHolon>> ScanHolonsAsync(string? filterExpr = null, Dictionary<string, AttributeValue>? exprVals = null)
+        private async Task<List<IHolon>> ScanHolonsAsync()
         {
             var items = new List<Dictionary<string, AttributeValue>>();
             ScanResponse? sr = null;
             do
             {
                 var req = new ScanRequest { TableName = "OasisHolons", ConsistentRead=true };
-                if (filterExpr != null) { req.FilterExpression = filterExpr; req.ExpressionAttributeValues = exprVals; }
                 if (sr?.LastEvaluatedKey?.Any() == true) req.ExclusiveStartKey = sr.LastEvaluatedKey;
                 sr = await _client.ScanAsync(req);
                 items.AddRange(sr.Items);
@@ -601,8 +607,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             try
             {
                 ValidateGraphRead(maxChildDepth,curentChildDepth,version);
-                var holons=(await ScanHolonsAsync("parentHolonId = :pid",new Dictionary<string,AttributeValue> {
-                    [":pid"]=new AttributeValue {S=id.ToString()}}))
+                var holons=(await ScanHolonsAsync())
                     .Where(row=>row.ParentHolonId==id && (type==HolonType.All || row.HolonType==type)).ToList();
                 var records=loadChildren && loadChildrenFromProvider ? await ScanHolonsAsync():holons;
                 var project=CreateGraphProjection(records,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider);
