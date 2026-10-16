@@ -6,7 +6,8 @@ const solc=require(path.join(runtime,'node_modules/solc'));
 const contractRoot=path.join(runtime,'Contracts');
 const entry='Web3CoreOASIS.sol';
 const output=JSON.parse(solc.compile(JSON.stringify({language:'Solidity',
-  sources:{[entry]:{content:fs.readFileSync(path.join(contractRoot,entry),'utf8')}},
+  sources:{[entry]:{content:fs.readFileSync(path.join(contractRoot,entry),'utf8')},
+    'NftBoundaryFixture.sol':{content:'pragma solidity ^0.8.20; import "./Web3CoreOASIS.sol"; contract NftBoundaryFixture is Web3CoreOASIS { function seedToken(address recipient, uint256 tokenId) external onlyOwner { _safeMint(recipient, tokenId); } }'}},
   settings:{evmVersion:'paris',optimizer:{enabled:true,runs:200},outputSelection:{'*':{'*':['abi','evm.bytecode.object']}}}}),
   {import:file=>{
     const resolved=path.resolve(contractRoot,file);
@@ -26,4 +27,7 @@ for(const name of ['getAvatarsPage','getAvatarDetailsPage','getHolonsPage'])
   if(!contract.abi.some(item=>item.type==='function' && item.name===name)) throw new Error('Missing page ABI: '+name);
 const folder=path.join(root,'TestResults/Web3CoreCurrent');fs.mkdirSync(folder,{recursive:true});
 fs.writeFileSync(path.join(folder,'web3-storage.json'),JSON.stringify({compiler:solc.version(),abi:contract.abi,bytecode:contract.evm.bytecode.object}));
+// Test-only mint hook seeds boundary IDs; inherited production sendNFT is unchanged.
+const nftFixture=output.contracts['NftBoundaryFixture.sol'].NftBoundaryFixture;
+fs.writeFileSync(path.join(folder,'web3-nft-boundary.json'),JSON.stringify({compiler:solc.version(),abi:nftFixture.abi,bytecode:nftFixture.evm.bytecode.object}));
 console.log(JSON.stringify({compiler:solc.version(),pageFunctions:3,bytecodeBytes:contract.evm.bytecode.object.length/2}));
