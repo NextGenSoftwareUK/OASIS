@@ -342,17 +342,17 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
 
         public override OASISResult<IAvatar> LoadAvatarByEmail(string email, int version = 0) => LoadAvatarByEmailAsync(email, version).Result;
 
-        private async Task<OASISResult<IAvatar>> LoadAvatarByTokenAsync(string token,Func<Avatar,bool> matches,int version)
+        private async Task<OASISResult<IAvatar>> LoadAvatarByCredentialSelectorAsync(string selector,Func<Avatar,bool> matches,int version)
         {
             var result=new OASISResult<IAvatar>();
             try
             {
                 ValidateRecordVersion(version);
-                if(string.IsNullOrWhiteSpace(token)) throw new ArgumentException("A nonempty avatar token is required.",nameof(token));
+                if(string.IsNullOrWhiteSpace(selector)) throw new ArgumentException("A nonempty avatar credential selector is required.",nameof(selector));
                 var avatar=await ReadUniqueIdentityAsync<Avatar>(request=>_client.ScanAsync(request),"OasisAvatars",matches);
                 if(avatar==null)
                 {
-                    OASISErrorHandling.HandleError(ref result,"DynamoDBOASIS: Avatar token was not found.");
+                    OASISErrorHandling.HandleError(ref result,"DynamoDBOASIS: Avatar credential selector was not found.");
                     result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
                     return result;
                 }
@@ -365,24 +365,35 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             }
             catch(Exception ex)
             {
-                result.Exception=ex;OASISErrorHandling.HandleError(ref result,"DynamoDBOASIS: Avatar token lookup failed.");
+                result.Exception=ex;OASISErrorHandling.HandleError(ref result,"DynamoDBOASIS: Avatar credential lookup failed.");
                 if(ex is ArgumentException || ex is NotSupportedException) result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
             }
             return result;
         }
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string token,int version=0)
-            => LoadAvatarByTokenAsync(token,avatar=>string.Equals(avatar.VerificationToken,token,StringComparison.Ordinal),version);
+            => LoadAvatarByCredentialSelectorAsync(token,avatar=>string.Equals(avatar.VerificationToken,token,StringComparison.Ordinal),version);
         public override OASISResult<IAvatar> LoadAvatarByVerificationToken(string token,int version=0)
             => LoadAvatarByVerificationTokenAsync(token,version).GetAwaiter().GetResult();
         public override Task<OASISResult<IAvatar>> LoadAvatarByResetTokenAsync(string token,int version=0)
-            => LoadAvatarByTokenAsync(token,avatar=>string.Equals(avatar.ResetToken,token,StringComparison.Ordinal),version);
+            => LoadAvatarByCredentialSelectorAsync(token,avatar=>string.Equals(avatar.ResetToken,token,StringComparison.Ordinal),version);
         public override OASISResult<IAvatar> LoadAvatarByResetToken(string token,int version=0)
             => LoadAvatarByResetTokenAsync(token,version).GetAwaiter().GetResult();
         public override Task<OASISResult<IAvatar>> LoadAvatarByRefreshTokenAsync(string token,int version=0)
-            => LoadAvatarByTokenAsync(token,avatar=>avatar.RefreshTokens?.Any(value=>value!=null && string.Equals(value.Token,token,StringComparison.Ordinal))==true,version);
+            => LoadAvatarByCredentialSelectorAsync(token,avatar=>avatar.RefreshTokens?.Any(value=>value!=null && string.Equals(value.Token,token,StringComparison.Ordinal))==true,version);
         public override OASISResult<IAvatar> LoadAvatarByRefreshToken(string token,int version=0)
             => LoadAvatarByRefreshTokenAsync(token,version).GetAwaiter().GetResult();
+
+        public Task<OASISResult<IAvatar>> LoadAvatarByPublicKeyAsync(string publicKey,int version=0)
+            => LoadAvatarByCredentialSelectorAsync(publicKey,avatar=>avatar.ProviderWallets?.Values.Any(wallets=>
+                wallets?.Any(wallet=>wallet!=null && string.Equals(wallet.PublicKey,publicKey,StringComparison.Ordinal))==true)==true,version);
+        public OASISResult<IAvatar> LoadAvatarByPublicKey(string publicKey,int version=0)
+            => LoadAvatarByPublicKeyAsync(publicKey,version).GetAwaiter().GetResult();
+        public Task<OASISResult<IAvatar>> LoadAvatarByPrivateKeyAsync(string privateKey,int version=0)
+            => LoadAvatarByCredentialSelectorAsync(privateKey,avatar=>avatar.ProviderWallets?.Values.Any(wallets=>
+                wallets?.Any(wallet=>wallet!=null && string.Equals(wallet.PrivateKey,privateKey,StringComparison.Ordinal))==true)==true,version);
+        public OASISResult<IAvatar> LoadAvatarByPrivateKey(string privateKey,int version=0)
+            => LoadAvatarByPrivateKeyAsync(privateKey,version).GetAwaiter().GetResult();
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string pk, int version = 0) { if (Guid.TryParse(pk, out Guid id)) return await LoadAvatarAsync(id, version); var r = new OASISResult<IAvatar>(); OASISErrorHandling.HandleError(ref r, $"DynamoDBOASIS: Invalid GUID '{pk}'."); return r; }
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string pk, int version = 0) => LoadAvatarByProviderKeyAsync(pk, version).Result;
 
