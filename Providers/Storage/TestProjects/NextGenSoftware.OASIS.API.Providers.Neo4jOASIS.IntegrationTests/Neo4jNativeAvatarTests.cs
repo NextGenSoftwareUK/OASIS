@@ -10,6 +10,71 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 public class Neo4jNativeAvatarTests
 {
     [TestMethod]
+    public async Task OwnedNativeSelectedGraphsHonorSaveDepthRecursionAndBulkInitialDepth()
+    {
+        const string uri = "bolt://127.0.0.1:17687";
+        Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
+        using var raw = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
+        using var inspection = raw.AsyncSession();
+        Assert.AreEqual(0L, (await (await inspection.RunAsync("MATCH (h:Holon) RETURN count(h) AS count")).SingleAsync())["count"].As<long>());
+        var provider = new Provider(uri, "neo4j", "oasis-local-test-only");
+        try
+        {
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            foreach (var bulk in new[] { false, true })
+            foreach (var sync in new[] { false, true })
+            foreach (var option in new[] { (Children:false, Recursive:true, Depth:0, Expected:1),
+                (Children:true, Recursive:false, Depth:0, Expected:2),
+                (Children:true, Recursive:true, Depth:1, Expected:2),
+                (Children:true, Recursive:true, Depth:0, Expected:3) })
+            {
+                var root = new Holon { Id = Guid.NewGuid(), Name = "owned graph root" };
+                var child = new Holon { Id = Guid.NewGuid(), Name = "owned graph child" };
+                var grandchild = new Holon { Id = Guid.NewGuid(), Name = "owned graph grandchild" };
+                root.Children = new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> { child };
+                child.Children = new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> { grandchild };
+                if (bulk)
+                {
+                    var saved = sync ? provider.SaveHolons(new[] { root }, option.Children, option.Recursive, option.Depth)
+                        : await provider.SaveHolonsAsync(new[] { root }, option.Children, option.Recursive, option.Depth);
+                    Assert.IsFalse(saved.IsError, saved.Message); Assert.AreEqual(1, saved.Result.Count());
+                }
+                else
+                {
+                    var saved = sync ? provider.SaveHolon(root, option.Children, option.Recursive, option.Depth)
+                        : await provider.SaveHolonAsync(root, option.Children, option.Recursive, option.Depth);
+                    Assert.IsFalse(saved.IsError, saved.Message);
+                    Assert.AreEqual(option.Expected > 1 ? 1 : 0, saved.Result.Children.Count());
+                }
+                Assert.AreEqual((long)option.Expected, (await (await inspection.RunAsync("MATCH (h:Holon) RETURN count(h) AS count")).SingleAsync())["count"].As<long>());
+                Assert.AreEqual((long)option.Expected - 1, (await (await inspection.RunAsync("MATCH (:Holon)-[r:HAS_CHILD]->(:Holon) RETURN count(r) AS count")).SingleAsync())["count"].As<long>());
+                if (option.Expected > 1)
+                {
+                    Assert.AreEqual(root.Id, child.ParentHolonId);
+                    var nativeChild = await provider.LoadHolonAsync(child.Id, loadChildren:false);
+                    Assert.IsFalse(nativeChild.IsError, nativeChild.Message); Assert.AreEqual(root.Id, nativeChild.Result.ParentHolonId);
+                }
+                await (await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h", new { ids = new[] { root.Id.ToString(), child.Id.ToString(), grandchild.Id.ToString() } })).ConsumeAsync();
+            }
+            foreach (var maximum in new[] { 1, 2 })
+            {
+                var root = new Holon { Id = Guid.NewGuid(), Children = new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> { new Holon { Id = Guid.NewGuid() } } };
+                var child = root.Children.Single();
+                var saved = await provider.SaveHolonsAsync(new[] { root }, maxChildDepth:maximum, curentChildDepth:1);
+                Assert.IsFalse(saved.IsError, saved.Message);
+                Assert.AreEqual((long)maximum, (await (await inspection.RunAsync("MATCH (h:Holon) RETURN count(h) AS count")).SingleAsync())["count"].As<long>());
+                await (await inspection.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h", new { ids = new[] { root.Id.ToString(), child.Id.ToString() } })).ConsumeAsync();
+            }
+            var cyclic = new Holon { Id = Guid.NewGuid() };
+            cyclic.Children = new List<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon> { cyclic };
+            var rejected = await provider.SaveHolonAsync(cyclic);
+            Assert.IsTrue(rejected.IsError); Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID", rejected.ErrorCode);
+            Assert.AreEqual(0L, (await (await inspection.RunAsync("MATCH (h:Holon) RETURN count(h) AS count")).SingleAsync())["count"].As<long>());
+        }
+        finally { await provider.DeActivateProviderAsync(); }
+    }
+
+    [TestMethod]
     public async Task OwnedNativeMetadataQueriesAreExactParameterizedAndRefreshOnUpdate()
     {
         const string uri = "bolt://127.0.0.1:17687";
