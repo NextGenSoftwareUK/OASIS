@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Shared paired deletion integrity delta: optional detail ID/key validation now precedes hard as well as soft avatar deletion; corrupt paired record cannot authorize any index/history/profile mutation. Baseline2pass/2fail/finalShared249/249pass1s. No new native/V2/concurrent/durable/hosted certification.
+
 Shared paired soft-delete delta: existing paired detail now receives same inactive/deleted timestamp as avatar; absent detail not created, payload retained, failed detail put retains profile acknowledgement/reconciliation marker. Four red-before/green-after cases; Shared245/245pass1s/local routing102/102pass11s. Not atomic two-record delete/native SDK failure/durable recovery/hosted certification.
 
 Shared save identity delta: existing current-ID/key validator now runs before avatar/detail/holon version/archive/write processing, regardless of history mode. Six new red-before/green-after cases with unchanged caller/backend; Shared241/241pass1s/refreshed local routing102/102pass10s. No atomic concurrency/native SDK corruption/durable/hosted certification.

@@ -358,10 +358,10 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             {
                 var avatar = await ReadVersionAsync(AvatarKey(id),await ReadAsync<IAvatar>(AvatarKey(id)),0);
                 if (avatar == null) return Fail<bool>($"Avatar {id} not found.",errorCode:OASISResultErrorCodes.RecordNotFound);
+                var detail=await ReadVersionAsync(AvatarDetailKey(id),await ReadAsync<IAvatarDetail>(AvatarDetailKey(id)),0);
 
                 if (softDelete)
                 {
-                    var detail=await ReadVersionAsync(AvatarDetailKey(id),await ReadAsync<IAvatarDetail>(AvatarDetailKey(id)),0);
                     avatar.DeletedDate = DateTime.UtcNow;
                     avatar.IsActive = false;
                     await PutAcknowledgedAsync(AvatarKey(id), OasisJson.Serialize(avatar),acknowledged);
