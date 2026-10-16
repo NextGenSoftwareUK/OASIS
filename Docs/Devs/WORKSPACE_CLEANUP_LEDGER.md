@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 AWS V2 identity matrix:103/103nativepass17s, retained runtime/cache/fixed report/delete-routing.db reused. Exact acknowledged SDK avatar/detail keys removed after native/secondary state readback; SQLite family removed only after verified/deactivated; owned Java stopped/lease released. No download/install/clone/new environment/broad data cleanup. Free C observed83,923,267,584bytes during run; unrelated changes not attributed to this report.
+
 2026-10-16 AWS identity projection tests:95/95nativepass14s,57/57unitpass491ms using retained runtime/cache/fixed reports. Exact acknowledged synthetic avatar/detail keys cleaned after native canonical payload readback; owned Java stopped. No download/install/clone/new environment/user-record migration/broad deletion. Unfiltered selector scan changes runtime transfer, not retained disk environments.
 
 2026-10-16 AWS V2 avatar deletion-flag matrix:87/87nativepass15s, retained runtime/cache/fixed report and same delete-routing.db. Exact acknowledged synthetic profile removed after unchanged native+secondary readback; SQLite family removed only after verified/deactivated. Owned Java stopped/lease released. No download/install/clone/new environment/broad deletion. Free C observed84,090,949,632bytes during run; unrelated disk changes not attributed to this scope.
