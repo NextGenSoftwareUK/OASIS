@@ -37,5 +37,17 @@ public partial class SQLLiteDBOASISIntegrationTests
             result.IsError.Should().BeFalse();result.Exception.Should().BeNull();
         }
         }
+        foreach(var invalid in new[] {(Value:" ",Version:0),(Value:token,Version:-1)})
+        {
+            var results=new[] {
+                synchronous ? storage.LoadAvatarByVerificationToken(invalid.Value,invalid.Version):await storage.LoadAvatarByVerificationTokenAsync(invalid.Value,invalid.Version),
+                synchronous ? storage.LoadAvatarByResetToken(invalid.Value,invalid.Version):await storage.LoadAvatarByResetTokenAsync(invalid.Value,invalid.Version),
+                synchronous ? storage.LoadAvatarByRefreshToken(invalid.Value,invalid.Version):await storage.LoadAvatarByRefreshTokenAsync(invalid.Value,invalid.Version)};
+            foreach(var result in results)
+            {
+                result.ErrorCode.Should().Be("HYPERDRIVE_PAYLOAD_INVALID");result.IsError.Should().BeTrue();
+                result.Exception.Should().BeAssignableTo<ArgumentException>();result.Result.Should().BeNull();
+            }
+        }
     }
 }
