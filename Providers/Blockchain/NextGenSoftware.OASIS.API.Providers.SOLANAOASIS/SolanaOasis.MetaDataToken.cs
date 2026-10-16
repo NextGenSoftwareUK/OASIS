@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
@@ -82,13 +83,19 @@ public partial class SolanaOASIS
             {
                 OASISErrorHandling.HandleError(ref result,keys.Message,keys.Exception);result.ErrorCode=keys.ErrorCode;return result;
             }
-            if(keys.Result==null || keys.Result.Count!=1 || string.IsNullOrWhiteSpace(keys.Result[0]))
-                throw new InvalidOperationException("SPL minting requires exactly one unambiguous avatar signing wallet.");
+            if(keys.Result==null || keys.Result.Count==0 || keys.Result.Any(string.IsNullOrWhiteSpace))
+                throw new InvalidOperationException("SPL minting requires valid authorized avatar signing wallets.");
+            List<Solnet.Wallet.PrivateKey> candidates;
+            try {candidates=keys.Result.Distinct(StringComparer.Ordinal).Select(value=>new Solnet.Wallet.PrivateKey(Solnet.Wallet.Utilities.Encoders.Base58.DecodeData(value))).ToList();}
+            catch(Exception cause) when(cause is ArgumentException or FormatException)
+            {throw new System.IO.InvalidDataException("An authorized Solana signing key is malformed.",cause);}
             var state=await ReadLegacyMintAsync(mint);
             if(state.MintAuthority==null) throw new UnauthorizedAccessException("SPL mint authority has been revoked.");
-            Account signer;
-            try {signer=ExplicitTokenSigner(keys.Result[0],state.MintAuthority.Key);}
-            catch(ArgumentException cause) {throw new UnauthorizedAccessException("Avatar signing wallet is not the mint authority.",cause);}
+            var challenge=System.Text.Encoding.UTF8.GetBytes("oasis/solana/token-signer/v1");
+            var matches=candidates.Where(key=>state.MintAuthority.Verify(challenge,key.Sign(challenge))).ToList();
+            if(matches.Count==0) throw new UnauthorizedAccessException("No authorized avatar wallet matches the native mint authority.");
+            if(matches.Count!=1) throw new InvalidOperationException("Multiple distinct signing keys matched the native mint authority.");
+            var signer=ExplicitTokenSigner(matches[0].Key,state.MintAuthority.Key);
             var raw=SplRawAmount(request.Amount,state.Decimals);
             if(raw>ulong.MaxValue-state.Supply) throw new ArgumentOutOfRangeException(nameof(request.Amount),"SPL mint supply would overflow.");
             var destination=AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(recipient,mint);

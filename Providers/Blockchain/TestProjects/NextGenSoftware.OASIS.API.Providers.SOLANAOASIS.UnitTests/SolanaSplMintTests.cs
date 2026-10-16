@@ -13,6 +13,19 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.UnitTests;
 public sealed class SolanaSplMintTests
 {
     [DataTestMethod]
+    [DataRow(0)] [DataRow(1)] [DataRow(2)]
+    public async Task MultipleOwnedKeysSelectActualAuthorityWithoutDependingOnOrder(int position)
+    {
+        var signer=new Account();var fixture=Fixture(signer);
+        var keys=new List<string>{new Account().PrivateKey.Key,new Account().PrivateKey.Key};keys.Insert(position,signer.PrivateKey.Key);keys.Add(signer.PrivateKey.Key);
+        fixture.Provider.Keys=new OASISResult<List<string>>{Result=keys};var original=keys.ToArray();
+        var result=await fixture.Provider.MintTokenAsync(Request(fixture.Proxy));
+        Assert.IsFalse(result.IsError,result.Exception?.ToString());Assert.AreEqual(1,fixture.Proxy.Sends);
+        Assert.IsTrue(signer.Verify(fixture.Proxy.Signed!.AsSpan(65).ToArray(),fixture.Proxy.Signed.AsSpan(1,64).ToArray()));
+        CollectionAssert.AreEqual(original,keys,"key selection must not mutate returned wallet keys");
+    }
+
+    [DataTestMethod]
     [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
     public async Task CheckedMintUsesResolvedAvatarAuthorityAndVerifiesNativeEffects(bool synchronous,bool createRecipient)
     {
@@ -54,16 +67,16 @@ public sealed class SolanaSplMintTests
     }
 
     [DataTestMethod]
-    [DataRow("denied")] [DataRow("missing")] [DataRow("ambiguous")]
+    [DataRow("denied")] [DataRow("missing")] [DataRow("malformed")]
     public async Task KeyLookupErrorsStopBeforeRpc(string mode)
     {
         var signer=new Account();var fixture=Fixture(signer);var denied=new UnauthorizedAccessException("owned authorization refusal");
         fixture.Provider.Keys=mode=="denied" ? new OASISResult<List<string>>{IsError=true,Exception=denied,ErrorCode="OWNED_KEYS_DENIED",Message="owned denied"}
-            :new OASISResult<List<string>>{Result=mode=="missing" ? new List<string>():new List<string>{signer.PrivateKey.Key,signer.PrivateKey.Key}};
+            :new OASISResult<List<string>>{Result=mode=="missing" ? new List<string>():new List<string>{signer.PrivateKey.Key,"not-base58!"}};
         var result=await fixture.Provider.MintTokenAsync(Request(fixture.Proxy));
         Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.AreEqual(0,fixture.Proxy.Calls);
         if(mode=="denied") {Assert.AreSame(denied,result.Exception);Assert.AreEqual("OWNED_KEYS_DENIED",result.ErrorCode);}
-        else Assert.IsInstanceOfType(result.Exception,typeof(InvalidOperationException));
+        else Assert.IsInstanceOfType(result.Exception,mode=="malformed" ? typeof(InvalidDataException):typeof(InvalidOperationException));
     }
 
     private static MintWeb3TokenRequest Request(SolanaSplSendTests.SplRpc rpc)=>new(){MintedByAvatarId=Guid.NewGuid(),TokenAddress=rpc.Mint.Key,ToWalletAddress=rpc.Recipient.Key,Amount=1.25m,MemoText="owned mint memo"};
