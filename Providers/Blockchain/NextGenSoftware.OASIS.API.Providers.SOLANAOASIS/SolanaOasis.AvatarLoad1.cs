@@ -69,7 +69,7 @@ public partial class SolanaOASIS
             _solanaService = null;
             IsProviderActivated = false;
             OASISErrorHandling.HandleError(ref result,
-                $"Unknown Error Occured In SolanaOASIS Provider in ActivateProviderAsync. Reason: {e}");
+                $"Unknown Error Occured In SolanaOASIS Provider in ActivateProviderAsync. Reason: {e}", e);
         }
 
         return result;

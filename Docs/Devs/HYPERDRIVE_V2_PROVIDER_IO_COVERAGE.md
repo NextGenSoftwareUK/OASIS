@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-16 Solana public balance now initializes via existing activation lifecycle, preserves activation/SDK causes and codes. Four pre-fix failures corrected;301offlinepass2s/build0errors2warnings. Not live/full V2 wallet proof. SDK6.1 token history model lacks token owner; historical owner identity must not be inferred from current account state. SPL model extension/native/hosted/full-interface gates remain open; existing environment reused without downloads.
+
 2026-10-16 Solana native SOL history now includes SDK inner/CPI instruction arrays with ordered parent:offset provenance and strict parent-group validation. Four new pre-fix failures now pass;297offline tests green2s, providerbuild0errors2warnings. No real CPI/server proof, SPL/seeded-transfer/versioned-table enrichment or full-provider certification; release gates remain open. Existing checkout/runtime reuse; no installs/downloads.
 
 2026-10-16 Solana SDK transaction-detail reads now enrich top-level native SOL transfers with actual instruction indices/exact lamports, rejecting missing/mismatched/truncated native details. Nine added cases/fulloffline293pass2s, providerbuild0errors2warnings. Current HTTP serializer fixtures also read details; controlled HTTP/proxy evidence, NOT real validator/effects. SPL/inner/versioned-address-table transfer enrichment and native/full V2/hosted gates still open. Existing runtime/cache only; no install/download.
