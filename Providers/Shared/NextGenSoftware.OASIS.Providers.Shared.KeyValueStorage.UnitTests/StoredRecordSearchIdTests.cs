@@ -8,6 +8,17 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 public class StoredRecordSearchIdTests
 {
     [TestMethod]
+    public void ProviderKeySearchIsLiteralAndDoesNotSearchOtherFieldsOrProviderNames()
+    {
+        var record=new Holon {Id=Guid.NewGuid(),Name="unrelated",ProviderUniqueStorageKey=new() {{NextGenSoftware.OASIS.API.Core.Enums.ProviderType.SolanaOASIS,"owned.[key]+value"}}};
+        Assert.IsTrue(StoredRecordSearch.MatchesTextIdentifiers(record,".[KEY]+",false,true));
+        Assert.IsFalse(StoredRecordSearch.MatchesTextIdentifiers(record,"SolanaOASIS",false,true));
+        Assert.IsFalse(StoredRecordSearch.MatchesTextIdentifiers(record,"unrelated",false,true));
+        Assert.IsFalse(StoredRecordSearch.MatchesTextIdentifiers(record,"owned",true,false));
+        Assert.IsFalse(StoredRecordSearch.MatchesTextIdentifiers(record,"owned",false,false));
+    }
+
+    [TestMethod]
     public void IdSearchMatchesGuidSubstringsButNotArbitraryText()
     {
         var id=Guid.NewGuid();var linked=Guid.NewGuid();

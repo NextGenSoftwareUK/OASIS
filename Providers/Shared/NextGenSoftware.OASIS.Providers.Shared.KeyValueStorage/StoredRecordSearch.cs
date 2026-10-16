@@ -106,12 +106,16 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         }
 
         public static bool MatchesTextIds(IHolonBase record,string query)
+            => MatchesTextIdentifiers(record,query,searchIds:true,searchProviderKeys:false);
+
+        public static bool MatchesTextIdentifiers(IHolonBase record,string query,bool searchIds,bool searchProviderKeys)
         {
             ArgumentNullException.ThrowIfNull(record);
             ArgumentException.ThrowIfNullOrWhiteSpace(query);
             var json=JObject.FromObject(record);
             RemoveSearchCredentials(json);
-            return MatchesTextIds(json,query);
+            return searchIds && MatchesTextIds(json,query)
+                || searchProviderKeys && SearchValues(json["ProviderUniqueStorageKey"]).Any(value=>value.ToString().Contains(query,StringComparison.OrdinalIgnoreCase));
         }
 
         private static bool MatchesTextIds(JObject json,string query)
