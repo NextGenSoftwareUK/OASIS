@@ -1,4 +1,5 @@
 using FluentAssertions;
+using Microsoft.EntityFrameworkCore;
 using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
@@ -90,6 +91,26 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                         Builders<NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.Holon>.Update.Set(row=>row.HolonId,grand.Id));
                 }
             }
+            // Reverse direction: genuine SQLite cycle must not fall back to matching Mongo descendants.
+            scoped.ParentId=child.Id;
+            var nativeBackup=await mongo.SearchAsync(scoped,loadChildren:false);
+            nativeBackup.IsError.Should().BeFalse(nativeBackup.Message);nativeBackup.Result.SearchResultHolons.Select(row=>row.Id).Should().Contain(grand.Id);
+            var sqliteManager=new Managers.ProviderManager(null,dna) {IsAutoFailOverEnabled=true};sqliteManager.RegisterProvider(sqlite);sqliteManager.RegisterProvider(mongo);
+            sqliteManager.SetAndReplaceAutoFailOverListForProviders(new[] {new NextGenSoftware.Utilities.EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS),
+                new NextGenSoftware.Utilities.EnumValue<ProviderType>(ProviderType.MongoDBOASIS)}).IsError.Should().BeFalse();
+            var sqliteRouter=new Managers.OASISHyperDrive.OASISHyperDrive(sqliteManager);
+            var control=(NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context.DataContext)typeof(NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS)
+                .GetField("_appDataContext",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!.GetValue(sqlite)!;
+            (await control.Database.ExecuteSqlInterpolatedAsync($"UPDATE Holon SET ParentHolonId={child.Id.ToString()} WHERE Id={child.Id.ToString()}")).Should().Be(1);
+            try
+            {
+                var before=sqliteManager.PerformanceMonitor.GetMetrics(ProviderType.MongoDBOASIS)?.TotalRequests??0;
+                var request=new StorageOperationRequest {Operation="Search",SearchParams=scoped,LoadChildren=false,PreferredProvider=ProviderType.SQLLiteDBOASIS};
+                var rejected=synchronous ? sqliteRouter.RouteRequest<ISearchResults>(request):await sqliteRouter.RouteRequestAsync<ISearchResults>(request);
+                rejected.IsError.Should().BeTrue();rejected.Result.Should().BeNull();rejected.Exception.Should().BeOfType<InvalidDataException>();
+                (sqliteManager.PerformanceMonitor.GetMetrics(ProviderType.MongoDBOASIS)?.TotalRequests??0).Should().Be(before);
+            }
+            finally {await control.Database.ExecuteSqlInterpolatedAsync($"UPDATE Holon SET ParentHolonId={parent.Id.ToString()} WHERE Id={child.Id.ToString()}");}
             (await sqlite.DeleteHolonAsync(child.Id)).IsError.Should().BeFalse();
         }
         finally
