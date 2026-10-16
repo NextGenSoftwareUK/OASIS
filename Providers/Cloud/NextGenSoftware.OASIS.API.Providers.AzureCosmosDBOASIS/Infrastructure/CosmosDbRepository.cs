@@ -140,15 +140,22 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 
         private T DeserializeEntity(string json,string expectedId=null)
         {
-            var document=JObject.Parse(json);
-            if(document["Id"]?.Type!=JTokenType.String || document["id"]?.Type!=JTokenType.String
-                || !Guid.TryParse(document["Id"].Value<string>(),out var logical) || logical==Guid.Empty
-                || document["id"].Value<string>()!=logical.ToString()
-                || expectedId!=null && expectedId!=logical.ToString())
-                throw new InvalidDataException("Cosmos document key, OASIS payload identity and requested identity must match.");
-            var entity=(T)OasisJson.Deserialize(json,EntityType);
-            if(entity==null || entity.Id!=logical) throw new InvalidDataException("Deserialized Cosmos identity differs from its document.");
-            return entity;
+            try
+            {
+                var document=JObject.Parse(json);
+                if(document["Id"]?.Type!=JTokenType.String || document["id"]?.Type!=JTokenType.String
+                    || !Guid.TryParse(document["Id"].Value<string>(),out var logical) || logical==Guid.Empty
+                    || document["id"].Value<string>()!=logical.ToString()
+                    || expectedId!=null && expectedId!=logical.ToString())
+                    throw new InvalidDataException("Cosmos document key, OASIS payload identity and requested identity must match.");
+                var entity=(T)OasisJson.Deserialize(json,EntityType);
+                if(entity==null || entity.Id!=logical) throw new InvalidDataException("Deserialized Cosmos identity differs from its document.");
+                return entity;
+            }
+            catch(JsonException cause)
+            {
+                throw new InvalidDataException("Stored Cosmos canonical record JSON is invalid.",cause);
+            }
         }
     }
 }

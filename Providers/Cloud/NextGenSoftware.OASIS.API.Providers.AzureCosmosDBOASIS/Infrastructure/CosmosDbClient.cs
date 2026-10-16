@@ -114,10 +114,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
 
         private static JArray DecodeQueryDocuments(string content)
         {
-            var obj=JObject.Parse(content);
-            if(obj["Documents"] is not JArray docs) throw new InvalidDataException("Cosmos query response lacks a Documents array.");
-            if(docs.Any(doc=>doc is not JObject)) throw new InvalidDataException("Cosmos query response contains a non-object document.");
-            return docs;
+            try
+            {
+                var obj=JObject.Parse(content);
+                if(obj["Documents"] is not JArray docs) throw new InvalidDataException("Cosmos query response lacks a Documents array.");
+                if(docs.Any(doc=>doc is not JObject)) throw new InvalidDataException("Cosmos query response contains a non-object document.");
+                return docs;
+            }
+            catch(JsonException cause)
+            {
+                throw new InvalidDataException("Cosmos query response JSON is invalid.",cause);
+            }
         }
 
         public async Task<string> CreateDocumentAsync(object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
