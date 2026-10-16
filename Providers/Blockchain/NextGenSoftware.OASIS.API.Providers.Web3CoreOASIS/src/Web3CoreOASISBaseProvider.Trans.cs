@@ -167,6 +167,7 @@ public partial class Web3CoreOASISBaseProvider
                 {
                     MemoText = transaction.MemoText,
                     NFTTokenAddress = target,
+                    TokenId = tokenId.ToString(System.Globalization.CultureInfo.InvariantCulture),
                     SendNFTTransactionHash = transactionHash
                 },
                 TransactionResult = transactionHash
@@ -305,54 +306,48 @@ public partial class Web3CoreOASISBaseProvider
 
     public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
     {
-        var result = new OASISResult<IWeb3NFTTransactionResponse>(new Web3NFTTransactionResponse());
-        string errorMessage = "Error in BurnNFTAsync method in Web3CoreOASIS. Reason: ";
-
+        var result = new OASISResult<IWeb3NFTTransactionResponse>();
+        if (request == null || !Web3NftTokenId.TryParse(request.TokenId, out var tokenId)
+            || !AddressUtil.Current.IsValidEthereumAddressHexFormat(request.NFTTokenAddress)
+            || string.Equals(request.NFTTokenAddress, "0x0000000000000000000000000000000000000000", StringComparison.OrdinalIgnoreCase)
+            || string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
+        {
+            result.IsError = true; result.ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID";
+            result.Message = "Burn requires explicit decimal uint256 token ID, nonzero contract and owner private key.";
+            return result;
+        }
+        if (!IsProviderActivated || _web3Client == null || _web3CoreOASIS == null)
+        {
+            result.IsError = true; result.Message = "Web3Core provider is not activated."; return result;
+        }
+        await _nftSigningGate.WaitAsync();
         try
         {
-            if (!IsProviderActivated || _web3Client == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            if (request == null || string.IsNullOrWhiteSpace(request.NFTTokenAddress) || 
-                string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
-            {
-                OASISErrorHandling.HandleError(ref result, "NFT token address and owner private key are required");
-                return result;
-            }
-
-            var senderAccount = new Account(request.OwnerPrivateKey);
-            var web3Client = new Web3(senderAccount, _hostURI);
-
-            // ERC721 burn function ABI
-            var erc721Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_tokenId\",\"type\":\"uint256\"}],\"name\":\"burn\",\"outputs\":[],\"type\":\"function\"}]";
-            var nftContract = web3Client.Eth.GetContract(erc721Abi, request.NFTTokenAddress);
-            var burnFunction = nftContract.GetFunction("burn");
-            
-            var tokenId = BigInteger.Parse(request.Web3NFTId.ToString());
-            var receipt = await burnFunction.SendTransactionAndWaitForReceiptAsync(
-                senderAccount.Address, 
-                new HexBigInteger(600000), 
-                null, 
-                null, 
-                tokenId);
-
-            if (receipt.HasErrors() == true)
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "ERC-721 burn failed."));
-                return result;
-            }
-
-            result.Result.TransactionResult = receipt.TransactionHash;
-            result.IsError = false;
-            result.Message = "NFT burned successfully.";
+            var account = new Account(request.OwnerPrivateKey, _expectedChainId);
+            var ownerOf = _web3Client.Eth.GetContract(Web3Erc721Burn.Abi, request.NFTTokenAddress).GetFunction("ownerOf");
+            var owner = await ownerOf.CallAsync<string>(tokenId);
+            if (!string.Equals(owner, account.Address, StringComparison.OrdinalIgnoreCase))
+                throw new InvalidOperationException("NFT burn signer is not the token owner.");
+            var signer = _web3CoreOASIS;
+            if (!string.Equals(account.Address, signer.SigningAddress, StringComparison.OrdinalIgnoreCase)
+                || !string.Equals(request.NFTTokenAddress, _contractAddress, StringComparison.OrdinalIgnoreCase))
+                signer = signer.ForNftTransaction(request.OwnerPrivateKey, request.NFTTokenAddress, Web3Erc721Burn.Abi);
+            // Existing SDK owns nonce/signing, signed preparation and single submission.
+            // ForNftTransaction refuses an admitted owner/target change instead of bypassing it.
+            var receipt = await signer.BurnErc721Async(tokenId);
+            try { Web3Erc721Burn.VerifyReceipt(receipt, request.NFTTokenAddress, account.Address, tokenId); }
+            catch (Exception cause) { throw new Web3MutationReconciliationException(receipt?.TransactionHash, receipt, cause); }
+            result.Result = new Web3NFTTransactionResponse {
+                TransactionResult = receipt.TransactionHash,
+                Web3NFT = new Web3NFT { NFTTokenAddress = request.NFTTokenAddress,
+                    TokenId = tokenId.ToString(System.Globalization.CultureInfo.InvariantCulture) } };
+            result.IsSaved = true; result.IsDeleted = true;
         }
-        catch (Exception ex)
+        catch (Exception cause)
         {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
+            result.IsError = true; result.Exception = cause; result.Message = cause.Message;
         }
+        finally { _nftSigningGate.Release(); }
         return result;
     }
 

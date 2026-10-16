@@ -147,6 +147,9 @@ public sealed class Web3CoreOASIS
     internal Task<TransactionReceipt> TransferErc721Async(string from, string to, BigInteger tokenId)
         => SendAndWaitForReceiptAsync(_web3.Eth.GetContract(_abi, _contractAddress).GetFunction("transferFrom"), from, to, tokenId);
 
+    internal Task<TransactionReceipt> BurnErc721Async(BigInteger tokenId)
+        => SendAndWaitForReceiptAsync(_web3.Eth.GetContract(Web3Erc721Burn.Abi, _contractAddress).GetFunction("burn"), tokenId);
+
     public Task<TransactionReceipt> CreateAvatarAsync(uint entityId, byte[] avatarId, byte[] info)
     {
         Contract contract = _web3.Eth.GetContract(_abi, _contractAddress);
