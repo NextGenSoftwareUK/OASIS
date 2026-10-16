@@ -285,7 +285,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             {
                 foreach (var item in avatar.Result.Inventory)
                 {
-                    var inv = item as InventoryItem ?? new InventoryItem();
+                    var inv = item;
                     var copy = new InventoryItem
                     {
                         Name = inv.Name,
@@ -645,7 +645,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers
             {
                 foreach (var item in avatar.Inventory)
                 {
-                    var inv = item as InventoryItem ?? new InventoryItem();
+                    var inv = item;
                     var mongoInv = new InventoryItem
                     {
                         Name = inv.Name,
