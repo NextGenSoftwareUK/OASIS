@@ -134,6 +134,7 @@ public partial class AWSOASISIntegrationTests
                 await Client.DeleteItemAsync(new Amazon.DynamoDBv2.Model.DeleteItemRequest {TableName=table,Key=Key(id)});
             }
             Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
+            await VerifyNativeCredentialPoliciesAsync(sqlite,synchronous);
             verified=true;
         }
         finally
