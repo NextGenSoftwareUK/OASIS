@@ -227,10 +227,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
         } 
 
         /// <summary>
-        /// Generates the hApp for a STAR celestial body: a complete Holochain 0.7 Cargo workspace (integrity + coordinator
-        /// zomes with CRUD and collections for every holon, dna.yaml, happ.yaml, build.sh) plus the matching HoloNET ORM C#
-        /// models, using HoloNET ORM's HolochainHappGenerator. Written to {outputFolder}/Rust (models in Rust/CSharp).
-        /// nativeParams: JSON { "celestialBodyDNAFolder": "...", "holochainVersion": "0.7.1" | "0.7.0" } (or just the folder).
+        /// Generates the hApp for a STAR celestial body from STAR's Holochain 0.7 templates (OASISDNA
+        /// HoloOASIS.RustDNAHolochain07TemplateFolder, filled by HolochainHappTemplateEngine): a complete Cargo workspace
+        /// (integrity + coordinator zomes with CRUD and collections for every holon, dna.yaml, happ.yaml, build.sh) plus the
+        /// matching HoloNET ORM C# models, written to {outputFolder}/Rust (models in Rust/CSharp).
+        /// nativeParams: JSON { "celestialBodyDNAFolder": "...", "holochainVersion": "0.7.1" | "0.7.0", "templateFolder": "..." }
+        /// (or just the folder); holochainVersion defaults to OASISDNA HoloOASIS.HolochainVersion, templateFolder to the configured one.
         /// </summary>
         public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeParams)
         {
@@ -239,7 +241,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 if (string.IsNullOrEmpty(outputFolder))
                     return false;
 
-                string celestialBodyDNAFolder = null, holochainVersion = null;
+                string celestialBodyDNAFolder = null, holochainVersion = null, templateFolder = null;
                 if (!string.IsNullOrEmpty(nativeParams))
                 {
                     try
@@ -247,6 +249,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                         var paramsObj = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(nativeParams);
                         paramsObj?.TryGetValue("celestialBodyDNAFolder", out celestialBodyDNAFolder);
                         paramsObj?.TryGetValue("holochainVersion", out holochainVersion);
+                        paramsObj?.TryGetValue("templateFolder", out templateFolder);
                     }
                     catch
                     {
@@ -264,19 +267,34 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
                 else
                     return false;
 
-                if (holochainVersion == "0.7.0")
+                var holoSettings = _oasisDNA?.OASIS?.StorageProviders?.HoloOASIS;
+                if ((holochainVersion ?? holoSettings?.HolochainVersion) == "0.7.0")
                     spec.HolochainVersion = NextGenSoftware.Holochain.HoloNET.ORM.Generation.HappHolochainVersion.V0_7_0;
 
                 if (spec.Zomes.Count == 0)
                     return false;
 
-                NextGenSoftware.Holochain.HoloNET.ORM.Generation.HolochainHappGenerator.Generate(spec, Path.Combine(outputFolder, "Rust"));
+                // Was HoloNET ORM's HolochainHappGenerator.Generate (code, no templates); STAR generates from its own
+                // editable templates instead, so what it produces can be changed without recompiling.
+                //NextGenSoftware.Holochain.HoloNET.ORM.Generation.HolochainHappGenerator.Generate(spec, Path.Combine(outputFolder, "Rust"));
+                HolochainHappTemplateEngine.Generate(spec, templateFolder ?? Holochain07TemplateFolder(holoSettings), Path.Combine(outputFolder, "Rust"));
                 return true;
             }
             catch (Exception)
             {
                 return false;
             }
+        }
+
+        // STARBasePath + RustDNAHolochain07TemplateFolder; relative paths with no STARBasePath resolve next to the app
+        // (STAR copies DNATemplates to its output folder).
+        private static string Holochain07TemplateFolder(NextGenSoftware.OASIS.API.DNA.HoloOASISProviderSettings settings)
+        {
+            string folder = NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(settings?.RustDNAHolochain07TemplateFolder ?? "DNATemplates/RustDNATemplates/Holochain07");
+            string basePath = NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(settings?.STARBasePath ?? "");
+            if (Path.IsPathRooted(folder))
+                return folder;
+            return Path.Combine(string.IsNullOrEmpty(basePath) ? AppContext.BaseDirectory : basePath, folder);
         }
 
         // The zomes and holons of an already-built celestial body (when there is no DNA folder): each holon's own
