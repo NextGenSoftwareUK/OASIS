@@ -17,6 +17,18 @@ public partial class SolanaOASIS
 {
     private sealed record PlannedSolanaHolon(IHolon Source,SolanaHolonDto Record,string PriorSignature);
 
+    private static void RetainSolanaCreationOrigin(SolanaBaseDto selected,SolanaBaseDto stored)
+    {
+        selected.CreatedProviderType=stored.CreatedProviderType;
+        selected.CreatedOASISType=stored.CreatedOASISType;
+    }
+
+    private static void PublishSolanaCreationOrigin(IHolonBase source,SolanaBaseDto stored)
+    {
+        source.CreatedProviderType=stored.CreatedProviderType.HasValue ? new EnumValue<Core.Enums.ProviderType>(stored.CreatedProviderType.Value):null;
+        source.CreatedOASISType=stored.CreatedOASISType.HasValue ? new EnumValue<Core.Enums.OASISType>(stored.CreatedOASISType.Value):null;
+    }
+
     private static (List<IHolon> Roots,List<PlannedSolanaHolon> Nodes) PlanSolanaGraph(IEnumerable<IHolon> input,
         bool saveChildren,bool recursive,int maxDepth,int initialDepth)
     {
@@ -69,6 +81,7 @@ public partial class SolanaOASIS
                 if(stored == null || stored.Id!=node.Record.Id) throw new InvalidOperationException("Solana holon storage reference does not match the requested identity.");
                 if(stored.Version<0 || stored.Version==int.MaxValue) throw new ArgumentException("Stored Solana version cannot advance.");
                 node.Record.Version=stored.Version;
+                RetainSolanaCreationOrigin(node.Record,stored);
             }
             // Publish stable identity assignments only after the whole selected graph validates.
             foreach(var node in plan.Nodes) {node.Source.Id=node.Record.Id;node.Source.ParentHolonId=node.Record.ParentHolonId;}
@@ -90,6 +103,7 @@ public partial class SolanaOASIS
                     node.Source.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                     node.Source.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS]=signature;
                     node.Source.Version=node.Record.Version; node.Source.PreviousVersionId=node.Record.PreviousVersionId;
+                    PublishSolanaCreationOrigin(node.Source,node.Record);
                 }
                 catch(Exception cause)
                 {
