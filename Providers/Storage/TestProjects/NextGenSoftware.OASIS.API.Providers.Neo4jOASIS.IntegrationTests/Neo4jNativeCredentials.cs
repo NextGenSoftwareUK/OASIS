@@ -56,6 +56,7 @@ public partial class Neo4jNativeAvatarTests
             Assert.IsFalse((await neo.DeleteAvatarAsync(first.Id,true)).IsError);
             for(var kind=0;kind<5;kind++) {var absent=await Read(kind,key);Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,absent.ErrorCode);Assert.IsNull(absent.Result);}
             foreach(var avatar in new[] {first,second}) Assert.IsFalse((await neo.DeleteAvatarAsync(avatar.Id,false)).IsError);
+            await VerifyCredentialPoliciesAsync(neo,key,synchronous);
         }
         finally {await neo.DeActivateProviderAsync();}
     }
