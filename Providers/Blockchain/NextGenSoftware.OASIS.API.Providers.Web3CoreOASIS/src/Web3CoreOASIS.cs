@@ -18,7 +18,8 @@ public sealed class Web3CoreOASIS
     private readonly string _abi;
     private readonly BigInteger? _chainId;
     private readonly AsyncLocal<Func<System.Text.Json.JsonElement,Task>> _preparation=new();
-    private readonly SemaphoreSlim _mutationGate=new(1,1);
+    private readonly SemaphoreSlim _mutationGate;
+    private readonly string _blockchainUrl;
     internal string SigningAddress=>_web3.TransactionManager.Account.Address;
     internal bool HasNativePreparation => _preparation.Value != null;
     internal async Task<BigInteger> ReadChainIdAsync()=> (await _web3.Eth.ChainId.SendRequestAsync()).Value;
@@ -118,6 +119,10 @@ public sealed class Web3CoreOASIS
     }
 
     public Web3CoreOASIS(string accountPrivateKey, string blockchainUrl, string contractAddress, string abi,BigInteger? chainId=null)
+        : this(accountPrivateKey, blockchainUrl, contractAddress, abi, chainId, new SemaphoreSlim(1, 1)) { }
+
+    private Web3CoreOASIS(string accountPrivateKey, string blockchainUrl, string contractAddress, string abi,
+        BigInteger? chainId, SemaphoreSlim mutationGate)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(blockchainUrl);
         ArgumentException.ThrowIfNullOrEmpty(contractAddress);
@@ -127,7 +132,20 @@ public sealed class Web3CoreOASIS
         _contractAddress = contractAddress;
         _abi = abi;
         _chainId = chainId;
+        _blockchainUrl = blockchainUrl;
+        _mutationGate = mutationGate;
     }
+
+    internal Web3CoreOASIS ForNftTransaction(string privateKey, string contractAddress, string abi)
+    {
+        var sdk = new Web3CoreOASIS(privateKey, _blockchainUrl, contractAddress, abi, _chainId, _mutationGate);
+        if (HasNativePreparation)
+            throw new InvalidOperationException("NFT transaction target or signer differs from the admitted native preparation owner.");
+        return sdk;
+    }
+
+    internal Task<TransactionReceipt> TransferErc721Async(string from, string to, BigInteger tokenId)
+        => SendAndWaitForReceiptAsync(_web3.Eth.GetContract(_abi, _contractAddress).GetFunction("transferFrom"), from, to, tokenId);
 
     public Task<TransactionReceipt> CreateAvatarAsync(uint entityId, byte[] avatarId, byte[] info)
     {
