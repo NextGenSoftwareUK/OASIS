@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 V2 paired soft-delete failure acceptance reused fixed guarded disk/SQLite environment and existing SDK/build paths. Local routing104/104pass10s, normal synthetic fixture disposal; four chain libraries rebuild0errors. No node/runtime/download/install/clone/new environment or protected ledger/source/userdata/credential removal. C free78364200960after bytes is systemwide observation, not attributed allocation/recovery; fixed compact reports retained.
+
 2026-10-16 paired hard-delete integrity reused existing shared outputs/in-memory backend. Baseline2pass/2fail retained in paired-delete-integrity-before-current.trx; finalShared249/249pass1s. Tests require corrupt stored records remain unchanged. No runtime/node/download/install/clone/new environment or protected ledger/source/userdata/credential removal; fixed compact reports reused.
 
 2026-10-16 shared paired soft-delete fix reused existing SDK/build outputs, in-memory backend and fixed guarded local-routing disk/SQLite fixture. Four baseline failures retained in paired-soft-delete-before-current.trx; Shared245/245pass1s/local routing102/102pass11s, normal fixture teardown. No runtime/node/download/install/clone/environment or ledger/source/userdata/credential removal; compact fixed reports reused. Soft-delete marks records without removing their data.

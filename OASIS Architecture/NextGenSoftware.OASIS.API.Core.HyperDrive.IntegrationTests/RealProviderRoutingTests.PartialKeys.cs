@@ -54,6 +54,42 @@ public sealed partial class RealProviderRoutingTests
     }
 
     [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task PairedSoftDeletePartialWriteNeverReplaysOnSecondary(bool synchronous)
+    {
+        Directory.CreateDirectory(_root);var backend=new OwnedDiskKeys(FilesPath);var primary=new OwnedDiskProvider(backend);
+        using var sqlite=new SQLLiteDBOASIS($"Data Source={SqlitePath};Pooling=False");
+        (await primary.ActivateProviderAsync()).IsError.Should().BeFalse();(await sqlite.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var id=Guid.NewGuid();
+        try
+        {
+            foreach(var store in new IOASISStorageProvider[] {primary,sqlite})
+            {
+                var profile=await store.SaveAvatarAsync(new Avatar {Id=id,Username="owned-soft-pair",Email="soft-pair@example.invalid",IsActive=true,AvatarType=new EnumValue<AvatarType>(AvatarType.User)});
+                profile.IsError.Should().BeFalse(profile.Message);
+                (await store.SaveAvatarDetailAsync(new AvatarDetail {Id=id,IsActive=true,XP=123})).IsError.Should().BeFalse();
+            }
+            backend.Acknowledged.Clear();backend.Attempts=0;backend.FailurePrefix="oasis/avatardetail/";
+            var manager=CreateManager(autoFailover:true,autoReplication:true);manager.RegisterProvider(primary);manager.RegisterProvider(sqlite);
+            var types=new[] {new EnumValue<ProviderType>(ProviderType.VercelKVOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)};
+            manager.SetAndReplaceAutoFailOverListForProviders(types).IsError.Should().BeFalse();manager.SetAndReplaceAutoReplicationListForProviders(types).IsError.Should().BeFalse();
+            var before=manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests??0;var router=new OASISHyperDrive(manager);
+            var request=new StorageOperationRequest {Operation="DeleteAvatar",AvatarId=id,SoftDelete=true,PreferredProvider=ProviderType.VercelKVOASIS};
+            _preserveFixture=true;
+            var result=synchronous ? router.RouteRequest<bool>(request):await router.RouteRequestAsync<bool>(request);
+            result.IsError.Should().BeTrue();result.IsDeleted.Should().BeFalse();
+            var partial=result.Exception.Should().BeOfType<KeyValuePartialMutationException>().Which;partial.InnerException.Should().BeSameAs(backend.Cause);
+            partial.AcknowledgedKeys.Should().Equal("oasis/avatar/"+id.ToString("N"));backend.Acknowledged.Should().Equal(partial.AcknowledgedKeys);backend.Attempts.Should().Be(2);
+            (manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests??0).Should().Be(before);
+            (await primary.LoadAvatarAsync(id)).Result.IsActive.Should().BeFalse();(await primary.LoadAvatarDetailAsync(id)).Result.IsActive.Should().BeTrue();
+            (await sqlite.LoadAvatarAsync(id)).Result.IsActive.Should().BeTrue();(await sqlite.LoadAvatarDetailAsync(id)).Result.IsActive.Should().BeTrue();
+            (await sqlite.LoadAvatarDetailAsync(id)).Result.XP.Should().Be(123);
+            _preserveFixture=false;
+        }
+        finally{await primary.DeActivateProviderAsync();}
+    }
+
+    [Theory]
     [InlineData(false,false)] [InlineData(true,false)] [InlineData(false,true)] [InlineData(true,true)]
     public async Task MissingPrimaryDeleteNeverDeletesStaleSecondary(bool synchronous,bool avatar)
     {
