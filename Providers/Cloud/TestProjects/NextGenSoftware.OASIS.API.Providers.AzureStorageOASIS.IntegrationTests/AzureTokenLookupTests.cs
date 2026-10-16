@@ -16,12 +16,17 @@ public partial class AzureStorageOASISIntegrationTests
         Avatar Create(string suffix) => new() {Id=Guid.NewGuid(),Username="owned-token-"+token+suffix,Email=token+suffix+"@example.invalid",
             IsActive=true,VerificationToken=token,ResetToken=token,RefreshTokens=new() {new RefreshToken {Token=token}}};
         var first=Create("first");var duplicate=Create("duplicate");
+        foreach(var avatar in new[] {first,duplicate})
+            avatar.ProviderWallets[Core.Enums.ProviderType.SolanaOASIS]=new() {new ProviderWallet {Id=Guid.NewGuid(),PublicKey=token,PrivateKey=token}};
+        var storage=(IOASISStorageProvider)_provider;
         async Task<OASISResult<IAvatar>> Read(int kind,string value,int version=0) => kind switch {
             0=>sync ? _provider.LoadAvatarByVerificationToken(value,version):await _provider.LoadAvatarByVerificationTokenAsync(value,version),
             1=>sync ? _provider.LoadAvatarByResetToken(value,version):await _provider.LoadAvatarByResetTokenAsync(value,version),
-            _=>sync ? _provider.LoadAvatarByRefreshToken(value,version):await _provider.LoadAvatarByRefreshTokenAsync(value,version)};
+            2=>sync ? _provider.LoadAvatarByRefreshToken(value,version):await _provider.LoadAvatarByRefreshTokenAsync(value,version),
+            3=>sync ? storage.LoadAvatarByPublicKey(value,version):await storage.LoadAvatarByPublicKeyAsync(value,version),
+            _=>sync ? storage.LoadAvatarByPrivateKey(value,version):await storage.LoadAvatarByPrivateKeyAsync(value,version)};
         Assert.IsFalse((await _provider.SaveAvatarAsync(first)).IsError);
-        for(var kind=0;kind<3;kind++)
+        for(var kind=0;kind<5;kind++)
         {
             var found=await Read(kind,token);Assert.IsFalse(found.IsError,found.Message);Assert.IsTrue(found.IsLoaded);Assert.AreEqual(first.Id,found.Result?.Id);
             Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,(await Read(kind,token+"missing")).ErrorCode);
@@ -31,8 +36,8 @@ public partial class AzureStorageOASISIntegrationTests
             Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",version.ErrorCode);
         }
         Assert.IsFalse((await _provider.SaveAvatarAsync(duplicate)).IsError);
-        for(var kind=0;kind<3;kind++) {var result=await Read(kind,token);Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,result.ErrorCode);Assert.IsNull(result.Result);}
+        for(var kind=0;kind<5;kind++) {var result=await Read(kind,token);Assert.AreEqual(OASISResultErrorCodes.AmbiguousIdentity,result.ErrorCode);Assert.IsNull(result.Result);}
         Assert.IsFalse((await _provider.DeleteAvatarAsync(duplicate.Id,true)).IsError);
-        for(var kind=0;kind<3;kind++) Assert.AreEqual(first.Id,(await Read(kind,token)).Result?.Id);
+        for(var kind=0;kind<5;kind++) Assert.AreEqual(first.Id,(await Read(kind,token)).Result?.Id);
     }
 }
