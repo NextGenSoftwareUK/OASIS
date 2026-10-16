@@ -4,6 +4,8 @@
 The Dockerfiles must consume Docker/oasis-dependency-versions.env and must not
 contain their own commit pins. With --require-gitlinks, each private dependency
 pin must also equal the commit recorded by the parent repository.
+With --require-checkouts, local source checkouts must also be initialized,
+clean and at those exact pins (including the two shared sibling repositories).
 """
 
 from __future__ import annotations
@@ -59,12 +61,41 @@ def gitlink(path: str) -> str:
     return result.stdout.strip()
 
 
+def checkout_failures(path: Path, expected: str | None, label: str) -> list[str]:
+    """Read-only guard: an empty submodule must not resolve to its parent repo."""
+    if not (path / ".git").exists():
+        return [f"{label}: source checkout is not initialized; package fallback is not pinned-source verification"]
+    identity = subprocess.run(
+        ["git", "rev-parse", "--show-toplevel", "HEAD"], cwd=path,
+        text=True, capture_output=True,
+    )
+    lines = identity.stdout.strip().splitlines()
+    if identity.returncode or len(lines) != 2 or Path(lines[0]).resolve() != path.resolve():
+        return [f"{label}: cannot verify this directory's own Git checkout identity"]
+    failures = []
+    if expected is not None and lines[1] != expected:
+        failures.append(f"{label}: checkout HEAD={lines[1]} differs from manifest pin={expected}")
+    status = subprocess.run(
+        ["git", "status", "--porcelain", "--untracked-files=normal", "--ignore-submodules=none"],
+        cwd=path, text=True, capture_output=True,
+    )
+    if status.returncode:
+        failures.append(f"{label}: cannot verify source cleanliness")
+    elif status.stdout.strip():
+        failures.append(f"{label}: source has tracked/untracked changes; current build is not immutable-pin evidence")
+    return failures
+
+
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument(
         "--require-gitlinks",
         action="store_true",
         help="require private manifest pins to equal the parent repository gitlinks",
+    )
+    parser.add_argument(
+        "--require-checkouts", action="store_true",
+        help="also require clean initialized source checkouts at every manifest pin before local release verification",
     )
     args = parser.parse_args()
     failures: list[str] = []
@@ -100,7 +131,7 @@ def main() -> int:
         if re.search(r"^ARG [A-Z0-9_]+_COMMIT=", text, re.MULTILINE):
             failures.append(f"{dockerfile.name} contains a duplicated commit pin")
 
-    if args.require_gitlinks:
+    if args.require_gitlinks or args.require_checkouts:
         for key, path in GITLINKS.items():
             if key not in values:
                 continue
@@ -115,13 +146,27 @@ def main() -> int:
                     "advance the gitlink and manifest together"
                 )
 
+    if args.require_checkouts:
+        failures.extend(checkout_failures(ROOT, None, "parent repository"))
+        for key, path in GITLINKS.items():
+            if key in values:
+                failures.extend(checkout_failures(ROOT / path, values[key], path))
+        for key, path in (
+            ("LIBRARIES_COMMIT", ROOT.parent / "NextGenSoftware-Libraries"),
+            ("HOLOCHAIN_COMMIT", ROOT.parent / "holochain-client-csharp"),
+        ):
+            if key in values:
+                failures.extend(checkout_failures(path, values[key], path.name))
+
     if failures:
         print("Railway dependency policy failed:")
         for failure in failures:
             print(f"  - {failure}")
         return 1
 
-    suffix = " and parent gitlinks" if args.require_gitlinks else ""
+    suffix = " and parent gitlinks" if args.require_gitlinks or args.require_checkouts else ""
+    if args.require_checkouts:
+        suffix += " and clean pinned source checkouts"
     print(f"Railway dependency manifest, seven Dockerfiles{suffix}: OK")
     return 0
 
