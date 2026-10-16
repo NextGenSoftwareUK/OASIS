@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 AWS nearby work reused official cached DynamoDB Local/Java18000 in-memory environment, fixed artifacts/aws-provider-evidence report and existing bounded producer builds. Native105/105pass16s; owned runner exit0. Missing AWS unit assets regenerated with local NuGet source only, no package downloads; stale AWS unit compile/stub expectations corrected,11/11pass617ms. No clone/install/new environment or public credentials/funds. Latest C free83,421,020,160bytes; generated Release dependency outputs account for bounded build growth, no recovery claim. Existing native fixture exact owned tables cleanup retained; pending chain/CosmosDB fixtures untouched.
+
 2026-10-16 Mongo/SQLite version-history audit read existing source/interfaces/specification only. No build/test/runtime/download/install/clone, archive table or new environment. Current BSON/CAS path documented rather than copying private records into a new store before retention semantics are agreed. Concurrent edits and all retained fixtures unchanged.
 
 2026-10-16 nearby capability tests reused fixed HyperDriveSqliteCurrent exclusive owned-data fixture/reports, existing LocalFile/SQLite and SDK outputs; no restore/download/install/runtime/service/new environment. Targeted56/56pass7s/no skips. Existing successful fixture cleanup removes only owned closed files; inspect absence after run. No pending chain/CosmosDB/unrelated subscription changes touched.
