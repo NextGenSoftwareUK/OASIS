@@ -68,16 +68,16 @@ public partial class Web3CoreOASISBaseProvider
         return result;
     }
 
-    private async Task<OASISResult<ITransactionResponse>> SendExplicitErc20Async(ISendWeb3TokenRequest request)
+    private async Task<OASISResult<ITransactionResponse>> SendExplicitTokenAsync(ISendWeb3TokenRequest request)
     {
         var result=new OASISResult<ITransactionResponse>();
         try
         {
-            if(request==null || request.Amount<=0 || !Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(request.FromTokenAddress)
+            if(request==null || request.Amount<=0 || (!string.IsNullOrWhiteSpace(request.FromTokenAddress) && !Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(request.FromTokenAddress))
                 || !Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(request.ToWalletAddress)
                 || string.Equals(request.ToWalletAddress,"0x"+new string('0',40),StringComparison.OrdinalIgnoreCase))
-                throw new ArgumentException("An explicit token, nonzero recipient and positive transfer amount are required.");
-            if(!_expectedChainId.HasValue || _expectedChainId.Value<=0) throw new InvalidOperationException("ERC20 transfers require an explicit chain identity.");
+                throw new ArgumentException("A valid token when specified, nonzero recipient and positive transfer amount are required.");
+            if(!_expectedChainId.HasValue || _expectedChainId.Value<=0) throw new InvalidOperationException("Token transfers require an explicit chain identity.");
             var keys=new List<string>();if(!string.IsNullOrWhiteSpace(request.OwnerPrivateKey)) keys.Add(request.OwnerPrivateKey);
             if(request is NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests.SendWeb3TokenRequest concrete && !string.IsNullOrWhiteSpace(concrete.FromWalletPrivateKey)) keys.Add(concrete.FromWalletPrivateKey);
             var accounts=keys.Select(key=>new Account(key,_expectedChainId)).GroupBy(account=>account.Address,StringComparer.OrdinalIgnoreCase).Select(group=>group.First()).ToList();
@@ -85,9 +85,41 @@ public partial class Web3CoreOASISBaseProvider
             var account=accounts[0];
             if(!string.IsNullOrWhiteSpace(request.FromWalletAddress) && !string.Equals(request.FromWalletAddress,account.Address,StringComparison.OrdinalIgnoreCase))
                 throw new ArgumentException("Explicit sender address does not match the signing key.");
+            if(string.IsNullOrWhiteSpace(request.FromTokenAddress))
+            {
+                if(!string.IsNullOrEmpty(request.MemoText)) throw new NotSupportedException("Native on-chain memo encoding is not specified; no memo will be silently discarded or published.");
+                var wei=ExactEvmTokenAmount.ToUnits(request.Amount,18);
+                return await ExecuteNativeTransferAsync(account,request.ToWalletAddress,wei);
+            }
             return await ExecuteExplicitErc20Async(account,request.FromTokenAddress,request.ToWalletAddress,request.Amount,ExplicitTokenMutation.Transfer);
         }
         catch(Exception cause){OASISErrorHandling.HandleError(ref result,"Shared EVM transfer preparation failed.",cause);if(cause is ArgumentException) result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";}
+        return result;
+    }
+
+    private async Task<OASISResult<ITransactionResponse>> ExecuteNativeTransferAsync(Account account,string recipient,BigInteger wei)
+    {
+        var result=new OASISResult<ITransactionResponse>();TransactionReceipt receipt=null;
+        try
+        {
+            if(!IsProviderActivated)
+            {
+                var activation=await ActivateProviderAsync();
+                if(activation.IsError){OASISErrorHandling.HandleError(ref result,activation.Message,activation.Exception);result.ErrorCode=activation.ErrorCode;return result;}
+            }
+            var signer=_web3CoreOASIS.ForContractTransaction(account.PrivateKey,recipient,"[]");
+            receipt=await signer.SendNativeAsync(wei);
+            var transaction=await _web3Client.Eth.Transactions.GetTransactionByHash.SendRequestAsync(receipt.TransactionHash);
+            if(transaction==null || transaction.Value?.Value!=wei || !string.Equals(transaction.From,account.Address,StringComparison.OrdinalIgnoreCase)
+                || !string.Equals(transaction.To,recipient,StringComparison.OrdinalIgnoreCase) || !string.Equals(transaction.TransactionHash,receipt.TransactionHash,StringComparison.OrdinalIgnoreCase)
+                || transaction.Input!="0x") throw new InvalidOperationException("Native transfer receipt does not establish the exact requested sender, recipient and wei value.");
+            result.Result=new TransactionResponse{TransactionResult=receipt.TransactionHash};result.IsSaved=true;result.SavedCount=1;result.Message="Exact native-coin transfer confirmed.";
+        }
+        catch(Exception cause)
+        {
+            if(receipt!=null && cause is not INativeMutationReconciliationRequired) cause=new Web3MutationReconciliationException(receipt.TransactionHash,receipt,cause);
+            OASISErrorHandling.HandleError(ref result,"Shared EVM native transfer failed.",cause);
+        }
         return result;
     }
 

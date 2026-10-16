@@ -10,6 +10,19 @@ public class Web3SignedPreparationTests
 {
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
+    public void NativeValueMustMatchExactSignedWeiWithoutRelaxingZeroValueDefaults(bool dynamicFee)
+    {
+        var key="1".PadLeft(64,'0');var sender=new EthECKey(key).GetPublicAddress();const string to="0x1111111111111111111111111111111111111111";
+        var signed=dynamicFee ? new Transaction1559Signer().SignTransaction(key,new Transaction1559(31337,0,1,2,21000,to,1,"0x",new List<AccessListItem>()))
+            :new LegacyTransactionSigner().SignTransaction(key,new System.Numerics.BigInteger(31337),to,1,0,1,21000,"0x");
+        var bytes=signed.HexToByteArray();var hash="0x"+Convert.ToHexString(Nethereum.Util.Sha3Keccack.Current.CalculateHash(bytes)).ToLowerInvariant();
+        Web3SignedPreparation.Verify(bytes,hash,31337,sender,to,Array.Empty<byte>(),1);
+        Assert.ThrowsException<InvalidDataException>(()=>Web3SignedPreparation.Verify(bytes,hash,31337,sender,to,Array.Empty<byte>(),2));
+        Assert.ThrowsException<InvalidDataException>(()=>Web3SignedPreparation.Verify(bytes,hash,31337,sender,to,Array.Empty<byte>()));
+    }
+
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
     public void OriginalSignatureBindsChainSignerContractAndCalldata(bool dynamicFee)
     {
         // Public deterministic unit-only key, never funded or used outside tests.
