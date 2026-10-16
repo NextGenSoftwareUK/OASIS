@@ -120,16 +120,19 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     return response;
                 }
 
+                var staged = StageAvatar(Avatar);
                 var query = @"MERGE (a:Avatar {Id: $id}) 
-                            SET a.Username = $username, a.Email = $email, a.CreatedDate = $createdDate, a.ModifiedDate = $modifiedDate
+                            SET a.Username = $username, a.Email = $email, a.CreatedDate = $createdDate, a.ModifiedDate = $modifiedDate,
+                                a.ProviderKey = $id, a.SnapshotJson = $snapshot
                             RETURN a";
                 var parameters = new 
                 { 
-                    id = Avatar.Id.ToString(),
-                    username = Avatar.Username,
-                    email = Avatar.Email,
-                    createdDate = Avatar.CreatedDate,
-                    modifiedDate = Avatar.ModifiedDate
+                    id = staged.Id.ToString(),
+                    username = staged.Username,
+                    email = staged.Email,
+                    createdDate = staged.CreatedDate,
+                    modifiedDate = staged.ModifiedDate,
+                    snapshot = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(staged)
                 };
                 
                 using (var session = _driver.AsyncSession())
@@ -140,14 +143,11 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     if (record != null)
                     {
                         var node = record["a"].As<Neo4j.Driver.INode>();
-                        response.Result = new Avatar
-                        {
-                            Id = Guid.Parse(node["Id"].As<string>()),
-                            Username = node["Username"].As<string>(),
-                            Email = node["Email"].As<string>(),
-                            CreatedDate = node["CreatedDate"].As<DateTime>(),
-                            ModifiedDate = node["ModifiedDate"].As<DateTime>()
-                        };
+                        response.Result = ReadAvatarNode(node);
+                        Avatar.Id = response.Result.Id;
+                        Avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS] = response.Result.Id.ToString();
+                        Avatar.IsNewHolon = false;
+                        response.IsSaved = true;
                         response.IsError = false;
                         response.Message = "Avatar saved successfully to Neo4j";
                     }
