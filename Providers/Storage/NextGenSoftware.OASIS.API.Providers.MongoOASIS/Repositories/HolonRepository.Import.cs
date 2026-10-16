@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using MongoDB.Bson;
 using MongoDB.Bson.Serialization;
 using MongoDB.Driver;
+using NextGenSoftware.OASIS.API.Core.Helpers;
 using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities;
 using NextGenSoftware.OASIS.Common;
 
@@ -73,6 +74,7 @@ public partial class HolonRepository
                 result.Exception=commitAttempted ? new MongoTransactionReconciliationException(sessionId,transactionNumber,cause):cause;
                 result.Message="Mongo holon import transaction failed.";
                 if(cause is StorageIdentityAmbiguousException) result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity;
+                else if(!commitAttempted && MongoTransactionFailure.IsWriteConflict(cause)) result.ErrorCode=StorageLifecycleConflictException.ErrorCode;
                 else if(!mutationsStarted && (cause is ArgumentException || validatingPayload && cause is BsonSerializationException))
                     result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
                 try {if(session.IsInTransaction) await session.AbortTransactionAsync().ConfigureAwait(false);}
