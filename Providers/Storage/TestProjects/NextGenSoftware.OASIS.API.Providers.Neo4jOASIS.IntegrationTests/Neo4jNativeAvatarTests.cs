@@ -9,6 +9,57 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 [DoNotParallelize]
 public class Neo4jNativeAvatarTests
 {
+    [TestMethod]
+    public async Task OwnedNativeAvatarDetailsPreserveInventoryTrackingAndNullClearing()
+    {
+        const string uri = "bolt://127.0.0.1:17687";
+        Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
+        using var raw = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
+        using (var preflight = raw.AsyncSession())
+        {
+            var count = await (await preflight.RunAsync("MATCH (a:AvatarDetail) RETURN count(a) AS count")).SingleAsync();
+            Assert.AreEqual(0L, count["count"].As<long>(), "Retained detail evidence exists; no overwrite allowed.");
+        }
+        var provider = new Provider(uri, "neo4j", "oasis-local-test-only");
+        try
+        {
+            var activated = await provider.ActivateProviderAsync(); Assert.IsFalse(activated.IsError, activated.Message);
+            foreach (var synchronous in new[] { false, true })
+            {
+                var id = Guid.Parse(synchronous ? "00000000-0000-4000-8000-000000000202" : "00000000-0000-4000-8000-000000000201");
+                var detail = new AvatarDetail { Id = id, Username = "owned-detail", Email = "owned-detail@example.invalid",
+                    XP = 4321, Karma = 321, ActiveQuestId = Guid.NewGuid(), ActiveObjectiveId = Guid.NewGuid(),
+                    Description = "full detail profile", IsActive = true };
+                detail.Inventory.Add(new NextGenSoftware.OASIS.API.Core.Objects.InventoryItem { Id = Guid.NewGuid(), Name = "owned oak seed" });
+                detail.MetaData["biome"] = "park";
+                var saved = synchronous ? provider.SaveAvatarDetail(detail) : await provider.SaveAvatarDetailAsync(detail);
+                Assert.IsFalse(saved.IsError, saved.Message); Assert.IsTrue(saved.IsSaved);
+                foreach (var read in new[] { await provider.LoadAvatarDetailAsync(id), provider.LoadAvatarDetail(id),
+                    await provider.LoadAvatarDetailByEmailAsync(detail.Email), provider.LoadAvatarDetailByEmail(detail.Email),
+                    await provider.LoadAvatarDetailByUsernameAsync(detail.Username), provider.LoadAvatarDetailByUsername(detail.Username) })
+                {
+                    Assert.IsFalse(read.IsError, read.Message); Assert.IsTrue(read.IsLoaded);
+                    Assert.AreEqual(4321L, read.Result.XP); Assert.AreEqual(321L, read.Result.Karma);
+                    Assert.AreEqual(detail.ActiveQuestId, read.Result.ActiveQuestId); Assert.AreEqual(detail.ActiveObjectiveId, read.Result.ActiveObjectiveId);
+                    Assert.AreEqual("owned oak seed", read.Result.Inventory.Single().Name);
+                    Assert.AreEqual("park", read.Result.MetaData["biome"]);
+                }
+                var all = await provider.LoadAllAvatarDetailsAsync();
+                Assert.IsFalse(all.IsError, all.Message); Assert.IsTrue(all.IsLoaded); Assert.AreEqual(id, all.Result.Single().Id);
+                detail.ActiveQuestId = null; detail.ActiveObjectiveId = null; detail.Inventory.Clear(); detail.Description = null;
+                var updated = synchronous ? provider.SaveAvatarDetail(detail) : await provider.SaveAvatarDetailAsync(detail);
+                Assert.IsFalse(updated.IsError, updated.Message);
+                var cleared = await provider.LoadAvatarDetailAsync(id);
+                Assert.IsFalse(cleared.IsError, cleared.Message); Assert.IsNull(cleared.Result.ActiveQuestId); Assert.IsNull(cleared.Result.ActiveObjectiveId);
+                Assert.AreEqual(0, cleared.Result.Inventory.Count); Assert.IsNull(cleared.Result.Description);
+                Assert.AreEqual(4321L, cleared.Result.XP); Assert.AreEqual(321L, cleared.Result.Karma);
+                using var cleanup = raw.AsyncSession();
+                await (await cleanup.RunAsync("MATCH (a:AvatarDetail {Id:$id}) DETACH DELETE a", new { id = id.ToString() })).ConsumeAsync();
+            }
+        }
+        finally { await provider.DeActivateProviderAsync(); }
+    }
+
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     public async Task ConcurrentProfileUpdateCannotBeLostToStaleDelete(bool softDelete)
