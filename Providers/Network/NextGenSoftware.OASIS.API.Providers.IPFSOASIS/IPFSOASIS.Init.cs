@@ -98,6 +98,8 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         /******************************/
         public async Task<Dictionary<string, HolonResume>> LoadLookupToJson()
         {
+            if(_OASISDNA?.OASIS?.StorageProviders?.IPFSOASIS == null)
+                throw new InvalidOperationException("IPFS storage configuration is required before reading the private index.");
             var address=_OASISDNA.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress;
             if(string.IsNullOrWhiteSpace(address))
             {
