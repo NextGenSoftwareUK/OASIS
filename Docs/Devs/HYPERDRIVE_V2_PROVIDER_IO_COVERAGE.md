@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-16 Solana offline nearby correctness:206/206unitpass2s, eight added adapter cases replace locale-dependent/silent-corruption filtering with shared validated query; complete records/result metadata and original failures retained. Provider build passes; no native RPC, transactions, consensus recovery or V2 spatial routing verified. Existing retained ledger is unchanged and must not be reset or replayed to obtain green tests. Full provider certification remains open.
+
 2026-10-16 Ethereum IOASISNETProvider nearby now uses shared validated location filter over decrypted canonical records; preserves underlying errors/warnings and success load flags, rejects bad request before RPC and corrupt stored coordinates rather than silently skipping. Retained local chain31337 suite113/113pass22s (includes four local validation cases),59 contract assertions pass. Two native nearby cases independently verify actual saved records under fr-FR; no V2 nearby dispatch, indexed spatial scaling, public Ethereum or rollup-network certification.
 
 MongoDB final nearby-source regression: four native Mongo/SQLite V2 matrix cases pass1m45s/no skips after corrected collection/filter implementation. Existing test scope retained; no claim of nearby V2 dispatch or complete provider verification.
