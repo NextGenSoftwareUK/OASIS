@@ -23,6 +23,9 @@ public partial class SQLLiteDBOASIS
                 {"CustomHolonType","TEXT NULL"}}).ConfigureAwait(false);
         await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"AvatarDetail",
             new Dictionary<string,string> {{"ActiveQuestId","TEXT NULL"},{"ActiveObjectiveId","TEXT NULL"}}).ConfigureAwait(false);
+        await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"AvatarInventory",
+            new Dictionary<string,string> {{"Image2D","BLOB NULL"},{"Object3D","BLOB NULL"},
+                {"Image2DURI","TEXT NULL"},{"Object3DURI","TEXT NULL"}}).ConfigureAwait(false);
         await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"HeartRateEntry",
             new Dictionary<string,string> {{"SequenceIndex","INTEGER NOT NULL DEFAULT 0"}}).ConfigureAwait(false);
         await transaction.CommitAsync().ConfigureAwait(false);

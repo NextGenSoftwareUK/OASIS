@@ -92,6 +92,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
             {
                 nameof(InventoryItemModel.Id), nameof(InventoryItemModel.AvatarId),
                 nameof(InventoryItemModel.ItemId),
+                nameof(InventoryItemModel.Image2D), nameof(InventoryItemModel.Object3D),
+                nameof(InventoryItemModel.Image2DURI), nameof(InventoryItemModel.Object3DURI),
                 nameof(InventoryItemModel.PropertiesJson), nameof(InventoryItemModel.MetaDataJson),
                 nameof(InventoryItemModel.Name), nameof(InventoryItemModel.Description),
                 nameof(InventoryItemModel.Quantity), nameof(InventoryItemModel.Stack),
@@ -105,6 +107,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
             foreach (var property in typeof(InventoryItemModel).GetProperties())
                 if (!inventoryColumns.Contains(property.Name))
                     modelBuilder.Entity<InventoryItemModel>().Ignore(property.Name);
+            modelBuilder.Entity<InventoryItemModel>().Property(x=>x.Image2DURI)
+                .HasConversion(value=>value.OriginalString,value=>new Uri(value,UriKind.RelativeOrAbsolute));
+            modelBuilder.Entity<InventoryItemModel>().Property(x=>x.Object3DURI)
+                .HasConversion(value=>value.OriginalString,value=>new Uri(value,UriKind.RelativeOrAbsolute));
             
             modelBuilder.Entity<AvatarDetailModel>()
                 .HasMany(avatar => avatar.GeneKeys)
