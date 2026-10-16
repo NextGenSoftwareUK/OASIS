@@ -16,8 +16,9 @@ using Xunit;
 
 namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 
-public sealed class RealProviderRoutingTests : IDisposable
+public sealed partial class RealProviderRoutingTests : IDisposable
 {
+    private bool _preserveFixture;
     private readonly string _root;
     private readonly FileStream _lease;
     public RealProviderRoutingTests()
@@ -431,7 +432,7 @@ public sealed class RealProviderRoutingTests : IDisposable
         try
         {
             // Exact fixed task-owned fixture, checked absent before acquiring ownership.
-            if (Directory.Exists(_root)) Directory.Delete(_root, recursive: true);
+            if (!_preserveFixture && Directory.Exists(_root)) Directory.Delete(_root, recursive: true);
         }
         finally { _lease.Dispose(); }
     }

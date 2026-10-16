@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 SQLite V2 post-commit loss:42/42targetedpass6s, fixed existing HyperDriveSqliteCurrent environment/lease/owned-data and compact sqlite-routing-integrity-current.trx reused. New tests preserve owned-data after dispatch unless native+secondary state verification succeeds; then existing exact fixture cleanup runs after providers/contexts dispose. No install/download/clone/new environment/unknown-ledger reset. Free C observed84,453,396,480bytes after bounded runs.
+
 2026-10-16 SQLite post-commit acknowledgement tests:373/373integrationpass27s with existing runtime/cache/test DB lifecycle. Test-owned committed rows independently read/reconciled before existing fixture disposal; no unknown production/native ledger deleted. No install/download/clone/new environment. Free C observed84,458,143,744bytes during run. Evidence explicitly labels EF-boundary controlled failure, not real transport/restart recovery.
 
 2026-10-16 SQLite generated profile/detail IDs:367/367integration25s,4/4unit99ms,targetedSQLite/LocalFileV236/36pass4s. Cache-only restore refreshed existing Core integration dependency metadata; no network install/new runtime/clone. Existing disposable SQLite fixture lifecycle reused. Initial broad test filter accidentally selected live-chain/Mongo tests lacking required configuration (14fail); no owned chain runtime resumed/reset or unknown ledger cleanup. Corrected class-qualified filter, no external-suite pass claim. Free C observed84,463,067,136bytes after checks.
