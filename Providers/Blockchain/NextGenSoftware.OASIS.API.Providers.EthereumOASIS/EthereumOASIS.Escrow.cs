@@ -18,7 +18,7 @@ using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 
-public partial class EthereumOASIS
+public partial class EthereumOASIS : IOASISIdBoundTokenEscrowProvider
 {
     public string TokenEscrowContractAddress { get; set; }
     private const string TokenEscrowRuntimeSha256 = "f99e28db6c6424f3a7b224f447f6eb1d1ea5e08407ddad0c80744ffca0879163";

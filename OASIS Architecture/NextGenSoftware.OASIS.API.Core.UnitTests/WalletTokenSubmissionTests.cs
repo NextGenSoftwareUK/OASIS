@@ -27,6 +27,7 @@ public sealed class WalletTokenSubmissionTests
     public async Task UnlockPreservesOwnerAndSubmitsOnce(bool asynchronous, string outcome)
     {
         var provider = new Mock<IOASISBlockchainStorageProvider>();
+        provider.As<IOASISIdBoundTokenEscrowProvider>();
         provider.SetupGet(p => p.ProviderType).Returns(new EnumValue<ProviderType>(ProviderType.HashgraphOASIS));
         var request = new UnlockWeb4TokenRequest
         {
@@ -70,6 +71,7 @@ public sealed class WalletTokenSubmissionTests
     public async Task LockPreservesAvatarAndSignerWithoutResubmittingReadbackFailure(bool asynchronous)
     {
         var provider = new Mock<IOASISBlockchainStorageProvider>();
+        provider.As<IOASISIdBoundTokenEscrowProvider>();
         provider.SetupGet(p => p.ProviderType).Returns(new EnumValue<ProviderType>(ProviderType.HashgraphOASIS));
         var request = new LockWeb4TokenRequest
         {
