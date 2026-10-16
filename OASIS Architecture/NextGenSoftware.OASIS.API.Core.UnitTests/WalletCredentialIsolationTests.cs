@@ -14,6 +14,37 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests;
 public sealed class WalletCredentialIsolationTests
 {
     [Theory]
+    [InlineData("id", false)] [InlineData("username", false)] [InlineData("email", false)]
+    [InlineData("username", true)] [InlineData("email", true)]
+    public async Task DefaultWalletLookupPreservesStorageFailureIdentity(string route, bool avatarFailure)
+    {
+        var avatarId=Guid.NewGuid();var cause=new IOException("owned wallet storage failure");
+        var provider=new Mock<IOASISStorageProvider>();provider.SetupAllProperties();
+        var local=provider.As<IOASISLocalStorageProvider>();
+        provider.Object.ProviderType=new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS);
+        provider.Object.ProviderCategory=new EnumValue<ProviderCategory>(ProviderCategory.StorageLocal);
+        provider.Object.ProviderName="wallet-error-test";provider.Object.IsProviderActivated=true;
+        provider.Setup(x=>x.ActivateProvider()).Returns(new OASISResult<bool>(true));
+        local.Setup(x=>x.LoadProviderWalletsForAvatarByIdAsync(avatarId)).ReturnsAsync(
+            new OASISResult<Dictionary<ProviderType,List<IProviderWallet>>>{IsError=true,Exception=cause,ErrorCode="OWNED_WALLET_IO",Message="owned failure"});
+        var avatar=new OASISResult<IAvatar>{Result=avatarFailure ? null:new Avatar{Id=avatarId},
+            IsError=avatarFailure,Exception=avatarFailure ? cause:null,ErrorCode=avatarFailure ? "OWNED_WALLET_IO":null,Message="owned failure"};
+        provider.Setup(x=>x.LoadAvatarByUsernameAsync("error-user",0)).ReturnsAsync(avatar);
+        provider.Setup(x=>x.LoadAvatarByEmailAsync("error@example.test",0)).ReturnsAsync(avatar);
+        var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA();dna.OASIS.HyperDriveMode=HyperDriveModes.V2;
+        dna.OASIS.StorageProviders=new StorageProviderSettings{LogSwitchingProviders=false};
+        // Isolate the manager boundary; failover aggregation has a separate routing contract.
+        var providers=new ProviderManager(null,dna){IsAutoFailOverEnabled=false,IsAutoLoadBalanceEnabled=false};providers.RegisterProvider(provider.Object);
+        Assert.False(providers.SetAndActivateCurrentStorageProvider(provider.Object).IsError);
+        var manager=new WalletManager(null,dna,providers);
+        var result=route=="id" ? await manager.GetAvatarDefaultWalletByIdAsync(avatarId,ProviderType.TRONOASIS)
+            :route=="username" ? await manager.GetAvatarDefaultWalletByUsernameAsync("error-user",providerType:ProviderType.TRONOASIS)
+            :await manager.GetAvatarDefaultWalletByEmailAsync("error@example.test",ProviderType.TRONOASIS);
+        Assert.True(result.IsError);Assert.Null(result.Result);Assert.False(result.IsLoaded);
+        Assert.Same(cause,result.Exception);Assert.Equal("OWNED_WALLET_IO",result.ErrorCode);
+    }
+
+    [Theory]
     [InlineData(false)]
     [InlineData(true)]
     public void WalletListFilteringUsesDetachedCredentialCopies(bool valid)
