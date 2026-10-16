@@ -6,6 +6,13 @@
     "sourceCommit": "c9b2197ec4e8e477139ba72d976ee1bcc273a40e"
   },
   "packages": [
+    {"packageId":"NextGenSoftware.OASIS.STAR","version":"2.0.6","run":38966602883,"sourceCommit":"851bd0749368d3ccce68b7a7c9952f4841febab3","packagingProfile":{"targets":".github/publishing/PinOASISVersions.targets","releaseVersion":"2.0.6","baseVersion":"2.0.4"}},
+    {"packageId":"NextGenSoftware.OASIS.STAR.DNA","version":"2.0.6","run":38966602883,"sourceCommit":"851bd0749368d3ccce68b7a7c9952f4841febab3","packagingProfile":{"targets":".github/publishing/PinOASISVersions.targets","releaseVersion":"2.0.6","baseVersion":"2.0.4"}},
+    {"packageId":"NextGenSoftware.OASIS.Contracts","version":"2.0.6","run":38966602883,"sourceCommit":"851bd0749368d3ccce68b7a7c9952f4841febab3","packagingProfile":{"targets":".github/publishing/PinOASISVersions.targets","releaseVersion":"2.0.6","baseVersion":"2.0.4"}},
+    {"packageId":"NextGenSoftware.OASIS.OASISBootLoader","version":"2.0.6","run":38966602883,"sourceCommit":"851bd0749368d3ccce68b7a7c9952f4841febab3","packagingProfile":{"targets":".github/publishing/PinOASISVersions.targets","releaseVersion":"2.0.6","baseVersion":"2.0.4"}},
+    {"packageId":"NextGenSoftware.OASIS.API.Providers.ArweaveOASIS","version":"2.0.6","run":38966602883,"sourceCommit":"851bd0749368d3ccce68b7a7c9952f4841febab3","packagingProfile":{"targets":".github/publishing/PinOASISVersions.targets","releaseVersion":"2.0.6","baseVersion":"2.0.4"}},
+    {"packageId":"NextGenSoftware.OASIS.API.Providers.HoloOASIS","version":"2.0.6","run":38966602883,"sourceCommit":"851bd0749368d3ccce68b7a7c9952f4841febab3","packagingProfile":{"targets":".github/publishing/PinOASISVersions.targets","releaseVersion":"2.0.6","baseVersion":"2.0.4"}},
+    {"packageId":"NextGenSoftware.OASIS.API.Providers.IPFSOASIS","version":"2.0.6","run":38966602883,"sourceCommit":"851bd0749368d3ccce68b7a7c9952f4841febab3","packagingProfile":{"targets":".github/publishing/PinOASISVersions.targets","releaseVersion":"2.0.6","baseVersion":"2.0.4"}},
     {"kind": "standalone", "ownerParent": "holochain-client-csharp", "packageId": "NextGenSoftware.Holochain.HoloNET.ORM", "version": "4.4.0", "run": 38881276474,
      "ownerUrl": "https://github.com/NextGenSoftwareUK/HoloNET-ORM", "ownerCommit": "534cd788f892b4402a3753d926e62e7cad4189bf",
      "dependencies": {
