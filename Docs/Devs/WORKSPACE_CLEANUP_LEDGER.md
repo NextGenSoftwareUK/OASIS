@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 typed graph read validation reused existing Core/SQLite/cached outputs/fixed test lease/reports. Producer0errors/131warnings;targeted78/78pass7s,Core526/526pass2s. No restore/download/install/runtime/environment creation or unknown fixture changes. Existing owned-data cleanup reused; concurrent subscription source excluded from Core commit.
+
 2026-10-16 typed version verification reused existing Core/SQLite/cache/fixed routing and Core reports, no restores/downloads/installs/runtimes/environments. Core build0errors/131warnings;targeted74/74pass7s,full Core526/526pass1s. Existing lease/owned fixture cleanup reused; no pending chain/CosmosDB/user data touched. Core commit stages only two request classes/router, excludes concurrent subscription files.
 
 2026-10-16 TRON retained-ledger inspection reused exact container ef2843babd111bde2709159e6eaacf2350977cccee738d62d1bcbd8833c46a12, pinned cached image and3GiB limit. Existing recovery script validates stopped state/image/final config/mount target and installs only repeatable launcher, never initializes/clears ledger. Verifiedgenesis then3read-only original-hash queries; no signing or contract mutation. Node stopped/exited143/notOOM. Pending fence SHA256 unchanged; logs/ledger required for unresolved outcome preserved, no GC/reset. C free83,173,834,752bytes after startup/read/stop (retained native runtime disk growth, no recovery claim); no downloads/clones/installs/new environment.
