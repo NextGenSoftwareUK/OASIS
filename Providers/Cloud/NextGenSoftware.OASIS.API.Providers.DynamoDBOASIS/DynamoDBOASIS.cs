@@ -223,6 +223,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             var result = new OASISResult<IAvatar>();
             try
             {
+                ValidateRecordVersion(version);
                 var resp = await _client.GetItemAsync(new GetItemRequest {TableName="OasisAvatars",ConsistentRead=true,Key=new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } }});
                 if (resp.Item == null || !resp.Item.Any() || (resp.Item.TryGetValue("is_deleted", out var del) && del.BOOL)) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
                 var avatar = Des<Avatar>(resp.Item["data_json"].S); if (avatar == null) { OASISErrorHandling.HandleError(ref result, "DynamoDBOASIS: Deserialise failed."); return result; }
@@ -273,7 +274,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarByUsernameAsync(string username, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            try { var a = await QueryAvatarByGsiAsync("username-index", "username", username); if (a == null) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for username '{username}'."); return result; } result.Result = a; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded."; }
+            try { ValidateRecordVersion(version); var a = await QueryAvatarByGsiAsync("username-index", "username", username); if (a == null) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for username '{username}'."); return result; } result.Result = a; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded."; }
             catch (StorageIdentityAmbiguousException ex) { result.Exception=ex; OASISErrorHandling.HandleError(ref result,ex.Message); result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
@@ -284,7 +285,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         public override async Task<OASISResult<IAvatar>> LoadAvatarByEmailAsync(string email, int version = 0)
         {
             var result = new OASISResult<IAvatar>();
-            try { var a = await QueryAvatarByGsiAsync("email-index", "email", email); if (a == null) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for email '{email}'."); return result; } result.Result = a; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded."; }
+            try { ValidateRecordVersion(version); var a = await QueryAvatarByGsiAsync("email-index", "email", email); if (a == null) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No avatar for email '{email}'."); return result; } result.Result = a; result.IsError = false; result.Message = "DynamoDBOASIS: Avatar loaded."; }
             catch (StorageIdentityAmbiguousException ex) { result.Exception=ex; OASISErrorHandling.HandleError(ref result,ex.Message); result.ErrorCode=OASISResultErrorCodes.AmbiguousIdentity; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
@@ -299,6 +300,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
+                ValidateRecordVersion(version);
                 var items = new List<Dictionary<string, AttributeValue>>();
                 ScanResponse? scanResp = null;
                 do
@@ -380,6 +382,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             var result = new OASISResult<IAvatarDetail>();
             try
             {
+                ValidateRecordVersion(version);
                 var resp = await _client.GetItemAsync(new GetItemRequest {TableName="OasisAvatarDetails",ConsistentRead=true,Key=new Dictionary<string, AttributeValue> { ["id"] = new AttributeValue { S = id.ToString() } }});
                 if (resp.Item == null || !resp.Item.Any()) { OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: No detail for ID '{id}'."); result.ErrorCode=OASISResultErrorCodes.RecordNotFound; return result; }
                 var d = Des<AvatarDetail>(resp.Item["data_json"].S); if (d == null) { OASISErrorHandling.HandleError(ref result, "DynamoDBOASIS: Deserialise failed."); return result; }
@@ -394,10 +397,11 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         private async Task<AvatarDetail?> QueryDetailByGsiAsync(string indexName, string keyName, string keyValue)
             => await QueryUniqueIdentityAsync<AvatarDetail>(request=>_client.QueryAsync(request),"OasisAvatarDetails",indexName,keyName,keyValue,detail=>detail.Id);
 
-        private async Task<OASISResult<IAvatarDetail>> LoadSelectedDetailAsync(string index,string key,string value)
+        private async Task<OASISResult<IAvatarDetail>> LoadSelectedDetailAsync(string index,string key,string value,int version)
         {
             var result=new OASISResult<IAvatarDetail>();
             try {
+                ValidateRecordVersion(version);
                 var detail=await QueryDetailByGsiAsync(index,key,value);
                 if(detail==null) {OASISErrorHandling.HandleError(ref result,"DynamoDBOASIS: No matching detail.");return result;}
                 result.Result=detail;result.IsLoaded=true;
@@ -408,15 +412,15 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             }
             return result;
         }
-        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) => LoadSelectedDetailAsync("username-index","username",u);
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string u, int version = 0) => LoadSelectedDetailAsync("username-index","username",u,version);
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string u, int version = 0) => LoadAvatarDetailByUsernameAsync(u, version).Result;
-        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) => LoadSelectedDetailAsync("email-index","email",e);
+        public override Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string e, int version = 0) => LoadSelectedDetailAsync("email-index","email",e,version);
         public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string e, int version = 0) => LoadAvatarDetailByEmailAsync(e, version).Result;
 
         public override async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0)
         {
             var result = new OASISResult<IEnumerable<IAvatarDetail>>();
-            try { ScanResponse? sr = null; var items = new List<Dictionary<string, AttributeValue>>(); do { var req = new ScanRequest { TableName = "OasisAvatarDetails" }; if (sr?.LastEvaluatedKey?.Any() == true) req.ExclusiveStartKey = sr.LastEvaluatedKey; sr = await _client.ScanAsync(req); items.AddRange(sr.Items); } while (sr.LastEvaluatedKey?.Any() == true); var details = items.Select(i => Des<AvatarDetail>(i["data_json"].S)).Where(d => d != null).Cast<IAvatarDetail>().ToList(); result.Result = details; result.IsError = false; result.Message = $"DynamoDBOASIS: Loaded {details.Count} detail(s)."; }
+            try { ValidateRecordVersion(version); ScanResponse? sr = null; var items = new List<Dictionary<string, AttributeValue>>(); do { var req = new ScanRequest { TableName = "OasisAvatarDetails" }; if (sr?.LastEvaluatedKey?.Any() == true) req.ExclusiveStartKey = sr.LastEvaluatedKey; sr = await _client.ScanAsync(req); items.AddRange(sr.Items); } while (sr.LastEvaluatedKey?.Any() == true); var details = items.Select(i => Des<AvatarDetail>(i["data_json"].S)).Where(d => d != null).Cast<IAvatarDetail>().ToList(); result.Result = details; result.IsError = false; result.Message = $"DynamoDBOASIS: Loaded {details.Count} detail(s)."; }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, $"DynamoDBOASIS: {ex.Message}"); }
             return result;
         }
@@ -598,10 +602,16 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             return result;
         }
 
+        private static void ValidateRecordVersion(int version)
+        {
+            if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
+            if(version!=0) throw new NotSupportedException("DynamoDB records currently retain only the latest version (0); historical reads are not implemented.");
+        }
+
         private static void ValidateGraphRead(int maxDepth,int initialDepth,int version)
         {
             if(maxDepth<0 || initialDepth<0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
-            if(version!=0) throw new NotSupportedException("DynamoDB holon collections currently retain only the latest version (0).");
+            ValidateRecordVersion(version);
         }
 
         private static Func<IHolon,IHolon> CreateGraphProjection(IEnumerable<IHolon> records,bool children,bool recursive,int maxDepth,int initialDepth,bool fromProvider)

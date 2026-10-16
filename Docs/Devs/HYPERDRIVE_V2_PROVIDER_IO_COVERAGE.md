@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 Dynamo unit29/29pass312ms: all9avatar/detail read forms reject unsupported explicit historical/negative versions before SDK I/O, syncasync; previously ignored version and invoked latest SDK read (4new cases failed). Shared holon validation reused. Truthful rejection ONLY; actual historical archive/query/V2 support remains OPEN, not replaced by this guard.
+
 2026-10-16 AWS native39/39pass11s: four actual server conditional-rejection graph cases verify sync/async continuefalse stops after1attempt/no IDs, continuetrue skips rejected descendants but acknowledges independent2node branch (3attempts total) with exact partial IDs/native readback. Prior V2 unknown-commit and routing cases retained. Full failure matrix/history/concurrency/durable recovery/live/hosted gates still open.
 
 2026-10-16 AWS native35/35pass11s: actual V2 sync/async partial recursive saves with failover+replication enabled prove root ack/child real commit then controlled lost acknowledgement => exactly2commits, correct partial evidence/original child cause, no leaf submission, unpublished child/leaf caller IDs and0secondary requests/absent SQLite copies. Native readback confirms root/child parent link and absent descendants. Physical wire loss/durable recovery/full-interface/live/hosted gates remain open.
