@@ -163,6 +163,8 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
         return Encoders.Base58.DecodeData(memos[0].Data);
     }
 
+    internal Task<string> SubmitSignedTransactionAsync(byte[] signedTransaction) => SubmitAndConfirmAsync(signedTransaction);
+
     private async Task<string> SubmitAndConfirmAsync(byte[] signedTransaction)
     {
         // This repository builds one-signer transactions; preserve its actual native
