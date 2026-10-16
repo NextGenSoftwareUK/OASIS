@@ -238,7 +238,7 @@ public partial class SolanaOASIS
                 before=page.Result[page.Result.Count-1].Signature;
             }
             result.Result=transactions;
-            result.Message=$"Retrieved {transactions.Count} finalized history rows; top-level native SOL transfers decoded, other operations may remain undecoded.";
+            result.Message=$"Retrieved {transactions.Count} finalized history rows; native SOL transfers decoded, other operations may remain undecoded.";
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,errorMessage+cause.Message,cause);}
         return result;
