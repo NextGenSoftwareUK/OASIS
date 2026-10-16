@@ -186,6 +186,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
                 .WithOne()
                 .HasForeignKey<AvatarSuperPowersModel>(ob => ob.AvatarId);
 
+            // Complete one-to-one detail state belongs to every detail read,
+            // including selectors, collections and read-modify-save operations.
+            modelBuilder.Entity<AvatarDetailModel>().Navigation(a=>a.Attributes).AutoInclude();
+            modelBuilder.Entity<AvatarDetailModel>().Navigation(a=>a.Aura).AutoInclude();
+            modelBuilder.Entity<AvatarDetailModel>().Navigation(a=>a.Skills).AutoInclude();
+            modelBuilder.Entity<AvatarDetailModel>().Navigation(a=>a.SuperPowers).AutoInclude();
+            modelBuilder.Entity<AvatarDetailModel>().Navigation(a=>a.HumanDesign).AutoInclude();
+            modelBuilder.Entity<AvatarDetailModel>().Navigation(a=>a.Stats).AutoInclude();
+
             modelBuilder.Entity<AvatarChakraModel>()
                 .HasOne<CrystalModel>(c => c.Crystal)
                 .WithOne()

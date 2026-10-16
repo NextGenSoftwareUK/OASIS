@@ -1414,6 +1414,12 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 var standaloneDetail = new AvatarDetail { Id = standaloneAvatar.Id, Username = standaloneAvatar.Username, Email = standaloneAvatar.Email, Karma = 123,
                     Inventory = new List<IInventoryItem> { new InventoryItem { Id = Guid.NewGuid(), Name = "standalone-owned-seed", Quantity = 3 } } };
                 standaloneDetail.Stats.HP.Current = 37;
+                standaloneDetail.Model3D="model://replicated-component";
+                standaloneDetail.Attributes=new AvatarAttributes {Strength=11,Wisdom=23,Endurance=31};
+                standaloneDetail.Aura=new AvatarAura {Level=7,Brightness=41,ColourGreen=53};
+                standaloneDetail.Skills=new AvatarSkills {Fishing=17,Science=29,Languages=43};
+                standaloneDetail.SuperPowers=new AvatarSuperPowers {Flight=19,Telepathy=37,FreezeBreath=47};
+                standaloneDetail.HumanDesign=new HumanDesign {Type="owned-replicated-type"};
                 var saveIdentity = new StorageOperationRequest { Operation = "SaveAvatar", Payload = standaloneAvatar, PreferredProvider = request.PreferredProvider };
                 var savedIdentity = synchronous ? router.RouteRequest<IAvatar>(saveIdentity) : await router.RouteRequestAsync<IAvatar>(saveIdentity);
                 savedIdentity.IsError.Should().BeFalse(savedIdentity.Message);
@@ -1422,6 +1428,14 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 var savedDetail = synchronous ? router.RouteRequest<IAvatarDetail>(saveDetail) : await router.RouteRequestAsync<IAvatarDetail>(saveDetail);
                 savedDetail.IsError.Should().BeFalse(savedDetail.Message);
                 savedDetail.IsWarning.Should().BeFalse();
+                foreach(var componentStore in new IOASISStorageProvider[] {mongo,sqlite})
+                {
+                    var persisted=(await componentStore.LoadAvatarDetailAsync(standaloneDetail.Id)).Result;
+                    persisted.Model3D.Should().Be(standaloneDetail.Model3D);
+                    persisted.Attributes.Should().BeEquivalentTo(standaloneDetail.Attributes);persisted.Aura.Should().BeEquivalentTo(standaloneDetail.Aura);
+                    persisted.Skills.Should().BeEquivalentTo(standaloneDetail.Skills);persisted.SuperPowers.Should().BeEquivalentTo(standaloneDetail.SuperPowers);
+                    persisted.HumanDesign.Should().BeEquivalentTo(standaloneDetail.HumanDesign);
+                }
                 var deleteDetail = new StorageOperationRequest { Operation = operation, AvatarId = standaloneAvatar.Id,
                     Username = standaloneAvatar.Username, Email = standaloneAvatar.Email, SoftDelete = softDelete, PreferredProvider = request.PreferredProvider };
                 var deletedDetail = synchronous ? router.RouteRequest<bool>(deleteDetail) : await router.RouteRequestAsync<bool>(deleteDetail);
@@ -1438,6 +1452,10 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                         loaded.DeletedDate.Should().NotBe(DateTime.MinValue);
                         loaded.Inventory.Single().Name.Should().Be("standalone-owned-seed");
                         loaded.Stats.HP.Current.Should().Be(37);
+                        loaded.Model3D.Should().Be(standaloneDetail.Model3D);
+                        loaded.Attributes.Should().BeEquivalentTo(standaloneDetail.Attributes);loaded.Aura.Should().BeEquivalentTo(standaloneDetail.Aura);
+                        loaded.Skills.Should().BeEquivalentTo(standaloneDetail.Skills);loaded.SuperPowers.Should().BeEquivalentTo(standaloneDetail.SuperPowers);
+                        loaded.HumanDesign.Should().BeEquivalentTo(standaloneDetail.HumanDesign);
                     }
                     (await provider.LoadAvatarDetailAsync(detail.Id)).Result.Karma.Should().Be(456);
                 }

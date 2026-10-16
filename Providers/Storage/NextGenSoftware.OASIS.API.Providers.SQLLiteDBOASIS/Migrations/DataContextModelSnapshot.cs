@@ -2775,9 +2775,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                 {
                     b.Navigation("Achievements");
 
-                    b.Navigation("Attributes");
+                    b.Navigation("Attributes").AutoInclude();
 
-                    b.Navigation("Aura");
+                    b.Navigation("Aura").AutoInclude();
 
                     b.Navigation("AvatarChakras");
 
@@ -2787,7 +2787,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
                     b.Navigation("HeartRates");
 
-                    b.Navigation("HumanDesign");
+                    b.Navigation("HumanDesign").AutoInclude();
 
                     b.Navigation("InventoryItems");
 
@@ -2803,13 +2803,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
 
                     b.Navigation("ProviderWalletAddress");
 
-                    b.Navigation("Skills");
+                    b.Navigation("Skills").AutoInclude();
 
                     b.Navigation("Spells");
 
-                    b.Navigation("Stats");
+                    b.Navigation("Stats").AutoInclude();
 
-                    b.Navigation("SuperPowers");
+                    b.Navigation("SuperPowers").AutoInclude();
                 });
 
             modelBuilder.Entity("NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities.AvatarModel", b =>
