@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 AWS routed hard-delete verification: existing retained DynamoDB Local runtime and fixed AWSProviderEvidence/artifacts reports reused;17/17 native passes10s. No runtime/download/clone/new environment. Test lifecycle uses actual routed deletion rather than separate direct-provider cleanup, independently verifies absence before successful fixture DB removal. No broad user-table/cache/ledger cleanup or global reclaim claim.
+
 2026-10-16 Google routed hard-deletion verification: reused same retained Firestore/runtime/caches/fixed GoogleCurrent reports;5/5 native pass14s. Existing fixture exact-ID cleanup and verified SQLite fixture cleanup unchanged; no additional database copies, installs or downloads. No global reclaim claim.
 
 2026-10-16 Google actor regression: reused existing Firestore1.22.0 jar, Java/.NET caches and fixed GoogleCurrent reports. First native run3pass/2fail proved stored actor became empty GUID; after one constructor fix5/5 pass14s. No install/download/clone/new environment. Exact randomly generated test-owned avatar/detail document paths are removed in test finally; the existing runner stops its owned emulator process. No broad user collection/ledger/key/cache deletion. Compact latest TRX and documented before/after assertions retained; no global disk-reclaim claim.

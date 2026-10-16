@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 AWS native17/17 passes10s, zero skips: four existing V2 lifecycle cases now route hard deletion after soft deletion with replication enabled, AWS/SQLite primary and sync/async combinations. Independent official SDK consistent reads plus SQLite loads prove both profile/detail records removed from both stores. Assertion expansion, not extra test count. Fresh-active hard deletion across all races, durable recovery/live service/full interfaces/hosted certification remain open.
+
 2026-10-16 Google↔SQLite actual V2 matrix strengthened: four sync/async×primary scenarios assert nonempty actor propagation through soft deletion and routed hard-delete replication; independently both Firestore documents and both SQLite records absent. Same5/5 native suite passes14s, zero skips. Expanded assertion coverage, not extra test count or full-provider certification.
 
 2026-10-16 Google native5/5 passes14s, zero skips after actual2/5 failure reproduced empty lifecycle actor. Existing Firestore transaction now preserves stored DeletedByAvatarId. New sync/async tests independently verify paired canonical timestamp/actor/data preservation, repeat deletion, hard removal. Prior3 native tests retained. Full-interface/live service/Storage/BigQuery/recovery and hosted release gates remain open.
