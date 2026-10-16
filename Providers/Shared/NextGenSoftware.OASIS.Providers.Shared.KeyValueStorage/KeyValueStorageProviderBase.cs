@@ -807,7 +807,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                         if (avatars == null)
                         {
                             var all = await LoadAllAvatarsAsync(version);
-                            if (all.IsError) return Fail<ISearchResults>(all.Message);
+                            if (all.IsError) return Fail<ISearchResults>(all.Message,all.Exception,all.ErrorCode);
                             avatars = all.Result.ToList();
                         }
                         results.SearchResultAvatars.AddRange(avatars.Where(a => Has(a.Username) || Has(a.Email) || Has(a.FirstName) || Has(a.LastName)
@@ -819,7 +819,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                         if (holons == null)
                         {
                             var all = await LoadAllHolonsAsync(HolonType.All, false, false, 0, 0, continueOnError, false, version);
-                            if (all.IsError) return Fail<ISearchResults>(all.Message);
+                            if (all.IsError) return Fail<ISearchResults>(all.Message,all.Exception,all.ErrorCode);
                             holons = all.Result.ToList();
                         }
                         results.SearchResultHolons.AddRange(holons.Where(h => Has(h.Name) || Has(h.Description)
