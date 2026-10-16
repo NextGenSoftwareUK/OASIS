@@ -11,6 +11,41 @@ public partial class Neo4jNativeAvatarTests
 {
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
+    public async Task OwnedNativeCommittedTombstonePreservesReplicaFieldsAndRejectsConflict(bool synchronous)
+    {
+        const string uri = "bolt://127.0.0.1:17687";
+        Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
+        using var raw = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
+        using var check = raw.AsyncSession();
+        Assert.AreEqual(0L, (await (await check.RunAsync("MATCH (a) WHERE a:Avatar OR a:AvatarDetail RETURN count(a) AS count")).SingleAsync())["count"].As<long>());
+        var provider = new Provider(uri, "neo4j", "oasis-local-test-only");
+        try
+        {
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            var id = Guid.NewGuid(); var actor = Guid.NewGuid();
+            Assert.IsFalse((await provider.SaveAvatarAsync(new Avatar { Id = id, Username = "replica-owned", FirstName = "keep replica profile" })).IsError);
+            var detail = new AvatarDetail { Id = id, Username = "replica-owned", XP = 888 };
+            detail.Inventory.Add(new NextGenSoftware.OASIS.API.Core.Objects.InventoryItem { Id = Guid.NewGuid(), Name = "replica inventory" });
+            Assert.IsFalse((await provider.SaveAvatarDetailAsync(detail)).IsError);
+            var committed = new NextGenSoftware.OASIS.API.Core.Objects.AvatarTombstone(id, new DateTime(2026, 10, 16, 1, 2, 3, DateTimeKind.Utc), actor);
+            var applied = synchronous ? provider.ApplyAvatarTombstone(committed) : await provider.ApplyAvatarTombstoneAsync(committed);
+            Assert.IsFalse(applied.IsError, applied.Message); Assert.IsTrue(applied.Result);
+            Assert.IsFalse((await provider.ApplyAvatarTombstoneAsync(committed)).IsError, "Same committed tombstone is idempotent.");
+            var profile = await provider.LoadAvatarAsync(id); var replica = await provider.LoadAvatarDetailAsync(id);
+            Assert.AreEqual(committed.DeletedAtUtc, profile.Result.DeletedDate); Assert.AreEqual(actor, profile.Result.DeletedByAvatarId);
+            Assert.AreEqual(committed.DeletedAtUtc, replica.Result.DeletedDate); Assert.AreEqual(actor, replica.Result.DeletedByAvatarId);
+            Assert.AreEqual("keep replica profile", profile.Result.FirstName); Assert.AreEqual(888L, replica.Result.XP);
+            Assert.AreEqual("replica inventory", replica.Result.Inventory.Single().Name);
+            var conflict = await provider.ApplyAvatarTombstoneAsync(new NextGenSoftware.OASIS.API.Core.Objects.AvatarTombstone(id, committed.DeletedAtUtc.AddSeconds(1), actor));
+            Assert.IsTrue(conflict.IsError); Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode, conflict.ErrorCode);
+            Assert.AreEqual(committed.DeletedAtUtc, (await provider.LoadAvatarAsync(id)).Result.DeletedDate);
+            Assert.IsFalse((await provider.DeleteAvatarAsync(id, false)).IsError);
+        }
+        finally { await provider.DeActivateProviderAsync(); }
+    }
+
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
     public async Task OwnedNativeDetailConflictRollsBackProfileDeletion(bool softDelete)
     {
         const string uri = "bolt://127.0.0.1:17687";

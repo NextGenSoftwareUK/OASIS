@@ -17,8 +17,17 @@ public sealed class Neo4jMutationReconciliationException : Exception, INativeMut
         : base("Neo4j mutation outcome requires inspection before replay.", cause) { }
 }
 
-public partial class Neo4jOASIS
+public partial class Neo4jOASIS : IAvatarTombstoneStorageProvider
 {
+    public OASISResult<bool> ApplyAvatarTombstone(Core.Objects.AvatarTombstone tombstone)
+        => ApplyAvatarTombstoneAsync(tombstone).GetAwaiter().GetResult();
+
+    public Task<OASISResult<bool>> ApplyAvatarTombstoneAsync(Core.Objects.AvatarTombstone tombstone)
+    {
+        if (tombstone == null) return Task.FromResult(new OASISResult<bool> { IsError = true, Message = "Committed avatar tombstone is required.", ErrorCode = "HYPERDRIVE_PAYLOAD_INVALID" });
+        return DeleteAvatarRecordAsync("Id", tombstone.AvatarId.ToString(), true, tombstone);
+    }
+
     internal static string AvatarDeleteSelection(string field)
     {
         if (field != "Id" && field != "ProviderKey" && field != "Username" && field != "Email")
@@ -44,7 +53,7 @@ public partial class Neo4jOASIS
         return (prefix + "SET a.SnapshotJson = $snapshot, a.IsActive = false, a.DeletedDate = $deletedDate RETURN 1 AS affected", parameters);
     }
 
-    private async Task<OASISResult<bool>> DeleteAvatarRecordAsync(string field, string value, bool softDelete)
+    private async Task<OASISResult<bool>> DeleteAvatarRecordAsync(string field, string value, bool softDelete, Core.Objects.AvatarTombstone supplied = null)
     {
         var response = new OASISResult<bool>();
         var dispatched = false;
@@ -61,9 +70,19 @@ public partial class Neo4jOASIS
                 if (found.Count != 1) throw new StorageLifecycleConflictException("Neo4j avatar selector is not unique.");
                 var node = found[0]["a"].As<Neo4j.Driver.INode>();
                 if (!node.Properties.TryGetValue("SnapshotJson", out var json)) throw new InvalidDataException("Neo4j avatar canonical snapshot is missing.");
-                var plan = PlanAvatarDelete(json as string, node["Id"].As<string>(), softDelete, DateTime.UtcNow);
+                var original = ReadAvatarSnapshot(json as string, node["Id"].As<string>());
+                if (supplied != null && original.IsDeleted && (original.DeletedDate != supplied.DeletedAtUtc || original.DeletedByAvatarId != supplied.DeletedByAvatarId))
+                    throw new StorageLifecycleConflictException("Neo4j profile has a conflicting committed tombstone.");
+                var plan = PlanAvatarDelete(json as string, node["Id"].As<string>(), softDelete, supplied?.DeletedAtUtc ?? DateTime.UtcNow);
+                if (supplied != null)
+                {
+                    var patched = ReadAvatarSnapshot((string)plan.Parameters["snapshot"], node["Id"].As<string>());
+                    patched.DeletedByAvatarId = supplied.DeletedByAvatarId;
+                    plan.Parameters["snapshot"] = OasisJson.Serialize(patched);
+                }
                 var detailRows = await (await session.RunAsync("MATCH (a:AvatarDetail {Id:$id}) RETURN a", new { id = node["Id"].As<string>() })).ToListAsync();
                 if (detailRows.Count > 1) throw new StorageLifecycleConflictException("Neo4j avatar-detail identity is not unique.");
+                if (supplied != null && detailRows.Count == 0) throw new StorageLifecycleConflictException("Committed tombstone requires an existing avatar-detail record.");
                 Dictionary<string, object> detailParameters = null;
                 if (softDelete)
                 {
@@ -77,7 +96,7 @@ public partial class Neo4jOASIS
                     detailParameters = new Dictionary<string, object>(plan.Parameters) { ["expected"] = (string)detailNode["SnapshotJson"] };
                     if (softDelete)
                     {
-                        if (detail.IsDeleted && detail.DeletedDate != tombstone.DeletedAtUtc)
+                        if (detail.IsDeleted && (detail.DeletedDate != tombstone.DeletedAtUtc || detail.DeletedByAvatarId != tombstone.DeletedByAvatarId))
                             throw new StorageLifecycleConflictException("Neo4j profile/detail have conflicting committed deletion timestamps.");
                         detail.IsActive = false; detail.DeletedDate = tombstone.DeletedAtUtc;
                         detail.DeletedByAvatarId = tombstone.DeletedByAvatarId;
