@@ -105,6 +105,36 @@ public partial class Neo4jNativeAvatarTests
                 }
             }
             finally { field.SetValue(neo, healthy); }
+            foreach (var replication in new[] { false, true })
+            foreach (var asynchronous in new[] { false, true })
+            {
+                manager.IsAutoReplicationEnabled = replication;
+                var committedId = Guid.NewGuid();
+                var cause = new IOException("owned lost commit acknowledgement");
+                var commits = 0;
+                var secondaryBefore = manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests;
+                var proxy = Neo4jCommitFaultProxy.Wrap((IDriver)healthy!, cause, () => commits++);
+                try
+                {
+                    field.SetValue(neo, proxy);
+                    var request = new StorageOperationRequest { Operation = "SaveHolon", Payload = new Holon { Id = committedId, Name = "actually committed before acknowledgement loss" },
+                        SaveChildren = false, PreferredProvider = ProviderType.Neo4jOASIS };
+                    var failed = asynchronous ? await router.RouteRequestAsync<IHolon>(request) : router.RouteRequest<IHolon>(request);
+                    Assert.IsTrue(failed.IsError); Assert.IsFalse(failed.IsSaved);
+                    Assert.IsTrue(Core.Helpers.NativeMutationReconciliation.IsRequired(failed.Exception));
+                    Assert.AreSame(cause, failed.Exception.GetBaseException());
+                    Assert.AreEqual(1, commits, "Exactly one real server commit; never replay the write.");
+                    Assert.AreEqual(secondaryBefore, manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests,
+                        "Neither failover nor replication may replay an uncertain native mutation.");
+                }
+                finally { field.SetValue(neo, healthy); }
+                var committed = await neo.LoadHolonAsync(committedId, loadChildren:false);
+                Assert.IsFalse(committed.IsError, committed.Message);
+                Assert.AreEqual("actually committed before acknowledgement loss", committed.Result.Name);
+                Assert.IsNull((await sqlite.LoadHolonAsync(committedId, loadChildren:false)).Result);
+                using var exactCleanup = raw.AsyncSession();
+                await (await exactCleanup.RunAsync("MATCH (h:Holon {Id:$id}) DETACH DELETE h", new { id = committedId.ToString() })).ConsumeAsync();
+            }
             using var cleanup = raw.AsyncSession();
             await (await cleanup.RunAsync("MATCH (h:Holon {Id:$id}) DETACH DELETE h", new { id = id.ToString() })).ConsumeAsync();
             verified = true;
