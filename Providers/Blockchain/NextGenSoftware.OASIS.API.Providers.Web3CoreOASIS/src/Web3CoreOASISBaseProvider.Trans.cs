@@ -66,10 +66,10 @@ public partial class Web3CoreOASISBaseProvider
             return result;
         }
 
-        if (transaction.Amount <= 0 || decimal.Truncate(transaction.Amount) != transaction.Amount)
+        if (transaction.Amount != 1)
         {
             OASISErrorHandling.HandleError(
-                ref result, "NFT transfer amount must be a positive whole number.");
+                ref result, "ERC-721 transfer amount must equal one.");
             return result;
         }
 
