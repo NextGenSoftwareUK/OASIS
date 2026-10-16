@@ -35,15 +35,26 @@ public partial class SolanaOASIS
             if(message.AccountKeys[instruction.ProgramIdIndex]!=SystemProgram.ProgramIdKey.Key) continue;
             var data=Encoders.Base58.DecodeData(instruction.Data);
             if(data.Length<4) throw new InvalidDataException("Solana System instruction is truncated.");
-            if(System.Buffers.Binary.BinaryPrimitives.ReadUInt32LittleEndian(data)!=2) continue;
-            if(data.Length!=12 || instruction.Accounts==null || instruction.Accounts.Length!=2
+            var opcode=System.Buffers.Binary.BinaryPrimitives.ReadUInt32LittleEndian(data);
+            if(opcode!=2 && opcode!=11) continue;
+            var seeded=opcode==11;
+            if(seeded)
+            {
+                if(data.Length<52) throw new InvalidDataException("Solana seeded transfer instruction is truncated.");
+                var seedLength=System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(data.AsSpan(12));
+                if(seedLength>32 || (ulong)data.Length!=52+seedLength)
+                    throw new InvalidDataException("Solana seeded transfer seed length is invalid.");
+                try {new System.Text.UTF8Encoding(false,true).GetString(data,20,(int)seedLength);}
+                catch(System.Text.DecoderFallbackException cause) {throw new InvalidDataException("Solana transfer seed is not valid UTF-8.",cause);}
+            }
+            if((!seeded && data.Length!=12) || instruction.Accounts==null || instruction.Accounts.Length!=(seeded ? 3:2)
                 || instruction.Accounts.Any(key=>key<0 || key>=message.AccountKeys.Length))
                 throw new InvalidDataException("Solana native transfer instruction is malformed.");
-            var from=message.AccountKeys[instruction.Accounts[0]];var to=message.AccountKeys[instruction.Accounts[1]];
+            var from=message.AccountKeys[instruction.Accounts[0]];var to=message.AccountKeys[instruction.Accounts[seeded ? 2:1]];
             if(from!=wallet && to!=wallet) continue;
             var raw=System.Buffers.Binary.BinaryPrimitives.ReadUInt64LittleEndian(data.AsSpan(4));
             rows.Add(new WalletTransaction {
-                NativeTransactionId=signature.Signature,NativeOperation="SystemProgram.Transfer",
+                NativeTransactionId=signature.Signature,NativeOperation=seeded ? "SystemProgram.TransferWithSeed":"SystemProgram.Transfer",
                 NativeExecutionResult=summary.NativeExecutionResult,NativeError=summary.NativeError,
                 FromWalletAddress=from,ToWalletAddress=to,RawAmount=raw.ToString(CultureInfo.InvariantCulture),AmountUnit="lamports",
                 Amount=(double)(raw/1_000_000_000m),CreatedDate=summary.CreatedDate,
