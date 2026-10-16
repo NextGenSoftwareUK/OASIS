@@ -63,8 +63,14 @@ public sealed class IPFSSqlitePolicyTests
             Assert.False(manager.SetAndReplaceAutoReplicationListForProviders(types).IsError);
             var router=new OASISHyperDrive(manager);var primary=ipfsPrimary ? ProviderType.IPFSOASIS:ProviderType.SQLLiteDBOASIS;
             var id=Guid.NewGuid();
+            var credential="owned-policy-"+id;var walletId=Guid.NewGuid();
+            var credentialOperations=new[] {"LoadAvatarByVerificationToken","LoadAvatarByResetToken","LoadAvatarByRefreshToken","LoadAvatarByPublicKey","LoadAvatarByPrivateKey"};
+            StorageOperationRequest CredentialRequest(string operation)=>new() {Operation=operation,VerificationToken=credential,ResetToken=credential,
+                RefreshToken=credential,PublicKey=credential,PrivateKey=credential};
             var avatar=new Avatar {Id=id,Username="owned-policy-avatar",Email="policy@example.invalid",FirstName="complete replicated profile",
-                AvatarType=new EnumValue<AvatarType>(AvatarType.User),IsActive=true};
+                AvatarType=new EnumValue<AvatarType>(AvatarType.User),IsActive=true,VerificationToken=credential,ResetToken=credential,
+                RefreshTokens=new() {new RefreshToken {Token=credential}},ProviderWallets=new() {{ProviderType.SolanaOASIS,
+                    new() {new ProviderWallet {Id=walletId,PublicKey=credential,PrivateKey=credential}}}}};
             var savedAvatar=await Route<IAvatar>(router,new StorageOperationRequest {Operation="SaveAvatar",Payload=avatar,PreferredProvider=primary});
             Assert.False(savedAvatar.IsError,savedAvatar.Message);Assert.False(savedAvatar.IsWarning,savedAvatar.Message);
             var nativeAvatar=await ipfs.LoadAvatarAsync(id);Assert.False(nativeAvatar.IsError,nativeAvatar.Message);Record(nativeAvatar.Result);
@@ -78,6 +84,30 @@ public sealed class IPFSSqlitePolicyTests
             Assert.Equal(321,nativeDetail.Result.XP);Assert.Equal(29,nativeDetail.Result.Karma);
             Assert.Equal(detail.Inventory[0].Id,Assert.Single(nativeDetail.Result.Inventory).Id);
             Assert.Equal(detail.Inventory[0].Id,Assert.Single((await sqlite.LoadAvatarDetailAsync(id)).Result.Inventory).Id);
+            foreach(var store in new IOASISStorageProvider[] {ipfs,sqlite})
+            {
+                var selectors=new[] {
+                    synchronous ? store.LoadAvatarByVerificationToken(credential):await store.LoadAvatarByVerificationTokenAsync(credential),
+                    synchronous ? store.LoadAvatarByResetToken(credential):await store.LoadAvatarByResetTokenAsync(credential),
+                    synchronous ? store.LoadAvatarByRefreshToken(credential):await store.LoadAvatarByRefreshTokenAsync(credential),
+                    synchronous ? store.LoadAvatarByPublicKey(credential):await store.LoadAvatarByPublicKeyAsync(credential),
+                    synchronous ? store.LoadAvatarByPrivateKey(credential):await store.LoadAvatarByPrivateKeyAsync(credential)};
+                foreach(var read in selectors) {Assert.False(read.IsError,read.Message);Assert.Equal(id,read.Result.Id);
+                    Assert.Equal(walletId,Assert.Single(read.Result.ProviderWallets[ProviderType.SolanaOASIS]).Id);}
+            }
+            var credentialManager=Manager(sqlite);credentialManager.IsAutoLoadBalanceEnabled=true;
+            Assert.False(credentialManager.SetAndReplaceAutoLoadBalanceListForProviders(types).IsError);
+            var credentialRouter=new OASISHyperDrive(credentialManager);
+            foreach(var operation in credentialOperations)
+            {
+                var before=types.Select(type=>credentialManager.PerformanceMonitor.GetMetrics(type.Value)?.TotalRequests??0).ToArray();
+                for(var index=0;index<2;index++)
+                {
+                    var read=await Route<IAvatar>(credentialRouter,CredentialRequest(operation),LoadBalancingStrategy.RoundRobin);
+                    Assert.False(read.IsError,read.Message);Assert.Equal(id,read.Result.Id);
+                }
+                for(var index=0;index<2;index++) Assert.Equal(before[index]+1,credentialManager.PerformanceMonitor.GetMetrics(types[index].Value).TotalRequests);
+            }
             var savedHolon=await Route<IHolon>(router,new StorageOperationRequest {Operation="SaveHolon",SaveChildren=false,
                 Payload=new Holon {Id=id,Name="complete replicated holon"},PreferredProvider=primary});
             Assert.False(savedHolon.IsError,savedHolon.Message);Assert.False(savedHolon.IsWarning,savedHolon.Message);
@@ -124,6 +154,17 @@ public sealed class IPFSSqlitePolicyTests
                     Operation="LoadHolon",HolonId=marker,LoadChildren=false,PreferredProvider=ProviderType.IPFSOASIS});
                 Assert.False(fallback.IsError,fallback.Message);Assert.Equal("native-sqlite-marker",fallback.Result.Name);
                 Assert.Equal(ProviderType.SQLLiteDBOASIS,failingManager.LastFailoverDiagnostic.SelectedProvider);
+                foreach(var operation in credentialOperations)
+                {
+                    // Fresh contexts require each selector to encounter actual SDK failure, not an already-open circuit.
+                    var credentialFailover=Manager(sqlite);credentialFailover.IsAutoFailOverEnabled=true;
+                    Assert.False(credentialFailover.SetAndReplaceAutoFailOverListForProviders(types).IsError);
+                    var request=CredentialRequest(operation);request.PreferredProvider=ProviderType.IPFSOASIS;
+                    var read=await Route<IAvatar>(new OASISHyperDrive(credentialFailover),request);
+                    Assert.False(read.IsError,read.Message);Assert.Equal(id,read.Result.Id);
+                    Assert.Equal(1L,credentialFailover.PerformanceMonitor.GetMetrics(ProviderType.IPFSOASIS).TotalRequests);
+                    Assert.Equal(1L,credentialFailover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests);
+                }
             }
             finally {ipfs.IPFSClient=healthyClient;}
             var missingPath=Path.Combine(work,"unavailable-routing.db");Assert.False(File.Exists(missingPath));
