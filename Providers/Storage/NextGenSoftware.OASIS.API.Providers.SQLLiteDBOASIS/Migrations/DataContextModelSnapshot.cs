@@ -311,6 +311,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<string>("Address")
                         .HasColumnType("TEXT");
 
+                    b.Property<Guid?>("ActiveQuestId").HasColumnType("TEXT");
+                    b.Property<Guid?>("ActiveObjectiveId").HasColumnType("TEXT");
+
                     b.Property<int>("AvatarType")
                         .HasColumnType("INTEGER");
 

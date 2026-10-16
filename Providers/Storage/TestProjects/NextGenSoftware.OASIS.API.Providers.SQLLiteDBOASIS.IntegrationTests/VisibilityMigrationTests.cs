@@ -11,6 +11,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 public sealed class VisibilityMigrationTests
 {
     [Fact]
+    public void TrackingMigrationRetainsLegacyRowAndDefaultsToNull()
+    {
+        using var context=new DataContext("Data Source=:memory:");context.Database.OpenConnection();
+        context.GetService<IMigrationsAssembly>().Migrations.Should().ContainKey("20261016000000_AddAvatarDetailTracking");
+        context.Database.ExecuteSqlRaw("CREATE TABLE AvatarDetail (Id TEXT PRIMARY KEY,Karma INTEGER NOT NULL); INSERT INTO AvatarDetail VALUES('owned-row',73)");
+        var migration=new AddAvatarDetailTracking();var generator=context.GetService<IMigrationsSqlGenerator>();
+        foreach(var command in generator.Generate(migration.UpOperations)) context.Database.ExecuteSqlRaw(command.CommandText);
+        using var check=context.Database.GetDbConnection().CreateCommand();
+        foreach(var column in new[] {"ActiveQuestId","ActiveObjectiveId"})
+        {
+            check.CommandText=$"SELECT {column} FROM AvatarDetail WHERE Id='owned-row'";
+            check.ExecuteScalar().Should().Be(DBNull.Value);
+            var id=Guid.NewGuid();check.CommandText=$"UPDATE AvatarDetail SET {column}='{id}' WHERE Id='owned-row'";check.ExecuteNonQuery();
+            check.CommandText=$"SELECT {column} FROM AvatarDetail WHERE Id='owned-row'";Guid.Parse((string)check.ExecuteScalar()!).Should().Be(id);
+        }
+        foreach(var command in generator.Generate(migration.DownOperations)) context.Database.ExecuteSqlRaw(command.CommandText);
+        check.CommandText="SELECT Karma FROM AvatarDetail WHERE Id='owned-row'";Convert.ToInt32(check.ExecuteScalar()).Should().Be(73);
+    }
+
+    [Fact]
     public void HeartRateSequenceMigrationRetainsLegacySample()
     {
         using var context=new DataContext("Data Source=:memory:");context.Database.OpenConnection();

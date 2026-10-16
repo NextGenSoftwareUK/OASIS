@@ -21,6 +21,8 @@ public partial class SQLLiteDBOASIS
                 {"VersionId","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"},
                 {"PreviousVersionId","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"},
                 {"CustomHolonType","TEXT NULL"}}).ConfigureAwait(false);
+        await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"AvatarDetail",
+            new Dictionary<string,string> {{"ActiveQuestId","TEXT NULL"},{"ActiveObjectiveId","TEXT NULL"}}).ConfigureAwait(false);
         await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"HeartRateEntry",
             new Dictionary<string,string> {{"SequenceIndex","INTEGER NOT NULL DEFAULT 0"}}).ConfigureAwait(false);
         await transaction.CommitAsync().ConfigureAwait(false);
