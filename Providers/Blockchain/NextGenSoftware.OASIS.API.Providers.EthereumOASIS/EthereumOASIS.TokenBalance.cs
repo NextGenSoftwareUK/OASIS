@@ -110,18 +110,24 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
             var result = new OASISResult<double>();
             try
             {
+                if (request == null || !Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(request.WalletAddress))
+                    throw new ArgumentException("A valid Ethereum wallet address is required.", nameof(request));
                 if (!IsProviderActivated || Web3Client == null)
-                    ActivateProvider();
-
-                if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
                 {
-                    OASISErrorHandling.HandleError(ref result, "Wallet address is required");
-                    return result;
+                    var active = await ActivateProviderAsync();
+                    if (active.IsError)
+                    {
+                        OASISErrorHandling.HandleError(ref result, active.Message, active.Exception);
+                        result.ErrorCode = active.ErrorCode;
+                        return result;
+                    }
                 }
 
                 // Get ETH balance
                 var balance = await Web3Client.Eth.GetBalance.SendRequestAsync(request.WalletAddress);
                 result.Result = (double)Nethereum.Util.UnitConversion.Convert.FromWei(balance.Value);
+                result.IsLoaded = true;
+                result.LoadedCount = 1;
                 result.IsError = false;
                 result.Message = "Balance retrieved successfully.";
             }
