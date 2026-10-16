@@ -42,7 +42,7 @@ public partial class GoogleCloudOASIS
                 OASISErrorHandling.HandleError(ref result,cause.Message,cause);result.ErrorCode=StorageLifecycleConflictException.ErrorCode;return result;
             }
             catch(Exception cause) {throw new GoogleFirestoreMutationReconciliationException(reference.Path,cause);}
-            result.Result=holon;result.IsSaved=true;
+            result.Result=holon;result.IsSaved=true;result.IsDeleted=true;result.DeletedCount=1;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
