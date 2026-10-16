@@ -213,8 +213,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
                 var avatarEntityId = HashUtility.GetNumericHash(avatar.Id.ToString());
                 var avatarId = avatar.AvatarId.ToString();
 
-                var requestTransaction = _nextGenSoftwareOasisService
-                    .CreateAvatarRequestAndWaitForReceiptAsync(avatarEntityId, avatarId, avatarInfo).Result;
+                var requestTransaction = SubmitStorageRequestAsync(new ContractDefinition.CreateAvatarFunction {
+                    EntityId=avatarEntityId,AvatarId=avatarId,Info=avatarInfo }).GetAwaiter().GetResult();
 
                 if (!StorageReceiptSucceeded(requestTransaction))
                 {
