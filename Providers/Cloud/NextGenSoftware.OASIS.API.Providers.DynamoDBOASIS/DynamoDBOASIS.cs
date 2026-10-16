@@ -35,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
     ///   region      — AWS region code, e.g. "eu-west-1"
     ///   serviceUrl  — optional endpoint URL for DynamoDB Local / LocalStack
     /// </summary>
-    public partial class DynamoDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider
+    public partial class DynamoDBOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISDBStorageProvider, IOASISNETProvider
     {
         private AmazonDynamoDBClient _client;
         private readonly Func<AmazonDynamoDBClient> _createClient;
