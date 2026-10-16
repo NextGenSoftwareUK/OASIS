@@ -70,7 +70,12 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             if(requested==Guid.Empty || !item.TryGetValue("id",out var key) || key.S!=requested.ToString()
                 || !item.TryGetValue("data_json",out var json) || string.IsNullOrWhiteSpace(json.S))
                 throw new System.IO.InvalidDataException("DynamoDB native record key/payload differs from requested identity.");
-            var record=Des<T>(json.S);
+            T? record;
+            try {record=Des<T>(json.S);}
+            catch(Newtonsoft.Json.JsonException cause)
+            {
+                throw new System.IO.InvalidDataException("DynamoDB canonical record JSON is invalid.",cause);
+            }
             if(record==null || record.Id!=requested)
                 throw new System.IO.InvalidDataException("DynamoDB canonical record identity differs from its native key.");
             return record;
@@ -250,9 +255,9 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
             => await ReadUniqueAvatarAsync(request => _client.ScanAsync(request), keyName, keyValue);
 
         private static async Task<Avatar?> ReadUniqueAvatarAsync(Func<ScanRequest, Task<ScanResponse>> read, string keyName, string keyValue)
-            => await ReadUniqueIdentityAsync<Avatar>(read,"OasisAvatars",keyName,keyValue,avatar=>avatar.Id);
+            => await ReadUniqueIdentityAsync<Avatar>(read,"OasisAvatars",keyName,keyValue);
 
-        private static async Task<T?> ReadUniqueIdentityAsync<T>(Func<ScanRequest, Task<ScanResponse>> read, string tableName, string keyName, string keyValue, Func<T,Guid> identity) where T:class,IHolonBase
+        private static async Task<T?> ReadUniqueIdentityAsync<T>(Func<ScanRequest, Task<ScanResponse>> read, string tableName, string keyName, string keyValue) where T:class,IHolonBase
         {
             if(string.IsNullOrWhiteSpace(keyValue)) throw new ArgumentException("Avatar selector must not be blank.",nameof(keyValue));
             var request = new ScanRequest
@@ -270,11 +275,10 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
                 foreach(var item in response.Items)
                 {
                     if(item.TryGetValue("is_deleted",out var deleted) && deleted.BOOL) continue;
-                    var avatar=Des<T>(item["data_json"].S)
-                        ?? throw new InvalidOperationException("Stored DynamoDB avatar is null.");
+                    if(!item.TryGetValue("id",out var id) || !Guid.TryParse(id.S,out var nativeId))
+                        throw new System.IO.InvalidDataException("Stored DynamoDB native identity is invalid.");
+                    var avatar=ReadStoredIdentity<T>(item,nativeId);
                     if(avatar.IsDeleted) continue;
-                    if(identity(avatar)==Guid.Empty || !item.TryGetValue("id",out var id) || id.S!=identity(avatar).ToString())
-                        throw new InvalidOperationException("Stored DynamoDB avatar identity does not match its key.");
                     if(match!=null) throw new StorageIdentityAmbiguousException();
                     match=avatar;
                 }
@@ -407,7 +411,7 @@ namespace NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS
         public override OASISResult<IAvatarDetail> LoadAvatarDetail(Guid id, int version = 0) => LoadAvatarDetailAsync(id, version).Result;
 
         private async Task<AvatarDetail?> ReadDetailSelectorAsync(string keyName, string keyValue)
-            => await ReadUniqueIdentityAsync<AvatarDetail>(request=>_client.ScanAsync(request),"OasisAvatarDetails",keyName,keyValue,detail=>detail.Id);
+            => await ReadUniqueIdentityAsync<AvatarDetail>(request=>_client.ScanAsync(request),"OasisAvatarDetails",keyName,keyValue);
 
         private async Task<OASISResult<IAvatarDetail>> LoadSelectedDetailAsync(string key,string value,int version)
         {

@@ -8,8 +8,9 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests;
 public partial class AWSOASISIntegrationTests
 {
     [DataTestMethod]
-    [DataRow(false)] [DataRow(true)]
-    public async Task NativePointReadsRejectCanonicalIdentityMismatch(bool synchronous)
+    [DataRow(false,false)] [DataRow(true,false)]
+    [DataRow(false,true)] [DataRow(true,true)]
+    public async Task NativePointReadsRejectCanonicalIdentityMismatch(bool synchronous,bool malformed)
     {
         var id=Guid.NewGuid();var other=Guid.NewGuid();
         foreach(var detail in new[] {false,true})
@@ -17,21 +18,27 @@ public partial class AWSOASISIntegrationTests
             var table=detail ? "OasisAvatarDetails":"OasisAvatars";
             var json=detail ? NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(new AvatarDetail {Id=other,XP=999})
                 :NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(new Avatar {Id=other,Username="owned-impostor"});
+            if(malformed) json="{ invalid canonical JSON";
             await Client.PutItemAsync(new Amazon.DynamoDBv2.Model.PutItemRequest {TableName=table,Item=new() {
                 ["id"]=new() {S=id.ToString()},["data_json"]=new() {S=json}}});
+            try
+            {
             if(detail)
             {
                 var result=synchronous ? _provider.LoadAvatarDetail(id):await _provider.LoadAvatarDetailAsync(id);
                 Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsFalse(result.IsLoaded);
                 Assert.IsInstanceOfType(result.Exception,typeof(InvalidDataException));
+                if(malformed) Assert.IsInstanceOfType(result.Exception.InnerException,typeof(Newtonsoft.Json.JsonException));
             }
             else
             {
                 var result=synchronous ? _provider.LoadAvatar(id):await _provider.LoadAvatarAsync(id);
                 Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsFalse(result.IsLoaded);
                 Assert.IsInstanceOfType(result.Exception,typeof(InvalidDataException));
+                if(malformed) Assert.IsInstanceOfType(result.Exception.InnerException,typeof(Newtonsoft.Json.JsonException));
             }
-            await Client.DeleteItemAsync(new Amazon.DynamoDBv2.Model.DeleteItemRequest {TableName=table,Key=Key(id)});
+            }
+            finally {await Client.DeleteItemAsync(new Amazon.DynamoDBv2.Model.DeleteItemRequest {TableName=table,Key=Key(id)});}
         }
     }
 
@@ -76,21 +83,31 @@ public partial class AWSOASISIntegrationTests
             }
             Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
             var other=Guid.NewGuid();
+            foreach(var malformed in new[] {false,true})
             foreach(var detail in new[] {false,true})
             {
                 var table=detail ? "OasisAvatarDetails":"OasisAvatars";
                 var json=detail ? NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(new AvatarDetail {Id=other,XP=888})
                     :NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(new Avatar {Id=other,Username="owned-impostor"});
+                if(malformed) json="{ invalid canonical JSON";
                 await Client.PutItemAsync(new Amazon.DynamoDBv2.Model.PutItemRequest {TableName=table,Item=new() {
-                    ["id"]=new() {S=id.ToString()},["data_json"]=new() {S=json}}});
+                    ["id"]=new() {S=id.ToString()},["username"]=new() {S=username},["email"]=new() {S=email},["data_json"]=new() {S=json}}});
                 var request=new Core.StorageOperationRequest {Operation=detail ? "LoadAvatarDetail":"LoadAvatar",AvatarId=id,PreferredProvider=Core.Enums.ProviderType.AWSOASIS};
                 void Corrupt<T>(OASISResult<T> result)
                 {
                     Assert.IsTrue(result.IsError,"Corrupt primary must not be masked by stale secondary.");Assert.IsNull(result.Result);
                     Assert.IsInstanceOfType(result.Exception,typeof(InvalidDataException));
+                    if(malformed) Assert.IsInstanceOfType(result.Exception.InnerException,typeof(Newtonsoft.Json.JsonException));
                 }
                 if(detail) Corrupt(synchronous ? router.RouteRequest<IAvatarDetail>(request):await router.RouteRequestAsync<IAvatarDetail>(request));
                 else Corrupt(synchronous ? router.RouteRequest<IAvatar>(request):await router.RouteRequestAsync<IAvatar>(request));
+                foreach(var byEmail in new[] {false,true})
+                {
+                    var selector=new Core.StorageOperationRequest {Operation=(detail ? "LoadAvatarDetailBy":"LoadAvatarBy")+(byEmail ? "Email":"Username"),
+                        Username=username,Email=email,PreferredProvider=Core.Enums.ProviderType.AWSOASIS};
+                    if(detail) Corrupt(synchronous ? router.RouteRequest<IAvatarDetail>(selector):await router.RouteRequestAsync<IAvatarDetail>(selector));
+                    else Corrupt(synchronous ? router.RouteRequest<IAvatar>(selector):await router.RouteRequestAsync<IAvatar>(selector));
+                }
                 await Client.DeleteItemAsync(new Amazon.DynamoDBv2.Model.DeleteItemRequest {TableName=table,Key=Key(id)});
             }
             Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);

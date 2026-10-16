@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 AWS native45/45pass12s +Dynamo unit37/37pass340ms +SQLite/LocalFile/Core integrity28/28pass5s: malformed canonical JSON is typed InvalidDataException with original JsonException cause; point/selectors share identity decoder. Actual V2 malformed/wrong-ID profile/detail GUID/username/email cases preserve errors/no result/0secondary calls. Broader collection/holon corruption classes, history/recovery/live/hosted gates remain open.
+
 2026-10-16 AWS native43/43pass13s +4/4 focused Core predicate tests: V2 preserves direct/wrapped/aggregate InvalidDataException instead of masking corrupt primary with stale secondary; ordinary IOException failover retained. Real AWS corrupted profile/detail→SQLite tests syncasync prove no result/original cause/0secondary requests. Reproduced stale success before Core fix. Other corruption classes/provider matrix and release gates remain open; Core4f118259584b75cdf74377c1cf024510aa1697d6 pinned with gitlink.
 
 2026-10-16 AWS native43/43pass12s +unit37/37pass334ms: shared direct avatar/detail validator rejects native-key or canonical-ID mismatch before publishing result;8controlled regressions failed before fix and actual native mismatched rows rejected syncasync. V2 terminal-corruption classification remains unproven/open: current ShouldFailOver lacks a typed integrity exclusion. Do not claim stale-secondary corruption is fenced yet.
