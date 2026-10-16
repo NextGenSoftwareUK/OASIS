@@ -109,6 +109,39 @@ public class GoogleNativeDetailTests
             Assert.AreEqual(0,network.GetHolonsNearMe(-33001000,151000000,50,Core.Enums.HolonType.All).Result.Count());
             Assert.AreEqual(holonId,network.GetHolonsNearMe(-33001000,151000000,200,Core.Enums.HolonType.All).Result.Single().Id);
             Assert.AreEqual(0,network.GetHolonsNearMe(-33000000,151000000,100,otherType).Result.Count());
+            var priorCulture=System.Globalization.CultureInfo.CurrentCulture;
+            try
+            {
+                System.Globalization.CultureInfo.CurrentCulture=new System.Globalization.CultureInfo("fr-FR");
+                var nearbyProfile=network.GetAvatarsNearMe(-33000000,151000000,100);
+                Assert.IsFalse(nearbyProfile.IsError,nearbyProfile.Message);Assert.IsTrue(nearbyProfile.IsLoaded);
+                Assert.AreEqual("profile-value",nearbyProfile.Result.Single().MetaData["profile-field"]);
+                foreach(var record in new NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase[] {avatar,holon})
+                {
+                    var original=record.MetaData["Longitude"];
+                    record.MetaData.Remove("Longitude");
+                    if(record is NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar profile)
+                        Assert.IsFalse((await provider.SaveAvatarAsync(profile)).IsError);
+                    else Assert.IsFalse((await provider.SaveHolonAsync((NextGenSoftware.OASIS.API.Core.Interfaces.IHolon)record,saveChildren:false)).IsError);
+                    if(record is NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar)
+                    {
+                        var corrupt=network.GetAvatarsNearMe(-33000000,151000000,100);
+                        Assert.IsTrue(corrupt.IsError);Assert.IsNull(corrupt.Result);Assert.IsFalse(corrupt.IsLoaded);Assert.IsInstanceOfType(corrupt.Exception,typeof(System.IO.InvalidDataException));
+                    }
+                    else
+                    {
+                        var corrupt=network.GetHolonsNearMe(-33000000,151000000,100,Core.Enums.HolonType.All);
+                        Assert.IsTrue(corrupt.IsError);Assert.IsNull(corrupt.Result);Assert.IsFalse(corrupt.IsLoaded);Assert.IsInstanceOfType(corrupt.Exception,typeof(System.IO.InvalidDataException));
+                    }
+                    record.MetaData["Longitude"]=original;
+                    if(record is NextGenSoftware.OASIS.API.Core.Interfaces.IAvatar restored)
+                        Assert.IsFalse((await provider.SaveAvatarAsync(restored)).IsError);
+                    else Assert.IsFalse((await provider.SaveHolonAsync((NextGenSoftware.OASIS.API.Core.Interfaces.IHolon)record,saveChildren:false)).IsError);
+                }
+                Assert.IsFalse(network.GetAvatarsNearMe(-33000000,151000000,100).IsError);
+                Assert.IsFalse(network.GetHolonsNearMe(-33000000,151000000,100,Core.Enums.HolonType.All).IsError);
+            }
+            finally {System.Globalization.CultureInfo.CurrentCulture=priorCulture;}
             var child=new Holon {Id=childId,IsActive=true,Name="owned child",ParentHolonId=holonId};
             Assert.IsFalse((await provider.SaveHolonAsync(child,saveChildren:false)).IsError);
             var parentRows=await provider.LoadHolonsForParentAsync(holonId,loadChildrenFromProvider:true);
