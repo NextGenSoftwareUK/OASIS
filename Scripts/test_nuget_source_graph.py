@@ -1,10 +1,39 @@
 import unittest
 from pathlib import Path
 from unittest.mock import patch
-from nuget_source_graph import Graph, compare, resolve_baseline, load_receipts
+from nuget_source_graph import Graph, compare, resolve_baseline, load_receipts, compare_publication
 
 
 class SourceGraphTests(unittest.TestCase):
+    def test_standalone_receipt_requires_exact_catalog_identity(self):
+        receipt = {"kind": "standalone", "ownerCommit": "a" * 40,
+                   "ownerUrl": "https://github.com/owner/component", "dependencies": {}}
+        item = dict(root=str(Path.cwd()), packageId="Component", previousVersion="4.4.0",
+                    publishedRepository=dict(commit="a" * 40, url=receipt["ownerUrl"]))
+        receipts = {("component", "4.4.0"): receipt}
+        self.assertEqual(receipt, resolve_baseline(item, receipts))
+        item["publishedRepository"]["commit"] = "b" * 40
+        with self.assertRaisesRegex(ValueError, "contradicts standalone"):
+            resolve_baseline(item, receipts)
+
+    def test_standalone_comparison_keeps_dependency_and_parent_input_changes(self):
+        root = Path.cwd()
+        receipt = {"kind": "standalone", "ownerCommit": "a" * 40,
+                   "ownerUrl": "https://github.com/owner/component", "ownerParent": "holochain-client-csharp",
+                   "dependencies": {"holochain-client-csharp": {"url": "https://github.com/owner/component", "commit": "b" * 40}}, "run": 123}
+        item = dict(root=str(root), project="Child/X.csproj", current="new", packageId="Component", previousVersion="4.4.0",
+                    publishedRepository=dict(commit="a" * 40, url=receipt["ownerUrl"]))
+        def fingerprint(graph, project):
+            graph.inputs["dependency"] = "old" if graph.external_pins is not None else "new"
+            return graph.inputs["dependency"]
+        with patch.object(Graph, "location", return_value=(root / "Child", "new", "X.csproj")), \
+             patch.object(Graph, "identity", return_value=receipt["ownerUrl"]), \
+             patch.object(Graph, "git", return_value=receipt["ownerUrl"]), \
+             patch.object(Graph, "fingerprint", fingerprint):
+            result = compare_publication(item, {("component", "4.4.0"): receipt})
+        self.assertTrue(result["changed"])
+        self.assertEqual(["dependency"], result["changedInputs"])
+        self.assertEqual("standalone", result["baselineKind"])
     def comparison(self, old, new):
         def fake_git(root, command, *args):
             commit = args[0].split(":", 1)[0]
