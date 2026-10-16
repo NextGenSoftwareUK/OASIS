@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+Solana tracked quest IDs now persist: ActiveQuestId and ActiveObjectiveId added to encrypted detail DTO and both mappings. Actual serialized stored-reader path covers populated/null tracking (one populated regression failed before fix); full suite198/198 passes1s. No native chain/V2 routing certification implied. IAvatarDetail omits concrete AvatarDetail FirstName/LastName/Title/AvatarType, while older Solana DTO exposes them; profile-detail interface parity needs separate review, not provider-specific casts. Broader inherited fields/history/audit/recovery gates remain open.
+
 Solana malformed-origin gap closed at controlled boundaries: 34 regression cases red before fix, now full 196/196 unit suite green (1s, zero skips). Defined-or-null provider/OASIS origins enforced before direct repository signing-key/RPC access and API reference reads; corrupt stored origin rejected as storage data, not caller payload. Owned input errors are terminal payload errors; partial mutation evidence is preserved. Actual native finality/V2 routing, audit/history/DTO completeness and hosted/recovery gates are not proven by this suite. Continue the user-prioritized mainstream providers before smaller-chain gaps.
 
 Solana update-origin follow-up: existing avatar/detail/holon/bulk updates retain stored creation origin (including unknown/null), and only confirmed saves publish origin back to source/return objects. Forty new controlled provider-boundary cases pass within full unit162/162 (1s,zero skips). Actual native finality/routing, malformed optional origin and full audit/DTO/hosted/recovery gates remain open; no chain submission this turn.

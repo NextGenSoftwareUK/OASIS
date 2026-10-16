@@ -49,6 +49,8 @@ public static class OasisEntitiesExtensions
             XP = avatarDetail.XP,
             Karma = avatarDetail.Karma,
             Username = avatarDetail.Username,
+            ActiveQuestId = avatarDetail.ActiveQuestId,
+            ActiveObjectiveId = avatarDetail.ActiveObjectiveId,
             Email = avatarDetail.Email,
             UmaJson = avatarDetail.UmaJson,
             Portrait = avatarDetail.Portrait,
