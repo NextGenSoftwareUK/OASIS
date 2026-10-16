@@ -51,7 +51,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
                 var before=manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0;
                 var request=new StorageOperationRequest {Operation=operation=="graph" ? "SaveHolon":operation,
                     Payload=operation=="graph" ? good:new List<IHolon>{good,bad},SaveChildren=operation=="graph",ChildrenFromProvider=operation=="graph",PreferredProvider=ProviderType.MongoDBOASIS};
-                if(operation=="Import") AssertMongoBatchPayloadFailure(synchronous ? router.RouteRequest<bool>(request):await router.RouteRequestAsync<bool>(request));
+                if(operation=="Import") AssertMongoBatchPayloadFailure(synchronous ? router.RouteRequest<bool>(request):await router.RouteRequestAsync<bool>(request), canonicalPreflight:true);
                 else if(operation=="SaveHolons") AssertMongoBatchPayloadFailure(synchronous ? router.RouteRequest<IEnumerable<IHolon>>(request):await router.RouteRequestAsync<IEnumerable<IHolon>>(request), canonicalPreflight:true);
                 else AssertMongoBatchPayloadFailure(synchronous ? router.RouteRequest<IHolon>(request):await router.RouteRequestAsync<IHolon>(request), canonicalPreflight:true);
                 var stopped=await admin.RunCommandAsync<BsonDocument>(new BsonDocument {{"configureFailPoint","failCommand"},{"mode","off"}});
@@ -87,7 +87,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
     {
         result.IsError.Should().BeTrue();result.IsSaved.Should().BeFalse();result.ErrorCode.Should().Be("HYPERDRIVE_PAYLOAD_INVALID");
         // Graph snapshots now reject unsupported payloads before entering the BSON transaction boundary.
-        // Import still uses BSON preparation. Both must remain terminal and dispatch no native writes.
+        // Routed import now shares canonical staging; direct BSON preparation remains separately supported.
         if(canonicalPreflight) result.Exception.Should().BeOfType<Newtonsoft.Json.JsonSerializationException>();
         else
         {

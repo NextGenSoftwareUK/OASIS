@@ -84,6 +84,21 @@ public sealed class IPFSSqlitePolicyTests
             var nativeHolon=await ipfs.LoadHolonAsync(id,loadChildren:false);Assert.False(nativeHolon.IsError,nativeHolon.Message);Record(nativeHolon.Result);
             Assert.Equal(nativeHolon.Result.Name,(await sqlite.LoadHolonAsync(id,loadChildren:false)).Result.Name);
 
+            var importRoot=new Holon {Name="owned routed import root",IsActive=true};
+            var importChild=new Holon {Name="owned routed import child",IsActive=true};importRoot.Children.Add(importChild);
+            var imported=await Route<bool>(router,new StorageOperationRequest {Operation="Import",Payload=new IHolon[]{importRoot},PreferredProvider=primary});
+            Assert.False(imported.IsError,imported.Message);Assert.False(imported.IsWarning,imported.Message);Assert.True(imported.Result);
+            Assert.NotEqual(Guid.Empty,importRoot.Id);Assert.NotEqual(Guid.Empty,importChild.Id);Assert.Equal(importRoot.Id,importChild.ParentHolonId);
+            foreach(var item in new[]{importRoot,importChild})
+            {
+                var ipfsRow=await ipfs.LoadHolonAsync(item.Id,loadChildren:false);Assert.False(ipfsRow.IsError,ipfsRow.Message);Record(ipfsRow.Result);
+                var sqliteRow=await sqlite.LoadHolonAsync(item.Id,loadChildren:false);Assert.False(sqliteRow.IsError,sqliteRow.Message);
+                Assert.Equal(item.Name,ipfsRow.Result.Name);Assert.Equal(item.Name,sqliteRow.Result.Name);
+                Assert.Equal(item.ParentHolonId,ipfsRow.Result.ParentHolonId);Assert.Equal(item.ParentHolonId,sqliteRow.Result.ParentHolonId);
+            }
+            Assert.Equal(importChild.Id,Assert.Single((await ipfs.LoadHolonAsync(importRoot.Id,loadChildrenFromProvider:true)).Result.Children).Id);
+            Assert.Equal(importChild.Id,Assert.Single((await sqlite.LoadHolonAsync(importRoot.Id,loadChildrenFromProvider:true)).Result.Children).Id);
+
             var balancedManager=Manager(sqlite);balancedManager.IsAutoLoadBalanceEnabled=true;balancedManager.IsAutoReplicationEnabled=true;
             Assert.False(balancedManager.SetAndReplaceAutoLoadBalanceListForProviders(types).IsError);
             Assert.False(balancedManager.SetAndReplaceAutoReplicationListForProviders(types).IsError);
