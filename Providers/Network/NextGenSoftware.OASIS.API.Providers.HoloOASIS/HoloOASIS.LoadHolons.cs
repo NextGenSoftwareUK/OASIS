@@ -226,7 +226,110 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
             return result;
         } 
 
+        /// <summary>
+        /// Generates the hApp for a STAR celestial body from STAR's Holochain 0.7 templates (OASISDNA
+        /// HoloOASIS.RustDNAHolochain07TemplateFolder, filled by HolochainHappTemplateEngine): a complete Cargo workspace
+        /// (integrity + coordinator zomes with CRUD and collections for every holon, dna.yaml, happ.yaml, build.sh) plus the
+        /// matching HoloNET ORM C# models, written to {outputFolder}/Rust (models in Rust/CSharp).
+        /// nativeParams: JSON { "celestialBodyDNAFolder": "...", "holochainVersion": "0.7.1" | "0.7.0", "templateFolder": "..." }
+        /// (or just the folder); holochainVersion defaults to OASISDNA HoloOASIS.HolochainVersion, templateFolder to the configured one.
+        /// </summary>
         public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeParams)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(outputFolder))
+                    return false;
+
+                string celestialBodyDNAFolder = null, holochainVersion = null, templateFolder = null;
+                if (!string.IsNullOrEmpty(nativeParams))
+                {
+                    try
+                    {
+                        var paramsObj = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, string>>(nativeParams);
+                        paramsObj?.TryGetValue("celestialBodyDNAFolder", out celestialBodyDNAFolder);
+                        paramsObj?.TryGetValue("holochainVersion", out holochainVersion);
+                        paramsObj?.TryGetValue("templateFolder", out templateFolder);
+                    }
+                    catch
+                    {
+                        celestialBodyDNAFolder = nativeParams; // not JSON: the folder path itself
+                    }
+                }
+
+                string happName = string.IsNullOrWhiteSpace(celestialBody?.Name) ? "oapp" : celestialBody.Name;
+                NextGenSoftware.Holochain.HoloNET.ORM.Generation.HappSpec spec;
+
+                if (!string.IsNullOrEmpty(celestialBodyDNAFolder) && Directory.Exists(celestialBodyDNAFolder))
+                    spec = NextGenSoftware.Holochain.HoloNET.ORM.Generation.HolochainHappGenerator.FromStarDnaFolder(celestialBodyDNAFolder, happName);
+                else if (celestialBody?.CelestialBodyCore?.Zomes != null && celestialBody.CelestialBodyCore.Zomes.Count > 0)
+                    spec = HappSpecFromCelestialBody(celestialBody, happName);
+                else
+                    return false;
+
+                var holoSettings = _oasisDNA?.OASIS?.StorageProviders?.HoloOASIS;
+                if ((holochainVersion ?? holoSettings?.HolochainVersion) == "0.7.0")
+                    spec.HolochainVersion = NextGenSoftware.Holochain.HoloNET.ORM.Generation.HappHolochainVersion.V0_7_0;
+
+                if (spec.Zomes.Count == 0)
+                    return false;
+
+                // Was HoloNET ORM's HolochainHappGenerator.Generate (code, no templates); STAR generates from its own
+                // editable templates instead, so what it produces can be changed without recompiling.
+                //NextGenSoftware.Holochain.HoloNET.ORM.Generation.HolochainHappGenerator.Generate(spec, Path.Combine(outputFolder, "Rust"));
+                HolochainHappTemplateEngine.Generate(spec, templateFolder ?? Holochain07TemplateFolder(holoSettings), Path.Combine(outputFolder, "Rust"));
+                return true;
+            }
+            catch (Exception)
+            {
+                return false;
+            }
+        }
+
+        // STARBasePath + RustDNAHolochain07TemplateFolder; relative paths with no STARBasePath resolve next to the app
+        // (STAR copies DNATemplates to its output folder).
+        private static string Holochain07TemplateFolder(NextGenSoftware.OASIS.API.DNA.HoloOASISProviderSettings settings)
+        {
+            string folder = NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(settings?.RustDNAHolochain07TemplateFolder ?? "DNATemplates/RustDNATemplates/Holochain07");
+            string basePath = NextGenSoftware.Utilities.PathHelper.NormalizePathFromConfig(settings?.STARBasePath ?? "");
+            if (Path.IsPathRooted(folder))
+                return folder;
+            return Path.Combine(string.IsNullOrEmpty(basePath) ? AppContext.BaseDirectory : basePath, folder);
+        }
+
+        // The zomes and holons of an already-built celestial body (when there is no DNA folder): each holon's own
+        // (non-IHolonBase) properties become the entry's fields.
+        private static NextGenSoftware.Holochain.HoloNET.ORM.Generation.HappSpec HappSpecFromCelestialBody(ICelestialBody celestialBody, string happName)
+        {
+            var spec = new NextGenSoftware.Holochain.HoloNET.ORM.Generation.HappSpec { Name = happName, CSharpNamespace = NextGenSoftware.Holochain.HoloNET.ORM.Generation.HolochainHappGenerator.Pascal(happName) };
+            var basePropertyNames = typeof(NextGenSoftware.OASIS.API.Core.Interfaces.IHolonBase).GetProperties().Select(p => p.Name).ToHashSet();
+            var supported = new HashSet<Type> { typeof(string), typeof(int), typeof(long), typeof(bool), typeof(double), typeof(float), typeof(Guid), typeof(DateTime) };
+
+            foreach (IZome zome in celestialBody.CelestialBodyCore.Zomes)
+            {
+                var zomeSpec = new NextGenSoftware.Holochain.HoloNET.ORM.Generation.HappZomeSpec { Name = string.IsNullOrWhiteSpace(zome.Name) ? "zome" : zome.Name };
+                foreach (IHolon holon in zome.LoadChildHolons()?.Result ?? Enumerable.Empty<IHolon>())
+                {
+                    var entry = new NextGenSoftware.Holochain.HoloNET.ORM.Generation.HappEntrySpec { Name = string.IsNullOrWhiteSpace(holon.Name) ? "Holon" : holon.Name };
+                    foreach (var prop in holon.GetType().GetProperties().Where(p => p.CanRead && !basePropertyNames.Contains(p.Name)))
+                    {
+                        Type t = Nullable.GetUnderlyingType(prop.PropertyType) ?? prop.PropertyType;
+                        if (supported.Contains(t))
+                            entry.Fields.Add(new NextGenSoftware.Holochain.HoloNET.ORM.Generation.HappFieldSpec(prop.Name, t.Name));
+                    }
+                    zomeSpec.Entries.Add(entry);
+                }
+                if (zomeSpec.Entries.Count > 0)
+                    spec.Zomes.Add(zomeSpec);
+            }
+
+            return spec;
+        }
+
+        // LEGACY, unused: the previous generator. Its templates (DNATemplates/RustDNATemplates/RSM) are written for the
+        // pre-RSM hdk 0.0.50 (#[zome] modules, hdk::commit_entry, ZomeApiResult), so what it generated could not compile
+        // against Holochain 0.7. Kept for reference; NativeCodeGenesis now uses HoloNET ORM's HolochainHappGenerator.
+        private bool NativeCodeGenesisLegacyHdk0050(ICelestialBody celestialBody, string outputFolder, string nativeParams)
         {
             try
             {

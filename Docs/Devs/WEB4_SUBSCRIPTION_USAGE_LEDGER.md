@@ -6,6 +6,12 @@ Code lives in ONODE WebAPI `Services/Subscription`, `Services/SubscriptionReconc
 
 ## Sequence and durable boundaries
 
+### Which requests enter this sequence
+
+Ordinary REST reads (GET/HEAD/OPTIONS) do not reserve or settle subscription usage and must remain available when the usage authority or outbox is unavailable. Authentication and endpoint authorization still apply. This includes WEB5 quest, GeoHotSpot and GeoNFT reads. STAR ignite/extinguish lifecycle POSTs are also outside the usage ledger.
+
+WEB6 checks provider metadata before applying the read exemption: explicitly metered provider GETs still reserve and settle. GraphQL, MCP and gRPC are classified by their operation-aware policies rather than by HTTP verb, because a GET transport can execute provider work. Metered writes and provider executions remain fail-closed; an authority or settlement failure cannot silently turn into successful unaccounted work.
+
 ```mermaid
 sequenceDiagram
     actor User

@@ -147,6 +147,10 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string RustTemplateInt { get; set; } = "types/int.rs"; // relative to RustDNARSMTemplateFolder above.
         public string RustTemplateString { get; set; } = "types/string.rs"; // relative to RustDNARSMTemplateFolder above.
         public string RustTemplateBool { get; set; } = "types/bool.rs"; // relative to RustDNARSMTemplateFolder above.
+
+        // Holochain 0.7.0 / 0.7.1 hApp templates (what STAR generates hApps from now; the RSM templates above are for the old hdk 0.0.50).
+        public string RustDNAHolochain07TemplateFolder { get; set; } = "DNATemplates/RustDNATemplates/Holochain07"; // relative to STARBasePath; see its README.txt for the placeholders.
+        public string HolochainVersion { get; set; } = "0.7.1"; // Holochain version generated hApps target: "0.7.1" or "0.7.0".
     }
 
     public class MongoDBOASISProviderSettings : ProviderSettingsBase
