@@ -163,9 +163,11 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     }
                     bool Contains(string value, ISearchTextGroup group) =>
                         (value ?? string.Empty).Contains(group.SearchQuery ?? string.Empty, StringComparison.OrdinalIgnoreCase);
+                    bool ExtendedMask(object mask,params string[] nativeFields)=>mask!=null && mask.GetType().GetProperties().Any(property=>
+                        property.PropertyType==typeof(bool) && (bool)property.GetValue(mask) && !nativeFields.Contains(property.Name));
                     bool MatchesIdentityAndMetadata(IHolonBase value, ISearchTextGroup group, bool providerKeys, bool metadata, string metadataKey)
                     {
-                        if (group.SearchIds && Contains(value.Id.ToString(), group)) return true;
+                        if (group.SearchIds && NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesTextIds(value,group.SearchQuery)) return true;
                         if ((group.SearchProviderKeys || providerKeys) && value.ProviderUniqueStorageKey != null &&
                             value.ProviderUniqueStorageKey.Values.Any(key => Contains(key, group))) return true;
                         if (!metadata || value.MetaData == null) return false;
@@ -238,6 +240,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                         }
                         holons.AddRange(candidates.Where(h => MatchesGroups(group =>
                             (group.HolonType == HolonType.All || group.HolonType == h.HolonType) && (group switch {
+                            ISearchNumberGroup number when ExtendedMask(number.HolonSearchParams,"Version")=>number.SearchHolons &&
+                                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesSelectedFields(h,false,number),
+                            ISearchDateGroup date when ExtendedMask(date.HolonSearchParams,"CreatedDate","ModifiedDate","DeletedDate")=>date.SearchHolons &&
+                                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesSelectedFields(h,false,date),
+                            ISearchTextGroup text when ExtendedMask(text.HolonSearchParams,"Name","Description")=>(!text.SearchAvatars||text.SearchHolons) &&
+                                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesSelectedFields(h,false,text),
                             ISearchNumberGroup number => number.SearchHolons && (number.HolonSearchParams?.Version ?? true) && Compare(h.Version, number),
                             ISearchDateGroup date => date.SearchHolons && (
                                 (date.HolonSearchParams?.CreatedDate ?? true) && CompareDate(h.CreatedDate, date) ||
@@ -263,6 +271,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
                     if (!avatarLoad.IsError && avatarLoad.Result != null)
                     {
                         avatars.AddRange(avatarLoad.Result.Where(a => (avatarParentScope==null || avatarParentScope.Contains(a.ParentHolonId)) && MatchesGroups(group => group switch {
+                            ISearchNumberGroup number when ExtendedMask(number.AvatarSearchParams,"Version")=>number.SearchAvatars &&
+                                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesSelectedFields(a,true,number),
+                            ISearchDateGroup date when ExtendedMask(date.AvatarSearchParams,"CreatedDate","ModifiedDate","DeletedDate")=>date.SearchAvatars &&
+                                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesSelectedFields(a,true,date),
+                            ISearchTextGroup text when ExtendedMask(text.AvatarSearchParams,"Username","Email","FirstName","LastName","Title")=>(!text.SearchHolons||text.SearchAvatars) &&
+                                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordSearch.MatchesSelectedFields(a,true,text),
                             ISearchNumberGroup number => number.SearchAvatars && (number.AvatarSearchParams?.Version ?? true) && Compare(a.Version, number),
                             ISearchDateGroup date => date.SearchAvatars && (
                                 (date.AvatarSearchParams?.CreatedDate ?? true) && CompareDate(a.CreatedDate, date) ||

@@ -67,7 +67,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 if(match)
                 {
                     object selection=avatar ? group.AvatarSearchParams : group.HolonSearchParams;
-                    var json=JObject.FromObject(record);
+                    var json=SearchDocument(record);
                     RemoveSearchCredentials(json);
                     var flags=selection?.GetType().GetProperties().Where(p=>p.PropertyType == typeof(bool) && (bool)p.GetValue(selection)).Select(p=>p.Name).ToList();
                     if(flags?.Contains("SearchAllFields") == true)
@@ -124,11 +124,26 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
             return Matches(record,avatar,query,Enumerable.Empty<IHolon>());
         }
 
+        // Field-only adapter: the caller owns target/type/group combination and scope.
+        // Bind the single-group envelope to this record without changing its searchable values.
+        public static bool MatchesSelectedFields(IHolonBase record,bool avatar,ISearchGroupBase group)
+        {
+            ArgumentNullException.ThrowIfNull(record);ArgumentNullException.ThrowIfNull(group);
+            ISearchGroupBase selection=group switch {
+                ISearchTextGroup text=>new SearchTextGroup {SearchQuery=text.SearchQuery,SearchIds=text.SearchIds,SearchProviderKeys=text.SearchProviderKeys},
+                ISearchNumberGroup number=>new SearchNumberGroup {Number=number.Number,NumberOperator=number.NumberOperator},
+                ISearchDateGroup date=>new SearchDateGroup {Date=date.Date,DateOperator=date.DateOperator},
+                _=>throw new NotSupportedException("Unknown stored-record search group type.")};
+            selection.HolonType=record.HolonType;selection.SearchAvatars=avatar;selection.SearchHolons=!avatar;
+            selection.HolonSearchParams=group.HolonSearchParams;selection.AvatarSearchParams=group.AvatarSearchParams;
+            return MatchesSearchFields(record,avatar,selection);
+        }
+
         public static bool MatchesTextIdentifiers(IHolonBase record,string query,bool searchIds,bool searchProviderKeys)
         {
             ArgumentNullException.ThrowIfNull(record);
             ArgumentException.ThrowIfNullOrWhiteSpace(query);
-            var json=JObject.FromObject(record);
+            var json=SearchDocument(record);
             RemoveSearchCredentials(json);
             return searchIds && MatchesTextIds(json,query)
                 || searchProviderKeys && SearchValues(json["ProviderUniqueStorageKey"]).Any(value=>value.ToString().Contains(query,StringComparison.OrdinalIgnoreCase));
@@ -137,6 +152,26 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         private static bool MatchesTextIds(JObject json,string query)
             => json.Descendants().OfType<JValue>().Any(value=>Guid.TryParse(value.ToString(),out _)
                 && value.ToString().Contains(query,StringComparison.OrdinalIgnoreCase));
+
+        private static JObject SearchDocument(IHolonBase record)
+            => JObject.FromObject(record,Newtonsoft.Json.JsonSerializer.Create(new Newtonsoft.Json.JsonSerializerSettings {
+                Converters={new SearchJsonElementConverter()}}));
+
+        // Project JSON-backed metadata as JSON values, not JsonElement.ValueKind descriptors.
+        // Do not infer DateTime from strings: only actual typed CLR dates are date candidates.
+        private sealed class SearchJsonElementConverter : Newtonsoft.Json.JsonConverter
+        {
+            public override bool CanConvert(Type type)=>type==typeof(System.Text.Json.JsonElement);
+            public override bool CanRead=>false;
+            public override void WriteJson(Newtonsoft.Json.JsonWriter writer,object value,Newtonsoft.Json.JsonSerializer serializer)
+            {
+                using var reader=new Newtonsoft.Json.JsonTextReader(new System.IO.StringReader(((System.Text.Json.JsonElement)value).GetRawText())) {
+                    DateParseHandling=Newtonsoft.Json.DateParseHandling.None};
+                writer.WriteToken(reader);
+            }
+            public override object ReadJson(Newtonsoft.Json.JsonReader reader,Type type,object existing,Newtonsoft.Json.JsonSerializer serializer)
+                =>throw new NotSupportedException("Search JSON projection is write-only.");
+        }
 
         private static IEnumerable<JValue> SearchValues(JToken token)
             => token is JValue value ? new[] {value} : token is JContainer container ? container.Descendants().OfType<JValue>() : Enumerable.Empty<JValue>();
