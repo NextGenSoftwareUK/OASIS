@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Shared paired soft-delete delta: existing paired detail now receives same inactive/deleted timestamp as avatar; absent detail not created, payload retained, failed detail put retains profile acknowledgement/reconciliation marker. Four red-before/green-after cases; Shared245/245pass1s/local routing102/102pass11s. Not atomic two-record delete/native SDK failure/durable recovery/hosted certification.
+
 Shared save identity delta: existing current-ID/key validator now runs before avatar/detail/holon version/archive/write processing, regardless of history mode. Six new red-before/green-after cases with unchanged caller/backend; Shared241/241pass1s/refreshed local routing102/102pass10s. No atomic concurrency/native SDK corruption/durable/hosted certification.
 
 Shared delete ID binding delta: GUID avatar/holon deletion now invokes existing current record-ID/key validator before mutations; four corrected canonical-fixture regressions red-before/green-after, Shared235/235pass1s. No new native/V2/atomic/save-path certification.

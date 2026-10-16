@@ -12,6 +12,25 @@ public class DeleteAcknowledgementTests
 {
     [DataTestMethod]
     [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public async Task AvatarSoftDeleteIncludesPairedDetailAndFencesPartialFailure(bool synchronous,bool failDetail)
+    {
+        var backend=new InMemoryBackend();var provider=new TestProvider(backend);var id=Guid.NewGuid();
+        Assert.IsFalse((await provider.SaveAvatarAsync(new Avatar {Id=id,Username="paired",IsActive=true})).IsError);
+        Assert.IsFalse((await provider.SaveAvatarDetailAsync(new AvatarDetail {Id=id,IsActive=true,XP=123})).IsError);
+        if(failDetail)backend.FailPutKey="oasis/avatardetail/"+id.ToString("N");
+        var deleted=synchronous ? provider.DeleteAvatar(id,true):await provider.DeleteAvatarAsync(id,true);
+        var avatar=(await provider.LoadAvatarAsync(id)).Result;var detail=(await provider.LoadAvatarDetailAsync(id)).Result;
+        Assert.IsFalse(avatar.IsActive);Assert.AreNotEqual(default,avatar.DeletedDate);Assert.AreEqual(123L,detail.XP);
+        if(failDetail)
+        {
+            Assert.IsTrue(deleted.IsError);Assert.IsFalse(deleted.IsDeleted);Assert.IsTrue(detail.IsActive);
+            Assert.IsTrue(NativeMutationReconciliation.IsRequired(deleted.Exception));var partial=(KeyValuePartialMutationException)deleted.Exception;
+            CollectionAssert.AreEqual(new[] {"oasis/avatar/"+id.ToString("N")},partial.AcknowledgedKeys.ToArray());
+        }
+        else {Assert.IsFalse(deleted.IsError,deleted.Message);Assert.IsTrue(deleted.IsDeleted);Assert.IsFalse(detail.IsActive);Assert.AreEqual(avatar.DeletedDate,detail.DeletedDate);}
+    }
+    [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
     public async Task MiskeyedRootDeleteCannotRemoveForeignIndexesOrLinks(bool synchronous,bool avatar)
     {
         var backend=new InMemoryBackend();var provider=new TestProvider(backend);var id=Guid.NewGuid();
