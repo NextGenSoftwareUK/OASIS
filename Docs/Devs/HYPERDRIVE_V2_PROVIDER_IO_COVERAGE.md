@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+2026-10-16 AWS native43/43pass12s +unit37/37pass334ms: shared direct avatar/detail validator rejects native-key or canonical-ID mismatch before publishing result;8controlled regressions failed before fix and actual native mismatched rows rejected syncasync. V2 terminal-corruption classification remains unproven/open: current ShouldFailOver lacks a typed integrity exclusion. Do not claim stale-secondary corruption is fenced yet.
+
 2026-10-16 AWS native41/41pass12s +unit29/29pass314ms: identity selectors use one paginated strongly consistent BASE-table scan (no GSI), preserve ambiguity/identity validation, and mark RecordNotFound. Actual V2 four selectors×syncasync refuse stale SQLite identity results with0secondary requests. Initial failure was IsError fixture assumption; existing V2 normalized absence contract inspected and exact synthetic read-only fixture reconciled before cleanup. Strong item reads are NOT scan snapshot isolation/transactional uniqueness; scale-efficient identity lookup/concurrency/history/recovery/live/hosted remain open.
 
 2026-10-16 Dynamo unit29/29pass312ms: all9avatar/detail read forms reject unsupported explicit historical/negative versions before SDK I/O, syncasync; previously ignored version and invoked latest SDK read (4new cases failed). Shared holon validation reused. Truthful rejection ONLY; actual historical archive/query/V2 support remains OPEN, not replaced by this guard.
