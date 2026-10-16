@@ -41,17 +41,17 @@ public class Web3NftTokenIdTests
     }
 
     [TestMethod]
-    public async Task NullAndFractionalRequestsCannotThrowOrSilentlyTruncate()
+    public async Task NullAndNonUnitQuantitiesCannotThrowOrMisrepresentErc721Transfers()
     {
         var provider = new PolygonProvider("http://127.0.0.1:18546", "", "0x0000000000000000000000000000000000000000");
         var missing = await provider.SendNFTAsync(null!);
         Assert.IsTrue(missing.IsError);
         Assert.AreEqual("NFT transfer request is required.", missing.Message);
-        foreach (var amount in new[] { -1m, 0m, 0.5m, 1.5m })
+        foreach (var amount in new[] { -1m, 0m, 0.5m, 1.5m, 2m, decimal.MaxValue })
         {
             var result = await provider.SendNFTAsync(new SendWeb3NFTRequest { TokenId = "1", Amount = amount });
             Assert.IsTrue(result.IsError);
-            Assert.AreEqual("NFT transfer amount must be a positive whole number.", result.Message);
+            Assert.AreEqual("ERC-721 transfer amount must equal one.", result.Message);
             Assert.IsNull(result.Result);
         }
     }
