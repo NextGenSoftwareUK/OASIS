@@ -12,6 +12,31 @@ public partial class SQLLiteDBOASISIntegrationTests
 {
     [Theory]
     [InlineData(false)] [InlineData(true)]
+    public async Task ParentSearchRejectsReachableCycleInsteadOfReturningPartialMatches(bool synchronous)
+    {
+        using var provider=new SQLLiteDBOASIS(TestConnectionString);
+        (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var text="owned-parent-cycle-"+Guid.NewGuid().ToString("N");
+        var parent=new Holon {Id=Guid.NewGuid(),Name=text,Version=1};
+        var child=new Holon {Id=Guid.NewGuid(),Name=text,ParentHolonId=parent.Id,Version=3};
+        foreach(var record in new[] {parent,child}) (await provider.SaveHolonAsync(record,saveChildren:false)).IsError.Should().BeFalse();
+        using(var control=new Persistence.Context.DataContext(TestConnectionString))
+        {
+            control.Holons.Single(row=>row.Id==parent.Id.ToString()).ParentHolonId=child.Id.ToString();
+            await control.SaveChangesAsync();
+        }
+        foreach(var version in new[] {0,3})
+        {
+            var query=new SearchParams {SearchOnlyForCurrentAvatar=false,ParentId=parent.Id,Recursive=true,SearchGroups=new() {
+                new SearchTextGroup {SearchQuery=text,SearchHolons=true,HolonType=HolonType.All,HolonSearchParams=new SearchHolonParams {Name=true}}}};
+            var result=synchronous ? provider.Search(query,loadChildren:false,version:version):await provider.SearchAsync(query,loadChildren:false,version:version);
+            result.IsError.Should().BeTrue();result.Exception.Should().BeOfType<System.IO.InvalidDataException>();
+            result.Result.Should().BeNull();result.IsLoaded.Should().BeFalse();
+        }
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
     public async Task LegacyAvatarSchemaAddsParentLinkAndPreservesItAcrossReopen(bool synchronous)
     {
         var id=Guid.NewGuid();var parent=Guid.NewGuid();
