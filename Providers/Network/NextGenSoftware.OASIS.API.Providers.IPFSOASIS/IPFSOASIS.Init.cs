@@ -40,9 +40,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
             try
             {
-                IPFSClient = new IpfsClient(_OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
+                _ipfsClient = new IpfsClient(_OASISDNA.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
                 using CancellationTokenSource timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-                Dictionary<string, string> version = await IPFSClient.VersionAsync(timeout.Token);
+                Dictionary<string, string> version = await _ipfsClient.VersionAsync(timeout.Token);
 
                 if (version == null || version.Count == 0)
                     throw new InvalidOperationException("The IPFS daemon returned an empty version response.");
@@ -55,9 +55,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 IsProviderActivated = false;
 
                 if (IPFSClient != null)
-                    await IPFSClient.ShutdownAsync();
+                    await _ipfsClient.ShutdownAsync();
 
-                IPFSClient = null;
+                _ipfsClient = null;
                 OASISErrorHandling.HandleError(ref result, $"Error Occured In IPFSOASIS Provider In ActivateProviderAsync Method. Reason: {e}");
             }
 
@@ -70,8 +70,8 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
             try
             {
-                IPFSClient.ShutdownAsync().GetAwaiter().GetResult();
-                IPFSClient = null;
+                _ipfsClient.ShutdownAsync().GetAwaiter().GetResult();
+                _ipfsClient = null;
                 result.Result = true;
                 IsProviderActivated = false;
             }
@@ -90,9 +90,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             try
             {
                 if (IPFSClient != null)
-                    await IPFSClient.ShutdownAsync();
+                    await _ipfsClient.ShutdownAsync();
 
-                IPFSClient = null;
+                _ipfsClient = null;
                 result.Result = true;
                 IsProviderActivated = false;
             }

@@ -15,7 +15,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness
     {
         private static readonly BigInteger _chainId = 421614;
         private const string _chainUrl = "https://sepolia-rollup.arbitrum.io/rpc";
-        private const string _chainPrivateKey = "d3c80ec102d5fe42beadcb7346f74df529a0a10a1906f6ecc5fe3770eb65fb1a";
+        // Was a private key committed in source. Supply your own testnet key in OASIS_TEST_CHAIN_PRIVATE_KEY.
+        private static readonly string _chainPrivateKey = System.Environment.GetEnvironmentVariable("OASIS_TEST_CHAIN_PRIVATE_KEY") ?? "";
         private const string _contractAddress = "0x299440d24Cd0e8Ca6425ae92cE66032E58B8c436";
         private const string _accountAddress = "0x604b88BECeD9d6a02113fE1A0129f67fbD565D38";
 

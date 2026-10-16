@@ -195,7 +195,15 @@ def load_receipts(root):
 def compare_publication(item, receipts):
     baseline = resolve_baseline(item, receipts)
     if not isinstance(baseline, dict):
-        return compare(item["root"], baseline, item["current"], item["project"])
+        result = compare(item["root"], baseline, item["current"], item["project"])
+        receipt = receipts.get((item["packageId"].lower(), item["previousVersion"]), {})
+        if receipt.get("packagingProfile"):
+            # Selected-package publication injects version targets unlike global
+            # packing. Preserve that genuine input difference, not just Git trees.
+            result["baselineFingerprint"] = hashlib.sha256((result["baselineFingerprint"] + json.dumps(receipt["packagingProfile"], sort_keys=True)).encode()).hexdigest()
+            result["changed"] = True
+            result["changedInputs"].append("publication:packagingProfile")
+        return result
     root = Path(item["root"]).resolve()
     current = Graph(root, item["current"], canonical=True)
     owner_root, _, owner_project = current.location(root / item["project"])
