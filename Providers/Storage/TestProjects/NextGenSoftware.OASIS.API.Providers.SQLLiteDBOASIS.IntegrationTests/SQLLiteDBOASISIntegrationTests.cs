@@ -871,7 +871,7 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
         activated.IsError.Should().BeTrue();
         activated.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
         provider.IsProviderActivated.Should().BeFalse();
-        var searched = await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams());
+        var searched = await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams {SearchOnlyForCurrentAvatar=false});
         searched.IsError.Should().BeTrue();
         searched.Exception.Should().BeOfType<Microsoft.Data.Sqlite.SqliteException>();
         var imported = asynchronous ? await provider.ImportAsync(Array.Empty<IHolon>()) : provider.Import(Array.Empty<IHolon>());
@@ -1521,6 +1521,7 @@ public partial class SQLLiteDBOASISIntegrationTests : IDisposable
         (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
         using(var control=new DataContext(TestConnectionString))control.Database.ExecuteSqlRaw("DROP TABLE "+table+";");
         var result=await provider.SearchAsync(new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchParams{
+            SearchOnlyForCurrentAvatar=false,
             SearchGroups=new(){new NextGenSoftware.OASIS.API.Core.Objects.Search.SearchTextGroup{SearchQuery="owned-test"}}});
         result.IsError.Should().BeTrue();result.Result.Should().BeNull();
         result.Message.Should().Contain("search failed");
