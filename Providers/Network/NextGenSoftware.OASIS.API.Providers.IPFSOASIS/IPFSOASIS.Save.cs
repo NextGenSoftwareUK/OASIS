@@ -160,14 +160,22 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
-            return SaveHolonAsync(holon, saveChildren).Result;
+            return SaveHolonAsync(holon, saveChildren,recursive,maxChildDepth,continueOnError,saveChildrenOnProvider).GetAwaiter().GetResult();
         }
 
         public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
             OASISResult<IHolon> res = new OASISResult<IHolon>();
 
-            res.Result = await SaveHolonToFile(holon);
+            try
+            {
+                res.Result = await SaveHolonToFile(holon);
+                res.IsSaved = res.Result != null;
+            }
+            catch(Exception cause)
+            {
+                OASISErrorHandling.HandleError(ref res,"IPFS holon save failed: "+cause.Message,cause);
+            }
             return res;
         }
 
