@@ -39,17 +39,11 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     foreach (var record in records)
                     {
                         var node = record["a"].As<Neo4j.Driver.INode>();
-                        avatars.Add(new Avatar
-                        {
-                            Id = Guid.Parse(node["Id"].As<string>()),
-                            Username = node["Username"].As<string>(),
-                            Email = node["Email"].As<string>(),
-                            CreatedDate = node["CreatedDate"].As<DateTime>(),
-                            ModifiedDate = node["ModifiedDate"].As<DateTime>()
-                        });
+                        avatars.Add(ReadAvatarNode(node));
                     }
                     
                     response.Result = avatars;
+                    response.IsLoaded = true;
                     response.IsError = false;
                     response.Message = "All avatars loaded successfully from Neo4j";
                 }
@@ -90,14 +84,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     if (record != null)
                     {
                         var node = record["a"].As<Neo4j.Driver.INode>();
-                        response.Result = new Avatar
-                        {
-                            Id = Guid.Parse(node["Id"].As<string>()),
-                            Username = node["Username"].As<string>(),
-                            Email = node["Email"].As<string>(),
-                            CreatedDate = node["CreatedDate"].As<DateTime>(),
-                            ModifiedDate = node["ModifiedDate"].As<DateTime>()
-                        };
+                        response.Result = ReadAvatarNode(node);
+                        response.IsLoaded = true;
                         response.IsError = false;
                         response.Message = "Avatar loaded successfully from Neo4j";
                     }
@@ -143,14 +131,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     if (record != null)
                     {
                         var node = record["a"].As<Neo4j.Driver.INode>();
-                        response.Result = new Avatar
-                        {
-                            Id = Guid.Parse(node["Id"].As<string>()),
-                            Username = node["Username"].As<string>(),
-                            Email = node["Email"].As<string>(),
-                            CreatedDate = node["CreatedDate"].As<DateTime>(),
-                            ModifiedDate = node["ModifiedDate"].As<DateTime>()
-                        };
+                        response.Result = ReadAvatarNode(node);
+                        response.IsLoaded = true;
                         response.IsError = false;
                         response.Message = "Avatar loaded successfully from Neo4j by provider key";
                     }
@@ -196,14 +178,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     if (record != null)
                     {
                         var node = record["a"].As<Neo4j.Driver.INode>();
-                        response.Result = new Avatar
-                        {
-                            Id = Guid.Parse(node["Id"].As<string>()),
-                            Username = node["Username"].As<string>(),
-                            Email = node["Email"].As<string>(),
-                            CreatedDate = node["CreatedDate"].As<DateTime>(),
-                            ModifiedDate = node["ModifiedDate"].As<DateTime>()
-                        };
+                        response.Result = ReadAvatarNode(node);
+                        response.IsLoaded = true;
                         response.IsError = false;
                         response.Message = "Avatar loaded successfully from Neo4j by username";
                     }
@@ -249,14 +225,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
                     if (record != null)
                     {
                         var node = record["a"].As<Neo4j.Driver.INode>();
-                        response.Result = new Avatar
-                        {
-                            Id = Guid.Parse(node["Id"].As<string>()),
-                            Username = node["Username"].As<string>(),
-                            Email = node["Email"].As<string>(),
-                            CreatedDate = node["CreatedDate"].As<DateTime>(),
-                            ModifiedDate = node["ModifiedDate"].As<DateTime>()
-                        };
+                        response.Result = ReadAvatarNode(node);
+                        response.IsLoaded = true;
                         response.IsError = false;
                         response.Message = "Avatar loaded successfully from Neo4j by email";
                     }
