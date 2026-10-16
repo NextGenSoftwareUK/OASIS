@@ -12,6 +12,64 @@ public partial class AWSOASISIntegrationTests
     [DataTestMethod]
     [DataRow(false,false,false)] [DataRow(true,false,false)] [DataRow(false,true,false)] [DataRow(true,true,false)]
     [DataRow(false,false,true)] [DataRow(true,false,true)] [DataRow(false,true,true)] [DataRow(true,true,true)]
+    public async Task V2IdentityProjectionCorruptionDoesNotReadStaleSecondary(bool synchronous,bool detail,bool wrongEmail)
+    {
+        var path=Path.GetFullPath("TestResults/AWSRoutingFiles/delete-routing.db");
+        if(File.Exists(path)) Assert.Fail("Retained routing evidence exists; refusing overwrite.");
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        var sqlite=new NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS($"Data Source={path};Pooling=False");
+        var id=Guid.NewGuid();var table=detail ? "OasisAvatarDetails":"OasisAvatars";
+        var username="owned-canonical-"+id.ToString("N");var email=username+"@example.invalid";
+        var json=detail ? OasisJson.Serialize(new AvatarDetail {Id=id,Username=username,Email=email,IsActive=true,XP=777})
+            :OasisJson.Serialize(new Avatar {Id=id,Username=username,Email=email,IsActive=true});
+        var acknowledged=false;var verified=false;
+        try
+        {
+            Assert.IsFalse((await sqlite.ActivateProviderAsync()).IsError);
+            if(detail) Assert.IsFalse((await sqlite.SaveAvatarDetailAsync(new AvatarDetail {Id=id,Username=username,Email=email,XP=999,IsActive=true})).IsError);
+            else Assert.IsFalse((await sqlite.SaveAvatarAsync(new Avatar {Id=id,Username=username,Email=email,FirstName="owned-stale",IsActive=true,
+                AvatarType=new NextGenSoftware.Utilities.EnumValue<Core.Enums.AvatarType>(Core.Enums.AvatarType.User)})).IsError);
+            var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {
+                HyperDriveMode=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2,StorageProviders=new(),SubscriptionConfig=new() {PlanType="Gold"}}};
+            var manager=new Core.Managers.ProviderManager(null,dna) {IsAutoFailOverEnabled=true};
+            manager.RegisterProvider(_provider);manager.RegisterProvider(sqlite);
+            Assert.IsFalse(manager.SetAndReplaceAutoFailOverListForProviders(new[] {
+                new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.AWSOASIS),
+                new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.SQLLiteDBOASIS)}).IsError);
+            var router=new Core.Managers.OASISHyperDrive.OASISHyperDrive(manager);
+            var nativeUsername=wrongEmail ? username:"owned-wrong";var nativeEmail=wrongEmail ? "wrong@example.invalid":email;
+            Assert.AreEqual(System.Net.HttpStatusCode.OK,(await Client.PutItemAsync(new PutItemRequest {TableName=table,Item=new() {
+                ["id"]=new() {S=id.ToString()},["username"]=new() {S=nativeUsername},["email"]=new() {S=nativeEmail},["data_json"]=new() {S=json}}})).HttpStatusCode);acknowledged=true;
+            void Corrupt<T>(OASISResult<T> r) {Assert.IsTrue(r.IsError);Assert.IsNull(r.Result);Assert.IsFalse(r.IsLoaded);Assert.IsInstanceOfType(r.Exception,typeof(InvalidDataException));}
+            var before=manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0;
+            var operations=detail ? new[] {"LoadAvatarDetail","LoadAllAvatarDetails","LoadAvatarDetailByUsername","LoadAvatarDetailByEmail"}
+                :new[] {"LoadAvatar","LoadAllAvatars","LoadAvatarByUsername","LoadAvatarByEmail"};
+            foreach(var operation in operations)
+            {
+                var request=new Core.StorageOperationRequest {Operation=operation,AvatarId=id,Username=username,Email=email,PreferredProvider=Core.Enums.ProviderType.AWSOASIS};
+                if(detail) {if(operation=="LoadAllAvatarDetails") Corrupt(synchronous ? router.RouteRequest<IEnumerable<IAvatarDetail>>(request):await router.RouteRequestAsync<IEnumerable<IAvatarDetail>>(request));
+                    else Corrupt(synchronous ? router.RouteRequest<IAvatarDetail>(request):await router.RouteRequestAsync<IAvatarDetail>(request));}
+                else {if(operation=="LoadAllAvatars") Corrupt(synchronous ? router.RouteRequest<IEnumerable<IAvatar>>(request):await router.RouteRequestAsync<IEnumerable<IAvatar>>(request));
+                    else Corrupt(synchronous ? router.RouteRequest<IAvatar>(request):await router.RouteRequestAsync<IAvatar>(request));}
+            }
+            Assert.AreEqual(before,manager.PerformanceMonitor.GetMetrics(Core.Enums.ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0);
+            var raw=(await Client.GetItemAsync(new GetItemRequest {TableName=table,Key=Key(id),ConsistentRead=true})).Item;
+            Assert.AreEqual(json,raw["data_json"].S);Assert.AreEqual(nativeUsername,raw["username"].S);Assert.AreEqual(nativeEmail,raw["email"].S);
+            if(detail) Assert.AreEqual(999L,(await sqlite.LoadAvatarDetailAsync(id)).Result.XP);
+            else Assert.AreEqual("owned-stale",(await sqlite.LoadAvatarAsync(id)).Result.FirstName);
+            verified=true;
+        }
+        finally
+        {
+            if(acknowledged) await Client.DeleteItemAsync(new DeleteItemRequest {TableName=table,Key=Key(id)});
+            await sqlite.DeActivateProviderAsync();
+            if(verified) foreach(var file in new[] {path,path+"-wal",path+"-shm"}) if(File.Exists(file)) File.Delete(file);
+        }
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false,false)] [DataRow(true,false,false)] [DataRow(false,true,false)] [DataRow(true,true,false)]
+    [DataRow(false,false,true)] [DataRow(true,false,true)] [DataRow(false,true,true)] [DataRow(true,true,true)]
     public async Task NativeIdentityProjectionsMustMatchCanonicalRecord(bool synchronous,bool detail,bool wrongEmail)
     {
         var id=Guid.NewGuid();var table=detail ? "OasisAvatarDetails":"OasisAvatars";
