@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 shared selector-delete propagation reused existing SDK/build outputs and in-memory test backend. Four failing baseline cases retained in selector-delete-before-current.trx; finalShared225/225pass1s/four provider library builds. No node/runtime/download/install/clone/new environment or protected ledger/source/userdata/credential removal. Compact fixed reports reused.
+
 2026-10-16 shared detail/holon deletion work reused existing SDK/build outputs and in-memory backend. Four red-before cases retained in detail-holon-delete-before-current.trx; finalShared221/221pass1s and four provider builds. No runtime/node/download/install/clone/new environment or protected ledger/source/userdata/credential deletion. Fixed compact report paths reused.
 
 2026-10-16 shared avatar-delete acknowledgement work reused existing SDK/cache/build outputs and in-memory test backend. Baseline four failing cases retained in delete-ack-before-current.trx after correcting fixture version-control setup; finalShared217/217pass1s and four provider builds. No chain/Mongo runtime started, download/install/clone/new environment, ledger reset/replay or source/userdata/credential removal. Fixed compact reports retained, no per-run directories.
