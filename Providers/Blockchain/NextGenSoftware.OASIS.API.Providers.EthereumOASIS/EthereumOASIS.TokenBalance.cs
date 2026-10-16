@@ -299,50 +299,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         async Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.LockTokenAsync(ILockWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>();
-            string errorMessage = "Error in LockTokenAsync method in EthereumOASIS. Reason: ";
-
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-                if (Web3Client == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
-                    return result;
-                }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || 
-                    string.IsNullOrWhiteSpace(request.FromWalletPrivateKey))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Token address and from wallet private key are required");
-                    return result;
-                }
-
-                // Lock token by transferring to bridge pool
-                var bridgePoolAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
-                var sendRequest = new SendWeb3TokenRequest
-                {
-                    FromTokenAddress = request.TokenAddress,
-                    FromWalletPrivateKey = request.FromWalletPrivateKey,
-                    ToWalletAddress = bridgePoolAddress,
-                    //Amount = request.Amount
-                };
-
-                return await SendEthereumErc20Transaction(sendRequest.FromWalletPrivateKey, sendRequest.FromTokenAddress, bridgePoolAddress, sendRequest.Amount);
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-            }
-            return result;
+            return await ExecuteTokenEscrowAsync(request?.LockId ?? Guid.Empty, request?.TokenAddress, request?.EscrowContractAddress,
+                request?.LockedByAvatarId ?? Guid.Empty, request?.FromWalletPrivateKey, request?.FromWalletAddress, request?.Amount ?? 0, false);
         }
 
         OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.UnlockToken(IUnlockWeb3TokenRequest request)
@@ -352,58 +310,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         async Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.UnlockTokenAsync(IUnlockWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>();
-            string errorMessage = "Error in UnlockTokenAsync method in EthereumOASIS. Reason: ";
-
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-                if (Web3Client == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
-                    return result;
-                }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Token address is required");
-                    return result;
-                }
-
-                // Get recipient address from KeyManager using UnlockedByAvatarId
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarAsync(WalletManager, Core.Enums.ProviderType.EthereumOASIS, request.UnlockedByAvatarId);
-                if (toWalletResult.IsError || string.IsNullOrWhiteSpace(toWalletResult.Result))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet address for avatar");
-                    return result;
-                }
-
-                // Unlock token by transferring from bridge pool to recipient
-                var bridgePoolAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
-                var bridgePoolPrivateKey = _oasisAccount?.PrivateKey ?? string.Empty;
-                
-                if (string.IsNullOrWhiteSpace(bridgePoolPrivateKey))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Bridge pool private key is not configured");
-                    return result;
-                }
-
-                var unlockAmount = 1m; // Would get from locked amount in real implementation
-                return await SendEthereumErc20Transaction(bridgePoolPrivateKey, request.TokenAddress, toWalletResult.Result, unlockAmount);
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-            }
-            return result;
+            return await ExecuteTokenEscrowAsync(request?.LockId ?? Guid.Empty, request?.TokenAddress, request?.EscrowContractAddress,
+                request?.UnlockedByAvatarId ?? Guid.Empty, null, null, 0, true);
         }
 
 

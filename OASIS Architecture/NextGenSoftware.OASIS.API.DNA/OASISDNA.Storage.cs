@@ -176,6 +176,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string ChainPrivateKey { get; set; }
         public long ChainId { get; set; }
         public string ContractAddress { get; set; }
+        public string TokenEscrowContractAddress { get; set; }
     }
 
     public class ArbitrumOASISProviderSettings : ProviderSettingsBase

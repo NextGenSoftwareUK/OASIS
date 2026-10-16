@@ -20,7 +20,7 @@ public partial class EthereumOASIS
                 || !Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(request.ToWalletAddress)
                 || string.Equals(request.ToWalletAddress, "0x" + new string('0', 40), StringComparison.OrdinalIgnoreCase))
                 throw new ArgumentException("Mint requires a minter avatar, positive amount, existing token contract and nonzero recipient.");
-            var keys = ResolveTokenMintSigningKeys(request.MintedByAvatarId);
+            var keys = ResolveTokenSigningKeys(request.MintedByAvatarId);
             if (keys.IsError)
             {
                 OASISErrorHandling.HandleError(ref result, keys.Message, keys.Exception);
@@ -40,6 +40,6 @@ public partial class EthereumOASIS
     }
 
     // Existing KeyManager authorization, configured quantum/Rijndael key handling and wallet storage remain authoritative.
-    protected virtual OASISResult<List<string>> ResolveTokenMintSigningKeys(Guid avatarId)
+    protected virtual OASISResult<List<string>> ResolveTokenSigningKeys(Guid avatarId)
         => KeyManager.GetProviderPrivateKeysForAvatarById(avatarId, Core.Enums.ProviderType.EthereumOASIS);
 }

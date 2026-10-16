@@ -88,7 +88,7 @@ public partial class EthereumOASISIntegrationTests
         public int KeyCalls;
         public bool LoseReceipt, DenySigner;
         public readonly IOException Cause = new("Owned mint signer/receipt fault.");
-        protected override OASISResult<List<string>> ResolveTokenMintSigningKeys(Guid avatarId)
+        protected override OASISResult<List<string>> ResolveTokenSigningKeys(Guid avatarId)
         {
             LastAvatar=avatarId;KeyCalls++;
             return DenySigner ? new OASISResult<List<string>> {IsError=true,ErrorCode="OASIS_PRIVATE_KEY_ACCESS_DENIED",Exception=Cause,Message="Owned denied signer"}
