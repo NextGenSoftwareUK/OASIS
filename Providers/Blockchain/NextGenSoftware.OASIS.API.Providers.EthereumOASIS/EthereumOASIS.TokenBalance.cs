@@ -279,73 +279,7 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 
         async Task<OASISResult<ITransactionResponse>> IOASISBlockchainStorageProvider.MintTokenAsync(IMintWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>();
-            string errorMessage = "Error in MintTokenAsync method in EthereumOASIS. Reason: ";
-
-            try
-            {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = ActivateProvider();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate Ethereum provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-                if (Web3Client == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Ethereum Web3Client is not initialized");
-                    return result;
-                }
-
-                if (request == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Mint request is required");
-                    return result;
-                }
-
-                // For IMintWeb3TokenRequest, we need to get token address from Symbol or lookup
-                // For now, use contract address or lookup by Symbol
-                var tokenAddress = _contractAddress ?? "0x0000000000000000000000000000000000000000";
-                var mintToAddress = _oasisAccount?.Address ?? "0x0000000000000000000000000000000000000000";
-                var mintAmount = 1m; // Default amount, would come from request in real implementation
-
-                // Get private key from KeyManager using MintedByAvatarId
-                var keysResult = KeyManager.GetProviderPrivateKeysForAvatarById(request.MintedByAvatarId, Core.Enums.ProviderType.EthereumOASIS);
-                if (keysResult.IsError || keysResult.Result == null || keysResult.Result.Count == 0)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Could not retrieve private key for avatar");
-                    return result;
-                }
-
-                var senderEthAccount = new Account(keysResult.Result[0]);
-                var web3Client = CreateWeb3WithAccount(senderEthAccount, HostURI);
-
-                // ERC20 mint function ABI
-                var erc20Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_to\",\"type\":\"address\"},{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"mint\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"type\":\"function\"}]";
-                var erc20Contract = web3Client.Eth.GetContract(erc20Abi, tokenAddress);
-                var decimalsFunction = erc20Contract.GetFunction("decimals");
-                var decimals = await decimalsFunction.CallAsync<byte>();
-                var multiplier = System.Numerics.BigInteger.Pow(10, decimals);
-                var amountBigInt = new System.Numerics.BigInteger(mintAmount * (decimal)multiplier);
-                var mintFunction = erc20Contract.GetFunction("mint");
-                var receipt = await mintFunction.SendTransactionAndWaitForReceiptAsync(senderEthAccount.Address, new Nethereum.Hex.HexTypes.HexBigInteger(600000), null, null, mintToAddress, amountBigInt);
-                
-                if (receipt.HasErrors() == true)
-                {
-                    OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "ERC-20 mint failed."));
-                    return result;
-                }
-
-                result.Result.TransactionResult = receipt.TransactionHash;
-                TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-            }
-            return result;
+            return await MintExistingErc20Async(request);
         }
 
         OASISResult<ITransactionResponse> IOASISBlockchainStorageProvider.BurnToken(IBurnWeb3TokenRequest request)

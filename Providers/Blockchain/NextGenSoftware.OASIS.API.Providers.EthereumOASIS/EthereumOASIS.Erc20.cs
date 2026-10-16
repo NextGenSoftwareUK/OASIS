@@ -14,7 +14,16 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS;
 
 public partial class EthereumOASIS
 {
-    private const string TokenAbi = "[{\"type\":\"function\",\"name\":\"decimals\",\"inputs\":[],\"outputs\":[{\"type\":\"uint8\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"balanceOf\",\"inputs\":[{\"type\":\"address\"}],\"outputs\":[{\"type\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"totalSupply\",\"inputs\":[],\"outputs\":[{\"type\":\"uint256\"}],\"stateMutability\":\"view\"},{\"type\":\"function\",\"name\":\"transfer\",\"inputs\":[{\"type\":\"address\"},{\"type\":\"uint256\"}],\"outputs\":[{\"type\":\"bool\"}],\"stateMutability\":\"nonpayable\"},{\"type\":\"function\",\"name\":\"burn\",\"inputs\":[{\"type\":\"uint256\"}],\"outputs\":[],\"stateMutability\":\"nonpayable\"}]";
+    private const string TokenAbi = """
+    [
+      {"type":"function","name":"decimals","inputs":[],"outputs":[{"type":"uint8"}],"stateMutability":"view"},
+      {"type":"function","name":"balanceOf","inputs":[{"type":"address"}],"outputs":[{"type":"uint256"}],"stateMutability":"view"},
+      {"type":"function","name":"totalSupply","inputs":[],"outputs":[{"type":"uint256"}],"stateMutability":"view"},
+      {"type":"function","name":"transfer","inputs":[{"type":"address"},{"type":"uint256"}],"outputs":[{"type":"bool"}],"stateMutability":"nonpayable"},
+      {"type":"function","name":"burn","inputs":[{"type":"uint256"}],"outputs":[],"stateMutability":"nonpayable"},
+      {"type":"function","name":"mint","inputs":[{"type":"address"},{"type":"uint256"}],"outputs":[],"stateMutability":"nonpayable"}
+    ]
+    """;
 
     private static BigInteger ExactTokenUnits(decimal amount, byte decimals)
     {
@@ -33,13 +42,20 @@ public partial class EthereumOASIS
         return units;
     }
 
-    private async Task<OASISResult<ITransactionResponse>> ExecuteErc20MutationAsync(string key, string token, string recipient, decimal amount, bool burn)
+    private enum TokenMutation { Transfer, Burn, Mint }
+
+    private Task<OASISResult<ITransactionResponse>> ExecuteErc20MutationAsync(string key, string token, string recipient, decimal amount, bool burn)
+        => ExecuteErc20MutationCoreAsync(key, token, recipient, amount, burn ? TokenMutation.Burn : TokenMutation.Transfer);
+
+    private async Task<OASISResult<ITransactionResponse>> ExecuteErc20MutationCoreAsync(string key, string token, string recipient, decimal amount, TokenMutation operation)
     {
         var result = new OASISResult<ITransactionResponse>();
         string hash = null;
         var dispatched = false;
         try
         {
+            var burn = operation == TokenMutation.Burn;
+            var mint = operation == TokenMutation.Mint;
             if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
             if (!Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(token)
                 || (!burn && (!Nethereum.Util.AddressUtil.Current.IsValidEthereumAddressHexFormat(recipient)
@@ -59,11 +75,12 @@ public partial class EthereumOASIS
             var units = ExactTokenUnits(amount, await contract.GetFunction("decimals").CallAsync<byte>());
             var balance = contract.GetFunction("balanceOf");
             var before = await balance.CallAsync<BigInteger>(account.Address);
-            if (before < units) throw new InvalidOperationException("Insufficient token balance.");
+            if (!mint && before < units) throw new InvalidOperationException("Insufficient token balance.");
             var supply = await contract.GetFunction("totalSupply").CallAsync<BigInteger>();
             var targetBefore = burn ? BigInteger.Zero : await balance.CallAsync<BigInteger>(recipient);
-            var function = contract.GetFunction(burn ? "burn" : "transfer");
+            var function = contract.GetFunction(mint ? "mint" : burn ? "burn" : "transfer");
             var arguments = burn ? new object[] { units } : new object[] { recipient, units };
+            if (mint) await function.EstimateGasAsync(account.Address, null, null, arguments);
             dispatched = true;
             hash = await function.SendTransactionAsync(account.Address, new HexBigInteger(600000), null, arguments);
             if (!IsStorageTransactionIdentity(hash)) throw new InvalidOperationException("Token submission returned no valid native hash.");
@@ -81,12 +98,15 @@ public partial class EthereumOASIS
             var after = await balance.CallAsync<BigInteger>(account.Address);
             var supplyAfter = await contract.GetFunction("totalSupply").CallAsync<BigInteger>();
             var self = !burn && string.Equals(account.Address, recipient, StringComparison.OrdinalIgnoreCase);
-            if (after != before - (self ? BigInteger.Zero : units) || supplyAfter != supply - (burn ? units : BigInteger.Zero)
-                || (!burn && await balance.CallAsync<BigInteger>(recipient) != targetBefore + (self ? BigInteger.Zero : units)))
+            var expectedOwner = mint ? before + (self ? units : BigInteger.Zero) : before - (self ? BigInteger.Zero : units);
+            var expectedSupply = mint ? supply + units : supply - (burn ? units : BigInteger.Zero);
+            var expectedTarget = targetBefore + (!mint && self ? BigInteger.Zero : units);
+            if (after != expectedOwner || supplyAfter != expectedSupply
+                || (!burn && await balance.CallAsync<BigInteger>(recipient) != expectedTarget))
                 throw new InvalidOperationException("Acknowledged token transaction does not establish the requested exact balance/supply effect.");
             result.IsSaved = true;
             result.SavedCount = 1;
-            result.Message = burn ? "Exact token burn confirmed." : "Exact token transfer confirmed.";
+            result.Message = mint ? "Exact token mint confirmed." : burn ? "Exact token burn confirmed." : "Exact token transfer confirmed.";
         }
         catch (Exception cause)
         {
