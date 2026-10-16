@@ -26,6 +26,7 @@ try {
         'Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj',
         'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS/NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS.csproj',
         'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.PolygonOASIS/NextGenSoftware.OASIS.API.Providers.PolygonOASIS.csproj',
+        'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS/NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.csproj',
         'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EthereumOASIS/NextGenSoftware.OASIS.API.Providers.EthereumOASIS.csproj')) {
         & dotnet build (Join-Path $taskRoot $relative) --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
         if($LASTEXITCODE){throw "Producer build failed: $relative"}
@@ -84,7 +85,7 @@ try {
     if($web3Report.LastWriteTimeUtc -lt $web3Started){throw 'Web3Core native report is stale.'}
     [xml]$web3Trx=Get-Content -LiteralPath $web3Report.FullName
     $web3Counts=$web3Trx.TestRun.ResultSummary.Counters
-    if([int]$web3Counts.total -ne 3 -or [int]$web3Counts.passed -ne 3 -or [int]$web3Counts.notExecuted -ne 0){throw 'Expected three native Web3Core scenarios, no skips.'}
+    if([int]$web3Counts.total -ne 4 -or [int]$web3Counts.passed -ne 4 -or [int]$web3Counts.notExecuted -ne 0){throw 'Expected four native Web3Core scenarios, no skips.'}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
     foreach($name in $names){[Environment]::SetEnvironmentVariable($name,$previous[$name])}
