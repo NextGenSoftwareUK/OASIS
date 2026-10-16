@@ -5,28 +5,38 @@ using NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Microsoft.Azure.Cosmos;
+using System.Net;
 
 namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTests
 {
     [TestClass]
+    [DoNotParallelize]
     public class AzureCosmosDBOASISIntegrationTests
     {
         private AzureCosmosDBOASIS _provider = null!;
+        private CosmosClient _client=null!;
+        private bool _ownsDatabase;
+        private const string DatabaseName="oasis-cosmos-crud";
 
         [TestInitialize]
         public async Task Setup()
         {
-            string endpoint = Environment.GetEnvironmentVariable("OASIS_AZURE_COSMOS_ENDPOINT")
-                ?? "https://127.0.0.1:8081";
-            string key = Environment.GetEnvironmentVariable("OASIS_AZURE_COSMOS_KEY")
-                ?? throw new AssertInconclusiveException("OASIS_AZURE_COSMOS_KEY must identify a real Cosmos account or emulator.");
-            string database = Environment.GetEnvironmentVariable("OASIS_AZURE_COSMOS_DATABASE")
-                ?? $"oasis-integration-{Guid.NewGuid():N}";
+            Assert.AreEqual("1",Environment.GetEnvironmentVariable("OASIS_COSMOSDB_NATIVE"),"Use the retained owned Cosmos DB runner.");
+            const string endpoint="https://127.0.0.1:8081";
+            // Public Microsoft emulator key; cannot authenticate to a hosted account.
+            const string key="C2y6yDjf5/R+ob0N8A7Cgv30VRDJIWEHLM+4QDU5DE2nQ9nDuVTqobD4b8mGGyPMbIZnqyMsEcaGQy67XIw/Jw==";
+            _client=new CosmosClient(endpoint,key,new CosmosClientOptions {ConnectionMode=ConnectionMode.Gateway,
+                RequestTimeout=TimeSpan.FromSeconds(10),MaxRetryAttemptsOnRateLimitedRequests=0,
+                HttpClientFactory=()=>new System.Net.Http.HttpClient(new System.Net.Http.HttpClientHandler {
+                    ServerCertificateCustomValidationCallback=System.Net.Http.HttpClientHandler.DangerousAcceptAnyServerCertificateValidator})});
+            try {await _client.GetDatabase(DatabaseName).ReadAsync();Assert.Fail("Refusing existing fixture database.");}
+            catch(CosmosException cause) when(cause.StatusCode==HttpStatusCode.NotFound) {_ownsDatabase=true;}
 
             _provider = new AzureCosmosDBOASIS(
                 new Uri(endpoint),
                 key,
-                database,
+                DatabaseName,
                 new List<string> { "avatarItems", "avatarDetailItems", "holonItems" });
 
             var activation = await _provider.ActivateProviderAsync();
@@ -93,9 +103,19 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTest
         }
 
         [TestCleanup]
-        public void Cleanup()
+        public async Task Cleanup()
         {
-            _provider?.DeActivateProvider();
+            try {_provider?.DeActivateProvider();}
+            finally
+            {
+                try
+                {
+                    if(_ownsDatabase)
+                        try {await _client.GetDatabase(DatabaseName).DeleteAsync();}
+                        catch(CosmosException cause) when(cause.StatusCode==HttpStatusCode.NotFound) { }
+                }
+                finally {_client?.Dispose();}
+            }
         }
     }
 }
