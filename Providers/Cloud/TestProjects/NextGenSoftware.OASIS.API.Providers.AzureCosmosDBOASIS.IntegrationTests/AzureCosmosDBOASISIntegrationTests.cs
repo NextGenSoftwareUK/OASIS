@@ -12,7 +12,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.IntegrationTest
 {
     [TestClass]
     [DoNotParallelize]
-    public class AzureCosmosDBOASISIntegrationTests
+    public partial class AzureCosmosDBOASISIntegrationTests
     {
         private AzureCosmosDBOASIS _provider = null!;
         private CosmosClient _client=null!;
