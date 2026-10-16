@@ -341,7 +341,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 var avatars=wantsAvatars ? await ReadIndexSnapshotAsync<Avatar>(snapshot,"avatar",row=>true,version):new List<Avatar>();
                 var holons=wantsHolons || searchParams.ParentId!=Guid.Empty
                     ? await ReadIndexSnapshotAsync<Holon>(snapshot,"holon",row=>true,version):new List<Holon>();
-                var project=HolonGraphProjection.Create(holons,loadChildren,recursive,maxChildDepth,0,true,
+                var graphHolons=version!=0 && loadChildren && wantsHolons
+                    ? await ReadIndexSnapshotAsync<Holon>(snapshot,"holon",row=>true,0):holons;
+                var project=HolonGraphProjection.Create(graphHolons,loadChildren,recursive,maxChildDepth,0,true,
                     source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
                 var found=new SearchResults();
                 found.SearchResultAvatars.AddRange(avatars.Where(row=>StoredRecordSearch.Matches(row,true,searchParams,holons)));

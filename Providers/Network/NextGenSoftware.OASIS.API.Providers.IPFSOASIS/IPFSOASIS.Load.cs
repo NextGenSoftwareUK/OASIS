@@ -305,7 +305,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                 if(root==null) return new OASISResult<IHolon> {IsError=true,ErrorCount=1,
                     ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="The requested IPFS holon version was not found."};
                 var records = loadChildren && childrenFromProvider
-                    ? await ReadIndexSnapshotAsync<Holon>(snapshot, "holon", row => true,version)
+                    ? await ReadIndexSnapshotAsync<Holon>(snapshot, "holon", row => true,0)
                     : new List<Holon> { root };
                 var project = HolonGraphProjection.Create(records, loadChildren, recursive, maxDepth, 0, childrenFromProvider,
                     source => OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
@@ -385,9 +385,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
         {
             if (id == Guid.Empty) throw new ArgumentException("A parent identity is required.", nameof(id));
             if (maxChildDepth < 0 || curentChildDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
-            var records = await ReadIndexedCollectionAsync<Holon>("holon", row => true, version);
+            var (records,graphRecords) = await ReadHolonProjectionSnapshotAsync(version,loadChildren,loadChildrenFromProvider);
             var project = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.HolonGraphProjection.Create(
-                records, loadChildren, recursive, maxChildDepth, curentChildDepth, loadChildrenFromProvider,
+                graphRecords, loadChildren, recursive, maxChildDepth, curentChildDepth, loadChildrenFromProvider,
                 source => OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
             return new OASISResult<IEnumerable<IHolon>>(records
                 .Where(row => row.ParentHolonId == id && (type == HolonType.All || row.HolonType == type))
@@ -473,8 +473,8 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             try
             {
                 if(maxChildDepth<0 || curentChildDepth<0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
-                var records=await ReadIndexedCollectionAsync<Holon>("holon",entry=>true,version);
-                var project=HolonGraphProjection.Create(records,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,
+                var (records,graphRecords)=await ReadHolonProjectionSnapshotAsync(version,loadChildren,loadChildrenFromProvider);
+                var project=HolonGraphProjection.Create(graphRecords,loadChildren,recursive,maxChildDepth,curentChildDepth,loadChildrenFromProvider,
                     source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
                 result.Result=records.Where(row=>type==HolonType.All || row.HolonType==type).Select(project).ToList();
                 result.IsLoaded=true;

@@ -184,7 +184,10 @@ public class IPFSNativeStorageTests
             Assert.Equal(holon.Name,(await provider.LoadHolonAsync(id,loadChildren:false)).Result.Name);
             Assert.Equal(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,provider.LoadHolon(id,loadChildren:false,version:3).ErrorCode);
             Assert.IsType<ArgumentOutOfRangeException>(provider.LoadHolon(id,version:-1).Exception);
-            Assert.Empty(provider.LoadHolon(id,loadChildrenFromProvider:true,version:1).Result.Children);
+            var oldRootWithCurrentChildren=provider.LoadHolon(id,loadChildrenFromProvider:true,version:1);
+            Assert.Equal(1,oldRootWithCurrentChildren.Result.Version);
+            Assert.Equal(child.Id,Assert.Single(oldRootWithCurrentChildren.Result.Children).Id);
+            Assert.Equal(grandchild.Id,Assert.Single(oldRootWithCurrentChildren.Result.Children.Single().Children).Id);
             var missingId=Guid.NewGuid();
             var missing=await provider.LoadHolonAsync(missingId,loadChildren:false);
             Assert.True(missing.IsError); Assert.Null(missing.Result);
