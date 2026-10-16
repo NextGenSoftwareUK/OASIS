@@ -123,6 +123,7 @@ public partial class SolanaOASIS
         }
         catch (Exception e)
         {
+            if(e is SolanaOriginValidationException) result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
             OASISErrorHandling.HandleError(ref result, e.Message, e);
         }
 
@@ -175,6 +176,7 @@ public partial class SolanaOASIS
         }
         catch (Exception e)
         {
+            if(e is SolanaOriginValidationException) result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
             OASISErrorHandling.HandleError(ref result, e.Message, e);
         }
 
