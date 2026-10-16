@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><OutputType>Exe</OutputType><TargetFramework>net10.0</TargetFramework><ImplicitUsings>enable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI/NextGenSoftware.OASIS.API.ONODE.WebAPI.csproj" />
+    <ProjectReference Include="../../STAR ODK/NextGenSoftware.OASIS.STAR.WebAPI/NextGenSoftware.OASIS.STAR.WebAPI.csproj" />
+    <ProjectReference Include="../../WEB6/NextGenSoftware.OASIS.Web6.WebAPI/NextGenSoftware.OASIS.Web6.WebAPI.csproj" />
+    <ProjectReference Include="../../WEB7/NextGenSoftware.OASIS.Web7.WebAPI/NextGenSoftware.OASIS.Web7.WebAPI.csproj" />
+    <ProjectReference Include="../../WEB8/NextGenSoftware.OASIS.Web8.WebAPI/NextGenSoftware.OASIS.Web8.WebAPI.csproj" />
+    <ProjectReference Include="../../WEB9/NextGenSoftware.OASIS.Web9.WebAPI/NextGenSoftware.OASIS.Web9.WebAPI.csproj" />
+    <ProjectReference Include="../../WEB10/NextGenSoftware.OASIS.Web10.WebAPI/NextGenSoftware.OASIS.Web10.WebAPI.csproj" />
+  </ItemGroup>
+</Project>
