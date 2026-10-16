@@ -8,7 +8,7 @@ import "./Core/Entities/Holon.sol";
 
 contract NextGenSoftwareOASIS {
     address public immutable storageOwner;
-    uint256 public constant storageProtocolVersion = 2;
+    uint256 public constant storageProtocolVersion = 3;
 
     modifier onlyStorageOwner() {
         require(msg.sender == storageOwner, "OASIS storage owner required");
@@ -175,6 +175,15 @@ contract NextGenSoftwareOASIS {
         for (uint256 i = 0; i < totalAvatarsCount; i++) {
             if (avatars[i].EntityId == entityId) {
                 require(keccak256(bytes(avatars[i].AvatarId)) == keccak256(bytes(avatarId)), "OASIS identity collision");
+                // Profile and detail are one lifecycle. A revert in either deletion rolls
+                // back both; a colliding detail identity must never be removed.
+                for (uint256 j = 0; j < totalAvatarDetailsCount; j++) {
+                    if (avatarDetails[j].EntityId == entityId) {
+                        require(keccak256(bytes(avatarDetails[j].AvatarId)) == keccak256(bytes(avatarId)), "OASIS identity collision");
+                        DeleteAvatarDetail(entityId);
+                        break;
+                    }
+                }
                 return DeleteAvatar(entityId);
             }
         }

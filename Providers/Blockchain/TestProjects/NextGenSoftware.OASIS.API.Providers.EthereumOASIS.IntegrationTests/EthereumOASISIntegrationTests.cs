@@ -76,7 +76,7 @@ public partial class EthereumOASISIntegrationTests
         Assert.IsTrue(activation.IsError); Assert.IsFalse(activation.Result);
         Assert.IsFalse(provider.IsProviderActivated); Assert.IsNull(provider.Web3Client);
         Assert.IsNotNull(activation.Exception);
-        if(fixtureName == "UnsupportedStorageProtocolFixture") StringAssert.Contains(activation.Message,"version 2 is required");
+        if(fixtureName == "UnsupportedStorageProtocolFixture") StringAssert.Contains(activation.Message,"version 3 is required");
         var after = await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(account.Address);
         Assert.AreEqual(before.Value,after.Value);
     }
@@ -1223,14 +1223,7 @@ public partial class EthereumOASISIntegrationTests
         Assert.AreEqual(storedId,(await provider.LoadHolonAsync(storedId)).Result.Id);
         Assert.AreEqual(storedId,(await provider.LoadAvatarAsync(storedId)).Result.Id);
         Assert.AreEqual(storedId,(await provider.LoadAvatarDetailAsync(storedId)).Result.Id);
-        var correctHolon = synchronous ? provider.DeleteHolon(storedId) : await provider.DeleteHolonAsync(storedId);
-        var correctAvatar = synchronous ? provider.DeleteAvatar(storedId,softDelete:false) : await provider.DeleteAvatarAsync(storedId,softDelete:false);
-        Assert.IsFalse(correctHolon.IsError,correctHolon.Message); Assert.IsTrue(correctHolon.IsDeleted);
-        Assert.IsFalse(correctAvatar.IsError,correctAvatar.Message); Assert.IsTrue(correctAvatar.Result);
         var service = new NextGenSoftwareOASISService(new Web3(new Account(PrivateKey,ChainId),Host),provider.ContractAddress);
-        Assert.AreEqual(BigInteger.Zero,await service.GetHolonsCountQueryAsync());
-        Assert.AreEqual(BigInteger.Zero,await service.GetAvatarsCountQueryAsync());
-        Assert.AreEqual(BigInteger.One,await service.GetAvatarDetailsCountQueryAsync());
         var handler = new Web3(new Account(PrivateKey,ChainId),Host).Eth.GetContractHandler(provider.ContractAddress);
         Exception? detailCollision = null;
         try { await handler.SendRequestAndWaitForReceiptAsync(new DeleteAvatarDetailByIdentityFunction {
@@ -1239,6 +1232,15 @@ public partial class EthereumOASISIntegrationTests
         Assert.IsNotNull(detailCollision);
         StringAssert.Contains(detailCollision.ToString(),"OASIS identity collision");
         Assert.AreEqual(storedId,(await provider.LoadAvatarDetailAsync(storedId)).Result.Id);
+        var correctHolon = synchronous ? provider.DeleteHolon(storedId) : await provider.DeleteHolonAsync(storedId);
+        var correctAvatar = synchronous ? provider.DeleteAvatar(storedId,softDelete:false) : await provider.DeleteAvatarAsync(storedId,softDelete:false);
+        Assert.IsFalse(correctHolon.IsError,correctHolon.Message); Assert.IsTrue(correctHolon.IsDeleted);
+        Assert.IsFalse(correctAvatar.IsError,correctAvatar.Message); Assert.IsTrue(correctAvatar.Result);
+        Assert.AreEqual(BigInteger.Zero,await service.GetHolonsCountQueryAsync());
+        Assert.AreEqual(BigInteger.Zero,await service.GetAvatarsCountQueryAsync());
+        Assert.AreEqual(BigInteger.Zero,await service.GetAvatarDetailsCountQueryAsync(),"Hard avatar deletion must remove its detail atomically.");
+        // Independently exercise the detail-only contract operation, without relying on an orphan.
+        Assert.IsFalse((await provider.SaveAvatarDetailAsync(new NextGenSoftware.OASIS.API.Core.Holons.AvatarDetail {Id=storedId,Username="detail-only collision fixture"})).IsError);
         var detailReceipt = await handler.SendRequestAndWaitForReceiptAsync(new DeleteAvatarDetailByIdentityFunction {
             EntityId=NextGenSoftware.OASIS.API.Core.Utilities.HashUtility.GetNumericHash(storedId.ToString()),Identity=storedId.ToString() });
         Assert.AreEqual(BigInteger.One,detailReceipt.Status.Value);
