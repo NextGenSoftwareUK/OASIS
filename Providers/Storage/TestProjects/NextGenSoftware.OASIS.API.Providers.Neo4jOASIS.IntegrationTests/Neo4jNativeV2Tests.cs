@@ -170,8 +170,46 @@ public partial class Neo4jNativeAvatarTests
                 var label = operation == "SaveAvatar" ? "Avatar" : operation == "SaveAvatarDetail" ? "AvatarDetail" : "Holon";
                 await (await exactCleanup.RunAsync("MATCH (h:" + label + " {Id:$id}) DETACH DELETE h", new { id = committedId.ToString() })).ConsumeAsync();
             }
+            manager.IsAutoReplicationEnabled = false;
+            var branch = new Holon { Id = Guid.NewGuid() }; var descendant = new Holon { Id = Guid.NewGuid() };
+            branch.Children = new List<IHolon> { descendant };
+            var graph = new Holon { Id = id, Name = "partial-native-root", Children = new List<IHolon> { branch } };
+            Assert.IsFalse((await neo.SaveHolonAsync(graph)).IsError);
+            var fallbackName = (await sqlite.LoadHolonAsync(id, loadChildren:false)).Result.Name;
+            foreach (var continuation in new[] { false, true })
+            foreach (var asynchronous in new[] { false, true })
+            {
+                var observations = 0;
+                var secondaryBefore = manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests;
+                field.SetValue(neo, Neo4jReadFaultProxy.Wrap((IDriver)healthy!, branch.Id.ToString(),
+                    new IOException("owned routed partial-read boundary failure"), () => observations++));
+                try
+                {
+                    var request = new StorageOperationRequest { Operation = "LoadHolon", HolonId = id,
+                        LoadChildren = true, ContinueOnError = continuation, PreferredProvider = ProviderType.Neo4jOASIS };
+                    var read = asynchronous ? await router.RouteRequestAsync<IHolon>(request) : router.RouteRequest<IHolon>(request);
+                    Assert.IsTrue(observations > 0); Assert.IsFalse(read.IsError, read.Message);
+                    if (continuation)
+                    {
+                        Assert.AreEqual("partial-native-root", read.Result.Name); Assert.IsTrue(read.IsWarning);
+                        Assert.AreEqual("true", read.MetaData["partialHolonReads"]);
+                        StringAssert.Contains(read.MetaData["failedHolonReads"], branch.Id.ToString());
+                        Assert.AreEqual(branch.Id, read.Result.Children.Single().Id);
+                        Assert.AreEqual(0, read.Result.Children.Single().Children.Count());
+                        Assert.AreEqual(secondaryBefore, manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests,
+                            "A marked partial result must not be silently replaced by another provider.");
+                    }
+                    else
+                    {
+                        Assert.AreEqual(fallbackName, read.Result.Name);
+                        Assert.AreEqual(secondaryBefore + 1, manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests);
+                        Assert.AreEqual(ProviderType.SQLLiteDBOASIS, manager.LastFailoverDiagnostic.SelectedProvider);
+                    }
+                }
+                finally { field.SetValue(neo, healthy); }
+            }
             using var cleanup = raw.AsyncSession();
-            await (await cleanup.RunAsync("MATCH (h:Holon {Id:$id}) DETACH DELETE h", new { id = id.ToString() })).ConsumeAsync();
+            await (await cleanup.RunAsync("MATCH (h:Holon) WHERE h.Id IN $ids DETACH DELETE h", new { ids = new[] { id.ToString(), branch.Id.ToString(), descendant.Id.ToString() } })).ConsumeAsync();
             verified = true;
         }
         finally
