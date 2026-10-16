@@ -8,6 +8,19 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests;
 [TestClass]
 public class Neo4jAvatarDeleteTests
 {
+    [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public async Task InvalidHolonDeleteIdentityFailsBeforeNativeDispatch(bool synchronous,bool byKey)
+    {
+        var driver=System.Reflection.DispatchProxy.Create<Neo4j.Driver.IDriver,Neo4jLifecycleTests.DriverProbe>();
+        var provider=new Provider("bolt://127.0.0.1:17687","neo4j","owned",()=>driver);
+        var result=byKey ? synchronous ? provider.DeleteHolon(" "):await provider.DeleteHolonAsync(" ")
+            :synchronous ? provider.DeleteHolon(Guid.Empty):await provider.DeleteHolonAsync(Guid.Empty);
+        Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsFalse(result.IsDeleted);
+        Assert.IsInstanceOfType(result.Exception,typeof(ArgumentException));
+        Assert.AreEqual(0,((Neo4jLifecycleTests.DriverProbe)driver).Verifications);
+    }
+
     [TestMethod]
     public void SoftDeletePreservesRecordAndNeverPlansNodeRemoval()
     {

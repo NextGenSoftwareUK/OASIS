@@ -241,45 +241,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             return SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, saveChildrenOnProvider).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
-        {
-            var response = new OASISResult<IHolon>();
-            try
-            {
-                // REAL Neo4j implementation for deleting holon by ID
-                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
-                }
-
-                var query = "MATCH (h:Holon {Id: $id}) DETACH DELETE h RETURN h";
-                var parameters = new { id = id.ToString() };
-                
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.RunAsync(query, parameters);
-                    var record = await result.SingleAsync();
-                    
-                    if (record != null)
-                    {
-                        response.Result = new Holon { Id = id };
-                        response.IsError = false;
-                        response.Message = "Holon deleted successfully from Neo4j";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Holon not found in Neo4j database");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error deleting holon from Neo4j: {ex.Message}");
-            }
-            return response;
-        }
+public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id)
+            => DeleteHolonRecordAsync("Id",id.ToString());
 
     }
 }
