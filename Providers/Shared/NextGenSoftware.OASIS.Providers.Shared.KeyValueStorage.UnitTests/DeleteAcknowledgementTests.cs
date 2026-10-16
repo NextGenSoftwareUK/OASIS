@@ -12,6 +12,31 @@ public class DeleteAcknowledgementTests
 {
     [DataTestMethod]
     [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public async Task SelectorDeletePreservesAbsenceCodeAndOriginalReadFailure(bool synchronous,bool email)
+    {
+        var backend=new InMemoryBackend();var provider=new TestProvider(backend);
+        async Task<NextGenSoftware.OASIS.Common.OASISResult<bool>> Delete(bool detail)
+            =>detail ? email ? synchronous ? provider.DeleteAvatarDetailByEmail("owned@example.invalid"):await provider.DeleteAvatarDetailByEmailAsync("owned@example.invalid")
+                :synchronous ? provider.DeleteAvatarDetailByUsername("owned"):await provider.DeleteAvatarDetailByUsernameAsync("owned")
+                :email ? synchronous ? provider.DeleteAvatarByEmail("owned@example.invalid"):await provider.DeleteAvatarByEmailAsync("owned@example.invalid")
+                :synchronous ? provider.DeleteAvatarByUsername("owned"):await provider.DeleteAvatarByUsernameAsync("owned");
+        foreach(var detail in new[] {false,true})
+        {
+            var missing=await Delete(detail);Assert.IsTrue(missing.IsError);Assert.IsFalse(missing.IsDeleted);
+            Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,missing.ErrorCode);
+        }
+        var avatar=new Avatar {Id=Guid.NewGuid(),Username="owned",Email="owned@example.invalid"};
+        Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+        Assert.IsFalse((await provider.SaveAvatarDetailAsync(new AvatarDetail {Id=avatar.Id})).IsError);
+        var before=backend.Items.OrderBy(pair=>pair.Key).ToArray();
+        backend.FailGetKey=backend.Items.Keys.Single(key=>key.StartsWith(email ? "oasis/avatar-email/":"oasis/avatar-username/",StringComparison.Ordinal));
+        backend.FailGetException=new System.IO.InvalidDataException("owned corrupt selector index");
+        foreach(var detail in new[] {false,true})
+        {var result=await Delete(detail);Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsDeleted);Assert.AreSame(backend.FailGetException,result.Exception);}
+        CollectionAssert.AreEqual(before,backend.Items.OrderBy(pair=>pair.Key).ToArray());
+    }
+    [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
     public async Task DetailAndHolonDeletesRetainAcknowledgedHistory(bool synchronous,bool detail)
     {
         var backend=new InMemoryBackend();var provider=new TestProvider(backend) {IsVersionControlEnabled=true};var id=Guid.NewGuid();

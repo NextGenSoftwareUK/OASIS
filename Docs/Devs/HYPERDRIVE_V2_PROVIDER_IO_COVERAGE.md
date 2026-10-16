@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Shared selector-delete delta: profile/detail username/email deletion preserves original exceptions and RecordNotFound codes instead of losing classification in wrappers; detail load/save failures preserve code too. Four new red-before/green-after controlled cases; Shared225/225pass1s/four chain library builds. No new native or actual V2 backup-metric certification; other open interface/recovery/hosted gates remain.
+
 Shared delete follow-up: detail/holon hard-delete history/link acknowledgements now use existing partial-mutation marker on later failure. Four new red-before/green-after controlled cases; Shared221/221pass1s and four chain libraries rebuild. Other recovery/interface/native/V2/hosted requirements remain open; previous full provider-unit reports not newly rerun.
 
 Shared delete recovery delta: GUID avatar hard-delete now retains acknowledged index/history/detail/profile deletions under existing native-reconciliation marker if later work fails. Four controlled sync/async regressions fail before/pass after; Shared217/217pass1s and Sui/Cosmos/Hashgraph/TRON libraries rebuild. This does not refresh previous full provider-unit reports or prove live/native/durable/atomic/other-delete-path behavior; original pending outcomes remain untouched.
