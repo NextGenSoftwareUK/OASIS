@@ -313,18 +313,17 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public override OASISResult<IEnumerable<IAvatar>> LoadAllAvatars(int version = 0) => LoadAllAvatarsAsync(version).GetAwaiter().GetResult();
 
-        private async Task<OASISResult<IAvatar>> LoadAvatarByTokenAsync(string token, Func<IAvatar, bool> matches, int version)
-        {
-            if (string.IsNullOrWhiteSpace(token)) return Fail<IAvatar>("A nonempty avatar token is required.");
-            var avatars = await LoadAllAvatarsAsync(version);
-            if (avatars.IsError) return Fail<IAvatar>(avatars.Message, avatars.Exception, avatars.ErrorCode);
-            if (avatars.Result == null) return Fail<IAvatar>("Avatar token lookup returned no collection.");
-            var found = avatars.Result.Where(matches).Take(2).ToList();
-            if (found.Count > 1) return Fail<IAvatar>("Avatar token matches multiple identities.");
-            return found.Count == 0
-                ? Fail<IAvatar>("Avatar token was not found.", errorCode: OASISResultErrorCodes.RecordNotFound)
-                : Ok(found[0]);
-        }
+        private Task<OASISResult<IAvatar>> LoadAvatarByTokenAsync(string token, Func<IAvatar, bool> matches, int version)
+            => StoredAvatarWalletSelector.SelectMatchingAsync(token,version,LoadAllAvatarsAsync,matches);
+
+        public virtual Task<OASISResult<IAvatar>> LoadAvatarByPublicKeyAsync(string publicKey,int version=0)
+            => StoredAvatarWalletSelector.SelectAsync(publicKey,false,version,LoadAllAvatarsAsync);
+        public virtual OASISResult<IAvatar> LoadAvatarByPublicKey(string publicKey,int version=0)
+            => LoadAvatarByPublicKeyAsync(publicKey,version).GetAwaiter().GetResult();
+        public virtual Task<OASISResult<IAvatar>> LoadAvatarByPrivateKeyAsync(string privateKey,int version=0)
+            => StoredAvatarWalletSelector.SelectAsync(privateKey,true,version,LoadAllAvatarsAsync);
+        public virtual OASISResult<IAvatar> LoadAvatarByPrivateKey(string privateKey,int version=0)
+            => LoadAvatarByPrivateKeyAsync(privateKey,version).GetAwaiter().GetResult();
 
         public override Task<OASISResult<IAvatar>> LoadAvatarByVerificationTokenAsync(string token, int version = 0)
             => LoadAvatarByTokenAsync(token, avatar => string.Equals(avatar.VerificationToken, token, StringComparison.Ordinal), version);
