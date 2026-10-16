@@ -20,6 +20,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
         public string Id { get; set;}
         public string LocalProviderKey { get; set; }
         public string ProviderKeysJson { get; set; } = "{}";
+        public string ProviderWalletsJson { get; set; } = "{}";
         public string MetaDataJson { get; set; } = "{}";
         public bool IsPublic { get; set; }
         public Guid VersionId { get; set; }
@@ -102,6 +103,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities{
             this.AvatarType = source.AvatarType.Value;
 
             this.Username=source.Username;
+            this.ProviderWalletsJson=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(source.ProviderWallets ?? new Dictionary<ProviderType,List<IProviderWallet>>());
             this.Email=source.Email;
             
             this.AcceptTerms = source.AcceptTerms;
