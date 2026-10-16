@@ -36,6 +36,11 @@ public partial class EthereumOASISIntegrationTests
                 var wei=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.ExactEvmTokenAmount.ToUnits(amount,18);
                 Assert.AreEqual(wei,transaction.Value.Value);Assert.AreEqual(owner.ToLowerInvariant(),transaction.From.ToLowerInvariant());Assert.AreEqual(recipient.ToLowerInvariant(),transaction.To.ToLowerInvariant());
                 Assert.IsTrue(receipt.Succeeded());Assert.IsNotNull(receipt.EffectiveGasPrice);var fee=receipt.GasUsed.Value*receipt.EffectiveGasPrice.Value;
+                var historyRequest=new GetWeb3TransactionsRequest{WalletAddress=owner,FromBlock=(ulong)receipt.BlockNumber.Value,ToBlock=(ulong)receipt.BlockNumber.Value};
+                var history=synchronous ? provider.GetTransactions(historyRequest):await provider.GetTransactionsAsync(historyRequest);
+                Assert.IsFalse(history.IsError,history.Exception?.ToString()??history.Message);Assert.IsTrue(history.IsLoaded);
+                var entry=history.Result.Single(row=>row.NativeTransactionId==sent.Result.TransactionResult);
+                Assert.AreEqual(wei.ToString(),entry.RawAmount);Assert.AreEqual("wei",entry.AmountUnit);Assert.AreEqual("succeeded",entry.NativeExecutionResult);
                 Assert.AreEqual(before-(self ? BigInteger.Zero:wei)-fee,(await web3.Eth.GetBalance.SendRequestAsync(owner)).Value);
                 if(!self) Assert.AreEqual(targetBefore+wei,(await web3.Eth.GetBalance.SendRequestAsync(recipient)).Value);
             }

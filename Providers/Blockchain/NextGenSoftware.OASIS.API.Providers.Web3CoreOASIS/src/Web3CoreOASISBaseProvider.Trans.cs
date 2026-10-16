@@ -543,78 +543,19 @@ public partial class Web3CoreOASISBaseProvider
 
     public OASISResult<IList<IWalletTransaction>> GetTransactions(IGetWeb3TransactionsRequest request)
     {
-        return GetTransactionsAsync(request).Result;
+        return GetTransactionsAsync(request).GetAwaiter().GetResult();
     }
 
-    public async Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
-    {
-        var result = new OASISResult<IList<IWalletTransaction>>();
-        string errorMessage = "Error in GetTransactionsAsync method in Web3CoreOASIS. Reason: ";
-
-        try
+    public Task<OASISResult<IList<IWalletTransaction>>> GetTransactionsAsync(IGetWeb3TransactionsRequest request)
+        =>NextGenSoftware.OASIS.Providers.Shared.Evm.EvmWalletHistory.ReadAsync(request,async ()=>
         {
             if (!IsProviderActivated || _web3Client == null)
             {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
+                var activation=await ActivateProviderAsync();
+                if(activation.IsError) return new OASISResult<Web3>{IsError=true,Message=activation.Message,Exception=activation.Exception,ErrorCode=activation.ErrorCode};
             }
-
-            if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
-            {
-                OASISErrorHandling.HandleError(ref result, "Wallet address is required");
-                return result;
-            }
-
-            var transactions = new List<IWalletTransaction>();
-            
-            // Get transaction count for the address
-            var transactionCount = await _web3Client.Eth.Transactions.GetTransactionCount.SendRequestAsync(request.WalletAddress);
-            
-            // Get recent transactions (last 10 by default)
-            var blockNumber = await _web3Client.Eth.Blocks.GetBlockNumber.SendRequestAsync();
-            var startBlock = blockNumber.Value - BigInteger.Min(100, blockNumber.Value); // Last 100 blocks
-            
-            for (var i = startBlock; i <= blockNumber.Value; i++)
-            {
-                try
-                {
-                    var block = await _web3Client.Eth.Blocks.GetBlockWithTransactionsByNumber.SendRequestAsync(new HexBigInteger(i));
-                    if (block?.Transactions != null)
-                    {
-                        foreach (var tx in block.Transactions)
-                        {
-                            if (tx.From?.ToLower() == request.WalletAddress.ToLower() || 
-                                tx.To?.ToLower() == request.WalletAddress.ToLower())
-                            {
-                                var walletTx = new WalletTransaction
-                                {
-                                    FromWalletAddress = tx.From,
-                                    ToWalletAddress = tx.To,
-                                    Amount = (double)UnitConversion.Convert.FromWei(tx.Value.Value),
-                                    Description = $"Block {tx.BlockNumber?.Value}"
-                                };
-                                transactions.Add(walletTx);
-                            }
-                        }
-                    }
-                }
-                catch
-                {
-                    // Skip blocks that can't be retrieved
-                    continue;
-                }
-            }
-
-            result.Result = transactions.Take(10).ToList();
-            result.IsError = false;
-            result.Message = $"Retrieved {result.Result.Count} transactions.";
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-        return result;
-    }
+            return new OASISResult<Web3>{Result=_web3Client};
+        });
 
     public OASISResult<IKeyPairAndWallet> GenerateKeyPair()
     {

@@ -58,6 +58,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Include="..\NextGenSoftware.OASIS.API.Providers.Web3CoreOASIS\src\EvmWalletHistory.cs" Link="Shared\EvmWalletHistory.cs" />
     <None Update="README.md">
       <PackagePath>\</PackagePath>
       <Pack>True</Pack>
