@@ -109,6 +109,7 @@ public partial class GoogleCloudOASIS
         try
         {
             if(id==Guid.Empty) throw new ArgumentException("A nonempty parent identity is required.",nameof(id));
+            if(!Enum.IsDefined(typeof(HolonType),type)) throw new ArgumentOutOfRangeException(nameof(type));
             if(depth<0 || initialDepth<0) throw new ArgumentOutOfRangeException(nameof(depth));
             var loaded = await LoadAllHolonsAsync(loadChildren:false,version:version);
             if(loaded.IsError) return loaded;

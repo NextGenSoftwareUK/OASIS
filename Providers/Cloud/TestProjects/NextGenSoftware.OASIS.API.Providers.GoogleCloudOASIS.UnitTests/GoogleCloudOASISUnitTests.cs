@@ -12,6 +12,20 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
     {
         [DataTestMethod]
         [DataRow(false)] [DataRow(true)]
+        public async Task InvalidHolonTypeNeverActivatesCollectionOrParentReads(bool synchronous)
+        {
+            var provider=new FailedActivationProvider();var type=(HolonType)int.MaxValue;
+            void Check(NextGenSoftware.OASIS.Common.OASISResult<System.Collections.Generic.IEnumerable<IHolon>> result)
+            {
+                Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsFalse(result.IsLoaded);
+                Assert.IsInstanceOfType(result.Exception,typeof(System.ArgumentOutOfRangeException));
+            }
+            Check(synchronous ? provider.LoadAllHolons(type):await provider.LoadAllHolonsAsync(type));
+            Check(synchronous ? provider.LoadHolonsForParent(System.Guid.NewGuid(),type):await provider.LoadHolonsForParentAsync(System.Guid.NewGuid(),type));
+            Assert.AreEqual(0,provider.Activations);
+        }
+        [DataTestMethod]
+        [DataRow(false)] [DataRow(true)]
         public async Task CredentialHolonOverloadRejectsBeforeStorageAccess(bool synchronous)
         {
             var provider=new FailedActivationProvider();
