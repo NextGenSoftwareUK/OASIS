@@ -333,14 +333,14 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             var result=new OASISResult<ISearchResults>();
             try
             {
-                StoredRecordSearch.Validate(searchParams,version,maxChildDepth);
+                StoredRecordSearch.Validate(searchParams,version,maxChildDepth,supportsHistory:true);
                 var groups=searchParams.SearchGroups ?? new List<ISearchGroupBase>();
                 var wantsAvatars=groups.Count==0 || groups.Any(group=>group.SearchAvatars || !group.SearchHolons);
                 var wantsHolons=groups.Count==0 || groups.Any(group=>group.SearchHolons || !group.SearchAvatars);
                 var snapshot=await LoadLookupToJson();
-                var avatars=wantsAvatars ? await ReadIndexSnapshotAsync<Avatar>(snapshot,"avatar",row=>true):new List<Avatar>();
+                var avatars=wantsAvatars ? await ReadIndexSnapshotAsync<Avatar>(snapshot,"avatar",row=>true,version):new List<Avatar>();
                 var holons=wantsHolons || searchParams.ParentId!=Guid.Empty
-                    ? await ReadIndexSnapshotAsync<Holon>(snapshot,"holon",row=>true):new List<Holon>();
+                    ? await ReadIndexSnapshotAsync<Holon>(snapshot,"holon",row=>true,version):new List<Holon>();
                 var project=HolonGraphProjection.Create(holons,loadChildren,recursive,maxChildDepth,0,true,
                     source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
                 var found=new SearchResults();

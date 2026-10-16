@@ -108,9 +108,9 @@ public partial class IPFSOASIS
 
     private async Task<List<T>> ReadIndexedCollectionAsync<T>(string kind,Func<HolonResume,bool> predicate,int version=0) where T:class,IHolonBase
     {
-        if(version!=0) throw new NotSupportedException("IPFS current index collection requires version 0; historical traversal is not implemented.");
+        if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
         var lookup=await LoadLookupToJson();
-        return await ReadIndexSnapshotAsync<T>(lookup,kind,predicate);
+        return await ReadIndexSnapshotAsync<T>(lookup,kind,predicate,version);
     }
 
     private async Task<OASISResult<IEnumerable<T>>> ReadPrivateCollectionResultAsync<T>(string kind,int version) where T:class,IHolonBase
@@ -126,12 +126,17 @@ public partial class IPFSOASIS
     }
 
     private async Task<List<T>> ReadIndexSnapshotAsync<T>(IReadOnlyDictionary<string,HolonResume> lookup,
-        string kind,Func<HolonResume,bool> predicate) where T:class,IHolonBase
+        string kind,Func<HolonResume,bool> predicate,int version=0) where T:class,IHolonBase
     {
+        if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
         var selected=lookup.Where(entry=>entry.Value?.RecordKind==kind && predicate(entry.Value)).ToList();
         if(selected.GroupBy(entry=>entry.Value.Id).Any(group=>group.Count()>1)) throw new StorageIdentityAmbiguousException();
         var records=new List<T>();
-        foreach(var entry in selected) records.Add(await ReadPrivateRecordAsync<T>(entry.Key,kind,entry.Value.Id));
+        foreach(var entry in selected)
+        {
+            var record=await ReadPrivateVersionAsync<T>(entry.Key,kind,entry.Value.Id,version);
+            if(record!=null) records.Add(record);
+        }
         return records;
     }
 }
