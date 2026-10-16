@@ -11,7 +11,7 @@ try {
     Push-Location $root
     $project='Providers/Cloud/TestProjects/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.IntegrationTests.csproj'
     foreach($producer in @('Providers/Storage/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj','Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj','Providers/Cloud/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS/NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.csproj',$project)) {
-        & dotnet build $producer --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q
+        & dotnet build $producer --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if($LASTEXITCODE) {throw "Cached build failed: $producer"}
     }
     $process=Start-Process java -ArgumentList @('-Xmx256m','-jar',$jar,'--host','127.0.0.1','--port','18080','--webchannel_port','18081','--websocket_port','18082','--project_id','oasis-google-native','--single_project_mode','--single_project_mode_error') -WorkingDirectory $work -WindowStyle Hidden -PassThru -RedirectStandardOutput (Join-Path $work 'firestore.out.log') -RedirectStandardError (Join-Path $work 'firestore.err.log')
@@ -23,10 +23,14 @@ try {
     }
     if(!$ready) {throw 'Owned Firestore readiness timed out.'}
     $env:FIRESTORE_EMULATOR_HOST='127.0.0.1:18080'
-    & dotnet test $project --no-build --no-restore --filter FullyQualifiedName~GoogleNativeDetailTests --logger 'trx;LogFileName=google-native-current.trx' --results-directory $work -v:q
+    $started=[DateTime]::UtcNow
+    & dotnet test $project --no-build --no-restore --logger 'trx;LogFileName=google-native-current.trx' --results-directory $work -v:q
     if($LASTEXITCODE) {throw 'Google native test failed.'}
-    [xml]$report=Get-Content (Join-Path $work 'google-native-current.trx') -Raw
-    if($report.TestRun.ResultSummary.Counters.total -ne '1' -or $report.TestRun.ResultSummary.Counters.passed -ne '1') {throw 'Expected exactly one native test passed.'}
+    $reportFile=Get-Item -LiteralPath (Join-Path $work 'google-native-current.trx') -ErrorAction Stop
+    if($reportFile.LastWriteTimeUtc -lt $started){throw 'Google native report is stale; no verification claim permitted.'}
+    [xml]$report=Get-Content -LiteralPath $reportFile.FullName -Raw
+    $counts=$report.TestRun.ResultSummary.Counters
+    if([int]$counts.total -ne 3 -or [int]$counts.passed -ne 3 -or [int]$counts.notExecuted -ne 0) {throw 'Expected all three native tests passed, no skips.'}
 }
 finally {
     $env:FIRESTORE_EMULATOR_HOST=$previous
