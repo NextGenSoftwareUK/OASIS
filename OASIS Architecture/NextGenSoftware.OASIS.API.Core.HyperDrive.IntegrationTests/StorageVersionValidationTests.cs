@@ -24,7 +24,11 @@ public sealed partial class RealProviderRoutingTests
             var result=synchronous ? router.RouteRequest<object>(request):await router.RouteRequestAsync<object>(request);
             result.IsError.Should().BeTrue();result.Result.Should().BeNull();result.IsLoaded.Should().BeFalse();
             result.ErrorCode.Should().Be(field=="type" ? "HYPERDRIVE_HOLON_TYPE_INVALID":"HYPERDRIVE_DEPTH_INVALID");
+            (await router.LoadBalanceRequestAsync<object>(request)).ErrorCode.Should().Be(result.ErrorCode);
+            (await router.FailoverRequestAsync<object>(request)).ErrorCode.Should().Be(result.ErrorCode);
+            (await router.ReplicateRequestAsync<object>(request)).ErrorCode.Should().Be(result.ErrorCode);
             sqlite.IsProviderActivated.Should().BeFalse();manager.LastProviderSelectionDiagnostic.Should().BeNull();
+            router.LastFailoverDiagnostic.Should().BeNull();router.LastReplicationDiagnostic.Should().BeNull();
             (manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests ?? 0).Should().Be(0);
         }
         File.Exists(SqlitePath).Should().BeFalse("malformed queries must not create native storage");

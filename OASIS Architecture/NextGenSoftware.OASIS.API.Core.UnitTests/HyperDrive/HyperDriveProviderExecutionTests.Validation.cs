@@ -35,6 +35,13 @@ public sealed partial class HyperDriveProviderExecutionTests
         result.ErrorCode.Should().Be(field=="type" ? "HYPERDRIVE_HOLON_TYPE_INVALID":"HYPERDRIVE_DEPTH_INVALID");
         result.Exception.Should().BeOfType<ArgumentOutOfRangeException>();
         manager.LastProviderSelectionDiagnostic.Should().BeNull();router.LastFailoverDiagnostic.Should().BeNull();
+        var balanced=await router.LoadBalanceRequestAsync<object>(request);
+        balanced.ErrorCode.Should().Be(result.ErrorCode);balanced.Result.Should().BeNull();
+        var failedOver=await router.FailoverRequestAsync<object>(request);
+        failedOver.ErrorCode.Should().Be(result.ErrorCode);failedOver.Result.Should().BeNull();
+        var replicated=await router.ReplicateRequestAsync<object>(request);
+        replicated.ErrorCode.Should().Be(result.ErrorCode);replicated.Result.Should().BeNull();
+        manager.LastProviderSelectionDiagnostic.Should().BeNull();router.LastFailoverDiagnostic.Should().BeNull();router.LastReplicationDiagnostic.Should().BeNull();
         foreach(var provider in new[]{primary,secondary}) provider.Invocations.Should().NotContain(call=>call.Method.Name.StartsWith("Load",StringComparison.Ordinal) || call.Method.Name.StartsWith("Save",StringComparison.Ordinal));
     }
 
