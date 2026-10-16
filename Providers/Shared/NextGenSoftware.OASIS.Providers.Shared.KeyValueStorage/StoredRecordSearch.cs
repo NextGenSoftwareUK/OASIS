@@ -83,8 +83,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                             : avatar ? new List<string> {"Username","Email","FirstName","LastName"} : new List<string> {"Name","Description"};
                     // Credentials are never searchable even under an all-fields request.
                     flags.RemoveAll(name=>name is "Password" or "JwtToken" or "RefreshToken" or "ResetToken" or "VerificationToken");
-                    flags=flags.Select(name=>name == "VerifiedDate" ? "Verified" : name).ToList();
-                    if(group.HolonSearchParams?.MetaDataKey is string metadataKey && !string.IsNullOrEmpty(metadataKey))
+                    flags=flags.Select(name=>name == "VerifiedDate" ? "Verified" : name == "AvatarId" ? "Id" : name).ToList();
+                    if(!avatar && group.HolonSearchParams?.MetaDataKey is string metadataKey && !string.IsNullOrEmpty(metadataKey))
                         json["MetaData"]=json["MetaData"]?[metadataKey];
                     if(group is ISearchTextGroup text)
                     {
@@ -107,6 +107,14 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         public static bool MatchesTextIds(IHolonBase record,string query)
             => MatchesTextIdentifiers(record,query,searchIds:true,searchProviderKeys:false);
+
+        public static bool MatchesTextFields(IHolonBase record,bool avatar,ISearchTextGroup group)
+        {
+            ArgumentNullException.ThrowIfNull(record);
+            ArgumentNullException.ThrowIfNull(group);
+            ArgumentException.ThrowIfNullOrWhiteSpace(group.SearchQuery);
+            return Matches(record,avatar,new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new List<ISearchGroupBase> {group}},Enumerable.Empty<IHolon>());
+        }
 
         public static bool MatchesTextIdentifiers(IHolonBase record,string query,bool searchIds,bool searchProviderKeys)
         {

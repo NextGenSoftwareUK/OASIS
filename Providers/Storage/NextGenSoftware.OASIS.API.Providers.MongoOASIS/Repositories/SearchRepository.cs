@@ -22,6 +22,10 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
     {
         private MongoDbContext _dbContext;
 
+        private static bool ExtendedTextMask(object mask,params string[] nativeFields)
+            => mask!=null && mask.GetType().GetProperties().Any(property=>property.PropertyType==typeof(bool)
+                && (bool)property.GetValue(mask) && !nativeFields.Contains(property.Name));
+
         public SearchRepository(MongoDbContext dbContext)
         {
             _dbContext = dbContext;
@@ -92,6 +96,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                         if (searchTextGroup.SearchAvatars)
                         {
                             var mask=searchTextGroup.AvatarSearchParams;
+                            if(ExtendedTextMask(mask,"FirstName","LastName","Username","Email"))
+                            {
+                                var candidates=await Read(_dbContext.Avatar,Builders<Avatar>.Filter.Eq(row=>row.DeletedDate,DateTime.MinValue)).ConfigureAwait(false);
+                                groupAvatars.AddRange(candidates.Where(row=>StoredRecordSearch.MatchesTextFields(
+                                    DataHelper.ConvertMongoEntityToOASISAvatar(new OASISResult<Avatar>(row),false).Result,true,searchTextGroup)));
+                            }
+                            else
+                            {
                             var text=new BsonRegularExpression(Regex.Escape(searchTextGroup.SearchQuery),"i");
                             var fields=new List<FilterDefinition<Avatar>>();
                             if(mask==null || mask.FirstName || mask.SearchAllFields) fields.Add(Builders<Avatar>.Filter.Regex(row=>row.FirstName,text));
@@ -111,6 +123,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 groupAvatars.AddRange(candidates.Where(row=>StoredRecordSearch.MatchesTextIdentifiers(
                                     DataHelper.ConvertMongoEntityToOASISAvatar(new OASISResult<Avatar>(row),false).Result,searchTextGroup.SearchQuery,searchTextGroup.SearchIds,searchTextGroup.SearchProviderKeys)));
                             }
+                            }
                         }
 
                         if (searchTextGroup.SearchHolons)
@@ -118,6 +131,14 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                             var filter = HolonRepository.BuildHolonTypeFilter(HolonType.All);
                             if (searchParams.ParentId != Guid.Empty)
                                 filter &= Builders<Holon>.Filter.Eq(row => row.ParentHolonId, searchParams.ParentId);
+                            if(ExtendedTextMask(searchTextGroup.HolonSearchParams,"Name","Description"))
+                            {
+                                var candidates=await Read(_dbContext.Holon,filter).ConfigureAwait(false);
+                                groupHolons.AddRange(candidates.Where(row=>StoredRecordSearch.MatchesTextFields(
+                                    DataHelper.ConvertMongoEntityToOASISHolon(row,false),false,searchTextGroup)));
+                            }
+                            else
+                            {
                             // Text search is literal substring matching, not caller-supplied regex.
                             var text = new BsonRegularExpression(Regex.Escape(searchTextGroup.SearchQuery), "i");
                             var fields = new List<FilterDefinition<Holon>>();
@@ -132,6 +153,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Repositories
                                 var candidates=await Read(_dbContext.Holon,filter).ConfigureAwait(false);
                                 groupHolons.AddRange(candidates.Where(row=>StoredRecordSearch.MatchesTextIdentifiers(
                                     DataHelper.ConvertMongoEntityToOASISHolon(row,false),searchTextGroup.SearchQuery,searchTextGroup.SearchIds,searchTextGroup.SearchProviderKeys)));
+                            }
                             }
                         }
                     }
