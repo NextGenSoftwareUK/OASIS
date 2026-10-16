@@ -2,6 +2,8 @@
 
 ## Current evidence summary — supersedes historical entries below
 
+Neo4j delete now updates/removes an existing profile/detail pair in same explicit compare-guarded transaction; soft state shares timestamp/actor and preserves full detail data, hard removes both. Process-local committed tombstone evidence attached only after successful commit/disposal; missing detail not fabricated. Native14/14 passes10s, new2soft/hard cases verify preservation/timestamp/evidence/absence. Existing-pair atomic write scope only: concurrent creation/rollback/faults/incoming tombstone apply/routed delete replication/history/recovery remain open.
+
 Actual V2 point partial policy now native-proven:4syncasync×continue cases preserve marked Neo4j subset/warning/failure metadata with0SQLite requests when continuation accepted; strict transient failure instead fails over to SQLite exactly once and returns distinct stored fallback. Native12/12 passes9s/zero skips. Not every routed collection/parent/metadata partial case, transport class, history/pair/recovery/hosted coverage. No full certification.
 
 Neo4j continueOnError now implements explicitly marked transient descendant partial reads across4graph-read families, matching existing shared warning metadata. Native12/12 passes9s:16scope/syncasync/continue combinations with actual SDK read then injected IOException prove strict original failure vs marked subset/unaffected sibling; cycles remain fatal. Not every transport class/wire outage, routed partial policy/history/pair lifecycle/recovery certification. Initial root-query failures cannot become empty successful reads.

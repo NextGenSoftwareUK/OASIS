@@ -9,6 +9,49 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 [DoNotParallelize]
 public partial class Neo4jNativeAvatarTests
 {
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task OwnedNativeAvatarDeletionPreservesOrRemovesItsDetailInSameCommit(bool softDelete)
+    {
+        const string uri = "bolt://127.0.0.1:17687";
+        Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
+        using var raw = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
+        using var inspection = raw.AsyncSession();
+        var before = await (await inspection.RunAsync("MATCH (a) WHERE a:Avatar OR a:AvatarDetail RETURN count(a) AS count")).SingleAsync();
+        Assert.AreEqual(0L, before["count"].As<long>(), "Retained pair evidence exists; no overwrite allowed.");
+        var provider = new Provider(uri, "neo4j", "oasis-local-test-only");
+        try
+        {
+            Assert.IsFalse((await provider.ActivateProviderAsync()).IsError);
+            var id = Guid.NewGuid();
+            var avatar = new Avatar { Id = id, Username = "owned-pair", FirstName = "preserved profile" };
+            var detail = new AvatarDetail { Id = id, Username = "owned-pair", XP = 4321, Karma = 321, ActiveQuestId = Guid.NewGuid() };
+            detail.Inventory.Add(new NextGenSoftware.OASIS.API.Core.Objects.InventoryItem { Id = Guid.NewGuid(), Name = "preserved inventory" });
+            Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+            Assert.IsFalse((await provider.SaveAvatarDetailAsync(detail)).IsError);
+            var deleted = await provider.DeleteAvatarAsync(id, softDelete);
+            Assert.IsFalse(deleted.IsError, deleted.Message); Assert.IsTrue(deleted.Result); Assert.IsTrue(deleted.IsDeleted);
+            if (softDelete)
+            {
+                var profile = await provider.LoadAvatarAsync(id); var storedDetail = await provider.LoadAvatarDetailAsync(id);
+                Assert.IsFalse(profile.IsError, profile.Message); Assert.IsFalse(storedDetail.IsError, storedDetail.Message);
+                Assert.IsFalse(profile.Result.IsActive); Assert.IsFalse(storedDetail.Result.IsActive);
+                Assert.IsTrue(profile.Result.IsDeleted); Assert.IsTrue(storedDetail.Result.IsDeleted);
+                Assert.AreEqual(profile.Result.DeletedDate, storedDetail.Result.DeletedDate);
+                Assert.AreEqual("preserved profile", profile.Result.FirstName);
+                Assert.AreEqual(4321L, storedDetail.Result.XP); Assert.AreEqual(321L, storedDetail.Result.Karma);
+                Assert.AreEqual(detail.ActiveQuestId, storedDetail.Result.ActiveQuestId);
+                Assert.AreEqual("preserved inventory", storedDetail.Result.Inventory.Single().Name);
+                Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.AvatarTombstoneEvidence.TryGet(deleted, out var evidence));
+                Assert.AreEqual(profile.Result.DeletedDate, evidence.DeletedAtUtc);
+                Assert.IsFalse((await provider.DeleteAvatarAsync(id, false)).IsError);
+            }
+            var after = await (await inspection.RunAsync("MATCH (a) WHERE (a:Avatar OR a:AvatarDetail) AND a.Id=$id RETURN count(a) AS count", new { id = id.ToString() })).SingleAsync();
+            Assert.AreEqual(0L, after["count"].As<long>());
+        }
+        finally { await provider.DeActivateProviderAsync(); }
+    }
+
     [TestMethod]
     public async Task OwnedNativeSelectedChildReparentingMovesOnlyItsIncomingEdge()
     {

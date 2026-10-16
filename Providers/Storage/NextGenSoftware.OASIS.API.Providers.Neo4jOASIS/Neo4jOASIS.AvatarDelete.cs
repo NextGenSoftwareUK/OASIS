@@ -48,6 +48,7 @@ public partial class Neo4jOASIS
     {
         var response = new OASISResult<bool>();
         var dispatched = false;
+        Core.Objects.AvatarTombstone tombstone = null;
         try
         {
             if (string.IsNullOrWhiteSpace(value)) throw new ArgumentException("Avatar deletion selector is required.");
@@ -61,8 +62,31 @@ public partial class Neo4jOASIS
                 var node = found[0]["a"].As<Neo4j.Driver.INode>();
                 if (!node.Properties.TryGetValue("SnapshotJson", out var json)) throw new InvalidDataException("Neo4j avatar canonical snapshot is missing.");
                 var plan = PlanAvatarDelete(json as string, node["Id"].As<string>(), softDelete, DateTime.UtcNow);
+                var detailRows = await (await session.RunAsync("MATCH (a:AvatarDetail {Id:$id}) RETURN a", new { id = node["Id"].As<string>() })).ToListAsync();
+                if (detailRows.Count > 1) throw new StorageLifecycleConflictException("Neo4j avatar-detail identity is not unique.");
+                Dictionary<string, object> detailParameters = null;
+                if (softDelete)
+                {
+                    var deletedProfile = ReadAvatarSnapshot((string)plan.Parameters["snapshot"], node["Id"].As<string>());
+                    tombstone = new Core.Objects.AvatarTombstone(deletedProfile.Id, deletedProfile.DeletedDate, deletedProfile.DeletedByAvatarId);
+                }
+                if (detailRows.Count == 1)
+                {
+                    var detailNode = detailRows[0]["a"].As<Neo4j.Driver.INode>();
+                    var detail = ReadDetailNode(detailNode);
+                    detailParameters = new Dictionary<string, object>(plan.Parameters) { ["expected"] = (string)detailNode["SnapshotJson"] };
+                    if (softDelete)
+                    {
+                        if (detail.IsDeleted && detail.DeletedDate != tombstone.DeletedAtUtc)
+                            throw new StorageLifecycleConflictException("Neo4j profile/detail have conflicting committed deletion timestamps.");
+                        detail.IsActive = false; detail.DeletedDate = tombstone.DeletedAtUtc;
+                        detail.DeletedByAvatarId = tombstone.DeletedByAvatarId;
+                        detailParameters["snapshot"] = OasisJson.Serialize(detail);
+                    }
+                }
+                using var transaction = await session.BeginTransactionAsync();
                 dispatched = true;
-                var changed = await (await session.RunAsync(plan.Query, plan.Parameters)).ToListAsync();
+                var changed = await (await transaction.RunAsync(plan.Query, plan.Parameters)).ToListAsync();
                 if (changed.Count == 0)
                 {
                     dispatched = false; // Acknowledged compare failure: no mutation took place.
@@ -70,9 +94,19 @@ public partial class Neo4jOASIS
                 }
                 if (changed.Count != 1 || changed[0]["affected"].As<int>() != 1)
                     throw new InvalidDataException("Neo4j deletion acknowledgement is invalid.");
+                if (detailParameters != null)
+                {
+                    var detailQuery = plan.Query.Replace("(a:Avatar {Id:", "(a:AvatarDetail {Id:", StringComparison.Ordinal);
+                    var detailChanged = await (await transaction.RunAsync(detailQuery, detailParameters)).ToListAsync();
+                    if (detailChanged.Count != 1 || detailChanged[0]["affected"].As<int>() != 1)
+                        throw new StorageLifecycleConflictException("Neo4j avatar detail changed before paired deletion.");
+                }
+                await transaction.CommitAsync();
             }
             response.Result = true;
             response.IsSaved = true;
+            response.IsDeleted = true;
+            if (tombstone != null) AvatarTombstoneEvidence.Attach(response, tombstone);
             response.Message = softDelete ? "Avatar soft deleted in Neo4j." : "Avatar hard deleted in Neo4j.";
         }
         catch (Exception cause)
