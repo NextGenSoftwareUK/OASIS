@@ -9,6 +9,60 @@ namespace NextGenSoftware.OASIS.API.Providers.AWSOASIS.IntegrationTests;
 public partial class AWSOASISIntegrationTests
 {
     [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task V2ReplicatesSelectedGraphWithGeneratedIdentities(bool synchronous)
+    {
+        var path=Path.GetFullPath("TestResults/AWSRoutingFiles/delete-routing.db");
+        if(File.Exists(path)) Assert.Fail("Retained SQLite routing evidence exists; refusing overwrite.");
+        Directory.CreateDirectory(Path.GetDirectoryName(path)!);
+        var sqlite=new NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.SQLLiteDBOASIS($"Data Source={path};Pooling=False");
+        var verified=false;
+        try
+        {
+            Assert.IsFalse((await sqlite.ActivateProviderAsync()).IsError);
+            var dna=new NextGenSoftware.OASIS.API.DNA.OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {
+                HyperDriveMode=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2,StorageProviders=new(),SubscriptionConfig=new() {PlanType="Gold"}}};
+            var manager=new Core.Managers.ProviderManager(null,dna) {IsAutoReplicationEnabled=true};
+            manager.RegisterProvider(_provider);manager.RegisterProvider(sqlite);
+            var types=new[] {new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.AWSOASIS),
+                new NextGenSoftware.Utilities.EnumValue<Core.Enums.ProviderType>(Core.Enums.ProviderType.SQLLiteDBOASIS)};
+            Assert.IsFalse(manager.SetAndReplaceAutoReplicationListForProviders(types).IsError);
+            var router=new Core.Managers.OASISHyperDrive.OASISHyperDrive(manager);
+            foreach(var primary in types)
+            {
+                var root=new Holon {Name="owned-v2-graph-root",IsActive=true};
+                var child=new Holon {Name="owned-v2-graph-child",IsActive=true};
+                var leaf=new Holon {Name="owned-v2-graph-leaf",IsActive=true};
+                root.Children=new List<IHolon> {child};child.Children=new List<IHolon> {leaf};
+                var request=new Core.StorageOperationRequest {Operation="SaveHolon",Payload=root,SaveChildren=true,Recursive=true,PreferredProvider=primary.Value};
+                var saved=synchronous ? router.RouteRequest<IHolon>(request):await router.RouteRequestAsync<IHolon>(request);
+                Assert.IsFalse(saved.IsError,saved.Message);Assert.IsFalse(saved.IsWarning,saved.Message);Assert.IsTrue(saved.IsSaved);
+                Assert.AreNotEqual(Guid.Empty,root.Id);Assert.AreNotEqual(Guid.Empty,child.Id);Assert.AreNotEqual(Guid.Empty,leaf.Id);
+                foreach(var store in new IOASISStorageProvider[] {_provider,sqlite})
+                {
+                    var loaded=await store.LoadHolonAsync(root.Id,loadChildrenFromProvider:true);
+                    Assert.IsFalse(loaded.IsError,loaded.Message);
+                    var c=loaded.Result.Children.Single();var l=c.Children.Single();
+                    Assert.AreEqual(child.Id,c.Id);Assert.AreEqual(leaf.Id,l.Id);
+                    Assert.AreEqual(root.Id,c.ParentHolonId);Assert.AreEqual(child.Id,l.ParentHolonId);
+                    Assert.AreEqual(child.Name,c.Name);Assert.AreEqual(leaf.Name,l.Name);
+                }
+                foreach(var node in new[] {root,child,leaf})
+                {
+                    await Client.DeleteItemAsync(new DeleteItemRequest {TableName="OasisHolons",Key=Key(node.Id)});
+                    Assert.IsFalse((await sqlite.DeleteHolonAsync(node.Id)).IsError);
+                }
+            }
+            verified=true;
+        }
+        finally
+        {
+            await sqlite.DeActivateProviderAsync();
+            if(verified) foreach(var file in new[] {path,path+"-wal",path+"-shm"}) if(File.Exists(file)) File.Delete(file);
+        }
+    }
+
+    [DataTestMethod]
     [DataRow(false,false,true,0)] [DataRow(true,false,true,0)]
     [DataRow(false,true,false,0)] [DataRow(true,true,false,0)]
     [DataRow(false,true,true,1)] [DataRow(true,true,true,1)]
