@@ -60,7 +60,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS
         public bool NativeCodeGenesis(ICelestialBody celestialBody, string outputFolder, string nativeSource)
         {
             // SQLite provider does not generate native code from STAR metadata.
-            return true;
+            return false;
         }
 
         public override OASISResult<IAvatar> SaveAvatar(IAvatar Avatar)

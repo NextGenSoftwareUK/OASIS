@@ -1,5 +1,7 @@
 # HyperDrive V2 current release gates
 
+2026-10-16 SQLite generator acknowledgement corrected: IOASISSuperStar explicitly defines true as successful generation. SQLite has no generator, so NativeCodeGenesis now returns false rather than falsely acknowledging success. New interface-level regression fails before/pass after, also verifies no storage activation. Producer builds with 0 errors/37 warnings; final maintained units 5/5 pass (92 ms), full native SQLite integration 381/381 pass (26 s), no skips. This is truthful unsupported capability reporting, NOT implementation/certification of native code generation or all interfaces. Mongo has the same return-true/no-generator pattern in MongoDBOASIS.Part3.cs and remains to be corrected/tested separately. No merge/deploy/history policy change.
+
 ## Current execution priority — user confirmed 2026-10-16
 
 MongoDB/SQLite → Ethereum/Solana → IPFS → AWS/Azure/Google Cloud/Cosmos DB → Polygon/Arbitrum → Neo4j → remaining chains → SOLID/ActivityPub. This overrides the older goal text naming the remaining chains first, without removing those providers from scope.

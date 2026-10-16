@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 SQLite acknowledgement regression reused existing cached producer/test outputs and fixed compact reports. No restore/download/install/new runtime/worktree; no deletion. Final-source 5 unit/381 integration tests pass; C: observed 83,128,336,384 bytes free during verification. No unrelated subscription edits staged.
+
 2026-10-16 SQLite priority verification reused the existing task checkout/cache/build outputs and fixed TestResults/HyperDriveSqliteCurrent directory. No restore, installation, download, new worktree/runtime/service. Retained two compact current TRX reports (381 integration and 4 unit tests, no skips). Nothing deleted. C: free after verification 83,130,048,512 bytes; observation, not a recovered-space claim.
 
 2026-10-16 canonical LocalFile graph reads reused shared projection/serializer, existing fixed filesystem/SQLite fixture, SDK outputs and reports; no download/restore/install/runtime/new environment. Producer0errors/30warnings; final92/92pass9s,no skips. Corrupt child/cycle tests retain failure fixture until bytes/secondary verified, restore originals and verify healthy graph before cleanup. Owned-data independently absent. No old user files migrated/deleted; pending chain/CosmosDB/concurrent subscription changes preserved. C free83,167,076,352bytes.
