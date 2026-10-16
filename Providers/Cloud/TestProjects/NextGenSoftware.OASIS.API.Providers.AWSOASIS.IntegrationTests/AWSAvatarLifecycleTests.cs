@@ -58,7 +58,12 @@ public partial class AWSOASISIntegrationTests
                 Assert.AreEqual("aws-profile",aws.Profile.FirstName);Assert.AreEqual("sqlite-profile",localProfile.FirstName);
                 Assert.AreEqual(501L,aws.Detail.XP);Assert.AreEqual(502L,localDetail.XP);
                 Assert.AreEqual("aws-inventory",aws.Detail.Inventory.Single().Name);Assert.AreEqual("sqlite-inventory",localDetail.Inventory.Single().Name);
-                Assert.IsFalse((await _provider.DeleteAvatarAsync(id,false)).IsError);Assert.IsFalse((await sqlite.DeleteAvatarAsync(id,false)).IsError);
+                var hardRequest=new Core.StorageOperationRequest {Operation="DeleteAvatar",AvatarId=id,SoftDelete=false,PreferredProvider=preferred.Value};
+                var hard=synchronous ? router.RouteRequest<bool>(hardRequest):await router.RouteRequestAsync<bool>(hardRequest);
+                Assert.IsFalse(hard.IsError,hard.Message);Assert.IsFalse(hard.IsWarning,hard.Message);Assert.IsTrue(hard.Result);
+                foreach(var table in new[] {"OasisAvatars","OasisAvatarDetails"})
+                    Assert.AreEqual(0,(await Client.GetItemAsync(new GetItemRequest {TableName=table,Key=Key(id),ConsistentRead=true})).Item.Count);
+                Assert.IsNull((await sqlite.LoadAvatarAsync(id)).Result);Assert.IsNull((await sqlite.LoadAvatarDetailAsync(id)).Result);
             }
             verified=true;
         }
