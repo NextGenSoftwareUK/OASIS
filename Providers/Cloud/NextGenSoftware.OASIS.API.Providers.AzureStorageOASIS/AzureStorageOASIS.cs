@@ -311,7 +311,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                 if(avatar.IsDeleted) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Azure avatar is deleted.";return result;}
                 avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
                 avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS] = providerKey;
-                result.Result = avatar;
+                result.Result = avatar;result.IsLoaded=true;
             }
             catch (Azure.RequestFailedException cause) when(cause.Status==404 && cause.ErrorCode=="BlobNotFound") {
                 result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Azure avatar blob not found.";
@@ -347,7 +347,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
                     if(r.Result==null) throw new InvalidDataException("Azure avatar read returned no record.");
                     if(!r.Result.IsDeleted) avatars.Add(r.Result);
                 }
-                result.Result = avatars;
+                result.Result = avatars;result.IsLoaded=true;
             }
             catch (Exception ex) { result.Exception = ex; OASISErrorHandling.HandleError(ref result, ex.Message); }
             return result;
