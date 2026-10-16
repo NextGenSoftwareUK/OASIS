@@ -308,99 +308,11 @@ public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
 
 
 
-        public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radius)
-        {
-            var response = new OASISResult<IEnumerable<IAvatar>>();
-            try
-            {
-                // REAL Neo4j implementation for getting players near me
-                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
-                }
+public OASISResult<IEnumerable<IAvatar>> GetAvatarsNearMe(long geoLat, long geoLong, int radius)
+            => ReadNearbyRecordsAsync(geoLat,geoLong,radius,()=>LoadAllAvatarsAsync()).GetAwaiter().GetResult();
 
-                var query = "MATCH (a:Avatar) WHERE a.Latitude IS NOT NULL AND a.Longitude IS NOT NULL RETURN a LIMIT 50";
-                var parameters = new { };
-                
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = session.RunAsync(query, parameters).Result;
-                    var records = result.ToListAsync().Result;
-                    
-                    var players = new List<IAvatar>();
-                    foreach (var record in records)
-                    {
-                        var node = record["a"].As<Neo4j.Driver.INode>();
-                        
-                        players.Add(new Avatar
-                        {
-                            Id = Guid.Parse(node["Id"].As<string>()),
-                            Username = node["Username"].As<string>(),
-                            Email = node["Email"].As<string>()
-                        });
-                    }
-                    
-                    response.Result = players;
-                    response.IsError = false;
-                    response.Message = "Players near location loaded successfully from Neo4j";
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error getting players near me from Neo4j: {ex.Message}");
-            }
-            return response;
-        }
-
-        public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radius, HolonType holonType = HolonType.All)
-        {
-            var response = new OASISResult<IEnumerable<IHolon>>();
-            try
-            {
-                // REAL Neo4j implementation for getting holons near me
-                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
-                }
-
-                var query = "MATCH (h:Holon) WHERE h.Latitude IS NOT NULL AND h.Longitude IS NOT NULL RETURN h LIMIT 50";
-                var parameters = new { };
-                
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = session.RunAsync(query, parameters).Result;
-                    var records = result.ToListAsync().Result;
-                    
-                    var holons = new List<IHolon>();
-                    foreach (var record in records)
-                    {
-                        var node = record["h"].As<Neo4j.Driver.INode>();
-                        holons.Add(new Holon 
-                        { 
-                            Id = Guid.Parse(node["Id"].As<string>()),
-                            Name = node["Name"].As<string>(),
-                            Description = node["Description"].As<string>(),
-                            HolonType = Enum.Parse<HolonType>(node["HolonType"].As<string>()),
-                            CreatedDate = node["CreatedDate"].As<DateTime>(),
-                            ModifiedDate = node["ModifiedDate"].As<DateTime>()
-                        });
-                    }
-                    
-                    response.Result = holons;
-                    response.IsError = false;
-                    response.Message = "Holons near location loaded successfully from Neo4j";
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error getting holons near me from Neo4j: {ex.Message}");
-            }
-            return response;
-        }
+public OASISResult<IEnumerable<IHolon>> GetHolonsNearMe(long geoLat, long geoLong, int radius, HolonType holonType = HolonType.All)
+            => ReadNearbyRecordsAsync(geoLat,geoLong,radius,()=>LoadAllHolonsAsync(HolonType.All,loadChildren:false),holonType).GetAwaiter().GetResult();
 
 
 
