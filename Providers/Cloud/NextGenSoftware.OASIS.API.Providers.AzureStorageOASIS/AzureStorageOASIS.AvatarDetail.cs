@@ -122,14 +122,19 @@ public partial class AzureStorageOASIS
         var result=new OASISResult<IAvatarDetail>();
         try {
             ArgumentNullException.ThrowIfNull(detail);
+            var source=detail;
+            detail=Deserialise<AvatarDetail>(Serialise(source))!;
             if(detail.Id==Guid.Empty) detail.Id=Guid.NewGuid();
             var key=detail.Id.ToString();
+            detail.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
+            detail.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS]=key;
             var payload=BinaryData.FromString(Serialise(detail));
             var blob=_serviceClient.GetBlobContainerClient(_detailContainer).GetBlobClient(key);
             await ObserveBlobMutationAsync(()=>blob.UploadAsync(payload,overwrite:true),blob);
-            detail.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
-            detail.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS]=key;
-            result.Result=detail;result.IsSaved=true;
+            source.Id=detail.Id;
+            source.ProviderUniqueStorageKey ??= new Dictionary<ProviderType,string>();
+            source.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureStorageOASIS]=key;
+            result.Result=source;result.IsSaved=true;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
         return result;
