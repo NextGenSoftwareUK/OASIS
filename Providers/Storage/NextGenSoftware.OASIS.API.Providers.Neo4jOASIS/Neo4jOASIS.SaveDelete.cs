@@ -22,53 +22,8 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
             return DeleteHolonAsync(id).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
-        {
-            var response = new OASISResult<IHolon>();
-            try
-            {
-                // REAL Neo4j implementation for deleting holon by provider key
-                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
-                }
-
-                // First load the holon to return it
-                var loadResult = await LoadHolonAsync(providerKey, false, false, 0, true, false, 0);
-                if (loadResult.IsError || loadResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to load holon: {loadResult.Message}");
-                    return response;
-                }
-
-                var query = "MATCH (h:Holon {ProviderKey: $providerKey}) DETACH DELETE h RETURN h";
-                var parameters = new { providerKey };
-                
-                using (var session = _driver.AsyncSession())
-                {
-                    var result = await session.RunAsync(query, parameters);
-                    var record = await result.SingleAsync();
-                    
-                    if (record != null)
-                    {
-                        response.Result = loadResult.Result;
-                        response.IsError = false;
-                        response.Message = "Holon deleted successfully from Neo4j by provider key";
-                    }
-                    else
-                    {
-                        OASISErrorHandling.HandleError(ref response, "Holon not found in Neo4j database");
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error deleting holon by provider key from Neo4j: {ex.Message}");
-            }
-            return response;
-        }
+public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
+            => DeleteHolonRecordAsync("ProviderKey",providerKey);
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey)
         {
