@@ -11,6 +11,23 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.IntegrationTests;
 public sealed class VisibilityMigrationTests
 {
     [Fact]
+    public void InventoryPublishedPackageMigrationPreservesRows()
+    {
+        using var context=new DataContext("Data Source=:memory:");context.Database.OpenConnection();
+        context.Database.ExecuteSqlRaw("CREATE TABLE AvatarInventory (Id INTEGER PRIMARY KEY, Name TEXT); INSERT INTO AvatarInventory VALUES (1,'owned-package');");
+        context.GetService<IMigrationsAssembly>().Migrations.Should().ContainKey("20261016020000_AddInventoryPublishedPackage");
+        var migration=new AddInventoryPublishedPackage();var generator=context.GetService<IMigrationsSqlGenerator>();
+        foreach(var command in generator.Generate(migration.UpOperations)) context.Database.ExecuteSqlRaw(command.CommandText);
+        using var check=context.Database.GetDbConnection().CreateCommand();
+        check.CommandText="SELECT PublishedSTARNETHolon FROM AvatarInventory WHERE Id=1";
+        check.ExecuteScalar().Should().Be(DBNull.Value);
+        context.Database.ExecuteSqlRaw("UPDATE AvatarInventory SET PublishedSTARNETHolon=X'00FF13' WHERE Id=1");
+        check.ExecuteScalar().Should().BeOfType<byte[]>().Which.Should().Equal(0,255,19);
+        foreach(var command in generator.Generate(migration.DownOperations)) context.Database.ExecuteSqlRaw(command.CommandText);
+        check.CommandText="SELECT Name FROM AvatarInventory WHERE Id=1";check.ExecuteScalar().Should().Be("owned-package");
+    }
+
+    [Fact]
     public void InventoryMediaMigrationRetainsLegacyRow()
     {
         using var context=new DataContext("Data Source=:memory:");context.Database.OpenConnection();

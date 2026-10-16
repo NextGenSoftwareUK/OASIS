@@ -92,6 +92,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Context
             {
                 nameof(InventoryItemModel.Id), nameof(InventoryItemModel.AvatarId),
                 nameof(InventoryItemModel.ItemId),
+                nameof(InventoryItemModel.PublishedSTARNETHolon),
                 nameof(InventoryItemModel.Image2D), nameof(InventoryItemModel.Object3D),
                 nameof(InventoryItemModel.Image2DURI), nameof(InventoryItemModel.Object3DURI),
                 nameof(InventoryItemModel.PropertiesJson), nameof(InventoryItemModel.MetaDataJson),
