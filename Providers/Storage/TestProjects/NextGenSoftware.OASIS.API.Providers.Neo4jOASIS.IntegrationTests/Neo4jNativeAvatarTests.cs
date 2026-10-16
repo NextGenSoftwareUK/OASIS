@@ -9,6 +9,61 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 [DoNotParallelize]
 public class Neo4jNativeAvatarTests
 {
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task ConcurrentProfileUpdateCannotBeLostToStaleDelete(bool softDelete)
+    {
+        const string uri = "bolt://127.0.0.1:17687";
+        Assert.AreEqual(uri, Environment.GetEnvironmentVariable("OASIS_OWNED_NEO4J_URI"));
+        using var raw = GraphDatabase.Driver(uri, AuthTokens.Basic("neo4j", "oasis-local-test-only"));
+        using var heldSession = raw.AsyncSession();
+        var count = await (await heldSession.RunAsync("MATCH (a:Avatar) RETURN count(a) AS count")).SingleAsync();
+        Assert.AreEqual(0L, count["count"].As<long>(), "Retained evidence exists; no overwrite allowed.");
+        var provider = new Provider(uri, "neo4j", "oasis-local-test-only");
+        var activated = await provider.ActivateProviderAsync();
+        Assert.IsFalse(activated.IsError, activated.Message);
+        var avatar = new Avatar { Id = Guid.Parse("00000000-0000-4000-8000-000000000100"),
+            Username = "owned-concurrent", FirstName = "before", IsActive = true };
+        var saved = await provider.SaveAvatarAsync(avatar);
+        Assert.IsFalse(saved.IsError, saved.Message);
+        using var transaction = await heldSession.BeginTransactionAsync();
+        Task<NextGenSoftware.OASIS.Common.OASISResult<bool>>? deletion = null;
+        var committed = false;
+        try
+        {
+            await (await transaction.RunAsync("MATCH (a:Avatar {Id:$id}) SET a.__heldTestLock = true REMOVE a.__heldTestLock RETURN a.Id", new { id = avatar.Id.ToString() })).ConsumeAsync();
+            deletion = provider.DeleteAvatarAsync(avatar.Id, softDelete);
+            var deadline = DateTime.UtcNow.AddSeconds(10);
+            var blocked = false;
+            do
+            {
+                using var inspection = raw.AsyncSession();
+                var rows = await (await inspection.RunAsync("SHOW TRANSACTIONS YIELD currentQuery, status WHERE currentQuery CONTAINS '__oasisAvatarLock' RETURN status")).ToListAsync();
+                blocked = rows.Any(row => row["status"].As<string>().StartsWith("Blocked", StringComparison.OrdinalIgnoreCase));
+                if (!blocked) await Task.Delay(50);
+            } while (!blocked && !deletion.IsCompleted && DateTime.UtcNow < deadline);
+            Assert.IsTrue(blocked, "Delete must be observed waiting on the actual held node lock before update commits.");
+            avatar.FirstName = "concurrent committed profile";
+            var snapshot = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(avatar);
+            await (await transaction.RunAsync("MATCH (a:Avatar {Id:$id}) SET a.SnapshotJson=$snapshot RETURN a.Id", new { id = avatar.Id.ToString(), snapshot })).ConsumeAsync();
+            await transaction.CommitAsync(); committed = true;
+            var rejected = await deletion.WaitAsync(TimeSpan.FromSeconds(10));
+            Assert.IsTrue(rejected.IsError); Assert.IsFalse(rejected.Result); Assert.IsFalse(rejected.IsSaved);
+            Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Helpers.StorageLifecycleConflictException.ErrorCode, rejected.ErrorCode);
+            var current = await provider.LoadAvatarAsync(avatar.Id);
+            Assert.IsFalse(current.IsError, current.Message);
+            Assert.IsTrue(current.Result.IsActive); Assert.IsFalse(current.Result.IsDeleted);
+            Assert.AreEqual("concurrent committed profile", current.Result.FirstName);
+            Assert.IsFalse((await provider.DeleteAvatarAsync(avatar.Id, false)).IsError);
+        }
+        finally
+        {
+            if (!committed) await transaction.RollbackAsync();
+            if (deletion != null) await deletion.WaitAsync(TimeSpan.FromSeconds(10));
+            await provider.DeActivateProviderAsync();
+        }
+    }
+
     [TestMethod]
     public async Task OwnedNativeAvatarSnapshotsSelectorsDeletionAndReactivation()
     {
