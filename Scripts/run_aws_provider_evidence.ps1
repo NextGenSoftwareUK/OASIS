@@ -114,8 +114,8 @@ try {
     if($reportFile.LastWriteTimeUtc -lt $testsStarted){throw 'AWS native report is stale; no verification claim permitted.'}
     [xml]$report = Get-Content -LiteralPath $reportFile.FullName -Raw
     $counters = $report.TestRun.ResultSummary.Counters
-    if ([int]$counters.total -ne 79 -or [int]$counters.passed -ne 79 -or [int]$counters.notExecuted -ne 0) {
-        throw 'Expected exactly seventeen passing native AWS tests without skips.'
+    if ([int]$counters.total -ne 83 -or [int]$counters.passed -ne 83 -or [int]$counters.notExecuted -ne 0) {
+        throw 'Expected exactly eighty-three passing native AWS tests without skips.'
     }
 
     [ordered]@{
