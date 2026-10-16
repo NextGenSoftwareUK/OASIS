@@ -436,68 +436,11 @@ public partial class Web3CoreOASISBaseProvider
 
     public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
     {
-        return BurnTokenAsync(request).Result;
+        return BurnTokenAsync(request).GetAwaiter().GetResult();
     }
 
-    public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
-    {
-        var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-        string errorMessage = "Error in BurnTokenAsync method in Web3CoreOASIS. Reason: ";
-
-        try
-        {
-            if (!IsProviderActivated || _web3Client == null)
-            {
-                OASISErrorHandling.HandleError(ref result, "Web3Core provider is not activated");
-                return result;
-            }
-
-            if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || 
-                string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
-            {
-                OASISErrorHandling.HandleError(ref result, "Token address and owner private key are required");
-                return result;
-            }
-
-            var senderAccount = new Account(request.OwnerPrivateKey);
-            var web3Client = new Web3(senderAccount, _hostURI);
-
-            // ERC20 burn function ABI
-            var erc20Abi = "[{\"constant\":false,\"inputs\":[{\"name\":\"_value\",\"type\":\"uint256\"}],\"name\":\"burn\",\"outputs\":[{\"name\":\"\",\"type\":\"bool\"}],\"type\":\"function\"},{\"constant\":true,\"inputs\":[],\"name\":\"decimals\",\"outputs\":[{\"name\":\"\",\"type\":\"uint8\"}],\"type\":\"function\"}]";
-            var erc20Contract = web3Client.Eth.GetContract(erc20Abi, request.TokenAddress);
-            var decimalsFunction = erc20Contract.GetFunction("decimals");
-            var decimals = await decimalsFunction.CallAsync<byte>();
-            var multiplier = BigInteger.Pow(10, decimals);
-            // Get burn amount from token balance or use default
-            var balanceOfFunction = erc20Contract.GetFunction("balanceOf");
-            var balance = await balanceOfFunction.CallAsync<BigInteger>(senderAccount.Address);
-            var burnAmount = balance > 0 ? (decimal)balance / (decimal)multiplier : 1m;
-            var amountBigInt = new BigInteger(burnAmount * (decimal)multiplier);
-            var burnFunction = erc20Contract.GetFunction("burn");
-            var receipt = await burnFunction.SendTransactionAndWaitForReceiptAsync(
-                senderAccount.Address, 
-                new HexBigInteger(600000), 
-                null, 
-                null, 
-                amountBigInt);
-
-            if (receipt.HasErrors() == true)
-            {
-                OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, "ERC-20 burn failed."));
-                return result;
-            }
-
-            result.Result.TransactionResult = receipt.TransactionHash;
-            result.IsError = false;
-            result.Message = "Token burned successfully.";
-            TransactionHelper.CheckForTransactionErrors(ref result, true, errorMessage);
-        }
-        catch (Exception ex)
-        {
-            OASISErrorHandling.HandleError(ref result, string.Concat(errorMessage, ex.Message), ex);
-        }
-        return result;
-    }
+    public Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
+        =>BurnExplicitErc20Async(request);
 
     public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
     {
