@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Nethereum.Contracts;
 using Nethereum.RPC.Eth.DTOs;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.Common;
@@ -9,6 +11,34 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
 {
     public partial class EthereumOASIS
     {
+        private async Task<TransactionReceipt> SubmitStorageRequestAsync<TFunction>(TFunction request)
+            where TFunction : FunctionMessage, new()
+        {
+            var handler=Web3Client.Eth.GetContractHandler(ContractAddress);
+            string transactionId=null;
+            try
+            {
+                // Keep the acknowledged submission identity before entering receipt polling.
+                // The combined SDK send-and-wait call loses this evidence when polling fails.
+                transactionId=await handler.SendRequestAsync(request);
+                if(!IsStorageTransactionIdentity(transactionId))
+                    throw new InvalidOperationException("Ethereum storage submission returned no valid transaction hash.");
+                var receipt=await PollStorageReceiptAsync(transactionId);
+                if(receipt==null || !string.Equals(receipt.TransactionHash,transactionId,StringComparison.OrdinalIgnoreCase))
+                    throw new InvalidOperationException("Ethereum storage receipt does not match the submitted transaction.");
+                return receipt;
+            }
+            catch(Exception cause)
+            {
+                // An SDK submission exception does not prove rejection. Never fabricate a hash
+                // or replay on another provider when the submission response itself was lost.
+                throw new EthereumStorageReceiptReconciliationException(transactionId,cause);
+            }
+        }
+
+        protected virtual Task<TransactionReceipt> PollStorageReceiptAsync(string transactionId)
+            => Web3Client.TransactionManager.TransactionReceiptService.PollForReceiptAsync(transactionId);
+
         private static bool StorageReceiptSucceeded(TransactionReceipt receipt)
         {
             if (receipt?.Status == null || !IsStorageTransactionIdentity(receipt.TransactionHash)
@@ -34,8 +64,8 @@ namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS
         // Null means the SDK supplied no native identity: never fabricate one or replay.
         // This must remain fenced until authoritative sender/nonce evidence is recovered.
         public string OriginalTransactionId { get; }
-        public EthereumStorageReceiptReconciliationException(string identity)
-            : base("Ethereum storage receipt lacks an authoritative outcome or transaction identity; reconcile before replay.")
+        public EthereumStorageReceiptReconciliationException(string identity,Exception cause=null)
+            : base("Ethereum storage receipt lacks an authoritative outcome or transaction identity; reconcile before replay.",cause)
             => OriginalTransactionId = identity;
     }
 
