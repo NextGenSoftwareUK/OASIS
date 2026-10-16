@@ -1,0 +1,10 @@
+<Project>
+  <!-- Used by publish-oasis-packages.yml (passed as CustomAfterMicrosoftCommonTargets): the projects being released get
+       OASISReleaseVersion, every other OASIS project OASISBaseVersion (the version already on NuGet), so the new packages
+       depend only on packages that exist. HoloNET and NextGenSoftware library projects keep their own versions. -->
+  <PropertyGroup Condition="$(MSBuildProjectName.StartsWith('NextGenSoftware.OASIS.')) and '$(OASISBaseVersion)' != ''">
+    <Version Condition="$([System.String]::Copy(';$(OASISReleaseProjects);').Contains(';$(MSBuildProjectName);'))">$(OASISReleaseVersion)</Version>
+    <Version Condition="!$([System.String]::Copy(';$(OASISReleaseProjects);').Contains(';$(MSBuildProjectName);'))">$(OASISBaseVersion)</Version>
+    <PackageVersion>$(Version)</PackageVersion>
+  </PropertyGroup>
+</Project>
