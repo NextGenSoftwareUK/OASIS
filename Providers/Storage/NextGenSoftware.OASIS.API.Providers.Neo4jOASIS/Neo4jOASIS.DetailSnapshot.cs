@@ -21,6 +21,8 @@ public partial class Neo4jOASIS
         var detail = OasisJson.DeserializeStored<AvatarDetail>(snapshot);
         if (detail == null || detail.Id != ReadNativeIdentity(node))
             throw new InvalidDataException("Neo4j avatar-detail snapshot identity differs from its index.");
+        ValidateNativeLookupProjection(node,"Username",detail.Username);
+        ValidateNativeLookupProjection(node,"Email",detail.Email);
         return detail;
     }
 
