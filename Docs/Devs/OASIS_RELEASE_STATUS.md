@@ -2,6 +2,8 @@
 
 ## Current acceptance summary
 
+2026-10-16 15:24 UTC: **Edge38904040051 SUCCESS at exact3d7eb5e923aa09407f0824a6f360fd4c858404cb, matching successful CI38904039971. Shared1772/1772 and isolated auto-start10/10 passed with ZERO skips/failures.** Generated hApp fixture generation/compilation, real generated-model CRUD/collections, Android0.7.1, Unity/final inspector/provenance and all prerequisites passed. Requested the standard trusted-master promotion workflow to refresh existing PR489 and discover required component promotions. No parent merge, native production approval or production deployment performed; publication-disabled integrated global proof remains outstanding. Subsequent documentation-only commits are not additional runtime proof.
+
 2026-10-16 13:39 UTC: CI38904039971 SUCCESS at exact3d7eb5e923aa09407f0824a6f360fd4c858404cb after the single failed-job rerun; MongoDB startup recovered without a code change. Edge38904040051 is still building hApp/generated-fixture and Android prerequisites. Zero-skip runtime/full Edge and global promotion acceptance remain pending.
 
 2026-10-16 13:24 UTC: CI38904039971 at3d7eb5e92 failed only MongoDB service startup: Docker Hub authentication request timed out before the mongo:7 container or tests started (Docker exit125). Requested one failed-job rerun for this external registry timeout; no code, test assertions or registry fallback changed. Edge38904040051 remains building hApp/Android prerequisites; completed desktop/Mongo evidence checks are green. This is not a test-pass claim.
