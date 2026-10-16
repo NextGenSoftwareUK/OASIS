@@ -292,7 +292,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             try
             {
                 if(!validSelector) throw new ArgumentException("A nonempty IPFS holon selector is required.");
-                if (version != 0) throw new NotSupportedException("Historical IPFS holon reads are not implemented.");
+                if (version < 0) throw new ArgumentOutOfRangeException(nameof(version));
+                if (version != 0 && loadChildren && childrenFromProvider)
+                    throw new NotSupportedException("Historical provider-child graph reads require a historical index snapshot; current children cannot be mixed with a historical root.");
                 if (maxDepth < 0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
                 var snapshot = await LoadLookupToJson();
                 var matches = snapshot.Where(entry => entry.Value?.RecordKind == "holon" && select(entry.Value)).Take(2).ToList();
@@ -301,7 +303,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
                     IsError=true, ErrorCount=1, ErrorCode=OASISResultErrorCodes.RecordNotFound,
                     Message="No IPFS holon matches the requested identity." };
                 var selected = matches[0];
-                var root = await ReadPrivateRecordAsync<Holon>(selected.Key, "holon", selected.Value.Id);
+                var root = await ReadPrivateVersionAsync<Holon>(selected.Key, "holon", selected.Value.Id,version);
+                if(root==null) return new OASISResult<IHolon> {IsError=true,ErrorCount=1,
+                    ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="The requested IPFS holon version was not found."};
                 var records = loadChildren && childrenFromProvider
                     ? await ReadIndexSnapshotAsync<Holon>(snapshot, "holon", row => true)
                     : new List<Holon> { root };
@@ -340,12 +344,14 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
             try
             {
                 if(!validSelector) throw new ArgumentException("A nonempty IPFS entity selector is required.");
-                if(version!=0) throw new NotSupportedException("Historical IPFS entity reads are not implemented.");
+                if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
                 var snapshot=await LoadLookupToJson();
                 var matches=snapshot.Where(entry=>entry.Value?.RecordKind==kind && predicate(entry.Value)).Take(2).ToList();
                 if(matches.Count>1) throw new StorageIdentityAmbiguousException();
                 if(matches.Count==0) return new OASISResult<T> {IsError=true,ErrorCount=1,ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="No IPFS entity matches the requested kind and identity."};
-                result.Result=await ReadPrivateRecordAsync<T>(matches[0].Key,kind,matches[0].Value.Id);
+                result.Result=await ReadPrivateVersionAsync<T>(matches[0].Key,kind,matches[0].Value.Id,version);
+                if(result.Result==null) return new OASISResult<T> {IsError=true,ErrorCount=1,
+                    ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="The requested IPFS entity version was not found."};
                 result.IsLoaded=true;
             }
             catch(Exception cause)
