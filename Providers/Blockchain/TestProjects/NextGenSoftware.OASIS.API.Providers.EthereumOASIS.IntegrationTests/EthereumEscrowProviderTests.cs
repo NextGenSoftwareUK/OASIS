@@ -9,8 +9,12 @@ using Nethereum.RPC.Eth.DTOs;
 using Nethereum.Web3;
 using Nethereum.Web3.Accounts;
 using NextGenSoftware.OASIS.API.Core.Helpers;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Objects.Wallet.Requests;
+using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.Common;
+using NextGenSoftware.Utilities;
 
 namespace NextGenSoftware.OASIS.API.Providers.EthereumOASIS.IntegrationTests;
 
@@ -38,11 +42,14 @@ public partial class EthereumOASISIntegrationTests
         var provider = new EscrowFixtureProvider(Host,PrivateKey,ChainId,storageAddress) {
             TokenEscrowContractAddress = scenario=="bad-runtime" ? token.Address : escrow.Address,
             LoseStage = scenario.EndsWith("-loss",StringComparison.Ordinal) ? scenario.Split('-')[0] : null };
+        var dna=new OASISDNA();dna.OASIS.HyperDriveMode=HyperDriveModes.V2;
+        var providers=new ProviderManager(null,dna);Assert.IsTrue(providers.RegisterProvider(provider));
+        var wallets=new WalletManager(null,dna,providers);
         try
         {
             var id = Guid.NewGuid();var actor = Guid.NewGuid();
             var nativeId = SHA256.HashData(Encoding.UTF8.GetBytes(id.ToString("N")));
-            var request = new LockWeb3TokenRequest { LockId=id,LockedByAvatarId=actor,Web3TokenId=Guid.NewGuid(),
+            var request = new LockWeb4TokenRequest { ProviderType=new EnumValue<ProviderType>(ProviderType.EthereumOASIS),LockId=id,LockedByAvatarId=actor,Web3TokenId=Guid.NewGuid(),
                 Amount=1.25m,TokenAddress=token.Address,EscrowContractAddress=provider.TokenEscrowContractAddress,
                 FromWalletAddress=owner,FromWalletPrivateKey=PrivateKey };
             var initial = await token.GetFunction("balanceOf").CallAsync<BigInteger>(owner);
@@ -50,7 +57,7 @@ public partial class EthereumOASISIntegrationTests
             if (scenario=="preapproved") await token.GetFunction("approve").SendTransactionAndWaitForReceiptAsync(owner,
                 new HexBigInteger(200000),null,null,escrow.Address,units);
             var nonce = (await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(owner)).Value;
-            var locked = synchronous ? provider.LockToken(request) : await provider.LockTokenAsync(request);
+            var locked = synchronous ? wallets.LockToken(request) : await wallets.LockTokenAsync(request);
             if (scenario=="bad-runtime")
             {
                 Assert.IsTrue(locked.IsError);Assert.IsNull(locked.Result);
@@ -78,7 +85,7 @@ public partial class EthereumOASISIntegrationTests
             Assert.AreEqual(id,response.LockId);Assert.AreEqual(scenario=="preapproved" ? 1:2,response.NativeTransactions.Count);
             foreach(var hash in response.NativeTransactions)
                 Assert.AreEqual(BigInteger.One,(await web3.Eth.Transactions.GetTransactionReceipt.SendRequestAsync(hash)).Status.Value);
-            var unlockRequest=new UnlockWeb3TokenRequest {LockId=id,UnlockedByAvatarId=actor,TokenAddress=token.Address,EscrowContractAddress=escrow.Address};
+            var unlockRequest=new UnlockWeb4TokenRequest {ProviderType=request.ProviderType,LockId=id,UnlockedByAvatarId=actor,TokenAddress=token.Address,EscrowContractAddress=escrow.Address};
             provider.SigningKey=Nethereum.Signer.EthECKey.GenerateKey().GetPrivateKey();
             var outsider=new Account(provider.SigningKey,ChainId).Address;
             var funding=await web3.TransactionManager.SendTransactionAsync(new TransactionInput {
@@ -92,7 +99,7 @@ public partial class EthereumOASISIntegrationTests
             Assert.AreEqual(outsiderNonce,(await web3.Eth.Transactions.GetTransactionCount.SendRequestAsync(outsider)).Value);
             Assert.IsFalse((await escrow.GetFunction("deposits").CallDeserializingToObjectAsync<EthereumEscrowDeposit>(nativeId)).Released);
             provider.SigningKey=PrivateKey;
-            var released=synchronous ? provider.UnlockToken(unlockRequest):await provider.UnlockTokenAsync(unlockRequest);
+            var released=synchronous ? wallets.UnlockToken(unlockRequest):await wallets.UnlockTokenAsync(unlockRequest);
             if(scenario=="unlock-loss")
             {
                 Assert.IsTrue(released.IsError);Assert.IsNull(released.Result);
