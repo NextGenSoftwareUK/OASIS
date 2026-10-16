@@ -95,36 +95,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         }
 
         public override OASISResult<bool> ActivateProvider()
-        {
-            OASISResult<bool> result = new OASISResult<bool>();
-
-            try
-            {
-                if (Database == null)
-                {
-                    Database = new MongoDbContext(ConnectionString, DBName);
-                    SerializerRegister.GetInstance().RegisterGuidBsonSerializer();
-                    SerializerRegister.GetInstance().RegisterMetaDataDictionarySerializer();
-                    SerializerRegister.GetInstance().RegisterSTARNETDNADiscriminator();
-                    _avatarRepository = new AvatarRepository(Database);
-                    _holonRepository = new HolonRepository(Database);
-                    _holonRepository.EnsurePublicIdentityIndex();
-                    _searchRepository = new SearchRepository(Database);
-                }
-
-                _avatarRepository.EnsurePublicIdentityIndexes();
-                IsProviderActivated = true;
-                result.Result = true;
-            }
-            catch (Exception ex) 
-            {
-                IsProviderActivated = false;
-                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In MongoDBOASISProvider.ActivateProvider. Reason: {ex}", ex);
-            }
-            
-            return result;
-            //return base.ActivateProvider();
-        }
+            => ActivateMongoAsync(true).GetAwaiter().GetResult();
 
         public override OASISResult<bool> DeActivateProvider()
         {
@@ -154,37 +125,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             return result;
         }
 
-        public override async Task<OASISResult<bool>> ActivateProviderAsync()
-        {
-            OASISResult<bool> result = new OASISResult<bool>();
-
-            try
-            {
-                if (Database == null)
-                {
-                    Database = new MongoDbContext(ConnectionString, DBName);
-                    SerializerRegister.GetInstance().RegisterGuidBsonSerializer();
-                    SerializerRegister.GetInstance().RegisterMetaDataDictionarySerializer();
-                    SerializerRegister.GetInstance().RegisterSTARNETDNADiscriminator();
-                    _avatarRepository = new AvatarRepository(Database);
-                    _holonRepository = new HolonRepository(Database);
-                    await _holonRepository.EnsurePublicIdentityIndexAsync();
-                    _searchRepository = new SearchRepository(Database);
-                }
-
-                await _avatarRepository.EnsurePublicIdentityIndexesAsync();
-                IsProviderActivated = true;
-                result.Result = true;
-            }
-            catch (Exception ex)
-            {
-                IsProviderActivated = false;
-                OASISErrorHandling.HandleError(ref result, $"Unknown Error Occured In MongoDBOASISProvider.ActivateProviderAsync. Reason: {ex}", ex);
-            }
-
-            return result;
-            //return await base.ActivateProviderAsync();
-        }
+        public override Task<OASISResult<bool>> ActivateProviderAsync()
+            => ActivateMongoAsync(false);
 
         public override async Task<OASISResult<bool>> DeActivateProviderAsync()
         {
