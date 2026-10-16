@@ -12,6 +12,47 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests;
 public sealed class IPFSFixtureReconciliationTests(ITestOutputHelper output)
 {
     [Fact]
+    [Trait("Category","IPFSRootVersionReconciliation")]
+    public async Task ReleaseExactRootVersionAssertionFixture()
+    {
+        const string endpoint="http://127.0.0.1:18547";
+        Assert.Equal(endpoint,Environment.GetEnvironmentVariable("OASIS_IPFS_TEST_RPC"));
+        var path=Environment.GetEnvironmentVariable("OASIS_IPFS_TEST_DNA_PATH")!;
+        Assert.Equal("owned-dna.json",Path.GetFileName(path));
+        var dna=JsonConvert.DeserializeObject<OASISDNA>(await File.ReadAllTextAsync(path))!;
+        const string root="QmPcSpfsigLFxjKLHvhKtBqiwtjmtHViHh9G4Hi8vdriSP";
+        Assert.Equal(root,dna.OASIS.StorageProviders.IPFSOASIS.LookUpIPFSAddress);
+        Assert.Equal(endpoint,dna.OASIS.StorageProviders.IPFSOASIS.ConnectionString);
+        Assert.False(File.Exists(Path.Combine(Path.GetDirectoryName(path)!,"v2-routing.db")));
+        Assert.False(File.Exists(Path.Combine(Path.GetDirectoryName(path)!,"tombstone-routing.db")));
+        var priorDna=OASISDNAManager.OASISDNA;var priorPath=OASISDNAManager.OASISDNAPath;
+        var provider=new IPFSOASIS(dna,path);var cids=new HashSet<string> {root};
+        try
+        {
+            Assert.False((await provider.ActivateProviderAsync()).IsError);
+            var index=await provider.LoadLookupToJson();Assert.Equal(6,index.Count);
+            var avatar=Assert.Single((await provider.LoadAllAvatarsAsync()).Result);
+            Assert.Equal("owned-native-avatar",avatar.Username);Assert.Equal("owned@example.invalid",avatar.Email);Assert.Equal(2,avatar.Version);
+            var detail=Assert.Single((await provider.LoadAllAvatarDetailsAsync()).Result);
+            Assert.Equal(avatar.Id,detail.Id);Assert.Equal(654,detail.XP);Assert.Equal(29,detail.Karma);
+            Assert.Equal("owned oak seed",Assert.Single(detail.Inventory).Name);
+            var records=(await provider.LoadAllHolonsAsync(NextGenSoftware.OASIS.API.Core.Enums.HolonType.All,loadChildren:false)).Result.ToList();
+            Assert.Equal(4,records.Count);
+            Assert.Single(records.Where(row=>row.Name=="owned-partial-import"));
+            var parent=Assert.Single(records.Where(row=>row.Name=="owned-native-holon-updated"));Assert.Equal(avatar.Id,parent.Id);Assert.Equal(2,parent.Version);
+            var child=Assert.Single(records.Where(row=>row.Name=="owned-native-child"));Assert.Equal(parent.Id,child.ParentHolonId);
+            var grand=Assert.Single(records.Where(row=>row.Name=="owned-native-grandchild"));Assert.Equal(child.Id,grand.ParentHolonId);
+            var historical=await provider.LoadHolonAsync(parent.Id,loadChildren:false,version:1);
+            Assert.Equal("owned-native-holon",historical.Result.Name);
+            foreach(var entry in index) {cids.Add(entry.Key);output.WriteLine($"Verified root-version fixture {entry.Value.RecordKind}/{entry.Value.Id:D} CID={entry.Key}");}
+        }
+        finally {await provider.DeActivateProviderAsync();OASISDNAManager.OASISDNA=priorDna;OASISDNAManager.OASISDNAPath=priorPath;}
+        var client=new Ipfs.Http.IpfsClient(endpoint);
+        foreach(var cid in cids) Assert.Contains((await client.Pin.RemoveAsync((Cid)cid)).Select(value=>value.ToString()),value=>value==cid);
+        File.Delete(path);
+        output.WriteLine("Released only seven verified current fixture pins and exact synthetic DNA; older/unknown pins retained.");
+    }
+    [Fact]
     [Trait("Category","IPFSNativeFixtureReconciliation")]
     public async Task ReleaseVerifiedInterruptedVersionFixture()
     {

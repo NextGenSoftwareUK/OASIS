@@ -51,21 +51,30 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests
                 Assert.False(all.IsError,all.Message);Assert.True(all.IsLoaded);Assert.Equal(3,all.Result.Count());
                 Assert.All(all.Result,row=>Assert.Equal(1,row.Version));
                 var oldRoot=all.Result.Single(row=>row.Id==root.Id);
-                Assert.Equal("history-child-old",Assert.Single(oldRoot.Children).Name);
-                Assert.Equal("history-grandchild-old",Assert.Single(oldRoot.Children.Single().Children).Name);
+                Assert.Equal(currentOnly.Id,Assert.Single(oldRoot.Children).Id);
+                Assert.Equal(2,oldRoot.Children.Single().Version);
+                Assert.Empty(oldRoot.Children.Single().Children);
+                var oldChild=all.Result.Single(row=>row.Id==child.Id);
+                Assert.Equal("history-grandchild-new",Assert.Single(oldChild.Children).Name);
+                Assert.Equal(2,oldChild.Children.Single().Version);
                 var single=synchronous ? provider.LoadHolon(root.Id,loadChildrenFromProvider:true,version:1)
                     :await provider.LoadHolonAsync(root.Id,loadChildrenFromProvider:true,version:1);
-                Assert.False(single.IsError,single.Message);Assert.Equal(child.Id,Assert.Single(single.Result.Children).Id);
+                Assert.False(single.IsError,single.Message);Assert.Equal(1,single.Result.Version);
+                Assert.Equal(currentOnly.Id,Assert.Single(single.Result.Children).Id);
                 var shallow=provider.LoadHolon(root.Id,recursive:false,loadChildrenFromProvider:true,version:1);
                 Assert.Empty(Assert.Single(shallow.Result.Children).Children);
                 var parentKey=root.ProviderUniqueStorageKey[NextGenSoftware.OASIS.API.Core.Enums.ProviderType.IPFSOASIS];
                 var parent=synchronous ? provider.LoadHolonsForParent(parentKey,loadChildren:false,version:1)
                     :await provider.LoadHolonsForParentAsync(root.Id,loadChildren:false,version:1);
                 Assert.False(parent.IsError,parent.Message);Assert.Equal(child.Id,Assert.Single(parent.Result).Id);
+                var parentGraph=await provider.LoadHolonsForParentAsync(root.Id,loadChildrenFromProvider:true,version:1);
+                Assert.Equal(child.Id,Assert.Single(parentGraph.Result).Id);
+                Assert.Equal(2,Assert.Single(parentGraph.Result.Single().Children).Version);
                 var meta=synchronous ? provider.LoadHolonsByMetaData("biome","old-park",loadChildrenFromProvider:true,version:1)
                     :await provider.LoadHolonsByMetaDataAsync("biome","old-park",loadChildrenFromProvider:true,version:1);
                 Assert.False(meta.IsError,meta.Message);Assert.Equal(child.Id,Assert.Single(meta.Result).Id);
                 Assert.Equal(grandchild.Id,Assert.Single(meta.Result.Single().Children).Id);
+                Assert.Equal(2,meta.Result.Single().Children.Single().Version);
                 Assert.Empty(provider.LoadHolonsByMetaData("biome","new-park",version:1).Result);
                 var exported=synchronous ? provider.ExportAllDataForAvatarByEmail(avatar.Email,version:1)
                     :await provider.ExportAllDataForAvatarByIdAsync(avatar.Id,version:1);
@@ -84,6 +93,7 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests
                 var searched=synchronous ? provider.Search(query,version:1):await provider.SearchAsync(query,version:1);
                 Assert.False(searched.IsError,searched.Message);Assert.Equal(1,searched.Result.NumberOfResults);
                 Assert.Equal(grandchild.Id,Assert.Single(Assert.Single(searched.Result.SearchResultHolons).Children).Id);
+                Assert.Equal(2,searched.Result.SearchResultHolons.Single().Children.Single().Version);
                 Assert.Empty(provider.LoadAllHolons(version:3).Result);
                 Assert.Empty(provider.ExportAll(version:3).Result);
                 Assert.IsType<ArgumentOutOfRangeException>(provider.ExportAll(version:-1).Exception);
