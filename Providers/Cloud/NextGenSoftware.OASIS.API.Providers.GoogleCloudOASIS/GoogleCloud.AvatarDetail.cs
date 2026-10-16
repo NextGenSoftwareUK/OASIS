@@ -196,6 +196,8 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                if (!Enum.IsDefined(typeof(HolonType),type))
+                    throw new ArgumentOutOfRangeException(nameof(type));
                 if (maxChildDepth < 0 || curentChildDepth < 0)
                     throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
                 var ready = await EnsureDetailStoreAsync(version);
