@@ -56,6 +56,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             var mongo = new MongoDBOASIS(uri,databaseName);
             using var sqlite = new SQLLiteDBOASIS($"Data Source={dbPath};Pooling=False");
             (await mongo.ActivateProviderAsync()).IsError.Should().BeFalse();
+            await VerifyNativeUsageOutboxSerializationAsync(uri,databaseName,client.GetDatabase(databaseName));
             await VerifyMongoDefaultTextMasksAsync(mongo,synchronous);
             await VerifyMongoExtendedTextMasksAsync(mongo,synchronous);
             await VerifyMongoNumericDateDefaultsAsync(mongo,sqlite,synchronous);
