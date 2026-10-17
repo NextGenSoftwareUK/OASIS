@@ -7,6 +7,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests;
 [TestClass]
 public sealed class HederaIdBoundIntentTests
 {
+    [TestMethod]
+    public void AssociationIsClassifiedAsNativeMutation()
+        =>Assert.IsTrue(HederaSdkClient.IsNativeMutationAction("tokenEscrowAssociate"));
     private static readonly Guid Id=Guid.Parse("5f31afde-1229-4e99-8088-a0034d33a557");
     private const string NativeId="0x99c50e74aceedb30b6b1e3810ec571884c5ac132c94a49d34ee6d092f9c41ae1";
     private static HederaTokenEscrowConfiguration Config()=>new(){ContractId="0.0.2001",RuntimeCodeHash="0x"+new string('1',64),

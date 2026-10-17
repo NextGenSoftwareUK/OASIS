@@ -8,6 +8,17 @@ import { tokenUnits } from './token-amount.mjs';
 const request={sender:'0.0.1001',contractId:'0.0.2001',tokenId:'0.0.3001',gas:400000,maxFeeTinybars:'100000000',
  runtimeCodeHash:'0x'+'11'.repeat(32),transactionId:'0.0.1001@1700000000.000000001',
  approvalTransactionId:'0.0.1001@1700000000.000000002',escrowProtocol:'id-bound-v1',depositId:'0x'+'12'.repeat(32),amount:'90071992547409.93',amountUnits:'9007199254740993'};
+test('association serializes one explicit SDK mutation without deposit or allowance semantics',()=>{
+ const {depositId,amount,amountUnits,approvalTransactionId,...association}=request;
+ const tx=tokenEscrowTransaction('tokenEscrowAssociate',association);
+ assert.equal(tx.maxAttempts,1);assert.equal(tx.regenerateTransactionId,false);
+ tx.setNodeAccountIds([AccountId.fromString('0.0.3')]).freeze();
+ const decoded=Transaction.fromBytes(tx.toBytes()),call=idBoundEscrowAbi.parseTransaction({data:decoded.functionParameters});
+ assert.equal(call.name,'associateToken');assert.equal(call.args.length,1);assert.equal(call.args[0].toLowerCase(),'0x0000000000000000000000000000000000000bb9');
+ assert.equal(decoded.transactionId.toString(),request.transactionId);assert.equal(decoded.maxTransactionFee.toTinybars().toString(),request.maxFeeTinybars);
+ for(const extra of [{depositId},{amount},{amountUnits},{approvalTransactionId}])assert.throws(()=>tokenEscrowTransaction('tokenEscrowAssociate',{...association,...extra}),/separate single-stage/);
+ assert.throws(()=>tokenEscrowTransaction('tokenEscrowAssociate',{...association,escrowProtocol:'aggregate-v1'}),/explicitly selected/);
+});
 for(const action of ['tokenEscrowLock','tokenEscrowUnlock'])test(`${action} per-deposit SDK serialization retains exact identity, units and original transaction`,()=>{
  const selected={...request,...(action==='tokenEscrowUnlock'?{amount:'0'}:{})};
  const tx=tokenEscrowTransaction(action,selected);

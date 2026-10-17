@@ -16,7 +16,7 @@ internal static class HederaSdkClient
 
     internal static bool IsNativeMutationAction(string action)=>action is "storagePut" or "storageDelete" or "fileCreate" or "fileUpdate" or "fileDelete"
         or "transfer" or "tokenTransfer" or "tokenMint" or "tokenBurn" or "nftTransfer" or "nftMint" or "nftBurn"
-        or "nftEscrowLock" or "nftEscrowUnlock" or "tokenEscrowLock" or "tokenEscrowUnlock"
+        or "nftEscrowLock" or "nftEscrowUnlock" or "tokenEscrowLock" or "tokenEscrowUnlock" or "tokenEscrowAssociate"
         or "bytecodeFileCreate" or "bytecodeFileAppend" or "contractCreate" or "nftCollectionCreate"
         or "tokenCollectionDelete" or "nftMetadataUpdate";
 
