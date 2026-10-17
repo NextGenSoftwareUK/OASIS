@@ -1,5 +1,7 @@
 # HyperDrive V2 native-chain fees and recovery
 
+2026-10-17 TRON sender/recipient/token/principal/memo/signing selectors now cannot change between validation and lifecycle lease acquisition. Controlled RPC tests verify signed original intent/one attempt; no actual native gas or paid public operation. Original pending TRON/Cosmos journals hash-identical. Failure returns no fabricated transaction response; no principal-as-fee or zero-cost inference.
+
 2026-10-17 TRON mint wallet-await tests independently assert original Unicode memo in signed RawData and original exact token principal in ABI after request mutation. Actual SDK/controlled gRPC only; no real network fees, sponsored execution or native ledger mutation. Existing original Cosmos/TRON uncertainty fences remain hash-identical. No fee/principal conflation or inferred production settlement.
 
 2026-10-17 TRON mint validation/wallet failure returns no saved response/native attempt. Positive tests use actual SDK signing/controlled gRPC receipts, no public funds or retained native ledger mutation. Native fee calculation/paid hosted registration unchanged. Token principal and NFT recipient remain distinct from gas/fee recovery; no sponsored spending enabled. Original unresolved TRON/Cosmos fences unchanged.

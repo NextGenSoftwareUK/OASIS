@@ -166,25 +166,28 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse());
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (request == null) throw new ArgumentNullException(nameof(request));
-                if (request.Amount <= 0) throw new ArgumentOutOfRangeException(nameof(request.Amount));
-                var native = string.Equals(request.FromTokenAddress, "TRX", StringComparison.OrdinalIgnoreCase);
-                if (native) TronNativeTransferClient.NativeUnits(request.Amount);
-                if (!string.IsNullOrWhiteSpace(request.OwnerSeedPhrase))
+                var sender=request.FromWalletAddress;var recipient=request.ToWalletAddress;var amount=request.Amount;
+                var privateKey=request.OwnerPrivateKey;var publicKey=request.OwnerPublicKey;var seed=request.OwnerSeedPhrase;
+                var memo=request.MemoText;var requestedToken=request.FromTokenAddress;
+                if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(request.Amount));
+                var native = string.Equals(requestedToken, "TRX", StringComparison.OrdinalIgnoreCase);
+                if (native) TronNativeTransferClient.NativeUnits(amount);
+                if (!string.IsNullOrWhiteSpace(seed))
                     throw new ArgumentException("TRON token transfer requires an explicit private signing key; seed phrases are not accepted.");
-                if (string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
+                if (string.IsNullOrWhiteSpace(privateKey))
                     throw new ArgumentException("A real sender private signing key is required for TRON token transfer.");
-                if (string.IsNullOrEmpty(request.FromWalletAddress) || string.IsNullOrEmpty(request.ToWalletAddress))
+                if (string.IsNullOrEmpty(sender) || string.IsNullOrEmpty(recipient))
                 {
                     OASISErrorHandling.HandleError(ref result, "FromWalletAddress and ToWalletAddress are required");
                     return result;
                 }
 
                 // TRON TRC20 token transfer using TRON API
-                var tokenAddress = string.IsNullOrEmpty(request.FromTokenAddress) ? _contractAddress ?? "" : request.FromTokenAddress;
+                var tokenAddress = string.IsNullOrEmpty(requestedToken) ? _contractAddress ?? "" : requestedToken;
                 if (string.IsNullOrEmpty(tokenAddress))
                 {
                     OASISErrorHandling.HandleError(ref result, "Token address is required");
@@ -192,10 +195,10 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 }
 
                 var hash = native
-                    ? await ExecuteNativeRuntimeAsync(client => client.SendAsync(request.FromWalletAddress, request.ToWalletAddress,
-                        request.Amount, request.OwnerPrivateKey, request.MemoText, publicKey: request.OwnerPublicKey))
-                    : await ExecuteNativeRuntimeAsync(client => client.SendTokenAsync(request.FromWalletAddress, request.ToWalletAddress,
-                        tokenAddress, request.Amount, request.OwnerPrivateKey, request.MemoText, request.OwnerPublicKey));
+                    ? await ExecuteNativeRuntimeAsync(client => client.SendAsync(sender, recipient,
+                        amount, privateKey, memo, publicKey: publicKey))
+                    : await ExecuteNativeRuntimeAsync(client => client.SendTokenAsync(sender, recipient,
+                        tokenAddress, amount, privateKey, memo, publicKey));
                 result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = hash };
                 result.Message = native ? "TRX transfer confirmed by solidified native receipt." : "TRC20 transfer confirmed by solidified contract receipt.";
             }

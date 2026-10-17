@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-17 TRON public SendToken native/custom transfer captures validated scalar intent before lifecycle semaphore await.2new deterministic async lease-contention cases actually red before fix, then actual SDK signs original amount/recipient/Unicode memo after caller mutation. Combined104pass5s; full386pass3s. Existing sync wrapper regression coverage retained, but new mutation-at-lease cases are async only. No duplicate SDK/transfer engine, native ledger or hosted settlement claim.
+
 2026-10-17 TRON token mint captures now directly proved across real wallet await:2sync/async tests mutate caller avatar/amount/Unicode memo while existing LocalFile interface gate pauses read. Actual decryption and official SDK signature/ABI show original owner/123units/memo; one controlled gRPC submission/receipt. Existing gate reused from intent harness, same retained environment.102combined local cases pass4s. This closes local mutation-during-wallet-read proof gap, NOT real TVM consensus/hosted fee/admission.
 
 2026-10-17 TRON avatar token/NFT mint preserve original wallet error envelopes and require exact avatar key. Token amount/memo now captured before asynchronous wallet lookup; NFT limited URI extension already captured supported values. Resolved NFT recipient included in response and asserted in existing positive SDK/gRPC fixture.4red-before/green-after wallet cases, final86combined pass2s; full386pass4s. SDK/gRPC controlled consensus responses are not retained TVM acceptance, host authorization or paid settlement proof.
