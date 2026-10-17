@@ -1,5 +1,9 @@
 # HyperDrive V2 provider-I/O coverage
 
+Final Cosmos mint memo regression2026-10-17:165C#pass2m11s/0skip/runnerexit0 plus73offlineJS pass~1.50s, superseding pending entry below. Remaining native-chain/fee/hosted/routing gates open.
+
+2026-10-17 Cosmos MintToken now captures/validates/forwards MemoText through shared strict memo/contract owners; prior omission closed. Sync/async Unicode/caller-mutation plus invalid UTF16 cases actually3red/2pass before fix.2additional real CosmJS offline-signed mint Unicode/empty cases/full73JS pass~1.50s; producer0errors/2warnings, full165C#pending. Controlled transport is not consensus/gas/hosted/routing acceptance.
+
 Final Cosmos mutable mint/burn regression2026-10-17:164pass2m12s/0skip/runnerexit0, superseding pending run below. Known memo-forwarding/native/hosted/routing gaps unchanged.
 
 2026-10-17 Cosmos mint/burn now freeze original symbol and mint serialized metadata before signer await, preventing mutable requests from changing token identity/content.4newprocess regressions actual2red/2green before fix then4pass434ms; full164pending, producer0errors/2warnings. Mint memo forwarding remains an explicitly open audit finding; absent TODO/NotImplemented markers do not prove interface completion. No native ledger/fee/routing completion claim.

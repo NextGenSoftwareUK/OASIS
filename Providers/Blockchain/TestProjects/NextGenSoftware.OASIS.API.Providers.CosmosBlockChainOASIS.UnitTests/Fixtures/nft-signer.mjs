@@ -69,7 +69,7 @@ else if(request.operation==='execute'){
  if(tokenMint?.symbol?.startsWith('intent-')){
   const metadata=JSON.parse(tokenMint.metadata_json);
   if(tokenMint.symbol!=='intent-original'||tokenMint.amount!=='123000000'||metadata.Title!=='original-title'
-    ||metadata.MetaData?.canary!=='original')throw new Error('Original mint intent changed');
+    ||metadata.MetaData?.canary!=='original'||request.memo!=='Original seed 🌱 memo')throw new Error('Original mint intent changed');
  }
  const transfer=request.message?.asset?.message?.token_transfer;
  if(transfer?.symbol?.startsWith('intent-')){

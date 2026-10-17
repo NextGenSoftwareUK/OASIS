@@ -74,6 +74,7 @@ public partial class CosmosBlockChainOASIS
             var symbol = request.Symbol;
             var actor = request.MintedByAvatarId;
             var amount = AssetUnits(request.Amount);
+            var memo = NativeWalletMemo.FromText(request.MemoText).Text;
             // Serialize caller-owned collections before signer recovery can yield.
             var metadata = JsonSerializer.Serialize(new { request.Title, request.Description, request.MetaData, request.Tags, request.MintedByAvatarId });
             var key = await SigningKeyAsync(actor);
@@ -81,7 +82,7 @@ public partial class CosmosBlockChainOASIS
             var hash = await ExecuteAssetAsync(new { token_mint = new
             {
                 symbol, recipient = issuer, amount, metadata_json = metadata
-            } }, key, issuer);
+            } }, key, issuer, memoText: memo);
             result.Result = new TransactionResponse { TransactionResult = hash };
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }

@@ -30,9 +30,11 @@ for(const mode of ['valid','admin','address','checksum','code-id','protocol'])te
  }finally{CosmWasmClient.connect=connect;}
 });
 
-for(const memo of ['Original seed 🌱 memo',''])test('contract execute preserves exact memo in real CosmJS signed bytes: '+JSON.stringify(memo),async()=>{
+for(const action of ['token_transfer','token_mint'])for(const memo of ['Original seed 🌱 memo',''])test('contract execute preserves exact memo in real CosmJS signed bytes: '+action+'/'+JSON.stringify(memo),async()=>{
  const original=SigningCosmWasmClient.connectWithSigner;let prepared=0,broadcasts=0,closed=0;
- const message={asset:{message:{token_transfer:{symbol:'fixture',recipient:toBech32('wasm',new Uint8Array(20).fill(3)),amount:'123000000'}}}};
+ const asset={symbol:'fixture',recipient:toBech32('wasm',new Uint8Array(20).fill(3)),amount:'123000000'};
+ if(action==='token_mint')asset.metadata_json='{}';
+ const message={asset:{message:{[action]:asset}}};
  SigningCosmWasmClient.connectWithSigner=async(_endpoint,wallet,options)=>{
   const client=await SigningCosmWasmClient.offline(wallet,options);
   client.getChainId=async()=> 'fixture-chain';client.getSequence=async()=>({accountNumber:1,sequence:2});client.simulate=async()=>100000;

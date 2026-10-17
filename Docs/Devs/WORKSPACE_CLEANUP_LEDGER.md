@@ -1,5 +1,9 @@
 # Workspace cleanup ledger and repeatable checks
 
+Final Cosmos mint memo runner2026-10-17 exits0/165pass2m11s/0skip, same report/environment. Protected journal hashes unchanged; free89,851,518,976bytes observation (not reclamation). No download/newruntime/native ledger or unrelated deletion.
+
+2026-10-17 Cosmos mint memo tests reuse existing signer fixture/offline CosmJS SDK/fixed owned runner; no install/download/newenvironment/node/ledger. Actual3red/2pass focused test before production fix; npm73pass~1.50s; full165running. Same bounded producer/unit output and fixed report, no accumulating per-run directories or unrelated cleanup.
+
 Final Cosmos intent runner2026-10-17 exits0/full164pass2m12s/0skip, reuses fixed report/environment. Cosmos/TRON protected journal hashes verified unchanged; no new runtime/download/ledger/reset.
 
 2026-10-17 Cosmos mint/burn intent regressions reuse existing nft-signer fixture/installed .NET, fixed owned report and Mongo environment.4focused cases pass434ms after actual2red/2green run; full164running, bounded no-restore builds. Initial required-seed property test compile corrected without restoring/installing anything. Free89,851,572,224bytes observation, not reclamation claim. No newenvironment/download/clone/native ledger or unrelated removal.
