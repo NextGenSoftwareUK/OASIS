@@ -35,6 +35,11 @@ public partial class HederaPreparationTests
             var backend=Activator.CreateInstance(type,flags,null,new object[]{"testnet","0.0.2001","0.0.1001","der",(Func<string>)(()=>"controlled-key"),100000L,100000000L,null!},null)!;
             using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(10));
             await (Task)type.GetMethod("VerifyAsync")!.Invoke(backend,new object[]{deadline.Token})!;
+            var provider=new HashgraphOASIS(network:"testnet",chainId:"296",storageConfiguration:new() {
+                ContractId="0.0.2001",OperatorAccountId="0.0.1001",SigningKeyType="der",
+                SigningKeyResolver=()=>"controlled-key",EncryptionKeyResolver=()=>new byte[32],GasLimit=100000,MaxFeeTinybars=100000000});
+            var activation=await provider.ActivateProviderAsync();
+            Assert.IsFalse(activation.IsError,activation.Message);
         }finally{Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",previous);}
     }
     [TestMethod]
