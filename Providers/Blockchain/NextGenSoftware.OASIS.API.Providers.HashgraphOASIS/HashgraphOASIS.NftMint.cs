@@ -85,26 +85,31 @@ public partial class HashgraphOASIS
             if (request.SendToAvatarAfterMintingId != Guid.Empty)
             {
                 var target = await WalletManager.GetAvatarDefaultWalletByIdAsync(request.SendToAvatarAfterMintingId, ChainProvider.HashgraphOASIS);
-                if (target.IsError || target.Result == null) throw new InvalidOperationException("Recipient avatar wallet lookup failed.");
+                if (target.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet,IWeb3NFTTransactionResponse>(target);
+                if (target.Result == null || target.Result.AvatarId != request.SendToAvatarAfterMintingId) throw new InvalidOperationException("Exact recipient avatar wallet required.");
                 targets.Add(target.Result.WalletAddress);
             }
             if (!string.IsNullOrWhiteSpace(request.SendToAvatarAfterMintingUsername))
             {
                 var target = await WalletManager.GetAvatarDefaultWalletByUsernameAsync(request.SendToAvatarAfterMintingUsername, providerType: ChainProvider.HashgraphOASIS);
-                if (target.IsError || target.Result == null) throw new InvalidOperationException("Recipient username wallet lookup failed.");
+                if (target.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet,IWeb3NFTTransactionResponse>(target);
+                if (target.Result == null) throw new InvalidOperationException("Recipient username wallet lookup failed.");
                 targets.Add(target.Result.WalletAddress);
             }
             if (!string.IsNullOrWhiteSpace(request.SendToAvatarAfterMintingEmail))
             {
                 var target = await WalletManager.GetAvatarDefaultWalletByEmailAsync(request.SendToAvatarAfterMintingEmail, ChainProvider.HashgraphOASIS);
-                if (target.IsError || target.Result == null) throw new InvalidOperationException("Recipient email wallet lookup failed.");
+                if (target.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet,IWeb3NFTTransactionResponse>(target);
+                if (target.Result == null) throw new InvalidOperationException("Recipient email wallet lookup failed.");
                 targets.Add(target.Result.WalletAddress);
             }
             if (targets.Any(target => !System.Text.RegularExpressions.Regex.IsMatch(target ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
                 || targets.Distinct(StringComparer.Ordinal).Count() > 1)
                 throw new ArgumentException("All recipient selectors must resolve to the same numeric Hedera account.");
             var walletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(request.MintedByAvatarId, ChainProvider.HashgraphOASIS, showPrivateKeys: true);
-            if (walletResult.IsError || walletResult.Result == null) throw new InvalidOperationException("Minting wallet lookup failed.");
+            if (walletResult.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet,IWeb3NFTTransactionResponse>(walletResult);
+            if (walletResult.Result == null || walletResult.Result.AvatarId != request.MintedByAvatarId || string.IsNullOrWhiteSpace(walletResult.Result.PrivateKey))
+                throw new InvalidOperationException("Exact minting avatar signing wallet required.");
             var wallet = walletResult.Result;
             var requestedMintId = HederaSdkClient.CreateTransactionId(wallet.WalletAddress);
             var committed = await InvokeOwnedNftMutationAsync("nftMint", new
