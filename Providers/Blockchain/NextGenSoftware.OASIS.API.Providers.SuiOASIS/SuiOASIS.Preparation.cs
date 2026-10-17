@@ -13,6 +13,11 @@ public partial class SuiOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.IPrepa
     /// <summary>Own every physical put/delete, including encrypted storage index writes, in one admitted execution.</summary>
     public Task<T> ExecutePreparedStorageAsync<T>(Func<Task<T>> operation,UsageExecutionHandle execution,
         string clientRequestId,string expectedSender,CancellationToken token=default)
+        =>ExecutePreparedNativeOperationAsync(operation,execution,clientRequestId,expectedSender,token);
+
+    /// <summary>Own every physical mutation in an existing public provider operation, including NFT/token multi-stage calls.</summary>
+    public Task<T> ExecutePreparedNativeOperationAsync<T>(Func<Task<T>> operation,UsageExecutionHandle execution,
+        string clientRequestId,string expectedSender,CancellationToken token=default)
     {
         token.ThrowIfCancellationRequested();ArgumentNullException.ThrowIfNull(operation);ArgumentNullException.ThrowIfNull(execution);
         if(string.IsNullOrWhiteSpace(clientRequestId)||clientRequestId.Length>110)

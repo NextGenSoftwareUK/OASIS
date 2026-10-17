@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Sui105/105unitpass2m15s after admitted-operation wrapper: existing public NFT/token/etc methods can execute under same per-physical SDK preparation owner;17mutation action gate checks and explicit conflicting-owner rejection pass without process launch. Shared storage delegates same owner, no duplicate signer. Live facade-through-owner/journaling/hosted/billing gates remain open; prior direct SDK native/V2 results not refreshed by this change.
+
 Sui actual localnet asset SDK scenarios2/2pass20.86s, zero skip/todo: NFT quantity/metadata/ownership/transfer/escrow/burn and standard coin registration/metadata/mint/transfer/escrow/burn. Native journals clear normally/node stopped, existing environment/faucet reused. Not all hosted/C# facade or billing certification. Cosmos original native V2 remains blocked by missing original signed identity plus masked operation failure; journal9B5A1511... unchanged/no replay. Do not infer its completion from Sui evidence.
 
 Sui latest actual native V2Healthy1pass2m18s/Outage2pass4s, zero skips. Corrected explicit global search now passes full existing healthy scenario; SDK-disposal and real owned-node stop both select LocalFile after failure. Previous exact failed fixture freshly verified inactive/absent and archived993bytes SHA3D6408C9E9A71C9DA97D706EDE35E2CB10C2DEB044817BFB5B0D8A9E1E9FD4E6 before marker retirement; no old replay/native mutation in archive. New scenarios clean normal fixtures and node stopped; no pending prepared/replication marker. NativePrepared4pass44s remains latest. Localnet only, NOT hosted/full-interface/durable billing/all-provider certification.
