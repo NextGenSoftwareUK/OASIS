@@ -25,6 +25,7 @@ public class SuiPreparedLedgerTests
         Assert.IsTrue(operation.ProviderAttempts.All(x=>x.Provider=="SuiOASIS"&&!string.IsNullOrWhiteSpace(x.ProviderRequestId)));
         Assert.IsFalse(operation.ProviderAttempts.Any(x=>x.ClientRequestId.StartsWith("private-")));
         var chainOutcomeConfirmed=false;
+        var nativeFees=new List<object>();
         if(Environment.GetEnvironmentVariable("OASIS_SUI_TEST_RPC") is string rpc){
             Assert.IsTrue(new Uri(rpc).IsLoopback);
             using var deployment=JsonDocument.Parse(File.ReadAllText(Environment.GetEnvironmentVariable("OASIS_SUI_TEST_DEPLOYMENT")!));
@@ -37,6 +38,11 @@ public class SuiPreparedLedgerTests
                 var fee=await provider.GetPreparedNativeFeeReceiptAsync(attempt);
                 Assert.IsFalse(fee.IsError,fee.Message);Assert.IsTrue(fee.Result.GetProperty("success").GetBoolean());
                 Assert.AreEqual(attempt.ProviderRequestId,fee.Result.GetProperty("transactionHash").GetString());
+                Assert.AreEqual(settings.GetProperty("chainId").GetString(),fee.Result.GetProperty("chainIdentifier").GetString());
+                Assert.AreEqual(settings.GetProperty("address").GetString(),fee.Result.GetProperty("payer").GetString());
+                var netUnits=fee.Result.GetProperty("netUnits").GetString();
+                Assert.IsFalse(string.IsNullOrWhiteSpace(netUnits));
+                nativeFees.Add(new {attempt.ClientRequestId,attempt.ProviderRequestId,netUnits});
             }
             var sdk=typeof(SuiOASIS).GetMethod("InvokeSdkAsync",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance)!;
             var raw=await (Task<JsonElement>)sdk.Invoke(provider,new object[]{"get",new{key=intent.RootElement.GetProperty("key").GetString()},CancellationToken.None})!;
@@ -48,6 +54,8 @@ public class SuiPreparedLedgerTests
             Console.WriteLine("Original signed attempts all confirmed successful; raw fixture deleted and private holon absent. Journal retained.");
         }
         Console.WriteLine(JsonSerializer.Serialize(new{operationId=operation.Id,attempts=operation.ProviderAttempts.Select(x=>new{x.ClientRequestId,x.ProviderRequestId}),
+            operation.State,operation.Service,operation.Endpoint,recordedReceiptCount=operation.Receipts.Count,
+            settlementPresent=operation.Settlement!=null,nativeFees,
             chainOutcomeConfirmed,reconciliationComplete=false,reason=chainOutcomeConfirmed
                 ? "Original attempts confirmed successful and fixture absence verified; durable operation settlement/ownership reconciliation still required. Journal retained."
                 : "Original identities only; chain terminal status/readback still required."}));
