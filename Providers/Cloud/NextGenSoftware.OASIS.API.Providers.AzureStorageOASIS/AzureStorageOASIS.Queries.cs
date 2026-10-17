@@ -80,7 +80,7 @@ public partial class AzureStorageOASIS
             }
             var found=new SearchResults();
             found.SearchResultAvatars.AddRange(avatars.Where(row=>StoredRecordSearch.Matches(row,true,search,holons)));
-            if(wantsHolons) found.SearchResultHolons.AddRange(holons.Where(row=>StoredRecordSearch.Matches(row,false,search,holons)));
+            if(wantsHolons) found.SearchResultHolons.AddRange(holons.Where(row=>row.DeletedDate==DateTime.MinValue && StoredRecordSearch.Matches(row,false,search,holons)));
             found.NumberOfResults=found.SearchResultAvatars.Count+found.SearchResultHolons.Count;
             result.Result=found;result.IsLoaded=true;
         }

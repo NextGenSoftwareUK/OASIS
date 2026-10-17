@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 Azure search visibility baseline73pass4fail47s then final77pass46s reused retained Azurite/SDK/containers/64MB in-memory runtime. No new database files or runtime/environment/download/install; existing exact owned container cleanup/service stop normal, current TRX overwritten. New fixtures are synthetic IDs within existing owned containers, not user/cloud data. No broad filesystem or protected chain ledger deletion.
+
 2026-10-16 retained Ethereum31337 verification186tests/59contract assertions/4shared native cases allpass; same pinned solc0.8.26/Node/runtime/dependencies/build dirs, no installs/downloads/clones/new environments/public-chain funds. Fixed current reports overwritten, owned local node stopped and18545closed. Free79887077376before/79885348864after. No material filesystem deletion or protected Cosmos/TRON/Solana ledger changes; source/keys/reusable runtimes preserved.
 
 2026-10-16 Google ID-reader visibility native53pass30s final uses retained Firestore1.22/SDK/project/Java256MB, fixed report overwritten. Baseline and first post-fix runs were terminal before bounded reruns, no duplicate runtimes/downloads/install/environments. Failed fixtures only in owned in-memory emulator; final exact fixture cleanup and service stop normal. No filesystem/ledger/userdata/credential/source/runtime deletion; no public cloud mutation.
