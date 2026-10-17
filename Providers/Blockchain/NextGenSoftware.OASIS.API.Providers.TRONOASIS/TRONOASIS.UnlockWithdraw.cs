@@ -142,57 +142,32 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             return GenerateKeyPairAsync().Result;
         }
 
-        public async Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
+        public Task<OASISResult<IKeyPairAndWallet>> GenerateKeyPairAsync()
         {
             var result = new OASISResult<IKeyPairAndWallet>();
             try
             {
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
-                // Generate TRON-specific key pair using Nethereum SDK (production-ready)
-                // TRON uses secp256k1 curve (same as Ethereum), so we can use Nethereum
+                // Key generation is local cryptography, not funded account activation.
                 var ecKey = EthECKey.GenerateKey();
                 var privateKey = ecKey.GetPrivateKeyAsBytes().ToHex();
-                var publicKey = ecKey.GetPublicAddress();
-                
-                // TRON addresses are derived from public keys (base58 encoded)
-                // For now, use the Ethereum address format - TronNet SDK would convert to TRON format
-                // In production, use TronNet SDK's address conversion utilities
-                var tronAddress = "T" + publicKey.Substring(2); // TRON addresses start with 'T'
-                
-                // Create key pair structure
-                //var keyPair = KeyHelper.GenerateKeyValuePairAndWalletAddress();
-                //if (keyPair != null)
-                //{
-                //    keyPair.PrivateKey = privateKey;
-                //    keyPair.PublicKey = publicKey;
-                //    keyPair.WalletAddressLegacy = tronAddress;
-                //}
+                var publicKey = Convert.ToHexString(ecKey.GetPubKey()).ToLowerInvariant();
+                var tronAddress = new TronNet.TronECKey(privateKey, TronNet.TronNetwork.MainNet).GetPublicAddress();
 
                 result.Result = new KeyPairAndWallet()
                 {                     
                     PrivateKey = privateKey,
                     PublicKey = publicKey,
-                    WalletAddressLegacy = tronAddress,
-                    WalletAddressSegwitP2SH = tronAddress // TRON does not have Segwit, so use same address
+                    WalletAddressLegacy = tronAddress
                 };
 
                 result.IsError = false;
-                result.Message = "TRON key pair generated successfully using Nethereum SDK (secp256k1).";
+                result.Message = "TRON secp256k1 key pair and Base58Check address generated locally; no on-chain account has been activated.";
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error generating key pair: {ex.Message}", ex);
             }
-            return result;
+            return Task.FromResult(result);
         }
 
         private static (string PublicKey, string PrivateKey) DeriveTronMnemonic(string phrase)
