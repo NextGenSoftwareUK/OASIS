@@ -29,6 +29,7 @@ export function storageTransaction(action, request) {
 }
 
 import {persistSignedSubmission,verifyPreparedIdentity} from './native-preparation.mjs';
+import {verifyPreparedQueryIdentity} from './paid-query-preparation.mjs';
 export {persistSignedSubmission} from './native-preparation.mjs';
 async function storageWrite(action, request, persist) {
   const mutation = storageTransaction(action, request);
@@ -263,6 +264,10 @@ export async function execute(action, request, persistPreparedSubmission) {
   if(action==='verifyNativePreparation'){
     if(persistPreparedSubmission)throw new Error('Read-only verification cannot prepare a submission.');
     return verifyPreparedIdentity(request.preparation,request.expectedPublicKey);
+  }
+  if(action==='verifyNativeQueryPreparation'){
+    if(persistPreparedSubmission)throw new Error('Read-only query verification cannot prepare a submission.');
+    return verifyPreparedQueryIdentity(request.preparation,request.expectedPublicKey,request.expectedNodes,request.maxPaymentTinybars,request.maxTransactionFeeTinybars);
   }
   if(['bytecodeFileCreate','bytecodeFileAppend','contractCreate','nftCollectionCreate','tokenCollectionDelete','nftMetadataUpdate'].includes(action)) return executeDeployment(action,request,{createClient,restoreKey,persistPreparedSubmission});
   if(persistPreparedSubmission&&!['storagePut','storageDelete','fileCreate','fileUpdate','fileDelete','transfer','tokenTransfer','tokenMint','tokenBurn','nftTransfer','nftMint','nftBurn','nftEscrowLock','nftEscrowUnlock','tokenEscrowLock','tokenEscrowUnlock'].includes(action))throw new Error('Prepared submission is not yet supported for this Hedera action.');

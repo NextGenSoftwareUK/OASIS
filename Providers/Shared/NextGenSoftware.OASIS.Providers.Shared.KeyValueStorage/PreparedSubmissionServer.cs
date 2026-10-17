@@ -20,11 +20,21 @@ public sealed class PreparedSubmissionServer : IDisposable
     private bool _optionalFirstStage;
     private string[] _preparedIds = Array.Empty<string>();
     private int _started;
+    private int _maximumRequests;
+    public bool IsBoundedRequestSequence=>_maximumRequests>0;
+    public bool SequenceCompleted {get;private set;}
     public string Endpoint { get; }
     public string PreparedTransactionId { get; private set; }
     public IReadOnlyList<string> PreparedTransactionIds => Array.AsReadOnly(Volatile.Read(ref _preparedIds));
     public bool HasOptionalApprovalSequence(string approvalId,string mutationId)
         => _optionalFirstStage && _expectedStages[0]==approvalId && _expectedStages[1]==mutationId;
+    /// <summary>Unknown original IDs, bounded physical requests and an explicit count-matched completion frame.
+    /// Each request is independently verified/persisted by its supplied execution owner.</summary>
+    public static PreparedSubmissionServer ForBoundedRequests(Func<JsonElement,CancellationToken,Task> persist,int maximumRequests)
+    {
+        if(maximumRequests<1||maximumRequests>512)throw new ArgumentOutOfRangeException(nameof(maximumRequests));
+        return new PreparedSubmissionServer(persist){_maximumRequests=maximumRequests};
+    }
     /// <summary>Each stage uses a separate connection and is acknowledged only after its own durable persistence.</summary>
     public static PreparedSubmissionServer ForStages(Func<JsonElement,CancellationToken,Task> persist, params string[] expectedTransactionIds)
     {
@@ -69,6 +79,13 @@ public sealed class PreparedSubmissionServer : IDisposable
         if (Interlocked.Exchange(ref _started, 1) != 0) throw new InvalidOperationException("Preparation server cannot be reused for a second submission.");
         try
         {
+            if(IsBoundedRequestSequence){
+                while(!SequenceCompleted){
+                    await ServeStageAsync(null,null,cancellationToken);
+                    if(!SequenceCompleted)await DisconnectStageAsync(cancellationToken);
+                }
+                return;
+            }
             for(var stage=0;stage<(_expectedStages?.Length ?? 1);stage++)
             {
                 await ServeStageAsync(_expectedStages?[stage] ?? _expectedTransactionId,
@@ -77,13 +94,17 @@ public sealed class PreparedSubmissionServer : IDisposable
                 if(stage+1<(_expectedStages?.Length ?? 1))
                 {
                     // The client closes only after reading its acknowledgement; do not discard buffered acknowledgement bytes.
-                    if(await _pipe.ReadAsync(new byte[1],cancellationToken)!=0)
-                        throw new InvalidDataException("Preparation stage requires exactly one frame per connection.");
-                    _pipe.Disconnect();
+                    await DisconnectStageAsync(cancellationToken);
                 }
             }
         }
         finally { _pipe.Dispose(); }
+    }
+    private async Task DisconnectStageAsync(CancellationToken token)
+    {
+        if(await _pipe.ReadAsync(new byte[1],token)!=0)
+            throw new InvalidDataException("Preparation stage requires exactly one frame per connection.");
+        _pipe.Disconnect();
     }
     private async Task ServeStageAsync(string expectedId,string optionalFinalId,CancellationToken cancellationToken)
     {
@@ -104,9 +125,21 @@ public sealed class PreparedSubmissionServer : IDisposable
             using var document = JsonDocument.Parse(text);
             var root = document.RootElement;
             if (root.GetProperty("protocol").GetString() != "oasis.native-preparation.v1") throw new InvalidDataException("Unknown preparation protocol.");
+            if(root.TryGetProperty("completed",out var completed)){
+                if(!IsBoundedRequestSequence||completed.ValueKind!=JsonValueKind.True
+                    ||root.GetProperty("preparedCount").GetInt32()!=PreparedTransactionIds.Count||root.TryGetProperty("evidence",out _))
+                    throw new InvalidDataException("Bounded preparation completion must match the exact retained request count.");
+                var reply=JsonSerializer.SerializeToUtf8Bytes(new {protocol="oasis.native-preparation.v1",persisted=true,completed=true,preparedCount=PreparedTransactionIds.Count});
+                await _pipe.WriteAsync(reply,cancellationToken);await _pipe.WriteAsync(new byte[]{10},cancellationToken);await _pipe.FlushAsync(cancellationToken);
+                SequenceCompleted=true;return;
+            }
+            if(IsBoundedRequestSequence&&PreparedTransactionIds.Count>=_maximumRequests)
+                throw new InvalidDataException("Bounded physical preparation request count exceeded.");
             var evidence = root.GetProperty("evidence");
             var hash = evidence.GetProperty("transactionHash").GetString();
             if (string.IsNullOrWhiteSpace(hash) || hash.Length > 256) throw new InvalidDataException("Original preparation identity is required.");
+            if(IsBoundedRequestSequence&&PreparedTransactionIds.Contains(hash))
+                throw new InvalidDataException("A physical request identity cannot be reused within its preparation sequence.");
             if(expectedId != null && hash != expectedId && hash != optionalFinalId)
                 throw new InvalidDataException("Prepared identity does not match the expected original transaction.");
             var encoded = evidence.GetProperty("signedTransactionBase64").GetString();

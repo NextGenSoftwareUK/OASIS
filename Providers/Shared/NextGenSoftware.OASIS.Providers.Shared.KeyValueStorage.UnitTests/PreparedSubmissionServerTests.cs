@@ -12,6 +12,50 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class PreparedSubmissionServerTests
 {
+    private static async Task<string> SequenceFrame(PreparedSubmissionServer server,object frame,CancellationToken token)
+    {
+        var name=OperatingSystem.IsWindows()?server.Endpoint.Substring(server.Endpoint.LastIndexOf('\\')+1)
+            :Path.GetFileName(server.Endpoint).Substring("CoreFxPipe_".Length);
+        using var client=new NamedPipeClientStream(".",name,PipeDirection.InOut,PipeOptions.Asynchronous);
+        await client.ConnectAsync(token);
+        await client.WriteAsync(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(frame)+"\n"),token);
+        using var reader=new StreamReader(client,new UTF8Encoding(false,true),leaveOpen:true);
+        return await reader.ReadLineAsync(token);
+    }
+
+    [DataTestMethod]
+    [DataRow(0)] [DataRow(2)]
+    public async Task BoundedPhysicalRequestsCompleteOnlyAfterCountMatchedDurableAcknowledgements(int count)
+    {
+        using var timeout=new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        var persisted=0;
+        using var server=PreparedSubmissionServer.ForBoundedRequests((_,_)=>{persisted++;return Task.CompletedTask;},2);
+        var serving=server.ServeAsync(timeout.Token);
+        for(var index=0;index<count;index++){
+            var reply=await SequenceFrame(server,new {protocol="oasis.native-preparation.v1",evidence=new {transactionHash="query-"+index,signedTransactionBase64="AQ=="}},timeout.Token);
+            Assert.IsNotNull(reply);Assert.AreEqual(index+1,persisted);Assert.IsFalse(server.SequenceCompleted);
+        }
+        var completed=await SequenceFrame(server,new {protocol="oasis.native-preparation.v1",completed=true,preparedCount=count},timeout.Token);
+        Assert.IsNotNull(completed);await serving;
+        Assert.IsTrue(server.SequenceCompleted);Assert.AreEqual(count,server.PreparedTransactionIds.Count);
+        using var parsed=JsonDocument.Parse(completed);Assert.AreEqual(count,parsed.RootElement.GetProperty("preparedCount").GetInt32());
+    }
+
+    [DataTestMethod]
+    [DataRow("duplicate")] [DataRow("overflow")] [DataRow("wrong-count")]
+    public async Task BoundedPhysicalRequestsRejectDuplicateOverflowOrForgedCompletion(string mode)
+    {
+        using var timeout=new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        var persisted=0;
+        using var server=PreparedSubmissionServer.ForBoundedRequests((_,_)=>{persisted++;return Task.CompletedTask;},mode=="overflow"?1:2);
+        var serving=server.ServeAsync(timeout.Token);
+        await SequenceFrame(server,new {protocol="oasis.native-preparation.v1",evidence=new {transactionHash="original",signedTransactionBase64="AQ=="}},timeout.Token);
+        if(mode=="wrong-count")await SequenceFrame(server,new {protocol="oasis.native-preparation.v1",completed=true,preparedCount=0},timeout.Token);
+        else await SequenceFrame(server,new {protocol="oasis.native-preparation.v1",evidence=new {transactionHash=mode=="duplicate"?"original":"second",signedTransactionBase64="AQ=="}},timeout.Token);
+        await Assert.ThrowsExceptionAsync<InvalidDataException>(()=>serving);
+        Assert.AreEqual(1,persisted);Assert.IsFalse(server.SequenceCompleted);
+    }
+
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     [DataRow(false,true)] [DataRow(false,true,true)] [DataRow(true,true)]
