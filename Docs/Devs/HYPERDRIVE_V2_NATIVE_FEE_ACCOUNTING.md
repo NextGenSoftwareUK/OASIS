@@ -1,5 +1,7 @@
 # HyperDrive V2 native-chain fees and recovery
 
+2026-10-17 native verification scope: expanded Sui V2 healthy routing passed1/1 in2m44s using the retained localnet, adding synchronous native-primary avatar/detail replication and karma/XP readbacks. Local synthetic gas only; this does NOT supply native fiat valuation, an authorized quote, hosted subscription settlement or mint sponsorship. No public fees incurred and no pricing policy changed.
+
 2026-10-17 Core2822b0a: the central settlement storage CAS now binds settlement outcome to the immutable observed logical outcome, including direct queueing and provider-receipt resolver completion. Correct monetary receipts cannot authorize changing logical success/failure. Two red-before cases reproduced the bypass; full suite now130/130pass11s, authority81/81pass17s. No change to operation-scoped rebate netting or pricing policy. Green reports do not establish hosted/native valuation acceptance. Public read-only Hedera mirror still reports0.69513926testHBAR; funded mutation tests remain deferred, no public funds spent.
 
 Updated: 2026-10-17. This is a living implementation and verification report, not a claim of production readiness.
