@@ -18,7 +18,10 @@ public class SuiAdmittedNftFacadeTests
     [TestMethod]
     public async Task AdmittedCSharpTokenFacadeBalancesEscrowsPartialBurnAndSupply()
         =>await RunNativeFacade(true);
-    private async Task RunNativeFacade(bool token)
+    [TestMethod]
+    public async Task AdmittedCSharpNftBatchReturnsDistinctObjectsAndCleansEachOwner()
+        =>await RunNativeFacade(false,2);
+    private async Task RunNativeFacade(bool token,int nftCount=1)
     {
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -61,11 +64,17 @@ public class SuiAdmittedNftFacadeTests
             var ownerAddress=ownerIdentity.Result.WalletAddressLegacy;var recipientAddress=recipientIdentity.Result.WalletAddressLegacy;
             async Task<string> NftScenario(){
             var minted=await Owned(owner,ownerAddress,"mint",()=>owner.MintNFTAsync(new MintWeb3NFTRequest {
-                Title="Admitted CSharp oak 🌳",Description="Retained local native facade fixture",NumberToMint=1,
+                Title="Admitted CSharp oak 🌳",Description="Retained local native facade fixture",NumberToMint=nftCount,
                 NFTStandardType=Core.Enums.NFTStandardType.SuiObject,StoreNFTMetaDataOnChain=true,
                 MetaData=new Dictionary<string,string>{{"park","owned native facade"}},Price=12.5m,RoyaltyPercentage=7,
                 SendToAddressAfterMinting=ownerAddress}));
-            var nft=minted.Result.Web3NFT;Assert.IsFalse(string.IsNullOrWhiteSpace(nft.NFTTokenAddress));
+            var objects=minted.Result.Web3NFTs.ToList();Assert.AreEqual(nftCount,objects.Count);
+            Assert.AreEqual(nftCount,objects.Select(x=>x.Id).Distinct().Count());
+            Assert.AreEqual(nftCount,objects.Select(x=>x.NFTTokenAddress).Distinct().Count());
+            Assert.AreEqual(objects[0].Id,minted.Result.Web3NFT.Id);
+            for(var index=0;index<objects.Count;index++){
+            var nft=objects[index];Assert.IsFalse(string.IsNullOrWhiteSpace(nft.NFTTokenAddress));
+            string Stage(string value)=>nftCount==1?value:value+"-"+index;
             Record(new {tokenId=nft.NFTTokenAddress,metadataId=nft.Id});
             var read=await owner.LoadOnChainNFTDataAsync(nft.NFTTokenAddress);Assert.IsFalse(read.IsError,read.Message);
             Assert.AreEqual("Admitted CSharp oak 🌳",read.Result.Title);Assert.AreEqual("owned native facade",read.Result.MetaData["park"]);
@@ -86,15 +95,16 @@ public class SuiAdmittedNftFacadeTests
                 Record(new {stage,state="rejected-without-signed-attempt",expectedOwner});
             }
             await RejectNonOwner(recipient,recipientAddress,ownerAddress,"recipient-before-transfer");
-            await Owned(owner,ownerAddress,"lock",()=>owner.LockNFTAsync(new LockWeb3NFTRequest {NFTTokenAddress=nft.NFTTokenAddress,Web3NFTId=nft.Id}));
-            await Owned(owner,ownerAddress,"unlock",()=>owner.UnlockNFTAsync(new UnlockWeb3NFTRequest {NFTTokenAddress=nft.NFTTokenAddress,Web3NFTId=nft.Id}));
-            var sent=await Owned(owner,ownerAddress,"send",()=>owner.SendNFTAsync(new SendWeb3NFTRequest {TokenId=nft.NFTTokenAddress,FromWalletAddress=ownerAddress,ToWalletAddress=recipientAddress,Amount=1}));
+            await Owned(owner,ownerAddress,Stage("lock"),()=>owner.LockNFTAsync(new LockWeb3NFTRequest {NFTTokenAddress=nft.NFTTokenAddress,Web3NFTId=nft.Id}));
+            await Owned(owner,ownerAddress,Stage("unlock"),()=>owner.UnlockNFTAsync(new UnlockWeb3NFTRequest {NFTTokenAddress=nft.NFTTokenAddress,Web3NFTId=nft.Id}));
+            var sent=await Owned(owner,ownerAddress,Stage("send"),()=>owner.SendNFTAsync(new SendWeb3NFTRequest {TokenId=nft.NFTTokenAddress,FromWalletAddress=ownerAddress,ToWalletAddress=recipientAddress,Amount=1}));
             Assert.AreEqual(recipientAddress,sent.Result.Web3NFT.SendToAddressAfterMinting);
             await RejectNonOwner(owner,ownerAddress,recipientAddress,"former-owner-after-transfer");
-            await Owned(recipient,recipientAddress,"burn",()=>recipient.BurnNFTAsync(new BurnWeb3NFTRequest {NFTTokenAddress=nft.NFTTokenAddress,
+            await Owned(recipient,recipientAddress,Stage("burn"),()=>recipient.BurnNFTAsync(new BurnWeb3NFTRequest {NFTTokenAddress=nft.NFTTokenAddress,
                 OwnerPrivateKey=recipientKey,OwnerPublicKey=recipientIdentity.Result.PublicKey,OwnerSeedPhrase=""}));
             Assert.IsTrue((await owner.LoadOnChainNFTDataAsync(nft.NFTTokenAddress)).IsError);
-            return nft.NFTTokenAddress;
+            }
+            return string.Join(",",objects.Select(x=>x.NFTTokenAddress));
             }
             async Task<string> TokenScenario(){
                 var coinType=settings.GetProperty("coinType").GetString()!;
@@ -128,7 +138,8 @@ public class SuiAdmittedNftFacadeTests
                 Assert.AreEqual(initialSupply,await Supply());return coinType;
             }
             var assetId=token?await TokenScenario():await NftScenario();
-            var stages=token?new[]{"mint","send","lock","unlock","burn-partial","burn-holder","burn-issuer"}:new[]{"mint","lock","unlock","send","burn"};
+            var stages=token?new[]{"mint","send","lock","unlock","burn-partial","burn-holder","burn-issuer"}:
+                new[]{"mint"}.Concat(Enumerable.Range(0,nftCount).SelectMany(index=>new[]{"lock","unlock","send","burn"}.Select(stage=>nftCount==1?stage:stage+"-"+index))).ToArray();
             var retained=await store.GetAsync(execution.OperationId,deadline.Token);Assert.AreEqual(stages.Length,retained.ProviderAttempts.Count);
             CollectionAssert.AreEqual(stages.Select(x=>x+".storage.1").ToArray(),retained.ProviderAttempts.Select(x=>x.ClientRequestId).ToArray());
             var receipts=new List<object>();
