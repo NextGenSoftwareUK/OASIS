@@ -131,10 +131,31 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     : await AvatarManager.Instance.LoadAvatarAsync(recipient);
                 if (senderAvatar.IsError || senderAvatar.Result == null || recipientAvatar.IsError || recipientAvatar.Result == null)
                     throw new InvalidOperationException("Could not resolve sender and recipient avatar identities.");
+                return await SendAvatarTokenByIdAsync(senderAvatar.Result.Id, recipientAvatar.Result.Id, amount, tokenAddress);
+            }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error resolving avatar TRON token transfer: {ex.Message}", ex);
+                return result;
+            }
+        }
+
+        private async Task<OASISResult<ITransactionResponse>> SendAvatarTokenByIdAsync(Guid sender, Guid recipient,
+            decimal amount, string tokenAddress)
+        {
+            var result = new OASISResult<ITransactionResponse>();
+            try
+            {
+                if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
+                if (sender == Guid.Empty || recipient == Guid.Empty || sender == recipient)
+                    throw new ArgumentException("Distinct real sender and recipient avatars are required.");
+                if (string.IsNullOrWhiteSpace(tokenAddress))
+                    throw new ArgumentException("An explicit TRX or TRC20 token contract address is required.");
+                if (WalletManager == null) throw new InvalidOperationException("Avatar wallet manager is unavailable.");
                 // The ID lookup decrypts a detached wallet; never filter/decrypt the stored avatar wallet in place.
-                var from = await WalletManager.GetAvatarDefaultWalletByIdAsync(senderAvatar.Result.Id,
+                var from = await WalletManager.GetAvatarDefaultWalletByIdAsync(sender,
                     Core.Enums.ProviderType.TRONOASIS, showPrivateKeys: true);
-                var to = await WalletManager.GetAvatarDefaultWalletByIdAsync(recipientAvatar.Result.Id,
+                var to = await WalletManager.GetAvatarDefaultWalletByIdAsync(recipient,
                     Core.Enums.ProviderType.TRONOASIS);
                 if (from.IsError || from.Result == null || string.IsNullOrWhiteSpace(from.Result.PrivateKey)
                     || to.IsError || to.Result == null)
