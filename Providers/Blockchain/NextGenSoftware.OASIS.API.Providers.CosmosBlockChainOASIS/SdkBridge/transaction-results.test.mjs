@@ -84,6 +84,7 @@ test('official signing waits for durable preparation and persistence failure nev
     assert.deepEqual(doc.bodyBytes,raw.bodyBytes);assert.deepEqual(doc.authInfoBytes,raw.authInfoBytes);
     const bound={...evidence,chainId:'controlled-chain',sender:address};
     assert.equal(verifyCosmosPreparedIdentity(bound).verified,true);
+    assert.equal(verifyCosmosPreparedIdentity(bound).feePayer,address);
     assert.equal((await invoke({operation:'verifyNativePreparation',rpcEndpoint:'http://127.0.0.1:1',preparation:bound})).verified,true);
     await assert.rejects(invoke({operation:'verifyNativePreparation',preparation:{...bound,chainId:'wrong'}}));
     const extendedDoc=Buffer.concat([Buffer.from(evidence.signDocBase64,'base64'),Buffer.from([0x28,0x01])]);
@@ -108,6 +109,23 @@ test('prepared await cannot change the signed bytes bound to persisted identity'
   const client={async broadcastTx(sent){assert.deepEqual(sent,original);return {transactionHash:expected,height:42,code:0};},async signAndBroadcast(){}};
   guardCosmosSigningClient(client,async evidence=>{assert.equal(evidence.transactionHash,expected);bytes.fill(9);await Promise.resolve();});
   assert.equal((await client.broadcastTx(bytes)).transactionHash,expected);
+});
+test('signed fee authority resolves default payer explicit payer and granter without submission',async()=>{
+ const wallet=await DirectSecp256k1Wallet.fromKey(new Uint8Array(32).fill(7),'wasm');
+ const [{address}]=await wallet.getAccounts();
+ const other=toBech32('wasm',new Uint8Array(20).fill(2));
+ const granter=toBech32('wasm',new Uint8Array(20).fill(3));
+ const client=await SigningCosmWasmClient.offline(wallet);
+ const initial=await client.sign(address,[],{amount:[],gas:'100000'},'',{accountNumber:7,sequence:3,chainId:'controlled-chain'});
+ for(const [payer,grant,expected] of [['','',address],[other,'',other],[other,granter,granter]]){
+  const auth=AuthInfo.decode(initial.authInfoBytes);auth.fee.payer=payer;auth.fee.granter=grant;
+  const doc=SignDoc.fromPartial({bodyBytes:initial.bodyBytes,authInfoBytes:AuthInfo.encode(auth).finish(),chainId:'controlled-chain',accountNumber:7n});
+  const signed=await wallet.signDirect(address,doc);
+  const bytes=TxRaw.encode({bodyBytes:doc.bodyBytes,authInfoBytes:doc.authInfoBytes,signatures:[Buffer.from(signed.signature.signature,'base64')]}).finish();
+  const identity=verifyCosmosPreparedIdentity({transactionHash:createHash('sha256').update(bytes).digest('hex').toUpperCase(),
+   chainId:'controlled-chain',sender:address,signedTransactionBase64:Buffer.from(bytes).toString('base64'),signDocBase64:Buffer.from(SignDoc.encode(doc).finish()).toString('base64')});
+  assert.equal(identity.feePayer,expected);
+ }
 });
 test('prepared persistence is awaited before broadcast and rejection prevents native submission', async () => {
   const bytes=new Uint8Array([1,2,3]);

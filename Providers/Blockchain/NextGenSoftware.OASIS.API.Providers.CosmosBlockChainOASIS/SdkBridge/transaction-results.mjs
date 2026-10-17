@@ -38,7 +38,10 @@ export function verifyCosmosPreparedIdentity(evidence) {
   if (!Buffer.from(sender.data).equals(rawSecp256k1PubkeyToRawAddress(key))
       || !Secp256k1.verifySignature(Secp256k1Signature.fromFixedLength(raw.signatures[0]),sha256(docBytes),key))
     throw new Error('Cosmos original signature or sender mismatch');
-  return {verified:true,transactionHash:evidence.transactionHash,sender:evidence.sender};
+  if(!auth.fee)throw new Error('Original signed Cosmos fee declaration is required');
+  const feePayer=auth.fee.granter||auth.fee.payer||evidence.sender;
+  if(!fromBech32(feePayer,90).data.length)throw new Error('Original signed Cosmos fee payer is invalid');
+  return {verified:true,transactionHash:evidence.transactionHash,sender:evidence.sender,feePayer};
 }
 
 // Capture the actual wallet-returned SignDoc, not a reconstructed account-number guess.
