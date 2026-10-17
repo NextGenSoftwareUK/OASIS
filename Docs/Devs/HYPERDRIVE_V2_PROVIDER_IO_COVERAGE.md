@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-17 TRON SendNFT captures and validates invocation-owned asset/from-to/signing/memo scalars before lifecycle wait; existing executor retained.1new controlled SDK/gRPC await-mutation case verifies original owner query and exact safeTransferFrom ABI/signature/memo despite changed caller request.106combined cases pass5s/full386pass3s. This closes identified local scalar-await gap, NOT live native consensus or independent post-transfer ownership verification/hosted admission/settlement.
+
 2026-10-17 TRON BurnToken scalar intent captured before runtime lease.1new async lifecycle-contention test verifies actual SDK original contract/burn selector/exact units/signature after request mutation using same controlled gRPC fixture.105combined pass5s/full386pass3s. Not a real TVM consensus/fee/hosted claim. NFT send still needs corresponding snapshot/verification; do not infer every async method audited.
 
 2026-10-17 TRON public SendToken native/custom transfer captures validated scalar intent before lifecycle semaphore await.2new deterministic async lease-contention cases actually red before fix, then actual SDK signs original amount/recipient/Unicode memo after caller mutation. Combined104pass5s; full386pass3s. Existing sync wrapper regression coverage retained, but new mutation-at-lease cases are async only. No duplicate SDK/transfer engine, native ledger or hosted settlement claim.

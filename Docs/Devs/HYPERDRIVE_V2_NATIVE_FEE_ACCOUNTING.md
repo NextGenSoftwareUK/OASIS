@@ -1,5 +1,7 @@
 # HyperDrive V2 native-chain fees and recovery
 
+2026-10-17 TRON NFT-send asset/recipient/memo now remain bound across runtime lease wait. Existing SDK single-transaction executor reused, no additional submission/fee exposure introduced. Actual SDK controlled RPC evidence only; no real network gas, principal transfer or sponsored settlement. Original Cosmos/TRON uncertainty journals unchanged; no replay.
+
 2026-10-17 TRON burn principal fixed at original amount/token before runtime wait; controlled SDK evidence confirms123units, not gas/fee recovery. No live chain mutation or public fees. Original protected TRON/Cosmos journals unchanged; no replay, signed-ID replacement or inferred zero fee.
 
 2026-10-17 TRON sender/recipient/token/principal/memo/signing selectors now cannot change between validation and lifecycle lease acquisition. Controlled RPC tests verify signed original intent/one attempt; no actual native gas or paid public operation. Original pending TRON/Cosmos journals hash-identical. Failure returns no fabricated transaction response; no principal-as-fee or zero-cost inference.
