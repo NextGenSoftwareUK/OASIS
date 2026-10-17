@@ -12,6 +12,21 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 public class SharedSearchContractTests
 {
     [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task InvalidSearchIsTerminalBeforeBackendAccess(bool synchronous)
+    {
+        var backend=new InMemoryBackend();var provider=new TestProvider(backend);
+        foreach(var mode in new[] {"null","owner","version","depth","group"})
+        {
+            var query=mode=="null" ? null:new SearchParams {SearchOnlyForCurrentAvatar=mode=="owner",SearchGroups=new List<ISearchGroupBase>()};
+            if(mode=="group")query.SearchGroups.Add(null);
+            var result=synchronous ? provider.Search(query,maxChildDepth:mode=="depth" ? -1:0,version:mode=="version" ? -1:0)
+                :await provider.SearchAsync(query,maxChildDepth:mode=="depth" ? -1:0,version:mode=="version" ? -1:0);
+            Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",result.ErrorCode);
+            Assert.IsTrue(result.Exception is ArgumentException || result.Exception is NotSupportedException);Assert.AreEqual(0,backend.ListCalls);
+        }
+    }
+    [DataTestMethod]
     [DataRow("cycle")] [DataRow("duplicate")] [DataRow("empty")]
     public void InvalidParentGraphIsTerminalDataCorruption(string mode)
     {

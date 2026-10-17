@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 search validation classification reused shared outputs/in-memory backend. Two baseline failures retained in search-validation-before-current.trx; finalShared262/262pass1s. Zero backend list calls for invalid cases. No runtime/node/download/install/clone/new environment or protected ledger/source/userdata/credential removal; fixed compact reports reused.
+
 2026-10-16 V2 numeric search reused fixed guarded disk/SQLite fixture. Two failed setup runs preserved2synthetic JSON files+634880byte SQLite DB each; read-only inspected owned search/mismatch IDs/owner/versions, exact files then empty directories removed after testhost stopped. No recursive/broad cleanup, source/userdata/credential/pending-journal removal. First SQL2rowsVersion0 vsdisk1 corrected explicit1; next Free-plan eligibility corrected testGold. Final local routing106/106pass11s and normal fixture disposal. Disposable data regenerates by test, not verbatim recoverable; no new runtime/download/install/clone/environment. Fixed compact reports reused.
 
 2026-10-16 search ancestry classification reused shared outputs/in-memory engine cases. Three baseline failures retained in search-parent-corruption-before-current.trx; finalShared260/260pass1s. No runtime/node/download/install/clone/new environment/protected ledger/source/userdata/credential removal. Fixed compact reports reused.

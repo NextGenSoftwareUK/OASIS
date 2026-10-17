@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Shared search validation delta: validation-only failures now terminal HYPERDRIVE_PAYLOAD_INVALID with original cause before I/O, separate from data-failure handling. Shared262/262pass1s includes two sync/async five-invalid-input cases/zero list calls. Not native/V2 routing/hosted certification.
+
 Shared/SQLite V2 search delta: full local routing106/106pass11s includes sync/async actual disk/shared and SQLite Version-number AND text/ownership/metadata query pairs, distinct expected identities/exact+1 metrics each under Gold. Initial fixture version/default-Free assumptions corrected, production eligibility unchanged. Not native Vercel/chain search/all-strategy/durable/hosted proof.
 
 Shared search ancestry delta: invalid/duplicate map IDs and encountered recursive ancestry cycles now terminal InvalidDataException; three red-before/green-after cases, Shared260/260pass1s. Not full-graph/concurrent/native/V2 backup-metric certification; consumers' native suites not rerun.
