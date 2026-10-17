@@ -279,8 +279,8 @@ public sealed class SuiRealProviderRoutingTests
                     { read.IsError.Should().BeFalse(read.Message); read.Result.Single(value => value.Id == holon.Id).Name.Should().Be(holon.Name); }
                 }
                 var search = new StorageOperationRequest { Operation = "Search", PreferredProvider = providerType, LoadChildren = false,
-                    SearchParams = new SearchParams { SearchGroups = new List<ISearchGroupBase> {
-                        new SearchTextGroup { SearchQuery = holon.Name, SearchHolons = true, SearchAvatars = false } } } };
+                    SearchParams = new SearchParams { SearchOnlyForCurrentAvatar=false, SearchGroups = new List<ISearchGroupBase> {
+                        new SearchTextGroup { SearchQuery = holon.Name, SearchHolons = true, SearchAvatars = false,HolonType=HolonType.All } } } };
                 foreach (var read in new[] { router.RouteRequest<ISearchResults>(search), await router.RouteRequestAsync<ISearchResults>(search) })
                 { read.IsError.Should().BeFalse(read.Message); read.Result.SearchResultHolons.Single(value => value.Id == holon.Id).Name.Should().Be(holon.Name); }
                 var byKey = new StorageOperationRequest { Operation = "LoadHolonByProviderKey", ProviderKey = holon.Id.ToString(),
