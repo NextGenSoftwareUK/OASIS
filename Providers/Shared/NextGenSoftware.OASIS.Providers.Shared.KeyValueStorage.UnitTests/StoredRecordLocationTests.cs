@@ -21,6 +21,8 @@ public class StoredRecordLocationTests
     [DataRow(0L,0L,100,0.0005d,0d,true)] [DataRow(0L,0L,100,0.001d,0d,false)]
     [DataRow(0L,179999500L,200,0d,-179.9995d,true)]
     [DataRow(0L,180000000L,0,0d,-180d,true)] [DataRow(90000000L,37000000L,0,90d,-175d,true)]
+    [DataRow(-89990409L,0L,20015087,89.990409d,180d,true)]
+    [DataRow(-89990409L,0L,20015086,89.990409d,180d,false)]
     public void RadiusAndCanonicalBoundariesPreserveOriginalRecords(long latitude,long longitude,int radius,double storedLatitude,double storedLongitude,bool expected)
     {
         var record=new Holon {Id=Guid.NewGuid(),Name="preserved full record",Version=7};
@@ -37,6 +39,16 @@ public class StoredRecordLocationTests
         var record=new Holon();record.MetaData["Latitude"]=kind=="nan" ? "NaN":kind=="infinite" ? "Infinity":kind=="range" ? "91":"0";
         if(kind!="missing-pair") record.MetaData["Longitude"]="0";
         Assert.ThrowsException<InvalidDataException>(()=>new StoredRecordLocationQuery(0,0,100).Select(new[] {record}));
+    }
+
+    [TestMethod]
+    public void ValidAntipodalLocationsDoNotBecomeArithmeticFailures()
+    {
+        for(long latitude=-89999999;latitude<-89000000;latitude+=137){
+            var record=new Holon();record.MetaData["Latitude"]=-latitude/1e6d;record.MetaData["Longitude"]=180d;
+            var result=new StoredRecordLocationQuery(latitude,0,int.MaxValue).Select(new[]{record});
+            Assert.AreSame(record,result.Single());
+        }
     }
 
     [TestMethod]
