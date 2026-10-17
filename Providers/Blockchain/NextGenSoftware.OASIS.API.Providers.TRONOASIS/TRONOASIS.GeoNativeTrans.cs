@@ -274,7 +274,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     var activateResult = await ActivateProviderAsync();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate TRON provider: {activateResult.Message}");
+                        OASISErrorHandling.HandleError(ref response, $"Failed to activate TRON provider: {activateResult.Message}",
+                            activateResult.Exception, detailedMessage: activateResult.DetailedMessage);
+                        response.ErrorCode = activateResult.ErrorCode;
                         return response;
                     }
                 }
@@ -297,7 +299,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref response, $"Error sending TRON transaction: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error sending TRON transaction: {ex.Message}", ex);
             }
 
             return response;

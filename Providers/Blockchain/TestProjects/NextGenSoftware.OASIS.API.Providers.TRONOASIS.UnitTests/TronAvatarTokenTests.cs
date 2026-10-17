@@ -4,6 +4,39 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public sealed class TronAvatarTokenTests
 {
+    private sealed class FailedActivation(Exception cause, bool throws) : TRONOASIS
+    {
+        public override Task<NextGenSoftware.OASIS.Common.OASISResult<bool>> ActivateProviderAsync()
+            => throws ? Task.FromException<NextGenSoftware.OASIS.Common.OASISResult<bool>>(cause)
+                : Task.FromResult(new NextGenSoftware.OASIS.Common.OASISResult<bool>
+                {
+                    IsError = true, Exception = cause, Message = "controlled activation failure",
+                    ErrorCode = "CONTROLLED_TRANSPORT", DetailedMessage = "controlled activation detail"
+                });
+    }
+
+    [Theory]
+    [InlineData(true, true)]
+    [InlineData(true, false)]
+    [InlineData(false, true)]
+    [InlineData(false, false)]
+    public async Task RawTransferRetainsOriginalActivationCause(bool synchronous, bool throws)
+    {
+        var cause = new System.IO.IOException("controlled transport unavailable");
+        var provider = new FailedActivation(cause, throws);
+        var result = synchronous ? provider.SendTransaction("sender", "recipient", 1m, "memo")
+            : await provider.SendTransactionAsync("sender", "recipient", 1m, "memo");
+        Assert.True(result.IsError);
+        Assert.Same(cause, result.Exception);
+        Assert.Null(result.Result);
+        Assert.False(provider.IsProviderActivated);
+        if (!throws)
+        {
+            Assert.Equal("CONTROLLED_TRANSPORT", result.ErrorCode);
+            Assert.Equal("controlled activation detail", result.DetailedMessage);
+        }
+    }
+
     [Theory]
     [InlineData("id", true)]
     [InlineData("id", false)]
