@@ -1,5 +1,13 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Configured C# ceiling reaches production SDK executor (2026-10-17)
+
+Two new Sui tests extend the previously separate C# configuration and SDK guard proofs across the real process boundary. `SuiOASIS.CreateWithNativeFeeLimits` -> existing private provider SDK invocation -> actual SuiSdkClient stdin serialization -> controlled child -> retained official Transaction/Ed25519 SDK modules -> PRODUCTION withNativeMutationEvidence/execute functions. The child asserts the exact cap arrived from C#; it does not reimplement gas checking or signing. SDK modules are resolved from the existing production bridge dependency tree (same MJS entries), no additional install/copy/client engine.
+
+For budget1000, cap999 must produce zero actual SDK signing calls and zero controlled execute-transport calls, with no native mutation reconciliation marker. Cap1000 permits one real signature and one controlled transport response bound to the original built digest. Deterministic seed and fully resolved fake coin reference are the existing test identity pattern; neither case queries an RPC or submits to a chain. The fixture refuses nonempty private-key configuration and any unexpected operation/endpoint/cap. It restores its two process environment overrides in finally; test class excludes parallel environment mutation.
+
+Full142/142pass2m14s/0skip/runnerexit0, both new rows confirmed, fixed report hash in release gates. This closes local configured provider-to-child-to-executor plumbing evidence, not actual public mint/save facade, admitted preparation pipe, live native cap acceptance, hosted HTTP or whole-operation reservation. Earlier SDK70 cases separately cover prepared callbacks and multi-stage marker retention; do not describe the combination as a single tested live end-to-end billing path. Aggregate exposure/approved host policy/other-provider limits and remaining native/hosted gates stay open.
+
 ## OASISDNA/BootLoader selection of the Sui ceiling (2026-10-17)
 
 The configuration schema now exposes `OASIS.StorageProviders.SuiOASIS.MaximumGasBudgetMist` as optional **decimal text**, not a JSON floating-point amount or USD value. Operators must supply an approved canonical positive u64 string. Full range includes values beyond JavaScript's exact numeric range, so keep the JSON value quoted. Null/absent means no newly configured ceiling; empty, zero, signs, whitespace, leading zero, fractions/exponents and overflow are invalid. No default cap was invented or inserted in default/live DNA.
