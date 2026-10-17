@@ -13,6 +13,16 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests;
 [TestClass,DoNotParallelize]
 public class SuiPreparedLedgerTests
 {
+    private sealed class LocalAdmissionPrice(DateTime time):NextGenSoftware.OASIS.API.Core.Managers.Bridge.Services.IAssetUsdQuoteSource
+    {
+        public int Calls;
+        public Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Managers.Bridge.Services.AssetUsdQuote>> GetUsdQuoteAsync(string symbol,CancellationToken token=default)
+        {
+            token.ThrowIfCancellationRequested();Assert.AreEqual("SUI",symbol);Calls++;
+            return Task.FromResult(new NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Managers.Bridge.Services.AssetUsdQuote>{
+                Result=new("sui",1m,time,time,"synthetic-local-price","fixture-v1")});
+        }
+    }
     [TestMethod]
     public async Task InspectRetainedPreparedAttemptsWithoutMutation()
         =>await InspectRetainedPreparedAttempts(false);
@@ -389,6 +399,7 @@ public class SuiPreparedLedgerTests
             var priceTime=DateTime.UtcNow.AddSeconds(-1);
             var price=new NativeFeePriceQuote(Guid.Parse(execution.OperationId),"SuiOASIS",settings.GetProperty("chainId").GetString()!,
                 "MIST","sui",9,1m,"synthetic-local-price","fixture-v1","fixture-v1",priceTime,priceTime,priceTime,priceTime.AddMinutes(5));
+            var unpricedExecution=execution;
             execution=execution.WithNativePrices(new[]{price});
             var rejectedExecution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6",PersistenceTimeout=TimeSpan.FromSeconds(5)})
                 .BeginAsync("test-only",user,key+"-zero-budget",new string('b',64),"POST /local-test",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1,
@@ -489,13 +500,20 @@ public class SuiPreparedLedgerTests
                 dna.OASIS.SubscriptionConfig.PlanType="Gold";
                 var manager=new ProviderManager(null,dna){IsAutoFailOverEnabled=false,IsAutoReplicationEnabled=false,IsAutoLoadBalanceEnabled=false};
                 manager.RegisterProvider(provider);var router=new OASISHyperDrive(manager);
-                var routingPolicy=new PreparedStorageExecution(execution,"private-routing",new Dictionary<ProviderType,string> {
-                    [ProviderType.SuiOASIS]=settings.GetProperty("address").GetString()!},Array.Empty<ProviderType>());
+                var source=new LocalAdmissionPrice(priceTime);
+                var quotes=new NativeFeePriceQuoteFactory(new("fixture-v1",new[]{new NativeFeeAssetMapping("SuiOASIS",price.ChainId,"MIST","SUI","sui",9)}),
+                    source,TimeSpan.FromMinutes(5),TimeSpan.FromMinutes(5),()=>priceTime);
+                var factory=new PricedStorageAdmissionFactory(quotes,new[]{new NativeStorageAdmissionBinding(ProviderType.SuiOASIS,price.ChainId,
+                    settings.GetProperty("address").GetString()!,new[]{"MIST"})},Array.Empty<ProviderType>());
+                var context=new Microsoft.AspNetCore.Http.DefaultHttpContext();context.RequestAborted=deadline.Token;
+                context.User=new System.Security.Claims.ClaimsPrincipal(new System.Security.Claims.ClaimsIdentity(new[]{
+                    new System.Security.Claims.Claim(System.Security.Claims.ClaimTypes.NameIdentifier,user)},"controlled-local-fixture"));
+                context.Items[Web4UsageMeasurement.ExecutionKey]=unpricedExecution;
                 var beforePrivate=cleaned.ProviderAttempts.Count;
-                await routingPolicy.RunAsync(async()=>{
+                var admission=new PreparedStorageAdmissionMiddleware(async _=>{
                     var write=new StorageOperationRequest {Operation="SaveHolon",Payload=holon,SaveChildren=false,PreferredProvider=ProviderType.SuiOASIS};
                     var saved=await router.RouteRequestAsync<IHolon>(write);
-                    Assert.IsFalse(saved.IsError,saved.Message);Assert.AreSame(routingPolicy,write.PreparedExecution);
+                    Assert.IsFalse(saved.IsError,saved.Message);Assert.AreSame(PreparedStorageExecution.Current,write.PreparedExecution);
                     Assert.IsTrue(provider.IsProviderActivated,"Real activation must complete inside admitted dispatch.");
                     var persisted=await store.GetAsync(execution.OperationId,deadline.Token);
                     Assert.IsTrue(persisted.ProviderAttempts.Count>beforePrivate,"Routed encrypted save must retain original physical attempts.");
@@ -507,11 +525,13 @@ public class SuiPreparedLedgerTests
                     Assert.IsFalse(removed.IsError,removed.Message);Assert.IsNotNull(removed.Result);
                     cleaned=await store.GetAsync(execution.OperationId,deadline.Token);
                     Assert.IsTrue(cleaned.ProviderAttempts.Count>persisted.ProviderAttempts.Count,"Routed public delete must retain original preparation.");
-                    return true;
                 });
+                await admission.InvokeAsync(context,factory);
+                Assert.AreEqual(1,source.Calls,"Native storage admission must use the shared quote source once, not a provider-local oracle.");
+                Console.WriteLine("Concrete priced factory and authenticated admission middleware executed real routed Sui storage; controlled context, not deployed HTTP authentication.");
                 Assert.IsNull(PreparedStorageExecution.Current);
                 var missing=await provider.LoadHolonAsync(privateHolonId,loadChildren:false);Assert.IsNull(missing.Result);
-                Assert.IsTrue(cleaned.ProviderAttempts.Skip(beforePrivate).All(attempt=>attempt.ClientRequestId.StartsWith("private-routing.route.",StringComparison.Ordinal)));
+                Assert.IsTrue(cleaned.ProviderAttempts.Skip(beforePrivate).All(attempt=>attempt.ClientRequestId.StartsWith("http-storage.route.",StringComparison.Ordinal)));
             }
             var lookupOwner=new PreparedNativeUsageRecoveryResolver(store,new[]{(NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader)provider});
             Assert.IsTrue(lookupOwner.CanResolve(cleaned));
