@@ -54,6 +54,7 @@ public class TronPermissionRpcTests
     [InlineData("nft-send-provider")]
     [InlineData("nft-burn-provider")]
     [InlineData("token-burn-provider")]
+    [InlineData("escrow-lock-provider")]
     [InlineData("contradictory-broadcast")]
     public async Task RotatedContractSignerAndConfirmedDeploymentReadbackPreserveOneSubmission(string mode)
     {
@@ -65,10 +66,11 @@ public class TronPermissionRpcTests
         var contractBytes=new byte[21];contractBytes[0]=0x41;new Nethereum.Signer.EthECKey(new string('0',63)+"3").GetPublicAddressAsBytes().CopyTo(contractBytes,1);
         var contract=NBitcoin.DataEncoders.Encoders.Base58Check.EncodeData(contractBytes);
         var constructions=0;var broadcasts=0;var receiptReads=0;var id=ByteString.Empty;Account authority=null!;
+        var escrowLock = mode is "escrow-lock" or "escrow-lock-provider";
         var submitted=new System.Collections.Generic.List<ByteString>();
         TransactionExtention Construct(IMessage request,Transaction.Types.Contract.Types.ContractType type){
             constructions++;var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();var tx=new Transaction{RawData=new Transaction.Types.raw{Timestamp=now,Expiration=now+60000}};
-            if(mode=="escrow-lock"&&constructions==2){Assert.Equal(1,broadcasts);Assert.Equal(1,receiptReads);}
+            if(escrowLock&&constructions==2){Assert.Equal(1,broadcasts);Assert.Equal(1,receiptReads);}
             tx.RawData.Contract.Add(new Transaction.Types.Contract{Type=type,Parameter=Google.Protobuf.WellKnownTypes.Any.Pack(request)});
             return new TransactionExtention{Transaction=tx,Result=new Return{Result=true}};
         }
@@ -107,7 +109,7 @@ public class TronPermissionRpcTests
                 receiptReads++;Assert.Equal(id,request.Value);
                 if(mode=="readback-unavailable"&&receiptReads>1)throw new RpcException(new Status(StatusCode.Unavailable,"controlled confirmed deployment readback failure"));
                 var receipt=new TransactionInfo{Id=id,BlockNumber=1,Receipt=new ResourceReceipt{Result=Transaction.Types.Result.Types.contractResult.Success},ContractAddress=mode=="missing-address"?ByteString.Empty:ByteString.CopyFrom(contractBytes)};
-                var word=new byte[32];word[31]=(byte)(mode=="escrow-unlock"||(mode=="escrow-lock"&&broadcasts==2)?5:1);receipt.ContractResult.Add(ByteString.CopyFrom(word));return Task.FromResult(receipt);
+                var word=new byte[32];word[31]=(byte)(mode=="escrow-unlock"||(escrowLock&&broadcasts==2)?5:1);receipt.ContractResult.Add(ByteString.CopyFrom(word));return Task.FromResult(receipt);
             }).Build();
         var server=new Server{Services={service},Ports={new ServerPort("127.0.0.1",0,ServerCredentials.Insecure)}};server.Start();
         try{
@@ -133,6 +135,13 @@ public class TronPermissionRpcTests
                 var response = await provider.BurnNFTAsync(new Core.Objects.NFT.Requests.BurnWeb3NFTRequest {
                     NFTTokenAddress=contract+"/1",OwnerPrivateKey=key,OwnerSeedPhrase=null,
                     OwnerPublicKey=Convert.ToHexString(new Nethereum.Signer.EthECKey(key).GetPubKey()) });
+                Assert.False(response.IsError,response.Message);
+                Assert.Equal(Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),response.Result.TransactionResult);
+                Assert.False(provider.IsProviderActivated);
+            }else if(mode == "escrow-lock-provider"){
+                var provider = new TRONOASIS(nativeTransfers:runtime.NativeTransfers,escrowContractAddress:contract);
+                var response = await provider.LockTokenAsync(new Core.Objects.Wallet.Requests.LockWeb3TokenRequest {
+                    FromWalletAddress=owner,FromWalletPrivateKey=key,TokenAddress=contract,EscrowContractAddress=contract });
                 Assert.False(response.IsError,response.Message);
                 Assert.Equal(Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),response.Result.TransactionResult);
                 Assert.False(provider.IsProviderActivated);
@@ -165,7 +174,7 @@ public class TronPermissionRpcTests
                 Assert.Equal(Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),error.OriginalTransactionId);Assert.True(Core.Helpers.NativeMutationReconciliation.IsRequired(error));
                 if(mode=="readback-unavailable")Assert.IsType<RpcException>(error.InnerException);else Assert.IsType<InvalidOperationException>(error.InnerException);
             }
-            Assert.Equal(mode=="escrow-lock"?2:1,constructions);Assert.Equal(mode=="escrow-lock"?2:1,broadcasts);
+            Assert.Equal(escrowLock?2:1,constructions);Assert.Equal(escrowLock?2:1,broadcasts);
             Assert.Equal(submitted.Count,submitted.Distinct().Count());
         }finally{await server.ShutdownAsync();}
     }

@@ -8,7 +8,7 @@ interface ITRC20EscrowToken {
 }
 
 /// @notice Reversible, depositor-owned escrow. No administrator can withdraw user deposits.
-/// @dev The current lock request has no amount: lockAll deposits the caller's spendable balance.
+/// @dev This ABI has no amount/deposit-ID selector: lockAll deposits the caller's spendable balance.
 ///      The caller must approve this contract first. Fee-on-transfer tokens are rejected.
 interface ITRC721EscrowToken {
     function ownerOf(uint256 tokenId) external view returns (address);

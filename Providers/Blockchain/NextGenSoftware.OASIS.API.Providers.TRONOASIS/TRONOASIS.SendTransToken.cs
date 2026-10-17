@@ -325,12 +325,10 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     throw new ArgumentException("Token contract, depositor address and private signing key are required.");
                 if (string.IsNullOrWhiteSpace(_escrowContractAddress))
                     throw new InvalidOperationException("A separate EscrowContractAddress must be configured.");
-                if (!IsProviderActivated)
-                {
-                    var activation = await ActivateProviderAsync();
-                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
-                }
-                var hash = await ExecuteRuntimeAsync(client => client.LockEscrowAsync(request.FromWalletAddress,
+                if (request.Amount != 0)
+                    throw new ArgumentException("This TRON escrow supports lockAll only; nonzero requested Amount cannot be silently replaced with the whole balance.");
+                ValidateAggregateEscrowRequest(request.LockId, request.EscrowContractAddress);
+                var hash = await ExecuteNativeRuntimeAsync(client => client.LockEscrowAsync(request.FromWalletAddress,
                     _escrowContractAddress, request.TokenAddress, request.FromWalletPrivateKey));
                 result.Result = new TransactionResponse { TransactionResult = hash };
                 result.Message = "Spendable TRC20 balance deposited into owned escrow and confirmed by solidified receipt.";
@@ -340,6 +338,15 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 OASISErrorHandling.HandleError(ref result, $"Error locking TRON escrow: {ex.Message}", ex);
             }
             return result;
+        }
+
+        private void ValidateAggregateEscrowRequest(Guid lockId, string requestedEscrow)
+        {
+            if (lockId != Guid.Empty)
+                throw new ArgumentException("This TRON escrow tracks an aggregate token/depositor balance, not individual LockId deposits.");
+            if (!string.IsNullOrWhiteSpace(requestedEscrow)
+                && !string.Equals(requestedEscrow, _escrowContractAddress, StringComparison.Ordinal))
+                throw new ArgumentException("Requested escrow differs from the explicitly configured TRON escrow contract.");
         }
 
         public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request)
