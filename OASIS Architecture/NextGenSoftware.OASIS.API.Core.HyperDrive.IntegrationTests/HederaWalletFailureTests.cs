@@ -24,6 +24,7 @@ public sealed class HederaWalletFailureTests
     [InlineData(true, "email", true)]
     [InlineData(false,"escrow-lock",false)] [InlineData(true,"escrow-lock",false)]
     [InlineData(false,"escrow-release",false)] [InlineData(true,"escrow-release",false)]
+    [InlineData(false,"escrow-associate",false)] [InlineData(true,"escrow-associate",false)]
     public async Task CorruptStoredSigningWalletRetainsOriginalFailureBeforeSdkUse(bool synchronous, string selector, bool sui)
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
@@ -68,6 +69,8 @@ public sealed class HederaWalletFailureTests
             using var suiProvider = new SuiOASIS { WalletManager = wallets };
             async Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>> Escrow(){
                 var id=Guid.Parse("5f31afde-1229-4e99-8088-a0034d33a557");
+                if(selector=="escrow-associate")return synchronous?hedera.AssociateTokenWithEscrow(sender,"0.0.3001","0.0.2001")
+                    :await hedera.AssociateTokenWithEscrowAsync(sender,"0.0.3001","0.0.2001");
                 if(selector=="escrow-lock"){
                     var request=new Core.Objects.Wallet.Requests.LockWeb3TokenRequest{LockedByAvatarId=sender,LockId=id,Amount=1.23m,TokenAddress="0.0.3001",EscrowContractAddress="0.0.2001"};
                     return synchronous?hedera.LockToken(request):await hedera.LockTokenAsync(request);

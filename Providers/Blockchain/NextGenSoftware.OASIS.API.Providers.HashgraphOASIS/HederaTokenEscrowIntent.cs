@@ -10,6 +10,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
 
 internal sealed record HederaTokenEscrowIntent(Guid LockId, string DepositId, string Amount)
 {
+    internal string AssociationTokenId { get; init; }
+    internal static HederaTokenEscrowIntent CaptureAssociation(HederaTokenEscrowConfiguration config,string token,string requestedEscrow)
+    {
+        config.Validate();
+        if(config.Protocol!=HederaTokenEscrowProtocol.IdBoundV1 || requestedEscrow!=config.ContractId || string.IsNullOrWhiteSpace(token))
+            throw new ArgumentException("Association requires explicit id-bound protocol, token and matching reviewed escrow.");
+        return new(Guid.Empty,null,null){AssociationTokenId=token};
+    }
     internal static HederaTokenEscrowIntent Capture(HederaTokenEscrowConfiguration config, bool locking,
         Guid id, decimal amount, string requestedEscrow)
     {
@@ -27,12 +35,17 @@ internal sealed record HederaTokenEscrowIntent(Guid LockId, string DepositId, st
 
     internal void AppendTo(IDictionary<string,object> request)
     {
-        request["escrowProtocol"]=DepositId==null?"aggregate-v1":"id-bound-v1";
+        request["escrowProtocol"]=DepositId==null&&AssociationTokenId==null?"aggregate-v1":"id-bound-v1";
         if(DepositId!=null){request["depositId"]=DepositId;request["amount"]=Amount;}
     }
 
     internal void ValidateReply(JsonElement reply)
     {
+        if(AssociationTokenId!=null){
+            if(!reply.GetProperty("associated").GetBoolean() || reply.GetProperty("tokenId").GetString()!=AssociationTokenId)
+                throw new System.IO.InvalidDataException("Association reply does not establish the requested token association.");
+            return;
+        }
         if(!long.TryParse(reply.GetProperty("amountUnits").GetString(),NumberStyles.None,CultureInfo.InvariantCulture,out var units) || units<=0)
             throw new System.IO.InvalidDataException("Escrow SDK response lacks exact positive int64 token units.");
         if(DepositId!=null && reply.GetProperty("depositId").GetString()!=DepositId)

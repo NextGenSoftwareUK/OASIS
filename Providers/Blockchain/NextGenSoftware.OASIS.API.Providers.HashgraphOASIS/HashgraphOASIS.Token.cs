@@ -199,6 +199,13 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 request?.TokenAddress, null, null, 0, request?.LockId ?? Guid.Empty, request?.EscrowContractAddress);
         }
 
+        /// <summary>Separate funded association mutation; never implicitly runs during deposit.</summary>
+        public Task<OASISResult<ITransactionResponse>> AssociateTokenWithEscrowAsync(Guid avatarId,string tokenAddress,string escrowContractId)
+            =>ExecuteAvatarTokenEscrowAsync("tokenEscrowAssociate",avatarId,tokenAddress,null,null,0,Guid.Empty,escrowContractId);
+
+        public OASISResult<ITransactionResponse> AssociateTokenWithEscrow(Guid avatarId,string tokenAddress,string escrowContractId)
+            =>AssociateTokenWithEscrowAsync(avatarId,tokenAddress,escrowContractId).GetAwaiter().GetResult();
+
         private async Task<OASISResult<ITransactionResponse>> ExecuteAvatarTokenEscrowAsync(string action,
             Guid avatarId, string tokenAddress, string requestedWallet, string requestedKey,
             decimal requestedAmount, Guid requestedLockId, string requestedEscrow)
@@ -207,7 +214,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             try
             {
                 if (_tokenEscrow == null) throw new InvalidOperationException("An explicit Hedera fungible escrow contract configuration is required.");
-                var intent=HederaTokenEscrowIntent.Capture(_tokenEscrow,action=="tokenEscrowLock",requestedLockId,requestedAmount,requestedEscrow);
+                var intent=action=="tokenEscrowAssociate"
+                    ?HederaTokenEscrowIntent.CaptureAssociation(_tokenEscrow,tokenAddress,requestedEscrow)
+                    :HederaTokenEscrowIntent.Capture(_tokenEscrow,action=="tokenEscrowLock",requestedLockId,requestedAmount,requestedEscrow);
                 if (avatarId == Guid.Empty) throw new ArgumentException("An explicit requesting avatar identity is required for token escrow.");
                 if (!System.Text.RegularExpressions.Regex.IsMatch(tokenAddress ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
                     throw new ArgumentException("Token escrow requires a nonzero numeric HTS token address.");
@@ -251,7 +260,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     ?new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = mutationId }
                     :new HederaIdBoundEscrowResponse(intent.LockId,mutationId,approval);
                 result.IsSaved=true;result.SavedCount=1;
-                result.Message = "Hedera token escrow confirmed by consensus receipt and exact balance/deposit readback.";
+                result.Message = intent.AssociationTokenId!=null?"Hedera escrow token association confirmed by receipt and readback."
+                    :"Hedera token escrow confirmed by consensus receipt and exact balance/deposit readback.";
             }
             catch (Exception ex)
             {
