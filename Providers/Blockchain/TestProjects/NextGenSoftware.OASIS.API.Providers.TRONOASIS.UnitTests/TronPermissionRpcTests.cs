@@ -52,11 +52,13 @@ public class TronPermissionRpcTests
     [InlineData("nft-mint")] [InlineData("nft-send")] [InlineData("token-send")] [InlineData("approve")]
     [InlineData("escrow-lock")] [InlineData("escrow-unlock")]
     [InlineData("nft-send-provider")]
+    [InlineData("nft-burn-provider")]
+    [InlineData("token-burn-provider")]
     [InlineData("contradictory-broadcast")]
     public async Task RotatedContractSignerAndConfirmedDeploymentReadbackPreserveOneSubmission(string mode)
     {
         var genesis=new string('a',64);var block=ByteString.CopyFrom(Convert.FromHexString(genesis));
-        var key=new string('0',63)+"1";var ownerKey=new string('0',63)+"2";
+        var key=new string('0',63)+"1";var ownerKey=mode is "nft-burn-provider" or "token-burn-provider" ? key : new string('0',63)+"2";
         var owner=new TronNet.TronECKey(ownerKey,TronNet.TronNetwork.MainNet).GetPublicAddress();
         var expectedOwner=new byte[21];expectedOwner[0]=0x41;new Nethereum.Signer.EthECKey(ownerKey).GetPublicAddressAsBytes().CopyTo(expectedOwner,1);
         var signerBytes=new byte[21];signerBytes[0]=0x41;new Nethereum.Signer.EthECKey(key).GetPublicAddressAsBytes().CopyTo(signerBytes,1);
@@ -118,14 +120,30 @@ public class TronPermissionRpcTests
                 Assert.Equal(0,receiptReads);
             }else if(mode == "nft-send-provider"){
                 var provider = new TRONOASIS(nativeTransfers:runtime.NativeTransfers);
-                // Controlled SDK/RPC operation fixture, not real chain activation evidence.
-                typeof(TRONOASIS).GetProperty("IsProviderActivated")!.SetValue(provider,true);
+                Assert.False(provider.IsProviderActivated);
                 var response = await provider.SendNFTAsync(new Core.Objects.NFT.Requests.SendWeb3NFTRequest {
                     TokenAddress=contract,TokenId="1",FromNFTTokenAddress=contract+"/1",FromWalletAddress=owner,ToWalletAddress=contract,
                     OwnerPrivateKey=key,Amount=1 });
                 Assert.False(response.IsError,response.Message);
                 Assert.Equal(Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),response.Result.TransactionResult);
                 Assert.Equal(response.Result.TransactionResult,response.Result.SendNFTTransactionResult);
+                Assert.False(provider.IsProviderActivated);
+            }else if(mode == "nft-burn-provider"){
+                var provider = new TRONOASIS(nativeTransfers:runtime.NativeTransfers);
+                var response = await provider.BurnNFTAsync(new Core.Objects.NFT.Requests.BurnWeb3NFTRequest {
+                    NFTTokenAddress=contract+"/1",OwnerPrivateKey=key,OwnerSeedPhrase=null,
+                    OwnerPublicKey=Convert.ToHexString(new Nethereum.Signer.EthECKey(key).GetPubKey()) });
+                Assert.False(response.IsError,response.Message);
+                Assert.Equal(Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),response.Result.TransactionResult);
+                Assert.False(provider.IsProviderActivated);
+            }else if(mode == "token-burn-provider"){
+                var provider = new TRONOASIS(nativeTransfers:runtime.NativeTransfers);
+                var response = await provider.BurnTokenAsync(new Core.Objects.Wallet.Requests.BurnWeb3TokenRequest {
+                    TokenAddress=contract,Amount=0.000001m,OwnerPrivateKey=key,OwnerSeedPhrase=null,
+                    OwnerPublicKey=Convert.ToHexString(new Nethereum.Signer.EthECKey(key).GetPubKey()) });
+                Assert.False(response.IsError,response.Message);
+                Assert.Equal(Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),response.Result.TransactionResult);
+                Assert.False(provider.IsProviderActivated);
             }
             else if(mode is "call" or "nft-mint" or "nft-send" or "token-send" or "approve" or "escrow-lock" or "escrow-unlock"){
                 var result=await (mode switch {

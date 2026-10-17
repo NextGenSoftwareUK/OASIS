@@ -264,12 +264,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     throw new ArgumentException("Token contract and holder signing key are required.");
                 if (!string.IsNullOrWhiteSpace(request.OwnerSeedPhrase))
                     throw new ArgumentException("Recover a signing key explicitly before burning; seed/key ambiguity is not supported.");
-                if (!IsProviderActivated)
-                {
-                    var activation = await ActivateProviderAsync();
-                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
-                }
-                var hash = await ExecuteRuntimeAsync(client => client.BurnTokenAsync(request.TokenAddress,
+                var hash = await ExecuteNativeRuntimeAsync(client => client.BurnTokenAsync(request.TokenAddress,
                     request.Amount, request.OwnerPrivateKey, publicKey: request.OwnerPublicKey));
                 result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = hash };
                 result.Message = "Requested TRC20 burn confirmed by solidified contract receipt.";
