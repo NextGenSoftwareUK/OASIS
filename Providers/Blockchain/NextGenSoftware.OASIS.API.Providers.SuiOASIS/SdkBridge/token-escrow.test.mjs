@@ -3,7 +3,10 @@ import assert from 'node:assert/strict';
 import {bcs} from '@mysten/sui/bcs';
 import {ObjectError} from '@mysten/sui/client';
 import {Ed25519Keypair} from '@mysten/sui/keypairs/ed25519';
-import {normalizeSuiAddress} from '@mysten/sui/utils';
+import {normalizeSuiAddress,toBase58} from '@mysten/sui/utils';
+import {Transaction,Inputs} from '@mysten/sui/transactions';
+import {verifyTransactionSignature} from '@mysten/sui/verify';
+import {execute,withNativeMutationEvidence,sdkErrorEnvelope} from './bridge.mjs';
 import {Escrow,Deposit,readTokenDeposit,executeTokenEscrow} from './token-escrow.mjs';
 
 const address=n=>normalizeSuiAddress('0x'+n);
@@ -77,3 +80,55 @@ test('postreceipt mismatch fails after exactly one controlled submission',async(
  const f=fixture('readback');await assert.rejects(executeTokenEscrow(f.client,{...base,operation:'tokenEscrowLock'},f.execute,f.pages),/readback/);
  assert.equal(f.count(),1);
 });
+
+// Resolve only controlled object references/gas metadata, never replace the
+// generated commands or SDK build/signing/submission owner.
+function resolveOffline(tx){
+ const data=tx.getData();
+ data.inputs=data.inputs.map(input=>input.UnresolvedObject
+  ?input.UnresolvedObject.objectId===base.escrowObjectId
+   ?Inputs.SharedObjectRef({objectId:base.escrowObjectId,initialSharedVersion:'1',mutable:true})
+   :Inputs.ObjectRef({objectId:input.UnresolvedObject.objectId,version:'1',digest:toBase58(new Uint8Array(32).fill(1))})
+  :input);
+ const resolved=Transaction.from(JSON.stringify(data));
+ resolved.setGasPrice(1);resolved.setGasBudget(1000);
+ resolved.setGasPayment([{objectId:address('5'),version:'1',digest:toBase58(new Uint8Array(32).fill(2))}]);
+ return resolved;
+}
+
+for(const locking of [false,true])for(const mode of ['success','reject-preparation','readback'])
+ test('actual signed escrow bytes preserve original graph/preparation/evidence: '+(locking?'lock':'release')+'/'+mode,async()=>{
+  const initial=locking?null:{owner:key.toSuiAddress(),amount:'123',released:false,funds:'123'};
+  const f=fixture(mode==='readback'?'readback':'valid',initial);
+  const order=[];let original;let submissions=0;
+  const client={
+   ...f.client,
+   executeTransaction:async request=>{
+    assert.deepEqual(order,['prepared','persisted']);submissions++;order.push('submit');
+    const transaction=Transaction.from(request.transaction);const digest=await transaction.getDigest();
+    assert.equal(digest,original);
+    assert.equal((await verifyTransactionSignature(request.transaction,request.signatures[0])).toSuiAddress(),key.toSuiAddress());
+    // Existing graph verifier checks exact split or release+owner transfer on decoded signed bytes.
+    await f.execute(client,transaction,key);
+    return {Transaction:{digest,status:{success:true}}};
+   },
+   waitForTransaction:async request=>{assert.equal(request.digest,original);order.push('receipt');},
+  };
+  const operation=withNativeMutationEvidence(()=>executeTokenEscrow(client,{...base,
+   operation:locking?'tokenEscrowLock':'tokenEscrowRelease'},
+   (nativeClient,tx,signer)=>execute(nativeClient,resolveOffline(tx),signer),f.pages),async evidence=>{
+    order.push('prepared');const bytes=Buffer.from(evidence.signedTransactionBase64,'base64');
+    original=await Transaction.from(bytes).getDigest();assert.equal(original,evidence.transactionHash);
+    assert.equal((await verifyTransactionSignature(bytes,evidence.signature)).toSuiAddress(),key.toSuiAddress());
+    if(mode==='reject-preparation')throw new Error('controlled durable admission rejection');
+    order.push('persisted');
+   });
+  if(mode==='success'){
+   const reply=await operation;assert.equal(reply.transactionHash,original);assert.equal(reply.released,!locking);
+  }else await assert.rejects(operation,error=>{
+   if(mode==='reject-preparation')assert.equal(sdkErrorEnvelope(error).nativeMutation,undefined);
+   else assert.deepEqual(sdkErrorEnvelope(error).nativeMutation,{transactionHash:original,executionSucceeded:true});
+   return true;
+  });
+  assert.equal(submissions,mode==='reject-preparation'?0:1);assert.equal(f.count(),submissions);
+ });
