@@ -34,16 +34,11 @@ public partial class SuiOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.IPrepa
     {
         var result=new NextGenSoftware.OASIS.Common.OASISResult<JsonElement>();
         try{
-            ArgumentNullException.ThrowIfNull(attempt);
-            if(attempt.Provider!="SuiOASIS"||attempt.NativePreparation==null
-                ||string.IsNullOrWhiteSpace(attempt.ProviderRequestId)||string.IsNullOrWhiteSpace(_sdkClient.ChainId)
-                ||attempt.NativePreparation.ChainId!=_sdkClient.ChainId)
-                throw new InvalidDataException("Prepared Sui attempt must bind this provider, original digest and configured genesis.");
-            var preparation=attempt.NativePreparation;
+            var preparation=NativePreparedAttemptSnapshot.Capture(attempt,"SuiOASIS",_sdkClient.ChainId);
             var identity=await VerifyOriginalSignedIdentityAsync(JsonSerializer.SerializeToElement(new{
-                transactionHash=attempt.ProviderRequestId,chainId=preparation.ChainId,sender=preparation.Sender,
+                transactionHash=preparation.ProviderRequestId,chainId=preparation.ChainId,sender=preparation.Sender,
                 signedTransactionBase64=preparation.SignedTransactionBase64,signature=preparation.Signature}),token);
-            var receipt=await GetNativeFeeReceiptAsync(attempt.ProviderRequestId,token);
+            var receipt=await GetNativeFeeReceiptAsync(preparation.ProviderRequestId,token);
             if(receipt.IsError)return receipt;
             if(!identity.TryGetProperty("gasPayer",out var payer)||payer.ValueKind!=JsonValueKind.String
                 ||string.IsNullOrWhiteSpace(payer.GetString())
