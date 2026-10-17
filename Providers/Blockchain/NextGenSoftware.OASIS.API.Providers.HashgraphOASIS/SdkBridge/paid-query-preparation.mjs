@@ -41,7 +41,10 @@ export async function verifyPreparedQueryIdentity(evidence,expectedPublicKey,exp
     nodes:expectedNodes.map(value=>AccountId.fromString(value).toString()),maxPaymentTinybars,maxTransactionFeeTinybars});
   if(payment.transactionId.toString()!==evidence.transactionHash||inspected.node!==evidence.queryNodeAccountId||inspected.amount!==evidence.queryPaymentTinybars)
     throw new Error('Declared query-payment identity, node or debit differs from signed bytes.');
-  return {verified:true,transactionHash:evidence.transactionHash,sender:evidence.sender,queryNodeAccountId:inspected.node,queryPaymentTinybars:inspected.amount};
+  const hashes=[...(await payment.getTransactionHashPerNode()).values()].map(value=>Buffer.from(value).toString('hex'));
+  if(hashes.length!==1||!/^[0-9a-f]{96}$/.test(hashes[0]))throw new Error('One original query-payment native hash is required.');
+  return {verified:true,transactionHash:evidence.transactionHash,sender:evidence.sender,queryNodeAccountId:inspected.node,
+    queryPaymentTinybars:inspected.amount,signedTransactionHashes:hashes};
 }
 
 // Pinned SDK2.86.2 extension seam. No prototype patching: each explicit query subclass

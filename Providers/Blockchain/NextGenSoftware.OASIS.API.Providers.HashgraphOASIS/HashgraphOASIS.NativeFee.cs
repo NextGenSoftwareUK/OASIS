@@ -13,6 +13,21 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 {
     public partial class HashgraphOASIS : Core.Interfaces.IOASISNativeFeeReceiptProvider
     {
+        private static string IndexedPayerNetUnits(JsonElement transaction,string payer)
+        {
+            if(!transaction.TryGetProperty("transfers",out var transfers))return null;
+            if(transfers.ValueKind!=JsonValueKind.Array||transfers.GetArrayLength()>4096)
+                throw new InvalidOperationException("Bounded indexed native HBAR transfers are required.");
+            var net=System.Numerics.BigInteger.Zero;var found=false;
+            foreach(var transfer in transfers.EnumerateArray()){
+                var account=transfer.GetProperty("account").GetString();
+                if(!Regex.IsMatch(account??"",@"\A[0-9]+\.[0-9]+\.[0-9]+\z"))
+                    throw new InvalidOperationException("Numeric indexed transfer account identity is required.");
+                var amount=transfer.GetProperty("amount").GetInt64();
+                if(account==payer){net+=amount;found=true;}
+            }
+            return found?net.ToString(CultureInfo.InvariantCulture):null;
+        }
         // Mirror reads neither activate charge-bearing storage nor require signing keys.
         public async Task<OASISResult<JsonElement>> GetNativeFeeReceiptAsync(string transactionId,
             CancellationToken cancellationToken = default)
@@ -92,7 +107,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 total = checked(total + fee);
                 if (nativeStatus != "DUPLICATE_TRANSACTION")
                 {
-                    if (primary.HasValue) throw new InvalidOperationException("Multiple nonduplicate parent outcomes cannot establish one mint result.");
+                    if (primary.HasValue) throw new InvalidOperationException("Multiple nonduplicate parent outcomes cannot establish one original outcome.");
                     primary = tx;
                 }
                 records.Add(JsonSerializer.SerializeToElement(new
@@ -100,7 +115,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     transactionHash=Convert.ToHexString(hashBytes).ToLowerInvariant(),
                     nativeStatus,
                     consensusTimestamp = timestamp,
-                    chargedUnits = fee.ToString(CultureInfo.InvariantCulture)
+                    chargedUnits = fee.ToString(CultureInfo.InvariantCulture),
+                    payerNetUnits=IndexedPayerNetUnits(tx,transactionId.Substring(0,transactionId.IndexOf('@')))
                 }));
             }
             if (!primary.HasValue) throw new InvalidOperationException("Duplicate records alone do not establish the original outcome.");
