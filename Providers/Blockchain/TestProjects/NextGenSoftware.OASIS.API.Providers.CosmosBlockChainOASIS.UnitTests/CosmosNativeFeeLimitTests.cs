@@ -7,6 +7,21 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class CosmosNativeFeeLimitTests
 {
+    [TestMethod]
+    public void StandardSdkFeeReviewIsExplicitImmutableAndBoundToExactChain()
+    {
+        var map=new Dictionary<string,string>{{"stake","100"}};
+        Assert.IsNull(new CosmosNativeFeeLimits(map).ReviewedStandardSdkChainId);
+        foreach(var chain in new[]{""," ","bad chain",new string('a',129)})
+            Assert.ThrowsException<ArgumentException>(()=>CosmosNativeFeeLimits.ForReviewedStandardSdkChain(map,chain));
+        var reviewed=CosmosNativeFeeLimits.ForReviewedStandardSdkChain(map,"reviewed-chain");
+        map["stake"]="999";
+        Assert.AreEqual("100",reviewed.MaximumFeeUnitsByDenomination["stake"]);
+        Assert.AreEqual("reviewed-chain",reviewed.ReviewedStandardSdkChainId);
+        Assert.ThrowsException<ArgumentException>(()=>CosmosBlockChainOASIS.CreateWithNativeFeeLimits(reviewed,rpcEndpoint:"http://127.0.0.1:1",chainId:"foreign-chain"));
+        using var provider=CosmosBlockChainOASIS.CreateWithNativeFeeLimits(reviewed,rpcEndpoint:"http://127.0.0.1:1",chainId:"reviewed-chain");
+        Assert.IsFalse(provider.IsProviderActivated);
+    }
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     public async Task ConfiguredCeilingReachesRealSdkChildBeforePreparationAndBroadcast(bool reject)

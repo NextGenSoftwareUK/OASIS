@@ -215,7 +215,8 @@ public class CosmosPreparationTests
     }
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
-    public async Task RealOfflineSignedDocumentVerifiesThroughCSharp(bool attemptBudget)
+    [DataRow(false,true)]
+    public async Task RealOfflineSignedDocumentVerifiesThroughCSharp(bool attemptBudget,bool aggregateBudget=false)
     {
         var bridge=Environment.GetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE") ?? Path.Combine(AppContext.BaseDirectory,"CosmosSdkBridge","bridge.mjs");
         var start=new ProcessStartInfo("node"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true,WorkingDirectory=Path.GetDirectoryName(bridge)};
@@ -231,7 +232,7 @@ public class CosmosPreparationTests
             wallet.signDirect=async(...args)=>{const result=await original(...args);document=result.signed;return result;};
             const client=await SigningCosmWasmClient.offline(wallet);
             async function evidence(sequence){
-              const raw=await client.sign(address,[],{amount:[],gas:'100000'},'offline preparation',{chainId:'offline-test-chain',accountNumber:7,sequence});
+              const raw=await client.sign(address,[],{amount:[{denom:'stake',amount:'3'}],gas:'100000'},'offline preparation',{chainId:'offline-test-chain',accountNumber:7,sequence});
               const bytes=TxRaw.encode(raw).finish();
               return {transactionHash:createHash('sha256').update(bytes).digest('hex').toUpperCase(),chainId:'offline-test-chain',sender:address,signedTransactionBase64:Buffer.from(bytes).toString('base64'),signDocBase64:Buffer.from(SignDoc.encode(document).finish()).toString('base64')};
             }
@@ -251,7 +252,8 @@ public class CosmosPreparationTests
             var user=Guid.NewGuid().ToString("D");using var http=new HttpClient(new OfflineAuthority(user));
             var authority=new Web4SubscriptionAuthorizationClient(http,"https://offline-authority.test","WEB6","test-only-key");
             var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6",PersistenceTimeout=TimeSpan.FromSeconds(5)})
-                .BeginAsync("test-only-bearer",user,"cosmos-signed-test",new string('a',64),"POST /offline-test",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1,MaximumProviderAttempts=attemptBudget?1:512},deadline.Token);
+                .BeginAsync("test-only-bearer",user,"cosmos-signed-test",new string('a',64),"POST /offline-test",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1,MaximumProviderAttempts=attemptBudget?1:512,
+                    EstimatedCostUsd=1m,MaximumNativeFeeCostUsd=aggregateBudget?0.000003m:null},deadline.Token);
             var priceTime=DateTime.UtcNow.AddSeconds(-1);
             var price=new NativeFeePriceQuote(Guid.Parse(execution.OperationId),"CosmosBlockChainOASIS","offline-test-chain","stake","fixture-asset",6,1m,
                 "synthetic-offline-price","fixture-v1","fixture-v1",priceTime,priceTime,priceTime,priceTime.AddMinutes(5));
@@ -259,7 +261,16 @@ public class CosmosPreparationTests
             var output=child.StandardOutput.ReadToEndAsync(deadline.Token);var error=child.StandardError.ReadToEndAsync(deadline.Token);
             await child.WaitForExitAsync(deadline.Token);Assert.AreEqual(0,child.ExitCode);Assert.AreEqual("",await error);
             using var signed=JsonDocument.Parse(await output);
-            using var provider=new CosmosBlockChainOASIS("http://127.0.0.1:1");
+            using var provider=aggregateBudget?CosmosBlockChainOASIS.CreateWithNativeFeeLimits(
+                CosmosNativeFeeLimits.ForReviewedStandardSdkChain(new Dictionary<string,string>{{"stake","100"}},"offline-test-chain"),
+                rpcEndpoint:"http://127.0.0.1:1",chainId:"offline-test-chain"):new CosmosBlockChainOASIS("http://127.0.0.1:1");
+            if(aggregateBudget){
+                using var unreviewed=new CosmosBlockChainOASIS("http://127.0.0.1:1","offline-test-chain");
+                var missing=Assert.ThrowsException<UsageProtocolException>(()=>unreviewed.CreateNativePreparationServer(execution,"unreviewed","offline-test-chain",signed.RootElement.GetProperty("sender").GetString()!));
+                Assert.AreEqual("COSMOS_TOTAL_FEE_MODEL_REQUIRED",missing.Code);
+                var foreign=Assert.ThrowsException<UsageProtocolException>(()=>provider.CreateNativePreparationServer(execution,"foreign","different-chain",signed.RootElement.GetProperty("sender").GetString()!));
+                Assert.AreEqual("COSMOS_TOTAL_FEE_MODEL_REQUIRED",foreign.Code);
+            }
             var operationEntered=false;
             foreach(var length in new[]{110,128}){
                 await Assert.ThrowsExceptionAsync<ArgumentException>(()=>provider.ExecutePreparedStorageAsync(()=>{
@@ -289,6 +300,12 @@ public class CosmosPreparationTests
             Assert.AreEqual(signed.RootElement.GetProperty("signedTransactionBase64").GetString(),stored.ProviderAttempts[0].NativePreparation.SignedTransactionBase64);
             Assert.AreEqual(price,stored.ProviderAttempts[0].NativePreparation.PriceQuotes.Single());
             Assert.IsNull(stored.ProviderAttempts[0].AcknowledgedAtUtc,"Preparation is not ledger acceptance.");
+            Assert.AreEqual(aggregateBudget?0.000003m:0m,stored.NativeFeeExposureUsd);
+            if(aggregateBudget){
+                var maximum=stored.ProviderAttempts[0].NativePreparation.FeeMaximums.Single();
+                Assert.AreEqual("3",maximum.NativeMaximumUnits);Assert.AreEqual("stake",maximum.Denomination);
+                Assert.AreEqual(NativeFeeMaximumCoverage.AllFees,maximum.Coverage);
+            }
             using var duplicateServer=provider.CreateNativePreparationServer(execution,"signed-attempt","offline-test-chain",signed.RootElement.GetProperty("sender").GetString()!);
             var duplicateServing=duplicateServer.ServeAsync(deadline.Token);
             using(var pipe=new System.IO.Pipes.NamedPipeClientStream(".",duplicateServer.Endpoint.Substring(duplicateServer.Endpoint.LastIndexOf('\\')+1),System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous)){
@@ -303,7 +320,7 @@ public class CosmosPreparationTests
             var afterDuplicate=await store.GetAsync(execution.OperationId,deadline.Token);
             Assert.AreEqual(1,afterDuplicate.ProviderAttempts.Count);
             Assert.AreEqual(stored.NativePreparationBytes,afterDuplicate.NativePreparationBytes);
-            if(attemptBudget){
+            if(attemptBudget||aggregateBudget){
                 var next=signed.RootElement.GetProperty("next");
                 Assert.AreNotEqual(server.PreparedTransactionId,next.GetProperty("transactionHash").GetString());
                 await provider.VerifyOriginalSignedPreparationAsync(next,deadline.Token);
@@ -314,12 +331,13 @@ public class CosmosPreparationTests
                     var frame=System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new{protocol="oasis.native-preparation.v1",evidence=next})+"\n");
                     await pipe.WriteAsync(frame,deadline.Token);await pipe.FlushAsync(deadline.Token);
                     var exhausted=await Assert.ThrowsExceptionAsync<UsageProtocolException>(()=>boundedServing);
-                    Assert.AreEqual("PROVIDER_ATTEMPT_BUDGET_EXCEEDED",exhausted.Code);
+                    Assert.AreEqual(aggregateBudget?"NATIVE_FEE_BUDGET_EXCEEDED":"PROVIDER_ATTEMPT_BUDGET_EXCEEDED",exhausted.Code);
                     using var reader=new StreamReader(pipe);Assert.IsNull(await reader.ReadLineAsync(deadline.Token));
                 }
                 Assert.IsNull(boundedServer.PreparedTransactionId);
                 var bounded=await new MongoUsageOutboxStore(connection,database).GetAsync(execution.OperationId,deadline.Token);
-                Assert.AreEqual(1,bounded.ProviderAttempts.Count);Assert.AreEqual(1,bounded.Policy.MaximumProviderAttempts);
+                Assert.AreEqual(1,bounded.ProviderAttempts.Count);Assert.AreEqual(attemptBudget?1:512,bounded.Policy.MaximumProviderAttempts);
+                Assert.AreEqual(stored.NativeFeeExposureUsd,bounded.NativeFeeExposureUsd);
                 Assert.AreEqual(stored.NativePreparationBytes,bounded.NativePreparationBytes);Assert.AreEqual(stored.EvidenceRevision,bounded.EvidenceRevision);
             }
             var altered=JsonSerializer.Deserialize<Dictionary<string,object>>(signed.RootElement.GetRawText())!;altered["chainId"]="foreign-chain";
