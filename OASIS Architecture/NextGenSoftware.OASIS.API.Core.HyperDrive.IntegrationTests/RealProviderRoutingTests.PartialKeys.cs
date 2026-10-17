@@ -16,11 +16,13 @@ public sealed partial class RealProviderRoutingTests
         private readonly string _directory;
         public string FailurePrefix;public int Attempts;public readonly List<string> Acknowledged=new();
         public string DeleteFailureKey;public readonly List<string> DeletedKeys=new();
+        public Exception ReadFailure;
         public readonly IOException Cause=new("Owned failed later key write after earlier disk acknowledgement.");
         public OwnedDiskKeys(string directory) {_directory=directory;Directory.CreateDirectory(directory);}
         private string PathFor(string key)=>Path.Combine(_directory,Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(key)))+".json");
         public async Task<string> GetAsync(string key,CancellationToken token=default)
         {
+            if(ReadFailure!=null)throw ReadFailure;
             var path=PathFor(key);if(!File.Exists(path)) return null;
             var row=System.Text.Json.JsonSerializer.Deserialize<Dictionary<string,string>>(await File.ReadAllTextAsync(path,token));
             if(row["key"]!=key) throw new InvalidDataException("Owned disk key mismatch.");return row["value"];
@@ -51,6 +53,38 @@ public sealed partial class RealProviderRoutingTests
     {
         public OwnedDiskProvider(IKeyValueBackend backend):base(backend)
         {ProviderName="Owned disk key-value test adapter";ProviderType=new EnumValue<ProviderType>(Core.Enums.ProviderType.VercelKVOASIS);ProviderCategory=new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageLocal);}
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task CancelledDiskProviderNeverReadsOrWritesSqliteFallback(bool synchronous)
+    {
+        Directory.CreateDirectory(_root);var backend=new OwnedDiskKeys(FilesPath);var primary=new OwnedDiskProvider(backend);
+        using var sqlite=new SQLLiteDBOASIS($"Data Source={SqlitePath};Pooling=False");
+        (await primary.ActivateProviderAsync()).IsError.Should().BeFalse();(await sqlite.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var id=Guid.NewGuid();var original=new Holon {Id=id,Name="owned unchanged primary"};
+        try {
+            (await primary.SaveHolonAsync(original,saveChildren:false)).IsError.Should().BeFalse();
+            (await sqlite.SaveHolonAsync(new Holon {Id=id,Name="owned unchanged secondary"},saveChildren:false)).IsError.Should().BeFalse();
+            var beforeFiles=Directory.GetFiles(FilesPath,"*.json").ToDictionary(path=>path,File.ReadAllText);
+            var cause=new OperationCanceledException("Owned cancelled disk provider read.",new CancellationToken(true));
+            backend.ReadFailure=cause;_preserveFixture=true;
+            var manager=CreateManager(autoFailover:true,autoReplication:true);manager.RegisterProvider(primary);manager.RegisterProvider(sqlite);
+            var stores=new[] {new EnumValue<ProviderType>(ProviderType.VercelKVOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)};
+            manager.SetAndReplaceAutoFailOverListForProviders(stores);manager.SetAndReplaceAutoReplicationListForProviders(stores);
+            var router=new OASISHyperDrive(manager);
+            foreach(var mutation in new[]{false,true}){
+                var request=new StorageOperationRequest {Operation=mutation?"SaveHolon":"LoadHolon",HolonId=id,
+                    Payload=new Holon {Id=id,Name="must not replace secondary"},LoadChildren=false,SaveChildren=false,PreferredProvider=ProviderType.VercelKVOASIS};
+                var result=synchronous?router.RouteRequest<IHolon>(request):await router.RouteRequestAsync<IHolon>(request);
+                result.IsError.Should().BeTrue();result.Exception.Should().BeSameAs(cause);result.Result.Should().BeNull();
+            }
+            (manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests??0).Should().Be(0);
+            (await sqlite.LoadHolonAsync(id,loadChildren:false)).Result.Name.Should().Be("owned unchanged secondary");
+            Directory.GetFiles(FilesPath,"*.json").Should().BeEquivalentTo(beforeFiles.Keys);
+            foreach(var entry in beforeFiles)File.ReadAllText(entry.Key).Should().Be(entry.Value);
+            backend.ReadFailure=null;_preserveFixture=false;
+        } finally {await primary.DeActivateProviderAsync();}
     }
 
     [Theory]
