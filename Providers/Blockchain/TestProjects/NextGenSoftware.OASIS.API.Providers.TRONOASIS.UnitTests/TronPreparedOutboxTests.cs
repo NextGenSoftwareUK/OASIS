@@ -2,6 +2,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using System.Text.Json;
 using Google.Protobuf;
+using Grpc.Core;
 using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using TronNet;
 using TronNet.Protocol;
@@ -32,6 +33,7 @@ public class TronPreparedOutboxTests
         Assert.Equal(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
         var database="usage_tron_signed_test_"+Guid.NewGuid().ToString("N");var mongo=new MongoDB.Driver.MongoClient(connection);
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        Server? server=null;
         try{
             var store=new MongoUsageOutboxStore(connection,database);await store.InitializeAsync(deadline.Token);
             var user=Guid.NewGuid().ToString("D");using var http=new HttpClient(new OfflineAuthority(user));
@@ -39,7 +41,17 @@ public class TronPreparedOutboxTests
             var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6",PersistenceTimeout=TimeSpan.FromSeconds(5)})
                 .BeginAsync("test-only-bearer",user,"tron-signed-test",new string('a',64),"POST /offline-test",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1},deadline.Token);
             var genesis=new string('a',64);
-            await using var runtime=new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),new Uri("http://127.0.0.1:50052"),genesis);
+            var queries=0;
+            var service=ServerServiceDefinition.CreateBuilder()
+                .AddMethod(TronPermissionRpcTests.Rpc(Wallet.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),
+                    (NumberMessage _,ServerCallContext _)=>Task.FromResult(new BlockExtention {Blockid=ByteString.CopyFrom(Convert.FromHexString(genesis))}))
+                .AddMethod(TronPermissionRpcTests.Rpc(WalletSolidity.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),
+                    (NumberMessage _,ServerCallContext _)=>Task.FromResult(new BlockExtention {Blockid=ByteString.CopyFrom(Convert.FromHexString(genesis))}))
+                .AddMethod(TronPermissionRpcTests.Rpc(WalletSolidity.Descriptor.FullName,"GetAccount",Account.Parser,Account.Parser),
+                    (Account request,ServerCallContext _)=>{queries++;return Task.FromResult(new Account {Address=request.Address});}).Build();
+            server=new Server {Services={service},Ports={new ServerPort("127.0.0.1",0,ServerCredentials.Insecure)}};server.Start();
+            var endpoint=new Uri($"http://127.0.0.1:{server.Ports.Single().BoundPort}");
+            await using var runtime=new TronSdkRuntime(endpoint,endpoint,genesis);
             var flags=BindingFlags.Instance|BindingFlags.NonPublic;
             var signer=(ITransactionClient)typeof(TronNativeTransferClient).GetField("_transactions",flags)!.GetValue(runtime.NativeTransfers)!;
             var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
@@ -57,6 +69,7 @@ public class TronPreparedOutboxTests
             var stored=await store.GetAsync(execution.OperationId,deadline.Token);
             Assert.Single(stored.ProviderAttempts);Assert.Equal(id,stored.ProviderAttempts[0].ProviderRequestId);
             Assert.Equal(bytes,stored.ProviderAttempts[0].NativePreparation.SignedTransactionBase64);Assert.Null(stored.ProviderAttempts[0].AcknowledgedAtUtc);
+            Assert.Equal("tron-account-permissions-v1",stored.ProviderAttempts[0].NativePreparation.SigningAuthority.Scheme);Assert.Equal(1,queries);
             var duplicate=await Assert.ThrowsAsync<UsageProtocolException>(()=>callback(id,genesis,bytes,deadline.Token));
             Assert.Equal("PROVIDER_ATTEMPT_ALREADY_STARTED",duplicate.Code);
             await Assert.ThrowsAsync<InvalidOperationException>(()=>callback(id,new string('b',64),bytes,deadline.Token));
@@ -64,6 +77,6 @@ public class TronPreparedOutboxTests
             var wrongCallback=(Func<string,string,string,CancellationToken,Task>)typeof(TronNativeTransferClient).GetField("_persistPreparedSubmission",flags)!.GetValue(wrong)!;
             await Assert.ThrowsAsync<System.IO.InvalidDataException>(()=>wrongCallback(id,genesis,bytes,deadline.Token));
             var after=await store.GetAsync(execution.OperationId,deadline.Token);Assert.Single(after.ProviderAttempts);Assert.Equal(stored.NativePreparationBytes,after.NativePreparationBytes);
-        }finally{await mongo.DropDatabaseAsync(database);}
+        }finally{if(server!=null)await server.ShutdownAsync();await mongo.DropDatabaseAsync(database);}
     }
 }

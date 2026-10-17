@@ -12,6 +12,29 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS;
 /// <summary>Uses real protobuf node operations, local SDK signing and solidified receipts.</summary>
 public sealed class TronNativeTransferClient
 {
+    internal static NextGenSoftware.OASIS.API.Core.Services.Subscriptions.NativeSigningAuthority CaptureAuthority(Account account)
+    {
+        ArgumentNullException.ThrowIfNull(account);
+        if(account.Address.Length!=21||account.Address[0]!=0x41)
+            throw new System.IO.InvalidDataException("Original TRON account authority requires a valid operation owner address.");
+        // Do not retain balances, account metadata or other unrelated personal data.
+        var minimal=new Account {Address=account.Address,OwnerPermission=account.OwnerPermission?.Clone()};
+        minimal.ActivePermission.Add(account.ActivePermission.Select(permission=>permission.Clone()));
+        var authority=new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.NativeSigningAuthority(
+            "tron-account-permissions-v1",Convert.ToBase64String(minimal.ToByteArray()));
+        authority.Validate();return authority;
+    }
+
+    private static Account OriginalAuthority(NextGenSoftware.OASIS.API.Core.Services.Subscriptions.NativeSigningAuthority authority)
+    {
+        if(authority==null||authority.Scheme!="tron-account-permissions-v1")
+            throw new System.IO.InvalidDataException("Original admitted TRON permissions are required; current permissions cannot replace them.");
+        authority.Validate();
+        var account=Account.Parser.ParseFrom(Convert.FromBase64String(authority.EvidenceBase64));
+        if(CaptureAuthority(account)!=authority)
+            throw new System.IO.InvalidDataException("TRON authority context must contain only canonical original address and permissions.");
+        return account;
+    }
     private readonly IWalletClient _wallet;
     private readonly ITransactionClient _transactions;
     private readonly string _genesisBlockId;
@@ -48,7 +71,8 @@ public sealed class TronNativeTransferClient
             TronPreparationVerifier.VerifyWithAccountAuthority(bytes,id,account.Address.ToByteArray(),MaximumContractFeeLimitSun,account);
             await execution.BeginPreparedNativeAttemptAsync("TRONOASIS",null,nextCorrelation(),id,
                 new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.UsageNativePreparation {
-                    ChainId=genesis,Sender=Convert.ToHexString(account.Address.ToByteArray()).ToLowerInvariant(),SignedTransactionBase64=bytes
+                    ChainId=genesis,Sender=Convert.ToHexString(account.Address.ToByteArray()).ToLowerInvariant(),SignedTransactionBase64=bytes,
+                    SigningAuthority=CaptureAuthority(account)
                 },linked.Token);
         });
     }
@@ -149,6 +173,8 @@ public sealed class TronNativeTransferClient
         var original=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.NativePreparedAttemptSnapshot.Capture(attempt,"TRONOASIS",_genesisBlockId);
         ArgumentNullException.ThrowIfNull(verifiedOriginalAccount);
         var account=verifiedOriginalAccount.Clone();
+        if(original.SigningAuthority!=null&&CaptureAuthority(account)!=original.SigningAuthority)
+            throw new System.IO.InvalidDataException("Recovery permissions differ from the original admitted TRON authority.");
         var owner=Convert.FromHexString(original.Sender);
         TronPreparationVerifier.VerifyWithAccountAuthority(original.SignedTransactionBase64,original.ProviderRequestId,
             owner,_contractFeeLimitSun,account);
@@ -156,6 +182,14 @@ public sealed class TronNativeTransferClient
         if(!CryptographicOperations.FixedTimeEquals(owner,_wallet.ParseAddress(receipt.GetProperty("payer").GetString()).ToByteArray()))
             throw new System.IO.InvalidDataException("TRON fee receipt payer differs from the verified original operation owner.");
         return receipt;
+    }
+
+    public Task<System.Text.Json.JsonElement> GetPreparedNativeFeeReceiptAsync(
+        NextGenSoftware.OASIS.API.Core.Services.Subscriptions.UsageProviderAttempt attempt,CancellationToken token=default)
+    {
+        token.ThrowIfCancellationRequested();
+        var original=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.NativePreparedAttemptSnapshot.Capture(attempt,"TRONOASIS",_genesisBlockId);
+        return GetPreparedNativeFeeReceiptAsync(attempt,OriginalAuthority(original.SigningAuthority),token);
     }
 
     internal static ByteString OriginalOperationOwner(Transaction.Types.Contract contract) => contract.Type switch {

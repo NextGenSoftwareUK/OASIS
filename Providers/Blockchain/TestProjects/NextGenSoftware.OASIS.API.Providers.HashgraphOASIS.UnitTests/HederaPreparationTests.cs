@@ -83,7 +83,13 @@ public partial class HederaPreparationTests
             Assert.IsInstanceOfType<InvalidOperationException>(result.Exception);
             Assert.AreEqual(JsonValueKind.Undefined,result.Result.ValueKind);
             Assert.AreEqual(0,mirror.Requests,"Rejected signer must not reach mirror lookup.");
-            var accepted=await provider.GetPreparedNativeFeeReceiptAsync(attempt,document.RootElement.GetProperty("publicKey").GetString()!,deadline.Token);
+            var missingAuthority=await provider.GetPreparedNativeFeeReceiptAsync(attempt,deadline.Token);
+            Assert.IsTrue(missingAuthority.IsError);Assert.AreEqual(0,mirror.Requests);
+            var originalKey=document.RootElement.GetProperty("publicKey").GetString()!;
+            attempt.NativePreparation.SigningAuthority=new("hedera-payer-public-key-v1",Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(originalKey)));
+            var replacedKey=await provider.GetPreparedNativeFeeReceiptAsync(attempt,document.RootElement.GetProperty("wrongKey").GetString()!,deadline.Token);
+            Assert.IsTrue(replacedKey.IsError);Assert.AreEqual(0,mirror.Requests);
+            var accepted=await provider.GetPreparedNativeFeeReceiptAsync(attempt,deadline.Token);
             Assert.IsFalse(accepted.IsError,accepted.Message); Assert.AreEqual(1,mirror.Requests);
             Assert.AreEqual(attempt.ProviderRequestId,accepted.Result.GetProperty("transactionId").GetString());
             Assert.AreEqual("0.0.1001",accepted.Result.GetProperty("payer").GetString());
@@ -192,6 +198,7 @@ public partial class HederaPreparationTests
                 Assert.AreEqual(stage==0?"escrow:approval":"escrow:mutation",attempt.ClientRequestId);
                 Assert.AreEqual(evidence[stage].GetProperty("transactionHash").GetString(),attempt.ProviderRequestId);
                 Assert.AreEqual(evidence[stage].GetProperty("signedTransactionBase64").GetString(),attempt.NativePreparation.SignedTransactionBase64);
+                Assert.AreEqual("hedera-payer-public-key-v1",attempt.NativePreparation.SigningAuthority.Scheme);
                 Assert.IsNull(attempt.AcknowledgedAtUtc,"Signed preparation is not ledger acceptance.");
             }
         }finally{
@@ -347,6 +354,7 @@ public partial class HederaPreparationTests
                 var stored=await store.GetAsync(execution.OperationId,deadline.Token);
                 Assert.AreEqual(server.PreparedTransactionId,stored.ProviderAttempts[0].ProviderRequestId);
                 Assert.AreEqual(signed.RootElement.GetProperty("preparation").GetProperty("signedTransactionBase64").GetString(),stored.ProviderAttempts[0].NativePreparation.SignedTransactionBase64);
+                Assert.AreEqual(signed.RootElement.GetProperty("publicKey").GetString(),System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(stored.ProviderAttempts[0].NativePreparation.SigningAuthority.EvidenceBase64)));
                 Assert.IsNull(stored.ProviderAttempts[0].AcknowledgedAtUtc,"Preparation is not consensus acceptance.");
                 using var duplicateServer=provider.CreateNativePreparationServer(execution,"signed-attempt","offline-test","0.0.1001",signed.RootElement.GetProperty("publicKey").GetString()!);
                 var duplicateServing=duplicateServer.ServeAsync(deadline.Token);

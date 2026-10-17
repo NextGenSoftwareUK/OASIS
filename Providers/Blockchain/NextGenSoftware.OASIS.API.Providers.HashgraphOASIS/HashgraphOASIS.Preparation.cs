@@ -10,6 +10,32 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
 
 public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeStorageProvider
 {
+    private static NativeSigningAuthority PayerAuthority(string publicKey)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(publicKey);
+        var authority=new NativeSigningAuthority("hedera-payer-public-key-v1",Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(publicKey)));
+        authority.Validate();return authority;
+    }
+
+    private static string OriginalPayerKey(NativeSigningAuthority authority)
+    {
+        if(authority==null||authority.Scheme!="hedera-payer-public-key-v1")
+            throw new InvalidDataException("Original admitted Hedera payer authority is required; current account keys cannot replace it.");
+        authority.Validate();
+        return new System.Text.UTF8Encoding(false,true).GetString(Convert.FromBase64String(authority.EvidenceBase64));
+    }
+
+    /// <summary>Read-only recovery using the independently trusted key retained before original submission.</summary>
+    public async Task<NextGenSoftware.OASIS.Common.OASISResult<JsonElement>> GetPreparedNativeFeeReceiptAsync(
+        UsageProviderAttempt attempt,CancellationToken token=default)
+    {
+        var result=new NextGenSoftware.OASIS.Common.OASISResult<JsonElement>();
+        try {
+            var original=NativePreparedAttemptSnapshot.Capture(attempt,"HashgraphOASIS",_hederaNetwork);
+            return await GetPreparedNativeFeeReceiptAsync(attempt,OriginalPayerKey(original.SigningAuthority),token);
+        }catch(Exception failure){NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,failure.Message,failure);}
+        return result;
+    }
     /// <summary>Own each physical encrypted-storage mutation; does not admit, bill or recover the execution.</summary>
     public Task<T> ExecutePreparedStorageAsync<T>(Func<Task<T>> operation,UsageExecutionHandle execution,
         string clientRequestId,string expectedSender,CancellationToken token=default)
@@ -35,6 +61,8 @@ public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.
         try {
             ArgumentException.ThrowIfNullOrWhiteSpace(expectedPublicKey);
             var preparation=NativePreparedAttemptSnapshot.Capture(attempt,"HashgraphOASIS",_hederaNetwork);
+            if(preparation.SigningAuthority!=null&&OriginalPayerKey(preparation.SigningAuthority)!=expectedPublicKey)
+                throw new InvalidDataException("Recovery key differs from the original admitted Hedera payer authority.");
             var identity=await VerifyOriginalSignedIdentityAsync(JsonSerializer.SerializeToElement(new {
                 transactionHash=preparation.ProviderRequestId,chainId=preparation.ChainId,sender=preparation.Sender,
                 signedTransactionBase64=preparation.SignedTransactionBase64 }),expectedPublicKey,token);
@@ -81,9 +109,9 @@ public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.
         if(string.IsNullOrWhiteSpace(clientRequestId)||clientRequestId.Length>119)
             throw new ArgumentException("Escrow request correlation must leave space for bounded stage suffixes.",nameof(clientRequestId));
         var approval=execution.NativePreparationPersistence("HashgraphOASIS",null,clientRequestId+":approval",expectedNetwork,expectedSender,
-            (evidence,token)=>VerifyOriginalSignedPreparationAsync(evidence,expectedPublicKey,token));
+            (evidence,token)=>VerifyOriginalSignedPreparationAsync(evidence,expectedPublicKey,token),PayerAuthority(expectedPublicKey));
         var mutation=execution.NativePreparationPersistence("HashgraphOASIS",null,clientRequestId+":mutation",expectedNetwork,expectedSender,
-            (evidence,token)=>VerifyOriginalSignedPreparationAsync(evidence,expectedPublicKey,token));
+            (evidence,token)=>VerifyOriginalSignedPreparationAsync(evidence,expectedPublicKey,token),PayerAuthority(expectedPublicKey));
         return PreparedSubmissionServer.ForOptionalApproval((evidence,token)=>
             evidence.GetProperty("transactionHash").GetString()==approvalId?approval(evidence,token):mutation(evidence,token),approvalId,mutationId);
     }
@@ -95,7 +123,7 @@ public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.
         if(execution==null)throw new ArgumentNullException(nameof(execution));
         ArgumentException.ThrowIfNullOrWhiteSpace(expectedPublicKey);
         return new PreparedSubmissionServer(execution.NativePreparationPersistence("HashgraphOASIS",null,clientRequestId,expectedNetwork,expectedSender,
-            (evidence,token)=>VerifyOriginalSignedPreparationAsync(evidence,expectedPublicKey,token)),expectedTransactionId);
+            (evidence,token)=>VerifyOriginalSignedPreparationAsync(evidence,expectedPublicKey,token),PayerAuthority(expectedPublicKey)),expectedTransactionId);
     }
 
     public async Task VerifyOriginalSignedPreparationAsync(JsonElement preparation,string expectedPublicKey,CancellationToken token=default)
