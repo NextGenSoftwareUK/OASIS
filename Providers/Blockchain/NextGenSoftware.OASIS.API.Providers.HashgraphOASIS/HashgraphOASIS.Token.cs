@@ -207,14 +207,14 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             try
             {
                 if (_tokenEscrow == null) throw new InvalidOperationException("An explicit Hedera fungible escrow contract configuration is required.");
-                _tokenEscrow.Validate();
-                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.AggregateTokenEscrowRequest.Validate(
-                    requestedAmount, requestedLockId, requestedEscrow, _tokenEscrow.ContractId);
+                var intent=HederaTokenEscrowIntent.Capture(_tokenEscrow,action=="tokenEscrowLock",requestedLockId,requestedAmount,requestedEscrow);
                 if (avatarId == Guid.Empty) throw new ArgumentException("An explicit requesting avatar identity is required for token escrow.");
                 if (!System.Text.RegularExpressions.Regex.IsMatch(tokenAddress ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
                     throw new ArgumentException("Token escrow requires a nonzero numeric HTS token address.");
                 var walletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(avatarId, Core.Enums.ProviderType.HashgraphOASIS, showPrivateKeys: true);
-                if (walletResult.IsError || walletResult.Result == null || string.IsNullOrWhiteSpace(walletResult.Result.PrivateKey))
+                if(walletResult.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IProviderWallet,ITransactionResponse>(walletResult);
+                if (walletResult.Result == null || walletResult.Result.AvatarId!=avatarId || string.IsNullOrWhiteSpace(walletResult.Result.PrivateKey))
                     throw new InvalidOperationException("Could not resolve the requesting avatar's real Hedera signing wallet.");
                 var wallet = walletResult.Result;
                 if ((!string.IsNullOrEmpty(requestedWallet) && requestedWallet != wallet.WalletAddress)
@@ -232,24 +232,32 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 var evmAddress = account.GetProperty("evm_address").GetString();
                 if (!System.Text.RegularExpressions.Regex.IsMatch(evmAddress ?? "", @"\A0x[0-9a-fA-F]{40}\z"))
                     throw new InvalidOperationException("Mirror account does not expose a valid EVM address.");
-                var committed = await HederaSdkClient.InvokeAsync(action, new
+                var payload = new Dictionary<string,object>
                 {
-                    network = _hederaNetwork, nodes = _consensusNodes, sender = wallet.WalletAddress,
-                    senderEvmAddress = evmAddress, privateKey = wallet.PrivateKey, publicKey = wallet.PublicKey, keyType = "der",
-                    tokenId = tokenAddress, contractId = _tokenEscrow.ContractId, runtimeCodeHash = _tokenEscrow.RuntimeCodeHash,
-                    gas = _tokenEscrow.GasLimit, maxFeeTinybars = _tokenEscrow.MaxFeeTinybars.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                    transactionId = mutationId, approvalTransactionId = action == "tokenEscrowLock" ? HederaSdkClient.CreateTransactionId(wallet.WalletAddress) : null
-                });
-                if (committed.GetProperty("status").GetString() != "SUCCESS" || committed.GetProperty("transactionId").GetString() != mutationId
-                    || !long.TryParse(committed.GetProperty("amountUnits").GetString(), System.Globalization.NumberStyles.None,
-                        System.Globalization.CultureInfo.InvariantCulture, out var amount) || amount <= 0)
-                    throw new InvalidOperationException("Escrow SDK response does not establish verified mutation success and exact token units.");
-                result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = mutationId };
-                result.Message = "Hedera token escrow confirmed by consensus receipt and exact balance readback. Token units: " + amount + ".";
-                if (committed.TryGetProperty("approvalTransactionId", out var approval) && approval.ValueKind == JsonValueKind.String)
-                    result.Message += " Approval transaction: " + approval.GetString() + ".";
+                    ["network"] = _hederaNetwork, ["nodes"] = _consensusNodes, ["sender"] = wallet.WalletAddress,
+                    ["senderEvmAddress"] = evmAddress, ["privateKey"] = wallet.PrivateKey, ["publicKey"] = wallet.PublicKey, ["keyType"] = "der",
+                    ["tokenId"] = tokenAddress, ["contractId"] = _tokenEscrow.ContractId, ["runtimeCodeHash"] = _tokenEscrow.RuntimeCodeHash,
+                    ["gas"] = _tokenEscrow.GasLimit, ["maxFeeTinybars"] = _tokenEscrow.MaxFeeTinybars.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    ["transactionId"] = mutationId, ["approvalTransactionId"] = action == "tokenEscrowLock" ? HederaSdkClient.CreateTransactionId(wallet.WalletAddress) : null
+                };
+                intent.AppendTo(payload);
+                var committed=await HederaSdkClient.InvokeAsync(action,payload);
+                var approval=committed.TryGetProperty("approvalTransactionId",out var approvalValue)&&approvalValue.ValueKind==JsonValueKind.String?approvalValue.GetString():null;
+                try {intent.ValidateReply(committed);}
+                catch(Exception error){throw new HederaNativeMutationReconciliationException(
+                    "Escrow reply does not establish original deposit effects; reconcile before retrying.",
+                    new(mutationId,approval,mutationId,"provider-readback",null),error);}
+                result.Result = intent.DepositId==null
+                    ?new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = mutationId }
+                    :new HederaIdBoundEscrowResponse(intent.LockId,mutationId,approval);
+                result.IsSaved=true;result.SavedCount=1;
+                result.Message = "Hedera token escrow confirmed by consensus receipt and exact balance/deposit readback.";
             }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error processing Hashgraph token escrow: {ex.Message}", ex); }
+            catch (Exception ex)
+            {
+                OASISErrorHandling.HandleError(ref result, $"Error processing Hashgraph token escrow: {ex.Message}", ex);
+                if(ex is ArgumentException)result.ErrorCode="HYPERDRIVE_PAYLOAD_INVALID";
+            }
             return result;
         }
 
