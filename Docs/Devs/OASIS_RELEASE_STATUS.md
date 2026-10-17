@@ -2,6 +2,8 @@
 
 ## Current acceptance summary
 
+2026-10-17 01:55 UTC: PR491 exactf838ecbbf2d52eb351761ae306d04fd038011a52 completed all applicable checks, including Edge validation, with no failures. Reviewed repair/receipt/IPFS changes and concurrent security cleanup5dc64dc76; normally merged with exact-head matching, no admin/force bypass. Security cleanup removes committed chain/explorer credentials from current files but NOT Git history: owner must rotate those exposed credentials; no values reproduced in this status. Next exact merged-master CI then full nonpublishing global proof. Previous planner success alone remains insufficient.
+
 2026-10-16 23:40 UTC: Hosted planner-only38981342158 SUCCESS on the selected-publication receipt/dependency repair, after exact4c4 CI passed. No packing/publication; unselected components intentionally skipped. Requested standard trusted-master promotion of the repaired Development graph through a new checked parent candidate. Prior PR489/490 remain merged and must not be remerged. Full integrated nonpublishing master workflow is still required after this promotion.
 
 2026-10-16 23:25 UTC: CI38978636461 SUCCESS at exact4c4a74ab4705dce45be4bd20b9d0c971f6285431: STAR downstream compilation and ORM branch policy now pass. Dispatched hosted global planner-only verification on Development (publish=false, nuget_plan_only=true, all runtime/component selections false) for the newly recorded selected-publication receipts. Await actual planner result; no packing/publication or full integrated completion claimed.
