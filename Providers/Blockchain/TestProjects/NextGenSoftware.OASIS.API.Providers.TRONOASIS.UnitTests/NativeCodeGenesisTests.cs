@@ -5,6 +5,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public class NativeCodeGenesisTests
 {
+    [Theory]
+    [InlineData("id")] [InlineData("name")] [InlineData("description")]
+    [InlineData("member")] [InlineData("holon")] [InlineData("contract")]
+    public void SchemaNameCollisionsAreRejectedBeforeWriting(string collision)
+        =>NativeCodeGenesisContract.VerifyNameCollision((body,path)=>new TRONOASIS().NativeCodeGenesis(body,path,""),collision);
     [Fact]
     public void GeneratedSchemaWithAdditionalFieldsCompiles()
         =>NativeCodeGenesisContract.VerifySchema((body,path)=>new TRONOASIS().NativeCodeGenesis(body,path,""));
