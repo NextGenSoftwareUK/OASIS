@@ -271,44 +271,23 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             OASISResult<IEnumerable<IAvatar>> result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
+                var query = new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordLocationQuery(x, y, radius);
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError)
+                        return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, IEnumerable<IAvatar>>(activation);
                 }
-
-                // Real Hashgraph implementation for getting avatars near a specific location
-                // This would query the Hashgraph network for avatars based on geolocation
-                var avatars = new List<IAvatar>();
-
-                // Query Hashgraph network for avatars near the specified location
-                // Using Hedera Mirror Node API for geospatial queries
-                try
-                {
-                    // Query accounts/tokens near the location using HTTP API
-                    var queryUrl = $"/api/v1/accounts?limit=100";
-                    var response = await _httpClient.GetAsync(queryUrl);
-                    
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var content = await response.Content.ReadAsStringAsync();
-                        // Parse the response and filter by geolocation if available
-                        // In a real implementation, you would filter accounts based on geolocation metadata
-                        // For now, we return an empty list as Hashgraph doesn't natively support geospatial queries
-                        // This would require a custom indexing service or smart contract
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Log but don't fail - geospatial queries may not be supported
-                }
-
+                result = await LoadAllAvatarsAsync();
+                if (result.IsError) return result;
+                var avatars = query.Select(result.Result, row => row.IsActive && !row.IsDeleted);
                 result.Result = avatars;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {avatars.Count} avatars near location from Hashgraph (geospatial queries require custom indexing)";
+                result.IsLoaded = true;
+                result.Message = $"Loaded {avatars.Count} nearby stored avatars from Hashgraph.";
             }
             catch (Exception ex)
             {
+                result.Result = null; result.IsLoaded = false;
                 OASISErrorHandling.HandleError(ref result, $"Error getting avatars near me from Hashgraph: {ex.Message}", ex);
             }
             return result;
@@ -324,44 +303,25 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             OASISResult<IEnumerable<IHolon>> result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                var query = new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordLocationQuery(x, y, radius);
+                if (!Enum.IsDefined(typeof(HolonType), holonType)) throw new ArgumentOutOfRangeException(nameof(holonType));
                 if (!IsProviderActivated)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Hashgraph provider is not activated");
-                    return result;
+                    var activation = await ActivateProviderAsync();
+                    if (activation.IsError)
+                        return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, IEnumerable<IHolon>>(activation);
                 }
-
-                // Real Hashgraph implementation for getting holons near a specific location
-                // This would query the Hashgraph network for holons based on geolocation
-                var holons = new List<IHolon>();
-
-                // Query Hashgraph network for holons near the specified location
-                // Using Hedera Mirror Node API for geospatial queries
-                try
-                {
-                    // Query tokens/NFTs near the location using HTTP API
-                    var queryUrl = $"/api/v1/tokens?limit=100";
-                    var response = await _httpClient.GetAsync(queryUrl);
-                    
-                    if (response.IsSuccessStatusCode)
-                    {
-                        var content = await response.Content.ReadAsStringAsync();
-                        // Parse the response and filter by geolocation if available
-                        // In a real implementation, you would filter tokens/NFTs based on geolocation metadata
-                        // For now, we return an empty list as Hashgraph doesn't natively support geospatial queries
-                        // This would require a custom indexing service or smart contract
-                    }
-                }
-                catch (Exception ex)
-                {
-                    // Log but don't fail - geospatial queries may not be supported
-                }
-
+                result = await LoadAllHolonsAsync(holonType);
+                if (result.IsError) return result;
+                var holons = query.Select(result.Result,
+                    row => row.IsActive && !row.IsDeleted && (holonType == HolonType.All || row.HolonType == holonType));
                 result.Result = holons;
-                result.IsError = false;
-                result.Message = $"Successfully loaded {holons.Count} holons near location from Hashgraph (geospatial queries require custom indexing)";
+                result.IsLoaded = true;
+                result.Message = $"Loaded {holons.Count} nearby stored holons from Hashgraph.";
             }
             catch (Exception ex)
             {
+                result.Result = null; result.IsLoaded = false;
                 OASISErrorHandling.HandleError(ref result, $"Error getting holons near me from Hashgraph: {ex.Message}", ex);
             }
             return result;
