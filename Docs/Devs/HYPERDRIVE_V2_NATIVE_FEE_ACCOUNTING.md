@@ -1,5 +1,13 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Shared trusted routing propagation (2026-10-17)
+
+Core `b3fdc66d03a493927e7782d9a2135e9bc1b2df5d` adds `PreparedStorageExecution.RunAsync<T>(Func<Task<T>>)` for trusted host composition AFTER authorization and quote binding. It carries the existing policy in one async-flow scope, so managers need no per-method HTTP dependency or duplicated provider logic. The host must await ALL work within the delegate. This does not reserve budget, fetch a quote, choose signing authority, register a reader or enable sponsored execution.
+
+All four V2 route entry points check the scope before selection/activation and bind it to manager-created StorageOperationRequests. Existing sync/async provider dispatch uses the same inherited policy for typed Save/LoadHolon/Avatar requests too. Existing activation+route preparation and replica policy forwarding remain the execution owners. A conflicting explicit request policy, nested policy, or new routing attempt from a closed inherited scope rejects; independent concurrent flows stay isolated. Outside an admitted scope existing explicit policies and unpriced library calls retain their specified behaviour. Closing a scope does NOT cancel already-started detached work: hosts must not fire-and-forget it, and new work needs independent admission. No process-global current signer/HTTP context or second signing engine is introduced.
+
+Six new controlled tests cover all four entry-point preflight binding/conflicts/nested rejection, parallel scope isolation, closed detached-flow rejection and caller restoration after original failure. Entry-point tests deliberately use an uninitialized engine with invalid version/default provider, proving guards run before provider access; they are NOT actual provider activation, SDK, replica or hosted HTTP tests. Full subscription suite reached207/207pass17s/0skip; teardown verification is separately recorded in current release gates. Both Core targets and WEB4 diagnostic build passed. Unrelated middleware dirt means these are not immutable release builds. Actual HTTP policy creation/invocation, approved mappings/signers, native fee-reader registration, full routing/native/hosted acceptance and clean pinned release gates remain OPEN.
+
 ## Host integration trace and next implementation boundary (2026-10-17)
 
 Inspected current source, not assumed from provider tests:
