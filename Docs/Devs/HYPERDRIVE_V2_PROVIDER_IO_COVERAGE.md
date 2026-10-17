@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-17 Cosmos assets.rs adds real internal-ledger deposit custody, not global freeze: separate token_deposit/release and protocol1/record queries, exact Uint128 units, signed holder-only release, permanent used IDs, supply conservation and issuer-freeze-safe return. Full Rust7pass0ignored incl3new contract tests and maxUint128 public wrapped JSON roundtrip; pinned offline WASM build passes. No deployment/actual wasmd acceptance or C# per-deposit routing/readback yet, so existing public LockToken remains issuer freeze and marker remains disabled. Remaining hosted/fee/V2 routing gates unchanged.
+
 Final Sui send-intent acceptance2026-10-17: corrected expected121 runner rerun exit0/full121pass2m13s/0skip, superseding pending rerun below. This is provider regression coverage, not live per-deposit custody or full V2 routing certification.
 
 2026-10-17 Sui SendToken native/custom scalar intent now captured before signer await; unsupported memo/exact positive u64 units validate before signer process. Existing native/custom SDK execution owners reused. Six new controlled process regressions (sync/async native/custom and memo preflight):3red before fix,6pass after; full121/121pass2m13s/0skip, runner's stale115 count corrected and rerun pending. Producer0errors/2warnings; existing bridge30pass~441ms/0skip/0todo. Fixture only validates process payload, not actual ledger/SDK consensus. Cosmos/Sui amount/ID-bound token escrow and broader live/provider/routing/fee gates remain open; no deployment/merge/native replay.
