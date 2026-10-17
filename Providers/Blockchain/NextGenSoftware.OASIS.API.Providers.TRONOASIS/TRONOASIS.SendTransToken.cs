@@ -213,7 +213,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
         public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
         {
-            var result = new OASISResult<ITransactionResponse>(new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse());
+            var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (request == null) throw new ArgumentNullException(nameof(request));
@@ -222,12 +222,16 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (string.IsNullOrWhiteSpace(_contractAddress)) throw new ArgumentException("A configured TRC20 mint-capable contract address is required.");
                 if (request.ProviderType != null && request.ProviderType.Value != Core.Enums.ProviderType.TRONOASIS)
                     throw new ArgumentException("Mint provider must be TRONOASIS.");
-                var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(request.MintedByAvatarId,
+                var actor = request.MintedByAvatarId;
+                var amount = request.Amount;
+                var memo = request.MemoText;
+                var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(actor,
                     Core.Enums.ProviderType.TRONOASIS, showPrivateKeys: true);
-                if (wallet.IsError || wallet.Result == null || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
-                    throw new InvalidOperationException("Could not resolve the avatar's TRON minter signing wallet.");
+                if (wallet.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IProviderWallet,ITransactionResponse>(wallet);
+                if (wallet.Result == null || wallet.Result.AvatarId != actor || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
+                    throw new InvalidOperationException("Exact requesting avatar TRON signing wallet required.");
                 var hash = await ExecuteNativeRuntimeAsync(client => client.MintTokenAsync(wallet.Result.WalletAddress, _contractAddress,
-                    request.Amount, wallet.Result.PrivateKey, request.MemoText, wallet.Result.PublicKey));
+                    amount, wallet.Result.PrivateKey, memo, wallet.Result.PublicKey));
                 result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = hash };
                 result.Message = "TRC20 mint confirmed by solidified contract receipt.";
             }
