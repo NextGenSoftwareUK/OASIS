@@ -186,6 +186,9 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class SuiOASISProviderSettings : ProviderSettingsBase
     {
+        /// <summary>Optional canonical positive u64 MIST ceiling as decimal text (precision-safe in JSON).
+        /// Null leaves the provider unconfigured; this is not aggregate reservation or sponsorship authorization.</summary>
+        public string MaximumGasBudgetMist { get; set; }
         public SuiIdBoundTokenEscrowSettings IdBoundTokenEscrow { get; set; }
         public string StorageEncryptionKeyEnvironmentVariable { get; set; } = "OASIS_SUI_STORAGE_ENCRYPTION_KEY";
         public string RpcEndpoint { get; set; } = "https://fullnode.mainnet.sui.io:443";

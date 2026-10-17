@@ -1,5 +1,13 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## OASISDNA/BootLoader selection of the Sui ceiling (2026-10-17)
+
+The configuration schema now exposes `OASIS.StorageProviders.SuiOASIS.MaximumGasBudgetMist` as optional **decimal text**, not a JSON floating-point amount or USD value. Operators must supply an approved canonical positive u64 string. Full range includes values beyond JavaScript's exact numeric range, so keep the JSON value quoted. Null/absent means no newly configured ceiling; empty, zero, signs, whitespace, leading zero, fractions/exponents and overflow are invalid. No default cap was invented or inserted in default/live DNA.
+
+Actual BootLoader Sui registration now delegates to one `SuiProviderConfiguration.Create` helper. It validates explicit fee config first, selects ordinary constructor only for absent config or named capped factory for valid explicit config, and preserves existing escrow validation and deferred storage encryption-key resolution. It never catches invalid configured creation and downgrades to ordinary mode. The provider captures its immutable cap at construction; editing a DNA object does not retroactively alter an already registered client. This change is source/schema wiring, not a live reload or automatic Railway update.
+
+Thirteen new source-linked helper cases cover invalid-before-construction rejection (including invalid RPC sentinel), absent/min/max cap capture without activation, post-construction source mutation isolation and precision-safe JSON round trip. Together with seven existing escrow cases20/20pass77ms/0skip. DNA, actual BootLoader and WEB4 diagnostic builds passed; warnings remain. Source-linked configuration tests are not full BootLoader/HTTP/native lifecycle acceptance. No SDK node, native transaction, quote fetch or sponsor authorization occurred. Aggregate operation exposure/reservation, approved host factory policies/readers and configured native/hosted qualification remain open; earlier SDK70/C#140 proofs are not refreshed native-chain evidence for this wiring change.
+
 ## Sui configured built-transaction gas budget ceiling (2026-10-17)
 
 Provider API: `SuiOASIS.CreateWithNativeFeeLimits(new SuiNativeFeeLimits(approvedMaximumMist), ...existing connection/storage arguments...)`. The operator/host must supply the approved positive integer; no monetary or network default is invented. The existing public constructor remains source/binary-compatible and explicitly unconfigured. A named factory avoids creating ambiguity for existing `new SuiOASIS(null)` calls; the original internal7argument client constructor is also preserved for existing reflection-based fixtures.
