@@ -1,5 +1,7 @@
 # HyperDrive V2 native-chain fees and recovery
 
+2026-10-17 configured Cosmos child acceptance: C#provider map stake5/6 reaches actual child unchanged. Retained official SDK signs fee3+tip3; production guard rejects5 before any preparation or broadcast, accepts6 once and verifies original signature/hash. Focused12/12pass617ms; full177/177pass2m12s/0skip/runnerexit0 (hashes in release gates). Controlled transport, no RPC/chain; this closes local C#child wiring only. Signing occurs before fee inspection by design; no claim of pre-sign rejection. Public prepared-facade, native consensus, aggregate operation reservation, quote/host factory registration and hosted settlement remain gates. No production behavior/live configuration changed.
+
 ## Cosmos declared transaction ceilings (2026-10-17)
 
 Optional DNA `OASIS.StorageProviders.CosmosBlockChainOASIS.MaximumFeeUnitsByDenomination` is an explicit denomination-to-positive-integer-text map. Example shape: `{"stake":"5000","uatom":"1000"}`; these are illustrative units, NOT approved production values. Absent means unconfigured. Empty/invalid maps reject rather than downgrade. Limits are immutable snapshots; no inferred gas denomination, conversion, default approval or live configuration change. Each map has1–32 exact-case denominations; key/value lengths bounded128, amounts canonical positive decimal strings, no floating point. Named `CosmosBlockChainOASIS.CreateWithNativeFeeLimits` preserves the existing public constructor contract; BootLoader uses it when configured.

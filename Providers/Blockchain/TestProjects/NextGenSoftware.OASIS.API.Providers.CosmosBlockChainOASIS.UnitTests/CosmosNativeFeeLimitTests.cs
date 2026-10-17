@@ -4,9 +4,38 @@ using System.Text.Json;
 
 namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 
-[TestClass]
+[TestClass,DoNotParallelize]
 public class CosmosNativeFeeLimitTests
 {
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task ConfiguredCeilingReachesRealSdkChildBeforePreparationAndBroadcast(bool reject)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE");
+        var previousReal=Environment.GetEnvironmentVariable("OASIS_COSMOS_TEST_FEE_LIMIT_REAL_BRIDGE");
+        var real=previous??Path.Combine(AppContext.BaseDirectory,"CosmosSdkBridge","bridge.mjs");
+        Assert.IsTrue(File.Exists(real),"Retained production SDK bridge required.");
+        try{
+            Environment.SetEnvironmentVariable("OASIS_COSMOS_TEST_FEE_LIMIT_REAL_BRIDGE",real);
+            Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures/fee-limit-sdk.mjs"));
+            using var provider=CosmosBlockChainOASIS.CreateWithNativeFeeLimits(new(new Dictionary<string,string>{{"stake",reject?"5":"6"}}),rpcEndpoint:"http://127.0.0.1:1");
+            var flags=BindingFlags.NonPublic|BindingFlags.Instance;
+            var backend=typeof(CosmosBlockChainOASIS).GetField("_sdkBackend",flags)!.GetValue(provider)!;
+            var pending=(Task<JsonElement>)backend.GetType().GetMethod("InvokeAsync",flags)!.Invoke(backend,new object[]{"put",new{key="fee-limit-fixture"},CancellationToken.None})!;
+            if(reject){
+                var error=await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>pending);
+                StringAssert.Contains(error.Message,"fee and tip exceed");
+                StringAssert.Contains(error.Message,"preparations=0;broadcasts=0;ceiling=5");
+                Assert.IsFalse(error is CosmosNativeMutationReconciliationException);
+            }else{
+                var result=await pending;Assert.AreEqual(1,result.GetProperty("preparations").GetInt32());
+                Assert.AreEqual(1,result.GetProperty("broadcasts").GetInt32());Assert.AreEqual("6",result.GetProperty("ceiling").GetString());
+            }
+        }finally{
+            Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",previous);
+            Environment.SetEnvironmentVariable("OASIS_COSMOS_TEST_FEE_LIMIT_REAL_BRIDGE",previousReal);
+        }
+    }
     [DataTestMethod]
     [DataRow("")] [DataRow("0")] [DataRow("01")] [DataRow("-1")] [DataRow("1.5")] [DataRow("1e3")]
     public void ExplicitAmountsMustBeCanonicalPositiveIntegerText(string value)
