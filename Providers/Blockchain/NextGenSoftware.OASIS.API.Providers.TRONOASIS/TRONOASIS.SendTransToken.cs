@@ -325,9 +325,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     throw new ArgumentException("Token contract, depositor address and private signing key are required.");
                 if (string.IsNullOrWhiteSpace(_escrowContractAddress))
                     throw new InvalidOperationException("A separate EscrowContractAddress must be configured.");
-                if (request.Amount != 0)
-                    throw new ArgumentException("This TRON escrow supports lockAll only; nonzero requested Amount cannot be silently replaced with the whole balance.");
-                ValidateAggregateEscrowRequest(request.LockId, request.EscrowContractAddress);
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.AggregateTokenEscrowRequest.Validate(
+                    request.Amount, request.LockId, request.EscrowContractAddress, _escrowContractAddress);
                 var hash = await ExecuteNativeRuntimeAsync(client => client.LockEscrowAsync(request.FromWalletAddress,
                     _escrowContractAddress, request.TokenAddress, request.FromWalletPrivateKey));
                 result.Result = new TransactionResponse { TransactionResult = hash };
@@ -340,14 +339,6 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             return result;
         }
 
-        private void ValidateAggregateEscrowRequest(Guid lockId, string requestedEscrow)
-        {
-            if (lockId != Guid.Empty)
-                throw new ArgumentException("This TRON escrow tracks an aggregate token/depositor balance, not individual LockId deposits.");
-            if (!string.IsNullOrWhiteSpace(requestedEscrow)
-                && !string.Equals(requestedEscrow, _escrowContractAddress, StringComparison.Ordinal))
-                throw new ArgumentException("Requested escrow differs from the explicitly configured TRON escrow contract.");
-        }
 
         public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request)
         {
