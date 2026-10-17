@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Sui actual C# facade under admitted owner1/1pass19s, zero skips: mint/read metadata/lock/unlock/send/recipient burn;5distinct durable signed attempts validated against actual native fee receipts. Fixed compact receipt JSON retained before successful synthetic DB/journal cleanup. Retained recipient/runtime reused, no public fees. Covers single-object/rich selected metadata, NOT older batch/off-chain/alloptions/hosted billing/API authorization matrix. Previous SDK-only asset proof now supplemented, not replaced or expanded into untested claims.
+
 Sui105/105unitpass2m15s after admitted-operation wrapper: existing public NFT/token/etc methods can execute under same per-physical SDK preparation owner;17mutation action gate checks and explicit conflicting-owner rejection pass without process launch. Shared storage delegates same owner, no duplicate signer. Live facade-through-owner/journaling/hosted/billing gates remain open; prior direct SDK native/V2 results not refreshed by this change.
 
 Sui actual localnet asset SDK scenarios2/2pass20.86s, zero skip/todo: NFT quantity/metadata/ownership/transfer/escrow/burn and standard coin registration/metadata/mint/transfer/escrow/burn. Native journals clear normally/node stopped, existing environment/faucet reused. Not all hosted/C# facade or billing certification. Cosmos original native V2 remains blocked by missing original signed identity plus masked operation failure; journal9B5A1511... unchanged/no replay. Do not infer its completion from Sui evidence.

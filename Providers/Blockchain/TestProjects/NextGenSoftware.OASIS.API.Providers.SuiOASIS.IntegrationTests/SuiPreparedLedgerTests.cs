@@ -274,7 +274,7 @@ public class SuiPreparedLedgerTests
             Assert.AreEqual(before.Result,unchanged.Result,"Rejected foreign authority must not trigger a paid activation probe.");
         }finally{await provider.DeActivateProviderAsync();}
     }
-    private sealed class TestAuthority(string user):HttpMessageHandler
+    internal sealed class TestAuthority(string user):HttpMessageHandler
     {
         protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
         {
