@@ -62,7 +62,8 @@ public sealed class CosmosRealProviderRoutingTests
         indexed.RootElement.GetProperty("inspectionId").GetString().Should().Be(Required("OASIS_COSMOS_INSPECTION_ID"));
         indexed.RootElement.GetProperty("chain").GetString().Should().Be(Required("OASIS_COSMOS_TEST_CHAIN"));
         indexed.RootElement.GetProperty("contract").GetString().Should().Be(Required("OASIS_COSMOS_TEST_CONTRACT"));
-        using var cosmos = new CosmosBlockChainOASIS(Required("OASIS_COSMOS_TEST_RPC"),Required("OASIS_COSMOS_TEST_CHAIN"),
+        // New spending limits are not historical receipt-recovery authorization.
+        using var cosmos = CosmosBlockChainOASIS.CreateWithNativeFeeLimits(new CosmosNativeFeeLimits(new Dictionary<string,string>{{"stake","1"}}),Required("OASIS_COSMOS_TEST_RPC"),Required("OASIS_COSMOS_TEST_CHAIN"),
             Required("OASIS_COSMOS_TEST_KEY"),Required("OASIS_COSMOS_TEST_CONTRACT"),"wasm","0.025stake","stake",storageEncryptionKeyResolver:LocalStorageKey);
         (await cosmos.ActivateProviderAsync()).IsError.Should().BeFalse();
         try
@@ -72,6 +73,9 @@ public sealed class CosmosRealProviderRoutingTests
             var holon = await cosmos.LoadHolonAsync(holonId,loadChildren:false);
             var samples=indexed.RootElement.GetProperty("feeSamples");samples.GetArrayLength().Should().BeInRange(1,3);
             foreach(var sample in samples.EnumerateArray()){
+                sample.GetProperty("fees").EnumerateArray().Should().Contain(coin=>
+                    coin.GetProperty("denom").GetString()=="stake"&&System.Numerics.BigInteger.Parse(coin.GetProperty("amount").GetString()!)>1,
+                    "retained historical receipts must actually exceed the current one-unit execution ceiling");
                 var hash=sample.GetProperty("transactionHash").GetString()!;
                 var receipt=await cosmos.GetNativeFeeReceiptAsync(hash);
                 receipt.IsError.Should().BeFalse(receipt.Message);
@@ -146,6 +150,7 @@ public sealed class CosmosRealProviderRoutingTests
                 avatarErrorCode = avatar.ErrorCode, detailErrorCode = detail.ErrorCode, holonErrorCode = holon.ErrorCode,
                 inspectionId=Required("OASIS_COSMOS_INSPECTION_ID"),nativeFeeSamplesVerified=samples.GetArrayLength(),nativeFeeCoverage="AnteDeductionOnly",
                 strategyPathsVerified=Enum.GetValues<LoadBalancingStrategy>().Length,stoppedNodeFailoverVerified=true,
+                currentFeeCeilingStake="1",historicalReceiptsAboveCurrentCeilingVerified=true,
                 reconciliationComplete = false, explanation = "Read-only state evidence; absence is not original submission outcome proof." }));
             Console.WriteLine($"Read-only pending Cosmos intent: avatarPresent={avatar.Result != null}; detailPresent={detail.Result != null}; holonPresent={holon.Result != null}. Intent retained; absence is not non-submission proof.");
         }
