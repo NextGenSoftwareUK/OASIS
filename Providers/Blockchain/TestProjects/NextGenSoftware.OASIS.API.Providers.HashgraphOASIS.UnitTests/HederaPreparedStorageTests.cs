@@ -44,6 +44,19 @@ public partial class HederaPreparationTests
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>provider.ExecutePreparedStorageAsync(
                 ()=>{entered=true;return Task.FromResult(1);},execution,"missing-policy","0.0.1001",deadline.Token));
             Assert.IsFalse(entered);Assert.AreEqual(0,secrets);Assert.AreEqual(0,(await store.GetAsync(execution.OperationId,deadline.Token)).ProviderAttempts.Count);
+            var manager=new ProviderManager(null,new OASISDNA {OASIS=new() {HyperDriveMode=HyperDriveModes.V2,
+                StorageProviders=new(),SubscriptionConfig=new() {PlanType="Gold"}}}) {IsAutoFailOverEnabled=false,IsAutoReplicationEnabled=false};
+            manager.RegisterProvider(provider);var router=new OASISHyperDrive(manager);
+            var admitted=new PreparedStorageExecution(execution,"missing-policy",new Dictionary<ProviderType,string> {{ProviderType.HashgraphOASIS,"0.0.1001"}},Array.Empty<ProviderType>());
+            foreach(var operation in new[]{"LoadHolon","SaveHolon"})foreach(var synchronous in new[]{false,true}){
+                var request=new StorageOperationRequest {Operation=operation,HolonId=Guid.NewGuid(),Payload=new Holon {Id=Guid.NewGuid()},
+                    SaveChildren=false,LoadChildren=false,PreferredProvider=ProviderType.HashgraphOASIS,PreparedExecution=admitted};
+                var result=synchronous?router.RouteRequest<IHolon>(request):await router.RouteRequestAsync<IHolon>(request);
+                Assert.IsTrue(result.IsError);Assert.AreEqual(PreparedStorageExecution.RejectedCode,result.ErrorCode,result.Message);
+                Assert.IsFalse(provider.IsProviderActivated,"Admission failure must prevent activation for reads and writes.");
+                Assert.AreEqual(0,secrets,"Rejected prepared routing must not resolve signing or encryption secrets.");
+                Assert.AreEqual(0,(await store.GetAsync(execution.OperationId,deadline.Token)).ProviderAttempts.Count);
+            }
         }finally{await mongo.DropDatabaseAsync(database);}
     }
 
@@ -138,10 +151,11 @@ public partial class HederaPreparationTests
             var submissions=File.ReadAllLines(log);
             Assert.AreEqual(rejectPersistence?0:2,submissions.Length);
             var durable=await store.GetAsync(execution.OperationId,deadline.Token);
-            Assert.AreEqual(rejectPersistence?1:4,durable.ProviderAttempts.Count);
+            // First routed activation performs a paid probe and private index listing before the save's read/write.
+            Assert.AreEqual(rejectPersistence?1:routed?6:4,durable.ProviderAttempts.Count);
             var writes=durable.ProviderAttempts.Where(attempt=>attempt.NativePreparation?.SigningAuthority?.Scheme=="hedera-payer-public-key-v1").ToArray();
             if(!rejectPersistence)for(var index=0;index<2;index++){
-                var attempt=writes[index];Assert.AreEqual(routed?"storage.route."+(index+1)+".storage.2":"storage.storage."+(2*(index+1)),attempt.ClientRequestId);
+                var attempt=writes[index];Assert.AreEqual(routed?"storage.route."+(index+1)+".storage."+(index==0?4:2):"storage.storage."+(2*(index+1)),attempt.ClientRequestId);
                 Assert.IsFalse(string.IsNullOrWhiteSpace(attempt.NativePreparation.SignedTransactionBase64));
                 Assert.AreEqual(price,attempt.NativePreparation.PriceQuotes.Single());
                 Assert.IsNull(attempt.AcknowledgedAtUtc);
@@ -150,8 +164,21 @@ public partial class HederaPreparationTests
             }
             if(!rejectPersistence){
                 var queries=durable.ProviderAttempts.Where(attempt=>attempt.NativePreparation.SigningAuthority.Scheme=="hedera-query-payment-v1").ToArray();
-                Assert.AreEqual(2,queries.Length);
+                Assert.AreEqual(routed?4:2,queries.Length);
                 foreach(var query in queries){Assert.AreEqual(price,query.NativePreparation.PriceQuotes.Single());Assert.IsNull(query.AcknowledgedAtUtc);}
+                if(routed){
+                    var request=new StorageOperationRequest {Operation="LoadHolon",HolonId=Guid.NewGuid(),LoadChildren=false,
+                        PreferredProvider=ProviderType.HashgraphOASIS,PreparedExecution=admitted};
+                    var read=synchronous?router.RouteRequest<IHolon>(request):await router.RouteRequestAsync<IHolon>(request);
+                    Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,read.ErrorCode,read.Message);
+                    Assert.IsNull(read.Result); // A missing logical record still incurs the admitted paid read.
+                    var afterRead=await store.GetAsync(execution.OperationId,deadline.Token);
+                    Assert.AreEqual(durable.ProviderAttempts.Count+1,afterRead.ProviderAttempts.Count,"Standalone routed read must retain its paid query.");
+                    Assert.AreEqual(2,File.ReadAllLines(log).Length,"Standalone read must not submit a mutation.");
+                    var retainedRead=afterRead.ProviderAttempts.Last();
+                    Assert.AreEqual("hedera-query-payment-v1",retainedRead.NativePreparation.SigningAuthority.Scheme);
+                    Assert.AreEqual(price,retainedRead.NativePreparation.PriceQuotes.Single());
+                }
             }
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>provider.ExecutePreparedStorageAsync<int>(
                 ()=>throw new InvalidOperationException("controlled operation failure"),execution,"failed","0.0.1001",deadline.Token));
