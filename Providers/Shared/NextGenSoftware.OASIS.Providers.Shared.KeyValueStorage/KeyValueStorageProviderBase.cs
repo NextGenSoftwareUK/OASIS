@@ -144,7 +144,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         {
             var json = await Backend.GetAsync(key);
             if (json == null) return null;
-            var record = OasisJson.Deserialize<T>(json);
+            var record = OasisJson.DeserializeStored<T>(json);
             if (record == null) throw new System.IO.InvalidDataException("Stored record contains a null payload.");
             return record;
         }
