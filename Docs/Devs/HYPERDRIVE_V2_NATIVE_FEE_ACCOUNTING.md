@@ -1,5 +1,13 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Cosmos declared transaction ceilings (2026-10-17)
+
+Optional DNA `OASIS.StorageProviders.CosmosBlockChainOASIS.MaximumFeeUnitsByDenomination` is an explicit denomination-to-positive-integer-text map. Example shape: `{"stake":"5000","uatom":"1000"}`; these are illustrative units, NOT approved production values. Absent means unconfigured. Empty/invalid maps reject rather than downgrade. Limits are immutable snapshots; no inferred gas denomination, conversion, default approval or live configuration change. Each map has1–32 exact-case denominations; key/value lengths bounded128, amounts canonical positive decimal strings, no floating point. Named `CosmosBlockChainOASIS.CreateWithNativeFeeLimits` preserves the existing public constructor contract; BootLoader uses it when configured.
+
+The existing production CosmJS signing-client guard inspects canonical signed TxRaw/AuthInfo immediately before preparation and broadcast. Signed fee and tip are summed per approved denomination using BigInt; duplicate denominations within either array, unknown denominations, malformed amounts and missing fee declarations reject. Explicit empty fee amounts count as zero. This is after local signing, before native submission, and covers each guarded transaction separately. It is NOT a maximum for the entire multi-stage/failover/replicated operation, USD quote binding, settlement netting or permission to sponsor spending. Earlier native effects remain fenced if a later stage fails this check. Historical receipt/identity recovery must not apply a newly lowered execution ceiling.
+
+Evidence: actual offline official SDK signing+controlled transport80/80 pass; full C#175/175 pass2m12s; source-linked DNA/config+escrow14/14 pass77ms; DNA/BootLoader/WEB4 diagnostic builds0errors. Report hashes and failure history are in the current release gates. Actual configured C#child-to-SDK acceptance, native consensus and hosted aggregate admission remain unverified; no native node/transaction or live setting changed.
+
 ## TRON historical receipt recovery must not apply today's fee ceiling (2026-10-17)
 
 Fee-path audit found `TronNativeTransferClient.GetPreparedNativeFeeReceiptAsync` applying current ContractFeeLimitSun to the already admitted original signed transaction. A deployment lowering the configured limit could therefore block reconciliation of a previously valid original. Read-only recovery is not new spending authorization.

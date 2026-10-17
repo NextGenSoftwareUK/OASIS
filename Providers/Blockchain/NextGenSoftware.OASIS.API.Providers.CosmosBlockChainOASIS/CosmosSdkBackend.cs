@@ -15,12 +15,18 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
     private readonly string _rpcEndpoint, _chainId, _privateKey, _contractAddress;
     private readonly string _addressPrefix, _gasPrice, _nodeExecutable, _bridgePath;
     private bool _disposed;
+    private readonly IReadOnlyDictionary<string,string> _maximumFeeUnitsByDenomination;
     private readonly OwnedPreparationScope _storagePreparation = new();
     internal string ChainId => _chainId;
 
     public CosmosSdkBackend(string rpcEndpoint, string chainId, string privateKey, string contractAddress,
         string addressPrefix = "cosmos", string gasPrice = "0.025uatom", string nodeExecutable = null, string bridgePath = null)
+        :this(rpcEndpoint,chainId,privateKey,contractAddress,addressPrefix,gasPrice,nodeExecutable,bridgePath,null) { }
+
+    internal CosmosSdkBackend(string rpcEndpoint,string chainId,string privateKey,string contractAddress,
+        string addressPrefix,string gasPrice,string nodeExecutable,string bridgePath,CosmosNativeFeeLimits nativeFeeLimits)
     {
+        _maximumFeeUnitsByDenomination=nativeFeeLimits?.MaximumFeeUnitsByDenomination;
         if (string.IsNullOrWhiteSpace(rpcEndpoint) || !Uri.TryCreate(rpcEndpoint, UriKind.Absolute, out var uri)
             || (uri.Scheme != "http" && uri.Scheme != "https")) throw new ArgumentException("HTTP(S) Cosmos RPC endpoint is required.", nameof(rpcEndpoint));
         if (string.IsNullOrWhiteSpace(chainId)) throw new ArgumentException("Expected Cosmos chain ID is required.", nameof(chainId));
@@ -110,10 +116,12 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
             ["privateKey"] = _privateKey, ["contractAddress"] = _contractAddress,
             ["addressPrefix"] = _addressPrefix, ["gasPrice"] = _gasPrice
         };
+        if(_maximumFeeUnitsByDenomination!=null)request["maximumFeeUnitsByDenomination"]=_maximumFeeUnitsByDenomination;
         if (args != null)
             foreach (var property in args.GetType().GetProperties())
             {
                 if (property.Name == "operation") throw new ArgumentException("SDK arguments cannot override the authoritative operation.");
+                if(property.Name=="maximumFeeUnitsByDenomination")throw new ArgumentException("SDK arguments cannot replace configured Cosmos fee ceilings.");
                 if(property.Name is "rpcEndpoint" or "chainId" or "addressPrefix")
                     throw new ArgumentException("SDK arguments cannot override the configured Cosmos network identity.");
                 request[property.Name] = property.GetValue(args);

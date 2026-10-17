@@ -97,13 +97,47 @@ export function cosmosErrorEnvelope(error) {
 
 // CosmJS execute/upload/instantiate discard failed DeliverTxResponse fields in plain errors.
 // Validate the one real broadcast response before their higher-level mapping runs.
-export function guardCosmosSigningClient(client, persistPreparedSubmission) {
+export function snapshotCosmosFeeLimits(value) {
+  if(value===undefined)return undefined;
+  if(value===null||typeof value!=='object'||Array.isArray(value))throw new Error('Explicit Cosmos fee ceilings require a denomination map');
+  const entries=Object.entries(value);
+  if(entries.length<1||entries.length>32)throw new Error('Cosmos fee ceilings require one to32 denominations');
+  const captured=Object.create(null);
+  for(const [denom,amount] of entries){
+    if(!denom||denom.length>128||/[\s\p{Cc}]/u.test(denom)||typeof amount!=='string'||amount.length>128||!(/^[1-9][0-9]*$/).test(amount))
+      throw new Error('Canonical bounded positive Cosmos denomination fee ceilings required');
+    captured[denom]=amount;
+  }
+  return Object.freeze(captured);
+}
+
+function verifyDeclaredCosmosFee(bytes,limits) {
+  const raw=TxRaw.decode(bytes),auth=AuthInfo.decode(raw.authInfoBytes);
+  if(!Buffer.from(TxRaw.encode(raw).finish()).equals(bytes)||!Buffer.from(AuthInfo.encode(auth).finish()).equals(raw.authInfoBytes)||!auth.fee)
+    throw new Error('Canonical original Cosmos fee declaration required');
+  const totals=new Map();
+  for(const coins of [auth.fee.amount,auth.tip?.amount??[]]){
+    if(!Array.isArray(coins)||coins.length>32)throw new Error('Bounded original Cosmos fee coins required');
+    const seen=new Set();
+    for(const coin of coins){
+      if(typeof coin.denom!=='string'||!Object.hasOwn(limits,coin.denom)||seen.has(coin.denom)
+          ||typeof coin.amount!=='string'||coin.amount.length>128||!(/^(0|[1-9][0-9]*)$/).test(coin.amount))
+        throw new Error('Original Cosmos fee denomination/amount is unapproved or ambiguous');
+      seen.add(coin.denom);totals.set(coin.denom,(totals.get(coin.denom)??0n)+BigInt(coin.amount));
+    }
+  }
+  for(const [denom,total] of totals)if(total>BigInt(limits[denom]))throw new Error('Signed Cosmos fee and tip exceed the configured denomination ceiling');
+}
+
+export function guardCosmosSigningClient(client, persistPreparedSubmission, maximumFeeUnitsByDenomination) {
   if (persistPreparedSubmission !== undefined && typeof persistPreparedSubmission !== 'function')
     throw new TypeError('Prepared Cosmos submission persistence must be an awaited callback');
+  const limits=snapshotCosmosFeeLimits(maximumFeeUnitsByDenomination);
   const broadcast = client.broadcastTx.bind(client);
   client.broadcastTx = async (bytes, ...args) => {
     if (!(bytes instanceof Uint8Array)) throw new Error('Cosmos broadcast requires exact signed transaction bytes');
     const signedBytes = Uint8Array.from(bytes);
+    if(limits!==undefined)verifyDeclaredCosmosFee(signedBytes,limits);
     const hash = createHash('sha256').update(signedBytes).digest('hex').toUpperCase();
     // Persistence failure is pre-submission: no broadcast or native-outcome claim.
     // The callback must durably bind this identity to its authenticated operation.
