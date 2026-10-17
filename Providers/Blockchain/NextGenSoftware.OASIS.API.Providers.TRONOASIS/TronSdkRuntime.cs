@@ -56,21 +56,14 @@ public sealed class TronSdkRuntime : IAsyncDisposable
         return NativeTransfers.WithPreparation(persistPreparedSubmission);
     }
 
-    /// <summary>Caller owns native admission, trusted sender/permissions and one unique attempt correlation.</summary>
+    /// <summary>Caller owns admission and correlation; the existing account-aware owner verifies and retains permissions.</summary>
     public TronNativeTransferClient CreatePreparedNativeTransfers(UsageExecutionHandle execution,string clientRequestId,byte[] expectedSender)
     {
         ArgumentNullException.ThrowIfNull(execution);
         ArgumentException.ThrowIfNullOrWhiteSpace(clientRequestId);
         if(expectedSender==null||expectedSender.Length!=21||expectedSender[0]!=0x41)
             throw new ArgumentException("Trusted 21-byte TRON sender required.",nameof(expectedSender));
-        var sender=(byte[])expectedSender.Clone();
-        return CreatePreparedNativeTransfers(async(id,genesis,bytes,token)=>{
-            if(genesis!=NativeTransfers.ExpectedGenesisBlockId)throw new InvalidOperationException("Prepared TRON genesis identity mismatch.");
-            TronPreparationVerifier.VerifyOriginal(bytes,id,sender,NativeTransfers.MaximumContractFeeLimitSun);
-            await execution.BeginPreparedNativeAttemptAsync("TRONOASIS",null,clientRequestId,id,new UsageNativePreparation{
-                ChainId=genesis,Sender=Convert.ToHexString(sender).ToLowerInvariant(),SignedTransactionBase64=bytes
-            },token);
-        });
+        return NativeTransfers.WithAccountPreparation(execution,()=>clientRequestId,Convert.ToHexString(expectedSender).ToLowerInvariant());
     }
 
     /// <summary>Refreshes actual solidified account permission authority before each prepared evidence write.</summary>

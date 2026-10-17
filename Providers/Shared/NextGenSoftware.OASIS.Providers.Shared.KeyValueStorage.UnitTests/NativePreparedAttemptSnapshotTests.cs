@@ -23,6 +23,18 @@ public class NativePreparedAttemptSnapshotTests
     }
 
     [TestMethod]
+    public void OriginalPublicAuthorityIsImmutableAndValidated()
+    {
+        var attempt=Attempt();var authority=new NativeSigningAuthority("public-context","AQID");
+        attempt.NativePreparation.SigningAuthority=authority;
+        var snapshot=NativePreparedAttemptSnapshot.Capture(attempt,"provider","chain");
+        attempt.NativePreparation.SigningAuthority=new("replacement","BA==");
+        Assert.AreEqual(authority,snapshot.SigningAuthority);
+        attempt.NativePreparation.SigningAuthority=new("malformed","not-base64");
+        Assert.ThrowsException<UsageProtocolException>(()=>NativePreparedAttemptSnapshot.Capture(attempt,"provider","chain"));
+    }
+
+    [TestMethod]
     public void WrongProviderNetworkOrMissingIdentityIsRejectedBeforeRecovery()
     {
         Assert.ThrowsException<InvalidDataException>(()=>NativePreparedAttemptSnapshot.Capture(Attempt(),"other","chain"));
