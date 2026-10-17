@@ -1,5 +1,13 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Hedera paid-query aggregate maximum — 2026-10-17
+
+The existing official SDK query verifier now returns maximumFeeTinybars derived from the original selected signed CryptoTransfer: exact payer-to-authorized-node payment plus that transfer's signed transactionFee ceiling, summed with BigInt. Existing constraints still require one canonical signed transaction, the admitted payer key/node, exactly two balanced HBAR transfer rows, no allowance/token transfers, and separately approved payment/transaction-fee caps. Caller JSON cannot supply a replacement maximum. This conservatively reserves both payment and possible transfer-network fee; it is not an estimate of actual charged cost.
+
+For an explicitly budgeted operation, CreatePaidQueryPreparationServer attaches this verified tinybar maximum to the existing prepared attempt. Core uses the operation's bound price and existing atomic aggregate ledger, with no new billing store or SDK signer. Unbudgeted queries keep their previous representation. **This query-only bound must not be applied to arbitrary mutations, smart-contract gas, Ethereum gas allowances or other native charges.** Those Hedera maximum-admission paths still require separate review/implementation and remain blocked under configured budgets rather than receiving guessed maxima. Funded consensus, real mirror debit/fee verification and hosted billing remain open.
+
+Integration exposed shared direct-adapter ordering: Core originally validated maxima before injecting its admitted price snapshot. Core64a4f429135e4d666a5236a07c039ead4c458928 binds the owned prices first, rejects conflicting/null/length-mismatched explicit price arrays before persistence, then validates the complete snapshot without mutating caller input. The direct-preparation regression was red before the fix. Existing signed callback factories and direct adapter APIs share this enforcement; no per-provider price-injection workaround added. Exact test evidence is in the release journal.
+
 ## Reviewed standard-SDK Cosmos aggregate profile — 2026-10-17
 
 `CosmosNativeFeeLimits.ForReviewedStandardSdkChain(limits, chainId)` explicitly binds the existing immutable transaction limits to an operator-reviewed chain fee model. Backend construction rejects a different chain ID before SDK use. This is a trusted deployment assertion, **not** code attestation, discovery from an RPC URL, a public request option, or sponsorship permission. Existing constructors/DNA fee-limit maps do not opt in automatically.

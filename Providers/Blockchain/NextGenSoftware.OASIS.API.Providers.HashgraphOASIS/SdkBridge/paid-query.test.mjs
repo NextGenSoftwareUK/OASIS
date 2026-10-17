@@ -110,6 +110,8 @@ for(const mode of ['accepted','rejected','timeout','wrong-key','payment-limit','
         assert.equal(observed.purpose,'HederaQueryPayment');
         const verified=await verifyPreparedQueryIdentity(observed,key.publicKey.toStringDer(),['0.0.3'],'123','100000000');
         assert.equal(verified.verified,true);assert.equal(verified.queryPaymentTinybars,'123');
+        assert.equal(verified.maximumFeeTinybars,'100000123');
+        assert.equal((await verifyPreparedQueryIdentity({...observed,maximumFeeTinybars:'0'},key.publicKey.toStringDer(),['0.0.3'],'123','100000000')).maximumFeeTinybars,'100000123');
         for(const cap of [123,'0','01','9223372036854775808','1'.repeat(100)]){
           await assert.rejects(verifyPreparedQueryIdentity(observed,key.publicKey.toStringDer(),['0.0.3'],cap,'100000000'));
           assert.throws(()=>new PreparedAccountInfoQuery({...context,maxPaymentTinybars:cap}));

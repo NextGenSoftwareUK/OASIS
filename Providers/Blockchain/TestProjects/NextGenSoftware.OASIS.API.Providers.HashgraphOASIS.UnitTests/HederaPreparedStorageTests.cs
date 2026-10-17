@@ -66,7 +66,8 @@ public partial class HederaPreparationTests
     [DataRow(false,true,true)] [DataRow(true,true,true)]
     [DataRow(false,false,false,true)]
     [DataRow(false,true,false,false,true)] [DataRow(false,true,true,false,true)]
-    public async Task AdmittedEncryptedStoragePersistsOriginalBeforeControlledSubmission(bool rejectPersistence,bool routed=false,bool synchronous=false,bool cancelQuery=false,bool attemptBudget=false)
+    [DataRow(false,true,false,false,false,true)] [DataRow(false,true,true,false,false,true)]
+    public async Task AdmittedEncryptedStoragePersistsOriginalBeforeControlledSubmission(bool rejectPersistence,bool routed=false,bool synchronous=false,bool cancelQuery=false,bool attemptBudget=false,bool aggregateBudget=false)
     {
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -90,7 +91,8 @@ public partial class HederaPreparationTests
             var authority=new Web4SubscriptionAuthorizationClient(http,"https://offline-authority.test","WEB6","test-only-key");
             var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions {Service="WEB6"})
                 .BeginAsync("test-only",user,"hedera-storage",new string('a',64),"POST /offline-storage",
-                    new UsageEndpointPolicy {MeterCategory="api.request",ReservedUnits=1,MaximumProviderAttempts=attemptBudget?1:512},deadline.Token);
+                    new UsageEndpointPolicy {MeterCategory="api.request",ReservedUnits=1,MaximumProviderAttempts=attemptBudget?1:512,
+                        EstimatedCostUsd=2m,MaximumNativeFeeCostUsd=aggregateBudget?1.5m:null},deadline.Token);
             var priceTime=DateTime.UtcNow.AddSeconds(-1);
             var price=new NativeFeePriceQuote(Guid.Parse(execution.OperationId),"HashgraphOASIS","testnet","tinybar","hedera-hashgraph",8,1m,
                 "synthetic-offline-price","fixture-v1","fixture-v1",priceTime,priceTime,priceTime,priceTime.AddMinutes(5));
@@ -161,21 +163,27 @@ public partial class HederaPreparationTests
                 Assert.AreEqual(0,File.ReadAllLines(log).Length);
                 return await SavePair();
             }):await provider.ExecutePreparedStorageAsync(SavePair,execution,"storage","0.0.1001",deadline.Token);
-            if(attemptBudget){
+            if(attemptBudget||aggregateBudget){
                 Assert.IsTrue(result.IsError,result.Message);
-                bool HasBudgetCause(Exception? error)=>error is UsageProtocolException protocol&&protocol.Code=="PROVIDER_ATTEMPT_BUDGET_EXCEEDED"
+                bool HasBudgetCause(Exception? error)=>error is UsageProtocolException protocol&&protocol.Code==(aggregateBudget?"NATIVE_FEE_BUDGET_EXCEEDED":"PROVIDER_ATTEMPT_BUDGET_EXCEEDED")
                     ||error is AggregateException aggregate&&aggregate.InnerExceptions.Any(HasBudgetCause)
                     ||error?.InnerException!=null&&HasBudgetCause(error.InnerException);
                 Assert.IsTrue(HasBudgetCause(result.Exception),"Routed activation must preserve its original durable budget rejection.");
                 Assert.IsFalse(provider.IsProviderActivated);
                 Assert.AreEqual(0,File.ReadAllLines(log).Length,"No storage mutation may be submitted after query admission exhausted the operation budget.");
                 var retained=await new MongoUsageOutboxStore(connection,database).GetAsync(execution.OperationId,deadline.Token);
-                Assert.AreEqual(1,retained.Policy.MaximumProviderAttempts);Assert.AreEqual(1,retained.ProviderAttempts.Count);
+                Assert.AreEqual(attemptBudget?1:512,retained.Policy.MaximumProviderAttempts);Assert.AreEqual(1,retained.ProviderAttempts.Count);
                 var query=retained.ProviderAttempts.Single();
                 Assert.AreEqual("hedera-query-payment-v1",query.NativePreparation.SigningAuthority.Scheme);
                 Assert.AreEqual(price,query.NativePreparation.PriceQuotes.Single());
                 Assert.IsFalse(string.IsNullOrWhiteSpace(query.NativePreparation.SignedTransactionBase64));
                 Assert.IsNull(query.AcknowledgedAtUtc);Assert.IsNull(retained.Settlement);
+                if(aggregateBudget){
+                    var maximum=query.NativePreparation.FeeMaximums.Single();
+                    Assert.AreEqual(NativeFeeMaximumCoverage.AllFees,maximum.Coverage);
+                    Assert.AreEqual(NativeFeeMaximumAccounting.ValueUsd(query.NativePreparation.FeeMaximums,query.NativePreparation.PriceQuotes),retained.NativeFeeExposureUsd);
+                    Assert.IsTrue(retained.NativeFeeExposureUsd>1m&&retained.NativeFeeExposureUsd<=1.5m);
+                }
                 completed=true;return;
             }
             Assert.AreEqual(rejectPersistence,result.IsError,result.Message);

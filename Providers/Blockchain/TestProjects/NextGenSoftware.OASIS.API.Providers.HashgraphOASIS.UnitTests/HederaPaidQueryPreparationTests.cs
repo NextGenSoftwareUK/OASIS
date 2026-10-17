@@ -93,8 +93,9 @@ public partial class HederaPreparationTests
         }finally{if(!child.HasExited){child.Kill(entireProcessTree:true);await child.WaitForExitAsync();}await mongo.DropDatabaseAsync(database);}
     }
 
-    [TestMethod]
-    public async Task SelectedSdkQueryPaymentsPersistThroughRealPipeAndOwnedMongoBeforeTransport()
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task SelectedSdkQueryPaymentsPersistThroughRealPipeAndOwnedMongoBeforeTransport(bool aggregateBudget)
     {
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -140,7 +141,8 @@ public partial class HederaPreparationTests
             var user=Guid.NewGuid().ToString("D");using var http=new HttpClient(new OfflineAuthority(user));
             var authority=new Web4SubscriptionAuthorizationClient(http,"https://offline-authority.test","WEB6","test-only-key");
             var initialExecution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6",PersistenceTimeout=TimeSpan.FromSeconds(5)})
-                .BeginAsync("test-only-bearer",user,"query-fixture",new string('a',64),"POST /fixture",new(){MeterCategory="api.request",ReservedUnits=1},deadline.Token);
+                .BeginAsync("test-only-bearer",user,"query-fixture",new string('a',64),"POST /fixture",new(){MeterCategory="api.request",ReservedUnits=1,
+                    EstimatedCostUsd=3m,MaximumNativeFeeCostUsd=aggregateBudget?3m:null},deadline.Token);
             var now=DateTime.UtcNow.AddSeconds(-1);
             var quote=new NativeFeePriceQuote(Guid.Parse(initialExecution.OperationId),"HashgraphOASIS","testnet","tinybar","hedera-hashgraph",8,1m,
                 "controlled-source","fixture-v1","fixture-v1",now,now,now,now.AddMinutes(5));
@@ -158,7 +160,13 @@ public partial class HederaPreparationTests
             CollectionAssert.AreEqual(new[]{prefix+".1",prefix+".2"},stored.ProviderAttempts.Select(attempt=>attempt.ClientRequestId).ToArray());
             Assert.AreEqual(2,stored.ProviderAttempts.Select(attempt=>attempt.ProviderRequestId).Distinct().Count());
             Assert.AreEqual(0,stored.Receipts.Count,"Admission is not a fee receipt or a zero-cost settlement.");
+            Assert.AreEqual(aggregateBudget?2.00000246m:0m,stored.NativeFeeExposureUsd);
             foreach(var attempt in stored.ProviderAttempts){
+                if(aggregateBudget){
+                    var maximum=attempt.NativePreparation.FeeMaximums.Single();
+                    Assert.AreEqual("100000123",maximum.NativeMaximumUnits);Assert.AreEqual("tinybar",maximum.Denomination);
+                    Assert.AreEqual(NativeFeeMaximumCoverage.AllFees,maximum.Coverage);
+                }else Assert.IsNull(attempt.NativePreparation.FeeMaximums);
                 Assert.AreEqual("hedera-query-payment-v1",attempt.NativePreparation.SigningAuthority.Scheme);
                 using var context=JsonDocument.Parse(Convert.FromBase64String(attempt.NativePreparation.SigningAuthority.EvidenceBase64));
                 Assert.AreEqual(publicKey,context.RootElement.GetProperty("PublicKey").GetString());

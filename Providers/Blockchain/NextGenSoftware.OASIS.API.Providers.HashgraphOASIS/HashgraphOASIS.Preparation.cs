@@ -67,7 +67,11 @@ public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.
                 PublicKey=expectedPublicKey,NodeAccountId=node,PaymentTinybars=units,MaxPaymentTinybars=cap,MaxTransactionFeeTinybars=feeCap})));
             var correlation=prefix+"."+Interlocked.Increment(ref next).ToString(System.Globalization.CultureInfo.InvariantCulture);
             await execution.BeginPreparedNativeAttemptAsync("HashgraphOASIS",null,correlation,identity,new UsageNativePreparation {
-                ChainId=_hederaNetwork,Sender=expectedSender,SignedTransactionBase64=evidence.GetProperty("signedTransactionBase64").GetString(),SigningAuthority=authority},token);
+                ChainId=_hederaNetwork,Sender=expectedSender,SignedTransactionBase64=evidence.GetProperty("signedTransactionBase64").GetString(),SigningAuthority=authority,
+                // Original signed payer-to-node debit plus its signed CryptoTransfer fee ceiling.
+                // Do not reuse this query-only bound for contract gas or other mutation types.
+                FeeMaximums=execution.RequiresVerifiedNativeFeeMaximums?new[]{new NativeFeeMaximum("tinybar",
+                    verified.GetProperty("maximumFeeTinybars").GetString(),NativeFeeMaximumCoverage.AllFees)}:null},token);
         },maximumRequests);
     }
     private static NativeSigningAuthority PayerAuthority(string publicKey)
