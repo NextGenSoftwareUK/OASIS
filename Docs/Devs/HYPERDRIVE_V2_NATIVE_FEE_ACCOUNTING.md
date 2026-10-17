@@ -2,6 +2,26 @@
 
 ## Concrete priced storage composition — 2026-10-17
 
+### Deployable WEB7–WEB10 registration (disabled until explicitly configured)
+
+Core `cb07c00` defines `StorageAdmissionDeployment`, `StorageAdmissionRoutes` and `ConfiguredStorageAdmission`. WEB7–WEB10 Program.cs now call the shared registration before AddWeb4UsageLedger and selected-route middleware after usage admission/JWT processing, before endpoints. **No Railway settings were changed.** WEB4–WEB6 wiring and all seven clean pinned publishes remain unproven; do not extrapolate the four diagnostic builds.
+
+`PREPARED_STORAGE_ADMISSION_JSON` is **server configuration, not an API request body**. If absent, existing ordinary policy is unchanged. If supplied, usage must be enabled and invalid configuration fails startup (no rejection-to-ordinary fallback). Its camel-case fields map to the Core model:
+
+| Field | Required configuration |
+|---|---|
+| `quoteSource` | Exactly `CoinGeckoDemo`; a separate secret `COINGECKO_DEMO_API_KEY` is mandatory |
+| `catalogueVersion`, `assets` | Approved version and exact NativeFeeAssetMapping provider/chain/denomination/symbol/asset ID/decimals; no symbol/network inference |
+| `maximumQuoteAgeSeconds`, `admissionWindowSeconds` | Explicit 1–3600 seconds, independently enforced by existing quote binding |
+| `nativeProviders` | NativeStorageAdmissionBinding provider name, exact chain ID, **public** signer identity and unique denomination list; no private key |
+| `ordinaryProviders` | Explicit provider-name list; no overlap/downgrade. This does NOT prove their pricing/measurement coverage |
+| `routes` | Exact uppercase method and literal path plus UsageEndpointPolicy; no wildcard, prefix, query, escaped or dot-segment matching |
+| Each route policy | RequiresProviderMeasurement=true, explicit nonnegative native sub-budget within EstimatedCostUsd, positive ReservedUnits, attempts1–512, FixedCostUsd=0 and approved catalogue/meter labels |
+
+Route paths ignore casing/trailing slash only. Operators must enumerate all supported endpoint aliases/methods; this is not automatic endpoint discovery or complete paid-I/O ownership. Returned policies/configuration are snapshots. Settings changes require host restart. Unknown JSON members, numeric provider enum IDs, unknown/missing mappings/windows/credentials, normalized duplicate routes and attempted registration replacement are rejected. No market call occurs during registration.
+
+Only routes whose entire measurement/recovery path has been accepted may be enabled. In particular, ordinary-provider fallback/replication measurements and zero-native-fee reads must not be assumed covered by native receipts; missing measurement stays an unresolved error, never an invented zero charge. Approved budgets/tariffs/signers must be reviewed against actual deployment DNA, capabilities and fee readers. Configuring this feature is not approval to sponsor minting, transfer principal or deploy paid execution.
+
 Loopback HTTP follow-through now passes with the REAL Sui provider: actual Kestrel HTTP + usage middleware reservation + concrete factory + signed native save/delete + independently recovered actual receipts. Controlled test bearer/authority/pricing remain explicit. First native-v1 settlement delivery is deliberately unavailable; successful logical outcome persists, a reopened outbox/new worker later delivers the exact same settlement without re-executing the endpoint/native writes. Two originals/two receipts, synthetic declared maximum0.013222068USD versus actual net charge0.002148732USD at1USD/SUI. This demonstrates reservation/maximum/actual-fee distinction, not a production tariff or subsidy approval. Full prepared5/5pass1m11s; exact report and limits in release gates. Production registration/route policy, deployed authentication/live pricing/hosted receiver acceptance and OS-process crash verification are still separate unproven gates.
 
 Native follow-through: retained Sui prepared fixture now uses the concrete factory and actual admission middleware for public encrypted save/typed reads/hard delete. Factory uses the same admitted operation, explicit synthetic source/catalogue/test clock, exact configured signer and one quote lookup. Signed maxima, original stored quotes and actual net receipt valuations remain asserted. Four native cases pass1m2s (hash in release gates). This is controlled-context middleware plus real SDK/ledger evidence, not HTTP transport/hosted authentication or real pricing. No production route or Startup registration has been enabled.

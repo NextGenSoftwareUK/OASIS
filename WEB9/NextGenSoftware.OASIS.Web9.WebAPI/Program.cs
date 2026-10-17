@@ -86,8 +86,9 @@ builder.Services.AddRateLimiter(options =>
 });
 
 bool subscriptionUsageEnabled = string.Equals(builder.Configuration["SUBSCRIPTION_USAGE_ENABLED"], "true", StringComparison.OrdinalIgnoreCase);
+var storageUsagePolicy=builder.Services.AddConfiguredStorageAdmission(builder.Configuration,subscriptionUsageEnabled,NextGenSoftware.OASIS.Web9.WebAPI.Middleware.SubscriptionPolicy.Resolve);
 if (subscriptionUsageEnabled)
-    builder.Services.AddWeb4UsageLedger(builder.Configuration, "WEB9", NextGenSoftware.OASIS.Web9.WebAPI.Middleware.SubscriptionPolicy.Resolve);
+    builder.Services.AddWeb4UsageLedger(builder.Configuration, "WEB9", storageUsagePolicy);
 
 var app = builder.Build();
 
@@ -105,7 +106,10 @@ app.UseAuthorization();
 app.UseMiddleware<NextGenSoftware.OASIS.Web9.WebAPI.Middleware.JwtMiddleware>();
 app.UseMiddleware<NextGenSoftware.OASIS.Web9.WebAPI.Middleware.ApiKeyMiddleware>();
 if (subscriptionUsageEnabled)
+{
     app.UseMiddleware<Web4UsageLedgerMiddleware>();
+    app.UseConfiguredStorageAdmission();
+}
 
 app.MapGrpcService<SingularityGrpcService>();
 app.MapGraphQL();
