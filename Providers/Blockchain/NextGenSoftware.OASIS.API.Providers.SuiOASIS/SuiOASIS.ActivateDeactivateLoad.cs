@@ -53,19 +53,13 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
-                if (radiusInMeters < 0 || geoLat < -90000000 || geoLat > 90000000
-                    || geoLong < -180000000 || geoLong > 180000000)
-                    throw new ArgumentOutOfRangeException(nameof(radiusInMeters), "Valid coordinates and nonnegative radius are required.");
+                var query = new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordLocationQuery(geoLat, geoLong, radiusInMeters);
                 result = LoadAllAvatarsAsync().GetAwaiter().GetResult();
                 if (result.IsError) return result;
-                result.Result = result.Result.Where(item => item.MetaData != null
-                    && item.MetaData.TryGetValue("Latitude", out var lat)
-                    && item.MetaData.TryGetValue("Longitude", out var lon)
-                    && GeoHelper.CalculateDistance(geoLat / 1000000d, geoLong / 1000000d,
-                        Convert.ToDouble(lat, System.Globalization.CultureInfo.InvariantCulture),
-                        Convert.ToDouble(lon, System.Globalization.CultureInfo.InvariantCulture)) <= radiusInMeters).ToList();
+                result.Result = query.Select(result.Result, item => item.IsActive && !item.IsDeleted);
+                result.IsLoaded = true;
             }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+            catch (Exception ex) { result.Result = null; result.IsLoaded = false; OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
             return result;
         }
 
@@ -74,19 +68,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
-                if (radiusInMeters < 0 || geoLat < -90000000 || geoLat > 90000000
-                    || geoLong < -180000000 || geoLong > 180000000)
-                    throw new ArgumentOutOfRangeException(nameof(radiusInMeters), "Valid coordinates and nonnegative radius are required.");
+                var query = new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordLocationQuery(geoLat, geoLong, radiusInMeters);
+                if (!Enum.IsDefined(typeof(HolonType), holonType)) throw new ArgumentOutOfRangeException(nameof(holonType));
                 result = LoadAllHolonsAsync(holonType).GetAwaiter().GetResult();
                 if (result.IsError) return result;
-                result.Result = result.Result.Where(item => item.MetaData != null
-                    && item.MetaData.TryGetValue("Latitude", out var lat)
-                    && item.MetaData.TryGetValue("Longitude", out var lon)
-                    && GeoHelper.CalculateDistance(geoLat / 1000000d, geoLong / 1000000d,
-                        Convert.ToDouble(lat, System.Globalization.CultureInfo.InvariantCulture),
-                        Convert.ToDouble(lon, System.Globalization.CultureInfo.InvariantCulture)) <= radiusInMeters).ToList();
+                result.Result = query.Select(result.Result,
+                    item => item.IsActive && !item.IsDeleted && (holonType == HolonType.All || item.HolonType == holonType));
+                result.IsLoaded = true;
             }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
+            catch (Exception ex) { result.Result = null; result.IsLoaded = false; OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
             return result;
         }
 
