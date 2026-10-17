@@ -1,5 +1,16 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Host integration trace and next implementation boundary (2026-10-17)
+
+Inspected current source, not assumed from provider tests:
+
+- WEB4 `Controllers/DataController.Save.cs` calls `HolonManager.SaveHolonAsync` after authentication/ownership checks. Core `Managers/HolonManager/HolonManager-Save.cs` creates the V2 `StorageOperationRequest` without a preparation policy. Therefore merely registering a quote factory does not wire this route.
+- `StorageOperationRequest.PreparedExecution` is NET10-only and ignored by both Newtonsoft.Json and System.Text.Json: it is trusted in-process policy, never a client JSON authorization field. V2 already wraps activation plus actual provider routing inside a supplied policy and forwards it to replicas; do not duplicate this provider lifecycle owner.
+- WEB4 Startup registers `LocalUsageReservationAuthority` against authenticated canonical request identity and its existing subscription repository. That is authority transport, not proof that a data-route execution handle, approved native signer policy or quote has been attached. Consuming WEB5–WEB10 registration is separate; do not blindly call their WEB4-excluding registration helper in WEB4.
+- Next implementation must compose authenticated execution, explicit approved provider/chain/denomination mappings and signing identity at the service boundary, propagate the trusted policy through manager-created V2 requests (including reads with activation side effects and replica work), register original fee readers, and persist price plus signed evidence before broadcast using existing owners. Cover HTTP authorization, denied/unmapped routes, primary/failover/replica attribution, interruption and restarted settlement. Do not enable sponsorship or claim hosted coverage from isolated library tests.
+
+Core `187eb8eca5f53411a8c7081031f72693a7e17999` now proves factory-to-durable-recovery composition with two controlled fee/rebate cases. A single timestamped source quote is bound, verified preparation is persisted, a new Mongo store instance restores the exact quote, original receipt lookup values it, and another store restart delivers settlement without a second price fetch or receipt lookup. Full201/201 subscription tests passed16s, no skips; report SHA256 in current release gates. USD2 price, receipt and authority are synthetic; no historical/live price/native identity/hosted authorization proof is implied. Test source changes only; production host integration remains open.
+
 ## Explicit mapping and quote construction (2026-10-17)
 
 Core commit `233ac62d35c5aefbc5a2a9667d8228443106cd3e` adds `NativeFeeAssetCatalogue` and `NativeFeePriceQuoteFactory` in `Services/Subscriptions`. Trusted host configuration supplies a version and 1–256 exact `(Provider, ChainId, Denomination)` mappings to a quote symbol, immutable market asset ID and decimal scale. There are no built-in network mappings: test examples such as local Cosmos `uatom`/ATOM are synthetic configuration, not an assertion that every Cosmos chain uses ATOM. Unknown or case-mismatched tuples fail before fetching. Catalogue construction snapshots configuration and rejects duplicate tuples, unbounded fields and invalid scales.
