@@ -1,8 +1,10 @@
 import { AccountId, ContractId, TokenId, TransactionId, ContractExecuteTransaction, AccountAllowanceApproveTransaction, Hbar } from '@hiero-ledger/sdk';
-import { Interface, getBytes, keccak256 } from 'ethers';
+import { Interface, getBytes, keccak256, hexlify } from 'ethers';
+import { tokenUnits } from './token-amount.mjs';
+import { idBoundEscrowAbi, isIdBoundEscrow, validateIdBoundIntent, validateDeposit, sameDeposit, verifyDepositReadback } from './id-bound-escrow.mjs';
 import {persistSignedSubmission} from './native-preparation.mjs';
 import {createPaidQuery} from './paid-query-preparation.mjs';
-import { AccountInfoQuery, ContractInfoQuery, ContractByteCodeQuery, TokenNftInfoQuery, ContractCallQuery } from '@hiero-ledger/sdk';
+import { AccountInfoQuery, ContractInfoQuery, ContractByteCodeQuery, TokenNftInfoQuery, ContractCallQuery, TokenInfoQuery } from '@hiero-ledger/sdk';
 
 export const escrowAbi = new Interface([
   'function lockNFT(address token,uint256 serial)',
@@ -14,6 +16,7 @@ export const escrowAbi = new Interface([
 ]);
 const fungibleAbi = new Interface([
   'function balanceOf(address owner) view returns(uint256)',
+  'function totalSupply() view returns(uint256)',
   'function allowance(address owner,address spender) view returns(uint256)'
 ]);
 
@@ -83,8 +86,17 @@ function validateApprovalId(request, sender, mutationId) {
 export function tokenEscrowTransaction(action, request) {
   if (!['tokenEscrowLock', 'tokenEscrowUnlock'].includes(action)) throw new Error('Unknown token escrow mutation.');
   const { contract, token, id } = validateEscrowContext(request);
+  let abi=escrowAbi, name=action === 'tokenEscrowLock' ? 'lockAll' : 'unlock', args=['0x'+token.toSolidityAddress()];
+  if(isIdBoundEscrow(request)) {
+    validateIdBoundIntent(action,request);abi=idBoundEscrowAbi;
+    if(action==='tokenEscrowLock'){
+      if(typeof request.amountUnits!=='string' || !/^[1-9][0-9]*$/.test(request.amountUnits) || BigInt(request.amountUnits)>9223372036854775807n)
+        throw new Error('Id-bound token escrow requires exact positive int64 units.');
+      name='lock';args=[request.depositId,'0x'+token.toSolidityAddress(),BigInt(request.amountUnits)];
+    }else{name='unlock';args=[request.depositId];}
+  }
   return new ContractExecuteTransaction().setContractId(contract).setGas(request.gas)
-    .setFunctionParameters(getBytes(escrowAbi.encodeFunctionData(action === 'tokenEscrowLock' ? 'lockAll' : 'unlock', ['0x' + token.toSolidityAddress()])))
+    .setFunctionParameters(getBytes(abi.encodeFunctionData(name,args)))
     .setMaxTransactionFee(Hbar.fromTinybars(request.maxFeeTinybars))
     .setTransactionId(id).setMaxAttempts(1).setRegenerateTransactionId(false);
 }
@@ -100,7 +112,11 @@ export function tokenEscrowApprovalTransaction(request) {
 }
 
 export async function executeTokenEscrow(action, request, { createClient, restoreKey,persistPreparedSubmission,persistPaidQueryPayment }) {
-  const mutation = tokenEscrowTransaction(action, request);
+  // Snapshot scalar intent before any paid queries or caller-controlled awaits.
+  request={...request};
+  const idBound=isIdBoundEscrow(request);
+  if(idBound)validateIdBoundIntent(action,request);
+  let mutation = idBound ? null : tokenEscrowTransaction(action, request);
   const { sender, contract, token } = validateEscrowContext(request);
   const locking = action === 'tokenEscrowLock';
   if (!/^0x[0-9a-f]{40}$/i.test(request.senderEvmAddress ?? '') || /^0x0{40}$/i.test(request.senderEvmAddress))
@@ -130,19 +146,40 @@ export async function executeTokenEscrow(action, request, { createClient, restor
     const spender = '0x' + contractInfo.contractAccountId;
     await verifyDepositorAccount(contractInfo.accountId, spender, queryAccount);
     const tokenAddress = '0x' + token.toSolidityAddress();
-    async function read(target, abi, name, args) {
+    async function read(target, abi, name, args, tuple=false) {
       const response = await createPaidQuery(ContractCallQuery,request,client,key,persistPaidQueryPayment,payment).setContractId(target).setGas(request.gas)
         .setFunctionParameters(getBytes(abi.encodeFunctionData(name, args))).execute(client);
       if (response.errorMessage) throw new Error('Token escrow state query reverted.');
-      return abi.decodeFunctionResult(name, response.bytes)[0];
+      const decoded=abi.decodeFunctionResult(name,response.bytes);
+      if(abi.encodeFunctionResult(name,decoded).toLowerCase()!==hexlify(response.bytes).toLowerCase())
+        throw new Error('Escrow state query returned a noncanonical ABI result.');
+      return tuple?decoded:decoded[0];
     }
     const tokenContract = ContractId.fromString(token.toString());
     const balance = () => read(tokenContract, fungibleAbi, 'balanceOf', [owner]);
-    const deposit = () => read(contract, escrowAbi, 'locked', [tokenAddress, owner]);
+    const deposit = () => idBound ? read(contract,idBoundEscrowAbi,'deposits',[request.depositId],true)
+      :read(contract, escrowAbi, 'locked', [tokenAddress, owner]);
     const beforeBalance = await balance(), beforeDeposit = await deposit();
-    const amount = locking ? beforeBalance : beforeDeposit;
+    let amount=locking?beforeBalance:beforeDeposit;
+    let beforeEscrow=null,beforeSupply=null;
+    if(idBound){
+      if(await read(contract,idBoundEscrowAbi,'escrowProtocolVersion',[])!==1n)
+        throw new Error('Unsupported id-bound escrow protocol version.');
+      validateDeposit(beforeDeposit,owner,tokenAddress,locking);
+      if(locking){
+        if(!await read(contract,idBoundEscrowAbi,'isTokenAssociated',[tokenAddress]))
+          throw new Error('Associate this HTS token with the escrow through an explicit separately funded transaction before depositing.');
+        const info=await createPaidQuery(TokenInfoQuery,request,client,key,persistPaidQueryPayment,payment).setTokenId(token).execute(client);
+        if(info.tokenId.toString()!==token.toString() || info.isDeleted)throw new Error('HTS token identity mismatch.');
+        amount=tokenUnits(request.amount,info.decimals);
+      }else amount=beforeDeposit.amount;
+      beforeEscrow=await read(tokenContract,fungibleAbi,'balanceOf',[spender]);
+      beforeSupply=await read(tokenContract,fungibleAbi,'totalSupply',[]);
+      if(locking?beforeBalance<amount:beforeEscrow<amount)throw new Error('Token custody does not satisfy the explicit deposit operation.');
+      mutation=tokenEscrowTransaction(action,{...request,amountUnits:amount.toString()});
+    }
     if (amount <= 0n || amount > 9223372036854775807n) throw new Error('Token escrow requires a positive int64 ledger amount.');
-    if (locking && beforeDeposit + amount > 9223372036854775807n)
+    if (!idBound && locking && beforeDeposit + amount > 9223372036854775807n)
       throw new Error('Owned token deposit would exceed the HTS int64 release limit.');
     if (locking) {
       const allowance = await read(tokenContract, fungibleAbi, 'allowance', [owner, spender]);
@@ -160,9 +197,13 @@ export async function executeTokenEscrow(action, request, { createClient, restor
         if (await read(tokenContract, fungibleAbi, 'allowance', [owner, spender]) !== amount)
           throw new Error('Confirmed token allowance readback mismatch.');
       }
-      if (await balance() !== beforeBalance || await deposit() !== beforeDeposit)
+      if (await balance() !== beforeBalance || (idBound?!sameDeposit(await deposit(),beforeDeposit):await deposit() !== beforeDeposit))
         throw new Error('Token balances changed before escrow submission.');
     }
+    if(idBound && (await read(tokenContract,fungibleAbi,'balanceOf',[spender])!==beforeEscrow
+      || await read(tokenContract,fungibleAbi,'totalSupply',[])!==beforeSupply
+      || await balance()!==beforeBalance || !sameDeposit(await deposit(),beforeDeposit)))
+      throw new Error('Token custody changed before per-deposit escrow submission.');
     stage = 'mutation';
     mutation.freezeWith(client);
     const signedMutation=await mutation.sign(key);
@@ -172,11 +213,18 @@ export async function executeTokenEscrow(action, request, { createClient, restor
     if (receipt.status.toString() !== 'SUCCESS') throw new Error('Token escrow consensus failure.');
     stage = 'readback';
     const afterBalance = await balance(), afterDeposit = await deposit();
-    if (afterBalance !== (locking ? 0n : beforeBalance + amount) || afterDeposit !== (locking ? beforeDeposit + amount : 0n))
+    if(idBound){
+      verifyDepositReadback(afterDeposit,owner,tokenAddress,amount,!locking);
+      if(afterBalance!==beforeBalance+(locking?-amount:amount)
+        || await read(tokenContract,fungibleAbi,'balanceOf',[spender])!==beforeEscrow+(locking?amount:-amount)
+        || await read(tokenContract,fungibleAbi,'totalSupply',[])!==beforeSupply)
+        throw new Error('Confirmed per-deposit token custody/supply readback mismatch.');
+    }else if (afterBalance !== (locking ? 0n : beforeBalance + amount) || afterDeposit !== (locking ? beforeDeposit + amount : 0n))
       throw new Error('Confirmed token escrow balance readback mismatch.');
-    return { transactionId: submitted.transactionId.toString(), approvalTransactionId, status: 'SUCCESS', amountUnits: amount.toString() };
+    return { transactionId: submitted.transactionId.toString(), approvalTransactionId, status: 'SUCCESS', amountUnits: amount.toString(),
+      ...(idBound?{depositId:request.depositId}: {}) };
   } catch (cause) {
-    const error = new Error('Hedera token escrow did not establish verified success. Reconcile the original mutation and any approval before retrying.');
+    const error = new Error('Hedera token escrow did not establish verified success. Reconcile the original mutation and any approval before retrying.',{cause});
     error.transactionId = stage === 'approval' ? request.approvalTransactionId : request.transactionId;
     error.mutationTransactionId = request.transactionId;
     error.approvalTransactionId = approvalTransactionId;
