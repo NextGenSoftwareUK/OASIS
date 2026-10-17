@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 predictive recovery implementation reused Core/provider build outputs, fixed unit reports and retained Ethereum local runtime. HyperDrive546unit/nativeEthereum186/59contract/nativeWeb3 4 passed; normal owned node stop. Runner free77336518656before/77334114304after bytes systemwide only. No download/install/new environment/public gas/native pending-journal removal. Unrelated dirty subscription source preserved, not staged; no clean-release/immutable claim. Fixed compact reports overwritten.
+
 2026-10-16 same-instance Ethereum reactivation reused retained local chain/SDK/cache/fixed reports and normal runner teardown:186native/59contract/4Web3 passed. Free77344317440before/77338750976after bytes systemwide only. No install/download/clone/new environment/public gas or protected journal/ledger/source/userdata removal. Fixed reports overwritten, synthetic fixture cleanup owned by runner.
 
 2026-10-16 Ethereum same-manager endpoint repair reused retained local31337/Hardhat/solc/SDK and fixed reports/fixtures; native186/186pass58s,59contract assertions, downstreamWeb3native4/4pass1m25s. Normal runner node teardown, no install/download/clone/new environment/public gas. Runner free77346672640before/77347155968after bytes is systemwide observation only. Fixed reports overwritten; no protected native ledger/journal/source/userdata removal.

@@ -2,6 +2,10 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Predictive recovery downstream nativeWeb3 refresh completed4/4pass1m25s, zero skips, normal runner exit/teardown; supersedes pending observation below.
+
+Predictive original-provider recovery implemented in Core51f04b7: one owned request probe per DNA health interval, concurrent redirect, failure reschedule, success clear, stale-generation guard. HyperDrive546pass; nativeEthereum186pass57s/59contract assertions includes deterministic-clock redirect recovery through real SDK after explicit endpoint repair. No automatic replay/background transaction. Supersedes earlier absent-owner notes, but not full native concurrency/all-provider/restart/durable/immutable-release certification; Web3 downstream pending here.
+
 Ethereum same-instance reactivation: native186/186pass57s,59contract assertions,Web3native4/4pass1m26s. After failed SDK activation, same registered provider automatically activates on next request after explicit HostURI repair, same manager/router, SQLite request delta0. Not unchanged-endpoint outage recovery. Predictive override expiry/probe owner remains absent in inspected source; automatic circuit recovery still unproven/unimplemented there.
 
 Repaired-endpoint downstream refresh completed: Web3 native4/4pass1m25s, zero skips, runnerexit0/normal teardown. Supersedes pending observation below.
