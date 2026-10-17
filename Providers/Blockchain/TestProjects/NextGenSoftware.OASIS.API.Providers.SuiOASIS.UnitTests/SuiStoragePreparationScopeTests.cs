@@ -31,7 +31,8 @@ public class SuiStoragePreparationScopeTests
         var type=typeof(SuiOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.SuiOASIS.SuiSdkClient")!;
         using var client=(IDisposable)Activator.CreateInstance(type,flags,null,new object[]{"http://127.0.0.1:1","localnet","chain","key","package","store","currency"},null)!;
         foreach(var operation in new[]{"put","delete","putMany","deleteMany","publish","publicationResume","transfer",
-            "nftMint","nftSend","nftBurn","nftLock","nftUnlock","tokenMint","tokenSend","tokenBurn","tokenLock","tokenUnlock"}){
+            "nftMint","nftSend","nftBurn","nftLock","nftUnlock","tokenMint","tokenSend","tokenBurn","tokenLock","tokenUnlock",
+            "tokenEscrowLock","tokenEscrowRelease"}){
             var cause=new InvalidOperationException("Owned preparation rejection before SDK launch.");var calls=0;
             Func<Task<int>> invoke=async()=>{
                 await (Task<System.Text.Json.JsonElement>)type.GetMethod("InvokeAsync",flags)!
