@@ -4,6 +4,7 @@ using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
 using NextGenSoftware.OASIS.API.Providers.LocalFileOASIS;
+using NextGenSoftware.OASIS.API.Providers.SuiOASIS;
 using Xunit;
 
 namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
@@ -11,13 +12,17 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 public sealed class HederaWalletFailureTests
 {
     [Theory]
-    [InlineData(false, "id")]
-    [InlineData(true, "id")]
-    [InlineData(false, "username")]
-    [InlineData(true, "username")]
-    [InlineData(false, "email")]
-    [InlineData(true, "email")]
-    public async Task CorruptStoredSigningWalletRetainsOriginalFailureBeforeSdkUse(bool synchronous, string selector)
+    [InlineData(false, "id", false)]
+    [InlineData(true, "id", false)]
+    [InlineData(false, "username", false)]
+    [InlineData(true, "username", false)]
+    [InlineData(false, "email", false)]
+    [InlineData(true, "email", false)]
+    [InlineData(false, "username", true)]
+    [InlineData(true, "username", true)]
+    [InlineData(false, "email", true)]
+    [InlineData(true, "email", true)]
+    public async Task CorruptStoredSigningWalletRetainsOriginalFailureBeforeSdkUse(bool synchronous, string selector, bool sui)
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory != null && !File.Exists(Path.Combine(directory.FullName, "AGENTS.md"))) directory = directory.Parent;
@@ -48,14 +53,22 @@ public sealed class HederaWalletFailureTests
             var constructor = typeof(WalletManager).GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic).Single(c => c.GetParameters().Length == 4);
             var wallets = (WalletManager)constructor.Invoke(new object?[] { local, dna, providers, null });
             await File.WriteAllTextAsync(path, corruptFixture);
+            var walletProvider = sui ? ProviderType.SuiOASIS : ProviderType.HashgraphOASIS;
             var expected = selector == "username"
-                ? await wallets.GetAvatarDefaultWalletByUsernameAsync("hedera-failure-sender", showPrivateKeys: true, providerType: ProviderType.HashgraphOASIS)
+                ? await wallets.GetAvatarDefaultWalletByUsernameAsync("hedera-failure-sender", showPrivateKeys: true, providerType: walletProvider)
                 : selector == "email"
-                ? await wallets.GetAvatarDefaultWalletByEmailAsync("hedera-failure-sender@example.invalid", ProviderType.HashgraphOASIS, showPrivateKeys: true)
+                ? await wallets.GetAvatarDefaultWalletByEmailAsync("hedera-failure-sender@example.invalid", walletProvider, showPrivateKeys: true)
                 : await wallets.GetAvatarDefaultWalletByIdAsync(sender, ProviderType.HashgraphOASIS, showPrivateKeys: true);
             Assert.True(expected.IsError); Assert.NotNull(expected.Exception);
             var hedera = new HashgraphOASIS(walletManager: wallets);
-            var result = selector == "username"
+            using var suiProvider = new SuiOASIS { WalletManager = wallets };
+            var result = sui
+                ? selector == "username"
+                    ? synchronous ? suiProvider.SendTransactionByUsername("hedera-failure-sender", "hedera-failure-recipient", 1m)
+                        : await suiProvider.SendTransactionByUsernameAsync("hedera-failure-sender", "hedera-failure-recipient", 1m)
+                    : synchronous ? suiProvider.SendTransactionByEmail("hedera-failure-sender@example.invalid", "hedera-failure-recipient@example.invalid", 1m)
+                        : await suiProvider.SendTransactionByEmailAsync("hedera-failure-sender@example.invalid", "hedera-failure-recipient@example.invalid", 1m)
+                : selector == "username"
                 ? synchronous ? hedera.SendTransactionByUsername("hedera-failure-sender", "hedera-failure-recipient", 1m)
                     : await hedera.SendTransactionByUsernameAsync("hedera-failure-sender", "hedera-failure-recipient", 1m)
                 : selector == "email"
@@ -67,6 +80,7 @@ public sealed class HederaWalletFailureTests
             Assert.NotNull(result.Exception); Assert.IsType(expected.Exception.GetType(), result.Exception);
             Assert.Equal(expected.ErrorCode, result.ErrorCode); Assert.Equal(expected.DetailedMessage, result.DetailedMessage);
             Assert.Equal(expected.Message, result.Message); Assert.False(hedera.IsProviderActivated);
+            Assert.False(suiProvider.IsProviderActivated);
         }
         finally
         {
