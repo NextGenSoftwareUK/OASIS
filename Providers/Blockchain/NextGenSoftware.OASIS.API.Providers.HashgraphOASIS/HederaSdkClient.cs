@@ -14,6 +14,12 @@ internal static class HederaSdkClient
 {
     private static long _lastTransactionTicks;
 
+    internal static bool IsNativeMutationAction(string action)=>action is "storagePut" or "storageDelete" or "fileCreate" or "fileUpdate" or "fileDelete"
+        or "transfer" or "tokenTransfer" or "tokenMint" or "tokenBurn" or "nftTransfer" or "nftMint" or "nftBurn"
+        or "nftEscrowLock" or "nftEscrowUnlock" or "tokenEscrowLock" or "tokenEscrowUnlock"
+        or "bytecodeFileCreate" or "bytecodeFileAppend" or "contractCreate" or "nftCollectionCreate"
+        or "tokenCollectionDelete" or "nftMetadataUpdate";
+
     internal static string CreateTransactionId(string sender)
     {
         if (!System.Text.RegularExpressions.Regex.IsMatch(sender ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+\z"))
@@ -35,7 +41,12 @@ internal static class HederaSdkClient
         => InvokeCoreAsync(action,request,cancellationToken,null);
     internal static Task<JsonElement> InvokePreparedAsync(string action,object request,PreparedSubmissionServer server,CancellationToken token)
         => InvokeCoreAsync(action,request,token,server??throw new ArgumentNullException(nameof(server)));
-    private static async Task<JsonElement> InvokeCoreAsync(string action,object request,CancellationToken cancellationToken,PreparedSubmissionServer preparationServer)
+    internal static Task<JsonElement> InvokePreparedQueriesAsync(string action,object request,PreparedSubmissionServer queryServer,CancellationToken token)
+        =>InvokeCoreAsync(action,request,token,null,queryServer??throw new ArgumentNullException(nameof(queryServer)));
+    internal static Task<JsonElement> InvokePreparedWithQueriesAsync(string action,object request,PreparedSubmissionServer server,PreparedSubmissionServer queryServer,CancellationToken token)
+        =>InvokeCoreAsync(action,request,token,server??throw new ArgumentNullException(nameof(server)),queryServer??throw new ArgumentNullException(nameof(queryServer)));
+    private static async Task<JsonElement> InvokeCoreAsync(string action,object request,CancellationToken cancellationToken,PreparedSubmissionServer preparationServer,
+        PreparedSubmissionServer queryServer=null)
     {
         cancellationToken.ThrowIfCancellationRequested();
         var script = Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE")
@@ -55,17 +66,20 @@ internal static class HederaSdkClient
         start.Environment.Remove("OASIS_NATIVE_PREPARATION_MODULE");
         start.Environment.Remove("OASIS_NATIVE_PREPARATION_APPROVAL_ID");
         start.Environment.Remove("OASIS_NATIVE_PREPARATION_MUTATION_ID");
+        start.Environment.Remove("OASIS_NATIVE_QUERY_PREPARATION_PIPE");
+        start.Environment.Remove("OASIS_NATIVE_QUERY_PREPARATION_MODULE");
+        if(queryServer!=null){
+            if(!queryServer.IsBoundedRequestSequence||ReferenceEquals(preparationServer,queryServer))
+                throw new ArgumentException("Distinct bounded query preparation ownership is required.");
+            queryServer.ConfigureQueryChild(start,Path.Combine(AppContext.BaseDirectory,"HederaSdkBridge","prepared-submission.mjs"));
+        }
         var requestJson = JsonSerializer.Serialize(new { action, request });
         using var requestDocument = JsonDocument.Parse(requestJson);
         var originalId = requestDocument.RootElement.GetProperty("request").TryGetProperty("transactionId", out var requestedId)
             ? requestedId.GetString() : null;
         var originalApprovalId = requestDocument.RootElement.GetProperty("request").TryGetProperty("approvalTransactionId", out var requestedApprovalId)
             ? requestedApprovalId.GetString() : null;
-        var isMutation = action is "storagePut" or "storageDelete" or "fileCreate" or "fileUpdate" or "fileDelete"
-            or "transfer" or "tokenTransfer" or "tokenMint" or "tokenBurn" or "nftTransfer" or "nftMint" or "nftBurn"
-            or "nftEscrowLock" or "nftEscrowUnlock" or "tokenEscrowLock" or "tokenEscrowUnlock"
-            or "bytecodeFileCreate" or "bytecodeFileAppend" or "contractCreate" or "nftCollectionCreate"
-            or "tokenCollectionDelete" or "nftMetadataUpdate";
+        var isMutation=IsNativeMutationAction(action);
         if (isMutation && string.IsNullOrWhiteSpace(originalId))
             throw new ArgumentException("Hedera native mutations require an explicit original transaction ID before SDK launch.");
         if(preparationServer!=null){
@@ -84,6 +98,7 @@ internal static class HederaSdkClient
         using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
         timeout.CancelAfter(TimeSpan.FromMinutes(2));
         var preparationTask=preparationServer?.ServeAsync(timeout.Token);var preparationObserved=false;
+        var queryTask=queryServer?.ServeAsync(timeout.Token);var queryObserved=false;
         var output = process.StandardOutput.ReadToEndAsync(timeout.Token);
         var error = process.StandardError.ReadToEndAsync(timeout.Token);
         try
@@ -93,6 +108,7 @@ internal static class HederaSdkClient
             process.StandardInput.Close();
             await process.WaitForExitAsync(timeout.Token);
             if(preparationTask?.IsFaulted==true){preparationObserved=true;await preparationTask;}
+            if(queryTask?.IsFaulted==true){queryObserved=true;await queryTask;}
             var response = await output;
             var failure = await error;
             if (process.ExitCode != 0)
@@ -149,6 +165,12 @@ internal static class HederaSdkClient
                     new HederaNativeMutationEvidence(originalId, null, originalId, "process-output-unverified", null), ex);
             }
             using var document = parsedResponse;
+            if(queryTask!=null&&(!queryTask.IsCompletedSuccessfully||!queryServer.SequenceCompleted)){
+                const string message="SDK success lacks count-matched durable query-stream completion; reconcile original admitted payments.";
+                if(isMutation)throw new HederaNativeMutationReconciliationException(message,
+                    new HederaNativeMutationEvidence(originalId,originalApprovalId,originalId,"query-completion-unverified",null));
+                throw new InvalidDataException(message);
+            }
             if(preparationTask!=null&&(!preparationTask.IsCompletedSuccessfully||preparationServer.PreparedTransactionId!=originalId))
                 throw new HederaNativeMutationReconciliationException("Hedera success lacks matching durable original preparation acknowledgement.",
                     new HederaNativeMutationEvidence(originalId,null,originalId,"preparation-unverified",null));
@@ -209,7 +231,7 @@ internal static class HederaSdkClient
         }
         finally
         {
-            timeout.Cancel();preparationServer?.Dispose();
+            timeout.Cancel();preparationServer?.Dispose();queryServer?.Dispose();
             if (!process.HasExited)
             {
                 process.Kill(entireProcessTree: true);
@@ -224,6 +246,11 @@ internal static class HederaSdkClient
                 try{await preparationTask;}
                 catch(OperationCanceledException){}
                 catch(Exception) when(preparationObserved){}
+            }
+            if(queryTask!=null){
+                try{await queryTask;}
+                catch(OperationCanceledException){}
+                catch(Exception) when(queryObserved){}
             }
         }
     }

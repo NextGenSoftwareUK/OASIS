@@ -7,6 +7,92 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests;
 
 public partial class HederaPreparationTests
 {
+    [DataTestMethod]
+    [DataRow("fileRead")] [DataRow("transfer")]
+    public async Task ProcessSuccessWithoutOwnedQueryCompletionCannotClaimTrackedSuccess(string action)
+    {
+        const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
+        var database="usage_hedera_query_process_"+Guid.NewGuid().ToString("N");var mongo=new MongoDB.Driver.MongoClient(connection);
+        var previous=Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE");
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(15));
+        try{
+            Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","query-missing-completion.mjs"));
+            var store=new MongoUsageOutboxStore(connection,database);await store.InitializeAsync(deadline.Token);
+            var user=Guid.NewGuid().ToString("D");using var http=new HttpClient(new OfflineAuthority(user));
+            var authority=new Web4SubscriptionAuthorizationClient(http,"https://offline-authority.test","WEB6","test-only-key");
+            var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6",PersistenceTimeout=TimeSpan.FromSeconds(5)})
+                .BeginAsync("test-only-bearer",user,"query-process",new string('a',64),"POST /fixture",new(){MeterCategory="api.request",ReservedUnits=1},deadline.Token);
+            var provider=new HashgraphOASIS(network:"testnet",chainId:"296");
+            var operation=provider.ExecutePreparedWithQueriesAsync(action,new {network="testnet",sender="0.0.1001",fileId="0.0.2001",
+                transactionId="0.0.1001@1700000000.000000001"},execution,"process","0.0.1001","controlled-public-authority",
+                new[]{"0.0.3"},123,100000000,maximumRequests:2,token:deadline.Token);
+            if(action=="transfer")await Assert.ThrowsExceptionAsync<HederaNativeMutationReconciliationException>(async()=>await operation);
+            else await Assert.ThrowsExceptionAsync<InvalidDataException>(async()=>await operation);
+            var retained=await store.GetAsync(execution.OperationId,deadline.Token);Assert.AreEqual(0,retained.Receipts.Count);Assert.IsNull(retained.Settlement);
+        }finally{Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",previous);await mongo.DropDatabaseAsync(database);}
+    }
+
+    [TestMethod]
+    public async Task ActualBridgeFileReadOwnsPaidSdkGrpcRequestAndCompletesDurableQueryStream()
+    {
+        const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
+        var bridge=Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE")!;
+        var start=new ProcessStartInfo("node"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardInput=true,RedirectStandardOutput=true,
+            RedirectStandardError=true,WorkingDirectory=Path.GetDirectoryName(bridge)};
+        start.ArgumentList.Add("--input-type=module");start.ArgumentList.Add("-e");
+        start.ArgumentList.Add("""
+            import grpc from '@grpc/grpc-js';import {proto} from '@hiero-ledger/proto';
+            import {PrivateKey,Transaction} from '@hiero-ledger/sdk';
+            const key=PrivateKey.fromStringED25519('11'.repeat(32));
+            const server=new grpc.Server();
+            server.addService({getFileContent:{path:'/proto.FileService/getFileContent',requestStream:false,responseStream:false,
+              requestSerialize:value=>Buffer.from(proto.Query.encode(value).finish()),requestDeserialize:bytes=>proto.Query.decode(bytes),
+              responseSerialize:value=>Buffer.from(proto.Response.encode(value).finish()),responseDeserialize:bytes=>proto.Response.decode(bytes)}},
+              {getFileContent:(call,callback)=>{
+                const query=call.request.fileGetContents;const header=query.header;
+                if(header.responseType===proto.ResponseType.ANSWER_ONLY){
+                  const payment=Transaction.fromBytes(proto.Transaction.encode(header.payment).finish());
+                  process.stdout.write(JSON.stringify({paymentId:payment.transactionId.toString()})+'\n');
+                }
+                callback(null,{fileGetContents:{header:{nodeTransactionPrecheckCode:proto.ResponseCodeEnum.OK,responseType:header.responseType,cost:123},
+                  fileContents:{fileID:query.fileID,contents:Buffer.from('controlled native protocol read')}}});
+              }});
+            const port=await new Promise((resolve,reject)=>server.bindAsync('127.0.0.1:0',grpc.ServerCredentials.createInsecure(),(error,port)=>error?reject(error):resolve(port)));
+            process.stdout.write(JSON.stringify({port,publicKey:key.publicKey.toStringDer()})+'\n');
+            for await(const chunk of process.stdin){}server.forceShutdown();
+            """);
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(35));
+        using var child=Process.Start(start)??throw new InvalidOperationException("Cannot start owned SDK protocol fixture.");
+        var errors=child.StandardError.ReadToEndAsync(deadline.Token);
+        var database="usage_hedera_query_grpc_"+Guid.NewGuid().ToString("N");var mongo=new MongoDB.Driver.MongoClient(connection);
+        try{
+            using var initial=JsonDocument.Parse(await child.StandardOutput.ReadLineAsync(deadline.Token)??throw new InvalidDataException("Missing fixture endpoint."));
+            var port=initial.RootElement.GetProperty("port").GetInt32();var publicKey=initial.RootElement.GetProperty("publicKey").GetString()!;
+            var store=new MongoUsageOutboxStore(connection,database);await store.InitializeAsync(deadline.Token);
+            var user=Guid.NewGuid().ToString("D");using var http=new HttpClient(new OfflineAuthority(user));
+            var authority=new Web4SubscriptionAuthorizationClient(http,"https://offline-authority.test","WEB6","test-only-key");
+            var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6",PersistenceTimeout=TimeSpan.FromSeconds(5)})
+                .BeginAsync("test-only-bearer",user,"query-grpc",new string('a',64),"POST /fixture",new(){MeterCategory="api.request",ReservedUnits=1},deadline.Token);
+            var provider=new HashgraphOASIS(network:"local",rpcEndpoint:$"http://127.0.0.1:{port}/api/v1",consensusNodes:new Dictionary<string,string>{{"127.0.0.1:"+port,"0.0.3"}});
+            var operation=provider.ExecutePreparedWithQueriesAsync("fileRead",new {network="local",nodes=new Dictionary<string,string>{{"127.0.0.1:"+port,"0.0.3"}},
+                sender="0.0.1001",privateKey=new string('1',64),keyType="ed25519",fileId="0.0.2001",maxFeeTinybars="100000000",
+                queryMaxPaymentTinybars="999999999999",queryMaximumRequests=512},execution,new string('p',128),"0.0.1001",publicKey,new[]{"0.0.3"},135,100000000,maximumRequests:2,token:deadline.Token);
+            var paymentEvent=child.StandardOutput.ReadLineAsync(deadline.Token).AsTask();
+            if(await Task.WhenAny(paymentEvent,operation)==operation)await operation;
+            using var eventDocument=JsonDocument.Parse(await paymentEvent??throw new InvalidDataException("No selected payment reached SDK transport."));
+            var beforeReply=await store.GetAsync(execution.OperationId,deadline.Token);Assert.AreEqual(1,beforeReply.ProviderAttempts.Count);
+            Assert.AreEqual(eventDocument.RootElement.GetProperty("paymentId").GetString(),beforeReply.ProviderAttempts[0].ProviderRequestId);
+            var response=await operation;Assert.AreEqual("controlled native protocol read",response.GetProperty("contents").GetString());
+            var context=JsonDocument.Parse(Convert.FromBase64String(beforeReply.ProviderAttempts[0].NativePreparation.SigningAuthority.EvidenceBase64));
+            using(context){Assert.AreEqual("135",context.RootElement.GetProperty("MaxPaymentTinybars").GetString());
+                Assert.AreEqual("135",context.RootElement.GetProperty("PaymentTinybars").GetString());}
+            Assert.IsTrue(beforeReply.ProviderAttempts[0].ClientRequestId.Length<=128);Assert.AreEqual(0,beforeReply.Receipts.Count);
+            child.StandardInput.Close();await child.WaitForExitAsync(deadline.Token);Assert.AreEqual(0,child.ExitCode,await errors);
+        }finally{if(!child.HasExited){child.Kill(entireProcessTree:true);await child.WaitForExitAsync();}await mongo.DropDatabaseAsync(database);}
+    }
+
     [TestMethod]
     public async Task SelectedSdkQueryPaymentsPersistThroughRealPipeAndOwnedMongoBeforeTransport()
     {
@@ -68,7 +154,8 @@ public partial class HederaPreparationTests
             Assert.AreEqual(0,child.ExitCode,await errors);Assert.IsTrue(server.SequenceCompleted);
             using var result=JsonDocument.Parse(report);Assert.AreEqual(2,result.RootElement.GetProperty("transports").GetInt32());
             var stored=await new MongoUsageOutboxStore(connection,database).GetAsync(execution.OperationId,deadline.Token);
-            CollectionAssert.AreEqual(new[]{"paid.query.1","paid.query.2"},stored.ProviderAttempts.Select(attempt=>attempt.ClientRequestId).ToArray());
+            var prefix="query."+Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes("paid"))).ToLowerInvariant();
+            CollectionAssert.AreEqual(new[]{prefix+".1",prefix+".2"},stored.ProviderAttempts.Select(attempt=>attempt.ClientRequestId).ToArray());
             Assert.AreEqual(2,stored.ProviderAttempts.Select(attempt=>attempt.ProviderRequestId).Distinct().Count());
             Assert.AreEqual(0,stored.Receipts.Count,"Admission is not a fee receipt or a zero-cost settlement.");
             foreach(var attempt in stored.ProviderAttempts){

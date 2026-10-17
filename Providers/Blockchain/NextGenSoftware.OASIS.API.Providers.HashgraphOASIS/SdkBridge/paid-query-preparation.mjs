@@ -107,3 +107,17 @@ export const PreparedContractCallQuery=preparedQuery(ContractCallQuery,'contract
 export const PreparedFileContentsQuery=preparedQuery(FileContentsQuery,'fileGetContents');
 export const PreparedTokenInfoQuery=preparedQuery(TokenInfoQuery,'tokenGetInfo');
 export const PreparedTokenNftInfoQuery=preparedQuery(TokenNftInfoQuery,'tokenGetNftInfo');
+
+const ownedQueries=new Map([[AccountInfoQuery,PreparedAccountInfoQuery],[ContractInfoQuery,PreparedContractInfoQuery],
+  [ContractByteCodeQuery,PreparedContractByteCodeQuery],[ContractCallQuery,PreparedContractCallQuery],
+  [FileContentsQuery,PreparedFileContentsQuery],[TokenInfoQuery,PreparedTokenInfoQuery],[TokenNftInfoQuery,PreparedTokenNftInfoQuery]]);
+
+// Explicit prepared vs ordinary invocation; rejection never switches to the ordinary path.
+export function createPaidQuery(Query,request,client,key,persist) {
+  if(persist===undefined)return new Query();
+  const Owned=ownedQueries.get(Query);
+  if(!Owned||typeof persist!=='function')throw new Error('Explicit supported paid-query preparation ownership is required.');
+  return new Owned({network:request.network,payer:request.sender,publicKey:key.publicKey.toStringDer(),nodes:Object.values(client.network).map(value=>value.toString()),
+    maxPaymentTinybars:request.queryMaxPaymentTinybars,maxTransactionFeeTinybars:request.queryMaxTransactionFeeTinybars,
+    persistenceTimeoutMs:request.queryPersistenceTimeoutMs,persist});
+}
