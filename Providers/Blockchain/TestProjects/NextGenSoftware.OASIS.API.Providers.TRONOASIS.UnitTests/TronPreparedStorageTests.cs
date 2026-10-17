@@ -154,6 +154,12 @@ public class TronPreparedStorageTests
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async()=>await provider.ExecutePreparedStorageAsync(
                 ()=>{called=true;return Task.FromResult(1);},execution,"cancelled",owner,cancelled.Token));
             Assert.False(called);
+            using var cancelledInside=new CancellationTokenSource();
+            var cancelledRead=await provider.ExecutePreparedStorageAsync(()=>{
+                cancelledInside.Cancel();
+                return provider.LoadHolonAsync(Guid.NewGuid(),loadChildren:false);
+            },execution,"cancelled-read",owner,cancelledInside.Token);
+            Assert.True(cancelledRead.IsError);Assert.IsAssignableFrom<OperationCanceledException>(cancelledRead.Exception);
             Assert.Equal(expectedBroadcasts,broadcasts);
             await provider.DeActivateProviderAsync();
         } finally {await server.ShutdownAsync();await mongo.DropDatabaseAsync(database);}

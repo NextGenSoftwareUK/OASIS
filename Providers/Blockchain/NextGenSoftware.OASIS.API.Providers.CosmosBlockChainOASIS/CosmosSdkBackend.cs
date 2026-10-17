@@ -50,6 +50,9 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
     internal Task<T> WithStoragePreparationAsync<T>(Func<Task<T>> operation,
         Func<string, string, PreparedSubmissionServer> preparation)
         => _storagePreparation.RunAsync(operation,preparation);
+    internal Task<T> WithStoragePreparationAndCancellationAsync<T>(Func<Task<T>> operation,
+        Func<string,string,PreparedSubmissionServer> preparation,CancellationToken token)
+        => _storagePreparation.RunAsync(operation,preparation,token);
 
     private async Task InvokeStorageMutationAsync(string operation, string key, object args, CancellationToken token)
     {
@@ -91,6 +94,10 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
         => InvokeCoreAsync(operation, args, token, server ?? throw new ArgumentNullException(nameof(server)));
     private async Task<JsonElement> InvokeCoreAsync(string operation, object args, CancellationToken cancellationToken, PreparedSubmissionServer preparationServer)
     {
+        var suppliedToken=cancellationToken;var scopeToken=_storagePreparation.CurrentToken;
+        using var scopeCancellation=scopeToken.CanBeCanceled && cancellationToken.CanBeCanceled
+            ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken,scopeToken):null;
+        cancellationToken=scopeCancellation?.Token ?? (scopeToken.CanBeCanceled?scopeToken:cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
         ObjectDisposedException.ThrowIf(_disposed, this);
         var isMutation = operation is "put" or "delete" or "execute" or "transfer" or "upload" or "instantiate";
@@ -214,7 +221,8 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
             if (isMutation)
             {
                 const string message = "Cosmos native mutation process was interrupted with outcome unverified. Reconcile before retrying; process termination does not cancel a ledger submission.";
-                if (cancellationToken.IsCancellationRequested) throw new CosmosNativeMutationCanceledException(message, ex, cancellationToken, preparationServer?.PreparedTransactionId);
+                if (cancellationToken.IsCancellationRequested) throw new CosmosNativeMutationCanceledException(message, ex,
+                    suppliedToken.IsCancellationRequested?suppliedToken:scopeToken, preparationServer?.PreparedTransactionId);
                 throw new CosmosNativeMutationTimeoutException(message, ex, preparationServer?.PreparedTransactionId);
             }
             throw;

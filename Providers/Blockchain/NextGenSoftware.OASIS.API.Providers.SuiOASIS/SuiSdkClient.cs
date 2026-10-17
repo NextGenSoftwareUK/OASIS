@@ -17,6 +17,8 @@ internal sealed class SuiSdkClient : IDisposable
     private readonly OwnedPreparationScope _storagePreparation=new();
     internal Task<T> WithStoragePreparationAsync<T>(Func<Task<T>> operation,Func<PreparedSubmissionServer> factory)
         => _storagePreparation.RunAsync(operation,factory);
+    internal Task<T> WithStoragePreparationAndCancellationAsync<T>(Func<Task<T>> operation,Func<PreparedSubmissionServer> factory,CancellationToken token)
+        => _storagePreparation.RunAsync(operation,(_,_)=>factory(),token);
 
     internal SuiSdkClient(string rpcEndpoint, string network, string chainId, string privateKey,
         string packageAddress, string storageObjectId, string currencyObjectId)
@@ -46,6 +48,10 @@ internal sealed class SuiSdkClient : IDisposable
 
     private async Task<JsonElement> InvokeCoreAsync(string operation, object args, CancellationToken cancellationToken, PreparedSubmissionServer preparationServer)
     {
+        var suppliedToken=cancellationToken;var scopeToken=_storagePreparation.CurrentToken;
+        using var scopeCancellation=scopeToken.CanBeCanceled && cancellationToken.CanBeCanceled
+            ? CancellationTokenSource.CreateLinkedTokenSource(cancellationToken,scopeToken):null;
+        cancellationToken=scopeCancellation?.Token ?? (scopeToken.CanBeCanceled?scopeToken:cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
         ObjectDisposedException.ThrowIf(_disposed, this);
         var isMutation = operation is "put" or "delete" or "putMany" or "deleteMany" or "publish" or "publicationResume"
@@ -175,7 +181,8 @@ internal sealed class SuiSdkClient : IDisposable
                 var message = "Sui native mutation process was interrupted with outcome unverified. "
                     + (originalId == null ? "Original signed identity unavailable. " : "Durably prepared original transaction: " + originalId + ". ")
                     + "Reconcile before retrying; process termination does not cancel a ledger submission.";
-                if (cancellationToken.IsCancellationRequested) throw new SuiNativeMutationCanceledException(message, ex, cancellationToken, originalId);
+                if (cancellationToken.IsCancellationRequested) throw new SuiNativeMutationCanceledException(message, ex,
+                    suppliedToken.IsCancellationRequested?suppliedToken:scopeToken, originalId);
                 throw new SuiNativeMutationTimeoutException(message, ex, originalId);
             }
             throw;

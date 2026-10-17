@@ -10,6 +10,7 @@ internal sealed class TronProviderStorageBackend : IKeyValueBackend
 {
     private TronPrivateStorageBackend _storage;
     private readonly AsyncLocal<TronPrivateStorageBackend> _executionStorage=new();
+    private readonly AsyncLocal<CancellationToken> _executionToken=new();
     internal Func<TronPrivateStorageBackend> Factory;
     internal SemaphoreSlim Lifecycle;
     internal Func<bool> IsActive;
@@ -29,8 +30,9 @@ internal sealed class TronProviderStorageBackend : IKeyValueBackend
         } finally {Lifecycle.Release();}
         using(view) {
             _executionStorage.Value=view;
+            _executionToken.Value=token;
             try {token.ThrowIfCancellationRequested();return await operation();}
-            finally {_executionStorage.Value=null;}
+            finally {_executionStorage.Value=null;_executionToken.Value=default;}
         }
     }
     internal void ResetOwnedStorage()
@@ -40,8 +42,10 @@ internal sealed class TronProviderStorageBackend : IKeyValueBackend
         _storage = null;
     }
     internal Task VerifyForActivationAsync() => Storage.VerifyAsync();
-    private async Task<T> Run<T>(Func<TronPrivateStorageBackend, Task<T>> action, CancellationToken token)
+    private async Task<T> Run<T>(Func<TronPrivateStorageBackend,CancellationToken,Task<T>> action, CancellationToken token)
     {
+        using var linked=CancellationTokenSource.CreateLinkedTokenSource(token,_executionToken.Value);
+        token=linked.Token;
         token.ThrowIfCancellationRequested();
         await Lifecycle.WaitAsync(token);
         try
@@ -49,18 +53,18 @@ internal sealed class TronProviderStorageBackend : IKeyValueBackend
             if (_storage == null && Factory == null) throw new InvalidOperationException("TRON encrypted storage backend is not configured.");
             if (!IsActive()) throw new InvalidOperationException("TRON provider must be activated before storage access.");
             var storage = Storage;
-            return await action(storage);
+            return await action(storage,token);
         }
         finally { Lifecycle.Release(); }
     }
     public Task<string> GetAsync(string key, CancellationToken cancellationToken = default)
-        => Run(storage => storage.GetAsync(key, cancellationToken), cancellationToken);
+        => Run((storage,token) => storage.GetAsync(key,token), cancellationToken);
     public Task PutAsync(string key, string value, CancellationToken cancellationToken = default)
-        => Run(async storage => { await storage.PutAsync(key, value, cancellationToken); return true; }, cancellationToken);
+        => Run(async (storage,token) => { await storage.PutAsync(key,value,token); return true; }, cancellationToken);
     public Task DeleteAsync(string key, CancellationToken cancellationToken = default)
-        => Run(async storage => { await storage.DeleteAsync(key, cancellationToken); return true; }, cancellationToken);
+        => Run(async (storage,token) => { await storage.DeleteAsync(key,token); return true; }, cancellationToken);
     public Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken cancellationToken = default)
-        => Run(storage => storage.ListKeysAsync(prefix, cancellationToken), cancellationToken);
+        => Run((storage,token) => storage.ListKeysAsync(prefix,token), cancellationToken);
     public Task VerifyAsync(CancellationToken cancellationToken = default)
-        => Run(async storage => { await storage.VerifyAsync(cancellationToken); return true; }, cancellationToken);
+        => Run(async (storage,token) => { await storage.VerifyAsync(token); return true; }, cancellationToken);
 }
