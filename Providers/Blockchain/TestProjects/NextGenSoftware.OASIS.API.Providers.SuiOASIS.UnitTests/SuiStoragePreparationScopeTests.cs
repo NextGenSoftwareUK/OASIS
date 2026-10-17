@@ -7,6 +7,25 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 public class SuiStoragePreparationScopeTests
 {
     [TestMethod]
+    public async Task AdmittedCancellationReachesDefaultTokenSdkRead()
+    {
+        var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+        var type=typeof(SuiOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.SuiOASIS.SuiSdkClient")!;
+        using var client=(IDisposable)Activator.CreateInstance(type,flags,null,new object[]{"http://127.0.0.1:1","localnet","chain","key","package","store","currency"},null)!;
+        using var cancellation=new CancellationTokenSource();
+        Func<Task<int>> read=async()=>{
+            cancellation.Cancel();
+            await (Task<System.Text.Json.JsonElement>)type.GetMethod("InvokeAsync",flags)!
+                .Invoke(client,new object[]{"get",new {key="owned"},CancellationToken.None})!;
+            return 1;
+        };
+        Func<PreparedSubmissionServer> factory=()=>throw new AssertFailedException("Read must not create a mutation gate.");
+        var scoped=(Task<int>)type.GetMethod("WithStoragePreparationAndCancellationAsync",flags)!.MakeGenericMethod(typeof(int))
+            .Invoke(client,new object[]{read,factory,cancellation.Token})!;
+        await Assert.ThrowsExceptionAsync<OperationCanceledException>(()=>scoped);
+    }
+
+    [TestMethod]
     public async Task ClosingOwnerWaitsForInProgressGateFactory()
     {
         var scope=new OwnedPreparationScope();

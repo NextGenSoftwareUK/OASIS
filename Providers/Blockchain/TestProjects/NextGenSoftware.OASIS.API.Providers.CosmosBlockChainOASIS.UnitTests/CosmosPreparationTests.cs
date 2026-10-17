@@ -9,6 +9,21 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 public class CosmosPreparationTests
 {
     [TestMethod]
+    public async Task AdmittedCancellationReachesDefaultTokenStorageRead()
+    {
+        var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+        var type=typeof(CosmosBlockChainOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.CosmosSdkBackend")!;
+        using var backend=(IDisposable)Activator.CreateInstance(type,new object[]{"http://127.0.0.1:1","chain","key","contract","cosmos","0.025uatom","node",Path.Combine(AppContext.BaseDirectory,"missing-owned-bridge.mjs")})!;
+        var storage=(NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.IKeyValueBackend)backend;
+        using var cancellation=new CancellationTokenSource();
+        Func<Task<string>> read=()=>{cancellation.Cancel();return storage.GetAsync("owned");};
+        Func<string,string,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer> factory=(_,_)=>throw new AssertFailedException("Read must not create a mutation gate.");
+        var scoped=(Task<string>)type.GetMethod("WithStoragePreparationAndCancellationAsync",flags)!.MakeGenericMethod(typeof(string))
+            .Invoke(backend,new object[]{read,factory,cancellation.Token})!;
+        await Assert.ThrowsExceptionAsync<OperationCanceledException>(()=>scoped);
+    }
+
+    [TestMethod]
     public async Task PreparedFeeRecoveryRejectsWrongOrMalformedPersistedAttempt()
     {
         using var provider=new CosmosBlockChainOASIS("http://127.0.0.1:1","fixture-chain");
