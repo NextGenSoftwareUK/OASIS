@@ -83,8 +83,14 @@ try {
     }else{
     $method = if ($Mode -eq 'InspectPending') { 'InspectPendingCosmosV2IntentWithoutMutations' } else { 'V2ReplicatesToCosmosAndSelectsFromMeasuredRealProviderReads' }
     $reportName = if ($Mode -eq 'InspectPending') { 'cosmos-pending-inspection-current.trx' } else { 'cosmos-retained-v2-current.trx' }
+    $testStarted=[DateTime]::UtcNow
     & dotnet test (Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj') --no-build --no-restore --filter "FullyQualifiedName~IntegrationTests.CosmosRealProviderRoutingTests.$method" --logger "trx;LogFileName=$reportName" --results-directory $fixtureRoot -v:q
     if ($LASTEXITCODE -ne 0) { throw 'Real Cosmos V2 regression failed; preserve pending intent and inspect TRX.' }
+    $report=Get-Item -LiteralPath (Join-Path $fixtureRoot $reportName)
+    if($report.LastWriteTimeUtc -lt $testStarted){throw 'Cosmos routing report is stale.'}
+    [xml]$evidence=Get-Content -LiteralPath $report.FullName
+    $counts=$evidence.TestRun.ResultSummary.Counters
+    if([int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0){throw 'The selected native Cosmos routing test must actually execute and pass.'}
     }
 }
 catch { $failures.Add($_.Exception) }

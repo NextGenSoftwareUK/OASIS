@@ -114,7 +114,9 @@ try{
             foreach($case in $cosmosEvidence.TestRun.Results.UnitTestResult){
                 $line=([string]$case.Output.StdOut -split "`n"|Where-Object{$_.Trim().StartsWith('{"nativePrimary"')}|Select-Object -First 1)
                 if(!$line){throw 'Native routing signed evidence is missing from the report.'}
-                $originals=($line.Trim()|ConvertFrom-Json).originals
+                $caseData=$line.Trim()|ConvertFrom-Json
+                if($caseData.strategyReadCount -ne 16 -or $caseData.roundRobinReadCount -ne 6 -or $caseData.freeReadCount -ne 8){throw 'Full current strategy/distribution/free-plan matrix evidence is missing.'}
+                $originals=$caseData.originals
                 if(@($originals).Count -ne 2){throw 'Expected two original native attempts per routing case.'}
                 foreach($original in $originals){
                     if(!$original.attempt.NativePreparation.SignedTransactionBase64 -or !$original.attempt.NativePreparation.SignDocBase64 -or $original.anteFeeReceipt.transactionHash -ne $original.attempt.ProviderRequestId){throw 'Original signed bytes/SignDoc or matching native fee receipt absent.'}

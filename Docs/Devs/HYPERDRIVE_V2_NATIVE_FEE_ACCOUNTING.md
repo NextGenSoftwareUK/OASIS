@@ -1,5 +1,7 @@
 # HyperDrive V2 native-chain fees and recovery
 
+2026-10-17 Cosmos routing matrix now additionally proves120real matching-record reads/strategy distribution/Free eligibility checks cause no additional signed native mutation attempts or exposure. Ordinary LocalFile read attempts remain accounted separately.4cases pass1m1s; subsequent read-only current-source stopped-node failover/ante-fee inspection passes8s. Pricing remains synthetic and lookup remains AnteDeductionOnly; these reads do not fabricate settlements or charge expected maxima. Exact evidence and remaining scope are in current release gates.
+
 ## Cosmos real routed primary/replica admission — 2026-10-17
 
 Four retained-node cases now cover Cosmos and LocalFile as primary in both sync/async V2 routing. Each operation saves and replicates one new encrypted leaf, reads both copies, replicates hard deletion and confirms both absent. All8native write/delete originals are admitted through the existing provider storage interface; signed bytes/SignDocs, bound synthetic quote, maxima and matching native ante receipts remain in the compact TRX. Ordinary LocalFile attempts are distinct and do not masquerade as native fee maxima. Measured admitted exposure sums exactly across physical attempts and remains below the explicit0.25USD test budget. No native maximum is reused to authorize an entire replica chain.
