@@ -77,6 +77,12 @@ public partial class CosmosBlockChainOASIS : NextGenSoftware.OASIS.API.Core.Inte
         string clientRequestId, string expectedChainId, string expectedSender)
     {
         if (execution == null) throw new ArgumentNullException(nameof(execution));
+        if(execution.RequiresVerifiedNativeFeeMaximums){
+            if(!_sdkBackend.HasReviewedStandardSdkFeeModel||expectedChainId!=_sdkBackend.ChainId)
+                throw new UsageProtocolException("COSMOS_TOTAL_FEE_MODEL_REQUIRED","Aggregate admission requires a reviewed standard SDK fee model bound to this exact Cosmos chain.",400);
+            return new PreparedSubmissionServer(execution.NativePreparationPersistenceWithVerifiedFeeMaximums(
+                "CosmosBlockChainOASIS",null,clientRequestId,expectedChainId,expectedSender,VerifyOriginalSignedFeeMaximumsAsync));
+        }
         return new PreparedSubmissionServer(execution.NativePreparationPersistence(
             "CosmosBlockChainOASIS", null, clientRequestId, expectedChainId, expectedSender, VerifyOriginalSignedPreparationAsync));
     }
@@ -84,6 +90,15 @@ public partial class CosmosBlockChainOASIS : NextGenSoftware.OASIS.API.Core.Inte
     /// <summary>Official offline signed identity verification; no ledger submission or fee permission.</summary>
     public async Task VerifyOriginalSignedPreparationAsync(JsonElement preparation, CancellationToken token = default)
         =>_ = await VerifyOriginalSignedIdentityAsync(preparation,token);
+
+    private async Task<NativeFeeMaximum[]> VerifyOriginalSignedFeeMaximumsAsync(JsonElement preparation,CancellationToken token)
+    {
+        var identity=await VerifyOriginalSignedIdentityAsync(preparation,token);
+        var maxima=new System.Collections.Generic.List<NativeFeeMaximum>();
+        foreach(var coin in identity.GetProperty("declaredFeeAndTip").EnumerateArray())
+            maxima.Add(new(coin.GetProperty("denom").GetString(),coin.GetProperty("amount").GetString(),NativeFeeMaximumCoverage.AllFees));
+        return maxima.ToArray();
+    }
 
     private async Task<JsonElement> VerifyOriginalSignedIdentityAsync(JsonElement preparation,CancellationToken token)
     {
