@@ -12,6 +12,8 @@ import { toBech32 } from '@cosmjs/encoding';
 import { TimeoutError, StargateClient } from '@cosmjs/stargate';
 import { captureCosmosDirectSigning, verifyCosmosPreparedIdentity } from './transaction-results.mjs';
 import { SignDoc } from 'cosmjs-types/cosmos/tx/v1beta1/tx';
+import { PubKey } from 'cosmjs-types/cosmos/crypto/secp256k1/keys';
+import { rawSecp256k1PubkeyToRawAddress } from '@cosmjs/amino';
 import { invoke } from './bridge.mjs';
 import { cosmosIndexedTransactionStatus } from './transaction-results.mjs';
 
@@ -314,8 +316,9 @@ test('Cosmos history rejects out-of-snapshot and conflicting indexed receipts', 
     searchTx:async()=>[++count===1?tx:{...tx,code:5}]},address),/disagree/);
 });
 function feeTx({ code = 0, granter = '', payer = '', amount = '9007199254740993', observedAmount = amount } = {}) {
-  const address = toBech32('wasm', new Uint8Array(20).fill(1));
-  const authInfoBytes = AuthInfo.encode(AuthInfo.fromPartial({ fee: { amount: [{ denom: 'stake', amount }], gasLimit: 50n, payer, granter } })).finish();
+  const key=Buffer.from('0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798','hex');
+  const address = toBech32('wasm',rawSecp256k1PubkeyToRawAddress(key));
+  const authInfoBytes = AuthInfo.encode(AuthInfo.fromPartial({ signerInfos:[{publicKey:{typeUrl:'/cosmos.crypto.secp256k1.PubKey',value:PubKey.encode({key}).finish()},modeInfo:{single:{mode:1}},sequence:0n}],fee: { amount: [{ denom: 'stake', amount }], gasLimit: 50n, payer, granter } })).finish();
   const tx = TxRaw.encode(TxRaw.fromPartial({ bodyBytes: new Registry().encodeTxBody({ messages: [], memo: '' }), authInfoBytes })).finish();
   return { hash: createHash('sha256').update(tx).digest('hex').toUpperCase(), height: 42, code, gasUsed: 30n, gasWanted: 50n,
     tx,
@@ -351,6 +354,22 @@ test('Cosmos observed fee granter remains the charged account', () => {
   assert.equal(cosmosNativeFeeReceipt(tx, hash).payer, granter);
   const altered = structuredClone(tx); altered.events[0].attributes[1].value = toBech32('wasm', new Uint8Array(20).fill(3));
   assert.throws(() => cosmosNativeFeeReceipt(altered, hash));
+});
+test('default Cosmos fee payer must match the first signed public key',()=>{
+ const tx=feeTx();
+ assert.doesNotThrow(()=>cosmosNativeFeeReceipt(tx,tx.hash));
+ tx.events[0].attributes[1].value=toBech32('wasm',new Uint8Array(20).fill(3));
+ assert.throws(()=>cosmosNativeFeeReceipt(tx,tx.hash),/first signer/);
+});
+test('default Cosmos fee payer never guesses an absent unsupported or malformed signer key',()=>{
+ for(const signers of [[],[{publicKey:{typeUrl:'/unsupported.Key',value:new Uint8Array()}}],
+  [{publicKey:{typeUrl:'/cosmos.crypto.secp256k1.PubKey',value:PubKey.encode({key:new Uint8Array(33)}).finish()}}]]){
+  const tx=feeTx();const raw=TxRaw.decode(tx.tx);const auth=AuthInfo.decode(raw.authInfoBytes);
+  auth.signerInfos=signers.map(value=>({...value,sequence:0n}));
+  raw.authInfoBytes=AuthInfo.encode(auth).finish();tx.tx=TxRaw.encode(raw).finish();
+  tx.hash=createHash('sha256').update(tx.tx).digest('hex').toUpperCase();
+  assert.throws(()=>cosmosNativeFeeReceipt(tx,tx.hash),/first signer/);
+ }
 });
 test('missing ambiguous or mismatched observed fee evidence is never converted to zero', () => {
   const tx = feeTx();

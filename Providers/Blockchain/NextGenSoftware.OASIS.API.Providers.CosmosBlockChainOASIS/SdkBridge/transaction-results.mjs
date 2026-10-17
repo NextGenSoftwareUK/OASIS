@@ -174,13 +174,23 @@ export function cosmosNativeFeeReceipt(tx, requestedHash) {
     return { denom: match[2], amount: match[1] };
   });
   if (new Set(fees.map(coin => coin.denom)).size !== fees.length) throw new Error('Duplicate Cosmos fee denominations');
-  const fee = decodeTxRaw(tx.tx).authInfo.fee;
+  const auth = decodeTxRaw(tx.tx).authInfo;
+  const fee = auth.fee;
   if (!fee) throw new Error('Signed Cosmos fee declaration is absent');
   const normalize = coins => [...coins].filter(coin => coin.amount !== '0').map(coin => `${coin.amount}${coin.denom}`).sort();
   if (JSON.stringify(normalize(fees)) !== JSON.stringify(normalize(fee.amount)))
     throw new Error('Observed Cosmos fee deduction disagrees with the signed transaction');
   if ((fee.granter && payer !== fee.granter) || (!fee.granter && fee.payer && payer !== fee.payer))
     throw new Error('Observed Cosmos fee payer disagrees with explicit payer/granter');
+  if(!fee.granter&&!fee.payer){
+    const first=auth.signerInfos[0]?.publicKey;
+    if(first?.typeUrl!=='/cosmos.crypto.secp256k1.PubKey')
+      throw new Error('Default Cosmos fee payer requires the first signer secp256k1 public key');
+    const key=PubKey.decode(first.value).key;
+    if(key.length!==33||(key[0]!==2&&key[0]!==3)
+        ||!Buffer.from(fromBech32(payer,90).data).equals(rawSecp256k1PubkeyToRawAddress(key)))
+      throw new Error('Observed Cosmos default fee payer disagrees with the first signer');
+  }
   return { transactionHash: tx.hash, success: tx.code === 0, executionCode: tx.code, height: tx.height,
     payer, feeGranter: fee.granter || null, declaredPayer: fee.payer || null, fees,
     gasUsed: tx.gasUsed.toString(), gasWanted: tx.gasWanted.toString(), basis: 'observed-ante-fee-deduction' };
