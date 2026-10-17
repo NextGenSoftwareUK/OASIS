@@ -57,6 +57,15 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
             : this(new SuiSdkClient(rpcEndpoint, network, chainId, privateKey, contractAddress, storageObjectId, currencyObjectId),privateKey,contractAddress,storageEncryptionKeyResolver)
         { tokenEscrow?.Validate(); _tokenEscrow = tokenEscrow; }
 
+        /// <summary>Explicit immutable per-transaction gas ceiling; avoids overloading existing null-RPC constructor calls.</summary>
+        public static SuiOASIS CreateWithNativeFeeLimits(SuiNativeFeeLimits nativeFeeLimits,string rpcEndpoint = "https://fullnode.mainnet.sui.io:443", string network = "mainnet", string chainId = "", string contractAddress = "", string privateKey = "", string storageObjectId = "", string currencyObjectId = "", Func<byte[]> storageEncryptionKeyResolver = null, SuiTokenEscrowConfiguration tokenEscrow = null)
+            =>new(nativeFeeLimits,rpcEndpoint,network,chainId,contractAddress,privateKey,storageObjectId,currencyObjectId,storageEncryptionKeyResolver,tokenEscrow);
+
+        private SuiOASIS(SuiNativeFeeLimits nativeFeeLimits,string rpcEndpoint,string network,string chainId,string contractAddress,string privateKey,string storageObjectId,string currencyObjectId,Func<byte[]> storageEncryptionKeyResolver,SuiTokenEscrowConfiguration tokenEscrow)
+            :this(new SuiSdkClient(rpcEndpoint,network,chainId,privateKey,contractAddress,storageObjectId,currencyObjectId,
+                (nativeFeeLimits??throw new ArgumentNullException(nameof(nativeFeeLimits))).MaximumGasBudgetMist),privateKey,contractAddress,storageEncryptionKeyResolver)
+        { tokenEscrow?.Validate();_tokenEscrow=tokenEscrow; }
+
         private readonly SuiSdkClient _sdkClient;
         private readonly NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend _privateStorage;
         private SuiOASIS(SuiSdkClient client,string privateKey,string contractAddress,Func<byte[]> keyResolver)

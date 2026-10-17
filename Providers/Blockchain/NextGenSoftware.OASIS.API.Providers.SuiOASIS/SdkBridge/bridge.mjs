@@ -24,7 +24,7 @@ export async function verifyPreparedIdentity(evidence) {
     throw new Error('Prepared Sui signature/sender does not match original transaction');
   const gasPayer=tx.getData().gasData.owner;
   if(!isValidSuiAddress(gasPayer))throw new Error('Original signed Sui transaction has no valid gas payer');
-  return {verified:true,transactionHash:evidence.transactionHash,sender:evidence.sender,gasPayer:normalizeSuiAddress(gasPayer)};
+  return {verified:true,transactionHash:evidence.transactionHash,sender:evidence.sender,gasPayer:normalizeSuiAddress(gasPayer),gasBudgetMist:positiveUnits(tx.getData().gasData.budget,'gas budget').toString()};
 }
 import { generateMnemonic } from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english.js';
@@ -107,9 +107,9 @@ async function pages(fetch) {
   } while (true);
 }
 
-function positiveUnits(value) {
+function positiveUnits(value, label='token') {
   if (typeof value !== 'string' || !/^[1-9][0-9]*$/.test(value) || BigInt(value) > 18446744073709551615n)
-    throw new Error('Positive exact u64 token units are required');
+    throw new Error(`Positive exact u64 ${label} units are required`);
   return BigInt(value);
 }
 
@@ -141,10 +141,11 @@ export function sdkErrorEnvelope(error) {
 }
 
 const nativeMutationContext = new AsyncLocalStorage();
-export async function withNativeMutationEvidence(operation, persistPreparedSubmission) {
+export async function withNativeMutationEvidence(operation, persistPreparedSubmission, maximumGasBudgetMist) {
   if (persistPreparedSubmission !== undefined && typeof persistPreparedSubmission !== 'function')
     throw new TypeError('Prepared Sui persistence must be an awaited callback');
-  return nativeMutationContext.run({ nativeMutation: null, persistPreparedSubmission }, async () => {
+  const maximumGasBudget=maximumGasBudgetMist===undefined?undefined:positiveUnits(maximumGasBudgetMist,'gas budget ceiling');
+  return nativeMutationContext.run({ nativeMutation: null, persistPreparedSubmission, maximumGasBudget }, async () => {
     try { return await operation(); }
     catch (error) {
       const evidence = nativeMutationContext.getStore().nativeMutation;
@@ -158,9 +159,13 @@ export async function withNativeMutationEvidence(operation, persistPreparedSubmi
 export async function execute(client, tx, signer, include = {}) {
   tx.setSender(signer.toSuiAddress());
   const transactionBytes = await tx.build({ client });
-  const { signature } = await signer.signTransaction(transactionBytes);
-  const originalDigest = await Transaction.from(transactionBytes).getDigest();
   const context = nativeMutationContext.getStore();
+  const original=Transaction.from(transactionBytes);
+  const gasBudget=positiveUnits(original.getData().gasData.budget,'gas budget');
+  if(context?.maximumGasBudget!==undefined && gasBudget>context.maximumGasBudget)
+    throw new Error('Built Sui gas budget exceeds the configured ceiling');
+  const { signature } = await signer.signTransaction(transactionBytes);
+  const originalDigest = await original.getDigest();
   if (context?.persistPreparedSubmission)
     await context.persistPreparedSubmission(Object.freeze({ transactionHash: originalDigest,
       signedTransactionBase64: Buffer.from(transactionBytes).toString('base64'), signature, sender: signer.toSuiAddress(),
@@ -230,7 +235,7 @@ async function custodyReceipt(client, request) {
 }
 
 export async function invoke(request, persistPreparedSubmission) {
-  return withNativeMutationEvidence(() => invokeCore(request), persistPreparedSubmission);
+  return withNativeMutationEvidence(() => invokeCore(request), persistPreparedSubmission, request.maximumGasBudgetMist);
 }
 
 async function invokeCore(request) {

@@ -13,6 +13,7 @@ internal sealed class SuiSdkClient : IDisposable
 {
     private readonly string _rpcEndpoint, _network, _chainId, _privateKey, _packageAddress, _storageObjectId, _currencyObjectId;
     private bool _disposed;
+    private readonly string _maximumGasBudgetMist;
     internal string ChainId => _chainId;
     private readonly OwnedPreparationScope _storagePreparation=new();
     internal Task<T> WithStoragePreparationAsync<T>(Func<Task<T>> operation,Func<PreparedSubmissionServer> factory)
@@ -22,7 +23,13 @@ internal sealed class SuiSdkClient : IDisposable
 
     internal SuiSdkClient(string rpcEndpoint, string network, string chainId, string privateKey,
         string packageAddress, string storageObjectId, string currencyObjectId)
+        :this(rpcEndpoint,network,chainId,privateKey,packageAddress,storageObjectId,currencyObjectId,null) { }
+
+    internal SuiSdkClient(string rpcEndpoint, string network, string chainId, string privateKey,
+        string packageAddress, string storageObjectId, string currencyObjectId,ulong? maximumGasBudgetMist)
     {
+        if(maximumGasBudgetMist==0)throw new ArgumentOutOfRangeException(nameof(maximumGasBudgetMist),"Positive Sui gas budget ceiling required.");
+        _maximumGasBudgetMist=maximumGasBudgetMist?.ToString(System.Globalization.CultureInfo.InvariantCulture);
         if (!Uri.TryCreate(rpcEndpoint, UriKind.Absolute, out var uri)
             || (uri.Scheme != "http" && uri.Scheme != "https"))
             throw new ArgumentException("HTTP(S) Sui RPC endpoint is required.", nameof(rpcEndpoint));
@@ -74,10 +81,12 @@ internal sealed class SuiSdkClient : IDisposable
             ["packageAddress"] = _packageAddress, ["storageObjectId"] = _storageObjectId,
             ["currencyObjectId"] = _currencyObjectId
         };
+        if(_maximumGasBudgetMist!=null)request["maximumGasBudgetMist"]=_maximumGasBudgetMist;
         if (args != null)
             foreach (var property in args.GetType().GetProperties())
             {
                 if (property.Name == "operation") throw new ArgumentException("SDK arguments cannot override the authoritative operation.");
+                if(property.Name=="maximumGasBudgetMist")throw new ArgumentException("SDK arguments cannot override the configured gas budget ceiling.");
                 if(property.Name is "rpcEndpoint" or "network" or "chainId")
                     throw new ArgumentException("SDK arguments cannot override the configured network identity.");
                 request[property.Name] = property.GetValue(args);

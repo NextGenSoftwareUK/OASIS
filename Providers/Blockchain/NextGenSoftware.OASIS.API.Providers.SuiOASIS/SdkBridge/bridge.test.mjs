@@ -48,6 +48,50 @@ function offlineTransaction(signer) {
   return tx;
 }
 const originalDigest = await offlineTransaction(Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7))).getDigest();
+test('configured gas ceiling rejects built bytes before signing preparation or broadcast',async()=>{
+ for(const prepared of [false,true]){
+  const signer=Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));let signs=0,persists=0,broadcasts=0;
+  const sign=signer.signTransaction.bind(signer);signer.signTransaction=async bytes=>{signs++;return sign(bytes);};
+  await assert.rejects(withNativeMutationEvidence(()=>execute({async executeTransaction(){broadcasts++;}},offlineTransaction(signer),signer),
+   prepared?async()=>{persists++;}:undefined,'999'),error=>/gas budget exceeds/.test(error.message)&&!(error instanceof NativeMutationReconciliationError));
+  assert.equal(signs,0);assert.equal(persists,0);assert.equal(broadcasts,0);
+ }
+});
+test('gas ceiling accepts exact budget and uses built bytes rather than later mutable transaction fields',async()=>{
+ for(const ceiling of ['1000','18446744073709551615']){
+  const signer=Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));const tx=offlineTransaction(signer);let persists=0,broadcasts=0;
+  const build=tx.build.bind(tx);tx.build=async options=>{const bytes=await build(options);tx.setGasBudget(999999);return bytes;};
+  await withNativeMutationEvidence(()=>execute({async executeTransaction(request){
+   broadcasts++;const signed=Transaction.from(request.transaction);assert.equal(signed.getData().gasData.budget,'1000');
+   return {Transaction:{digest:await signed.getDigest(),status:{success:true}}};
+  },async waitForTransaction(){}},tx,signer),async()=>{persists++;},ceiling);
+  assert.equal(persists,1);assert.equal(broadcasts,1);
+ }
+});
+test('gas ceiling must be canonical positive u64 before entering operation',async()=>{
+ for(const ceiling of [null,0,1,'0','01','-1','1.0','18446744073709551616','']){
+  let entered=0;await assert.rejects(withNativeMutationEvidence(async()=>{entered++;},undefined,ceiling),/gas budget ceiling/);assert.equal(entered,0);
+ }
+});
+test('later gas ceiling rejection retains earlier submitted original and forbids automatic replay',async()=>{
+ const signer=Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));let signs=0,persists=0,broadcasts=0;
+ const sign=signer.signTransaction.bind(signer);signer.signTransaction=async bytes=>{signs++;return sign(bytes);};
+ const first=offlineTransaction(signer),second=offlineTransaction(signer);second.setGasBudget(1001);
+ const original=await first.getDigest();
+ const client={async executeTransaction(request){broadcasts++;return {Transaction:{digest:await Transaction.from(request.transaction).getDigest(),status:{success:true}}};},async waitForTransaction(){}};
+ await assert.rejects(withNativeMutationEvidence(async()=>{
+  await execute(client,first,signer);await execute(client,second,signer);
+ },async()=>{persists++;},'1000'),error=>error instanceof NativeMutationReconciliationError
+  &&error.nativeMutation.transactionHash===original&&error.nativeMutation.executionSucceeded===true);
+ assert.equal(signs,1);assert.equal(persists,1);assert.equal(broadcasts,1);
+});
+test('historical verification returns signed gas budget without applying a new execution ceiling',async()=>{
+ const signer=Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));const tx=offlineTransaction(signer);
+ const bytes=await tx.build();const {signature}=await signer.signTransaction(bytes);
+ const identity=await invoke({operation:'verifyNativePreparation',maximumGasBudgetMist:'1',preparation:{
+  transactionHash:await tx.getDigest(),sender:signer.toSuiAddress(),signature,signedTransactionBase64:Buffer.from(bytes).toString('base64'),gasBudgetMist:'1'}});
+ assert.equal(identity.verified,true);assert.equal(identity.gasBudgetMist,'1000');
+});
 test('official Sui preparation verifier binds digest bytes signature and sender without network',async()=>{
  const signer=Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
  const bytes=await offlineTransaction(signer).build();const {signature}=await signer.signTransaction(bytes);
