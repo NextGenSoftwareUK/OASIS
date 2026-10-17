@@ -199,7 +199,14 @@ try{
         $mintReport=if($ReconcileControlledMintOwner){'trx;LogFileName=controlled-mint-owner-reconciliation-current.trx'}else{'trx;LogFileName=sui-mint-owner-real-mongo-current.trx'}
         & dotnet test $mintProject --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --filter $mintFilter --logger $mintReport --results-directory $work -v:q
     }else{
+        $usageStarted=[DateTime]::UtcNow
         & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName!~OwnedReplicaInitializationTests' --logger 'trx;LogFileName=usage-real-replica-current.trx' --results-directory $work -v:q
+        if($LASTEXITCODE -ne 0){throw 'Usage recovery regression failed.'}
+        $report=Get-Item -LiteralPath (Join-Path $work 'usage-real-replica-current.trx')
+        if($report.LastWriteTimeUtc -lt $usageStarted){throw 'Usage recovery report is stale.'}
+        [xml]$evidence=Get-Content -LiteralPath $report.FullName -Raw
+        $counts=$evidence.TestRun.ResultSummary.Counters
+        if([int]$counts.total -ne 249 -or [int]$counts.passed -ne 249 -or [int]$counts.notExecuted -ne 0){throw 'Expected249 passing usage recovery cases without skips.'}
     }
     if($LASTEXITCODE -ne 0){throw 'Usage recovery regression failed.'}
 }finally{
