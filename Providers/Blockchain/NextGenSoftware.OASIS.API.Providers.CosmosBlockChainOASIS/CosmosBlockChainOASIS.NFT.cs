@@ -94,6 +94,7 @@ public partial class CosmosBlockChainOASIS
         {
             if (request == null) throw new ArgumentNullException(nameof(request));
             cancellationToken.ThrowIfCancellationRequested();
+            request = NftMintIntent.Capture(request);
             NftMetadataProjection.Validate(request.StoreNFTMetaDataOnChain, request.JSONMetaDataURL);
             if (request.NumberToMint.HasValue && request.NumberToMint != 1)
                 throw new ArgumentException("This NFT call mints one unique token; use separate calls for multiple tokens.");
