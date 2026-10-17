@@ -139,6 +139,25 @@ public sealed class TronNativeTransferClient
         return MapNativeFeeReceipt(transaction, receipt, id, _genesisBlockId);
     }
 
+    /// <summary>Verifies the original signed identity against independently verified original account
+    /// authority before any receipt lookup. No submission, valuation, or inferred permission history.</summary>
+    public async Task<System.Text.Json.JsonElement> GetPreparedNativeFeeReceiptAsync(
+        NextGenSoftware.OASIS.API.Core.Services.Subscriptions.UsageProviderAttempt attempt,
+        Account verifiedOriginalAccount,CancellationToken token=default)
+    {
+        token.ThrowIfCancellationRequested();
+        var original=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.NativePreparedAttemptSnapshot.Capture(attempt,"TRONOASIS",_genesisBlockId);
+        ArgumentNullException.ThrowIfNull(verifiedOriginalAccount);
+        var account=verifiedOriginalAccount.Clone();
+        var owner=Convert.FromHexString(original.Sender);
+        TronPreparationVerifier.VerifyWithAccountAuthority(original.SignedTransactionBase64,original.ProviderRequestId,
+            owner,_contractFeeLimitSun,account);
+        var receipt=await GetNativeFeeReceiptAsync(original.ProviderRequestId,token);
+        if(!CryptographicOperations.FixedTimeEquals(owner,_wallet.ParseAddress(receipt.GetProperty("payer").GetString()).ToByteArray()))
+            throw new System.IO.InvalidDataException("TRON fee receipt payer differs from the verified original operation owner.");
+        return receipt;
+    }
+
     internal static ByteString OriginalOperationOwner(Transaction.Types.Contract contract) => contract.Type switch {
         Transaction.Types.Contract.Types.ContractType.TransferAssetContract => contract.Parameter.Unpack<TransferAssetContract>().OwnerAddress,
         Transaction.Types.Contract.Types.ContractType.VoteWitnessContract => contract.Parameter.Unpack<VoteWitnessContract>().OwnerAddress,
