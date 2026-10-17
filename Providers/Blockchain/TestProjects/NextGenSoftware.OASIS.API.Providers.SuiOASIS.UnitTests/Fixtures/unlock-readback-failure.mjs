@@ -76,6 +76,7 @@ switch(request.operation){
   const title=firstMetadata.Title??(firstMetadata.StoreNFTMetaDataOnChain===false?'identity/valid':'');
   if(title.startsWith('identity/')) {
    const mode=title.split('/')[1];
+   if(mode==='wallet'&&request.privateKey!=='test-only-explicit')throw new Error('NFT stored default signer changed');
    if(process.env.OASIS_NATIVE_PREPARATION_PIPE) {
     const {pathToFileURL}=await import('node:url');
     const {preparationClient}=await import(pathToFileURL(process.env.OASIS_NATIVE_PREPARATION_MODULE).href);
@@ -108,8 +109,18 @@ switch(request.operation){
   }
   result={transactionHash:'1'.repeat(32),tokenIds:['fixture-nft'],recipient:'fixture-owner'};break;
  }
- case 'nftEscrowGet':result={nft:{metadata:JSON.stringify({Id:'9daf56a1-a66d-4507-a5bc-a31de17e223a'})}};break;
- case 'nftUnlock':result={transactionHash:'1'.repeat(32)};break;
+ case 'nftEscrowGet':
+  if(request.tokenId.startsWith('identity:wallet:')){
+   if(request.privateKey!=='test-only-explicit')throw new Error('NFT stored default signer changed');
+   result={nft:{metadata:Buffer.from(request.tokenId.split(':')[4],'base64url').toString()}};
+  }else result={nft:{metadata:JSON.stringify({Id:'9daf56a1-a66d-4507-a5bc-a31de17e223a'})}};break;
+ case 'nftLock':
+ case 'nftBurn':
+  if(!request.tokenId.startsWith('identity:wallet:')||request.privateKey!=='test-only-explicit')throw new Error('NFT stored default signer/identity changed');
+  result={transactionHash:'1'.repeat(32)};break;
+ case 'nftUnlock':
+  if(request.tokenId.startsWith('identity:wallet:')&&request.privateKey!=='test-only-explicit')throw new Error('NFT stored default signer changed');
+  result={transactionHash:'1'.repeat(32)};break;
  case 'nftSend':
   if(request.privateKey!=='test-only-explicit')throw new Error('Explicit signer was not forwarded.');
   result={transactionHash:'1'.repeat(32)};break;
