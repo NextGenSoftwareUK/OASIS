@@ -32,6 +32,8 @@ public sealed class TronAvatarWalletSendTests
     [InlineData(true, true, "email")]
     [InlineData(false, true, "mint")]
     [InlineData(true, true, "mint")]
+    [InlineData(false, true, "mint-nft")]
+    [InlineData(true, true, "mint-nft")]
     public async Task AvatarTransferUsesEncryptedDetachedWalletAndRealSdkSigning(bool synchronous, bool token, string selector)
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
@@ -58,6 +60,7 @@ public sealed class TronAvatarWalletSendTests
         var genesis = new string('0', 64);
         var broadcasts = 0; var constructions = 0; var receipts = 0;
         var transactionId = ByteString.Empty;
+        Action? mutateMintRequest = null;
         Method<TRequest,TReply> Rpc<TRequest,TReply>(string service, string name, MessageParser<TRequest> request, MessageParser<TReply> reply)
             where TRequest : class, IMessage<TRequest> where TReply : class, IMessage<TReply>
             => new(MethodType.Unary, service, name, Marshallers.Create<TRequest>(x => x.ToByteArray(), x => request.ParseFrom(x)),
@@ -92,10 +95,19 @@ public sealed class TronAvatarWalletSendTests
                 (TriggerSmartContract request, ServerCallContext _) => {
                     Assert.True(token); constructions++; Assert.Equal(sourceBytes, request.OwnerAddress);
                     Assert.Equal(NBitcoin.DataEncoders.Encoders.Base58Check.DecodeData(tokenAddress), request.ContractAddress.ToByteArray());
-                    var data = request.Data.ToByteArray(); Assert.Equal(68, data.Length);
+                    var data = request.Data.ToByteArray();
+                    if (selector == "mint-nft") {
+                        Assert.Equal(new Nethereum.Util.Sha3Keccack().CalculateHash("mint(address,uint256,string)")[..8].ToUpperInvariant(), Convert.ToHexString(data.AsSpan(0,4)));
+                        Assert.Equal(new System.Numerics.BigInteger(1), new System.Numerics.BigInteger(data.AsSpan(36,32),true,true));
+                        Assert.Equal(new System.Numerics.BigInteger(96), new System.Numerics.BigInteger(data.AsSpan(68,32),true,true));
+                        var length = (int)new System.Numerics.BigInteger(data.AsSpan(100,32),true,true);
+                        Assert.Equal("https://example.invalid/owned-nft/1", System.Text.Encoding.UTF8.GetString(data,132,length));
+                    } else {
+                    Assert.Equal(68, data.Length);
                     Assert.Equal(selector == "mint" ? "40C10F19" : "A9059CBB", Convert.ToHexString(data.AsSpan(0, 4)));
-                    Assert.Equal((selector == "mint" ? sourceBytes : destinationBytes).ToByteArray()[1..], data.AsSpan(16, 20).ToArray());
                     Assert.Equal(new System.Numerics.BigInteger(123), new System.Numerics.BigInteger(data.AsSpan(36), isUnsigned: true, isBigEndian: true));
+                    }
+                    Assert.Equal((selector == "mint" ? sourceBytes : destinationBytes).ToByteArray()[1..], data.AsSpan(16, 20).ToArray());
                     var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                     var transaction = new Transaction { RawData = new Transaction.Types.raw { Timestamp = now, Expiration = now + 60000 } };
                     transaction.RawData.Contract.Add(new Transaction.Types.Contract { Type = Transaction.Types.Contract.Types.ContractType.TriggerSmartContract,
@@ -107,6 +119,7 @@ public sealed class TronAvatarWalletSendTests
                     broadcasts++; transactionId = ByteString.CopyFrom(SHA256.HashData(request.RawData.ToByteArray()));
                     TronPreparationVerifier.VerifyWithAccountAuthority(Convert.ToBase64String(request.ToByteArray()),
                         Convert.ToHexString(transactionId.ToByteArray()).ToLowerInvariant(), sourceBytes.ToByteArray(), 100000000, authority);
+                    mutateMintRequest?.Invoke();
                     return Task.FromResult(new Return { Result = true });
                 })
             .AddMethod(Rpc(WalletSolidity.Descriptor.FullName, "GetTransactionInfoById", BytesMessage.Parser, TransactionInfo.Parser),
@@ -155,7 +168,20 @@ public sealed class TronAvatarWalletSendTests
                 nativeSigningKeyResolver: _ => throw new InvalidOperationException("Avatar send must not use raw-address key resolution."));
             // Official SDK signing against controlled RPC, without bypassing provider activation state.
             Assert.False(tron.IsProviderActivated);
-            var result = selector == "mint"
+            async Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>> MintNft() {
+                var request = new Core.Objects.NFT.Requests.MintWeb3NFTRequest { MintedByAvatarId = sender, Amount = 1, NumberToMint = 1,
+                    StoreNFTMetaDataOnChain = false, JSONMetaDataURL = "https://example.invalid/owned-nft/1", SendToAddressAfterMinting = destination,
+                    MetaData = new() { ["MintFunctionSignature"] = "mint(address,uint256,string)", ["TokenAddress"] = tokenAddress, ["TokenId"] = "1" } };
+                mutateMintRequest = () => { request.JSONMetaDataURL = "https://changed.invalid/not-submitted"; request.MintedByAvatarId = Guid.Empty; };
+                var minted = synchronous ? tron.MintNFT(request) : await tron.MintNFTAsync(request);
+                Assert.False(minted.IsError,minted.Message);
+                Assert.Equal(tokenAddress + "/1",minted.Result.Web3NFT.NFTTokenAddress);
+                Assert.Equal("https://example.invalid/owned-nft/1",minted.Result.Web3NFT.JSONMetaDataURL);
+                Assert.Equal(sender,minted.Result.Web3NFT.MintedByAvatarId);
+                Assert.Same(minted.Result.Web3NFT,Assert.Single(minted.Result.Web3NFTs));
+                return new() { Result = minted.Result };
+            }
+            var result = selector == "mint-nft" ? await MintNft() : selector == "mint"
                 ? synchronous ? tron.MintToken(new Core.Objects.Wallet.Requests.MintWeb3TokenRequest { MintedByAvatarId = sender, Amount = 1.23m })
                     : await tron.MintTokenAsync(new Core.Objects.Wallet.Requests.MintWeb3TokenRequest { MintedByAvatarId = sender, Amount = 1.23m })
                 : selector == "username"
