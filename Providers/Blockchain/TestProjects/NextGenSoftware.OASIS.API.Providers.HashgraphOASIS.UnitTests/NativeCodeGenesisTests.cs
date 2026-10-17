@@ -6,6 +6,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class NativeCodeGenesisTests
 {
+    [TestMethod]
+    public void GeneratedSchemaWithAdditionalFieldsCompiles()
+        =>NativeCodeGenesisContract.VerifySchema((body,path)=>new HashgraphOASIS(network:"testnet").NativeCodeGenesis(body,path,""));
     [DataTestMethod]
     [DataRow(null,false)] [DataRow("",false)] [DataRow("  ",false)]
     [DataRow("// 🌳\npragma solidity ^0.8.0; contract SourceFixture {}",true)]
