@@ -98,9 +98,10 @@ public partial class HederaPreparationTests
             Environment.SetEnvironmentVariable(names[2],log);
             Environment.SetEnvironmentVariable(names[0],Path.Combine(AppContext.BaseDirectory,"Fixtures/storage-prepared.mjs"));
             var policyNodes=new[]{"0.0.3"};
+            var secretResolutions=0;
             var provider=new HashgraphOASIS(network:"testnet",chainId:"296",storageConfiguration:new() {
                 ContractId="0.0.2001",OperatorAccountId="0.0.1001",SigningKeyType="ecdsa",
-                SigningKeyResolver=()=>new string('0',63)+"1",EncryptionKeyResolver=()=>new byte[32],
+                SigningKeyResolver=()=>{secretResolutions++;return new string('0',63)+"1";},EncryptionKeyResolver=()=>new byte[32],
                 GasLimit=100000,MaxFeeTinybars=100000000,QueryPreparation=new(){AuthorizedNodeAccountIds=policyNodes,MaxPaymentTinybars=123,MaxTransactionFeeTinybars=100000000}});
             policyNodes[0]="0.0.4"; // Configured policy must retain its independent admitted node snapshot.
             var entered=false;
@@ -130,11 +131,11 @@ public partial class HederaPreparationTests
                 StorageProviders=new(),SubscriptionConfig=new() {PlanType="Gold"}}}) {IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=false};
             manager.RegisterProvider(provider);var router=new OASISHyperDrive(manager);
             var admitted=new PreparedStorageExecution(execution,"storage",new Dictionary<ProviderType,string> {{ProviderType.HashgraphOASIS,"0.0.1001"}},Array.Empty<ProviderType>());
+            HolonManager holonManager=null;
             Task<NextGenSoftware.OASIS.Common.OASISResult<IHolon>> Save(Holon holon){
                 if(!routed)return provider.SaveHolonAsync(holon,saveChildren:false);
-                var request=new StorageOperationRequest {Operation="SaveHolon",Payload=holon,SaveChildren=false,
-                    PreferredProvider=ProviderType.HashgraphOASIS,PreparedExecution=admitted};
-                return synchronous?Task.FromResult(router.RouteRequest<IHolon>(request)):router.RouteRequestAsync<IHolon>(request);
+                return synchronous?Task.FromResult(holonManager.SaveHolon(holon,Guid.Parse(user),saveChildren:false))
+                    :holonManager.SaveHolonAsync(holon,Guid.Parse(user),saveChildren:false);
             }
             if(rejectPersistence){
                 var parent=routed?"storage.route.1.storage.1":"storage.storage.1";
@@ -146,7 +147,19 @@ public partial class HederaPreparationTests
                 if(one.IsError)return one;
                 return await Save(new Holon {Id=Guid.NewGuid(),Name="owned secret two"});
             }
-            var result=routed?await SavePair():await provider.ExecutePreparedStorageAsync(SavePair,execution,"storage","0.0.1001",deadline.Token);
+            var result=routed?await admitted.RunAsync(async()=>{
+                var before=(await store.GetAsync(execution.OperationId,deadline.Token)).ProviderAttempts.Count;
+                var secretsBefore=secretResolutions;
+                // Invoke the existing injected-runtime constructor, avoiding process-global test state.
+                holonManager=(HolonManager)Activator.CreateInstance(typeof(HolonManager),
+                    System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic,null,
+                    new object[]{provider,manager.OASISDNA,manager},null)!;
+                Assert.IsFalse(provider.IsProviderActivated,"Constructor must leave activation to admitted routing.");
+                Assert.AreEqual(secretsBefore,secretResolutions,"Constructor must not resolve a paid-query signing secret.");
+                Assert.AreEqual(before,(await store.GetAsync(execution.OperationId,deadline.Token)).ProviderAttempts.Count);
+                Assert.AreEqual(0,File.ReadAllLines(log).Length);
+                return await SavePair();
+            }):await provider.ExecutePreparedStorageAsync(SavePair,execution,"storage","0.0.1001",deadline.Token);
             Assert.AreEqual(rejectPersistence,result.IsError,result.Message);
             var submissions=File.ReadAllLines(log);
             Assert.AreEqual(rejectPersistence?0:2,submissions.Length);
@@ -168,8 +181,9 @@ public partial class HederaPreparationTests
                 foreach(var query in queries){Assert.AreEqual(price,query.NativePreparation.PriceQuotes.Single());Assert.IsNull(query.AcknowledgedAtUtc);}
                 if(routed){
                     var request=new StorageOperationRequest {Operation="LoadHolon",HolonId=Guid.NewGuid(),LoadChildren=false,
-                        PreferredProvider=ProviderType.HashgraphOASIS,PreparedExecution=admitted};
-                    var read=synchronous?router.RouteRequest<IHolon>(request):await router.RouteRequestAsync<IHolon>(request);
+                        PreferredProvider=ProviderType.HashgraphOASIS};
+                    var read=await admitted.RunAsync(async()=>synchronous?router.RouteRequest<IHolon>(request):await router.RouteRequestAsync<IHolon>(request));
+                    Assert.AreSame(admitted,request.PreparedExecution);
                     Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,read.ErrorCode,read.Message);
                     Assert.IsNull(read.Result); // A missing logical record still incurs the admitted paid read.
                     var afterRead=await store.GetAsync(execution.OperationId,deadline.Token);
