@@ -77,6 +77,18 @@ async function execute(input, persistPreparedSubmission) {
         });
       case "query":
         return await client.queryContractSmart(input.targetContractAddress ?? input.contractAddress, input.message);
+      case "tokenEscrowInfo": {
+        const address = input.targetContractAddress;
+        const contract = await client.getContract(address);
+        if (contract.address !== address || !Number.isSafeInteger(contract.codeId) || contract.codeId <= 0 || contract.admin)
+          throw new Error('Escrow must be the exact immutable contract with a valid code ID');
+        const code = await client.getCodeDetails(contract.codeId);
+        if (code.id !== contract.codeId || code.checksum !== input.codeSha256)
+          throw new Error('Escrow code checksum differs from reviewed contract');
+        const protocol = await client.queryContractSmart(address, { asset: { message: { token_escrow_protocol: {} } } });
+        if (protocol !== 1) throw new Error('Exact token escrow protocol1 required');
+        return { contractAddress: address, codeSha256: code.checksum, protocol };
+      }
       case "put":
       case "delete":
       case "execute": {

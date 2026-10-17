@@ -9,6 +9,27 @@ import { invoke as invokeTrusted } from './bridge.mjs';
 import { CosmWasmClient, SigningCosmWasmClient } from '@cosmjs/cosmwasm';
 import { createHash } from 'node:crypto';
 
+for(const mode of ['valid','admin','address','checksum','code-id','protocol'])test('escrow protocol pins immutable exact contract/code through SDK query boundary: '+mode,async()=>{
+ const connect=CosmWasmClient.connect;let closed=0,queries=0;
+ CosmWasmClient.connect=async()=>({
+  getChainId:async()=> 'fixture-chain',
+  getContract:async address=>({address:mode==='address'?'foreign':address,codeId:7,admin:mode==='admin'?'upgrade-owner':undefined}),
+  getCodeDetails:async id=>({id:mode==='code-id'?8:id,checksum:(mode==='checksum'?'d':'c').repeat(64)}),
+  queryContractSmart:async(address,message)=>{
+   queries++;assert.equal(address,'fixture-contract');assert.deepEqual(message,{asset:{message:{token_escrow_protocol:{}}}});
+   return mode==='protocol'?2:1;
+  },
+  disconnect:()=>{closed++;},
+ });
+ try{
+  const call=invokeTrusted({operation:'tokenEscrowInfo',rpcEndpoint:'http://controlled',chainId:'fixture-chain',
+   targetContractAddress:'fixture-contract',codeSha256:'c'.repeat(64)});
+  if(mode==='valid')assert.deepEqual(await call,{contractAddress:'fixture-contract',codeSha256:'c'.repeat(64),protocol:1});
+  else await assert.rejects(call,/Escrow|escrow/);
+  assert.equal(queries,['valid','protocol'].includes(mode)?1:0);assert.equal(closed,1);
+ }finally{CosmWasmClient.connect=connect;}
+});
+
 for(const memo of ['Original seed 🌱 memo',''])test('contract execute preserves exact memo in real CosmJS signed bytes: '+JSON.stringify(memo),async()=>{
  const original=SigningCosmWasmClient.connectWithSigner;let prepared=0,broadcasts=0,closed=0;
  const message={asset:{message:{token_transfer:{symbol:'fixture',recipient:toBech32('wasm',new Uint8Array(20).fill(3)),amount:'123000000'}}}};

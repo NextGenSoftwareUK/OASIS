@@ -108,11 +108,14 @@ public partial class CosmosBlockChainOASIS
     public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
         => LockTokenAsync(request).GetAwaiter().GetResult();
     public Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
-        => ChangeTokenLockAsync(request?.TokenAddress, true, request?.LockedByAvatarId ?? Guid.Empty, request?.FromWalletPrivateKey, request?.FromWalletAddress);
+        => ChangeTokenEscrowAsync(request?.TokenAddress, true, request?.LockedByAvatarId ?? Guid.Empty,
+            request?.LockId ?? Guid.Empty, request?.Amount ?? 0, request?.EscrowContractAddress,
+            request?.FromWalletPrivateKey, request?.FromWalletAddress);
     public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request)
         => UnlockTokenAsync(request).GetAwaiter().GetResult();
     public Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
-        => ChangeTokenLockAsync(request?.TokenAddress, false, request?.UnlockedByAvatarId ?? Guid.Empty);
+        => ChangeTokenEscrowAsync(request?.TokenAddress, false, request?.UnlockedByAvatarId ?? Guid.Empty,
+            request?.LockId ?? Guid.Empty, 0, request?.EscrowContractAddress);
 
     private async Task<OASISResult<ITransactionResponse>> ChangeTokenLockAsync(string symbol, bool locked, Guid actor, string suppliedKey = null, string from = null)
     {
