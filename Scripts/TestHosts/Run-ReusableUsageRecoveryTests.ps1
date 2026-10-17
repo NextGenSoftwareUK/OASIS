@@ -163,7 +163,7 @@ try{
             if($report.LastWriteTimeUtc -lt $hederaStarted){throw 'Hedera full report is stale.'}
             [xml]$evidence=Get-Content -LiteralPath $report.FullName
             $counts=$evidence.TestRun.ResultSummary.Counters
-            if([int]$counts.total -ne 126 -or [int]$counts.passed -ne 126 -or [int]$counts.notExecuted -ne 0){throw 'Expected126 passing Hedera unit cases without skips.'}
+            if([int]$counts.total -ne 129 -or [int]$counts.passed -ne 129 -or [int]$counts.notExecuted -ne 0){throw 'Expected129 passing Hedera unit cases without skips.'}
         }
     }elseif($SuiMintOwner -or $ReconcileControlledMintOwner){
         $mintProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests.csproj'

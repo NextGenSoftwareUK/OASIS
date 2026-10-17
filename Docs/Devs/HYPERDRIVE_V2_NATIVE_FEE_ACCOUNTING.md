@@ -1,5 +1,11 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Hedera full budgeted storage composition — 2026-10-17
+
+The controlled integration fixture now exercises direct storage plus both V2 routed modes under one explicit10USD operation maximum and synthetic1USD/HBAR price. Across the three cases,18original signed attempts include all paid activation/index/read requests, encrypted writes and standalone routed reads. Their verified maxima sum exactly to durable exposure. Existing low-budget cases continue to refuse the next query before any storage mutation.
+
+Production recovery code verifies each original and consumes a controlled mirror response for its exact node hash/transaction ID; every attempt receives a measured fee receipt. These test amounts are **controlled inputs, not observed network charges**. Receipt lookup retains exposure and cannot invent an API outcome. After the fixture explicitly records its successful logical result, recorded settlement calculation uses actual receipt amounts, not the larger admitted maxima. No hosted settlement is sent.129/129cases pass with exact final hash in the current release journal. This proves pipeline composition only; funded consensus, real fee recovery, custody/state and hosted accounting remain separate open gates.
+
 ## Hedera reviewed standalone mutation maxima — 2026-10-17
 
 Pinned `@hiero-ledger/proto`2.31.0 TransactionBody documentation forbids transaction fees beyond the signed transactionFee. Its ContractCall documentation includes consumed gas/storage in the total transaction fee, rather than treating the gas-unit count as a monetary maximum. The pinned SDK2.86.2 already validates node-body consistency except node ID; the adapter reuses that check and original public-key signature/hash verification rather than implementing another cryptographic verifier. These are protocol/schema guarantees, not funded-network acceptance evidence.
