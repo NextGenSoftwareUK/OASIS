@@ -2,8 +2,8 @@
 .SYNOPSIS
 Runs AWSOASIS integration evidence against Amazon's official DynamoDB Local runtime.
 .DESCRIPTION
-Downloads DynamoDB Local and its published SHA-256 checksum from AWS, verifies the
-archive, starts an isolated in-memory instance, and runs the AWSOASIS integration
+Reuses retained verified DynamoDB Local (downloads only if absent), starts an
+owned in-memory instance, and runs the AWSOASIS integration
 suite through AWSSDK.DynamoDBv2. No AWS account or billable service is used.
 #>
 [CmdletBinding()]
@@ -114,8 +114,8 @@ try {
     if($reportFile.LastWriteTimeUtc -lt $testsStarted){throw 'AWS native report is stale; no verification claim permitted.'}
     [xml]$report = Get-Content -LiteralPath $reportFile.FullName -Raw
     $counters = $report.TestRun.ResultSummary.Counters
-    if ([int]$counters.total -ne 109 -or [int]$counters.passed -ne 109 -or [int]$counters.notExecuted -ne 0) {
-        throw 'Expected exactly one hundred and seven passing native AWS tests without skips.'
+    if ([int]$counters.total -ne 110 -or [int]$counters.passed -ne 110 -or [int]$counters.notExecuted -ne 0) {
+        throw 'Expected exactly 110 passing AWS tests including the original SDK transport boundary, without skips.'
     }
 
     [ordered]@{
