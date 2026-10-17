@@ -236,6 +236,10 @@ Core paths above are relative to `OASIS Architecture/NextGenSoftware.OASIS.API.C
 These reports must remain synchronized as implementation progresses. Historical green subsets must not be presented as current, exhaustive provider or API certification.
 # 2026-10-17 prepared lifecycle/read ownership
 
+## Cosmos retained native ante-fee read evidence — 2026-10-17
+
+Three already committed retained wasmd receipts report3939,3443,3443stake fee units, with signed-byte hash/declared fee/payer validation by existing official SDK mapping and exact C#API chain/hash/payer/gas/coin comparison. Runner-owned fresh inspection identity prevents consuming an old JSON sample report. No new native transaction or fee was incurred by the inspection. Both samplers reuse the same mapper/RPC trust domain; this is not independent consensus/state-proof validation, original admission authority, fiat price authorization, full-operation refund evidence or hosted settlement. Declared Cosmos coverage is explicitly asserted AnteDeductionOnly and central automatic net recovery remains disabled for it. Prior original operation still lacks signed identity/expiry, so0matches across5owned keys/280indexed transactions cannot resolve it or authorize replay.
+
 ## Native evidence BSON contract ownership — 2026-10-17
 
 FinalCorefad77dc evidence: Core181pass16s, authority81pass15s, controlled173pass11s, real retained Mongo/SQLite4pass1m49s, all0skip/full runners exit0. Cold first-lookup1red-before/green-after plus real raw BSON and reconstructed-store/provider readback. Core both targets compile; portable target excludes the existing financial subscription services as before. Parent dependency pin updated alongside gitlink. No JSON schema/fingerprint change or production billing enablement.

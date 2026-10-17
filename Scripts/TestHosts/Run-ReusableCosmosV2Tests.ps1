@@ -13,7 +13,7 @@ $containerState = (& wsl -d Ubuntu -u root -- podman inspect oasis-wasmd --forma
 if ($LASTEXITCODE -ne 0 -or $containerState -notin @('running','exited')) { throw 'Retained Cosmos container state requires inspection.' }
 & wsl -d Ubuntu -u root -- podman exec oasis-wasmd pgrep -x wasmd *> $null
 if ($LASTEXITCODE -eq 0) { throw 'Existing wasmd process is in use; refusing to take ownership.' }
-$names = @('OASIS_COSMOS_TEST_RPC','OASIS_COSMOS_TEST_CHAIN','OASIS_COSMOS_TEST_KEY','OASIS_COSMOS_TEST_CONTRACT','OASIS_COSMOS_TEST_STOP_SCRIPT','OASIS_HYPERDRIVE_TEST_ROOT')
+$names = @('OASIS_COSMOS_TEST_RPC','OASIS_COSMOS_TEST_CHAIN','OASIS_COSMOS_TEST_KEY','OASIS_COSMOS_TEST_CONTRACT','OASIS_COSMOS_TEST_STOP_SCRIPT','OASIS_HYPERDRIVE_TEST_ROOT','OASIS_COSMOS_INSPECTION_ID')
 $prior = @{}
 foreach ($name in $names) { $prior[$name] = [Environment]::GetEnvironmentVariable($name,'Process') }
 $started = $false
@@ -48,14 +48,15 @@ try {
     $env:OASIS_COSMOS_TEST_CONTRACT = $contracts[0]
     $env:OASIS_COSMOS_TEST_STOP_SCRIPT = '/mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/stop-owned-cosmos-test-node.sh'
     $env:OASIS_HYPERDRIVE_TEST_ROOT = $fixtureRoot
+    if ($Mode -eq 'InspectPending') {
+        $env:OASIS_COSMOS_INSPECTION_ID=[Guid]::NewGuid().ToString('D')
+        & node (Join-Path $PSScriptRoot 'inspect-cosmos-pending-transactions.mjs')
+        if ($LASTEXITCODE -ne 0) { throw 'Read-only Cosmos native transaction inspection failed; pending intent preserved.' }
+    }
     $method = if ($Mode -eq 'InspectPending') { 'InspectPendingCosmosV2IntentWithoutMutations' } else { 'V2ReplicatesToCosmosAndSelectsFromMeasuredRealProviderReads' }
     $reportName = if ($Mode -eq 'InspectPending') { 'cosmos-pending-inspection-current.trx' } else { 'cosmos-retained-v2-current.trx' }
     & dotnet test (Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj') --no-build --no-restore --filter "FullyQualifiedName~IntegrationTests.CosmosRealProviderRoutingTests.$method" --logger "trx;LogFileName=$reportName" --results-directory $fixtureRoot -v:q
     if ($LASTEXITCODE -ne 0) { throw 'Real Cosmos V2 regression failed; preserve pending intent and inspect TRX.' }
-    if ($Mode -eq 'InspectPending') {
-        & node (Join-Path $PSScriptRoot 'inspect-cosmos-pending-transactions.mjs')
-        if ($LASTEXITCODE -ne 0) { throw 'Read-only Cosmos native transaction inspection failed; pending intent preserved.' }
-    }
 }
 catch { $failures.Add($_.Exception) }
 finally {

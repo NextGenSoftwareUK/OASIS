@@ -58,6 +58,10 @@ public sealed class CosmosRealProviderRoutingTests
         intent.RootElement.GetProperty("encryptionKeyLabel").GetString().Should().Be("oasis-cosmos-local-storage-fixture-v1");
         var avatarId = intent.RootElement.GetProperty("avatarId").GetGuid();
         var holonId = intent.RootElement.GetProperty("holonId").GetGuid();
+        using var indexed=System.Text.Json.JsonDocument.Parse(File.ReadAllText(Path.Combine(root,"cosmos-pending-transactions-current.json")));
+        indexed.RootElement.GetProperty("inspectionId").GetString().Should().Be(Required("OASIS_COSMOS_INSPECTION_ID"));
+        indexed.RootElement.GetProperty("chain").GetString().Should().Be(Required("OASIS_COSMOS_TEST_CHAIN"));
+        indexed.RootElement.GetProperty("contract").GetString().Should().Be(Required("OASIS_COSMOS_TEST_CONTRACT"));
         using var cosmos = new CosmosBlockChainOASIS(Required("OASIS_COSMOS_TEST_RPC"),Required("OASIS_COSMOS_TEST_CHAIN"),
             Required("OASIS_COSMOS_TEST_KEY"),Required("OASIS_COSMOS_TEST_CONTRACT"),"wasm","0.025stake","stake",storageEncryptionKeyResolver:LocalStorageKey);
         (await cosmos.ActivateProviderAsync()).IsError.Should().BeFalse();
@@ -66,12 +70,82 @@ public sealed class CosmosRealProviderRoutingTests
             var avatar = await cosmos.LoadAvatarAsync(avatarId);
             var detail = await cosmos.LoadAvatarDetailAsync(avatarId);
             var holon = await cosmos.LoadHolonAsync(holonId,loadChildren:false);
+            var samples=indexed.RootElement.GetProperty("feeSamples");samples.GetArrayLength().Should().BeInRange(1,3);
+            foreach(var sample in samples.EnumerateArray()){
+                var hash=sample.GetProperty("transactionHash").GetString()!;
+                var receipt=await cosmos.GetNativeFeeReceiptAsync(hash);
+                receipt.IsError.Should().BeFalse(receipt.Message);
+                receipt.Result.GetProperty("transactionHash").GetString().Should().Be(hash);
+                receipt.Result.GetProperty("chainId").GetString().Should().Be(Required("OASIS_COSMOS_TEST_CHAIN"));
+                foreach(var name in new[]{"payer","basis","gasUsed","gasWanted"})
+                    receipt.Result.GetProperty(name).GetString().Should().Be(sample.GetProperty(name).GetString());
+                receipt.Result.GetProperty("success").GetBoolean().Should().Be(sample.GetProperty("success").GetBoolean());
+                receipt.Result.GetProperty("fees").EnumerateArray().Select(coin=>(coin.GetProperty("denom").GetString(),coin.GetProperty("amount").GetString()))
+                    .Should().Equal(sample.GetProperty("fees").EnumerateArray().Select(coin=>(coin.GetProperty("denom").GetString(),coin.GetProperty("amount").GetString())));
+                receipt.Result.GetProperty("basis").GetString().Should().Be("observed-ante-fee-deduction");
+            }
+            ((NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader)cosmos).DeclaredFeeCoverage
+                .Should().Be(NextGenSoftware.OASIS.API.Core.Services.Subscriptions.NativeFeeCoverage.AnteDeductionOnly);
+            var local=new LocalFileOASIS(storageDirectory:Path.Combine(root,"files"));
+            (await local.ActivateProviderAsync()).IsError.Should().BeFalse();
+            try{
+                var localAvatar=await local.LoadAvatarAsync(avatarId);localAvatar.Exception.Should().BeNull();
+                var dna=new OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {HyperDriveMode=HyperDriveModes.V2,
+                    StorageProviders=new StorageProviderSettings(),SubscriptionConfig=new SubscriptionConfig {PlanType="Gold"}}};
+                var manager=new ProviderManager(null,dna) {IsAutoLoadBalanceEnabled=true,IsAutoReplicationEnabled=false,IsAutoFailOverEnabled=false};
+                manager.RegisterProvider(local);manager.RegisterProvider(cosmos);
+                var providers=new[]{ProviderType.LocalFileOASIS,ProviderType.CosmosBlockChainOASIS};
+                manager.SetAndReplaceAutoLoadBalanceListForProviders(providers.Select(type=>new EnumValue<ProviderType>(type))).IsError.Should().BeFalse();
+                var router=new OASISHyperDrive(manager);
+                manager.IsAutoLoadBalanceEnabled=false;
+                foreach(var type in providers){
+                    var baseline=await router.RouteRequestAsync<IAvatar>(new StorageOperationRequest {Operation="LoadAvatar",AvatarId=avatarId,PreferredProvider=type});
+                    baseline.IsError.Should().BeFalse(baseline.Message);
+                }
+                manager.IsAutoLoadBalanceEnabled=true;
+                foreach(var strategy in Enum.GetValues<LoadBalancingStrategy>())foreach(var synchronous in new[]{true,false}){
+                    var counts=providers.ToDictionary(type=>type,type=>manager.PerformanceMonitor.GetMetrics(type).TotalRequests);
+                    var request=new StorageOperationRequest {Operation="LoadAvatar",AvatarId=avatarId};
+                    var read=synchronous?router.RouteRequest<IAvatar>(request,strategy):await router.RouteRequestAsync<IAvatar>(request,strategy);
+                    read.IsError.Should().BeFalse(read.Message);var diagnostic=manager.LastProviderSelectionDiagnostic;
+                    diagnostic.RequestedStrategy.Should().Be(strategy);diagnostic.Candidates.Select(value=>value.Provider).Should().BeEquivalentTo(providers);
+                    providers.Should().Contain(diagnostic.SelectedProvider);
+                    (read.Result?.Id).Should().Be((diagnostic.SelectedProvider==ProviderType.CosmosBlockChainOASIS?avatar.Result:localAvatar.Result)?.Id);
+                    foreach(var type in providers)manager.PerformanceMonitor.GetMetrics(type).TotalRequests.Should().Be(counts[type]+(type==diagnostic.SelectedProvider?1:0));
+                }
+                dna.OASIS.SubscriptionConfig.PlanType="Free";
+                var excludedBefore=manager.PerformanceMonitor.GetMetrics(ProviderType.CosmosBlockChainOASIS).TotalRequests;
+                foreach(var strategy in Enum.GetValues<LoadBalancingStrategy>())foreach(var synchronous in new[]{true,false}){
+                    var request=new StorageOperationRequest {Operation="LoadAvatar",AvatarId=avatarId};
+                    var read=synchronous?router.RouteRequest<IAvatar>(request,strategy):await router.RouteRequestAsync<IAvatar>(request,strategy);
+                    read.IsError.Should().BeFalse(read.Message);(read.Result?.Id).Should().Be(localAvatar.Result?.Id);
+                    manager.LastProviderSelectionDiagnostic.Candidates.Select(value=>value.Provider).Should().Equal(ProviderType.LocalFileOASIS);
+                }
+                manager.PerformanceMonitor.GetMetrics(ProviderType.CosmosBlockChainOASIS).TotalRequests.Should().Be(excludedBefore);
+                dna.OASIS.SubscriptionConfig.PlanType="Gold";manager.IsAutoLoadBalanceEnabled=false;manager.IsAutoFailOverEnabled=true;
+                manager.SetAndReplaceAutoFailOverListForProviders(new[]{new EnumValue<ProviderType>(ProviderType.CosmosBlockChainOASIS),new EnumValue<ProviderType>(ProviderType.LocalFileOASIS)}).IsError.Should().BeFalse();
+                var stop=new ProcessStartInfo("wsl.exe") {UseShellExecute=false,CreateNoWindow=true};
+                foreach(var argument in new[]{"-d","Ubuntu","-u","root","--","bash",Required("OASIS_COSMOS_TEST_STOP_SCRIPT")})stop.ArgumentList.Add(argument);
+                using(var child=Process.Start(stop)??throw new InvalidOperationException("Owned Cosmos stop did not start.")){
+                    await child.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(30));child.ExitCode.Should().Be(0);
+                }
+                foreach(var synchronous in new[]{true,false}){
+                    var before=manager.PerformanceMonitor.GetMetrics(ProviderType.CosmosBlockChainOASIS).TotalRequests;
+                    var request=new StorageOperationRequest {Operation="LoadAvatar",AvatarId=avatarId,PreferredProvider=ProviderType.CosmosBlockChainOASIS};
+                    var read=synchronous?router.RouteRequest<IAvatar>(request):await router.RouteRequestAsync<IAvatar>(request);
+                    read.IsError.Should().BeFalse(read.Message);(read.Result?.Id).Should().Be(localAvatar.Result?.Id);
+                    manager.LastFailoverDiagnostic.SelectedProvider.Should().Be(ProviderType.LocalFileOASIS);
+                    manager.PerformanceMonitor.GetMetrics(ProviderType.CosmosBlockChainOASIS).TotalRequests.Should().Be(before+1);
+                }
+            }finally{await local.DeActivateProviderAsync();}
             foreach (var state in new[] { (avatar.IsError,avatar.ErrorCode,avatar.Message), (detail.IsError,detail.ErrorCode,detail.Message), (holon.IsError,holon.ErrorCode,holon.Message) })
                 if (state.IsError) state.ErrorCode.Should().Be(NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,state.Message);
             await File.WriteAllTextAsync(Path.Combine(root,"cosmos-inspection-current.json"),System.Text.Json.JsonSerializer.Serialize(new {
                 chain = Required("OASIS_COSMOS_TEST_CHAIN"), contract = Required("OASIS_COSMOS_TEST_CONTRACT"), avatarId, holonId,
                 avatarPresent = avatar.Result != null, detailPresent = detail.Result != null, holonPresent = holon.Result != null,
                 avatarErrorCode = avatar.ErrorCode, detailErrorCode = detail.ErrorCode, holonErrorCode = holon.ErrorCode,
+                inspectionId=Required("OASIS_COSMOS_INSPECTION_ID"),nativeFeeSamplesVerified=samples.GetArrayLength(),nativeFeeCoverage="AnteDeductionOnly",
+                strategyPathsVerified=Enum.GetValues<LoadBalancingStrategy>().Length,stoppedNodeFailoverVerified=true,
                 reconciliationComplete = false, explanation = "Read-only state evidence; absence is not original submission outcome proof." }));
             Console.WriteLine($"Read-only pending Cosmos intent: avatarPresent={avatar.Result != null}; detailPresent={detail.Result != null}; holonPresent={holon.Result != null}. Intent retained; absence is not non-submission proof.");
         }

@@ -1,6 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 name=oasis-tron-tre
+[[ "$(podman inspect "$name" --format '{{.Id}}')" == ef2843babd111bde2709159e6eaacf2350977cccee738d62d1bcbd8833c46a12 ]] || exit 1
 pin='docker.io/tronbox/tre@sha256:cbf2973095933e3ae3237767082e29add2f9b647d7a4aebdfb7a953c6e5656ba'
 [[ "$(podman inspect "$name" --format '{{.ImageName}}')" == "$pin" ]] || exit 1
 [[ "$(podman inspect "$name" --format '{{.State.Status}}')" == exited ]] || {
