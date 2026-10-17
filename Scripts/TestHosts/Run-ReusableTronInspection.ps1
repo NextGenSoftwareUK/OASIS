@@ -1,4 +1,4 @@
-param([ValidateSet('Inspect','IndependentPrepared')][string]$Mode='Inspect')
+param([ValidateSet('Inspect','IndependentPrepared','IndependentInspect')][string]$Mode='Inspect')
 $ErrorActionPreference='Stop'
 $taskRoot=[IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
 $work=Join-Path $taskRoot 'TestResults/HyperDriveTron'
@@ -53,11 +53,13 @@ try{
         & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -TronPreparedStorage -TronNative
     }else{
         $testStarted=[DateTime]::UtcNow
-        & dotnet test $project --no-build --no-restore --filter FullyQualifiedName~TronRealProviderRoutingTests.InspectOriginalInterruptedFixtureWithoutMutation --logger 'trx;LogFileName=tron-readonly-inspection-current.trx' --results-directory $work -v:q
+        $filter=if($Mode -eq 'IndependentInspect'){'FullyQualifiedName~TronIndependentPreparedTests.InspectRetainedIndependentOriginalWithoutMutation'}else{'FullyQualifiedName~TronRealProviderRoutingTests.InspectOriginalInterruptedFixtureWithoutMutation'}
+        $reportName=if($Mode -eq 'IndependentInspect'){'tron-independent-inspection-current.trx'}else{'tron-readonly-inspection-current.trx'}
+        & dotnet test $project --no-build --no-restore --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
     }
     if($LASTEXITCODE -ne 0){throw 'TRON read-only inspection failed; original fence retained.'}
-    if($Mode -eq 'Inspect'){
-        $report=Get-Item -LiteralPath (Join-Path $work 'tron-readonly-inspection-current.trx')
+    if($Mode -ne 'IndependentPrepared'){
+        $report=Get-Item -LiteralPath (Join-Path $work $reportName)
         if($report.LastWriteTimeUtc -lt $testStarted){throw 'TRON inspection report is stale.'}
         [xml]$evidence=Get-Content -LiteralPath $report.FullName -Raw
         $counts=$evidence.TestRun.ResultSummary.Counters
