@@ -1,5 +1,7 @@
 # HyperDrive V2 native-chain fees and recovery
 
+2026-10-17 Cosmos mint/burn wallet error regression fails before signing/SDK; no transaction or native fee incurred. Positive encrypted-wallet cases use controlled process transport, not observed gas/consensus charges. Original pending Cosmos/TRON transaction fences hash-match unchanged. No zero-fee inference for actual network operations; no sponsorship or production settlement enabled.
+
 2026-10-17 Sui per-deposit locked-balance fix is read-only: no signing, gas submission or principal transfer. Registry dynamic-field pagination requests values directly (no redundant per-deposit registry/record lookups). External RPC account credits may still apply; these are not invented as native gas. Latest-state pagination is not snapshot isolation. Existing original fee receipts/zero-floor policy unchanged.
 
 2026-10-17 real C# Sui escrow fees (MIST): mint2365872, lock2102380, release2388292, burn-282576. Raw net6573968; per-operation zero-floor basis6856544 (burn0, no cross-operation credit). Four original signed gas payers/receipts verified; amounts vary with storage/rebates, not fixed prices. Public original digests/components: TestResults/SuiCurrent/sui-csharp-escrow-receipts-current.json SHA256 D090FD3F12FCC9BDFD1282AA03183EEDCA06F020B28E9F895212AECD69322360. productionBillingReconciled=false; no fiat settlement or production sponsorship proven.
