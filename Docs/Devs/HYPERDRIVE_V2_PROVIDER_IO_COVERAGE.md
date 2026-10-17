@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Encrypted V2 point-read acceptance: twelve new actual encrypted-disk/SQLite cases verify avatar/detail/holon sync/async authentication/base64 corruption preserves original cause and blocks stale secondary reads (zero secondary request delta, both stores unchanged). Full local routing124/124pass13s, zero skips. Controlled backend, not chain SDK/key custody/full policy or durable certification.
+
 Current four-chain consumer refresh: libraries rebuilt0errors; TRON310/310pass2s, Sui102/102pass2m14s, Hashgraph47/47pass17s, Cosmos136/136pass2m11s, all zero skips. Reports: TestResults/ChainUnitCurrent/{TRONOASIS,SuiOASIS}-unit-current.trx and TestResults/SubscriptionUsageCurrent/{hedera,cosmos}-full-owned-current.trx. Unit/controlled-backend coverage only; native original-outcome, complete interface/options and V2 policy/recovery/hosted gates remain open. Existing protected journals unchanged; no native replay.
 
 Encrypted backend boundary delta: stored decrypt/encoding/authentication failures now terminal data errors with original cause; SDK/input validation/cancellation and codec API unchanged. Four new red-before/green-after cases plus preserved exact authentication-inner-cause assertions, Shared292/292pass1s. No cipher/format migration/native/V2/key-custody certification.

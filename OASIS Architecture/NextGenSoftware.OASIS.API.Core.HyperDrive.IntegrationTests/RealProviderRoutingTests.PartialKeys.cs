@@ -55,9 +55,17 @@ public sealed partial class RealProviderRoutingTests
 
     [Theory]
     [InlineData(false,0)] [InlineData(true,0)] [InlineData(false,1)] [InlineData(true,1)] [InlineData(false,2)] [InlineData(true,2)]
-    public async Task MalformedSharedDiskRecordsNeverBecomeStaleSecondaryReads(bool synchronous,int kind)
+    [InlineData(false,0,"authentication")] [InlineData(true,0,"authentication")]
+    [InlineData(false,1,"authentication")] [InlineData(true,1,"authentication")]
+    [InlineData(false,2,"authentication")] [InlineData(true,2,"authentication")]
+    [InlineData(false,0,"base64")] [InlineData(true,0,"base64")]
+    [InlineData(false,1,"base64")] [InlineData(true,1,"base64")]
+    [InlineData(false,2,"base64")] [InlineData(true,2,"base64")]
+    public async Task MalformedSharedDiskRecordsNeverBecomeStaleSecondaryReads(bool synchronous,int kind,string cipherMode=null)
     {
-        Directory.CreateDirectory(_root);var backend=new OwnedDiskKeys(FilesPath);var primary=new OwnedDiskProvider(backend);
+        Directory.CreateDirectory(_root);var backend=new OwnedDiskKeys(FilesPath);
+        using var encrypted=cipherMode==null ? null:new EncryptedKeyValueBackend(backend,new byte[32]);
+        var primary=new OwnedDiskProvider(encrypted is null ? backend:encrypted);
         using var sqlite=new SQLLiteDBOASIS($"Data Source={SqlitePath};Pooling=False");
         (await primary.ActivateProviderAsync()).IsError.Should().BeFalse();(await sqlite.ActivateProviderAsync()).IsError.Should().BeFalse();
         var id=Guid.NewGuid();var key="oasis/"+(kind==0 ? "avatar/":kind==1 ? "avatardetail/":"holon/")+id.ToString("N");
@@ -66,20 +74,27 @@ public sealed partial class RealProviderRoutingTests
             (await sqlite.SaveAvatarAsync(new Avatar {Id=id,Username="owned-stale-json",Email="stale-json@example.invalid",IsActive=true,AvatarType=new EnumValue<AvatarType>(AvatarType.User)})).IsError.Should().BeFalse();
             (await sqlite.SaveAvatarDetailAsync(new AvatarDetail {Id=id,XP=999})).IsError.Should().BeFalse();
             (await sqlite.SaveHolonAsync(new Holon {Id=id,Name="owned-stale-json"},saveChildren:false)).IsError.Should().BeFalse();
-            await backend.PutAsync(key,"{invalid stored JSON");
+            var corruptValue=cipherMode==null ? "{invalid stored JSON":cipherMode=="base64" ? "oasis-aes256gcm-v1:not-base64!":"oasis-aes256gcm-v1:"+Convert.ToBase64String(new byte[28]);
+            await backend.PutAsync(key,corruptValue);
             var manager=CreateManager(autoFailover:true,autoReplication:true);manager.RegisterProvider(primary);manager.RegisterProvider(sqlite);
             var types=new[] {new EnumValue<ProviderType>(ProviderType.VercelKVOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)};
             manager.SetAndReplaceAutoFailOverListForProviders(types).IsError.Should().BeFalse();manager.SetAndReplaceAutoReplicationListForProviders(types).IsError.Should().BeFalse();
             var before=manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests??0;var router=new OASISHyperDrive(manager);
             var request=new StorageOperationRequest {Operation=kind==0 ? "LoadAvatar":kind==1 ? "LoadAvatarDetail":"LoadHolon",AvatarId=id,HolonId=id,LoadChildren=false,PreferredProvider=ProviderType.VercelKVOASIS};
             void Corrupt<T>(Common.OASISResult<T> result)
-            {result.IsError.Should().BeTrue();result.Result.Should().BeNull();result.IsLoaded.Should().BeFalse();result.Exception.Should().BeOfType<InvalidDataException>().Which.InnerException.Should().BeAssignableTo<Newtonsoft.Json.JsonException>();}
+            {
+                result.IsError.Should().BeTrue();result.Result.Should().BeNull();result.IsLoaded.Should().BeFalse();
+                var cause=result.Exception.Should().BeOfType<InvalidDataException>().Which.InnerException;
+                if(cipherMode==null)cause.Should().BeAssignableTo<Newtonsoft.Json.JsonException>();
+                else if(cipherMode=="base64")cause.Should().BeOfType<FormatException>();
+                else cause.Should().BeOfType<System.Security.Cryptography.AuthenticationTagMismatchException>();
+            }
             _preserveFixture=true;
             if(kind==0)Corrupt(synchronous ? router.RouteRequest<IAvatar>(request):await router.RouteRequestAsync<IAvatar>(request));
             else if(kind==1)Corrupt(synchronous ? router.RouteRequest<IAvatarDetail>(request):await router.RouteRequestAsync<IAvatarDetail>(request));
             else Corrupt(synchronous ? router.RouteRequest<IHolon>(request):await router.RouteRequestAsync<IHolon>(request));
             (manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests??0).Should().Be(before);
-            (await backend.GetAsync(key)).Should().Be("{invalid stored JSON");
+            (await backend.GetAsync(key)).Should().Be(corruptValue);
             (await sqlite.LoadAvatarAsync(id)).Result.Id.Should().Be(id);(await sqlite.LoadAvatarDetailAsync(id)).Result.XP.Should().Be(999);
             (await sqlite.LoadHolonAsync(id,loadChildren:false)).Result.Name.Should().Be("owned-stale-json");
             _preserveFixture=false;

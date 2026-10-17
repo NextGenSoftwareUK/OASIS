@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 encrypted-corruption routing reused existing fixed guarded disk/SQLite fixture, consumer output and report. Full local routing124/124pass13s, normal synthetic fixture disposal. Synthetic zero32byte encryption key only, no real credentials. No runtime/install/download/clone/new environment or protected ledger/source/userdata removal; compact routing-current.trx overwritten in place.
+
 2026-10-16 four-chain consumer refresh reused existing libraries, SDKs, fixed reports and retained owned Mongo runner. TRON310/Sui102/Hashgraph47/Cosmos136 all passed without skips. Original Cosmos process completed; no duplicate environment/run. Owned Mongo27029 stopped normally; unrelated mongod6840 retained. Raw mongo-current.log2118891bytes remains below8MiB cap. C free78049456128bytes is systemwide observation, not attributed recovery. Three protected native pending-journal hashes unchanged. No manual deletion, install/download/clone/reset/replay or source/userdata/credential removal.
 
 2026-10-16 ciphertext failure boundary reused existing shared outputs/in-memory synthetic ciphertext. Four baseline failures retained in ciphertext-before-current.trx; finalShared292/292pass1s after updating old authentication assertions to verify preserved inner cause. No cipher/key/storage-format/data migration, runtime/node/download/install/clone/environment or protected ledger/source/userdata/credential removal; fixed compact reports reused.
