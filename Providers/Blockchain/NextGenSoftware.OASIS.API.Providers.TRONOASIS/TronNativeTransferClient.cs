@@ -10,7 +10,7 @@ using TronNet.Protocol;
 namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS;
 
 /// <summary>Uses real protobuf node operations, local SDK signing and solidified receipts.</summary>
-public sealed class TronNativeTransferClient
+public sealed partial class TronNativeTransferClient
 {
     internal static NextGenSoftware.OASIS.API.Core.Services.Subscriptions.NativeSigningAuthority CaptureAuthority(Account account)
     {
