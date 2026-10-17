@@ -85,6 +85,9 @@ public partial class HederaPreparationTests
             Assert.AreEqual(0,mirror.Requests,"Rejected signer must not reach mirror lookup.");
             var missingAuthority=await provider.GetPreparedNativeFeeReceiptAsync(attempt,deadline.Token);
             Assert.IsTrue(missingAuthority.IsError);Assert.AreEqual(0,mirror.Requests);
+            var reader=(NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader)provider;
+            var missingTypedAuthority=await reader.ReadPreparedNativeFeeEvidenceAsync(attempt,deadline.Token);
+            Assert.IsTrue(missingTypedAuthority.IsError);Assert.IsNull(missingTypedAuthority.Result);Assert.AreEqual(0,mirror.Requests);
             var originalKey=document.RootElement.GetProperty("publicKey").GetString()!;
             attempt.NativePreparation.SigningAuthority=new("hedera-payer-public-key-v1",Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(originalKey)));
             var replacedKey=await provider.GetPreparedNativeFeeReceiptAsync(attempt,document.RootElement.GetProperty("wrongKey").GetString()!,deadline.Token);
@@ -94,6 +97,11 @@ public partial class HederaPreparationTests
             Assert.AreEqual(attempt.ProviderRequestId,accepted.Result.GetProperty("transactionId").GetString());
             Assert.AreEqual("0.0.1001",accepted.Result.GetProperty("payer").GetString());
             Assert.AreEqual("123",accepted.Result.GetProperty("netUnits").GetString());
+            var typed=await reader.ReadPreparedNativeFeeEvidenceAsync(attempt,deadline.Token);
+            Assert.IsFalse(typed.IsError,typed.Message);Assert.AreEqual(NativeFeeCoverage.NetFinal,typed.Result.Coverage);
+            Assert.AreEqual("0.0.1001",typed.Result.Payer);Assert.AreEqual(attempt.ProviderRequestId,typed.Result.ProviderRequestId);
+            Assert.AreEqual("tinybar",typed.Result.Components.Single().Denomination);Assert.AreEqual("123",typed.Result.Components.Single().NetUnits,
+                "An ordinary transfer's principal is not a service cost.");
             mirror.SubstituteHash=true;
             var differentBody=await provider.GetPreparedNativeFeeReceiptAsync(attempt,document.RootElement.GetProperty("publicKey").GetString()!,deadline.Token);
             Assert.IsTrue(differentBody.IsError,"A different signed payload with the SAME Hedera transaction ID must not supply this attempt's fee.");
@@ -103,7 +111,7 @@ public partial class HederaPreparationTests
             var substituted=await provider.GetPreparedNativeFeeReceiptAsync(attempt,document.RootElement.GetProperty("publicKey").GetString()!,deadline.Token);
             Assert.IsTrue(substituted.IsError); Assert.IsNotNull(substituted.Exception);
             Assert.AreEqual(JsonValueKind.Undefined,substituted.Result.ValueKind);
-            Assert.AreEqual(3,mirror.Requests);
+            Assert.AreEqual(4,mirror.Requests);
         } finally { if(!child.HasExited){child.Kill(entireProcessTree:true);await child.WaitForExitAsync();} }
     }
     private sealed class PreparedFeeMirror:HttpMessageHandler
