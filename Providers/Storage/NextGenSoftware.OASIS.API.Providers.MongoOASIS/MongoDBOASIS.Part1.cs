@@ -74,24 +74,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.MongoDBOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
-            // MongoDB serializers are process-global. Provider construction can happen
-            // repeatedly during failover, tests, and host reconfiguration, so registration
-            // must be idempotent rather than throwing on the second provider instance.
-            var objectSerializer = new ObjectSerializer(type => ObjectSerializer.DefaultAllowedTypes(type) || type.FullName.StartsWith("NextGenSoftware") || type.FullName.StartsWith("System"));
-            BsonSerializer.TryRegisterSerializer(objectSerializer);
-            //BsonClassMap.RegisterClassMap<OAPPDNA>();
-
-            try
-            {
-                ConventionRegistry.Register(
-                    "DictionaryRepresentationConvention",
-                    new ConventionPack { new DictionaryRepresentationConvention(DictionaryRepresentation.ArrayOfArrays) },
-                    _ => true);
-            }
-            catch
-            {
-                // Convention may already be registered in long-lived host processes.
-            }
+            // Assembly-owned member conventions are installed once before class maps freeze.
+            // Constructing a provider must not replace the host's process-global object serializer.
         }
 
         public override OASISResult<bool> ActivateProvider()
