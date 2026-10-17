@@ -24,7 +24,13 @@ public partial class Neo4jNativeAvatarTests
             config=>config.WithConnectionTimeout(TimeSpan.FromSeconds(1)).WithMaxTransactionRetryTime(TimeSpan.Zero));
         using var session=driver.AsyncSession();
         try{await (await session.RunAsync("RETURN 1")).ConsumeAsync();Assert.Fail("Closed owned outage port unexpectedly accepted a query.");}
-        catch(Neo4j.Driver.ServiceUnavailableException cause){Console.WriteLine(cause.ToString());}
+        catch(Neo4j.Driver.ServiceUnavailableException cause){
+            Console.WriteLine(cause.ToString());
+            var provider=new Provider("bolt://127.0.0.1:17688","neo4j","oasis-local-test-only");
+            Assert.IsTrue(provider.IsProviderTransportFailure(cause));
+            Assert.IsFalse(provider.IsProviderTransportFailure(new OperationCanceledException()));
+            Assert.IsFalse(provider.IsProviderTransportFailure(new InvalidDataException()));
+        }
     }
     [DataTestMethod]
     [DataRow(false,false)] [DataRow(true,false)]

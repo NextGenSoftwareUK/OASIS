@@ -14,6 +14,33 @@ namespace NextGenSoftware.OASIS.API.Core.UnitTests.HyperDrive;
 public sealed partial class HyperDriveProviderExecutionTests
 {
     [Theory]
+    [InlineData(false,false)] [InlineData(true,false)]
+    [InlineData(false,true)] [InlineData(true,true)]
+    public async Task ProviderOwnedTransportCancellationAllowsFailoverButNeverCorruption(bool asynchronous,bool corrupt)
+    {
+        var id=Guid.NewGuid();
+        Exception inner=corrupt?new AggregateException(new OperationCanceledException(),new InvalidDataException("corrupt")):new OperationCanceledException();
+        var cause=new IOException("typed provider transport fixture",inner);
+        var primary=new Mock<IOASISStorageProvider>();
+        primary.As<IProviderTransportFailureClassifier>().Setup(x=>x.IsProviderTransportFailure(cause)).Returns(true);
+        primary.SetupAllProperties();primary.Object.ProviderType=new(ProviderType.LocalFileOASIS);
+        primary.Object.ProviderCategory=new(ProviderCategory.Storage);primary.Object.IsProviderActivated=true;
+        var backup=CreateActiveProvider(ProviderType.SQLLiteDBOASIS);
+        primary.Setup(x=>x.LoadAvatar(id,0)).Returns(new OASISResult<IAvatar>{IsError=true,Exception=cause});
+        primary.Setup(x=>x.LoadAvatarAsync(id,0)).ReturnsAsync(new OASISResult<IAvatar>{IsError=true,Exception=cause});
+        backup.Setup(x=>x.LoadAvatar(id,0)).Returns(new OASISResult<IAvatar>(new Avatar{Id=id}));
+        backup.Setup(x=>x.LoadAvatarAsync(id,0)).ReturnsAsync(new OASISResult<IAvatar>(new Avatar{Id=id}));
+        var manager=new ProviderManager(null,CreateDna(HyperDriveModes.V2)){IsAutoFailOverEnabled=true};
+        manager.RegisterProvider(primary.Object);manager.RegisterProvider(backup.Object);
+        manager.SetAndReplaceAutoFailOverListForProviders(new[]{new EnumValue<ProviderType>(ProviderType.LocalFileOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)});
+        var router=new OASISHyperDrive(manager);var request=new StorageOperationRequest{Operation="LoadAvatar",AvatarId=id,PreferredProvider=ProviderType.LocalFileOASIS};
+        var result=asynchronous?await router.RouteRequestAsync<IAvatar>(request):router.RouteRequest<IAvatar>(request);
+        result.IsError.Should().Be(corrupt);
+        if(corrupt){result.Exception.InnerException.Should().BeSameAs(cause);result.Result.Should().BeNull();}
+        else result.Result.Id.Should().Be(id);
+        (manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests??0).Should().Be(corrupt?0:1);
+    }
+    [Theory]
     [InlineData(false)] [InlineData(true)]
     public async Task CancelledProviderOperationNeverStartsFallbackOrReplica(bool asynchronous)
     {
