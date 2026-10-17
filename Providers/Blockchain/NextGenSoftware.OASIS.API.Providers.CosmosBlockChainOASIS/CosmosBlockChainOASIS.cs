@@ -58,9 +58,12 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
         /// <param name="rpcEndpoint">Cosmos RPC endpoint URL</param>
         /// <param name="chainId">Cosmos chain ID</param>
         /// <param name="privateKey">Private key for signing transactions</param>
-        public CosmosBlockChainOASIS(string rpcEndpoint = "https://cosmos-rpc.polkachu.com", string chainId = "cosmoshub-4", string privateKey = "", string contractAddress = "", string addressPrefix = "cosmos", string gasPrice = "0.025uatom", string nativeDenom = "uatom", int nativeDecimals = 6, Func<byte[]> storageEncryptionKeyResolver = null)
+        public CosmosBlockChainOASIS(string rpcEndpoint = "https://cosmos-rpc.polkachu.com", string chainId = "cosmoshub-4", string privateKey = "", string contractAddress = "", string addressPrefix = "cosmos", string gasPrice = "0.025uatom", string nativeDenom = "uatom", int nativeDecimals = 6, Func<byte[]> storageEncryptionKeyResolver = null, CosmosTokenEscrowConfiguration tokenEscrow = null)
             : this(new CosmosSdkBackend(rpcEndpoint, chainId, privateKey, contractAddress, addressPrefix, gasPrice),privateKey,contractAddress,nativeDenom,nativeDecimals,storageEncryptionKeyResolver)
-        { }
+        {
+            tokenEscrow?.Validate(contractAddress);
+            _tokenEscrow = tokenEscrow;
+        }
 
         private readonly CosmosSdkBackend _sdkBackend;
         private CosmosBlockChainOASIS(CosmosSdkBackend sdk,string privateKey,string contractAddress,string nativeDenom,int nativeDecimals,Func<byte[]> keyResolver)
