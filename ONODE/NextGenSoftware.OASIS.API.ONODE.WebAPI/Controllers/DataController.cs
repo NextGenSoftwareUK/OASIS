@@ -36,14 +36,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 if (_holonManager == null)
                 {
-                    if(NextGenSoftware.OASIS.API.Core.Services.Subscriptions.PreparedStorageExecution.Current!=null)
+                    if(AdmittedStorageManagerAcquisition.TryCreate(
+                        ()=>OASISBootLoader.OASISBootLoader.OASISDNA,
+                        ()=>ProviderManager.Instance.CurrentStorageProvider,
+                        (provider,dna)=>new HolonManager(provider,dna),out HolonManager admitted))
                     {
-                        var dna=OASISBootLoader.OASISBootLoader.OASISDNA;
-                        if(dna?.OASIS?.HyperDriveMode!=NextGenSoftware.OASIS.API.DNA.HyperDriveModes.V2)
-                            throw new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.UsageProtocolException(
-                                "HYPERDRIVE_PREPARED_EXECUTION_REJECTED","Admitted data routing requires HyperDrive V2.");
-                        // Select/register only. Activation belongs to the router's prepared owner.
-                        _holonManager=new HolonManager(ProviderManager.Instance.CurrentStorageProvider,dna);
+                        _holonManager=admitted;
                         return _holonManager;
                     }
                     OASISResult<IOASISStorageProvider> result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
