@@ -83,6 +83,16 @@ public sealed class CosmosAvatarMintSignerTests
                 created.Result.Creator.Should().Be("fixture-owner");created.Result.Protocol.Should().Be(1);
                 created.Result.TransactionResult.Should().Be(new string('1',32));sui.IsProviderActivated.Should().BeFalse();
             }
+            if(useSui){
+                var mintToken=new MintWeb3TokenRequest {MintedByAvatarId=avatarId,Amount=1.23m,
+                    MetaData=new(){{"TokenAddress","0x1::token::TOKEN"},{"MintToWalletAddress","fixture-owner"}}};
+                var mintedToken=synchronous?sui.MintToken(mintToken):await sui.MintTokenAsync(mintToken);
+                mintedToken.IsError.Should().BeFalse(mintedToken.Message);mintedToken.Result.TransactionResult.Should().Be(new string('1',32));
+                var burnToken=new BurnWeb3TokenRequest {BurntByAvatarId=avatarId,Amount=1.23m,TokenAddress="0x1::token::TOKEN",
+                    OwnerPrivateKey="",OwnerPublicKey="fixture-public",OwnerSeedPhrase=""};
+                var burntToken=synchronous?sui.BurnToken(burnToken):await sui.BurnTokenAsync(burnToken);
+                burntToken.IsError.Should().BeFalse(burntToken.Message);burntToken.Result.TransactionResult.Should().Be(new string('1',32));
+            }
             if (!useSui) {
             var request=new MintWeb3TokenRequest { Symbol = "fixture-token", Amount = 1, MintedByAvatarId = avatarId };
             var minted = synchronous ? cosmos.MintToken(request):await cosmos.MintTokenAsync(request);
