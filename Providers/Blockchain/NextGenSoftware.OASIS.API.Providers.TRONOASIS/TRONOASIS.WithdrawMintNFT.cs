@@ -251,30 +251,27 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     || !string.IsNullOrWhiteSpace(transaction.SendToAvatarAfterMintingUsername)
                     || !string.IsNullOrWhiteSpace(transaction.SendToAvatarAfterMintingEmail))
                     throw new ArgumentException("On-chain metadata, freeze, royalties and avatar-recipient resolution require explicit collection support.");
-                var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(transaction.MintedByAvatarId,
+                var mintedByAvatarId = transaction.MintedByAvatarId;
+                var metadataUri = transaction.JSONMetaDataURL;
+                var memo = transaction.MemoText;
+                var requestedRecipient = transaction.SendToAddressAfterMinting;
+                var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(mintedByAvatarId,
                     Core.Enums.ProviderType.TRONOASIS, showPrivateKeys: true);
                 if (wallet.IsError || wallet.Result == null || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
                     throw new InvalidOperationException("Could not resolve the avatar's TRON minter signing wallet.");
-                var recipient = string.IsNullOrWhiteSpace(transaction.SendToAddressAfterMinting)
-                    ? wallet.Result.WalletAddress : transaction.SendToAddressAfterMinting;
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                var hash = await ExecuteRuntimeAsync(client => client.MintNftAsync(wallet.Result.WalletAddress,
-                    recipient, contract, tokenId, transaction.JSONMetaDataURL, wallet.Result.PrivateKey, transaction.MemoText));
-                response.Result = new Web3NFTTransactionResponse { TransactionResult = hash };
+                var recipient = string.IsNullOrWhiteSpace(requestedRecipient) ? wallet.Result.WalletAddress : requestedRecipient;
+                var hash = await ExecuteNativeRuntimeAsync(client => client.MintNftAsync(wallet.Result.WalletAddress,
+                    recipient, contract, tokenId, metadataUri, wallet.Result.PrivateKey, memo));
+                var nft = new Web3NFT { NFTTokenAddress = contract + "/" + tokenId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                    JSONMetaDataURL = metadataUri, MintedByAvatarId = mintedByAvatarId,
+                    OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS) };
+                response.Result = new Web3NFTTransactionResponse { TransactionResult = hash, Web3NFT = nft,
+                    Web3NFTs = new List<IWeb3NFT> { nft } };
                 response.Message = "TRC721 mint extension confirmed by solidified contract receipt.";
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref response, $"Error minting TRON NFT: {ex.Message}");
+                OASISErrorHandling.HandleError(ref response, $"Error minting TRON NFT: {ex.Message}", ex);
             }
 
             return response;
