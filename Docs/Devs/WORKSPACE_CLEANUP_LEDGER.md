@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 fee calculator build/full Shared302 tests reused existing dependencies/build directories with --no-restore and bounded workers. C: free74.49GiB before execution; no download/install/runtime/database/ledger activity, new environment or disposable per-run report directory. No deletion performed; protected source, keys, ledgers and unrelated dirty subscription work preserved.
+
 2026-10-16 shared correlation fix295unitpass/4providerbuilds/Cosmos139ownedpass plus final focused admitted boundary1pass2s reuses same SDK/build dirs/Mongo27029. Final initializer179ms, normal exact synthetic outbox cleanup and service stop. No native chain node/start/submit, no original protected journal mutation, installs/downloads/new environments or per-run copies. Fixed reports retained/overwritten; source/credentials/runtimes/ledgers preserved.
 
 2026-10-16 Azure search visibility baseline73pass4fail47s then final77pass46s reused retained Azurite/SDK/containers/64MB in-memory runtime. No new database files or runtime/environment/download/install; existing exact owned container cleanup/service stop normal, current TRX overwritten. New fixtures are synthetic IDs within existing owned containers, not user/cloud data. No broad filesystem or protected chain ledger deletion.

@@ -2,7 +2,7 @@
 
 Updated: 2026-10-16. This is a living implementation and verification report, not a claim of production readiness.
 
-## Approved billing policy — implementation pending
+## Approved billing policy — calculator implemented; billing integration pending
 
 The user approved netting native fees and storage rebates **within the same admitted operation**, with a minimum final charge of zero. There is no payout, carry-forward credit, or offset against another operation.
 
@@ -16,6 +16,10 @@ The user approved netting native fees and storage rebates **within the same admi
 This approval does not itself authorize public-chain spending, paid cloud provisioning, a production deployment, a particular exchange-rate source, or a subscription allowance change.
 
 ## What is implemented and verified
+
+2026-10-16: Shared `NativeOperationFeeAccounting.Calculate` now validates and snapshots caller-supplied valued evidence, rejects cross-operation and duplicate receipt/denomination attribution, sums signed USD fees/rebates with checked arithmetic and floors only the final operation charge. Exact native units, sign preservation and explicit UTC valuation provenance are required. Seven new cases pass within the full Shared suite: **302/302, zero skipped, 1 second**; producer build has zero errors (two existing package warnings). A draft test referenced a nonexistent helper; corrected before the first build/test, with no failed test execution.
+
+This is a pure calculator, not a production valuation or settlement implementation. Synthetic fixture valuations do not prove native receipt verification, an authorized price feed, durable replay protection, or ledger integration. Duplicate detection is scoped to the supplied operation; durable cross-operation attribution remains the settlement owner's responsibility. Core/WEB4 positive-only receipt contracts and production recovery/valuation gates below remain open.
 
 | Area | Evidence and scope | Remaining work |
 |---|---|---|
