@@ -256,13 +256,15 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             try
             {
                 ArgumentNullException.ThrowIfNull(request);
-                if (request.Amount <= 0) throw new ArgumentOutOfRangeException(nameof(request.Amount));
-                if (string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
+                var tokenAddress=request.TokenAddress;var amount=request.Amount;
+                var privateKey=request.OwnerPrivateKey;var publicKey=request.OwnerPublicKey;var seed=request.OwnerSeedPhrase;
+                if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(request.Amount));
+                if (string.IsNullOrWhiteSpace(tokenAddress) || string.IsNullOrWhiteSpace(privateKey))
                     throw new ArgumentException("Token contract and holder signing key are required.");
-                if (!string.IsNullOrWhiteSpace(request.OwnerSeedPhrase))
+                if (!string.IsNullOrWhiteSpace(seed))
                     throw new ArgumentException("Recover a signing key explicitly before burning; seed/key ambiguity is not supported.");
-                var hash = await ExecuteNativeRuntimeAsync(client => client.BurnTokenAsync(request.TokenAddress,
-                    request.Amount, request.OwnerPrivateKey, publicKey: request.OwnerPublicKey));
+                var hash = await ExecuteNativeRuntimeAsync(client => client.BurnTokenAsync(tokenAddress,
+                    amount, privateKey, publicKey: publicKey));
                 result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = hash };
                 result.Message = "Requested TRC20 burn confirmed by solidified contract receipt.";
             }
