@@ -353,7 +353,8 @@ public class TronPermissionRpcTests
                 var account=await runtime.NativeTransfers.LoadPermissionAuthorityAsync(address,deadline.Token);
                 Assert.Equal(21,account.Address.Length);Assert.NotNull(account.OwnerPermission);Assert.Equal(1,solid.AccountQueries);
                 if(mode=="prepared"||mode=="prepared-denied"){
-                    const string connection="mongodb://127.0.0.1:27017/?serverSelectionTimeoutMS=3000";
+                    const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+                    Assert.Equal(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
                     var database="usage_tron_rpc_test_"+Guid.NewGuid().ToString("N");var mongo=new MongoDB.Driver.MongoClient(connection);
                     try{
                         var store=new MongoUsageOutboxStore(connection,database);await store.InitializeAsync(deadline.Token);

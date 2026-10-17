@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 Hedera54controlled cases52s and TRON317unit cases2s reused installed SDKs/build outputs and the same owned Mongo27029 environment sequentially. No native chain runtime/public spending/install/download/copy/new environment. TRON three unit fixture connections corrected away from unrelated27017, which was not stopped or modified. Fixed TRX reports retained; normal exact owned synthetic database cleanup,27029 closed after runners. C:74.48GiB free after, no broad deletions or protected chain ledger/journal changes.
+
 2026-10-16 Sui prepared native refresh4/4pass47s plus owned Mongo initializer194ms reused retained Sui1.81.1ledger/runtime/SDK and existing Mongo27029 environment. No install/download/new environment/archive or database copy. Existing fixture removes only its acknowledged synthetic objects/outbox and pending intent after completion; retained ledger preserved. Verified9000/27029 listeners closed and prepared-live-pending.json absent after runnerexit0. Fixed TRX overwritten. C:74.49GiB free before and after, no broad filesystem deletion or protected Cosmos/TRON/Solana state changes.
 
 2026-10-16 fee calculator build/full Shared302 tests reused existing dependencies/build directories with --no-restore and bounded workers. C: free74.49GiB before execution; no download/install/runtime/database/ledger activity, new environment or disposable per-run report directory. No deletion performed; protected source, keys, ledgers and unrelated dirty subscription work preserved.
