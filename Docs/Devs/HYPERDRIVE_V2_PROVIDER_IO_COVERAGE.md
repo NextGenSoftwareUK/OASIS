@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Ethereum same-instance reactivation: native186/186pass57s,59contract assertions,Web3native4/4pass1m26s. After failed SDK activation, same registered provider automatically activates on next request after explicit HostURI repair, same manager/router, SQLite request delta0. Not unchanged-endpoint outage recovery. Predictive override expiry/probe owner remains absent in inspected source; automatic circuit recovery still unproven/unimplemented there.
+
 Repaired-endpoint downstream refresh completed: Web3 native4/4pass1m25s, zero skips, runnerexit0/normal teardown. Supersedes pending observation below.
 
 Ethereum native186/186pass58s plus59contract assertions now includes same-manager/router repaired-endpoint selection after SDK outage/SQLite failover, sync/async; exact Ethereum+1/SQLite+0 request deltas after explicit provider re-registration. Does not prove automatic circuit recovery. Downstream Web3 refresh pending at this entry; no public gas/new environment.
