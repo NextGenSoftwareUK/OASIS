@@ -218,6 +218,7 @@ public sealed class TronAvatarWalletSendTests
                 Assert.Equal(tokenAddress + "/1",minted.Result.Web3NFT.NFTTokenAddress);
                 Assert.Equal("https://example.invalid/owned-nft/1",minted.Result.Web3NFT.JSONMetaDataURL);
                 Assert.Equal(sender,minted.Result.Web3NFT.MintedByAvatarId);
+                Assert.Equal(destination,minted.Result.Web3NFT.SendToAddressAfterMinting);
                 Assert.Same(minted.Result.Web3NFT,Assert.Single(minted.Result.Web3NFTs));
                 return new() { Result = minted.Result };
             }
