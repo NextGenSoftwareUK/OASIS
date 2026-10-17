@@ -9,6 +9,15 @@ public sealed class SuiTokenEscrowTests
     private static readonly Guid Id = Guid.Parse("11111111-2222-3333-4444-555555555555");
     private static readonly string Escrow = "0x" + new string('2', 64);
     [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task CreationRejectsMissingAvatarOrAlreadyConfiguredRegistry(bool configured)
+    {
+        using var provider = new SuiOASIS(contractAddress:"0x1", tokenEscrow:configured?new(Escrow):null);
+        var result = await provider.CreateTokenEscrowRegistryAsync(configured?Id:Guid.Empty);
+        Assert.IsTrue(result.IsError);Assert.IsNull(result.Result);Assert.IsInstanceOfType(result.Exception,typeof(ArgumentException));
+        Assert.IsFalse(provider.IsProviderActivated);
+    }
+    [DataTestMethod]
     [DataRow(false, false)] [DataRow(true, false)] [DataRow(false, true)] [DataRow(true, true)]
     public async Task ExplicitLockCapturesIntentAndRetainsOriginalInconsistentReply(bool synchronous, bool badReply)
     {
