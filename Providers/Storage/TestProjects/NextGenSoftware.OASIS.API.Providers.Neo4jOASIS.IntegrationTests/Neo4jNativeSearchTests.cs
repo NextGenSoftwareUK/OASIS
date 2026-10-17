@@ -17,6 +17,15 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.IntegrationTests;
 
 public partial class Neo4jNativeAvatarTests
 {
+    [TestMethod]
+    public async Task ClosedPortRetainsNativeTransportCause()
+    {
+        using var driver=GraphDatabase.Driver("bolt://127.0.0.1:17688",AuthTokens.Basic("neo4j","oasis-local-test-only"),
+            config=>config.WithConnectionTimeout(TimeSpan.FromSeconds(1)).WithMaxTransactionRetryTime(TimeSpan.Zero));
+        using var session=driver.AsyncSession();
+        try{await (await session.RunAsync("RETURN 1")).ConsumeAsync();Assert.Fail("Closed owned outage port unexpectedly accepted a query.");}
+        catch(Neo4j.Driver.ServiceUnavailableException cause){Console.WriteLine(cause.ToString());}
+    }
     [DataTestMethod]
     [DataRow(false,false)] [DataRow(true,false)]
     [DataRow(false,true)] [DataRow(true,true)]
@@ -37,7 +46,7 @@ public partial class Neo4jNativeAvatarTests
         try
         {
             Assert.IsFalse((await neo.ActivateProviderAsync()).IsError);Assert.IsFalse((await backup.ActivateProviderAsync()).IsError);
-            var first=new Holon {Id=firstId,Name="cedar canopy",Description="park cleanup",Version=7,CreatedByAvatarId=owner};
+            var first=new Holon {Id=firstId,Name="cedar canopy",Description="park cleanup",Version=7,CreatedByAvatarId=owner,IsActive=false};
             first.MetaData["Region"]="park";
             var child=new Holon {Id=childId,ParentHolonId=firstId,Name="river path",Version=9,CreatedByAvatarId=Guid.NewGuid()};
             Assert.IsFalse((await neo.SaveHolonAsync(first,saveChildren:false)).IsError);
@@ -45,6 +54,13 @@ public partial class Neo4jNativeAvatarTests
             var avatar=new Avatar {Id=avatarId,Username="keeper",FirstName="Tree Keeper",CreatedByAvatarId=owner,Password="private-never-search"};
             avatar.MetaData["Region"]="park";
             Assert.IsFalse((await neo.SaveAvatarAsync(avatar)).IsError);
+            var deletedHolon=new Holon {Id=Guid.NewGuid(),Name="deleted search root",DeletedDate=DateTime.UtcNow};
+            var deletedAvatar=new Avatar {Id=Guid.NewGuid(),Username="deleted-search-root",DeletedDate=DateTime.UtcNow};
+            owned.Add(deletedHolon.Id);owned.Add(deletedAvatar.Id);
+            var savedDeletedHolon=await neo.SaveHolonAsync(deletedHolon,saveChildren:false);Assert.IsFalse(savedDeletedHolon.IsError,savedDeletedHolon.Message);
+            var savedDeletedAvatar=await neo.SaveAvatarAsync(deletedAvatar);Assert.IsFalse(savedDeletedAvatar.IsError,savedDeletedAvatar.Message);
+            Assert.AreNotEqual(DateTime.MinValue,(await neo.LoadHolonAsync(deletedHolon.Id,loadChildren:false)).Result.DeletedDate);
+            Assert.AreNotEqual(DateTime.MinValue,(await neo.LoadAvatarAsync(deletedAvatar.Id)).Result.DeletedDate);
             var fillers=new List<Holon>();
             if(!synchronous && !throughV2)
             {
@@ -69,6 +85,7 @@ public partial class Neo4jNativeAvatarTests
             }
             SearchParams Group(ISearchGroupBase group)=>new() {SearchOnlyForCurrentAvatar=false,SearchGroups=new List<ISearchGroupBase> {group}};
             var all=await Found(new SearchParams {SearchOnlyForCurrentAvatar=false});Assert.AreEqual(3+fillers.Count,all.NumberOfResults);
+            Assert.IsFalse(all.SearchResultHolons.Single(row=>row.Id==firstId).IsActive,"Inactive nondeleted roots must remain eligible.");
             var name=Group(new SearchTextGroup {SearchQuery="CEDAR",SearchHolons=true,HolonType=HolonType.All,HolonSearchParams=new SearchHolonParams {Name=true}});
             var named=await Found(name);Assert.AreEqual(firstId,named.SearchResultHolons.Single().Id);Assert.AreEqual("park cleanup",named.SearchResultHolons.Single().Description);
             var metadata=await Found(new SearchParams {SearchOnlyForCurrentAvatar=false,FilterByMetaData=new Dictionary<string,string> {{"Region","park"}}});
