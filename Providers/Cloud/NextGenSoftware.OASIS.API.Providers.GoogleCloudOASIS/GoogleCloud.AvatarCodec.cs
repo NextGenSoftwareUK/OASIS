@@ -130,7 +130,7 @@ public partial class GoogleCloudOASIS : IAvatarTombstoneStorageProvider
             var ready=await EnsureDetailStoreAsync(version);
             if(ready.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IEnumerable<IAvatar>>(ready);
             var snapshot=await _firestoreDb.Collection("avatars").GetSnapshotAsync();
-            result.Result=snapshot.Documents.Select(doc=>DecodeAvatar(doc.ConvertTo<Dictionary<string,object>>(),doc.Id)).Where(row=>row.IsActive).Cast<IAvatar>().ToList();
+            result.Result=snapshot.Documents.Select(doc=>DecodeAvatar(doc.ConvertTo<Dictionary<string,object>>(),doc.Id)).Where(row=>row.DeletedDate==DateTime.MinValue).Cast<IAvatar>().ToList();
             result.IsLoaded=true;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
