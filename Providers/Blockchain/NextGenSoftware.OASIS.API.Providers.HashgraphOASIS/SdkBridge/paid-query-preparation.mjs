@@ -22,7 +22,7 @@ function inspectPayment(payment,body,context) {
   if(payerIndex<0||nodeIndex<0||payerIndex===nodeIndex||units[nodeIndex]<0n
       ||units[payerIndex]!==-units[nodeIndex]||units[nodeIndex]>BigInt(context.maxPaymentTinybars))
     throw new Error('Selected query payment exceeds admitted node/payment authority.');
-  return {node,amount:units[nodeIndex].toString()};
+  return {node,amount:units[nodeIndex].toString(),maximumFeeTinybars:(units[nodeIndex]+BigInt(body.transactionFee.toString())).toString()};
 }
 
 export async function verifyPreparedQueryIdentity(evidence,expectedPublicKey,expectedNodes,maxPaymentTinybars,maxTransactionFeeTinybars) {
@@ -44,7 +44,7 @@ export async function verifyPreparedQueryIdentity(evidence,expectedPublicKey,exp
   const hashes=[...(await payment.getTransactionHashPerNode()).values()].map(value=>Buffer.from(value).toString('hex'));
   if(hashes.length!==1||!/^[0-9a-f]{96}$/.test(hashes[0]))throw new Error('One original query-payment native hash is required.');
   return {verified:true,transactionHash:evidence.transactionHash,sender:evidence.sender,queryNodeAccountId:inspected.node,
-    queryPaymentTinybars:inspected.amount,signedTransactionHashes:hashes};
+    queryPaymentTinybars:inspected.amount,maximumFeeTinybars:inspected.maximumFeeTinybars,signedTransactionHashes:hashes};
 }
 
 // Pinned SDK2.86.2 extension seam. No prototype patching: each explicit query subclass
