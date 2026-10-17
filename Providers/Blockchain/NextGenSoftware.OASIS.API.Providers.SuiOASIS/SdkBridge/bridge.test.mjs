@@ -63,6 +63,15 @@ test('bridge entry point validates trusted preparation callback without treating
   const wallet=await invoke({operation:'generateKey'},async()=>{preparations++;});
   assert.ok(wallet.address);assert.equal(preparations,0);
 });
+test('signed gas owner is recovered independently from transaction sender',async()=>{
+ const signer=Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
+ const payer=Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(8)).toSuiAddress();
+ const tx=offlineTransaction(signer);tx.setGasOwner(payer);
+ const bytes=await tx.build();const {signature}=await signer.signTransaction(bytes);
+ const evidence={transactionHash:await tx.getDigest(),sender:signer.toSuiAddress(),signature,signedTransactionBase64:Buffer.from(bytes).toString('base64')};
+ const identity=await verifyPreparedIdentity(evidence);
+ assert.equal(identity.gasPayer,payer);assert.notEqual(identity.gasPayer,identity.sender);
+});
 test('concurrent Sui preparation callbacks remain bound to their own signed operation', async () => {
   const seen=await Promise.all([7,8].map(async seed=>{
     const signer=Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(seed));

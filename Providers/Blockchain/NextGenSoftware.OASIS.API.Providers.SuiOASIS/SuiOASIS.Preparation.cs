@@ -42,10 +42,16 @@ public partial class SuiOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.IPrepa
                 ||attempt.NativePreparation.ChainId!=_sdkClient.ChainId)
                 throw new InvalidDataException("Prepared Sui attempt must bind this provider, original digest and configured genesis.");
             var preparation=attempt.NativePreparation;
-            await VerifyOriginalSignedPreparationAsync(JsonSerializer.SerializeToElement(new{
+            var identity=await VerifyOriginalSignedIdentityAsync(JsonSerializer.SerializeToElement(new{
                 transactionHash=attempt.ProviderRequestId,chainId=preparation.ChainId,sender=preparation.Sender,
                 signedTransactionBase64=preparation.SignedTransactionBase64,signature=preparation.Signature}),token);
-            return await GetNativeFeeReceiptAsync(attempt.ProviderRequestId,token);
+            var receipt=await GetNativeFeeReceiptAsync(attempt.ProviderRequestId,token);
+            if(receipt.IsError)return receipt;
+            if(!identity.TryGetProperty("gasPayer",out var payer)||payer.ValueKind!=JsonValueKind.String
+                ||string.IsNullOrWhiteSpace(payer.GetString())
+                ||!SameSuiAddress(payer.GetString(),receipt.Result.GetProperty("payer").GetString()))
+                throw new InvalidDataException("Sui fee receipt payer does not match the original signed gas owner.");
+            return receipt;
         }catch(Exception failure){NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,failure.Message,failure);}
         return result;
     }
@@ -68,6 +74,9 @@ public partial class SuiOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.IPrepa
 
     /// <summary>Fail-closed callback for original signed identity verification; performs no ledger submission.</summary>
     public async Task VerifyOriginalSignedPreparationAsync(JsonElement preparation, CancellationToken token = default)
+        =>_ = await VerifyOriginalSignedIdentityAsync(preparation,token);
+
+    private async Task<JsonElement> VerifyOriginalSignedIdentityAsync(JsonElement preparation,CancellationToken token)
     {
         var digest = preparation.GetProperty("transactionHash").GetString();
         var sender = preparation.GetProperty("sender").GetString();
@@ -77,5 +86,6 @@ public partial class SuiOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.IPrepa
             || !result.TryGetProperty("transactionHash", out var hash) || hash.ValueKind != JsonValueKind.String || hash.GetString() != digest
             || !result.TryGetProperty("sender", out var identity) || identity.ValueKind != JsonValueKind.String || identity.GetString() != sender)
             throw new InvalidDataException("Official Sui preparation verification did not bind the original digest and signer.");
+        return result;
     }
 }

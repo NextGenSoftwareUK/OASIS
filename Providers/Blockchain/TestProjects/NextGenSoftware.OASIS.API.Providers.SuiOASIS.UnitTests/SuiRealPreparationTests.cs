@@ -8,6 +8,24 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class SuiRealPreparationTests
 {
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task RecoveredFeeBindsSignedGasOwnerRatherThanAssumingSender(bool foreignPayer)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","unlock-readback-failure.mjs"));
+        try{
+            using var provider=new SuiOASIS("http://127.0.0.1:1","localnet","fixture-chain");
+            var attempt=new UsageProviderAttempt{Provider="SuiOASIS",ProviderRequestId="original",NativePreparation=new(){
+                ChainId="fixture-chain",Sender="different-transaction-sender",SignedTransactionBase64="AQID",
+                Signature=foreignPayer?"fixture-verified-foreign-payer":"fixture-verified"}};
+            var result=await provider.GetPreparedNativeFeeReceiptAsync(attempt);
+            Assert.AreEqual(foreignPayer,result.IsError);
+            if(foreignPayer){Assert.IsInstanceOfType<InvalidDataException>(result.Exception);Assert.AreEqual(JsonValueKind.Undefined,result.Result.ValueKind);}
+            else Assert.AreEqual("fixture-owner",result.Result.GetProperty("payer").GetString());
+        }finally{Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",previous);}
+    }
     [TestMethod]
     public async Task PreparedRecoveryRejectsForeignProviderChainAndMissingIdentityBeforeLookup()
     {
