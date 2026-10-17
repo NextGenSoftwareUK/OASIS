@@ -1,5 +1,9 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Amount-aware contract variants and separate HTS association (2026-10-17)
+
+New TRON/Hedera per-deposit variants reuse unchanged Ethereum custody source and are NOT enabled in provider SDKs or deployed. Exact positive token principal and single-use deposit IDs replace neither current deployed aggregate ABI nor its default-zero lock-all meaning automatically. Hedera's explicit associateToken is a separate potentially paid native operation: association, allowance approval and deposit may therefore be three distinct fee exposures. Association success response22 is insufficient without association readback. A successful association/approval followed by uncertain deposit is not permission to replay, assume no cost, charge principal as gas or invent a successful API response. The new177ordinary-EVM assertions prove local contract effects only; no HTS precompile/network fees or TVM receipts were obtained. Native SDK wiring, pinned runtime verification, per-stage durable original transaction evidence and settlement gates remain OPEN. No paid transaction or new sponsorship policy enabled.
+
 2026-10-17 TRON raw native transfer now uses existing native SDK lease without encrypted-storage activation. Positive amount must convert to exact int64 SUN before key resolution; invalid amount or resolver failure submits nothing. The configured resolver delegate survives runtime disposal but private keys are resolved per invocation, not newly cached. Controlled public-provider tests confirm actual SDK authority checks, one construction/broadcast and exact solidified receipt ID; these do not prove funded fees or settlement. Protected uncertain submissions are not replayed; full native fee/hosted acceptance gates remain open.
 
 ## Hedera aggregate escrow request integrity (2026-10-17)
