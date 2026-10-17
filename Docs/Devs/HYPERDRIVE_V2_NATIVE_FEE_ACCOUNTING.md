@@ -1,5 +1,9 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Hedera aggregate escrow request integrity (2026-10-17)
+
+Hedera's current HTS escrow also exposes aggregate `lockAll`/`unlock`, not exact-amount or per-deposit custody. Shared validation now rejects nonzero requested Amount, nonempty LockId or conflicting configured contract before wallet lookup, signing or paid queries. Zero/default Amount retains the existing all-balance meaning; principal is not a fee. Six public-provider rejection tests and full77-case suite pass, but do not prove native settlement, sponsorship or completed amount-aware support. That implementation gate stays open; existing Ethereum per-deposit source is a reuse candidate, not a deployed HTS solution. No funded operation was performed.
+
 ## TRON aggregate escrow limitation and spending implications (2026-10-17)
 
 The current supported contract has `lockAll(address)`/`unlockAll(address)`, not amount-selected or individually identified deposits. The generic provider request now **rejects a nonzero `Amount`, a nonempty `LockId`, or an escrow address conflicting with configured custody**, rather than silently ignoring it. Default/zero `Amount` is the existing **lock-all sentinel**: it can move the sender's entire spendable token balance, not zero tokens. Callers/UI must not present it as a partial-amount lock. Exact-amount/individual-deposit support remains an open contract/API gate.

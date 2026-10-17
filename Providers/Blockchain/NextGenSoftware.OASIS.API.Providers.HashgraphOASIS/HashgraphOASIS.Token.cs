@@ -184,7 +184,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         public async Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
         {
             return await ExecuteAvatarTokenEscrowAsync("tokenEscrowLock", request?.LockedByAvatarId ?? Guid.Empty,
-                request?.TokenAddress, request?.FromWalletAddress, request?.FromWalletPrivateKey);
+                request?.TokenAddress, request?.FromWalletAddress, request?.FromWalletPrivateKey,
+                request?.Amount ?? 0, request?.LockId ?? Guid.Empty, request?.EscrowContractAddress);
         }
 
         public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
@@ -195,17 +196,20 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         public async Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
         {
             return await ExecuteAvatarTokenEscrowAsync("tokenEscrowUnlock", request?.UnlockedByAvatarId ?? Guid.Empty,
-                request?.TokenAddress, null, null);
+                request?.TokenAddress, null, null, 0, request?.LockId ?? Guid.Empty, request?.EscrowContractAddress);
         }
 
         private async Task<OASISResult<ITransactionResponse>> ExecuteAvatarTokenEscrowAsync(string action,
-            Guid avatarId, string tokenAddress, string requestedWallet, string requestedKey)
+            Guid avatarId, string tokenAddress, string requestedWallet, string requestedKey,
+            decimal requestedAmount, Guid requestedLockId, string requestedEscrow)
         {
             var result = new OASISResult<ITransactionResponse>();
             try
             {
                 if (_tokenEscrow == null) throw new InvalidOperationException("An explicit Hedera fungible escrow contract configuration is required.");
                 _tokenEscrow.Validate();
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.AggregateTokenEscrowRequest.Validate(
+                    requestedAmount, requestedLockId, requestedEscrow, _tokenEscrow.ContractId);
                 if (avatarId == Guid.Empty) throw new ArgumentException("An explicit requesting avatar identity is required for token escrow.");
                 if (!System.Text.RegularExpressions.Regex.IsMatch(tokenAddress ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
                     throw new ArgumentException("Token escrow requires a nonzero numeric HTS token address.");
