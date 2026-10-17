@@ -66,6 +66,22 @@ internal static class NativeCodeGenesisContract
         });
     }
 
+    internal static void VerifyNameCollision(Func<ICelestialBody,string,bool> generate,string collision)
+    {
+        var holon=new Holon {Name="Seed",Nodes=new List<INode>()};
+        var children=new List<IHolon>{holon};
+        if(collision=="contract")holon.Name="Garden";
+        else if(collision=="holon")children.Add(new Holon{Name="seed"});
+        else if(collision=="member"){
+            holon.Nodes.Add(new Node{NodeName="Age",NodeType=NodeType.Int});
+            holon.Nodes.Add(new Node{NodeName="age",NodeType=NodeType.String});
+        }else holon.Nodes.Add(new Node{NodeName=collision,NodeType=NodeType.String});
+        var zome=PropertyProxy.Make<IZome>("Children",children);
+        var core=PropertyProxy.Make<ICelestialBodyCore>("Zomes",new List<IZome>{zome});
+        var body=PropertyProxy.Make<ICelestialBody>("Name","Garden","CelestialBodyCore",core);
+        Verify((path,_)=>generate(body,path),null,false);
+    }
+
     public class PropertyProxy:DispatchProxy
     {
         private Dictionary<string,object> values=new();

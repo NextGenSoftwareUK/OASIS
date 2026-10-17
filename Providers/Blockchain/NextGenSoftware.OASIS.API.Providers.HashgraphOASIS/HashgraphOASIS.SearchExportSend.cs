@@ -138,6 +138,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 if (string.IsNullOrWhiteSpace(outputFolder) || (celestialBody == null && string.IsNullOrWhiteSpace(nativeSource)))
                     return false;
 
+                if(string.IsNullOrWhiteSpace(nativeSource)&&!NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.SolidityHolonSource.HasUniqueSchemaNames(celestialBody,"HashgraphContract"))
+                    return false;
+
                 string solidityFolder = Path.Combine(outputFolder, "Solidity");
                 if (!Directory.Exists(solidityFolder))
                     Directory.CreateDirectory(solidityFolder);

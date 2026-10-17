@@ -123,6 +123,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (string.IsNullOrWhiteSpace(outputFolder) || (celestialBody == null && string.IsNullOrWhiteSpace(nativeSource)))
                     return false;
 
+                if(string.IsNullOrWhiteSpace(nativeSource)&&!NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.SolidityHolonSource.HasUniqueSchemaNames(celestialBody,"TRONContract"))
+                    return false;
+
                 string solidityFolder = Path.Combine(outputFolder, "Solidity");
                 if (!Directory.Exists(solidityFolder))
                     Directory.CreateDirectory(solidityFolder);
