@@ -3,10 +3,35 @@ import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { fromBech32, toBech32 } from "@cosmjs/encoding";
-import { DirectSecp256k1Wallet } from "@cosmjs/proto-signing";
+import { DirectSecp256k1Wallet, decodeTxRaw } from "@cosmjs/proto-signing";
+import { verifyCosmosPreparedIdentity } from './transaction-results.mjs';
 import { invoke as invokeTrusted } from './bridge.mjs';
 import { CosmWasmClient, SigningCosmWasmClient } from '@cosmjs/cosmwasm';
 import { createHash } from 'node:crypto';
+
+for(const memo of ['Original seed 🌱 memo',''])test('contract execute preserves exact memo in real CosmJS signed bytes: '+JSON.stringify(memo),async()=>{
+ const original=SigningCosmWasmClient.connectWithSigner;let prepared=0,broadcasts=0,closed=0;
+ const message={asset:{message:{token_transfer:{symbol:'fixture',recipient:toBech32('wasm',new Uint8Array(20).fill(3)),amount:'123000000'}}}};
+ SigningCosmWasmClient.connectWithSigner=async(_endpoint,wallet,options)=>{
+  const client=await SigningCosmWasmClient.offline(wallet,options);
+  client.getChainId=async()=> 'fixture-chain';client.getSequence=async()=>({accountNumber:1,sequence:2});client.simulate=async()=>100000;
+  client.broadcastTx=async bytes=>{
+   assert.equal(prepared,1);broadcasts++;
+   const raw=decodeTxRaw(bytes);assert.equal(raw.body.memo,memo);
+   assert.equal(raw.body.messages.length,1);assert.equal(raw.body.messages[0].typeUrl,'/cosmwasm.wasm.v1.MsgExecuteContract');
+   return {transactionHash:createHash('sha256').update(bytes).digest('hex').toUpperCase(),height:42,code:0,
+    gasUsed:100000n,gasWanted:140000n,events:[],msgResponses:[],rawLog:'[]'};
+  };
+  client.disconnect=()=>{closed++;};return client;
+ };
+ try{
+  const result=await invokeTrusted({operation:'execute',rpcEndpoint:'http://127.0.0.1:1',chainId:'fixture-chain',privateKey:'07'.repeat(32),
+   addressPrefix:'wasm',gasPrice:'0.025stake',targetContractAddress:toBech32('wasm',new Uint8Array(32).fill(2)),message,memo},async evidence=>{
+    const verified=await verifyCosmosPreparedIdentity(evidence);assert.equal(verified.verified,true);prepared++;
+   });
+  assert.equal(result.height,42);assert.equal(prepared,1);assert.equal(broadcasts,1);assert.equal(closed,1);
+ }finally{SigningCosmWasmClient.connectWithSigner=original;}
+});
 
 test('instantiate rejects inexact code IDs before opening any network client',async()=>{
  const original=SigningCosmWasmClient.connectWithSigner;let opened=0;

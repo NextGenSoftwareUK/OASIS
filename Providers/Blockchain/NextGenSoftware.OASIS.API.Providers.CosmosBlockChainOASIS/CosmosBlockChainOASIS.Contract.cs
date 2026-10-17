@@ -48,9 +48,9 @@ public partial class CosmosBlockChainOASIS
     }
 
     private async Task<string> ExecuteAssetAsync(object message, string signingKey, string fromWalletAddress = null, string contractAddress = null,
-        PreparedSubmissionServer preparationServer = null, CancellationToken token = default)
+        PreparedSubmissionServer preparationServer = null, CancellationToken token = default, string memoText = null)
     {
-        var committed = await ExecuteContractCoreAsync(contractAddress ?? _contractAddress, new { asset = new { message } }, signingKey, fromWalletAddress, token, preparationServer);
+        var committed = await ExecuteContractCoreAsync(contractAddress ?? _contractAddress, new { asset = new { message } }, signingKey, fromWalletAddress, token, preparationServer,memoText);
         if (committed.IsError) throw committed.Exception ?? new InvalidOperationException(committed.Message);
         return committed.Result.TransactionResult;
     }
@@ -81,15 +81,16 @@ public partial class CosmosBlockChainOASIS
         => ExecuteContractCoreAsync(contractAddress, message, signingKey, fromWalletAddress, token, null);
 
     private async Task<OASISResult<ITransactionResponse>> ExecuteContractCoreAsync(string contractAddress, object message,
-        string signingKey, string fromWalletAddress, CancellationToken token, PreparedSubmissionServer preparationServer)
+        string signingKey, string fromWalletAddress, CancellationToken token, PreparedSubmissionServer preparationServer, string memoText = null)
     {
         var result = new OASISResult<ITransactionResponse>();
         try
         {
             if (string.IsNullOrWhiteSpace(contractAddress) || message == null)
                 throw new ArgumentException("Contract address and execute message are required.");
+            var memo=NativeWalletMemo.FromText(memoText).Text;
             var key = signingKey ?? await SigningKeyAsync(Guid.Empty);
-            var arguments = new { targetContractAddress = contractAddress, message, privateKey = key, fromWalletAddress };
+            var arguments = new { targetContractAddress = contractAddress, message, privateKey = key, fromWalletAddress, memo };
             var committed = preparationServer == null
                 ? await _sdkBackend.InvokeAsync("execute", arguments, token)
                 : await _sdkBackend.InvokePreparedAsync("execute", arguments, preparationServer, token);
