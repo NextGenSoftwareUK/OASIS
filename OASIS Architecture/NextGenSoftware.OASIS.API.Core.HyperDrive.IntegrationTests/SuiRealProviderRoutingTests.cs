@@ -356,6 +356,16 @@ public sealed class SuiRealProviderRoutingTests
             manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
             manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
 
+            holon.Name = "real-v2-sui-native-primary-updated";
+            var reverseUpdate = await router.RouteRequestAsync<IHolon>(new StorageOperationRequest
+                { Operation = "SaveHolon", Payload = holon, PreferredProvider = ProviderType.SuiOASIS });
+            reverseUpdate.IsError.Should().BeFalse(reverseUpdate.Message);
+            reverseUpdate.IsWarning.Should().BeFalse(reverseUpdate.Message);
+            manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
+            (await sui.LoadHolonAsync(holon.Id, loadChildren: false)).Result.Name.Should().Be(holon.Name);
+            (await local.LoadHolonAsync(holon.Id)).Result.Name.Should().Be(holon.Name);
+
             manager.IsAutoReplicationEnabled = false;
             manager.IsAutoLoadBalanceEnabled = true;
             manager.SetAndReplaceAutoLoadBalanceListForProviders(new[]
@@ -420,6 +430,24 @@ public sealed class SuiRealProviderRoutingTests
             foreach (var providerType in roundRobinBefore.Keys)
                 manager.PerformanceMonitor.GetMetrics(providerType).TotalRequests.Should().Be(roundRobinBefore[providerType] + 3,
                     "six real V2 round-robin reads must use both registered providers equally across sync and async calls");
+
+            foreach(var strategy in Enum.GetValues<LoadBalancingStrategy>())
+                foreach(var synchronous in new[]{true,false})
+                {
+                    var providers=new[]{ProviderType.LocalFileOASIS,ProviderType.SuiOASIS};
+                    var counts=providers.ToDictionary(type=>type,type=>manager.PerformanceMonitor.GetMetrics(type).TotalRequests);
+                    var request=new StorageOperationRequest {Operation="LoadHolon",HolonId=holon.Id,LoadChildren=false};
+                    var balanced=synchronous?router.RouteRequest<IHolon>(request,strategy):await router.RouteRequestAsync<IHolon>(request,strategy);
+                    balanced.IsError.Should().BeFalse(balanced.Message);
+                    balanced.Result.Id.Should().Be(holon.Id);balanced.Result.Name.Should().Be(holon.Name);
+                    var diagnostic=manager.LastProviderSelectionDiagnostic;
+                    diagnostic.RequestedStrategy.Should().Be(strategy);
+                    diagnostic.Candidates.Select(value=>value.Provider).Should().BeEquivalentTo(providers);
+                    providers.Should().Contain(diagnostic.SelectedProvider);
+                    foreach(var type in providers)
+                        manager.PerformanceMonitor.GetMetrics(type).TotalRequests.Should().Be(counts[type]+(type==diagnostic.SelectedProvider?1:0),
+                            "the diagnosed selection must match exactly one physical provider read");
+                }
 
             manager.IsAutoLoadBalanceEnabled = false;
             manager.IsAutoReplicationEnabled = true;
