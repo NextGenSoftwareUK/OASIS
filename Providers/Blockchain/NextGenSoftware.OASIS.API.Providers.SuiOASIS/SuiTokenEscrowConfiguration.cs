@@ -26,3 +26,13 @@ public sealed class SuiIdBoundEscrowResponse : ITransactionResponse
         LockId = id; TransactionResult = digest; NativeTransactions = Array.AsReadOnly(new[] { digest });
     }
 }
+
+public sealed class SuiEscrowRegistryResponse : ITransactionResponse
+{
+    public string TransactionResult { get; set; }
+    public string EscrowObjectId { get; }
+    public string Creator { get; }
+    public int Protocol => 1;
+    internal SuiEscrowRegistryResponse(string digest, string objectId, string creator)
+    { TransactionResult = digest; EscrowObjectId = objectId; Creator = creator; }
+}

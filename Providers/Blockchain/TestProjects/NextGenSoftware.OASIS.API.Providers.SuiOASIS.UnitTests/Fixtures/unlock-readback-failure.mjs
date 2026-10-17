@@ -2,6 +2,9 @@
 let input='';for await(const chunk of process.stdin)input+=chunk;
 const request=JSON.parse(input);let result;
 switch(request.operation){
+ case 'tokenEscrowCreate':
+  if(request.privateKey!=='test-only-explicit'||request.fromWalletAddress!=='fixture-owner')throw new Error('Original registry creator changed');
+  result={transactionHash:'1'.repeat(32),escrowObjectId:'0x'+'2'.repeat(64),creator:'fixture-owner',protocol:1};break;
  case 'tokenEscrowLock':
  case 'tokenEscrowRelease': {
   const releasing=request.operation==='tokenEscrowRelease';

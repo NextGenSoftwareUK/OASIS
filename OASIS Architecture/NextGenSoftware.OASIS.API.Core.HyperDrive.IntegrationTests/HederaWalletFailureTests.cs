@@ -31,6 +31,7 @@ public sealed class HederaWalletFailureTests
     [InlineData(false,"cosmos-escrow-release",false)] [InlineData(true,"cosmos-escrow-release",false)]
     [InlineData(false,"mint",false)] [InlineData(true,"mint",false)]
     [InlineData(false,"burn",false)] [InlineData(true,"burn",false)]
+    [InlineData(false,"escrow-create",true)] [InlineData(true,"escrow-create",true)]
     public async Task CorruptStoredSigningWalletRetainsOriginalFailureBeforeSdkUse(bool synchronous, string selector, bool sui)
     {
         var cosmos = selector.StartsWith("cosmos-", StringComparison.Ordinal);
@@ -75,11 +76,15 @@ public sealed class HederaWalletFailureTests
                 tokenEscrowConfiguration:selector.StartsWith("escrow-",StringComparison.Ordinal)?new(){
                     Protocol=HederaTokenEscrowProtocol.IdBoundV1,ContractId="0.0.2001",RuntimeCodeHash="0x"+new string('1',64),GasLimit=400000,MaxFeeTinybars=100000000}:null);
             var sharedEscrow = "0x" + new string('2', 64);
-            using var suiProvider = new SuiOASIS(contractAddress:"0x1",tokenEscrow:sui?new(sharedEscrow):null) { WalletManager = wallets };
+            using var suiProvider = new SuiOASIS(contractAddress:"0x1",tokenEscrow:sui&&selector!="escrow-create"?new(sharedEscrow):null) { WalletManager = wallets };
             using var cosmosProvider = new Providers.CosmosBlockChainOASIS.CosmosBlockChainOASIS(contractAddress:"fixture-contract",
                 tokenEscrow:cosmos?new("fixture-contract",new string('c',64)):null) { WalletManager = wallets };
             async Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>> Escrow(){
                 var id=Guid.Parse("5f31afde-1229-4e99-8088-a0034d33a557");
+                if(selector=="escrow-create"){
+                    var created=synchronous?suiProvider.CreateTokenEscrowRegistry(sender):await suiProvider.CreateTokenEscrowRegistryAsync(sender);
+                    return Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Providers.SuiOASIS.SuiEscrowRegistryResponse,Core.Interfaces.Wallet.Responses.ITransactionResponse>(created);
+                }
                 if(selector=="escrow-associate")return synchronous?hedera.AssociateTokenWithEscrow(sender,"0.0.3001","0.0.2001")
                     :await hedera.AssociateTokenWithEscrowAsync(sender,"0.0.3001","0.0.2001");
                 if(selector=="escrow-lock"){
