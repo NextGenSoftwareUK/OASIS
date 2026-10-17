@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 GUID provider-key validation reused shared outputs/in-memory backend. Two baseline failures retained in provider-key-before-current.trx; finalShared282/282pass1s. No runtime/node/download/install/clone/new environment or protected ledger/source/userdata/credential removal; fixed compact reports reused.
+
 2026-10-16 SQLite/Neo4j verification refresh reused fixed SQLite fixtures, retained Neo4j container/SDK and existing build/report paths. SQLite422/422pass30s/Neo4j62/62pass36s, normal synthetic fixture disposal; Neo4j authoritative state exited. No install/download/clone/new environment or protected ledger/source/userdata/credential removal. Neo4j runner C free78487150592before/78485544960after bytes is systemwide observation only. Fixed compact reports overwritten.
 
 2026-10-16 priority Mongo/SQLite refresh reused same Mongo8.3.11 replica27029, fixed guarded fixtures/SDK/build/report paths. Native4/4pass2m8s, initializer1/1pass176ms, normal owned synthetic DB teardown/service stop;27029 confirmed closed. Raw mongo-current.log1628203bytes below8MiB limiter, prior tail63193bytes retained, no manual truncation needed. C free78492524544after bytes is systemwide observation only. No install/download/clone/new environment, source/userdata/credential/protected ledger removal; fixed compact report overwritten.
