@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Shared/SQLite V2 search delta: full local routing106/106pass11s includes sync/async actual disk/shared and SQLite Version-number AND text/ownership/metadata query pairs, distinct expected identities/exact+1 metrics each under Gold. Initial fixture version/default-Free assumptions corrected, production eligibility unchanged. Not native Vercel/chain search/all-strategy/durable/hosted proof.
+
 Shared search ancestry delta: invalid/duplicate map IDs and encountered recursive ancestry cycles now terminal InvalidDataException; three red-before/green-after cases, Shared260/260pass1s. Not full-graph/concurrent/native/V2 backup-metric certification; consumers' native suites not rerun.
 
 Shared search integration delta supersedes basic-text-only limitation below: base now reuses StoredRecordSearch validation/matching for numbers/dates/masks/types/operators/ownership/metadata and current ancestry. Shared257/257pass1s/four chain library builds0errors. New provider-boundary cases prove numeric ownership/metadata/AND and date/selected description exclusion. Intended old global fixtures now explicit about ownership/type. Broader live-native/V2/graph/history/options/tombstone/concurrent/hosted verification still open; not full search certification.

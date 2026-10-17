@@ -55,6 +55,45 @@ public sealed partial class RealProviderRoutingTests
 
     [Theory]
     [InlineData(false)] [InlineData(true)]
+    public async Task NumericFilteredSearchBalancesAcrossActualDiskAndSqlite(bool synchronous)
+    {
+        Directory.CreateDirectory(_root);var primary=new OwnedDiskProvider(new OwnedDiskKeys(FilesPath));
+        using var sqlite=new SQLLiteDBOASIS($"Data Source={SqlitePath};Pooling=False");
+        (await primary.ActivateProviderAsync()).IsError.Should().BeFalse();(await sqlite.ActivateProviderAsync()).IsError.Should().BeFalse();
+        try
+        {
+            var owner=Guid.NewGuid();var ids=new[] {Guid.NewGuid(),Guid.NewGuid()};var stores=new IOASISStorageProvider[] {primary,sqlite};
+            for(var index=0;index<2;index++)
+            {
+                var row=new Holon {Id=ids[index],Version=1,Name="owned search",CreatedByAvatarId=owner,MetaData=new() {{"park","oak"}}};
+                var saved=await stores[index].SaveHolonAsync(row,saveChildren:false);saved.IsError.Should().BeFalse(saved.Message);
+                (await stores[index].SaveHolonAsync(new Holon {Id=Guid.NewGuid(),Version=1,Name="owned mismatch",CreatedByAvatarId=owner,MetaData=new() {{"park","pine"}}},saveChildren:false)).IsError.Should().BeFalse();
+            }
+            var manager=CreateManager(autoLoadBalance:true);manager.RegisterProvider(primary);manager.RegisterProvider(sqlite);
+            manager.OASISDNA.OASIS.SubscriptionConfig=new NextGenSoftware.OASIS.API.DNA.SubscriptionConfig {PlanType="Gold"};
+            var types=new[] {new EnumValue<ProviderType>(ProviderType.VercelKVOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)};
+            manager.SetAndReplaceAutoLoadBalanceListForProviders(types).IsError.Should().BeFalse();
+            var query=new Objects.Search.SearchParams {SearchOnlyForCurrentAvatar=true,AvatarId=owner,FilterByMetaData=new() {{"park","oak"}},MetaKeyValuePairMatchMode=MetaKeyValuePairMatchMode.All,
+                SearchGroups=new() {new Objects.Search.SearchNumberGroup {SearchHolons=true,HolonType=HolonType.All,Number=1,NumberOperator=SearchOperatorType.EqualTo},
+                    new Objects.Search.SearchTextGroup {SearchHolons=true,HolonType=HolonType.All,SearchQuery="owned",PreviousSearchGroupOperator=SearchParamGroupOperator.And}}};
+            var router=new OASISHyperDrive(manager);var before=types.Select(type=>manager.PerformanceMonitor.GetMetrics(type.Value)?.TotalRequests??0).ToArray();var found=new HashSet<Guid>();
+            _preserveFixture=true;
+            for(var index=0;index<2;index++)
+            {
+                var request=new StorageOperationRequest {Operation="Search",SearchParams=query,LoadChildren=false,ContinueOnError=false};
+                var result=synchronous ? router.RouteRequest<Interfaces.Search.ISearchResults>(request,LoadBalancingStrategy.RoundRobin)
+                    :await router.RouteRequestAsync<Interfaces.Search.ISearchResults>(request,LoadBalancingStrategy.RoundRobin);
+                result.IsError.Should().BeFalse(result.Message);result.Result.NumberOfResults.Should().Be(1);found.Add(result.Result.SearchResultHolons.Single().Id);
+            }
+            found.Should().BeEquivalentTo(ids);
+            for(var index=0;index<2;index++)manager.PerformanceMonitor.GetMetrics(types[index].Value).TotalRequests.Should().Be(before[index]+1);
+            _preserveFixture=false;
+        }
+        finally{await primary.DeActivateProviderAsync();}
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
     public async Task PairedSoftDeletePartialWriteNeverReplaysOnSecondary(bool synchronous)
     {
         Directory.CreateDirectory(_root);var backend=new OwnedDiskKeys(FilesPath);var primary=new OwnedDiskProvider(backend);
