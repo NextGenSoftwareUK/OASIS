@@ -54,6 +54,40 @@ public sealed partial class RealProviderRoutingTests
     }
 
     [Theory]
+    [InlineData(false,0)] [InlineData(true,0)] [InlineData(false,1)] [InlineData(true,1)] [InlineData(false,2)] [InlineData(true,2)]
+    public async Task MalformedSharedDiskRecordsNeverBecomeStaleSecondaryReads(bool synchronous,int kind)
+    {
+        Directory.CreateDirectory(_root);var backend=new OwnedDiskKeys(FilesPath);var primary=new OwnedDiskProvider(backend);
+        using var sqlite=new SQLLiteDBOASIS($"Data Source={SqlitePath};Pooling=False");
+        (await primary.ActivateProviderAsync()).IsError.Should().BeFalse();(await sqlite.ActivateProviderAsync()).IsError.Should().BeFalse();
+        var id=Guid.NewGuid();var key="oasis/"+(kind==0 ? "avatar/":kind==1 ? "avatardetail/":"holon/")+id.ToString("N");
+        try
+        {
+            (await sqlite.SaveAvatarAsync(new Avatar {Id=id,Username="owned-stale-json",Email="stale-json@example.invalid",IsActive=true,AvatarType=new EnumValue<AvatarType>(AvatarType.User)})).IsError.Should().BeFalse();
+            (await sqlite.SaveAvatarDetailAsync(new AvatarDetail {Id=id,XP=999})).IsError.Should().BeFalse();
+            (await sqlite.SaveHolonAsync(new Holon {Id=id,Name="owned-stale-json"},saveChildren:false)).IsError.Should().BeFalse();
+            await backend.PutAsync(key,"{invalid stored JSON");
+            var manager=CreateManager(autoFailover:true,autoReplication:true);manager.RegisterProvider(primary);manager.RegisterProvider(sqlite);
+            var types=new[] {new EnumValue<ProviderType>(ProviderType.VercelKVOASIS),new EnumValue<ProviderType>(ProviderType.SQLLiteDBOASIS)};
+            manager.SetAndReplaceAutoFailOverListForProviders(types).IsError.Should().BeFalse();manager.SetAndReplaceAutoReplicationListForProviders(types).IsError.Should().BeFalse();
+            var before=manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests??0;var router=new OASISHyperDrive(manager);
+            var request=new StorageOperationRequest {Operation=kind==0 ? "LoadAvatar":kind==1 ? "LoadAvatarDetail":"LoadHolon",AvatarId=id,HolonId=id,LoadChildren=false,PreferredProvider=ProviderType.VercelKVOASIS};
+            void Corrupt<T>(Common.OASISResult<T> result)
+            {result.IsError.Should().BeTrue();result.Result.Should().BeNull();result.IsLoaded.Should().BeFalse();result.Exception.Should().BeOfType<InvalidDataException>().Which.InnerException.Should().BeAssignableTo<Newtonsoft.Json.JsonException>();}
+            _preserveFixture=true;
+            if(kind==0)Corrupt(synchronous ? router.RouteRequest<IAvatar>(request):await router.RouteRequestAsync<IAvatar>(request));
+            else if(kind==1)Corrupt(synchronous ? router.RouteRequest<IAvatarDetail>(request):await router.RouteRequestAsync<IAvatarDetail>(request));
+            else Corrupt(synchronous ? router.RouteRequest<IHolon>(request):await router.RouteRequestAsync<IHolon>(request));
+            (manager.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS)?.TotalRequests??0).Should().Be(before);
+            (await backend.GetAsync(key)).Should().Be("{invalid stored JSON");
+            (await sqlite.LoadAvatarAsync(id)).Result.Id.Should().Be(id);(await sqlite.LoadAvatarDetailAsync(id)).Result.XP.Should().Be(999);
+            (await sqlite.LoadHolonAsync(id,loadChildren:false)).Result.Name.Should().Be("owned-stale-json");
+            _preserveFixture=false;
+        }
+        finally{await primary.DeActivateProviderAsync();}
+    }
+
+    [Theory]
     [InlineData(false)] [InlineData(true)]
     public async Task NumericFilteredSearchBalancesAcrossActualDiskAndSqlite(bool synchronous)
     {

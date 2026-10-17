@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+V2 shared malformed-record acceptance: local routing112/112pass11s includes six disk-primary avatar/detail/holon corrupt JSON cases with real stale SQLite records, original JSON cause/null/not-loaded and zero secondary requests. Both stores unchanged; controlled disk payload, not native SDK/collection/search/export/durable/hosted proof.
+
 Shared stored decode delta: canonical stored-record decoder now used at shared read boundary; malformed avatar/detail/holon JSON yields terminal InvalidDataException with original JsonException. Six red-before/green-after cases, Shared280/280pass1s. No new parser/migration or native/V2/hosted proof.
 
 Shared export completeness delta: avatar-filtered export preserves original partial warning/failed-read metadata instead of fresh false-complete Ok; LoadedCount reflects filtered rows. Two red-before/green-after cases, Shared274/274pass1s. Full native/history/graph/privacy/V2/hosted export gates remain open.
