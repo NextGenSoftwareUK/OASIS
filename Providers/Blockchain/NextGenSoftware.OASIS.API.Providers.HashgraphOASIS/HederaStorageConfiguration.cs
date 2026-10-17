@@ -71,7 +71,7 @@ internal sealed class ConfiguredHederaStorageBackend : IKeyValueBackend, IDispos
     public Task PutAsync(string key, string value, CancellationToken cancellationToken = default) => Resolve(cancellationToken).PutAsync(key, value, cancellationToken);
     public Task DeleteAsync(string key, CancellationToken cancellationToken = default) => Resolve(cancellationToken).DeleteAsync(key, cancellationToken);
     public Task<IReadOnlyList<string>> ListKeysAsync(string prefix, CancellationToken cancellationToken = default) => Resolve(cancellationToken).ListKeysAsync(prefix, cancellationToken);
-    public Task VerifyAsync(CancellationToken cancellationToken = default) => Resolve(cancellationToken).VerifyAsync(cancellationToken);
+    public Task VerifyAsync(CancellationToken cancellationToken = default) => Resolve(cancellationToken).VerifyReadOnlyAsync(cancellationToken);
     public void Dispose()
     {
         if (_disposed) return;
