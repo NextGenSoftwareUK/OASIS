@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-17 Sui healthy V2 fixture expanded and passed1/1 in2m44s, zero skips/runnerexit0: native-primary synchronous avatar and avatar-detail updates now replicate into real LocalFile; both stores' routed sync/async reads verify changed avatar name and detail karma/XP plus stable identities. Existing token indexes reconfirmed after updates. This adds reverse-direction sync write evidence beyond the previous holon-only native-primary check; no new runtime or shipping implementation. Initial consumer build rejected concrete-only detail FirstName interface assertion; corrected before native execution. Full fixture's other routing/query/delete checks remain included, not separate summed tests. Hosted/native billing and other-provider gates unchanged.
+
 2026-10-17 Core2822b0a closes an outcome-replacement bypass at the shared Mongo outbox CAS, not in individual providers. Direct enqueue and receipt resolver paths reject opposite recorded outcomes (two theory cases/four vectors). Core130/130 and authority81/81 retained TRX counters verified; no new native provider coverage or completion claim. Read-only Hedera mirror observation returned69513926tinybar (0.69513926testHBAR), consensus timestamp1791929835.256443131; no paid SDK call or mutation. Funded consensus gates remain deferred.
 
 ## Authoritative provider snapshot — audited 2026-10-17

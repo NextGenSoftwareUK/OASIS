@@ -287,6 +287,44 @@ public sealed class SuiRealProviderRoutingTests
                     }
             }
             await AssertTokenLookups(true);
+            // Exercise native-primary synchronous writes, not just file-primary async replication.
+            // Keep indexed identities unchanged so the existing durable fixture journal owns every record.
+            avatar.FirstName = "Native-primary avatar update";
+            var reverseAvatar = router.RouteRequest<IAvatar>(new StorageOperationRequest
+                { Operation = "SaveAvatar", Payload = avatar, PreferredProvider = ProviderType.SuiOASIS });
+            reverseAvatar.IsError.Should().BeFalse(reverseAvatar.Message);
+            reverseAvatar.IsWarning.Should().BeFalse(reverseAvatar.Message);
+            manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
+            detail.Karma = 1234;
+            detail.XP = 567;
+            var reverseDetail = router.RouteRequest<IAvatarDetail>(new StorageOperationRequest
+                { Operation = "SaveAvatarDetail", Payload = detail, PreferredProvider = ProviderType.SuiOASIS });
+            reverseDetail.IsError.Should().BeFalse(reverseDetail.Message);
+            reverseDetail.IsWarning.Should().BeFalse(reverseDetail.Message);
+            manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
+            manager.LastReplicationDiagnostic.FailedCount.Should().Be(0);
+            foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.SuiOASIS })
+            {
+                var avatarRequest = new StorageOperationRequest
+                    { Operation = "LoadAvatar", AvatarId = avatar.Id, PreferredProvider = providerType };
+                foreach (var read in new[] { router.RouteRequest<IAvatar>(avatarRequest), await router.RouteRequestAsync<IAvatar>(avatarRequest) })
+                {
+                    read.IsError.Should().BeFalse(read.Message);
+                    read.Result.FirstName.Should().Be(avatar.FirstName);
+                    read.Result.Username.Should().Be(avatar.Username);
+                }
+                var detailRequest = new StorageOperationRequest
+                    { Operation = "LoadAvatarDetail", AvatarId = avatar.Id, PreferredProvider = providerType };
+                foreach (var read in new[] { router.RouteRequest<IAvatarDetail>(detailRequest), await router.RouteRequestAsync<IAvatarDetail>(detailRequest) })
+                {
+                    read.IsError.Should().BeFalse(read.Message);
+                    read.Result.Karma.Should().Be(detail.Karma);
+                    read.Result.XP.Should().Be(detail.XP);
+                    read.Result.Email.Should().Be(detail.Email);
+                }
+            }
+            await AssertTokenLookups(true);
             foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.SuiOASIS })
             {
                 foreach (var operation in new[] { "LoadAvatar", "LoadAvatarByUsername", "LoadAvatarByEmail", "LoadAvatarByProviderKey" })
