@@ -20,14 +20,12 @@ public partial class SuiOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.IPrepa
         string clientRequestId,string expectedSender,CancellationToken token=default)
     {
         token.ThrowIfCancellationRequested();ArgumentNullException.ThrowIfNull(operation);ArgumentNullException.ThrowIfNull(execution);
-        if(string.IsNullOrWhiteSpace(clientRequestId)||clientRequestId.Length>110)
-            throw new ArgumentException("Storage correlation must leave room for bounded write sequence suffix.",nameof(clientRequestId));
+        var correlation=new NativeStorageCorrelation(clientRequestId);
         ArgumentException.ThrowIfNullOrWhiteSpace(expectedSender);
         if(string.IsNullOrWhiteSpace(_sdkClient.ChainId))throw new InvalidOperationException("Explicit Sui genesis required for prepared storage.");
-        var sequence=0;
         return _sdkClient.WithStoragePreparationAndCancellationAsync(operation,()=>{
             token.ThrowIfCancellationRequested();
-            return CreateNativePreparationServer(execution,clientRequestId+".storage."+Interlocked.Increment(ref sequence),_sdkClient.ChainId,expectedSender);
+            return CreateNativePreparationServer(execution,correlation.Next(),_sdkClient.ChainId,expectedSender);
         },token);
     }
     /// <summary>Read-only original-attempt evidence for recovery; does not value, settle or resubmit it.</summary>
