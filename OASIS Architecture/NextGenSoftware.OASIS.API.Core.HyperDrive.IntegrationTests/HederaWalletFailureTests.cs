@@ -25,8 +25,14 @@ public sealed class HederaWalletFailureTests
     [InlineData(false,"escrow-lock",false)] [InlineData(true,"escrow-lock",false)]
     [InlineData(false,"escrow-release",false)] [InlineData(true,"escrow-release",false)]
     [InlineData(false,"escrow-associate",false)] [InlineData(true,"escrow-associate",false)]
+    [InlineData(false,"escrow-lock",true)] [InlineData(true,"escrow-lock",true)]
+    [InlineData(false,"escrow-release",true)] [InlineData(true,"escrow-release",true)]
+    [InlineData(false,"cosmos-escrow-lock",false)] [InlineData(true,"cosmos-escrow-lock",false)]
+    [InlineData(false,"cosmos-escrow-release",false)] [InlineData(true,"cosmos-escrow-release",false)]
     public async Task CorruptStoredSigningWalletRetainsOriginalFailureBeforeSdkUse(bool synchronous, string selector, bool sui)
     {
+        var cosmos = selector.StartsWith("cosmos-", StringComparison.Ordinal);
+        if (cosmos) selector = selector.Substring("cosmos-".Length);
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory != null && !File.Exists(Path.Combine(directory.FullName, "AGENTS.md"))) directory = directory.Parent;
         Assert.NotNull(directory);
@@ -56,27 +62,36 @@ public sealed class HederaWalletFailureTests
             var constructor = typeof(WalletManager).GetConstructors(BindingFlags.Instance | BindingFlags.NonPublic).Single(c => c.GetParameters().Length == 4);
             var wallets = (WalletManager)constructor.Invoke(new object?[] { local, dna, providers, null });
             await File.WriteAllTextAsync(path, corruptFixture);
-            var walletProvider = sui ? ProviderType.SuiOASIS : ProviderType.HashgraphOASIS;
+            var walletProvider = cosmos ? ProviderType.CosmosBlockChainOASIS : sui ? ProviderType.SuiOASIS : ProviderType.HashgraphOASIS;
             var expected = selector == "username"
                 ? await wallets.GetAvatarDefaultWalletByUsernameAsync("hedera-failure-sender", showPrivateKeys: true, providerType: walletProvider)
                 : selector == "email"
                 ? await wallets.GetAvatarDefaultWalletByEmailAsync("hedera-failure-sender@example.invalid", walletProvider, showPrivateKeys: true)
-                : await wallets.GetAvatarDefaultWalletByIdAsync(sender, ProviderType.HashgraphOASIS, showPrivateKeys: true);
+                : await wallets.GetAvatarDefaultWalletByIdAsync(sender, walletProvider, showPrivateKeys: true);
             Assert.True(expected.IsError); Assert.NotNull(expected.Exception);
             var hedera = new HashgraphOASIS(rpcEndpoint:"http://127.0.0.1:17689",walletManager: wallets,
                 tokenEscrowConfiguration:selector.StartsWith("escrow-",StringComparison.Ordinal)?new(){
                     Protocol=HederaTokenEscrowProtocol.IdBoundV1,ContractId="0.0.2001",RuntimeCodeHash="0x"+new string('1',64),GasLimit=400000,MaxFeeTinybars=100000000}:null);
-            using var suiProvider = new SuiOASIS { WalletManager = wallets };
+            var sharedEscrow = "0x" + new string('2', 64);
+            using var suiProvider = new SuiOASIS(contractAddress:"0x1",tokenEscrow:sui?new(sharedEscrow):null) { WalletManager = wallets };
+            using var cosmosProvider = new Providers.CosmosBlockChainOASIS.CosmosBlockChainOASIS(contractAddress:"fixture-contract",
+                tokenEscrow:cosmos?new("fixture-contract",new string('c',64)):null) { WalletManager = wallets };
             async Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>> Escrow(){
                 var id=Guid.Parse("5f31afde-1229-4e99-8088-a0034d33a557");
                 if(selector=="escrow-associate")return synchronous?hedera.AssociateTokenWithEscrow(sender,"0.0.3001","0.0.2001")
                     :await hedera.AssociateTokenWithEscrowAsync(sender,"0.0.3001","0.0.2001");
                 if(selector=="escrow-lock"){
-                    var request=new Core.Objects.Wallet.Requests.LockWeb3TokenRequest{LockedByAvatarId=sender,LockId=id,Amount=1.23m,TokenAddress="0.0.3001",EscrowContractAddress="0.0.2001"};
-                    return synchronous?hedera.LockToken(request):await hedera.LockTokenAsync(request);
+                    var request=new Core.Objects.Wallet.Requests.LockWeb3TokenRequest{LockedByAvatarId=sender,LockId=id,Amount=1.23m,
+                        TokenAddress=cosmos?"TREE":sui?"0x1::token::TOKEN":"0.0.3001",EscrowContractAddress=cosmos?"fixture-contract":sui?sharedEscrow:"0.0.2001"};
+                    return cosmos?synchronous?cosmosProvider.LockToken(request):await cosmosProvider.LockTokenAsync(request)
+                        :sui?synchronous?suiProvider.LockToken(request):await suiProvider.LockTokenAsync(request)
+                        :synchronous?hedera.LockToken(request):await hedera.LockTokenAsync(request);
                 }
-                var release=new Core.Objects.Wallet.Requests.UnlockWeb3TokenRequest{UnlockedByAvatarId=sender,LockId=id,TokenAddress="0.0.3001",EscrowContractAddress="0.0.2001"};
-                return synchronous?hedera.UnlockToken(release):await hedera.UnlockTokenAsync(release);
+                var release=new Core.Objects.Wallet.Requests.UnlockWeb3TokenRequest{UnlockedByAvatarId=sender,LockId=id,
+                    TokenAddress=cosmos?"TREE":sui?"0x1::token::TOKEN":"0.0.3001",EscrowContractAddress=cosmos?"fixture-contract":sui?sharedEscrow:"0.0.2001"};
+                return cosmos?synchronous?cosmosProvider.UnlockToken(release):await cosmosProvider.UnlockTokenAsync(release)
+                    :sui?synchronous?suiProvider.UnlockToken(release):await suiProvider.UnlockTokenAsync(release)
+                    :synchronous?hedera.UnlockToken(release):await hedera.UnlockTokenAsync(release);
             }
             var result = selector.StartsWith("escrow-",StringComparison.Ordinal)?await Escrow():sui
                 ? selector == "username"

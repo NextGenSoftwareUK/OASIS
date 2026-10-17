@@ -30,6 +30,15 @@ public partial class SuiOASIS
                 throw new ArgumentException("Per-deposit custody requires avatar, original deposit ID, matching shared escrow and positive lock amount.");
             var units = locking ? TokenUnits(amount) : null;
             var depositId = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(id.ToString("N")))).ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(actor, Core.Enums.ProviderType.SuiOASIS, showPrivateKeys: true);
+                if (wallet.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet, ITransactionResponse>(wallet);
+                if (wallet.Result == null || wallet.Result.AvatarId != actor || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
+                    throw new InvalidOperationException("Exact requesting avatar signing wallet is required.");
+                key = wallet.Result.PrivateKey;
+            }
             var signer = await TokenSignerAsync(actor, key);
             if (string.IsNullOrWhiteSpace(signer.Address) || from != null && !SameSuiAddress(from, signer.Address))
                 throw new ArgumentException("Escrow signer does not own requested sender.");

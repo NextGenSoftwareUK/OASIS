@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-17 Cosmos/Sui custody wallet-error tests extend existing HederaWalletFailureTests root/fixture.lock/synthetic corrupt wallet; no additional environment/directory/runtime/SDK/download. Existing cleanup verifies exact corrupt fixture bytes before deleting only owned fixture and restores storage state; positives reuse prior shared harness.48tests pass4s, bounded no-restore producer/integration builds, no redundant full suites. No user data/credentials/native journals/unrelated source removed; no node/ledger reset.
+
 Final Cosmos mint memo runner2026-10-17 exits0/165pass2m11s/0skip, same report/environment. Protected journal hashes unchanged; free89,851,518,976bytes observation (not reclamation). No download/newruntime/native ledger or unrelated deletion.
 
 2026-10-17 Cosmos mint memo tests reuse existing signer fixture/offline CosmJS SDK/fixed owned runner; no install/download/newenvironment/node/ledger. Actual3red/2pass focused test before production fix; npm73pass~1.50s; full165running. Same bounded producer/unit output and fixed report, no accumulating per-run directories or unrelated cleanup.

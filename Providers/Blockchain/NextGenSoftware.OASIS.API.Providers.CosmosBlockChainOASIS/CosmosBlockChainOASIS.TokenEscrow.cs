@@ -32,6 +32,15 @@ public partial class CosmosBlockChainOASIS
                 throw new ArgumentException("Custom token escrow requires avatar, original deposit ID, matching reviewed contract and positive lock amount.");
             var units = locking ? AssetUnits(amount) : null;
             var id = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(lockId.ToString("N")))).ToLowerInvariant();
+            if (string.IsNullOrWhiteSpace(suppliedKey))
+            {
+                var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(actor, Core.Enums.ProviderType.CosmosBlockChainOASIS, showPrivateKeys: true);
+                if (wallet.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet, ITransactionResponse>(wallet);
+                if (wallet.Result == null || wallet.Result.AvatarId != actor || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
+                    throw new InvalidOperationException("Exact requesting avatar signing wallet is required.");
+                suppliedKey = wallet.Result.PrivateKey;
+            }
             var key = await SigningKeyAsync(actor, suppliedKey);
             var owner = await SignerAddressAsync(key);
             if (string.IsNullOrWhiteSpace(owner) || from != null && from != owner)
