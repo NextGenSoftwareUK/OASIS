@@ -91,7 +91,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 ArgumentNullException.ThrowIfNull(request);
                 if (string.IsNullOrWhiteSpace(request.WalletAddress))
                     throw new ArgumentException("A TRON wallet address is required.");
-                var balance = await ExecuteReadOnlyRuntimeAsync(client => client.GetNativeBalanceAsync(request.WalletAddress));
+                var balance = await ExecuteNativeRuntimeAsync(client => client.GetNativeBalanceAsync(request.WalletAddress));
                 result.Result = (double)balance; // Shared interface exposes double; SDK conversion retains exact decimal SUN.
                 result.Message = "Native TRX balance read from the solidified account.";
             }
@@ -114,7 +114,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 ArgumentNullException.ThrowIfNull(request);
                 if (string.IsNullOrWhiteSpace(request.WalletAddress)) throw new ArgumentException("Wallet address is required.");
-                result.Result = await ExecuteReadOnlyRuntimeAsync(async client =>
+                result.Result = await ExecuteNativeRuntimeAsync(async client =>
                 {
                     var history = await new TronGridTokenHistoryClient(_httpClient, client.ExpectedGenesisBlockId)
                         .ReadNativeAsync(request.WalletAddress, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
@@ -180,7 +180,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 token.ThrowIfCancellationRequested();
                 if (string.IsNullOrWhiteSpace(accountAddress))
                     throw new ArgumentException("Account address is required.", nameof(accountAddress));
-                result.Result = await ExecuteReadOnlyRuntimeAsync(client => client.GetNativeBalanceAsync(accountAddress, token), token);
+                result.Result = await ExecuteNativeRuntimeAsync(client => client.GetNativeBalanceAsync(accountAddress, token), token);
                 result.Message = "Native TRX account balance retrieved from the solidity node.";
             }
             catch (Exception ex)
