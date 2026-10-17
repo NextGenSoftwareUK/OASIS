@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Linq;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -10,6 +11,42 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
 
 public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeStorageProvider
 {
+    /// <summary>Trusted host supplies original payer authority, allowed nodes and distinct query/fee caps.
+    /// Each actual selected payment is independently verified and retained before transport acknowledgement.</summary>
+    public PreparedSubmissionServer CreatePaidQueryPreparationServer(UsageExecutionHandle execution,string clientRequestId,
+        string expectedSender,string expectedPublicKey,string[] expectedNodes,long maxPaymentTinybars,long maxTransactionFeeTinybars,int maximumRequests=64)
+    {
+        ArgumentNullException.ThrowIfNull(execution);ArgumentException.ThrowIfNullOrWhiteSpace(expectedSender);
+        ArgumentException.ThrowIfNullOrWhiteSpace(expectedPublicKey);
+        if(string.IsNullOrWhiteSpace(clientRequestId)||clientRequestId.Length>118||maxPaymentTinybars<=0||maxTransactionFeeTinybars<=0
+            ||expectedNodes==null||expectedNodes.Length==0||expectedNodes.Length>1024)
+            throw new ArgumentException("Bounded correlation, positive separate payment/fee caps and explicit authorized query nodes are required.");
+        var nodes=(string[])expectedNodes.Clone();
+        if(System.Linq.Enumerable.Distinct(nodes,StringComparer.Ordinal).Count()!=nodes.Length
+            ||System.Linq.Enumerable.Any(nodes,node=>!System.Text.RegularExpressions.Regex.IsMatch(node??"",@"\A[0-9]+\.[0-9]+\.[0-9]+\z")||node==expectedSender))
+            throw new ArgumentException("Distinct numeric authorized query node identities are required.",nameof(expectedNodes));
+        var cap=maxPaymentTinybars.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var feeCap=maxTransactionFeeTinybars.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        var next=0;
+        return PreparedSubmissionServer.ForBoundedRequests(async(evidence,token)=>{
+            if(evidence.GetProperty("purpose").GetString()!="HederaQueryPayment"||evidence.GetProperty("chainId").GetString()!=_hederaNetwork
+                ||evidence.GetProperty("sender").GetString()!=expectedSender)
+                throw new InvalidDataException("Query payment must bind this admitted purpose, network and payer.");
+            var identity=evidence.GetProperty("transactionHash").GetString();
+            var node=evidence.GetProperty("queryNodeAccountId").GetString();var units=evidence.GetProperty("queryPaymentTinybars").GetString();
+            var verified=await HederaSdkClient.InvokeAsync("verifyNativeQueryPreparation",new {preparation=evidence,expectedPublicKey,expectedNodes=nodes,
+                maxPaymentTinybars=cap,maxTransactionFeeTinybars=feeCap},token);
+            if(verified.GetProperty("verified").ValueKind!=JsonValueKind.True||verified.GetProperty("transactionHash").GetString()!=identity
+                ||verified.GetProperty("sender").GetString()!=expectedSender||verified.GetProperty("queryNodeAccountId").GetString()!=node
+                ||verified.GetProperty("queryPaymentTinybars").GetString()!=units)
+                throw new InvalidDataException("Official SDK verification did not bind the original signed query payment.");
+            var authority=new NativeSigningAuthority("hedera-query-payment-v1",Convert.ToBase64String(JsonSerializer.SerializeToUtf8Bytes(new {
+                PublicKey=expectedPublicKey,NodeAccountId=node,PaymentTinybars=units,MaxPaymentTinybars=cap,MaxTransactionFeeTinybars=feeCap})));
+            var correlation=clientRequestId+".query."+Interlocked.Increment(ref next).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            await execution.BeginPreparedNativeAttemptAsync("HashgraphOASIS",null,correlation,identity,new UsageNativePreparation {
+                ChainId=_hederaNetwork,Sender=expectedSender,SignedTransactionBase64=evidence.GetProperty("signedTransactionBase64").GetString(),SigningAuthority=authority},token);
+        },maximumRequests);
+    }
     private static NativeSigningAuthority PayerAuthority(string publicKey)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(publicKey);
