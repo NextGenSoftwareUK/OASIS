@@ -2,9 +2,13 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Shared `NativePreparedAttemptSnapshot` now used in Cosmos/Sui/Hedera original fee recovery, removing duplicated envelope checks and mutable-ID reads after await. Shared305pass1s, Cosmos full owned139pass2m12s, Sui focused3pass753ms plus native prepared4pass47s, Hedera focused2pass2s; three producer builds0errors. Snapshot tests cover caller mutation, foreign identity, bounded IDs and canonical preparation validation. Initial Cosmos focused2fail traced to non-base64 synthetic SignDoc fixture; corrected fixture, production validation retained. Not complete host/fiat settlement proof. Existing base chain verified: native provider -> KeyValueStorageProviderBase -> Core OASISStorageProviderBase -> OASISProvider; orchestration remains outside these thin adapters.
+
 Hedera54/54pass52s and TRON317/317pass2s refresh current shared correlation consumers using real SDK signing, controlled transport and owned Mongo27029; seven prepared-storage cases/provider now check invalid110/128 prefixes before work/0attempts/submissions and valid109. No skipped tests. TRON unit fixtures no longer reference unrelated27017; all three connections require exact owned replica URI. These are NOT native chain consensus/funded mutation or hosted settlement certifications. See release gates for native uncertainty/funding limitations.
 
 ### Shared-code policy and current reuse
+
+Architectural boundary reaffirmed2026-10-16: providers remain thin SDK/API adapters. HyperDrive/ProviderManager own provider selection, lifecycle, failover, load balancing and replication; HolonManager/AvatarManager own shared data/business orchestration; billing owns valuation, aggregation and settlement. Shared provider helpers are for transport/storage/identity invariants, not duplicated managers or chain-independent billing orchestration. Existing base/helper implementations must be inspected before adding new provider-local logic.
 
 User reaffirmed2026-10-16: inspect existing helpers, libraries and base provider classes before adding provider-local logic. Place genuinely provider-independent invariants in the lowest suitable existing shared layer; keep native signing, finality, fee and permission semantics provider-specific. Avoid copying a complete provider implementation or widening a base class with chain-specific behavior.
 

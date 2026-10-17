@@ -33,17 +33,12 @@ public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.
     {
         var result=new NextGenSoftware.OASIS.Common.OASISResult<JsonElement>();
         try {
-            ArgumentNullException.ThrowIfNull(attempt);
             ArgumentException.ThrowIfNullOrWhiteSpace(expectedPublicKey);
-            if(attempt.Provider!="HashgraphOASIS"||attempt.NativePreparation==null
-                ||string.IsNullOrWhiteSpace(attempt.ProviderRequestId)||attempt.NativePreparation.ChainId!=_hederaNetwork)
-                throw new InvalidDataException("Prepared Hedera attempt must bind this provider, original transaction ID and configured network.");
-            var preparation=attempt.NativePreparation;
-            preparation.ValidateAndMeasure();
+            var preparation=NativePreparedAttemptSnapshot.Capture(attempt,"HashgraphOASIS",_hederaNetwork);
             await VerifyOriginalSignedPreparationAsync(JsonSerializer.SerializeToElement(new {
-                transactionHash=attempt.ProviderRequestId,chainId=preparation.ChainId,sender=preparation.Sender,
+                transactionHash=preparation.ProviderRequestId,chainId=preparation.ChainId,sender=preparation.Sender,
                 signedTransactionBase64=preparation.SignedTransactionBase64 }),expectedPublicKey,token);
-            return await GetNativeFeeReceiptAsync(attempt.ProviderRequestId,token);
+            return await GetNativeFeeReceiptAsync(preparation.ProviderRequestId,token);
         } catch(Exception failure) { NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,failure.Message,failure); }
         return result;
     }
