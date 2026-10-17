@@ -1,5 +1,9 @@
 # HyperDrive V2 provider-I/O coverage
 
+Final Cosmos mutable mint/burn regression2026-10-17:164pass2m12s/0skip/runnerexit0, superseding pending run below. Known memo-forwarding/native/hosted/routing gaps unchanged.
+
+2026-10-17 Cosmos mint/burn now freeze original symbol and mint serialized metadata before signer await, preventing mutable requests from changing token identity/content.4newprocess regressions actual2red/2green before fix then4pass434ms; full164pending, producer0errors/2warnings. Mint memo forwarding remains an explicitly open audit finding; absent TODO/NotImplemented markers do not prove interface completion. No native ledger/fee/routing completion claim.
+
 2026-10-17 Sui custody6additional actual SDK signed-byte cases cover lock/release success, preparation rejection and postreceipt bad record. Controlled reference/gas resolution leaves actual generated graph/build/signature owner intact; decoded signed graph verifies exact split/release owner, original digest/signature preparation-before-submit and0or1submission/no replay. Full47offlineJS pass~468ms/0skip/0todo; production C#unchanged/no rerun claim. Native consensus/resolution/fees/host durable billing/admission/routing gates remain open.
 
 2026-10-17 Sui explicit escrow marker enabled after sync/async direct+public WalletManager mutation facade passed with real stored encrypted default-wallet lookup and existing controlled process fixture. Existing Cosmos harness generalized by provider; same fixed environment/no copied bootstrap.10wallet+14mapping=24pass3s/0skip; originalID/units/2mutations/releasedrecord/encryptedpersistedkey checked. Prior marker-disabled notes superseded. Actual signed SDK/native ledger/fee/hosted/routing acceptance still open; no live setting or deployment.

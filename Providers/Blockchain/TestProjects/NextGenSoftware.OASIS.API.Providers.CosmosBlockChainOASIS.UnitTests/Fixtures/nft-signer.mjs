@@ -65,6 +65,12 @@ else if(request.operation==='query' && request.message?.asset?.message?.token_de
  if(state.deposit && state.mode==='bad-readback')result={...state.deposit,amount:'1'};
 }
 else if(request.operation==='execute'){
+ const tokenMint=request.message?.asset?.message?.token_mint;
+ if(tokenMint?.symbol?.startsWith('intent-')){
+  const metadata=JSON.parse(tokenMint.metadata_json);
+  if(tokenMint.symbol!=='intent-original'||tokenMint.amount!=='123000000'||metadata.Title!=='original-title'
+    ||metadata.MetaData?.canary!=='original')throw new Error('Original mint intent changed');
+ }
  const transfer=request.message?.asset?.message?.token_transfer;
  if(transfer?.symbol?.startsWith('intent-')){
   if(transfer.symbol!=='intent-original'||transfer.recipient!=='fixture-recipient'||transfer.amount!=='123000000'
@@ -73,6 +79,8 @@ else if(request.operation==='execute'){
  }
  const mint=request.message?.asset?.message?.nft_mint;
  const burn=request.message?.asset?.message?.nft_burn??request.message?.asset?.message?.token_burn;
+ if(burn?.symbol?.startsWith('intent-')&&(burn.symbol!=='intent-original'||burn.amount!=='123000000'))
+  throw new Error('Original burn intent changed');
  if(burn?.token_id?.startsWith('native-evidence-')) {
   const mode=burn.token_id.slice('native-evidence-'.length);
   const nativeMutation=mode==='bad-shape' ? [] : { transactionHash:mode==='unknown' || mode==='unknown-executed' ? null : mode==='invalid-hash' ? 'fabricated' : 'a'.repeat(64),
