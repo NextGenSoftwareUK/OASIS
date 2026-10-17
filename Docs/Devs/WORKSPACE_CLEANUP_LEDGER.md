@@ -1,5 +1,9 @@
 # Workspace cleanup ledger and repeatable checks
 
+Final Hedera signer verification2026-10-17:113pass59s/0skip/runnerexit0, final targeted38pass4s. Same fixed environment/report, free89,814,249,472bytes observation, not reclamation claim; no new download/runtime/native ledger/public transaction or unrelated deletion.
+
+2026-10-17 Hedera wallet fixes reuse existing corrupt-wallet fixture/lock/avatars and .NET/owned Mongo reports.4newredbefore/38targetedpass4s, bounded final producer/full113runner. Read-only public balance query retrieves no keys or paid RPC; no install/download/newaccount/environment/native ledger/deploy. Existing exact corrupt-file cleanup validates owned bytes then removes regenerated synthetic fixture only; no unrelated credentials/data removed.
+
 2026-10-17 Sui original fee verification uses same pinned runtime/ledger/SDK and fixed original digest/report, read-only queries,1pass474ms/runnerexit0. Owned node stopped (pgrep absent); no newtransaction/download/install/clone/environment or native fixture. Existing historical receipt evidence preserved; current compact report overwritten deliberately. No unrelated artifact deletion or ledger reset.
 
 2026-10-17 live Sui routing refresh reused exact original /var/tmp/oasis-sui/network and pinned sui1.81.1, SDK installation/output links/fixed startup logs and current reports. Healthy1pass2m26s/Outage2pass3s, runnerexit0; no runtime/install/clone/newenvironment/genesis/public funds. Owned random test records removed by verified native/local cleanup; completed Sui ownership fence deleted only after all assertions. All6Sui fences absent, pgrep sui absent, Cosmos/TRON original journals hash-identical. Ledger retained (not destructively reset) for reuse/reconciliation. Windows free89,846,853,632bytes before/89,797,881,856after observation; change48,971,776bytes, not isolated attribution or reclamation claim. No multi-GB artifact/download allocated, unrelated environments/data preserved.

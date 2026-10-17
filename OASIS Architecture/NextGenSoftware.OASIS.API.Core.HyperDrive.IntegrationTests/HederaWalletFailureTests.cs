@@ -29,6 +29,8 @@ public sealed class HederaWalletFailureTests
     [InlineData(false,"escrow-release",true)] [InlineData(true,"escrow-release",true)]
     [InlineData(false,"cosmos-escrow-lock",false)] [InlineData(true,"cosmos-escrow-lock",false)]
     [InlineData(false,"cosmos-escrow-release",false)] [InlineData(true,"cosmos-escrow-release",false)]
+    [InlineData(false,"mint",false)] [InlineData(true,"mint",false)]
+    [InlineData(false,"burn",false)] [InlineData(true,"burn",false)]
     public async Task CorruptStoredSigningWalletRetainsOriginalFailureBeforeSdkUse(bool synchronous, string selector, bool sui)
     {
         var cosmos = selector.StartsWith("cosmos-", StringComparison.Ordinal);
@@ -93,7 +95,17 @@ public sealed class HederaWalletFailureTests
                     :sui?synchronous?suiProvider.UnlockToken(release):await suiProvider.UnlockTokenAsync(release)
                     :synchronous?hedera.UnlockToken(release):await hedera.UnlockTokenAsync(release);
             }
-            var result = selector.StartsWith("escrow-",StringComparison.Ordinal)?await Escrow():sui
+            async Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>> Token(){
+                if(selector=="mint"){
+                    var mint=new Core.Objects.Wallet.Requests.MintWeb3TokenRequest { MintedByAvatarId=sender,Amount=1,
+                        MetaData=new(){{"TokenAddress","0.0.3001"}} };
+                    return synchronous?hedera.MintToken(mint):await hedera.MintTokenAsync(mint);
+                }
+                var burn=new Core.Objects.Wallet.Requests.BurnWeb3TokenRequest { BurntByAvatarId=sender,Amount=1,TokenAddress="0.0.3001",
+                    OwnerSeedPhrase="",OwnerPrivateKey="",OwnerPublicKey="" };
+                return synchronous?hedera.BurnToken(burn):await hedera.BurnTokenAsync(burn);
+            }
+            var result = selector is "mint" or "burn"?await Token():selector.StartsWith("escrow-",StringComparison.Ordinal)?await Escrow():sui
                 ? selector == "username"
                     ? synchronous ? suiProvider.SendTransactionByUsername("hedera-failure-sender", "hedera-failure-recipient", 1m)
                         : await suiProvider.SendTransactionByUsernameAsync("hedera-failure-sender", "hedera-failure-recipient", 1m)

@@ -93,23 +93,26 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     throw new ArgumentException("TokenAddress metadata must identify an existing HTS token.");
                 if (request.MintedByAvatarId == Guid.Empty)
                     throw new ArgumentException("The minting avatar's real Hedera wallet is required.");
-                var walletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(request.MintedByAvatarId,
+                var actor = request.MintedByAvatarId;
+                var amount = request.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var memo = request.MemoText;
+                var hasRecipient = request.MetaData.TryGetValue("MintToWalletAddress", out var requestedRecipient);
+                var walletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(actor,
                     Core.Enums.ProviderType.HashgraphOASIS, showPrivateKeys: true);
-                if (walletResult.IsError || walletResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Could not retrieve wallet address for avatar");
-                    return result;
-                }
+                if (walletResult.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IProviderWallet,ITransactionResponse>(walletResult);
+                if (walletResult.Result == null || walletResult.Result.AvatarId != actor)
+                    throw new InvalidOperationException("Exact minting avatar wallet is required.");
                 
                 var wallet = walletResult.Result;
                 if (string.IsNullOrWhiteSpace(wallet.PrivateKey))
                     throw new ArgumentException("The minting wallet has no signing key.");
-                var recipient = request.MetaData.TryGetValue("MintToWalletAddress", out var target) ? target : wallet.WalletAddress;
+                var recipient = hasRecipient ? requestedRecipient : wallet.WalletAddress;
                 var committed = await HederaSdkClient.InvokeAsync("tokenMint", new
                 {
                     network = _hederaNetwork, nodes = _consensusNodes, sender = wallet.WalletAddress, recipient,
-                    tokenId = tokenAddress, amount = request.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                    privateKey = wallet.PrivateKey, publicKey = wallet.PublicKey, keyType = "der", memo = request.MemoText,
+                    tokenId = tokenAddress, amount,
+                    privateKey = wallet.PrivateKey, publicKey = wallet.PublicKey, keyType = "der", memo,
                     transactionId = HederaSdkClient.CreateTransactionId(wallet.WalletAddress)
                 });
                 if (committed.GetProperty("status").GetString() != "SUCCESS")
@@ -145,20 +148,26 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                     throw new ArgumentException("Recover an explicit Hedera signing key before burning a token.");
                 if (request.BurntByAvatarId == Guid.Empty)
                     throw new ArgumentException("The burning avatar's real treasury wallet is required.");
-                var walletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(request.BurntByAvatarId,
+                var actor = request.BurntByAvatarId;
+                var tokenId = request.TokenAddress;
+                var amount = request.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                var suppliedKey = request.OwnerPrivateKey;
+                var publicKey = request.OwnerPublicKey;
+                var walletResult = await WalletManager.GetAvatarDefaultWalletByIdAsync(actor,
                     Core.Enums.ProviderType.HashgraphOASIS, showPrivateKeys: true);
-                if (walletResult.IsError || walletResult.Result == null)
-                    throw new InvalidOperationException("Could not retrieve the burning avatar's Hedera wallet.");
+                if (walletResult.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IProviderWallet,ITransactionResponse>(walletResult);
+                if (walletResult.Result == null || walletResult.Result.AvatarId != actor)
+                    throw new InvalidOperationException("Exact burning avatar wallet is required.");
                 var wallet = walletResult.Result;
-                if (!string.IsNullOrWhiteSpace(request.OwnerPrivateKey)
-                    && !string.Equals(request.OwnerPrivateKey, wallet.PrivateKey, StringComparison.OrdinalIgnoreCase))
+                if (!string.IsNullOrWhiteSpace(suppliedKey)
+                    && !string.Equals(suppliedKey, wallet.PrivateKey, StringComparison.OrdinalIgnoreCase))
                     throw new ArgumentException("Supplied signing key does not match the burning avatar's Hedera wallet.");
                 var committed = await HederaSdkClient.InvokeAsync("tokenBurn", new
                 {
                     network = _hederaNetwork, nodes = _consensusNodes, sender = wallet.WalletAddress,
-                    recipient = wallet.WalletAddress, tokenId = request.TokenAddress,
-                    amount = request.Amount.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                    privateKey = wallet.PrivateKey, publicKey = string.IsNullOrWhiteSpace(request.OwnerPublicKey) ? wallet.PublicKey : request.OwnerPublicKey, keyType = "der",
+                    recipient = wallet.WalletAddress, tokenId, amount,
+                    privateKey = wallet.PrivateKey, publicKey = string.IsNullOrWhiteSpace(publicKey) ? wallet.PublicKey : publicKey, keyType = "der",
                     transactionId = HederaSdkClient.CreateTransactionId(wallet.WalletAddress)
                 });
                 if (committed.GetProperty("status").GetString() != "SUCCESS")
