@@ -82,13 +82,13 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (string.IsNullOrWhiteSpace(tokenAddress))
                     throw new ArgumentException("An explicit TRX or TRC20 token contract address is required.");
                 if (WalletManager == null) throw new InvalidOperationException("Avatar wallet manager is unavailable.");
-                var senderAvatar = byEmail ? await AvatarManager.Instance.LoadAvatarByEmailAsync(sender)
-                    : await AvatarManager.Instance.LoadAvatarAsync(sender);
-                var recipientAvatar = byEmail ? await AvatarManager.Instance.LoadAvatarByEmailAsync(recipient)
-                    : await AvatarManager.Instance.LoadAvatarAsync(recipient);
-                if (senderAvatar.IsError || senderAvatar.Result == null || recipientAvatar.IsError || recipientAvatar.Result == null)
-                    throw new InvalidOperationException("Could not resolve sender and recipient avatar identities.");
-                return await SendAvatarTokenByIdAsync(senderAvatar.Result.Id, recipientAvatar.Result.Id, amount, tokenAddress);
+                var from = byEmail
+                    ? await WalletManager.GetAvatarDefaultWalletByEmailAsync(sender, Core.Enums.ProviderType.TRONOASIS, showPrivateKeys: true)
+                    : await WalletManager.GetAvatarDefaultWalletByUsernameAsync(sender, showPrivateKeys: true, providerType: Core.Enums.ProviderType.TRONOASIS);
+                var to = byEmail
+                    ? await WalletManager.GetAvatarDefaultWalletByEmailAsync(recipient, Core.Enums.ProviderType.TRONOASIS)
+                    : await WalletManager.GetAvatarDefaultWalletByUsernameAsync(recipient, providerType: Core.Enums.ProviderType.TRONOASIS);
+                return await SendResolvedAvatarTokenAsync(from, to, amount, tokenAddress);
             }
             catch (Exception ex)
             {
@@ -115,24 +115,37 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     Core.Enums.ProviderType.TRONOASIS, showPrivateKeys: true);
                 var to = await WalletManager.GetAvatarDefaultWalletByIdAsync(recipient,
                     Core.Enums.ProviderType.TRONOASIS);
-                if (from.IsError || from.Result == null || string.IsNullOrWhiteSpace(from.Result.PrivateKey)
-                    || to.IsError || to.Result == null)
-                    throw new InvalidOperationException("Could not resolve the sender signing wallet and recipient TRON wallet.");
-                return await SendTokenAsync(new Core.Objects.Wallet.Requests.SendWeb3TokenRequest
-                {
-                    FromWalletAddress = from.Result.WalletAddress,
-                    ToWalletAddress = to.Result.WalletAddress,
-                    FromTokenAddress = tokenAddress,
-                    Amount = amount,
-                    OwnerPrivateKey = from.Result.PrivateKey,
-                    OwnerPublicKey = from.Result.PublicKey
-                });
+                return await SendResolvedAvatarTokenAsync(from, to, amount, tokenAddress);
             }
             catch (Exception ex)
             {
                 OASISErrorHandling.HandleError(ref result, $"Error sending avatar TRON token: {ex.Message}", ex);
                 return result;
             }
+        }
+
+        private Task<OASISResult<ITransactionResponse>> SendResolvedAvatarTokenAsync(
+            OASISResult<IProviderWallet> from, OASISResult<IProviderWallet> to, decimal amount, string tokenAddress)
+        {
+            var failed = from.IsError ? from : to.IsError ? to : null;
+            if (failed != null)
+            {
+                var result = new OASISResult<ITransactionResponse>();
+                OASISErrorHandling.HandleError(ref result, "Could not resolve avatar TRON wallet: " + failed.Message,
+                    failed.Exception, detailedMessage: failed.DetailedMessage);
+                result.ErrorCode = failed.ErrorCode;
+                return Task.FromResult(result);
+            }
+            if (from.Result == null || to.Result == null || string.IsNullOrWhiteSpace(from.Result.PrivateKey))
+                throw new InvalidOperationException("Could not resolve the sender signing wallet and recipient TRON wallet.");
+            if (from.Result.AvatarId == Guid.Empty || to.Result.AvatarId == Guid.Empty || from.Result.AvatarId == to.Result.AvatarId)
+                throw new ArgumentException("Distinct real sender and recipient wallet owners are required.");
+            return SendTokenAsync(new Core.Objects.Wallet.Requests.SendWeb3TokenRequest
+            {
+                FromWalletAddress = from.Result.WalletAddress, ToWalletAddress = to.Result.WalletAddress,
+                FromTokenAddress = tokenAddress, Amount = amount,
+                OwnerPrivateKey = from.Result.PrivateKey, OwnerPublicKey = from.Result.PublicKey
+            });
         }
 
         public OASISResult<ITransactionResponse> SendTransactionByDefaultWallet(Guid fromAvatarId, Guid toAvatarId, decimal amount)
