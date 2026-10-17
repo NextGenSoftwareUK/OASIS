@@ -33,6 +33,10 @@ public sealed class HederaWalletFailureTests
     [InlineData(false,"burn",false)] [InlineData(true,"burn",false)]
     [InlineData(false,"cosmos-mint",false)] [InlineData(true,"cosmos-mint",false)]
     [InlineData(false,"cosmos-burn",false)] [InlineData(true,"cosmos-burn",false)]
+    [InlineData(false,"cosmos-nft-mint",false)] [InlineData(true,"cosmos-nft-mint",false)]
+    [InlineData(false,"cosmos-nft-burn",false)] [InlineData(true,"cosmos-nft-burn",false)]
+    [InlineData(false,"cosmos-nft-lock",false)] [InlineData(true,"cosmos-nft-lock",false)]
+    [InlineData(false,"cosmos-nft-unlock",false)] [InlineData(true,"cosmos-nft-unlock",false)]
     [InlineData(false,"escrow-create",true)] [InlineData(true,"escrow-create",true)]
     public async Task CorruptStoredSigningWalletRetainsOriginalFailureBeforeSdkUse(bool synchronous, string selector, bool sui)
     {
@@ -114,7 +118,25 @@ public sealed class HederaWalletFailureTests
                 return cosmos?synchronous?cosmosProvider.BurnToken(burn):await cosmosProvider.BurnTokenAsync(burn)
                     :synchronous?hedera.BurnToken(burn):await hedera.BurnTokenAsync(burn);
             }
-            var result = selector is "mint" or "burn"?await Token():selector.StartsWith("escrow-",StringComparison.Ordinal)?await Escrow():sui
+            async Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>> Nft(){
+                NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.NFT.Responses.IWeb3NFTTransactionResponse> response;
+                const string locator="fixture-contract#fixture-token";
+                if(selector=="nft-mint"){
+                    var request=new Core.Objects.NFT.Requests.MintWeb3NFTRequest{MintedByAvatarId=sender};
+                    response=synchronous?cosmosProvider.MintNFT(request):await cosmosProvider.MintNFTAsync(request);
+                }else if(selector=="nft-burn"){
+                    var request=new Core.Objects.NFT.Requests.BurnWeb3NFTRequest{BurntByAvatarId=sender,NFTTokenAddress=locator,OwnerPrivateKey="",OwnerPublicKey="",OwnerSeedPhrase=""};
+                    response=synchronous?cosmosProvider.BurnNFT(request):await cosmosProvider.BurnNFTAsync(request);
+                }else if(selector=="nft-lock"){
+                    var request=new Core.Objects.NFT.Requests.LockWeb3NFTRequest{LockedByAvatarId=sender,NFTTokenAddress=locator};
+                    response=synchronous?cosmosProvider.LockNFT(request):await cosmosProvider.LockNFTAsync(request);
+                }else{
+                    var request=new Core.Objects.NFT.Requests.UnlockWeb3NFTRequest{UnlockedByAvatarId=sender,NFTTokenAddress=locator};
+                    response=synchronous?cosmosProvider.UnlockNFT(request):await cosmosProvider.UnlockNFTAsync(request);
+                }
+                return Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.NFT.Responses.IWeb3NFTTransactionResponse,Core.Interfaces.Wallet.Responses.ITransactionResponse>(response);
+            }
+            var result = selector.StartsWith("nft-",StringComparison.Ordinal)?await Nft():selector is "mint" or "burn"?await Token():selector.StartsWith("escrow-",StringComparison.Ordinal)?await Escrow():sui
                 ? selector == "username"
                     ? synchronous ? suiProvider.SendTransactionByUsername("hedera-failure-sender", "hedera-failure-recipient", 1m)
                         : await suiProvider.SendTransactionByUsernameAsync("hedera-failure-sender", "hedera-failure-recipient", 1m)

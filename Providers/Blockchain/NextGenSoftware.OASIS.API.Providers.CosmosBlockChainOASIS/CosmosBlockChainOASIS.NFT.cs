@@ -106,7 +106,16 @@ public partial class CosmosBlockChainOASIS
                 throw new ArgumentException("Price/discount must be nonnegative and royalty percentage must be between 0 and 100.");
             if (request.SaleStartDate.HasValue && request.SaleEndDate.HasValue && request.SaleStartDate > request.SaleEndDate)
                 throw new ArgumentException("Sale start must not follow sale end.");
-            var key = await SigningKeyAsync(request.MintedByAvatarId);
+            var actor = request.MintedByAvatarId;
+            string suppliedKey = null;
+            if (actor != Guid.Empty)
+            {
+                var wallet = await LoadSigningWalletAsync(actor);
+                if (wallet.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet,IWeb3NFTTransactionResponse>(wallet);
+                suppliedKey = wallet.Result.PrivateKey;
+            }
+            var key = await SigningKeyAsync(actor, suppliedKey);
             var signer = await SignerAddressAsync(key);
             var recipient = await MintRecipientAsync(request, signer);
             var contract = string.IsNullOrWhiteSpace(request.CollectionPublicKey) ? _contractAddress : request.CollectionPublicKey;
@@ -229,7 +238,18 @@ public partial class CosmosBlockChainOASIS
         {
             if (request == null) throw new ArgumentNullException(nameof(request));
             var locator = NftLocator(request.NFTTokenAddress, request.Web3NFTId);
-            var key = await SigningKeyAsync(request.BurntByAvatarId, request.OwnerPrivateKey, request.OwnerSeedPhrase, request.OwnerPublicKey);
+            var actor = request.BurntByAvatarId;
+            var suppliedKey = request.OwnerPrivateKey;
+            var seed = request.OwnerSeedPhrase;
+            var publicKey = request.OwnerPublicKey;
+            if (actor != Guid.Empty && string.IsNullOrWhiteSpace(suppliedKey) && string.IsNullOrWhiteSpace(seed))
+            {
+                var wallet = await LoadSigningWalletAsync(actor);
+                if (wallet.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet,IWeb3NFTTransactionResponse>(wallet);
+                suppliedKey = wallet.Result.PrivateKey;
+            }
+            var key = await SigningKeyAsync(actor, suppliedKey, seed, publicKey);
             var hash = await ExecuteAssetAsync(new { nft_burn = new { token_id = locator.TokenId } }, key, contractAddress: locator.Contract);
             result.Result = new Web3NFTTransactionResponse { TransactionResult = hash };
         }
@@ -252,7 +272,15 @@ public partial class CosmosBlockChainOASIS
         try
         {
             var locator = NftLocator(address, id);
-            var key = await SigningKeyAsync(actor);
+            string suppliedKey = null;
+            if (actor != Guid.Empty)
+            {
+                var wallet = await LoadSigningWalletAsync(actor);
+                if (wallet.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet,IWeb3NFTTransactionResponse>(wallet);
+                suppliedKey = wallet.Result.PrivateKey;
+            }
+            var key = await SigningKeyAsync(actor, suppliedKey);
             var hash = await ExecuteAssetAsync(new { nft_set_locked = new { token_id = locator.TokenId, locked } }, key, contractAddress: locator.Contract);
             result.Result = new Web3NFTTransactionResponse { TransactionResult = hash };
         }
