@@ -138,7 +138,8 @@ public partial class HederaPreparationTests
     [DataRow(false)] [DataRow(true)]
     [DataRow(false,true)] [DataRow(true,true)]
     [DataRow(false,false,true)] [DataRow(false,true,true)]
-    public async Task SignedEscrowStagesPersistExactEvidenceWithDistinctCorrelations(bool skipApproval,bool fungible=false,bool rejectMutation=false)
+    [DataRow(false,false,false,true)] [DataRow(false,true,false,true)] [DataRow(true,false,false,true)]
+    public async Task SignedEscrowStagesPersistExactEvidenceWithDistinctCorrelations(bool skipApproval,bool fungible=false,bool rejectMutation=false,bool aggregateBudget=false)
     {
         var bridge=Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE")??Path.Combine(AppContext.BaseDirectory,"HederaSdkBridge","bridge.mjs");
         var start=new ProcessStartInfo("node"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true,WorkingDirectory=Path.GetDirectoryName(bridge)};
@@ -176,7 +177,13 @@ public partial class HederaPreparationTests
             var user=Guid.NewGuid().ToString("D");using var http=new HttpClient(new OfflineAuthority(user));
             var authority=new Web4SubscriptionAuthorizationClient(http,"https://offline-authority.test","WEB6","test-only-key");
             var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6",PersistenceTimeout=TimeSpan.FromSeconds(5)})
-                .BeginAsync("test-only-bearer",user,"hedera-escrow-test",new string('a',64),"POST /offline-test",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1},deadline.Token);
+                .BeginAsync("test-only-bearer",user,"hedera-escrow-test",new string('a',64),"POST /offline-test",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1,
+                    EstimatedCostUsd=2m,MaximumNativeFeeCostUsd=aggregateBudget?2m:null},deadline.Token);
+            if(aggregateBudget){
+                var time=DateTime.UtcNow.AddSeconds(-1);
+                execution=execution.WithNativePrices(new[]{new NativeFeePriceQuote(Guid.Parse(execution.OperationId),"HashgraphOASIS","offline-test","tinybar","hedera-hashgraph",8,1m,
+                    "synthetic-test-price","fixture-v1","fixture-v1",time,time,time,time.AddMinutes(5))});
+            }
             using var server=new HashgraphOASIS().CreateEscrowPreparationServer(execution,"escrow","offline-test","0.0.1001",
                 signed.RootElement.GetProperty("publicKey").GetString()!,evidence[0].GetProperty("transactionHash").GetString()!,evidence[1].GetProperty("transactionHash").GetString()!);
             var serving=server.ServeAsync(deadline.Token);
@@ -201,6 +208,7 @@ public partial class HederaPreparationTests
                 if(stage==0)approvalBytes=current.NativePreparationBytes;
             }
             if(!rejectMutation)await serving;var stored=await store.GetAsync(execution.OperationId,deadline.Token);
+            Assert.AreEqual(aggregateBudget?(decimal)stored.ProviderAttempts.Count:0m,stored.NativeFeeExposureUsd);
             for(var index=0;index<stored.ProviderAttempts.Count;index++){
                 var stage=index+(skipApproval?1:0);var attempt=stored.ProviderAttempts[index];
                 Assert.AreEqual(stage==0?"escrow:approval":"escrow:mutation",attempt.ClientRequestId);
@@ -208,6 +216,10 @@ public partial class HederaPreparationTests
                 Assert.AreEqual(evidence[stage].GetProperty("signedTransactionBase64").GetString(),attempt.NativePreparation.SignedTransactionBase64);
                 Assert.AreEqual("hedera-payer-public-key-v1",attempt.NativePreparation.SigningAuthority.Scheme);
                 Assert.IsNull(attempt.AcknowledgedAtUtc,"Signed preparation is not ledger acceptance.");
+                if(aggregateBudget){
+                    var maximum=attempt.NativePreparation.FeeMaximums.Single();Assert.AreEqual("100000000",maximum.NativeMaximumUnits);
+                    Assert.AreEqual("tinybar",maximum.Denomination);Assert.AreEqual(NativeFeeMaximumCoverage.AllFees,maximum.Coverage);
+                }
             }
         }finally{
             try{if(!child.HasExited){child.Kill(entireProcessTree:true);await child.WaitForExitAsync();}}

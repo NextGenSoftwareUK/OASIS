@@ -1,5 +1,5 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {PrivateKey,Transaction,AccountId,Client,TransferTransaction,TransactionId} from '@hiero-ledger/sdk';
+import {PrivateKey,Transaction,AccountId,Client,TransferTransaction,TransactionId,ContractExecuteTransaction,Hbar} from '@hiero-ledger/sdk';
 import {deploymentTransaction,executeDeployment} from './deployment.mjs';
 import {execute,persistSignedSubmission} from './bridge.mjs';
 import {verifyPreparedIdentity} from './native-preparation.mjs';
@@ -13,11 +13,24 @@ test('original signed hashes bind every SDK node variant and distinguish payload
    .addHbarTransfer('0.0.1001',-amount).addHbarTransfer('0.0.1002',amount).freeze().sign(key);
   const evidence={transactionHash:id,sender:'0.0.1001',signedTransactionBase64:Buffer.from(signed.toBytes()).toString('base64')};
   const verified=await verifyPreparedIdentity(evidence,key.publicKey.toStringDer());
+  assert.equal(verified.maximumFeeTinybars,undefined,'Unreviewed transfer charges must not receive a blanket network maximum');
   const expected=[...(await signed.getTransactionHashPerNode()).values()].map(hash=>Buffer.from(hash).toString('hex'));
   assert.deepEqual(verified.signedTransactionHashes,expected);assert.equal(expected.length,2);
   for(const hash of expected){assert.match(hash,/^[0-9a-f]{96}$/);if(previous)assert.equal(previous.includes(hash),false);}
   previous=expected;
  }
+});
+
+test('reviewed native contract maximum binds the signed fee rather than gas units or caller JSON',async()=>{
+ const key=PrivateKey.generateED25519(),id='0.0.1001@1700000000.000000001';
+ const signed=await new ContractExecuteTransaction().setTransactionId(TransactionId.fromString(id)).setContractId('0.0.2001').setGas(400000)
+  .setMaxTransactionFee(Hbar.fromTinybars('9007199254740993')).setNodeAccountIds([AccountId.fromString('0.0.3'),AccountId.fromString('0.0.4')]).freeze().sign(key);
+ const evidence={transactionHash:id,sender:'0.0.1001',signedTransactionBase64:Buffer.from(signed.toBytes()).toString('base64'),maximumFeeTinybars:'0'};
+ assert.equal((await verifyPreparedIdentity(evidence,key.publicKey.toStringDer())).maximumFeeTinybars,'9007199254740993');
+ const inner=await new ContractExecuteTransaction().setTransactionId(TransactionId.fromString(id)).setContractId('0.0.2001').setGas(400000)
+  .setMaxTransactionFee(Hbar.fromTinybars('100')).setBatchKey(key.publicKey).freeze().sign(key);
+ await assert.rejects(verifyPreparedIdentity({...evidence,signedTransactionBase64:Buffer.from(inner.toBytes()).toString('base64')},key.publicKey.toStringDer()),
+  /Bounded original Hedera signed transaction hashes/,'An inner batch must not inherit standalone fee coverage');
 });
 test('prepared dispatcher refuses invalid callback and unwired actions before network use',async()=>{
  await assert.rejects(execute('contractCreate',{},true),/awaited callback/);
@@ -52,10 +65,14 @@ test('real SDK signed deployment waits for persistence and rejection prevents su
  assert.equal(calls,1);assert.equal(closed,true);
 });
 for (const action of ['bytecodeFileCreate','bytecodeFileAppend','contractCreate','nftCollectionCreate','tokenCollectionDelete','nftMetadataUpdate']) {
- test(`${action} constructor refuses absent original identity`, () => {
-  const key=PrivateKey.generateECDSA().publicKey;
+ test(`${action} constructor refuses absent original identity`, async() => {
+  const signer=PrivateKey.generateECDSA(),key=signer.publicKey;
   const valid={...request,name:'Oak',symbol:'OAK',maxSupply:'10',tokenId:'0.0.3001',serials:['1'],metadata:'Oak'};
   assert.doesNotThrow(()=>deploymentTransaction(action,valid,key));
+  const signed=await deploymentTransaction(action,valid,key).setNodeAccountIds([AccountId.fromString('0.0.3')]).freeze().sign(signer);
+  const identity=await verifyPreparedIdentity({transactionHash:valid.transactionId,sender:valid.sender,
+   signedTransactionBase64:Buffer.from(signed.toBytes()).toString('base64')},key.toStringDer());
+  assert.equal(identity.maximumFeeTinybars,valid.maxFeeTinybars);
   for(const transactionId of [undefined,null,'',' '])
    assert.throws(()=>deploymentTransaction(action,{...valid,transactionId},key));
  });
