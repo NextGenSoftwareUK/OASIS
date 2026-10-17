@@ -135,21 +135,18 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
         {
             try
             {
-                if (string.IsNullOrEmpty(outputFolder))
+                if (string.IsNullOrWhiteSpace(outputFolder) || (celestialBody == null && string.IsNullOrWhiteSpace(nativeSource)))
                     return false;
 
                 string solidityFolder = Path.Combine(outputFolder, "Solidity");
                 if (!Directory.Exists(solidityFolder))
                     Directory.CreateDirectory(solidityFolder);
 
-                if (!string.IsNullOrEmpty(nativeSource))
+                if (!string.IsNullOrWhiteSpace(nativeSource))
                 {
                     File.WriteAllText(Path.Combine(solidityFolder, "Contract.sol"), nativeSource);
                     return true;
                 }
-
-                if (celestialBody == null)
-                    return true;
 
                 var sb = new StringBuilder();
                 sb.AppendLine("// SPDX-License-Identifier: MIT");
