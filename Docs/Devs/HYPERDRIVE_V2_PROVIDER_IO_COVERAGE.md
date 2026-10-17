@@ -2,6 +2,10 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Repaired-endpoint downstream refresh completed: Web3 native4/4pass1m25s, zero skips, runnerexit0/normal teardown. Supersedes pending observation below.
+
+Ethereum native186/186pass58s plus59contract assertions now includes same-manager/router repaired-endpoint selection after SDK outage/SQLite failover, sync/async; exact Ethereum+1/SQLite+0 request deltas after explicit provider re-registration. Does not prove automatic circuit recovery. Downstream Web3 refresh pending at this entry; no public gas/new environment.
+
 Sui recovery evidence now checks native receipt genesis/payer and emits netUnits for each original attempt. Native1/1pass3s: durable WEB6 local-test operation executing/3attempts/0receipts/no settlement; write fees3703548 and1028348, cleanup rebate-1620100. Missing production registered IUsageRecoveryResolver/valuation/rebate policy remains open; native confirmation alone does not justify zero-cost settlement or journal removal. Separate test encryption key already configured, no production encryption bypass.
 
 Sui native original-attempt inspection1/1pass3s: all three retained attempt receipts successful, raw fixture and private holon absent. Corrected report separates confirmed native outcomes from incomplete durable settlement/ownership. Journal retained unchanged; no resubmission. Retained node/SDK only, not full V2/native mutation certification.
