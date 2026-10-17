@@ -225,10 +225,8 @@ public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.
         ArgumentException.ThrowIfNullOrWhiteSpace(expectedPublicKey);
         if(string.IsNullOrWhiteSpace(clientRequestId)||clientRequestId.Length>119)
             throw new ArgumentException("Escrow request correlation must leave space for bounded stage suffixes.",nameof(clientRequestId));
-        var approval=execution.NativePreparationPersistence("HashgraphOASIS",null,clientRequestId+":approval",expectedNetwork,expectedSender,
-            (evidence,token)=>VerifyOriginalSignedPreparationAsync(evidence,expectedPublicKey,token),PayerAuthority(expectedPublicKey));
-        var mutation=execution.NativePreparationPersistence("HashgraphOASIS",null,clientRequestId+":mutation",expectedNetwork,expectedSender,
-            (evidence,token)=>VerifyOriginalSignedPreparationAsync(evidence,expectedPublicKey,token),PayerAuthority(expectedPublicKey));
+        var approval=OriginalPreparationPersistence(execution,clientRequestId+":approval",expectedNetwork,expectedSender,expectedPublicKey);
+        var mutation=OriginalPreparationPersistence(execution,clientRequestId+":mutation",expectedNetwork,expectedSender,expectedPublicKey);
         return PreparedSubmissionServer.ForOptionalApproval((evidence,token)=>
             evidence.GetProperty("transactionHash").GetString()==approvalId?approval(evidence,token):mutation(evidence,token),approvalId,mutationId);
     }
@@ -239,9 +237,21 @@ public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.
     {
         if(execution==null)throw new ArgumentNullException(nameof(execution));
         ArgumentException.ThrowIfNullOrWhiteSpace(expectedPublicKey);
-        return new PreparedSubmissionServer(execution.NativePreparationPersistence("HashgraphOASIS",null,clientRequestId,expectedNetwork,expectedSender,
-            (evidence,token)=>VerifyOriginalSignedPreparationAsync(evidence,expectedPublicKey,token),PayerAuthority(expectedPublicKey)),expectedTransactionId);
+        return new PreparedSubmissionServer(OriginalPreparationPersistence(execution,clientRequestId,expectedNetwork,expectedSender,expectedPublicKey),expectedTransactionId);
     }
+
+    private Func<JsonElement,CancellationToken,Task> OriginalPreparationPersistence(UsageExecutionHandle execution,string correlation,
+        string network,string sender,string publicKey)
+        =>execution.RequiresVerifiedNativeFeeMaximums
+            ?execution.NativePreparationPersistenceWithVerifiedFeeMaximums("HashgraphOASIS",null,correlation,network,sender,
+                async(evidence,token)=>{
+                    var identity=await VerifyOriginalSignedIdentityAsync(evidence,publicKey,token);
+                    if(!identity.TryGetProperty("maximumFeeTinybars",out var maximum)||maximum.ValueKind!=JsonValueKind.String)
+                        throw new UsageProtocolException("HEDERA_TOTAL_FEE_MAXIMUM_UNSUPPORTED","Original signed transaction type/shape has no reviewed complete network-fee maximum.",400);
+                    return new[]{new NativeFeeMaximum("tinybar",maximum.GetString(),NativeFeeMaximumCoverage.AllFees)};
+                },PayerAuthority(publicKey))
+            :execution.NativePreparationPersistence("HashgraphOASIS",null,correlation,network,sender,
+                (evidence,token)=>VerifyOriginalSignedPreparationAsync(evidence,publicKey,token),PayerAuthority(publicKey));
 
     public async Task VerifyOriginalSignedPreparationAsync(JsonElement preparation,string expectedPublicKey,CancellationToken token=default)
         =>_=await VerifyOriginalSignedIdentityAsync(preparation,expectedPublicKey,token);
