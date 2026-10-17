@@ -144,8 +144,15 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string ContractAddress { get; set; } = "";
     }
 
+    public class CosmosIdBoundTokenEscrowSettings
+    {
+        public string ContractAddress { get; set; } = "";
+        public string CodeSha256 { get; set; } = "";
+    }
+
     public class CosmosBlockChainOASISProviderSettings : ProviderSettingsBase
     {
+        public CosmosIdBoundTokenEscrowSettings IdBoundTokenEscrow { get; set; }
         public string StorageEncryptionKeyEnvironmentVariable { get; set; } = "OASIS_COSMOS_STORAGE_ENCRYPTION_KEY";
         public string RpcEndpoint { get; set; } = "https://cosmos-rpc.polkachu.com";
         public string Network { get; set; } = "cosmos";
