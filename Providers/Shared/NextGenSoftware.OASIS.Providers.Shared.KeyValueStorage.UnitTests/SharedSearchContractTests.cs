@@ -13,6 +13,23 @@ public class SharedSearchContractTests
 {
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
+    public async Task AllFieldsSearchCannotMatchNestedCredentialValues(bool synchronous)
+    {
+        var provider=new TestProvider(new InMemoryBackend());var secret="owned-secret-do-not-search";
+        var row=new Holon {Id=Guid.NewGuid(),Name="visible-park",MetaData=new() {{"nested",new Dictionary<string,object> {{"Password",secret},{"ResetToken",secret},{"visible","oak"}}}}};
+        Assert.IsFalse((await provider.SaveHolonAsync(row,saveChildren:false)).IsError);
+        var text=new SearchTextGroup {SearchHolons=true,HolonType=HolonType.All,SearchQuery=secret,
+            HolonSearchParams=new NextGenSoftware.OASIS.API.Core.Interfaces.SearchHolonParams {SearchAllFields=true}};
+        var query=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new List<ISearchGroupBase> {text}};
+        var hidden=synchronous ? provider.Search(query,loadChildren:false):await provider.SearchAsync(query,loadChildren:false);
+        Assert.IsFalse(hidden.IsError,hidden.Message);Assert.AreEqual(0,hidden.Result.NumberOfResults);
+        text.SearchQuery="oak";var visible=await provider.SearchAsync(query,loadChildren:false);
+        Assert.IsFalse(visible.IsError,visible.Message);Assert.AreEqual(row.Id,visible.Result.SearchResultHolons[0].Id);
+        var stored=(await provider.LoadHolonAsync(row.Id,loadChildren:false)).Result;
+        StringAssert.Contains(OasisJson.Serialize(stored.MetaData),secret);
+    }
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
     public async Task SearchExcludesTombstonesWithoutExcludingInactiveRecords(bool synchronous)
     {
         var provider=new TestProvider(new InMemoryBackend());var avatar=new Avatar {Id=Guid.NewGuid(),Username="ownedvisibility-live",IsActive=false};

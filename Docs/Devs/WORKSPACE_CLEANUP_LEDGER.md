@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 provider search credential-exclusion acceptance reused shared outputs/in-memory records; Shared268/268pass1s. Synthetic test secret remains unchanged in test record (no real credentials used). No runtime/node/download/install/clone/environment/ledger/source/userdata/credential removal; fixed compact report reused.
+
 2026-10-16 search tombstone visibility reused shared outputs/in-memory backend. Two baseline failures retained in search-tombstone-before-current.trx; finalShared266/266pass1s. No stored data/history cleanup or runtime/node/download/install/clone/environment/protected ledger/source/userdata/credential removal; fixed compact reports reused.
 
 2026-10-16 root-Version search acceptance reused shared outputs/in-memory backend; Shared264/264pass1s, no new runtime/download/install/clone/environment or ledger/source/userdata/credential removal. Fixed compact report overwritten in place; no generated disk fixture needed.
