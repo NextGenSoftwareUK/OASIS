@@ -7,8 +7,25 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS;
 
-public partial class TRONOASIS : IPreparedNativeStorageProvider
+public partial class TRONOASIS : IPreparedNativeStorageProvider,IPreparedNativeFeeEvidenceReader
 {
+    string IPreparedNativeFeeEvidenceReader.NativeFeeProvider=>"TRONOASIS";
+    string IPreparedNativeFeeEvidenceReader.NativeFeeChainId=>_nativeTransfers!=null?_nativeTransfers.ExpectedGenesisBlockId:_genesisBlockId;
+    NativeFeeCoverage IPreparedNativeFeeEvidenceReader.DeclaredFeeCoverage=>NativeFeeCoverage.NetFinal;
+
+    public async Task<NextGenSoftware.OASIS.Common.OASISResult<PreparedNativeFeeEvidence>> ReadPreparedNativeFeeEvidenceAsync(
+        UsageProviderAttempt original,CancellationToken token=default)
+    {
+        var result=new NextGenSoftware.OASIS.Common.OASISResult<PreparedNativeFeeEvidence>();
+        try{
+            var fee=await GetPreparedNativeFeeReceiptAsync(original,token);
+            if(fee.IsError)return new(){IsError=true,Message=fee.Message,Exception=fee.Exception,ErrorCode=fee.ErrorCode};
+            result.Result=new("TRONOASIS",fee.Result.GetProperty("chainGenesisId").GetString(),fee.Result.GetProperty("transactionHash").GetString(),
+                fee.Result.GetProperty("payer").GetString(),fee.Result.GetProperty("success").GetBoolean(),NativeFeeCoverage.NetFinal,
+                new[]{new NativeFeeComponent("SUN",fee.Result.GetProperty("netUnits").GetString())},"verified-tron-solidified-total");
+        }catch(Exception failure){NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,failure.Message,failure);}
+        return result;
+    }
     /// <summary>Read-only recovery using the original pre-submission permission snapshot.</summary>
     public async Task<NextGenSoftware.OASIS.Common.OASISResult<System.Text.Json.JsonElement>> GetPreparedNativeFeeReceiptAsync(
         UsageProviderAttempt attempt,CancellationToken token=default)
