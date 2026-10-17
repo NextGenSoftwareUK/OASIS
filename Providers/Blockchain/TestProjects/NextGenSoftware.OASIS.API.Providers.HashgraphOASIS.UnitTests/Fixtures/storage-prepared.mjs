@@ -10,7 +10,13 @@ const {action,request}=JSON.parse(input);
 try {
  let result;
  if(action==='restoreKey'||action==='verifyNativePreparation')result=await execute(action,request);
- else if(action==='storageGet')result=null;
+ else if(action==='storageGet'){
+  if(process.env.OASIS_HEDERA_STORAGE_TEST_HOLD_QUERY_FILE){
+   await appendFile(process.env.OASIS_HEDERA_STORAGE_TEST_HOLD_QUERY_FILE,'owned query started\n');
+   await new Promise(()=>{setInterval(()=>{},1000);});
+  }
+  result=null;
+ }
  else if(action==='storageList')result=[];
  else if(action==='storageProbe')result={verified:true};
  else if(action==='storagePut'||action==='storageDelete'){

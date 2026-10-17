@@ -26,7 +26,7 @@ internal sealed class ConfiguredHederaStorageBackend : IKeyValueBackend, IDispos
 {
     private readonly Lazy<PrivateKeyValueBackend> _backend;
     private readonly AsyncLocal<PrivateKeyValueBackend> _executionBackend=new();
-    private readonly Func<Func<string,string,string,string,PreparedSubmissionServer>,PrivateKeyValueBackend> _createBackend;
+    private readonly Func<Func<string,string,string,string,PreparedSubmissionServer>,CancellationToken,PrivateKeyValueBackend> _createBackend;
     private readonly string _sender;
     private bool _disposed;
 
@@ -34,17 +34,17 @@ internal sealed class ConfiguredHederaStorageBackend : IKeyValueBackend, IDispos
     {
         var copiedNodes = nodes == null ? null : new Dictionary<string, string>(nodes);
         _sender=configuration?.OperatorAccountId;
-        _createBackend = preparation => {
+        _createBackend = (preparation,scopeToken) => {
             if (configuration == null)
                 throw new InvalidOperationException("Hedera storage requires an explicit contract, operator, signing key, encryption key and fee configuration.");
             var inner = new HederaStorageBackend(network, configuration.ContractId, configuration.OperatorAccountId,
                 configuration.SigningKeyType, configuration.SigningKeyResolver, configuration.GasLimit,
-                configuration.MaxFeeTinybars, copiedNodes,preparation);
+                configuration.MaxFeeTinybars, copiedNodes,preparation,scopeToken);
             var key = configuration.EncryptionKeyResolver?.Invoke();
             try { return new PrivateKeyValueBackend(inner, key); }
             finally { if (key != null) CryptographicOperations.ZeroMemory(key); }
         };
-        _backend=new Lazy<PrivateKeyValueBackend>(()=>_createBackend(null));
+        _backend=new Lazy<PrivateKeyValueBackend>(()=>_createBackend(null,default));
     }
 
     internal async Task<T> WithPreparationAsync<T>(Func<Task<T>> operation,string expectedSender,
@@ -54,7 +54,7 @@ internal sealed class ConfiguredHederaStorageBackend : IKeyValueBackend, IDispos
         if(string.IsNullOrWhiteSpace(_sender)||expectedSender!=_sender)
             throw new InvalidOperationException("Admitted Hedera storage sender must match the configured operator.");
         if(_executionBackend.Value!=null)throw new InvalidOperationException("Nested Hedera storage execution owners are not permitted.");
-        using var view=_createBackend(preparation);
+        using var view=_createBackend(preparation,token);
         _executionBackend.Value=view;
         try {return await operation();}
         finally {_executionBackend.Value=null;}
