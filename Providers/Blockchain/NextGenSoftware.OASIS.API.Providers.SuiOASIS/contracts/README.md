@@ -24,4 +24,6 @@ Both reuse `build/`. These are local VM tests/builds, not publication or consens
 - Released records retain owner/amount, `released=true` and zero funds permanently. Re-release and ID reuse reject. No admin withdrawal or record deletion exists.
 - Active funds must exactly equal the positive recorded amount. A digest alone is insufficient: verify original registry/deposit/owner/amount/release state, retaining original transaction evidence on readback failure.
 
-Status2026-10-17: all18package tests pass, including9newcustody cases; non-test build passes. SDK/C#selection, signed execution, wallet facade, live-chain fees and routing acceptance remain pending. Not deployed or enabled by this source change.
+SDK bootstrap is explicit `tokenEscrowCreate`; it invokes `token_escrow::create`, requires exactly one newly created shared registry in the original receipt, then checks matching version/previous transaction/protocol and empty table. It never runs as a lock fallback or automatically changes configuration. Publication/creation need separate reviewed native admission and fee evidence. C#bootstrap convenience/host authorization and actual live escrow execution remain pending.
+
+Status2026-10-17: all18package tests pass. Subsequent checkpoints added SDK/C#deposit selection, encrypted-wallet facade and offline signed-byte tests; see the repository release-gates report for current evidence. The new registry module is not yet deployed to the retained live fixture. Existing live storage routing is distinct from escrow consensus acceptance.

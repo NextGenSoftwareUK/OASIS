@@ -52,7 +52,7 @@ internal sealed class SuiSdkClient : IDisposable
     private static bool IsNativeMutation(string operation)=>operation is "put" or "delete" or "putMany" or "deleteMany" or "publish" or "publicationResume"
         or "transfer" or "nftMint" or "nftSend" or "nftBurn" or "nftLock" or "nftUnlock"
         or "tokenMint" or "tokenSend" or "tokenBurn" or "tokenLock" or "tokenUnlock"
-        or "tokenEscrowLock" or "tokenEscrowRelease";
+        or "tokenEscrowLock" or "tokenEscrowRelease" or "tokenEscrowCreate";
 
     private async Task<JsonElement> InvokeCoreAsync(string operation, object args, CancellationToken cancellationToken, PreparedSubmissionServer preparationServer)
     {
