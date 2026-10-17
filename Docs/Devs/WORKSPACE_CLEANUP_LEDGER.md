@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-17 aggregate lock regression reuses existing rotated-authority SDK/gRPC fixture and retained Mongo27029full runner.387cases pass3s; no new install/download/runtime/environment or native ledger. Fixed report overwritten/owned runtime stopped through existing runner. Free89278779392bytes observation; protected Cosmos/TRON journal hashes unchanged. No additional material deletion.
+
 2026-10-17 aggregate release tests reuse existing gated LocalFile class, SDK controlled gRPC fixture and retained Mongo27029environment.110combined/full386pass; successful exact wallet/avatar cleanup uses existing owners. No new environment/install/download/runtime/ledger. Free89277935616bytes observation; original Cosmos/TRON journal hashes unchanged. No additional material deletion.
 
 2026-10-17 TRON NFT-send await regression reuses existing SDK controlled gRPC fixture, runtime and same retained Mongo27029runner;106combined/full386pass. Existing successful fixture cleanup owners retained. No new environment/install/download/native ledger or replay. Free89281413120bytes observation; original Cosmos/TRON uncertainty journal hashes unchanged. No additional material deletion.
