@@ -2,6 +2,14 @@
 
 ## Concrete priced storage composition — 2026-10-17
 
+### Admission bootstrap audit and pending design choice
+
+Fresh source trace confirms TWO pre-reservation profile reads: WEB4 `Middleware/JwtMiddleware.cs` cryptographically validates the bearer, then calls Program.AvatarManager.LoadAvatarAsync before handing off; subscription controller/local authority separately loads AvatarDetail for authoritative karma. The billing policy uses karma for daily-call multipliers even on paid plans, so removing that read or silently substituting zero would change quota semantics. A paid-query provider may charge before the usage reservation or admission scope exists. This is a real enablement gap, not a reason to invent a free receipt or bypass identity checks.
+
+Requested choice: a synchronized private Mongo authority projection for minimum identity/status/karma metadata (recommended for a fee-free bootstrap plane, subject to freshness/write-consistency design), or an explicitly prefunded and capped native bootstrap allowance that may charge verified fees even if subsequent quota checks deny the API call. Neither is implemented or implicitly approved. Do not enable paid execution while this remains unresolved. The projection would not justify making metadata public or weakening existing encryption.
+
+Core `4c1f01d` independently closes a deployment ambiguity: JSON duplicate properties at ANY object depth are rejected before deserialization/registration. Default last-value-wins behavior is not accepted for fee budgets or signer/route configuration. Bounded JsonDocument parsing decodes property names and checks ordinal uniqueness recursively; strict model/member/enum validation still follows. No raw configuration values are included in duplicate errors. Two new root/nested duplicate cases reproduced acceptance before fix; full274tests now pass. This does not resolve the separate bootstrap policy decision.
+
 ### WEB4-local execution registration
 
 Core `676f285` adds `AddLocalWeb4UsageLedger`, composing the SAME executor/Mongo outbox/result filter/settlement worker with the host's already registered local `IUsageReservationAuthority`. It rejects missing authority or existing execution ownership, uses WEB4's isolated outbox configuration and validates the request-byte limit. It does not construct a remote HTTP client, service credential or alternate billing implementation.
