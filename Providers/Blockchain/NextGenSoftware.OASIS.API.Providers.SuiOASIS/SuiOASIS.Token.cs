@@ -68,8 +68,10 @@ public partial class SuiOASIS
     public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
         => MintTokenAsync(request).GetAwaiter().GetResult();
 
-    public Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
-        => TokenCallAsync("tokenMint", async () =>
+    public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        try
         {
             ArgumentNullException.ThrowIfNull(request);
             if (request.MetaData == null || !request.MetaData.TryGetValue("TokenAddress", out var tokenAddress)
@@ -78,8 +80,20 @@ public partial class SuiOASIS
             ValidateCoinType(tokenAddress);
             if (!string.IsNullOrEmpty(request.MemoText)) throw new ArgumentException("Sui coin transactions have no memo field.");
             var amountUnits = TokenUnits(request.Amount);
-            return new { privateKey = await TokenSigningKeyAsync(request.MintedByAvatarId), recipient, amountUnits };
-        });
+            var actor = request.MintedByAvatarId;
+            string suppliedKey = null;
+            if (actor != Guid.Empty)
+            {
+                var wallet = await LoadEscrowWalletAsync(actor);
+                if (wallet.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet,ITransactionResponse>(wallet);
+                suppliedKey = wallet.Result.PrivateKey;
+            }
+            var key = await TokenSigningKeyAsync(actor, suppliedKey);
+            return await TokenCallAsync("tokenMint", () => Task.FromResult<object>(new { privateKey = key, recipient, amountUnits }));
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); return result; }
+    }
 
     public OASISResult<ITransactionResponse> SendToken(ISendWeb3TokenRequest request)
         => SendTokenAsync(request).GetAwaiter().GetResult();
@@ -117,14 +131,30 @@ public partial class SuiOASIS
     public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
         => BurnTokenAsync(request).GetAwaiter().GetResult();
 
-    public Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
-        => TokenCallAsync("tokenBurn", async () =>
+    public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
+    {
+        var result = new OASISResult<ITransactionResponse>();
+        try
         {
             ArgumentNullException.ThrowIfNull(request);
             ValidateCoinType(request.TokenAddress);
             var amountUnits = TokenUnits(request.Amount);
-            return new { amountUnits, privateKey = await TokenSigningKeyAsync(request.BurntByAvatarId, request.OwnerPrivateKey, request.OwnerSeedPhrase, request.OwnerPublicKey) };
-        });
+            var actor = request.BurntByAvatarId;
+            var suppliedKey = request.OwnerPrivateKey;
+            var seed = request.OwnerSeedPhrase;
+            var publicKey = request.OwnerPublicKey;
+            if (actor != Guid.Empty && string.IsNullOrWhiteSpace(suppliedKey) && string.IsNullOrWhiteSpace(seed))
+            {
+                var wallet = await LoadEscrowWalletAsync(actor);
+                if (wallet.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet,ITransactionResponse>(wallet);
+                suppliedKey = wallet.Result.PrivateKey;
+            }
+            var key = await TokenSigningKeyAsync(actor, suppliedKey, seed, publicKey);
+            return await TokenCallAsync("tokenBurn", () => Task.FromResult<object>(new { amountUnits, privateKey = key }));
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); return result; }
+    }
 
     public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
         => LockTokenAsync(request).GetAwaiter().GetResult();
