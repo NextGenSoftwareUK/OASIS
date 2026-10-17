@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-17 Core2822b0a closes an outcome-replacement bypass at the shared Mongo outbox CAS, not in individual providers. Direct enqueue and receipt resolver paths reject opposite recorded outcomes (two theory cases/four vectors). Core130/130 and authority81/81 retained TRX counters verified; no new native provider coverage or completion claim. Read-only Hedera mirror observation returned69513926tinybar (0.69513926testHBAR), consensus timestamp1791929835.256443131; no paid SDK call or mutation. Funded consensus gates remain deferred.
+
 ## Authoritative provider snapshot — audited 2026-10-17
 
 Pricing reuse: existing CoinGecko bridge service now supplies immutable timestamped USD observations through IAssetUsdQuoteSource as well as original bridge rate interface; original constructor retained. One shared client/cache/batch/parser, no per-provider pricing duplication.21 fixture cases within Core128pass11s and authority81pass17s; both Core targets+WEB4build0errors. Removed embedded credential; replacement COINGECKO_DEMO_API_KEY/rotation and live verification pending, no secret echoed here. SUI/HBAR/TRX IDs verified against official market pages, ATOM/prior symbols retained. Current market source implementation is NOT complete native fee valuation: denomination/native-gas mapping, durable admitted quote binding, native lookup and host acceptance remain open.
