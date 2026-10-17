@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 retained Ethereum31337 verification186tests/59contract assertions/4shared native cases allpass; same pinned solc0.8.26/Node/runtime/dependencies/build dirs, no installs/downloads/clones/new environments/public-chain funds. Fixed current reports overwritten, owned local node stopped and18545closed. Free79887077376before/79885348864after. No material filesystem deletion or protected Cosmos/TRON/Solana ledger changes; source/keys/reusable runtimes preserved.
+
 2026-10-16 Google ID-reader visibility native53pass30s final uses retained Firestore1.22/SDK/project/Java256MB, fixed report overwritten. Baseline and first post-fix runs were terminal before bounded reruns, no duplicate runtimes/downloads/install/environments. Failed fixtures only in owned in-memory emulator; final exact fixture cleanup and service stop normal. No filesystem/ledger/userdata/credential/source/runtime deletion; no public cloud mutation.
 
 2026-10-16 Google Firestore53pass30s final full runner uses retained1.22emulator/Java256MB/SDK/project. No installs/downloads/new runtime/environment; attempted different logical project corrected to existing configured project. Failed new fixtures existed only in owned in-memory emulator and diagnostic TRX, no ledger/public datastore reset. Final53cases clean exact synthetic avatar/holon IDs then stop owned emulator; ports18080-82closed. Fixed current report overwritten instead of accumulating per-run folders. No source/userdata/credentials/runtime/other service deletion.
