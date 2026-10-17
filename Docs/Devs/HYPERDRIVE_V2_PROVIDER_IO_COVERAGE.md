@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Azure latest77/77nativepass46s,0skip:4new direct/V2syncasync search cases red-before (3instead of2) prove holon tombstone leaked while avatar exclusion already worked. Holon search root filter now excludes DeletedDate tombstones and retains inactive live records. Existing73cases green, full runnerexit0. Scope search roots only, not full collection/direct-load/history visibility parity; DynamoDB source already filters deleted holons but no new native test claimed. Existing emulator/SDK reused, no public cloud spending/install/download.
+
 Ethereum priority native refresh against current Core f47e59c:186pass57s+59contract assertions+4shared Web3 native casespass1m25s, no skips/full runnerexit0. Actual official SDK/local EVM31337 only; Polygon/Arbitrum wrapper assertions run on that local chain, not their public testnet/mainnet/rollup semantics. Same solc/Node/SDK/runtime retained,0build errors. Required-outbox mode not set, so no fresh Mongo admission/recovery claim. No new provider source fix needed; full-interface/hosted/live-L2/production fee settlement gates remain open.
 
 Google canonical ID loaders now align list/search DeletedDate eligibility: inactive nondeleted avatars/holons returned; active tombstones absent.4expanded direct/V2syncasync cases red-before49/53 then final53/53pass30s/0skip. V2 documented absence normalization explicitly checked (nonerror+RecordNotFound+null) versus direct error+RecordNotFound+null. Existing live CRUD fixture corrected from accidentally tombstoned record, credential/lifecycle tests retained. Not authentication eligibility/all selectors/complete interfaces/hosted proof. Same emulator reused/stopped, no installation/download/new environment.
