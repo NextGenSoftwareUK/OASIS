@@ -3,7 +3,7 @@ import path from 'node:path';
 import {createRequire} from 'node:module';
 import {fileURLToPath} from 'node:url';
 import {createHash,createHmac} from 'node:crypto';
-import {indexedHistorySnapshot} from '../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/SdkBridge/transaction-results.mjs';
+import {indexedHistorySnapshot,cosmosNativeFeeReceipt} from '../../Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/SdkBridge/transaction-results.mjs';
 
 const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'../..');
 const require=createRequire(path.join(root,'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/SdkBridge/package.json'));
@@ -12,6 +12,8 @@ const {Registry,decodeTxRaw}=require('@cosmjs/proto-signing');
 const fixture=path.join(root,'TestResults/HyperDriveCosmos');
 const intent=JSON.parse(fs.readFileSync(path.join(fixture,'replication-pending.json'),'utf8'));
 const rpc=process.env.OASIS_COSMOS_TEST_RPC;
+const inspectionId=process.env.OASIS_COSMOS_INSPECTION_ID;
+if(!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/.test(inspectionId??''))throw new Error('Fresh runner-owned inspection identity required.');
 if(new URL(rpc).hostname!=='127.0.0.1'||intent.chain!=='oasis-cosmos-local'
   ||intent.contract!==process.env.OASIS_COSMOS_TEST_CONTRACT
   ||intent.encryptionKeyLabel!=='oasis-cosmos-local-storage-fixture-v1')
@@ -49,7 +51,10 @@ try {
           gasUsed:tx.gasUsed.toString(),gasWanted:tx.gasWanted.toString()});
     }
   }
-  const report={chain:intent.chain,contract:intent.contract,inspectedExactKeyCount:physicalKeys.size,indexedTransactionCount:transactions.length,matches,
+  const feeSamples=transactions.filter(tx=>tx.events?.some(event=>event.type==='tx'&&event.attributes?.some(attribute=>attribute.key==='fee')))
+    .slice(-3).map(tx=>cosmosNativeFeeReceipt(tx,tx.hash));
+  if(feeSamples.length===0)throw new Error('No committed native fee sample available; no empty acceptance claim.');
+  const report={inspectionId,chain:intent.chain,contract:intent.contract,inspectedExactKeyCount:physicalKeys.size,indexedTransactionCount:transactions.length,matches,feeSamples,
     reconciliationComplete:false,explanation:'Positive exact-key transaction evidence only; absent matches do not prove non-submission. Pending intent remains untouched.'};
   fs.writeFileSync(path.join(fixture,'cosmos-pending-transactions-current.json'),JSON.stringify(report,null,2));
   console.log(JSON.stringify(report));

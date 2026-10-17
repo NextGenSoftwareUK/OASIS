@@ -25,6 +25,8 @@ public sealed class TronRealProviderRoutingTests
     [Fact]
     public async Task InspectOriginalInterruptedFixtureWithoutMutation()
     {
+        Environment.GetEnvironmentVariable("OASIS_TRON_TEST_OWNED_CONTAINER").Should().Be("ef2843babd111bde2709159e6eaacf2350977cccee738d62d1bcbd8833c46a12",
+            "only the reviewed runner may stop its owned retained test node");
         var directory=new DirectoryInfo(AppContext.BaseDirectory);
         while(directory!=null&&!File.Exists(Path.Combine(directory.FullName,"Scripts/TestHosts/Use-ReusableTronRuntime.ps1")))directory=directory.Parent;
         directory.Should().NotBeNull();var root=Path.Combine(directory!.FullName,"TestResults/HyperDriveTron");
@@ -117,10 +119,22 @@ public sealed class TronRealProviderRoutingTests
                 }
                 manager.PerformanceMonitor.GetMetrics(ProviderType.TRONOASIS).TotalRequests.Should().Be(beforeTron+3);
                 manager.PerformanceMonitor.GetMetrics(ProviderType.LocalFileOASIS).TotalRequests.Should().Be(beforeLocal+3);
+                foreach(var strategy in Enum.GetValues<LoadBalancingStrategy>())
+                    foreach(var synchronous in new[]{true,false}){
+                        var providers=new[]{ProviderType.LocalFileOASIS,ProviderType.TRONOASIS};
+                        var counts=providers.ToDictionary(type=>type,type=>manager.PerformanceMonitor.GetMetrics(type).TotalRequests);
+                        var request=new StorageOperationRequest {Operation="LoadAvatar",AvatarId=id};
+                        var read=synchronous?router.RouteRequest<IAvatar>(request,strategy):await router.RouteRequestAsync<IAvatar>(request,strategy);
+                        read.IsError.Should().BeFalse(read.Message);
+                        var diagnostic=manager.LastProviderSelectionDiagnostic;
+                        diagnostic.RequestedStrategy.Should().Be(strategy);diagnostic.Candidates.Select(value=>value.Provider).Should().BeEquivalentTo(providers);
+                        providers.Should().Contain(diagnostic.SelectedProvider);
+                        (read.Result?.Id).Should().Be((diagnostic.SelectedProvider==ProviderType.TRONOASIS?avatar.Result:localAvatar.Result)?.Id);
+                        foreach(var type in providers)manager.PerformanceMonitor.GetMetrics(type).TotalRequests.Should().Be(counts[type]+(type==diagnostic.SelectedProvider?1:0));
+                    }
                 dna.OASIS.SubscriptionConfig.PlanType="Free";
                 var excludedBefore=manager.PerformanceMonitor.GetMetrics(ProviderType.TRONOASIS).TotalRequests;
-                foreach(var strategy in new[]{LoadBalancingStrategy.RoundRobin,LoadBalancingStrategy.WeightedRoundRobin,
-                    LoadBalancingStrategy.LeastConnections,LoadBalancingStrategy.Geographic,LoadBalancingStrategy.Performance}){
+                foreach(var strategy in Enum.GetValues<LoadBalancingStrategy>()){
                     var request=new StorageOperationRequest{Operation="LoadAvatar",AvatarId=id};
                     foreach(var read in new[]{router.RouteRequest<IAvatar>(request,strategy),await router.RouteRequestAsync<IAvatar>(request,strategy)}){
                         read.IsError.Should().BeFalse(read.Message);(read.Result?.Id).Should().Be(localAvatar.Result?.Id);
@@ -135,13 +149,23 @@ public sealed class TronRealProviderRoutingTests
                 var revisionAfter=await runtime.NativeTransfers.QueryContractAsync(owner,contract,revisionCall);
                 revisionAfter.Should().Equal(revisionBefore,"activation and inspection must not change the storage contract revision");
                 SHA256.HashData(await File.ReadAllBytesAsync(fencePath)).Should().Equal(fenceBefore,"the unresolved original fence must remain byte-for-byte intact");
-                await runtime.DisposeAsync();
+                var stop=new ProcessStartInfo("wsl") {UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true};
+                foreach(var argument in new[]{"-d","Ubuntu","-u","root","--","bash","/mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/stop-owned-tron-test-node.sh"})stop.ArgumentList.Add(argument);
+                using(var child=Process.Start(stop)??throw new InvalidOperationException("Owned TRON stop process did not start.")){
+                    var output=child.StandardOutput.ReadToEndAsync();var error=child.StandardError.ReadToEndAsync();
+                    using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(45));await child.WaitForExitAsync(deadline.Token);
+                    child.ExitCode.Should().Be(0,await error);await output;
+                }
+                // Keep the official SDK client alive: failure must come from an actually stopped node.
                 foreach(var asynchronous in new[]{false,true}){
+                    var attempts=manager.PerformanceMonitor.GetMetrics(ProviderType.TRONOASIS).TotalRequests;
                     var request=new StorageOperationRequest{Operation="LoadAvatar",AvatarId=id,PreferredProvider=ProviderType.TRONOASIS};
                     var read=asynchronous?await router.RouteRequestAsync<IAvatar>(request):router.RouteRequest<IAvatar>(request);
                     read.IsError.Should().BeFalse(read.Message);(read.Result?.Id).Should().Be(localAvatar.Result?.Id);
                     manager.LastFailoverDiagnostic.SelectedProvider.Should().Be(ProviderType.LocalFileOASIS);
+                    manager.PerformanceMonitor.GetMetrics(ProviderType.TRONOASIS).TotalRequests.Should().Be(attempts+1);
                 }
+                SHA256.HashData(await File.ReadAllBytesAsync(fencePath)).Should().Equal(fenceBefore);
             }finally{await local.DeActivateProviderAsync();}
             File.Exists(Path.Combine(root,"pending-native-outcome.json")).Should().BeTrue();
         }finally{await tron.DeActivateProviderAsync();}
