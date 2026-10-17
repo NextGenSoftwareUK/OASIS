@@ -66,6 +66,13 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
         }
 
         private readonly CosmosSdkBackend _sdkBackend;
+        /// <summary>Select explicit fee ceilings without changing the existing constructor or inventing a default.</summary>
+        public static CosmosBlockChainOASIS CreateWithNativeFeeLimits(CosmosNativeFeeLimits limits,string rpcEndpoint = "https://cosmos-rpc.polkachu.com", string chainId = "cosmoshub-4", string privateKey = "", string contractAddress = "", string addressPrefix = "cosmos", string gasPrice = "0.025uatom", string nativeDenom = "uatom", int nativeDecimals = 6, Func<byte[]> storageEncryptionKeyResolver = null, CosmosTokenEscrowConfiguration tokenEscrow = null)
+            =>new(limits,rpcEndpoint,chainId,privateKey,contractAddress,addressPrefix,gasPrice,nativeDenom,nativeDecimals,storageEncryptionKeyResolver,tokenEscrow);
+
+        private CosmosBlockChainOASIS(CosmosNativeFeeLimits limits,string rpcEndpoint,string chainId,string privateKey,string contractAddress,string addressPrefix,string gasPrice,string nativeDenom,int nativeDecimals,Func<byte[]> storageEncryptionKeyResolver,CosmosTokenEscrowConfiguration tokenEscrow)
+            :this(new CosmosSdkBackend(rpcEndpoint,chainId,privateKey,contractAddress,addressPrefix,gasPrice,null,null,limits??throw new ArgumentNullException(nameof(limits))),privateKey,contractAddress,nativeDenom,nativeDecimals,storageEncryptionKeyResolver)
+        {tokenEscrow?.Validate(contractAddress);_tokenEscrow=tokenEscrow;}
         private CosmosBlockChainOASIS(CosmosSdkBackend sdk,string privateKey,string contractAddress,string nativeDenom,int nativeDecimals,Func<byte[]> keyResolver)
             : this(sdk,new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend(sdk,
                 keyResolver ?? (()=>NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend.ResolveEnvironmentKey("OASIS_COSMOS_STORAGE_ENCRYPTION_KEY"))),privateKey,contractAddress,nativeDenom,nativeDecimals)

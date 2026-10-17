@@ -6,6 +6,7 @@ import { fromHex, toHex, fromBech32 } from "@cosmjs/encoding";
 import { pathToFileURL } from 'node:url';
 import { captureCosmosDirectSigning, verifyCosmosPreparedIdentity } from './transaction-results.mjs';
 import { cosmosIndexedTransactionStatus } from './transaction-results.mjs';
+import { snapshotCosmosFeeLimits } from './transaction-results.mjs';
 
 async function readInput() {
   const chunks = [];
@@ -22,6 +23,7 @@ async function walletFor(input) {
 }
 
 async function execute(input, persistPreparedSubmission) {
+  const feeLimits=snapshotCosmosFeeLimits(input.maximumFeeUnitsByDenomination);
   if (input.operation === 'instantiate' && (!Number.isSafeInteger(input.codeId) || input.codeId <= 0))
     throw new Error('Positive SDK-safe exact Cosmos code ID required');
   if (input.operation === 'verifyNativePreparation') return verifyCosmosPreparedIdentity(input.preparation);
@@ -49,7 +51,7 @@ async function execute(input, persistPreparedSubmission) {
       throw new Error(`Cosmos chain mismatch: expected ${input.chainId}, received ${chainId}`);
     const sender = wallet ? (await wallet.getAccounts())[0].address : null;
     if (isSigned) guardCosmosSigningClient(client, persistPreparedSubmission
-      ? evidence => persistPreparedSubmission(Object.freeze({ ...originalSigning(evidence), chainId, sender })) : undefined);
+      ? evidence => persistPreparedSubmission(Object.freeze({ ...originalSigning(evidence), chainId, sender })) : undefined,feeLimits);
     switch (input.operation) {
       case "nativeFeeReceipt": {
         const hash = input.transactionHash;
