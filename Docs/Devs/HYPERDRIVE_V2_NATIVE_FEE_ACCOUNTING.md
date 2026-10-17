@@ -1,5 +1,25 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Hedera prepared-query policy in OASISDNA (2026-10-17)
+
+The optional `OASIS.StorageProviders.HashgraphOASIS.StorageQueryPreparation` object now maps through BootLoader into the existing provider policy. Omit it to leave prepared-query ownership unavailable; ordinary/unprepared behavior is not silently promoted to sponsored execution. Presence is not a subscription reservation, original price, permission to spend, or host-scope adoption.
+
+The following is a **synthetic schema example, not approved deployment spending limits**:
+
+```json
+{
+  "StorageQueryPreparation": {
+    "AuthorizedNodeAccountIds": ["0.0.3"],
+    "MaxPaymentTinybars": 135,
+    "MaxTransactionFeeTinybars": 100000000,
+    "MaximumRequestsPerInvocation": 64,
+    "PersistenceTimeoutMs": 10000
+  }
+}
+```
+
+Payment and transaction-fee ceilings are separate positive int64 tinybar amounts; neither is the charged fee. Node IDs must be unique numeric accounts (not the payer when admitted). Count is bounded1..512 and timeout1..30000ms by existing provider validation; omitted count/timeout use64/10000, but spending ceilings never acquire defaults. SDK buffered payments must fit the explicit payment ceiling. Invalid supplied policy fails provider capture before secret use. Mapping snapshots the node array; existing provider capture validates/snapshots again at its boundary. Five tests exercise actual production mapper plus provider construction and exact JSON numeric roundtrip; DNA and BootLoader production builds pass. No hosted config was changed, no fee was incurred, and end-to-end admission/recovery/settlement acceptance remains open.
+
 2026-10-17 prepared Hedera storage query adoption: public ExecutePreparedStorageAsync now requires captured HederaStorageConfiguration.QueryPreparation and uses one invocation owner for physical Get/List/Probe and Put/Delete, deriving public authority from configured key before query-aware SDK invocation. Removed unused mutation-only internal scope path; no rejection fallback. Explicit policy validates authorized nodes (not payer), positive separate query-payment/network-fee ceilings, per-invocation request count1..512/default64 and timeout1..30000/default10000; missing/invalid policy fails before operation/secrets, source node arrays cannot replace captured authority. Whole-operation admission/reservation remains Core/host responsibility (512attempt/8MiB limits), not this per-stream cap. Fixed SDK selector so prepared quote checks use the dedicated query cap rather than the unrelated mutation ceiling; ordinary unprepared limits preserved. Loopback quote123/buffered135 succeeds with authorized query135 even when mutation limit1; query123 still rejects before paid answer. Controlled encrypted direct/routed sync/async saves retain2signed prerequisite queries+2writes with original prices, preseeded query conflict prevents submission, cancellation/nesting/restoration verified. Final63/63pass46s/0skip/runnerexit0 and SDK123/123pass~624ms/0skip/0todo, build0errors. First storage run1timeout+6retained-marker guards: fixture mixed CJS client/ESM keys and leaked client on setup failure; fixture now imports declared installed ESM entry and closes in finally, no second SDK install. Confirmed Core activation precedes prepared dispatch (sync1033/async1162); prepared dispatch still write-only (1324/1519). Thus lifecycle/standalone read ownership, host adoption, full-operation reader registration, funded/hosted/remaining-provider gates remain OPEN; no automatic Hedera NetFinal, sponsorship, merge/deploy or full-completion claim.
 
 ## Prepared storage query policy and scope boundary
