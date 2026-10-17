@@ -845,7 +845,10 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
         {
             var all = await LoadAllHolonsAsync(HolonType.All, false, false, 0, 0, true, false, version);
-            return all.IsError ? all : Ok<IEnumerable<IHolon>>(all.Result.Where(h => h.CreatedByAvatarId == avatarId).ToList());
+            if(all.IsError)return all;
+            var filtered=all.Result.Where(h=>h.CreatedByAvatarId==avatarId).ToList();
+            all.Result=filtered;all.LoadedCount=filtered.Count;
+            return all;
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarById(Guid avatarId, int version = 0) => ExportAllDataForAvatarByIdAsync(avatarId, version).GetAwaiter().GetResult();
