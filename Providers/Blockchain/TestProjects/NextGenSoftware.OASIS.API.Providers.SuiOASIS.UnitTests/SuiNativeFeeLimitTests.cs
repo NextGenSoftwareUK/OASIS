@@ -4,9 +4,35 @@ using System.Text.Json;
 
 namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 
-[TestClass]
+[TestClass,DoNotParallelize]
 public class SuiNativeFeeLimitTests
 {
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task ConfiguredCeilingFlowsThroughActualChildAndProductionSdkExecutor(bool reject)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE");
+        var previousReal=Environment.GetEnvironmentVariable("OASIS_SUI_TEST_GAS_LIMIT_REAL_BRIDGE");
+        Assert.IsFalse(string.IsNullOrWhiteSpace(previous));Assert.IsTrue(File.Exists(previous));
+        try{
+            Environment.SetEnvironmentVariable("OASIS_SUI_TEST_GAS_LIMIT_REAL_BRIDGE",previous);
+            Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures/gas-limit-sdk.mjs"));
+            using var provider=SuiOASIS.CreateWithNativeFeeLimits(new SuiNativeFeeLimits(reject?999UL:1000UL),rpcEndpoint:"http://127.0.0.1:1",network:"localnet");
+            var method=typeof(SuiOASIS).GetMethod("InvokeSdkAsync",BindingFlags.NonPublic|BindingFlags.Instance)!;
+            var pending=(Task<JsonElement>)method.Invoke(provider,new object[]{"put",new{key="fee-limit-fixture",value="not-sent-to-a-chain"},CancellationToken.None})!;
+            if(reject){
+                var error=await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>pending);
+                StringAssert.Contains(error.Message,"gas budget exceeds");StringAssert.Contains(error.Message,"signatures=0;transportCalls=0;ceiling=999");
+                Assert.IsFalse(error is SuiNativeMutationReconciliationException);
+            }else{
+                var result=await pending;Assert.AreEqual(1,result.GetProperty("signatures").GetInt32());
+                Assert.AreEqual(1,result.GetProperty("transportCalls").GetInt32());Assert.AreEqual("1000",result.GetProperty("ceiling").GetString());
+            }
+        }finally{
+            Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",previous);
+            Environment.SetEnvironmentVariable("OASIS_SUI_TEST_GAS_LIMIT_REAL_BRIDGE",previousReal);
+        }
+    }
     [TestMethod]
     public void ExplicitLimitsRejectMissingOrZeroBeforeStorageSecrets()
     {

@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Update="Fixtures\unlock-readback-failure.mjs" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="Fixtures\gas-limit-sdk.mjs" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>
