@@ -8,6 +8,35 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public sealed class TronEscrowSafetyTests
 {
+    [Theory]
+    [InlineData("amount")] [InlineData("negative")]
+    [InlineData("lock-id")] [InlineData("escrow")]
+    public async Task LockCannotSilentlyIgnoreRequestedDepositSemantics(string mode)
+    {
+        var provider = new TRONOASIS(escrowContractAddress: "configured");
+        var request = new Core.Objects.Wallet.Requests.LockWeb3TokenRequest {
+            TokenAddress = "token", FromWalletAddress = "owner", FromWalletPrivateKey = "unused",
+            Amount = mode == "amount" ? 1m : mode == "negative" ? -1m : 0m,
+            LockId = mode == "lock-id" ? Guid.NewGuid() : Guid.Empty,
+            EscrowContractAddress = mode == "escrow" ? "different" : "configured" };
+        var result = await provider.LockTokenAsync(request);
+        Assert.True(result.IsError); Assert.IsType<ArgumentException>(result.Exception);
+        Assert.Null(result.Result); Assert.False(provider.IsProviderActivated);
+    }
+
+    [Theory]
+    [InlineData(false)] [InlineData(true)]
+    public async Task UnlockCannotIgnoreDepositIdOrConfiguredEscrow(bool wrongEscrow)
+    {
+        var provider = new TRONOASIS(escrowContractAddress: "configured");
+        var result = await provider.UnlockTokenAsync(new Core.Objects.Wallet.Requests.UnlockWeb3TokenRequest {
+            UnlockedByAvatarId = Guid.NewGuid(), TokenAddress = "token",
+            LockId = wrongEscrow ? Guid.Empty : Guid.NewGuid(),
+            EscrowContractAddress = wrongEscrow ? "different" : "configured" });
+        Assert.True(result.IsError); Assert.IsType<ArgumentException>(result.Exception);
+        Assert.Null(result.Result); Assert.False(provider.IsProviderActivated);
+    }
+
     [Fact]
     public async Task LockRequiresSeparateEscrowConfigurationBeforeActivation()
     {
