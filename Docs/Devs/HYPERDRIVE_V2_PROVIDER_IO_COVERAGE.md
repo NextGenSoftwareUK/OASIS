@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Current cancellation consumers: Shared292pass1s/TRON317pass2s/Sui103pass2m15s/Cosmos137pass2m11s, no skips. Scope tokens now reach TRON lock+backend and Sui/Cosmos SDK reads/mutations; unscoped cancellation identity preserved after full suites caught2regressions each. Existing signed-outcome uncertainty/real process deadlines retained. New tests prove pre-SDK default-token read cancellation, not native rollback/full hosted policy completion. Existing environments and reports reused; native pending journals untouched.
+
 Hedera54/54pass51s adds actual child-process query cancellation under admitted scope: linked scope/invocation tokens terminate held controlled read within5s, original cancellation retained,0attempts/0submissions. Production token wiring now reaches inherited storage calls that supply default token. Post-submission uncertainty unchanged; no native cancellation/rollback/hosted accounting claim.
 
 Current routed ownership: TRON317pass3s/Hedera53pass50s, zero skips, includes4new sync/async V2 routed cases per provider over existing controlled SDK+realMongo fixtures. Exact route-specific signed attempts/rejected persistence0submissions verified. Hedera configured activation was still invoking encrypted put/delete probe; changed to existing read-only verifier, configured activation regression now permits only probe/list. Queries may have consensus fees, so no free-activation/accounting claim. Final fresh reports supersede failed/stale fixture runs documented in release gates. No hosted/native mutation/complete policy certification.
