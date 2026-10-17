@@ -4,6 +4,26 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public sealed class TronAvatarTokenTests
 {
+    [Theory]
+    [InlineData(true)] [InlineData(false)]
+    public async Task NativeRuntimeRetainsConfiguredResolverAndOriginalFailureAcrossDeactivation(bool synchronous)
+    {
+        var cause=new System.IO.IOException("controlled signing source unavailable");
+        var resolutions=0;
+        var provider=new TRONOASIS(fullNodeGrpcEndpoint:"http://127.0.0.1:17689",
+            solidityNodeGrpcEndpoint:"http://127.0.0.1:17689",genesisBlockId:new string('a',64),
+            nativeSigningKeyResolver:address=>{Assert.Equal("sender",address);resolutions++;return Task.FromException<string>(cause);});
+        for(var attempt=0;attempt<2;attempt++)
+        {
+            var result=synchronous?provider.SendTransaction("sender","recipient",1m,"")
+                :await provider.SendTransactionAsync("sender","recipient",1m,"");
+            Assert.True(result.IsError);Assert.Same(cause,result.Exception);Assert.Null(result.Result);
+            Assert.False(provider.IsProviderActivated);
+            Assert.False((await provider.DeActivateProviderAsync()).IsError);
+        }
+        Assert.Equal(2,resolutions);
+    }
+
     private sealed class FailedActivation(Exception cause, bool throws) : TRONOASIS
     {
         public override Task<NextGenSoftware.OASIS.Common.OASISResult<bool>> ActivateProviderAsync()
@@ -20,21 +40,17 @@ public sealed class TronAvatarTokenTests
     [InlineData(true, false)]
     [InlineData(false, true)]
     [InlineData(false, false)]
-    public async Task RawTransferRetainsOriginalActivationCause(bool synchronous, bool throws)
+    public async Task RawTransferRejectsInvalidSunBeforeStorageActivation(bool synchronous, bool throws)
     {
         var cause = new System.IO.IOException("controlled transport unavailable");
         var provider = new FailedActivation(cause, throws);
-        var result = synchronous ? provider.SendTransaction("sender", "recipient", 1m, "memo")
-            : await provider.SendTransactionAsync("sender", "recipient", 1m, "memo");
+        var amount = throws ? 0.0000001m : -1m;
+        var result = synchronous ? provider.SendTransaction("sender", "recipient", amount, "memo")
+            : await provider.SendTransactionAsync("sender", "recipient", amount, "memo");
         Assert.True(result.IsError);
-        Assert.Same(cause, result.Exception);
+        Assert.IsType<ArgumentOutOfRangeException>(result.Exception);
         Assert.Null(result.Result);
         Assert.False(provider.IsProviderActivated);
-        if (!throws)
-        {
-            Assert.Equal("CONTROLLED_TRANSPORT", result.ErrorCode);
-            Assert.Equal("controlled activation detail", result.DetailedMessage);
-        }
     }
 
     [Theory]

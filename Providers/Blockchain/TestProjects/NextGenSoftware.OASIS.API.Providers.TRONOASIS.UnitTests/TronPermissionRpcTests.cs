@@ -191,6 +191,8 @@ public class TronPermissionRpcTests
     }
     [Theory]
     [InlineData("rotated")] [InlineData("foreign")] [InlineData("threshold")] [InlineData("revoked")]
+    [InlineData("provider-sync")] [InlineData("provider-async")]
+    [InlineData("provider-owned-sync")] [InlineData("provider-owned-async")]
     public async Task NativeSendUsesSolidifiedOwnerPermissionBeforeConstruction(string mode)
     {
         var genesis=new string('a',64);var block=ByteString.CopyFrom(Convert.FromHexString(genesis));
@@ -221,14 +223,28 @@ public class TronPermissionRpcTests
         try{
             var port=server.Ports.Single().BoundPort;await using var runtime=new TronSdkRuntime(new Uri($"http://127.0.0.1:{port}"),new Uri($"http://127.0.0.1:{port}"),genesis);
             using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(10));
-            if(mode=="rotated"){
-                var result=await runtime.NativeTransfers.SendAsync(owner,signer,0.000001m,key,"",deadline.Token);
+            if(mode=="rotated" || mode.StartsWith("provider-",StringComparison.Ordinal)){
+                string result;
+                if(mode.StartsWith("provider-",StringComparison.Ordinal)){
+                    var resolutions=0;
+                    var provider=new TRONOASIS(nativeTransfers:mode.Contains("owned",StringComparison.Ordinal)?null:runtime.NativeTransfers,
+                        fullNodeGrpcEndpoint:$"http://127.0.0.1:{port}",solidityNodeGrpcEndpoint:$"http://127.0.0.1:{port}",genesisBlockId:genesis,
+                        nativeSigningKeyResolver:address=>{
+                        Assert.Equal(owner,address);resolutions++;return Task.FromResult(key);
+                    });
+                    var response=mode.EndsWith("-sync",StringComparison.Ordinal) ? provider.SendTransaction(owner,signer,0.000001m,"")
+                        : await provider.SendTransactionAsync(owner,signer,0.000001m,"");
+                    Assert.False(response.IsError,response.Message);Assert.NotNull(response.Result);
+                    Assert.False(provider.IsProviderActivated);Assert.Equal(1,resolutions);
+                    result=response.Result.TransactionResult;
+                    Assert.False((await provider.DeActivateProviderAsync()).IsError);
+                }else result=await runtime.NativeTransfers.SendAsync(owner,signer,0.000001m,key,"",deadline.Token);
                 Assert.Equal(Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),result);Assert.Equal(1,constructions);Assert.Equal(1,broadcasts);
             }else{
                 await Assert.ThrowsAsync<System.IO.InvalidDataException>(()=>runtime.NativeTransfers.SendAsync(owner,signer,0.000001m,key,"",deadline.Token));
                 Assert.Equal(mode=="revoked"?1:0,constructions);Assert.Equal(0,broadcasts);
             }
-            Assert.Equal(mode=="rotated"||mode=="revoked"?2:1,queries);
+            Assert.Equal(mode=="rotated"||mode=="revoked"||mode.StartsWith("provider-",StringComparison.Ordinal)?2:1,queries);
         }finally{await server.ShutdownAsync();}
     }
     [Theory]
