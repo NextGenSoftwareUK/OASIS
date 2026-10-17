@@ -24,6 +24,9 @@ public class CosmosPreparationTests
             Assert.AreEqual(foreignPayer,result.IsError);
             if(foreignPayer){Assert.IsInstanceOfType<InvalidDataException>(result.Exception);Assert.AreEqual(JsonValueKind.Undefined,result.Result.ValueKind);}
             else Assert.AreEqual("fixture-owner",result.Result.GetProperty("payer").GetString());
+            var typed=await provider.ReadPreparedNativeFeeEvidenceAsync(attempt);
+            Assert.AreEqual(foreignPayer,typed.IsError);
+            if(!foreignPayer){Assert.AreEqual(NativeFeeCoverage.AnteDeductionOnly,typed.Result.Coverage);Assert.AreEqual("fixture-owner",typed.Result.Payer);}
         }finally{Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",previous);}
     }
     [TestMethod]
