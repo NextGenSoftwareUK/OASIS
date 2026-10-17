@@ -405,6 +405,10 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             Services.Subscription.LocalUsageAuthorityRegistration.AddLocalUsageAuthority(services,
                 (avatarId, token) => Controllers.SubscriptionController.GetCurrentKarmaAsync(avatarId.ToString("D"), token));
             bool subscriptionUsageEnabled = string.Equals(Configuration["SUBSCRIPTION_USAGE_ENABLED"], "true", StringComparison.OrdinalIgnoreCase);
+            var storageUsagePolicy=NextGenSoftware.OASIS.API.Core.Services.Subscriptions.ConfiguredStorageAdmission.AddConfiguredStorageAdmission(
+                services,Configuration,subscriptionUsageEnabled,_=>null);
+            if(Configuration["PREPARED_STORAGE_ADMISSION_JSON"]!=null)
+                NextGenSoftware.OASIS.API.Core.Services.Subscriptions.LocalWeb4UsageLedgerRegistration.AddLocalWeb4UsageLedger(services,Configuration,storageUsagePolicy);
             if (subscriptionUsageEnabled)
             {
                 services.AddHostedService<Services.Subscription.SubscriptionUsageExpiryWorker>();
@@ -636,6 +640,12 @@ TOGETHER WE CAN CREATE A BETTER WORLD...</b></b>
             app.UseMiddleware<JwtMiddleware>();
             app.UseAuthentication();
             app.UseAuthorization();
+
+            if(Configuration["PREPARED_STORAGE_ADMISSION_JSON"]!=null)
+            {
+                app.UseMiddleware<NextGenSoftware.OASIS.API.Core.Services.Subscriptions.Web4UsageLedgerMiddleware>();
+                NextGenSoftware.OASIS.API.Core.Services.Subscriptions.ConfiguredStorageAdmission.UseConfiguredStorageAdmission(app);
+            }
 
             app.UseEndpoints(endpoints =>
             {

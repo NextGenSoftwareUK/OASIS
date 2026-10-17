@@ -2,6 +2,14 @@
 
 ## Concrete priced storage composition — 2026-10-17
 
+### WEB4-local execution registration
+
+Core `676f285` adds `AddLocalWeb4UsageLedger`, composing the SAME executor/Mongo outbox/result filter/settlement worker with the host's already registered local `IUsageReservationAuthority`. It rejects missing authority or existing execution ownership, uses WEB4's isolated outbox configuration and validates the request-byte limit. It does not construct a remote HTTP client, service credential or alternate billing implementation.
+
+WEB4 Startup now applies configured storage policy only when `PREPARED_STORAGE_ADMISSION_JSON` is supplied; malformed/usage-disabled configuration fails registration. Its usage/admission middleware follows JWT/authentication/authorization and precedes endpoints. Absent configuration leaves this feature disabled and unselected routes unmetered by this new component. No Railway variables changed. Existing LocalUsageReservationAuthority continues to bind authenticated canonical avatar and persisted reservation identity.
+
+**Bootstrap/registration gates still open:** GetCurrentKarmaAsync currently calls Program.AvatarManager.LoadAvatarDetailAsync BEFORE usage reservation. This authoritative read's provider activation/failover path must be proven not to incur unadmitted paid I/O, especially if a paid-query native provider is configured. Native fee readers must also be registered and all possible ordinary/zero-fee measurement paths accepted. These source hooks are not permission to enable paid execution. WEB5/WEB6 remain unwired in this task checkout; reusable populated Development checkouts were located, but no task branch exists and a non-codex branch-name choice was requested before changes. No new checkout/clone or change to Development was made.
+
 ### Deployable WEB7–WEB10 registration (disabled until explicitly configured)
 
 Core `cb07c00` defines `StorageAdmissionDeployment`, `StorageAdmissionRoutes` and `ConfiguredStorageAdmission`. WEB7–WEB10 Program.cs now call the shared registration before AddWeb4UsageLedger and selected-route middleware after usage admission/JWT processing, before endpoints. **No Railway settings were changed.** WEB4–WEB6 wiring and all seven clean pinned publishes remain unproven; do not extrapolate the four diagnostic builds.
