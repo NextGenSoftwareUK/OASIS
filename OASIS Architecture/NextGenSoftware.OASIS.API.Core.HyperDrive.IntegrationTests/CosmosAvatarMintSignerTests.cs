@@ -22,6 +22,7 @@ public sealed class CosmosAvatarMintSignerTests
     [InlineData(false, true, true, false)] [InlineData(true, true, true, false)]
     [InlineData(false, true, false, true)] [InlineData(true, true, false, true)]
     [InlineData(false, true, true, true)] [InlineData(true, true, true, true)]
+    [InlineData(false, false, false, true)] [InlineData(true, false, false, true)]
     public async Task TokenOperationsUseEncryptedAvatarDefaultWalletInsteadOfConfiguredOrFirstWallet(bool synchronous, bool escrow, bool viaManager, bool useSui)
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
@@ -50,7 +51,7 @@ public sealed class CosmosAvatarMintSignerTests
         using var cosmos = new CosmosBlockChainOASIS("http://127.0.0.1:1", "fixture-chain", "different-configured-key", "fixture-contract",
             tokenEscrow: NextGenSoftware.OASIS.OASISBootLoader.CosmosEscrowConfiguration.Create(settings));
         using var sui = new API.Providers.SuiOASIS.SuiOASIS("http://127.0.0.1:1", "localnet", contractAddress: "0x1", privateKey: "different-configured-key",
-            tokenEscrow: useSui ? NextGenSoftware.OASIS.OASISBootLoader.SuiEscrowConfiguration.Create(new() {
+            tokenEscrow: useSui && escrow ? NextGenSoftware.OASIS.OASISBootLoader.SuiEscrowConfiguration.Create(new() {
                 IdBoundTokenEscrow = new() { EscrowObjectId = escrowAddress } }) : null);
         IOASISBlockchainStorageProvider chain = useSui ? sui : cosmos;
         var avatarId = Guid.Parse("c1bcb045-d27a-4734-85c8-f56f9f5ef1b5");
@@ -76,6 +77,12 @@ public sealed class CosmosAvatarMintSignerTests
             var constructor = typeof(WalletManager).GetConstructors(BindingFlags.NonPublic | BindingFlags.Instance).Single(value => value.GetParameters().Length == 4);
             var manager = (WalletManager)constructor.Invoke(new object?[] { local, dna, providers, null });
             if (useSui) sui.WalletManager = manager; else cosmos.WalletManager = manager;
+            if (useSui && !escrow) {
+                var created = synchronous ? sui.CreateTokenEscrowRegistry(avatarId) : await sui.CreateTokenEscrowRegistryAsync(avatarId);
+                created.IsError.Should().BeFalse(created.Message);created.Result.EscrowObjectId.Should().Be(escrowAddress);
+                created.Result.Creator.Should().Be("fixture-owner");created.Result.Protocol.Should().Be(1);
+                created.Result.TransactionResult.Should().Be(new string('1',32));sui.IsProviderActivated.Should().BeFalse();
+            }
             if (!useSui) {
             var request=new MintWeb3TokenRequest { Symbol = "fixture-token", Amount = 1, MintedByAvatarId = avatarId };
             var minted = synchronous ? cosmos.MintToken(request):await cosmos.MintTokenAsync(request);
