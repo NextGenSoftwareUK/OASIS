@@ -39,12 +39,19 @@ internal sealed class SuiSdkClient : IDisposable
     internal async Task<JsonElement> InvokeAsync(string operation, object args = null, CancellationToken cancellationToken = default)
     {
         cancellationToken.ThrowIfCancellationRequested();
-        using var server=operation is "put" or "delete" ? _storagePreparation.CreateCurrent() : null;
+        using var server=IsNativeMutation(operation) ? _storagePreparation.CreateCurrent(operation) : null;
         return await InvokeCoreAsync(operation,args,cancellationToken,server);
     }
 
     internal Task<JsonElement> InvokePreparedAsync(string operation, object args, PreparedSubmissionServer server, CancellationToken cancellationToken)
-        => InvokeCoreAsync(operation, args, cancellationToken, server ?? throw new ArgumentNullException(nameof(server)));
+    {
+        if(_storagePreparation.HasCurrent)throw new InvalidOperationException("An explicit Sui preparation owner cannot replace the current operation owner.");
+        return InvokeCoreAsync(operation,args,cancellationToken,server??throw new ArgumentNullException(nameof(server)));
+    }
+
+    private static bool IsNativeMutation(string operation)=>operation is "put" or "delete" or "putMany" or "deleteMany" or "publish" or "publicationResume"
+        or "transfer" or "nftMint" or "nftSend" or "nftBurn" or "nftLock" or "nftUnlock"
+        or "tokenMint" or "tokenSend" or "tokenBurn" or "tokenLock" or "tokenUnlock";
 
     private async Task<JsonElement> InvokeCoreAsync(string operation, object args, CancellationToken cancellationToken, PreparedSubmissionServer preparationServer)
     {
@@ -54,9 +61,7 @@ internal sealed class SuiSdkClient : IDisposable
         cancellationToken=scopeCancellation?.Token ?? (scopeToken.CanBeCanceled?scopeToken:cancellationToken);
         cancellationToken.ThrowIfCancellationRequested();
         ObjectDisposedException.ThrowIf(_disposed, this);
-        var isMutation = operation is "put" or "delete" or "putMany" or "deleteMany" or "publish" or "publicationResume"
-            or "transfer" or "nftMint" or "nftSend" or "nftBurn" or "nftLock" or "nftUnlock"
-            or "tokenMint" or "tokenSend" or "tokenBurn" or "tokenLock" or "tokenUnlock";
+        var isMutation = IsNativeMutation(operation);
         if (preparationServer != null && !isMutation) throw new ArgumentException("Preparation gate is only valid for a native mutation.");
         var path = Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE")
             ?? Path.Combine(AppContext.BaseDirectory, "SuiSdkBridge", "bridge.mjs");

@@ -43,4 +43,5 @@ public sealed class OwnedPreparationScope
     }
     public PreparedSubmissionServer CreateCurrent(string operation=null,string key=null)=>_current.Value?.Create(operation,key);
     public CancellationToken CurrentToken=>_current.Value?.Token ?? default;
+    public bool HasCurrent=>_current.Value!=null;
 }

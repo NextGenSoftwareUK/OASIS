@@ -7,6 +7,45 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests;
 public class SuiStoragePreparationScopeTests
 {
     [TestMethod]
+    public async Task ExplicitPreparationCannotReplaceCurrentOperationOwner()
+    {
+        var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+        var type=typeof(SuiOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.SuiOASIS.SuiSdkClient")!;
+        using var client=(IDisposable)Activator.CreateInstance(type,flags,null,new object[]{"http://127.0.0.1:1","localnet","chain","key","package","store","currency"},null)!;
+        using var explicitOwner=new PreparedSubmissionServer((_,_)=>throw new AssertFailedException("Conflicting owner must not persist."));
+        Func<Task<int>> invoke=()=>{
+            var failure=Assert.ThrowsException<System.Reflection.TargetInvocationException>(()=>type.GetMethod("InvokePreparedAsync",flags)!
+                .Invoke(client,new object[]{"nftMint",new{},explicitOwner,CancellationToken.None}));
+            Assert.IsInstanceOfType<InvalidOperationException>(failure.InnerException);return Task.FromResult(1);
+        };
+        Func<PreparedSubmissionServer> owner=()=>throw new AssertFailedException("No SDK process may start.");
+        var scoped=(Task<int>)type.GetMethod("WithStoragePreparationAndCancellationAsync",flags)!.MakeGenericMethod(typeof(int))
+            .Invoke(client,new object[]{invoke,owner,CancellationToken.None})!;
+        Assert.AreEqual(1,await scoped);
+    }
+
+    [TestMethod]
+    public async Task EveryPublicSdkMutationUsesCurrentOwnerBeforeProcessLaunch()
+    {
+        var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+        var type=typeof(SuiOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.SuiOASIS.SuiSdkClient")!;
+        using var client=(IDisposable)Activator.CreateInstance(type,flags,null,new object[]{"http://127.0.0.1:1","localnet","chain","key","package","store","currency"},null)!;
+        foreach(var operation in new[]{"put","delete","putMany","deleteMany","publish","publicationResume","transfer",
+            "nftMint","nftSend","nftBurn","nftLock","nftUnlock","tokenMint","tokenSend","tokenBurn","tokenLock","tokenUnlock"}){
+            var cause=new InvalidOperationException("Owned preparation rejection before SDK launch.");var calls=0;
+            Func<Task<int>> invoke=async()=>{
+                await (Task<System.Text.Json.JsonElement>)type.GetMethod("InvokeAsync",flags)!
+                    .Invoke(client,new object[]{operation,null!,CancellationToken.None})!;return 1;
+            };
+            Func<PreparedSubmissionServer> owner=()=>{calls++;throw cause;};
+            var scoped=(Task<int>)type.GetMethod("WithStoragePreparationAndCancellationAsync",flags)!.MakeGenericMethod(typeof(int))
+                .Invoke(client,new object[]{invoke,owner,CancellationToken.None})!;
+            var failure=await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>scoped);
+            Assert.AreSame(cause,failure);Assert.AreEqual(1,calls,operation);
+        }
+    }
+
+    [TestMethod]
     public async Task AdmittedCancellationReachesDefaultTokenSdkRead()
     {
         var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
