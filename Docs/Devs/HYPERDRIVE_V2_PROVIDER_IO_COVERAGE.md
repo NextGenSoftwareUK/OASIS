@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Shared search privacy acceptance: Shared268/268pass1s includes two provider-boundary all-fields cases excluding nested Password/ResetToken queries while visible metadata matches and stored secret remains intact. Known-field matcher proof, not arbitrary secret detection/native encryption/authorization certification.
+
 Shared search visibility delta: selected avatar/holon roots with deletion timestamp excluded; inactive nondeleted roots retained. Two red-before/green-after cases, Shared266/266pass1s. No record/history deletion, descendant/ancestry visibility or native/V2/hosted certification.
 
 Shared root-version acceptance: Shared264/264pass1s includes two provider-level search cases requiringVersion1 child through independently currentVersion2 parent (no historic parentVersion1), direct-only exclusion retained. Not a point-in-time graph/native/V2/hosted proof.
