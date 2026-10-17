@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Shared export selector delta: username/email export retains authoritative absence code/original corruption cause; four red-before/green-after cases, Shared272/272pass1s. Partial-warning preservation/full graph/history/native/V2/hosted export acceptance still open.
+
 Shared search privacy acceptance: Shared268/268pass1s includes two provider-boundary all-fields cases excluding nested Password/ResetToken queries while visible metadata matches and stored secret remains intact. Known-field matcher proof, not arbitrary secret detection/native encryption/authorization certification.
 
 Shared search visibility delta: selected avatar/holon roots with deletion timestamp excluded; inactive nondeleted roots retained. Two red-before/green-after cases, Shared266/266pass1s. No record/history deletion, descendant/ancestry visibility or native/V2/hosted certification.

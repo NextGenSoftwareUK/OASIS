@@ -853,7 +853,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByUsernameAsync(string avatarUsername, int version = 0)
         {
             var avatar = await LoadAvatarByUsernameAsync(avatarUsername, version);
-            return avatar.IsError ? Fail<IEnumerable<IHolon>>(avatar.Message) : await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
+            return avatar.IsError ? Fail<IEnumerable<IHolon>>(avatar.Message,avatar.Exception,avatar.ErrorCode) : await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByUsername(string avatarUsername, int version = 0) => ExportAllDataForAvatarByUsernameAsync(avatarUsername, version).GetAwaiter().GetResult();
@@ -861,7 +861,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByEmailAsync(string avatarEmailAddress, int version = 0)
         {
             var avatar = await LoadAvatarByEmailAsync(avatarEmailAddress, version);
-            return avatar.IsError ? Fail<IEnumerable<IHolon>>(avatar.Message) : await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
+            return avatar.IsError ? Fail<IEnumerable<IHolon>>(avatar.Message,avatar.Exception,avatar.ErrorCode) : await ExportAllDataForAvatarByIdAsync(avatar.Result.Id, version);
         }
 
         public override OASISResult<IEnumerable<IHolon>> ExportAllDataForAvatarByEmail(string avatarEmailAddress, int version = 0) => ExportAllDataForAvatarByEmailAsync(avatarEmailAddress, version).GetAwaiter().GetResult();
