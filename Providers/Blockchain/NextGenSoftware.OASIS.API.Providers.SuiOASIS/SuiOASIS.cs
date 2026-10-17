@@ -53,9 +53,9 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
         /// <param name="rpcEndpoint">Sui RPC endpoint URL</param>
         /// <param name="network">Sui network (mainnet, testnet, devnet)</param>
         /// <param name="privateKey">Private key for signing transactions</param>
-        public SuiOASIS(string rpcEndpoint = "https://fullnode.mainnet.sui.io:443", string network = "mainnet", string chainId = "", string contractAddress = "", string privateKey = "", string storageObjectId = "", string currencyObjectId = "", Func<byte[]> storageEncryptionKeyResolver = null)
+        public SuiOASIS(string rpcEndpoint = "https://fullnode.mainnet.sui.io:443", string network = "mainnet", string chainId = "", string contractAddress = "", string privateKey = "", string storageObjectId = "", string currencyObjectId = "", Func<byte[]> storageEncryptionKeyResolver = null, SuiTokenEscrowConfiguration tokenEscrow = null)
             : this(new SuiSdkClient(rpcEndpoint, network, chainId, privateKey, contractAddress, storageObjectId, currencyObjectId),privateKey,contractAddress,storageEncryptionKeyResolver)
-        { }
+        { tokenEscrow?.Validate(); _tokenEscrow = tokenEscrow; }
 
         private readonly SuiSdkClient _sdkClient;
         private readonly NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend _privateStorage;

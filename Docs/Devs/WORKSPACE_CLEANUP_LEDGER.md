@@ -1,5 +1,9 @@
 # Workspace cleanup ledger and repeatable checks
 
+Final Sui C#custody owned runner2026-10-17 exits0/130pass2m14s/0skip; reused report/environment, no new runtime/download/ledger. Existing guarded fixture and protected journals retained.
+
+2026-10-17 Sui C#custody routing reuses existing process fixture/SDK/restoration owner, fixed owned runner and report.9newtests pass407ms; full130running, bounded no-restore producer/unit builds only. No newdownloads/runtime/environment/ledger/clone. Free90,102,050,816bytes observation, not reclamation claim. Protected outcome files/source/credentials untouched; no unrelated cleanup.
+
 Final Sui SDK owned runner2026-10-17 exits0/full121pass2m15s/0skip, same fixed report/environment. Protected Cosmos/TRON original journals remain hash-identical; no native node/download/ledger created.
 
 2026-10-17 Sui SDK custody tests reuse installed @mysten/sui2.35.0/BCS/Transaction, in-memory synthetic key/records, no database/node/download.11newtests/full41JS pass~460ms; bounded producer build0errors/2warnings copies small token-escrow module into existing output; hashmatches source. Full owned C#runner uses same fixed report/environment. Free90,092,044,288bytes observation, not reclaimed-space claim; no new SDK/cache/clone/environment/public spend or unrelated removal.

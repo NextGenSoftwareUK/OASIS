@@ -1,5 +1,9 @@
 # HyperDrive V2 provider-I/O coverage
 
+Final Sui C#deposit-route regression2026-10-17: full130pass2m14s/0skip/runnerexit0, superseding pending entry below. Explicitly remaining stored-wallet/facade/config/native gates unchanged.
+
+2026-10-17 Sui direct C#lock/release selects explicit shared registry config, snapshots original request and reuses one signer address/key recovery plus existing SDK entry. Exact returned ID/units/owner/escrow/release state required; inconsistent reply retains original digest/reconciliation. Aggregate omission remains but cannot ignore explicit amount/ID.9newcontrolled cases pass407ms; full130pending, producer0errors/2warnings. Stored-wallet release/facade, DNA mapping, real signed/native fees/routing gates open; no marker enablement or deployment.
+
 Final Sui SDK custody regression2026-10-17: full121C#pass2m15s/0skip/runnerexit0 and41offlineJS pass~460ms. Supersedes pending checkpoint below. Command graph/BCS + existing regression evidence does not close C#public routing or native signing/consensus/fee gates.
 
 2026-10-17 Sui SDK tokenEscrowGet/Lock/Release now read exact protocol1shared BCS registry/typed deposit, validate positiveu64/fundstate/original owner and noIDreuse; construct actual SDK exact split/Move lock or original-amount release plus owner transfer. Reuses existing execute signing/preparation/receipt owner; postreadback mismatch fails without second submission.11new controlled graph/record tests/full41JS pass~460ms; module packaged hashmatches output. Both new mutations included in native/preparation classification test. Full C#suite pending. C#selection/facade, real signed/native execution/fees and V2 routing acceptance open; no capability enablement/deployment.
