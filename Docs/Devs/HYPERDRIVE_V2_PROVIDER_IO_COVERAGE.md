@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Sui native original-attempt inspection1/1pass3s: all three retained attempt receipts successful, raw fixture and private holon absent. Corrected report separates confirmed native outcomes from incomplete durable settlement/ownership. Journal retained unchanged; no resubmission. Retained node/SDK only, not full V2/native mutation certification.
+
 Encrypted V2 point-read acceptance: twelve new actual encrypted-disk/SQLite cases verify avatar/detail/holon sync/async authentication/base64 corruption preserves original cause and blocks stale secondary reads (zero secondary request delta, both stores unchanged). Full local routing124/124pass13s, zero skips. Controlled backend, not chain SDK/key custody/full policy or durable certification.
 
 Current four-chain consumer refresh: libraries rebuilt0errors; TRON310/310pass2s, Sui102/102pass2m14s, Hashgraph47/47pass17s, Cosmos136/136pass2m11s, all zero skips. Reports: TestResults/ChainUnitCurrent/{TRONOASIS,SuiOASIS}-unit-current.trx and TestResults/SubscriptionUsageCurrent/{hedera,cosmos}-full-owned-current.trx. Unit/controlled-backend coverage only; native original-outcome, complete interface/options and V2 policy/recovery/hosted gates remain open. Existing protected journals unchanged; no native replay.
