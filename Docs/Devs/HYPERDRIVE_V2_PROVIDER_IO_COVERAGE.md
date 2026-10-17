@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Shared export completeness delta: avatar-filtered export preserves original partial warning/failed-read metadata instead of fresh false-complete Ok; LoadedCount reflects filtered rows. Two red-before/green-after cases, Shared274/274pass1s. Full native/history/graph/privacy/V2/hosted export gates remain open.
+
 Shared export selector delta: username/email export retains authoritative absence code/original corruption cause; four red-before/green-after cases, Shared272/272pass1s. Partial-warning preservation/full graph/history/native/V2/hosted export acceptance still open.
 
 Shared search privacy acceptance: Shared268/268pass1s includes two provider-boundary all-fields cases excluding nested Password/ResetToken queries while visible metadata matches and stored secret remains intact. Known-field matcher proof, not arbitrary secret detection/native encryption/authorization certification.
