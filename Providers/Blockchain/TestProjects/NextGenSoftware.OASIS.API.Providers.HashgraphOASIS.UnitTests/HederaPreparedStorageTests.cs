@@ -49,6 +49,15 @@ public partial class HederaPreparationTests
                 ContractId="0.0.2001",OperatorAccountId="0.0.1001",SigningKeyType="ecdsa",
                 SigningKeyResolver=()=>new string('0',63)+"1",EncryptionKeyResolver=()=>new byte[32],
                 GasLimit=100000,MaxFeeTinybars=100000000});
+            var entered=false;
+            foreach(var length in new[]{110,128})
+                await Assert.ThrowsExceptionAsync<ArgumentException>(()=>provider.ExecutePreparedStorageAsync(
+                    ()=>{entered=true;return Task.FromResult(true);},execution,new string('x',length),"0.0.1001",deadline.Token));
+            Assert.IsFalse(entered,"Invalid correlation must fail before entering storage or preparing a signature.");
+            Assert.AreEqual(0,(await store.GetAsync(execution.OperationId,deadline.Token)).ProviderAttempts.Count);
+            Assert.AreEqual(0,File.ReadAllLines(log).Length);
+            Assert.IsTrue(await provider.ExecutePreparedStorageAsync(()=>Task.FromResult(true),execution,new string('x',109),
+                "0.0.1001",deadline.Token));
             if(cancelQuery){
                 var ready=log+".ready";Assert.IsFalse(File.Exists(ready),"Preserve unexpected query fixture evidence.");
                 Environment.SetEnvironmentVariable(names[3],ready);

@@ -2,6 +2,14 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Hedera54/54pass52s and TRON317/317pass2s refresh current shared correlation consumers using real SDK signing, controlled transport and owned Mongo27029; seven prepared-storage cases/provider now check invalid110/128 prefixes before work/0attempts/submissions and valid109. No skipped tests. TRON unit fixtures no longer reference unrelated27017; all three connections require exact owned replica URI. These are NOT native chain consensus/funded mutation or hosted settlement certifications. See release gates for native uncertainty/funding limitations.
+
+### Shared-code policy and current reuse
+
+User reaffirmed2026-10-16: inspect existing helpers, libraries and base provider classes before adding provider-local logic. Place genuinely provider-independent invariants in the lowest suitable existing shared layer; keep native signing, finality, fee and permission semantics provider-specific. Avoid copying a complete provider implementation or widening a base class with chain-specific behavior.
+
+All four current native providers (CosmosBlockChainOASIS, HashgraphOASIS, SuiOASIS, TRONOASIS) already derive from shared `KeyValueStorageProviderBase`. `NativeStorageCorrelation` is reused across their prepared-storage boundaries; `NativeOperationFeeAccounting` is one shared pure calculator, not four billing implementations (production integration remains pending). Continue to inspect the existing OASIS base provider and shared encryption/query infrastructure before new extraction; do not claim blanket provider compatibility from inheritance alone.
+
 Sui correlation consumer refresh now verified on retained official1.81.1localnet: four prepared signed-write/recovery cases4/4pass47s,0skip, owned Mongo initializer194ms/full runnerexit0. Two storage-scope cases add110/128prefix rejection before entry with0attempts and109prefix acceptance; no native mutation from those boundary checks. Existing native signed writes and original fee recovery still pass. This supersedes pending Sui prepared-consumer refresh for the shared correlation delta only; Hedera/TRON refresh, production valuation/billing/full-host coverage remain open.
 
 Shared operation fee calculator implemented: full Shared302/302pass1s (seven new cases), producer zero build errors. Validates same-operation signed valued evidence, duplicates, provenance/sign and overflow; floors only final net, no rebate carry-forward. Pure synthetic accounting evidence only: no native pricing verification or production settlement/host certification. See native fee accounting report; Core/WEB4 receipt and ledger integration remains pending.

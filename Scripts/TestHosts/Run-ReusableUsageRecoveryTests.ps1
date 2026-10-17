@@ -1,6 +1,8 @@
 #Requires -Version 7.0
-param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft,[switch]$SuiCSharpAssets)
+param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft,[switch]$SuiCSharpAssets,[switch]$TronPreparedStorage,[switch]$TronFull)
 $ErrorActionPreference='Stop'
+if($TronFull -and !$TronPreparedStorage){throw 'TRON full unit suite requires owned prepared storage mode.'}
+if($TronPreparedStorage -and $PSBoundParameters.Count -ne $(if($TronFull){2}else{1})){throw 'TRON prepared storage requires its own exclusive mode.'}
 if($SuiCSharpAssets -and !$SuiCSharpNft){throw 'Sui CSharp asset matrix requires admitted facade owner mode.'}
 if($SuiCSharpNft -and !$SuiPreparedLedger){throw 'Sui CSharp NFT verification requires owned prepared-ledger environment.'}
 if($ArchiveSuiPrepared -and !$SuiPreparedInspect){throw 'Reviewed Sui fixture archive requires its exclusive native inspection mode.'}
@@ -115,6 +117,18 @@ try{
         $mongoCounts=$mongoEvidence.TestRun.ResultSummary.Counters
         $expectedMongo=if($MongoTransactions){46}else{1}
         if([int]$mongoCounts.total -ne $expectedMongo -or [int]$mongoCounts.passed -ne $expectedMongo -or [int]$mongoCounts.notExecuted -ne 0){throw 'Expected complete selected Mongo native suite without skips.'}
+    }elseif($TronPreparedStorage){
+        $tronProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests.csproj'
+        $tronStarted=[DateTime]::UtcNow
+        $tronArgs=if($TronFull){@()}else{@('--filter','FullyQualifiedName~TronPreparedStorageTests')}
+        & dotnet test $tronProject --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false @tronArgs --logger 'trx;LogFileName=tron-prepared-storage-owned-current.trx' --results-directory $work -v:q
+        if($LASTEXITCODE -ne 0){throw 'TRON owned prepared storage verification failed.'}
+        $report=Get-Item -LiteralPath (Join-Path $work 'tron-prepared-storage-owned-current.trx')
+        if($report.LastWriteTimeUtc -lt $tronStarted){throw 'TRON prepared storage report is stale.'}
+        [xml]$evidence=Get-Content -LiteralPath $report.FullName
+        $counts=$evidence.TestRun.ResultSummary.Counters
+        $expectedTron=if($TronFull){317}else{7}
+        if([int]$counts.total -ne $expectedTron -or [int]$counts.passed -ne $expectedTron -or [int]$counts.notExecuted -ne 0){throw 'Expected complete selected TRON unit suite without skips.'}
     }elseif($HederaPreparedOwners){
         $env:OASIS_HEDERA_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/SdkBridge/bridge.mjs'
         $hederaProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests.csproj'

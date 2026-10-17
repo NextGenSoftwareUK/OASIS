@@ -24,7 +24,8 @@ public class TronPreparedStorageTests
     [InlineData(false,false,true,true)] [InlineData(true,false,true,true)]
     public async Task EncryptedPhysicalWritesPersistBeforeSdkBroadcast(bool rejectPersistence,bool concurrent=false,bool routed=false,bool synchronous=false)
     {
-        const string connection="mongodb://127.0.0.1:27017/?serverSelectionTimeoutMS=3000";
+        const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.Equal(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
         const string database="usage_tron_prepared_storage_owned";
         var mongo=new MongoDB.Driver.MongoClient(connection);
         using(var names=await mongo.ListDatabaseNamesAsync())
@@ -101,6 +102,14 @@ public class TronPreparedStorageTests
             using var storage=new TronPrivateStorageBackend(runtime.NativeTransfers,owner,owner,()=>key,()=>new byte[32]);
             var provider=new TRONOASIS(nativeTransfers:runtime.NativeTransfers,storageBackend:storage);
             Assert.False((await provider.ActivateProviderAsync()).IsError);
+            var invalidEntered=false;
+            foreach(var length in new[]{110,128})
+                await Assert.ThrowsAsync<ArgumentException>(()=>provider.ExecutePreparedStorageAsync(
+                    ()=>{invalidEntered=true;return Task.FromResult(true);},execution,new string('x',length),owner,deadline.Token));
+            Assert.False(invalidEntered);
+            Assert.Empty((await store.GetAsync(execution.OperationId,deadline.Token)).ProviderAttempts);
+            Assert.Equal(0,broadcasts);
+            Assert.True(await provider.ExecutePreparedStorageAsync(()=>Task.FromResult(true),execution,new string('x',109),owner,deadline.Token));
             var manager=new ProviderManager(null,new OASISDNA {OASIS=new() {HyperDriveMode=HyperDriveModes.V2,
                 StorageProviders=new(),SubscriptionConfig=new() {PlanType="Gold"}}}) {IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=false};
             manager.RegisterProvider(provider);var router=new OASISHyperDrive(manager);
