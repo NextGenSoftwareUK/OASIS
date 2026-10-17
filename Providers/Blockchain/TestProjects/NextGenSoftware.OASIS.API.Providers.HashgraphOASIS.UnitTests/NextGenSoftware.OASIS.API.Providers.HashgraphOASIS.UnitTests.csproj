@@ -21,4 +21,5 @@
 
   <ItemGroup><None Update="Fixtures\prepared.mjs" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
   <ItemGroup><None Update="Fixtures\activation-readonly.mjs" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
+  <ItemGroup><None Update="Fixtures\storage-prepared.mjs" CopyToOutputDirectory="PreserveNewest" /></ItemGroup>
 </Project>

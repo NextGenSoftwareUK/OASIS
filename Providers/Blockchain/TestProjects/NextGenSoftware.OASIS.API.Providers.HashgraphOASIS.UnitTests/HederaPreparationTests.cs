@@ -6,7 +6,7 @@ using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests;
 
 [TestClass,DoNotParallelize]
-public class HederaPreparationTests
+public partial class HederaPreparationTests
 {
     [TestMethod]
     public async Task PreparedFeeRecoveryRejectsMissingOrForeignIdentityBeforeLookup()
