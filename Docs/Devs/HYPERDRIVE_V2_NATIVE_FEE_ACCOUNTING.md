@@ -1,5 +1,17 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Hedera per-deposit paid-query exposure measured in controlled SDK transport (2026-10-17)
+
+Nine new loopback scenarios run the actual SDK and selected-payment admission. Every released answer payment must match the exact earlier retained signed bytes, payer/node/key and fee ceiling; unused cost/candidate requests are not counted as released payments. Fixture reports cost10tinybars; SDK selects signed payment11tinybars. The amounts below are **synthetic signed query debits, NOT actual charged native fees or a live price estimate**. Mutation signatures carry the existing100,000,000tinybar fee ceiling, not an observed charge.
+
+| Controlled path | Selected query payments | Native mutation submissions | Synthetic selected query debit (tinybars) |
+|---|---:|---:|---:|
+| Lock with new approval |24|2|264|
+| Lock with existing exact allowance |23|1|253|
+| Release identified deposit |18|1|198|
+
+Failure paths also release payments: unassociated token9/no mutations; bad committed readback22/2mutations; query admission rejection0/0; mutation preparation rejection after approval20/1; lost approval acknowledgement13/1; wrong runtime4/0. These tests verify original approval/mutation identity retention, no replacement submission, and fee-evidence preparation ordering—not actual consensus charges. Logical rejection does not imply zero cost: settlement must reconcile the original paid queries and any mutation independently of API success. Association is not silently attempted. Full146JS tests pass; C#per-deposit/hosted integration and native/durable fee settlement remain open. No real HBAR used.
+
 2026-10-17 Hedera per-deposit bridge branch reuses existing paid-query admission/persistence and signed-submission ownership. It adds native token-info, association-status, tuple/custody/supply queries; these are potentially chargeable SDK queries, not free local metadata. Existing query fee ceilings/count admission remain required; new branch total charged behavior is NOT yet positively end-to-end verified. Association must already be established through a separate explicit operation before allowance/deposit; branch rejects unassociated tokens rather than silently creating a third spend. Decimal token principal uses the same extracted exact int64 converter as transfer, never floating-point gas pricing. Original approval/mutation IDs and stage retained on failure, with cause attached for diagnostics.137offline JS tests/179ordinary-EVM assertions/77C#tests do not prove funded HTS gas, new branch consensus, billing or settlement. No configuration/capability enabled, sponsor policy changed or public spend incurred.
 
 2026-10-17 TRON optional DNA per-deposit selection now maps into BootLoader; absent/null does not enable it. Config object carries only public contract address/reviewed runtimeSHA256, not credentials. Provider capability enabled after controlled encrypted-wallet direct and WalletManager facade release tests. Release submits one owned mutation, preserves original intent/hash and does not approve again. These local signatures/receipts are NOT actual TVM gas/fee recovery, hosted billing or native settlement proof. No Railway JSON, funding, sponsorship policy or deployment changed. Existing WalletManager token facade dispatches selected provider directly; V2-configured wallet fixture is not automatic gas failover/LB/replication evidence. Real multistage fee settlement and other release gates stay open.
