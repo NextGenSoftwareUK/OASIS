@@ -213,8 +213,9 @@ public class CosmosPreparationTests
             Assert.AreEqual(mode=="valid"?0:1,calls);
         }finally{Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",previous);}
     }
-    [TestMethod]
-    public async Task RealOfflineSignedDocumentVerifiesThroughCSharp()
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task RealOfflineSignedDocumentVerifiesThroughCSharp(bool attemptBudget)
     {
         var bridge=Environment.GetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE") ?? Path.Combine(AppContext.BaseDirectory,"CosmosSdkBridge","bridge.mjs");
         var start=new ProcessStartInfo("node"){UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true,WorkingDirectory=Path.GetDirectoryName(bridge)};
@@ -229,9 +230,12 @@ public class CosmosPreparationTests
             const original=wallet.signDirect.bind(wallet);let document;
             wallet.signDirect=async(...args)=>{const result=await original(...args);document=result.signed;return result;};
             const client=await SigningCosmWasmClient.offline(wallet);
-            const raw=await client.sign(address,[],{amount:[],gas:'100000'},'offline preparation',{chainId:'offline-test-chain',accountNumber:7,sequence:3});
-            const bytes=TxRaw.encode(raw).finish();
-            process.stdout.write(JSON.stringify({transactionHash:createHash('sha256').update(bytes).digest('hex').toUpperCase(),chainId:'offline-test-chain',sender:address,signedTransactionBase64:Buffer.from(bytes).toString('base64'),signDocBase64:Buffer.from(SignDoc.encode(document).finish()).toString('base64')}));
+            async function evidence(sequence){
+              const raw=await client.sign(address,[],{amount:[],gas:'100000'},'offline preparation',{chainId:'offline-test-chain',accountNumber:7,sequence});
+              const bytes=TxRaw.encode(raw).finish();
+              return {transactionHash:createHash('sha256').update(bytes).digest('hex').toUpperCase(),chainId:'offline-test-chain',sender:address,signedTransactionBase64:Buffer.from(bytes).toString('base64'),signDocBase64:Buffer.from(SignDoc.encode(document).finish()).toString('base64')};
+            }
+            const first=await evidence(3);first.next=await evidence(4);process.stdout.write(JSON.stringify(first));
             """);
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(15));
         using var child=Process.Start(start) ?? throw new InvalidOperationException("Cannot start retained Cosmos signing SDK.");
@@ -247,7 +251,7 @@ public class CosmosPreparationTests
             var user=Guid.NewGuid().ToString("D");using var http=new HttpClient(new OfflineAuthority(user));
             var authority=new Web4SubscriptionAuthorizationClient(http,"https://offline-authority.test","WEB6","test-only-key");
             var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6",PersistenceTimeout=TimeSpan.FromSeconds(5)})
-                .BeginAsync("test-only-bearer",user,"cosmos-signed-test",new string('a',64),"POST /offline-test",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1},deadline.Token);
+                .BeginAsync("test-only-bearer",user,"cosmos-signed-test",new string('a',64),"POST /offline-test",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1,MaximumProviderAttempts=attemptBudget?1:512},deadline.Token);
             var priceTime=DateTime.UtcNow.AddSeconds(-1);
             var price=new NativeFeePriceQuote(Guid.Parse(execution.OperationId),"CosmosBlockChainOASIS","offline-test-chain","stake","fixture-asset",6,1m,
                 "synthetic-offline-price","fixture-v1","fixture-v1",priceTime,priceTime,priceTime,priceTime.AddMinutes(5));
@@ -299,6 +303,25 @@ public class CosmosPreparationTests
             var afterDuplicate=await store.GetAsync(execution.OperationId,deadline.Token);
             Assert.AreEqual(1,afterDuplicate.ProviderAttempts.Count);
             Assert.AreEqual(stored.NativePreparationBytes,afterDuplicate.NativePreparationBytes);
+            if(attemptBudget){
+                var next=signed.RootElement.GetProperty("next");
+                Assert.AreNotEqual(server.PreparedTransactionId,next.GetProperty("transactionHash").GetString());
+                await provider.VerifyOriginalSignedPreparationAsync(next,deadline.Token);
+                using var boundedServer=provider.CreateNativePreparationServer(execution,"new-signed-attempt","offline-test-chain",next.GetProperty("sender").GetString()!);
+                var boundedServing=boundedServer.ServeAsync(deadline.Token);
+                using(var pipe=new System.IO.Pipes.NamedPipeClientStream(".",boundedServer.Endpoint.Substring(boundedServer.Endpoint.LastIndexOf('\\')+1),System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous)){
+                    await pipe.ConnectAsync(deadline.Token);
+                    var frame=System.Text.Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new{protocol="oasis.native-preparation.v1",evidence=next})+"\n");
+                    await pipe.WriteAsync(frame,deadline.Token);await pipe.FlushAsync(deadline.Token);
+                    var exhausted=await Assert.ThrowsExceptionAsync<UsageProtocolException>(()=>boundedServing);
+                    Assert.AreEqual("PROVIDER_ATTEMPT_BUDGET_EXCEEDED",exhausted.Code);
+                    using var reader=new StreamReader(pipe);Assert.IsNull(await reader.ReadLineAsync(deadline.Token));
+                }
+                Assert.IsNull(boundedServer.PreparedTransactionId);
+                var bounded=await new MongoUsageOutboxStore(connection,database).GetAsync(execution.OperationId,deadline.Token);
+                Assert.AreEqual(1,bounded.ProviderAttempts.Count);Assert.AreEqual(1,bounded.Policy.MaximumProviderAttempts);
+                Assert.AreEqual(stored.NativePreparationBytes,bounded.NativePreparationBytes);Assert.AreEqual(stored.EvidenceRevision,bounded.EvidenceRevision);
+            }
             var altered=JsonSerializer.Deserialize<Dictionary<string,object>>(signed.RootElement.GetRawText())!;altered["chainId"]="foreign-chain";
             using var invalid=JsonDocument.Parse(JsonSerializer.Serialize(altered));
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>provider.VerifyOriginalSignedPreparationAsync(invalid.RootElement,deadline.Token));
