@@ -46,6 +46,7 @@ public sealed class HederaWalletFailureTests
     [InlineData(false,"nft-mint",false)] [InlineData(true,"nft-mint",false)]
     [InlineData(false,"tron-mint",false)] [InlineData(true,"tron-mint",false)]
     [InlineData(false,"tron-nft-mint",false)] [InlineData(true,"tron-nft-mint",false)]
+    [InlineData(false,"tron-escrow-aggregate-release",false)] [InlineData(true,"tron-escrow-aggregate-release",false)]
     [InlineData(false,"nft-recipient-id",false)] [InlineData(true,"nft-recipient-id",false)]
     [InlineData(false,"nft-recipient-username",false)] [InlineData(true,"nft-recipient-username",false)]
     [InlineData(false,"nft-recipient-email",false)] [InlineData(true,"nft-recipient-email",false)]
@@ -102,8 +103,12 @@ public sealed class HederaWalletFailureTests
             using var suiProvider = new SuiOASIS(contractAddress:"0x1",tokenEscrow:sui&&selector!="escrow-create"?new(sharedEscrow):null) { WalletManager = wallets };
             using var cosmosProvider = new Providers.CosmosBlockChainOASIS.CosmosBlockChainOASIS(contractAddress:"fixture-contract",
                 tokenEscrow:cosmos?new("fixture-contract",new string('c',64)):null) { WalletManager = wallets };
-            var tronProvider = new Providers.TRONOASIS.TRONOASIS(contractAddress:"fixture-token",walletManager:wallets);
+            var tronProvider = new Providers.TRONOASIS.TRONOASIS(contractAddress:"fixture-token",walletManager:wallets,escrowContractAddress:"fixture-escrow");
             async Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>> Escrow(){
+                if(tron&&selector=="escrow-aggregate-release"){
+                    var request=new Core.Objects.Wallet.Requests.UnlockWeb3TokenRequest {UnlockedByAvatarId=sender,TokenAddress="fixture-token",EscrowContractAddress="fixture-escrow"};
+                    return synchronous?tronProvider.UnlockToken(request):await tronProvider.UnlockTokenAsync(request);
+                }
                 var id=Guid.Parse("5f31afde-1229-4e99-8088-a0034d33a557");
                 if(selector=="escrow-create"){
                     var created=synchronous?suiProvider.CreateTokenEscrowRegistry(sender):await suiProvider.CreateTokenEscrowRegistryAsync(sender);

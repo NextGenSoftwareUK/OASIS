@@ -1,5 +1,7 @@
 # HyperDrive V2 native-chain fees and recovery
 
+2026-10-17 aggregate TRON native withdrawal now avoids an unrelated encrypted-storage activation/probe; wallet storage lookup remains owned by WalletManager's configured provider. Existing SDK queries original depositor/token locked amount and validates original solidified receipt returned amount123 in controlled fixture. This is aggregate principal return, not a gas refund/fee payment/per-deposit release. No actual public spending/native ledger mutation/fee settlement; original Cosmos/TRON uncertainty fences unchanged.
+
 2026-10-17 TRON NFT-send asset/recipient/memo now remain bound across runtime lease wait. Existing SDK single-transaction executor reused, no additional submission/fee exposure introduced. Actual SDK controlled RPC evidence only; no real network gas, principal transfer or sponsored settlement. Original Cosmos/TRON uncertainty journals unchanged; no replay.
 
 2026-10-17 TRON burn principal fixed at original amount/token before runtime wait; controlled SDK evidence confirms123units, not gas/fee recovery. No live chain mutation or public fees. Original protected TRON/Cosmos journals unchanged; no replay, signed-ID replacement or inferred zero fee.

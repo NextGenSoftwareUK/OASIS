@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-17 aggregate release tests reuse existing gated LocalFile class, SDK controlled gRPC fixture and retained Mongo27029environment.110combined/full386pass; successful exact wallet/avatar cleanup uses existing owners. No new environment/install/download/runtime/ledger. Free89277935616bytes observation; original Cosmos/TRON journal hashes unchanged. No additional material deletion.
+
 2026-10-17 TRON NFT-send await regression reuses existing SDK controlled gRPC fixture, runtime and same retained Mongo27029runner;106combined/full386pass. Existing successful fixture cleanup owners retained. No new environment/install/download/native ledger or replay. Free89281413120bytes observation; original Cosmos/TRON uncertainty journal hashes unchanged. No additional material deletion.
 
 2026-10-17 TRON burn proof reuses existing lease/SDK controlled gRPC fixture and retained Mongo27029environment.105combined/full386pass. Existing bounded-log owner reduced TestResults/SubscriptionUsageCurrent/mongo-current.log from8788163bytes to65434byte tail after owned Mongo stopped; disposable earlier raw log lines removed, retained tail/evidence and reusable DB/runtime untouched. Future runtime regenerates logs. No download/install/new environment/native ledger reset. Free89281613824bytes observation; original Cosmos/TRON journal hashes unchanged.

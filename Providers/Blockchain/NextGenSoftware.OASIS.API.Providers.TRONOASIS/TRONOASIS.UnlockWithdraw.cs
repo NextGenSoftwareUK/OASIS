@@ -54,25 +54,22 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 if (_idBoundEscrow != null)
                     return await ExecuteIdBoundTokenEscrowAsync(request.LockId, request.TokenAddress,
                         request.EscrowContractAddress, request.UnlockedByAvatarId, null, null, 0, true);
-                if (request.UnlockedByAvatarId == Guid.Empty)
+                var actor=request.UnlockedByAvatarId;var tokenAddress=request.TokenAddress;
+                if (actor == Guid.Empty)
                     throw new ArgumentException("UnlockedByAvatarId is required for depositor signing-wallet resolution.");
-                if (string.IsNullOrWhiteSpace(request.TokenAddress))
+                if (string.IsNullOrWhiteSpace(tokenAddress))
                     throw new ArgumentException("A TRC20 token contract address is required.");
                 if (string.IsNullOrWhiteSpace(_escrowContractAddress))
                     throw new InvalidOperationException("A separate EscrowContractAddress must be configured.");
                 NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.AggregateTokenEscrowRequest.Validate(
                     0, request.LockId, request.EscrowContractAddress, _escrowContractAddress);
-                var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(request.UnlockedByAvatarId,
+                var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(actor,
                     Core.Enums.ProviderType.TRONOASIS, showPrivateKeys: true);
-                if (wallet.IsError || wallet.Result == null || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
-                    throw new InvalidOperationException("Could not resolve the depositor's TRON signing wallet.");
-                if (!IsProviderActivated)
-                {
-                    var activation = await ActivateProviderAsync();
-                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
-                }
-                var hash = await ExecuteRuntimeAsync(client => client.UnlockEscrowAsync(wallet.Result.WalletAddress,
-                    _escrowContractAddress, request.TokenAddress, wallet.Result.PrivateKey));
+                if(wallet.IsError)return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet,ITransactionResponse>(wallet);
+                if(wallet.Result==null||wallet.Result.AvatarId!=actor||string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
+                    throw new InvalidOperationException("Exact requesting avatar TRON signing wallet required.");
+                var hash = await ExecuteNativeRuntimeAsync(client => client.UnlockEscrowAsync(wallet.Result.WalletAddress,
+                    _escrowContractAddress, tokenAddress, wallet.Result.PrivateKey));
                 result.Result = new TransactionResponse { TransactionResult = hash };
                 result.Message = "Owned TRC20 escrow withdrawal confirmed by solidified receipt and returned amount.";
             }
