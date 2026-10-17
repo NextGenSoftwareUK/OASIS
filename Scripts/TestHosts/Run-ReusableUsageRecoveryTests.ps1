@@ -169,7 +169,7 @@ try{
 }finally{
     try{
         if($owned){
-            if(!$owned.HasExited){$owned.Kill();if(!$owned.WaitForExit(10000)){throw 'Owned Mongo did not terminate.'}}
+            if(!$owned.HasExited){$owned.Kill();if(!$owned.WaitForExit(30000)){throw 'Owned Mongo did not terminate within30seconds.'}}
             $owned.Dispose()
             Limit-OwnedMongoLog -WorkDirectory $work
         }
