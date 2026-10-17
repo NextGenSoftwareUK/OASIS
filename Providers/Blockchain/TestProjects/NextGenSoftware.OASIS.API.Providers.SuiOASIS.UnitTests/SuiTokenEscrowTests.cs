@@ -9,6 +9,22 @@ public sealed class SuiTokenEscrowTests
     private static readonly Guid Id = Guid.Parse("11111111-2222-3333-4444-555555555555");
     private static readonly string Escrow = "0x" + new string('2', 64);
     [DataTestMethod]
+    [DataRow(false,false)] [DataRow(false,true)] [DataRow(true,false)] [DataRow(true,true)]
+    public async Task BalanceUsesSelectedCustodyOnlyWhenLocked(bool configured,bool locked)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","unlock-readback-failure.mjs"));
+        try
+        {
+            using var provider=new SuiOASIS("http://127.0.0.1:1","localnet",contractAddress:"0x1",tokenEscrow:configured?new(Escrow):null);
+            var result=await provider.GetTokenBalanceAsync("fixture-owner","0x1::token::TOKEN",locked);
+            Assert.IsFalse(result.IsError,result.Message);
+            Assert.AreEqual((configured&&locked?123m:7m)/1000000000m,result.Result);
+            Assert.IsFalse(provider.IsProviderActivated);
+        }
+        finally{Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",previous);}
+    }
+    [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     public async Task CreationRejectsMissingAvatarOrAlreadyConfiguredRegistry(bool configured)
     {

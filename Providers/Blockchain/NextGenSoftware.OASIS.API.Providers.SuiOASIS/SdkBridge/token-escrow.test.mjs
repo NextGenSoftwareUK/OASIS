@@ -7,12 +7,34 @@ import {normalizeSuiAddress,toBase58} from '@mysten/sui/utils';
 import {Transaction,Inputs} from '@mysten/sui/transactions';
 import {verifyTransactionSignature} from '@mysten/sui/verify';
 import {execute,withNativeMutationEvidence,sdkErrorEnvelope} from './bridge.mjs';
-import {Escrow,Deposit,readTokenDeposit,executeTokenEscrow,createTokenEscrow} from './token-escrow.mjs';
+import {Escrow,Deposit,readTokenDeposit,executeTokenEscrow,createTokenEscrow,readTokenEscrowBalance} from './token-escrow.mjs';
 
 const address=n=>normalizeSuiAddress('0x'+n);
 const key=Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
 const base={packageAddress:address('1'),escrowObjectId:address('2'),depositId:'a'.repeat(64),
  privateKey:key.getSecretKey(),fromWalletAddress:key.toSuiAddress(),amountUnits:'123'};
+
+for(const mode of ['valid','empty','cursor','duplicate','size','funds','type','owner'])test('registry balance '+mode,async()=>{
+ const records=mode==='empty'?[]:[
+  {owner:key.toSuiAddress(),amount:'123',released:false,funds:'123'},
+  {owner:address('9'),amount:'900',released:false,funds:'900'},
+  {owner:key.toSuiAddress(),amount:'50',released:true,funds:'0'},
+  {owner:key.toSuiAddress(),amount:'7',released:false,funds:'7'}];
+ const client={getObject:async()=>({object:{objectId:base.escrowObjectId,type:`${base.packageAddress}::token_escrow::Escrow`,
+  owner:{$kind:'Shared'},content:Escrow.serialize({id:base.escrowObjectId,protocol:'1',
+   deposits:{id:address('3'),size:String(records.length+(mode==='size'?1:0))}}).toBytes()}}),
+  listDynamicFields:async args=>{
+   assert.equal(args.parentId,address('3'));assert.deepEqual(args.include,{value:true});
+   const offset=args.cursor?2:0;
+   return {dynamicFields:records.slice(offset,offset+2).map((record,i)=>({$kind:'DynamicField',
+    name:{type:mode==='type'?'u64':'vector<u8>',bcs:bcs.vector(bcs.u8()).serialize(new Array(32).fill(mode==='duplicate'?1:offset+i+1)).toBytes()},
+    value:{type:`${base.packageAddress}::token_escrow::Deposit`,bcs:Deposit.serialize({...record,funds:mode==='funds'?'0':record.funds}).toBytes()}})),
+    hasNextPage:mode==='cursor'||offset+2<records.length,cursor:'next'};
+  }};
+ const result=readTokenEscrowBalance(client,{...base,walletAddress:mode==='owner'?'bad':key.toSuiAddress()});
+ if(['valid','empty'].includes(mode))assert.equal(await result,mode==='empty'?'0':'130');
+ else await assert.rejects(result);
+});
 function fixture(mode='valid',initial=null){
  let record=initial;let submits=0;
  const client={

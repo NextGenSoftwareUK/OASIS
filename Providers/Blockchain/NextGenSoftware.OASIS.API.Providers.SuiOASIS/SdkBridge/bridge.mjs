@@ -8,7 +8,7 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { resolve } from 'node:path';
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { verifyTransactionSignature } from '@mysten/sui/verify';
-import { readTokenDeposit, executeTokenEscrow, createTokenEscrow } from './token-escrow.mjs';
+import { readTokenDeposit, executeTokenEscrow, createTokenEscrow, readTokenEscrowBalance } from './token-escrow.mjs';
 
 export async function verifyPreparedIdentity(evidence) {
   if(typeof evidence?.signedTransactionBase64!=='string' || !evidence.signedTransactionBase64
@@ -263,6 +263,7 @@ async function invokeCore(request) {
   if (request.operation === 'probe') return { chainIdentifier };
   if (request.operation === 'tokenEscrowCreate') return createTokenEscrow(client,request,execute);
   if (request.operation === 'tokenEscrowGet') return readTokenDeposit(client,{...request});
+  if (request.operation === 'tokenEscrowBalance') return readTokenEscrowBalance(client,request);
   if (request.operation === 'tokenEscrowLock' || request.operation === 'tokenEscrowRelease')
     return executeTokenEscrow(client,request,execute,pages);
   if (request.operation === 'nativeFeeReceipt') {

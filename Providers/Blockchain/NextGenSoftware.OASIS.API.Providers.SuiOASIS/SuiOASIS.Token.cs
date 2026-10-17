@@ -146,7 +146,8 @@ public partial class SuiOASIS
         try
         {
             ValidateCoinType(tokenAddress);
-            var units = await InvokeSdkAsync(locked ? "tokenLockedBalance" : "tokenBalance", new { walletAddress });
+            var operation = locked ? (_tokenEscrow == null ? "tokenLockedBalance" : "tokenEscrowBalance") : "tokenBalance";
+            var units = await InvokeSdkAsync(operation, new { walletAddress, escrowObjectId = locked ? _tokenEscrow?.EscrowObjectId : null });
             result.Result = TokenBalanceFromUnits(units.GetString());
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
