@@ -36,9 +36,6 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                         || group is ISearchNumberGroup number && !Enum.IsDefined(typeof(SearchOperatorType),number.NumberOperator))
                         throw new ArgumentException("Unknown search comparison operator.");
                     var wallet=group.AvatarSearchParams?.SearchAvatarWalletParams;
-                    var transaction=wallet?.SearchAvatarWalletTransactionParams;
-                    if(transaction!=null && (transaction.Token || transaction.MemoText || transaction.ProviderType))
-                        throw new NotSupportedException("Stored wallet transactions do not expose Token, MemoText or ProviderType; these fields cannot be inferred from description or the wallet's provider.");
                     if(wallet!=null && !SelectedFields(wallet,typeof(ISearchAvatarWalletParams)).Any()
                         && !SelectedFields(wallet.SearchAvatarWalletTransactionParams,typeof(ISearchAvatarWalletTransactionParams)).Any())
                         throw new ArgumentException("An explicit wallet search mask requires at least one selected wallet or transaction field.");

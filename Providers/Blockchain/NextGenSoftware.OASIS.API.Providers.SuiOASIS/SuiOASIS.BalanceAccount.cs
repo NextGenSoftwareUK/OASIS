@@ -86,6 +86,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
                     {
                         TransactionId = CreateDeterministicGuid(digest + ":" + coinType),
                         NativeTransactionId = digest,
+                        Token=coinType,ProviderType=Core.Enums.ProviderType.SuiOASIS,
                         RawAmount = units.ToString(System.Globalization.CultureInfo.InvariantCulture),
                         AmountUnit = coinType == null ? "non-monetary object change" : coinType + ":base-unit",
                         NativeOperation = "WalletNetBalanceChange",

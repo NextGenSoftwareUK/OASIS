@@ -49,6 +49,8 @@ public class CosmosWalletHistoryProjectionTests
             Assert.AreEqual(debit.TransactionId, credit.TransactionId);
             Assert.AreEqual(debit.NativeTransactionId, credit.NativeTransactionId);
             Assert.AreEqual("9007199254740993", debit.RawAmount);
+            Assert.AreEqual("uatom",debit.Token);Assert.AreEqual(ProviderType.CosmosBlockChainOASIS,debit.ProviderType);
+            Assert.AreEqual("fixture",debit.MemoText);Assert.AreEqual("Zml4dHVyZQ==",debit.MemoBase64);
             Assert.AreEqual(code == 0 ? "Success" : "Failed", debit.NativeExecutionResult);
             Assert.AreEqual(TransactionType.Debit, debit.TransactionType);
             Assert.AreEqual(TransactionType.Credit, credit.TransactionType);

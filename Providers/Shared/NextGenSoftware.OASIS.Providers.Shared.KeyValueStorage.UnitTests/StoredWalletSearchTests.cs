@@ -19,7 +19,8 @@ public class StoredWalletSearchTests
             WalletId=Guid.Parse("b51f1188-7743-4dc3-8d68-75987bbdd211"),PublicKey="selected-public-key",WalletAddress="selected-address",
             PrivateKey="hidden-private",SecretRecoveryPhrase="hidden-recovery",ProviderType=ProviderType.SolanaOASIS,
             Balance=123,IsDefaultWallet=true,Transactions=new() {new NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Response.WalletTransaction {
-                FromWalletAddress="selected-from",ToWalletAddress="selected-to",Amount=77,Description="unselected-description"}}
+                FromWalletAddress="selected-from",ToWalletAddress="selected-to",Amount=77,Description="unselected-description",
+                Token="selected-token",MemoText="selected-memo",ProviderType=ProviderType.SuiOASIS}}
         }}}}};
 
     [DataTestMethod]
@@ -37,6 +38,13 @@ public class StoredWalletSearchTests
                 PreviousSearchGroupOperator=SearchParamGroupOperator.And,AvatarSearchParams=new SearchAvatarParams {SearchAvatarWalletParams=new SearchAvatarWalletParams {Balance=true}}}}};
         var found=synchronous?provider.Search(query,loadChildren:false):await provider.SearchAsync(query,loadChildren:false);
         Assert.IsFalse(found.IsError,found.Message);Assert.AreEqual(1,found.Result.NumberOfResults);Assert.AreEqual(row.Id,found.Result.SearchResultAvatars[0].Id);
+        foreach(var field in new[]{"Token","MemoText"}){
+            var mask=new SearchAvatarWalletTransactionParams();mask.GetType().GetProperty(field)!.SetValue(mask,true);
+            group.AvatarSearchParams.SearchAvatarWalletParams=new SearchAvatarWalletParams {SearchAvatarWalletTransactionParams=mask};
+            group.SearchQuery=field=="Token"?"selected-token":"selected-memo";
+            var metadata=synchronous?provider.Search(query,loadChildren:false):await provider.SearchAsync(query,loadChildren:false);
+            Assert.IsFalse(metadata.IsError,metadata.Message);Assert.AreEqual(1,metadata.Result.NumberOfResults);
+        }
         query.AvatarId=Guid.NewGuid();
         var foreign=synchronous?provider.Search(query,loadChildren:false):await provider.SearchAsync(query,loadChildren:false);
         Assert.IsFalse(foreign.IsError,foreign.Message);Assert.AreEqual(0,foreign.Result.NumberOfResults);
@@ -73,7 +81,28 @@ public class StoredWalletSearchTests
         var group=new SearchTextGroup {SearchAvatars=true,SearchQuery="unselected-description",HolonType=HolonType.All,
             AvatarSearchParams=new SearchAvatarParams {SearchAvatarWalletParams=new SearchAvatarWalletParams {
                 SearchAvatarWalletTransactionParams=new SearchAvatarWalletTransactionParams {MemoText=true,Token=true,ProviderType=true}}}};
-        Assert.ThrowsException<NotSupportedException>(()=>StoredRecordSearch.MatchesSearchFields(Record(),true,group));
+        Assert.IsFalse(StoredRecordSearch.MatchesSearchFields(Record(),true,group));
+    }
+
+    [DataTestMethod]
+    [DataRow("Token","selected-token")] [DataRow("MemoText","selected-memo")]
+    public void TransactionMetadataMasksUseCanonicalFields(string field,string text)
+    {
+        var mask=new SearchAvatarWalletTransactionParams();mask.GetType().GetProperty(field)!.SetValue(mask,true);
+        var group=new SearchTextGroup {SearchAvatars=true,HolonType=HolonType.All,SearchQuery=text,
+            AvatarSearchParams=new SearchAvatarParams {SearchAvatarWalletParams=new SearchAvatarWalletParams {SearchAvatarWalletTransactionParams=mask}}};
+        Assert.IsTrue(StoredRecordSearch.MatchesSearchFields(Record(),true,group));
+        group.SearchQuery="unselected-description";Assert.IsFalse(StoredRecordSearch.MatchesSearchFields(Record(),true,group));
+    }
+
+    [TestMethod]
+    public void TransactionProviderIsNotInferredFromTheContainingWallet()
+    {
+        var group=new SearchNumberGroup {SearchAvatars=true,HolonType=HolonType.All,Number=(int)ProviderType.SuiOASIS,
+            NumberOperator=SearchOperatorType.EqualTo,AvatarSearchParams=new SearchAvatarParams {SearchAvatarWalletParams=new SearchAvatarWalletParams {
+                SearchAvatarWalletTransactionParams=new SearchAvatarWalletTransactionParams {ProviderType=true}}}};
+        Assert.IsTrue(StoredRecordSearch.MatchesSearchFields(Record(),true,group));
+        group.Number=(int)ProviderType.SolanaOASIS;Assert.IsFalse(StoredRecordSearch.MatchesSearchFields(Record(),true,group));
     }
 
     [DataTestMethod]

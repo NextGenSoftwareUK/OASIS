@@ -2,6 +2,8 @@
 let input='';for await(const chunk of process.stdin)input+=chunk;
 const request=JSON.parse(input);let result;
 switch(request.operation){
+ case 'history':result=[{digest:'controlled-history',amountUnits:'0',coinType:request.walletAddress==='fixture-coin'?'0x2::sui::SUI':null,
+  recipients:[],sender:request.walletAddress,walletAddress:request.walletAddress,success:true,decimals:9,timestampMs:1700000000000}];break;
  case 'transfer':process.stdout.write(JSON.stringify({ok:false,error:'controlled original transfer outcome',nativeMutation:{transactionHash:'1'.repeat(32),executionSucceeded:true}}));process.exitCode=1;break;
  case 'nativeFeeReceipt':result={transactionHash:request.transactionHash,currency:'SUI',unit:'MIST',payer:'fixture-owner',chainIdentifier:'fixture-chain',success:false,netUnits:'5'};break;
  case 'verifyNativePreparation':result={verified:request.preparation.mode==='valid'||request.preparation.signature?.startsWith('fixture-verified'),transactionHash:request.preparation.transactionHash,sender:request.preparation.sender,gasPayer:request.preparation.signature==='fixture-verified-foreign-payer'?'foreign-payer':'fixture-owner'};break;

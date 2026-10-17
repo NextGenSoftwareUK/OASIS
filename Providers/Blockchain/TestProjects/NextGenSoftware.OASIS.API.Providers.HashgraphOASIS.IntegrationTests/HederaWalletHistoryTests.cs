@@ -19,7 +19,7 @@ public class HederaWalletHistoryTests
 
     private const string Record = """
         {"transaction_id":"0.0.1001-1700000000-000000001","consensus_timestamp":"1700000000.123456789",
-         "result":"SUCCESS","name":"CRYPTOTRANSFER","transfers":[
+         "result":"SUCCESS","name":"CRYPTOTRANSFER","memo_base64":"bmF0aXZlIG1lbW8=","transfers":[
           {"account":"0.0.1001","amount":-9007199254740993},{"account":"0.0.1001","amount":-7},
           {"account":"0.0.1002","amount":9007199254740993}]}
         """;
@@ -30,6 +30,8 @@ public class HederaWalletHistoryTests
         var result = Map(Record);
         Assert.AreEqual("-9007199254741000", result.RawAmount);
         Assert.AreEqual("tinybar", result.AmountUnit);
+        Assert.AreEqual("HBAR",result.Token);Assert.AreEqual(Core.Enums.ProviderType.HashgraphOASIS,result.ProviderType);
+        Assert.AreEqual("native memo",result.MemoText);Assert.AreEqual("bmF0aXZlIG1lbW8=",result.MemoBase64);
         Assert.AreEqual("0.0.1001-1700000000-000000001", result.NativeTransactionId);
         Assert.AreEqual(Guid.Empty, result.TransactionId);
         Assert.IsNull(result.FromWalletAddress); Assert.IsNull(result.ToWalletAddress);

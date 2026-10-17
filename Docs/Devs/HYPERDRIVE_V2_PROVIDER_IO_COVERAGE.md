@@ -4970,3 +4970,18 @@ Mongo provider constructors no longer claim the process-global ObjectSerializer.
 
 Corefad77dc moves existing exact native quote/valuation BSON attributes onto their properties; removes late duplicate store class-map owner. Genuine cold-map1red-before/green-after; fullCore181pass16s/authority81pass15s/controlled173pass11s and actual Mongo/SQLite4pass1m49s,0skip/full runners exit0. Same-process provider/outbox reconstruct, rawUUIDStandard/Decimal128/full-tickUTC and exact18fractional-digit synthetic rate verified after early class-map lookup; normal provider storage/replication/outage assertions retained. Synthetic intent/receipt test is not native signature/charge/source authorization or hosted settlement. No representation migration/production enablement/new environment. Full provider/API/release gates remain open.
 
+# 2026-10-17 wallet transaction metadata/search schema
+
+FinalCorea01828c: shared325pass1s, controlled180pass9s, Sui109pass2m15s, Cosmos139pass2m14s, TRON317pass3s, Hedera63pass59s, controlled Hedera history17pass198ms;0skip/full runners exit0. Core both targets/4producer builds0errors. Cases include exact Cosmos denomination/memo encoding, TRON original TRC10 identifier/no ticker guessing, Hedera HBAR-delta metadata and Sui nonmonetary null token/no invented memo. Binary/absent/empty/invalid encoding distinctions, persisted selectors and independent transaction provider tested. These are scoped projections/controlled SDK and persistence tests, not new chain-consensus/funded/hosted proof. Native fee coverage and original pending journals unchanged.
+
+Core IWalletTransaction exposes optional Token, MemoText, MemoBase64 and nullable ProviderType with default getters; concrete DTO persists them. Existing transaction search flags now select canonical values, never parent-wallet/provider or Description aliases. Previous explicit unsupported-schema gate is superseded for these fields, but absent historical/unsupported native metadata remains null, not reconstructed.
+
+| Provider | Token value | Memo evidence |
+| --- | --- | --- |
+| Cosmos | Actual native denomination from verified bank-history projection | SDK-decoded memo text, strict UTF8-encoded base64; no claim to separately recovered protobuf bytes |
+| Sui | Actual coinType; null for nonmonetary change | Null: this transaction protocol has no generic memo field |
+| Hedera | HBAR, because these rows are HBAR deltas including fees, not inferred HTS transfers | Optional mirror memo_base64, canonical bytes and valid UTF8 text only |
+| TRON | TRX for represented native value; TRC10-RAW/hex preserves actual asset-name/identifier bytes | Original signed transaction raw-data bytes; non-UTF8 remains base64 with null text |
+
+One Core NativeWalletMemo helper owns strict decoding and absence/empty/binary distinctions; no per-provider parser copies. Core/4producers build0errors; shared325pass1s, controlled179pass12s, focused Hedera history17pass198ms,0skip. Full provider refresh follows in release gates. This does not close every history/native-effect/API/hosted gate; Cosmos remains AnteDeductionOnly and protected original journals are unchanged. All metadata fixture values are synthetic where noted, not actual funded fees.
+
