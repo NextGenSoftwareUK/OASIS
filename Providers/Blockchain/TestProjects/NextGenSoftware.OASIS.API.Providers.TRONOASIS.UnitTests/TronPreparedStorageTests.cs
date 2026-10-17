@@ -49,7 +49,7 @@ public class TronPreparedStorageTests
             "synthetic-offline-price","fixture-v1","fixture-v1",time,time,time,time.AddMinutes(5));}
         if(!rejectPersistence){execution=execution.WithNativePrices(new[]{Price(execution)});if(other!=null)other=other.WithNativePrices(new[]{Price(other)});}
         var broadcasts=0;var originalId=ByteString.Empty;
-        var feeLookups=0;var accountQueries=0;
+        var feeLookups=0;var accountQueries=0;var substituteSignature=false;
         var submitted=new System.Collections.Concurrent.ConcurrentDictionary<ByteString,Transaction>();
         string Selector(string signature)=>new Nethereum.Util.Sha3Keccack().CalculateHash(signature)[..8].ToUpperInvariant();
         byte[] Encode(string[] types,params object[] values)=>(byte[])typeof(TronStorageBackend)
@@ -118,7 +118,11 @@ public class TronPreparedStorageTests
                         BlockTimeStamp=1700000001000,Fee=17,Receipt=new ResourceReceipt {Result=Transaction.Types.Result.Types.contractResult.Success}});
                 })
             .AddMethod(TronPermissionRpcTests.Rpc(WalletSolidity.Descriptor.FullName,"GetTransactionById",BytesMessage.Parser,Transaction.Parser),
-                (BytesMessage request,ServerCallContext _)=>Task.FromResult(submitted.TryGetValue(request.Value,out var tx)?tx.Clone():new Transaction())).Build();
+                (BytesMessage request,ServerCallContext _)=>{
+                    var transaction=submitted.TryGetValue(request.Value,out var tx)?tx.Clone():new Transaction();
+                    if(substituteSignature&&transaction.Signature.Count!=0)transaction.Signature.Add(transaction.Signature[0]);
+                    return Task.FromResult(transaction);
+                }).Build();
         var server=new Server {Services={service},Ports={new ServerPort("127.0.0.1",0,ServerCredentials.Insecure)}};
         server.Start();
         try {
@@ -193,6 +197,10 @@ public class TronPreparedStorageTests
                 Assert.Equal(beforeRejected,feeLookups);
                 Assert.Equal(authorityQueries,accountQueries);
                 Assert.Equal(expectedBroadcasts,broadcasts);
+                substituteSignature=true;
+                var changedSignatures=await provider.GetPreparedNativeFeeReceiptAsync(prepared,deadline.Token);
+                Assert.True(changedSignatures.IsError);Assert.IsType<System.IO.InvalidDataException>(changedSignatures.Exception);
+                substituteSignature=false;
             }
             var flags=BindingFlags.Instance|BindingFlags.NonPublic;
             Assert.Null(typeof(TronNativeTransferClient).GetField("_persistPreparedSubmission",flags)!.GetValue(runtime.NativeTransfers));
@@ -213,6 +221,29 @@ public class TronPreparedStorageTests
             },execution,"cancelled-read",owner,cancelledInside.Token);
             Assert.True(cancelledRead.IsError);Assert.IsAssignableFrom<OperationCanceledException>(cancelledRead.Exception);
             Assert.Equal(expectedBroadcasts,broadcasts);
+            if(!rejectPersistence){
+                var reader=(IPreparedNativeFeeEvidenceReader)provider;
+                Assert.Equal(genesis,reader.NativeFeeChainId);Assert.Equal(NativeFeeCoverage.NetFinal,reader.DeclaredFeeCoverage);
+                var recovery=new PreparedNativeUsageRecoveryResolver(store,new[]{reader});
+                foreach(var handle in other==null?new[]{execution}:new[]{execution,other}){
+                    var original=await store.GetAsync(handle.OperationId,deadline.Token);
+                    Assert.True(recovery.CanResolve(original));
+                    var beforeRecoveryBroadcasts=broadcasts;var beforeAuthorityQueries=accountQueries;
+                    Assert.Null(await recovery.ResolveAsync(original,deadline.Token));
+                    var recovered=await store.GetAsync(handle.OperationId,deadline.Token);
+                    Assert.Equal(recovered.ProviderAttempts.Count,recovered.Receipts.Count);
+                    Assert.All(recovered.Receipts,receipt=>{
+                        Assert.Equal(0.000017m,receipt.ActualCostUsd);
+                        Assert.Equal("17",Assert.Single(receipt.NativeFeeValuations).NativeNetUnits);
+                    });
+                    var lookupsAfterRecovery=feeLookups;
+                    await store.RecordObservedOutcomeAsync(recovered.Id,recovered.ExecutionOwner,"failed",deadline.Token);
+                    var settlement=await recovery.ResolveAsync(await store.GetAsync(handle.OperationId,deadline.Token),deadline.Token);
+                    Assert.NotNull(settlement);Assert.Equal("failed",settlement.Outcome);
+                    Assert.Equal(0.000017m*recovered.ProviderAttempts.Count,settlement.ActualCostUsd);
+                    Assert.Equal(lookupsAfterRecovery,feeLookups);Assert.Equal(beforeRecoveryBroadcasts,broadcasts);Assert.Equal(beforeAuthorityQueries,accountQueries);
+                }
+            }
             await provider.DeActivateProviderAsync();
         } finally {await server.ShutdownAsync();await mongo.DropDatabaseAsync(database);}
     }

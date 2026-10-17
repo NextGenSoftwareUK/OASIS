@@ -151,6 +151,9 @@ public sealed class TronNativeTransferClient
     }
 
     public async Task<System.Text.Json.JsonElement> GetNativeFeeReceiptAsync(string hash, CancellationToken cancellationToken = default)
+        =>await ReadNativeFeeReceiptAsync(hash,null,cancellationToken);
+
+    private async Task<System.Text.Json.JsonElement> ReadNativeFeeReceiptAsync(string hash,string originalSignedBytes,CancellationToken cancellationToken)
     {
         if (!System.Text.RegularExpressions.Regex.IsMatch(hash ?? "", "\\A[0-9a-fA-F]{64}\\z"))
             throw new ArgumentException("Exact TRON transaction ID required.");
@@ -160,6 +163,12 @@ public sealed class TronNativeTransferClient
         var request = new BytesMessage { Value = id };
         var receipt = await node.GetTransactionInfoByIdAsync(request, _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
         var transaction = await node.GetTransactionByIdAsync(request, _wallet.GetHeaders(), DateTime.UtcNow.AddSeconds(15), cancellationToken);
+        if(originalSignedBytes!=null){
+            var original=Transaction.Parser.ParseFrom(Convert.FromBase64String(originalSignedBytes));
+            if(transaction.RawData==null||!transaction.RawData.ToByteArray().SequenceEqual(original.RawData.ToByteArray())
+                ||!transaction.Signature.SequenceEqual(original.Signature))
+                throw new System.IO.InvalidDataException("Solidified TRON fee transaction differs from the original signed payload or signature set.");
+        }
         return MapNativeFeeReceipt(transaction, receipt, id, _genesisBlockId);
     }
 
@@ -178,7 +187,7 @@ public sealed class TronNativeTransferClient
         var owner=Convert.FromHexString(original.Sender);
         TronPreparationVerifier.VerifyWithAccountAuthority(original.SignedTransactionBase64,original.ProviderRequestId,
             owner,_contractFeeLimitSun,account);
-        var receipt=await GetNativeFeeReceiptAsync(original.ProviderRequestId,token);
+        var receipt=await ReadNativeFeeReceiptAsync(original.ProviderRequestId,original.SignedTransactionBase64,token);
         if(!CryptographicOperations.FixedTimeEquals(owner,_wallet.ParseAddress(receipt.GetProperty("payer").GetString()).ToByteArray()))
             throw new System.IO.InvalidDataException("TRON fee receipt payer differs from the verified original operation owner.");
         return receipt;
