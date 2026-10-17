@@ -186,6 +186,7 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class SuiOASISProviderSettings : ProviderSettingsBase
     {
+        public SuiIdBoundTokenEscrowSettings IdBoundTokenEscrow { get; set; }
         public string StorageEncryptionKeyEnvironmentVariable { get; set; } = "OASIS_SUI_STORAGE_ENCRYPTION_KEY";
         public string RpcEndpoint { get; set; } = "https://fullnode.mainnet.sui.io:443";
         public string Network { get; set; } = "mainnet";
@@ -194,6 +195,11 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string ContractAddress { get; set; } = "";
         public string StorageObjectId { get; set; } = "";
         public string CurrencyObjectId { get; set; } = "";
+    }
+
+    public class SuiIdBoundTokenEscrowSettings
+    {
+        public string EscrowObjectId { get; set; } = "";
     }
 
     public class MoralisOASISProviderSettings : ProviderSettingsBase

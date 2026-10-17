@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-17 Sui reviewed registry selection wired through production DNA/BootLoader optional IdBoundTokenEscrow{EscrowObjectId}. Exact shared object is not package ContractAddress; canonical validation reused, invalid explicit settings cannot select legacy aggregate.7newmapping+7Cosmos regressions14pass73ms/0skip; production DNA/BootLoader/integration builds0errors. Hosted settings unchanged, wallet release/facade and native fee/consensus/routing gates open; marker still disabled.
+
 Final Sui C#deposit-route regression2026-10-17: full130pass2m14s/0skip/runnerexit0, superseding pending entry below. Explicitly remaining stored-wallet/facade/config/native gates unchanged.
 
 2026-10-17 Sui direct C#lock/release selects explicit shared registry config, snapshots original request and reuses one signer address/key recovery plus existing SDK entry. Exact returned ID/units/owner/escrow/release state required; inconsistent reply retains original digest/reconciliation. Aggregate omission remains but cannot ignore explicit amount/ID.9newcontrolled cases pass407ms; full130pending, producer0errors/2warnings. Stored-wallet release/facade, DNA mapping, real signed/native fees/routing gates open; no marker enablement or deployment.
