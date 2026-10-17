@@ -12,6 +12,10 @@ public sealed class TronBroadcastOutcomeUnknownException : InvalidOperationExcep
     public string ChainGenesisId { get; }
     public long TransactionTimestampMilliseconds { get; }
     public long TransactionExpirationMilliseconds { get; }
+    // Untrusted node diagnostics, not ledger proof. Base64 avoids injecting control text into logs.
+    public int? BroadcastResponseCode { get; }
+    public string? BroadcastResponseMessageBase64 { get; }
+    public bool BroadcastResponseMessageTruncated { get; }
     public bool HasOriginalValidityWindow => TransactionTimestampMilliseconds > 0
         && TransactionExpirationMilliseconds > TransactionTimestampMilliseconds;
 
@@ -26,5 +30,15 @@ public sealed class TronBroadcastOutcomeUnknownException : InvalidOperationExcep
         ChainGenesisId = chainGenesisId.ToLowerInvariant();
         TransactionTimestampMilliseconds = timestampMilliseconds;
         TransactionExpirationMilliseconds = expirationMilliseconds;
+    }
+
+    public TronBroadcastOutcomeUnknownException(string transactionId, string chainGenesisId,
+        long timestampMilliseconds, long expirationMilliseconds, Exception innerException,
+        int responseCode, ReadOnlySpan<byte> responseMessage)
+        : this(transactionId,chainGenesisId,timestampMilliseconds,expirationMilliseconds,innerException)
+    {
+        BroadcastResponseCode=responseCode;
+        BroadcastResponseMessageTruncated=responseMessage.Length>1024;
+        BroadcastResponseMessageBase64=Convert.ToBase64String(responseMessage[..Math.Min(responseMessage.Length,1024)]);
     }
 }
