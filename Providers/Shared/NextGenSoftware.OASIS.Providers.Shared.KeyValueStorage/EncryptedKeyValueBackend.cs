@@ -22,7 +22,10 @@ public sealed class EncryptedKeyValueBackend : IKeyValueBackend, IDisposable
     {
         ValidateKey(key);
         var value = await _inner.GetAsync(key, cancellationToken);
-        return value == null ? null : _codec.Decrypt(key, value, cancellationToken);
+        if(value==null)return null;
+        try{return _codec.Decrypt(key,value,cancellationToken);}
+        catch(Exception cause) when(cause is System.Security.Cryptography.CryptographicException || cause is FormatException || cause is System.Text.DecoderFallbackException)
+        {throw new System.IO.InvalidDataException("Stored encrypted record failed integrity or encoding validation.",cause);}
     }
 
     public Task PutAsync(string key, string value, CancellationToken cancellationToken = default)
