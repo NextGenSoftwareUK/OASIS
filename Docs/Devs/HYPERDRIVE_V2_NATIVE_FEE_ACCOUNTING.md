@@ -1,5 +1,11 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Cosmos isolated real-node aggregate acceptance — 2026-10-17
+
+The reviewed standard-SDK profile now has actual retained-wasmd acceptance, not only offline signatures: direct native and actual storage-interface cases refuse a zero-budget signed put before durable attempt/native key mutation; accepted put/delete pairs retain original signatures and exact fee declarations. Four original receipts report3625stake per put and3437per cleanup, matching the signed maxima and aggregate exposure at an explicitly synthetic0.000001USD/stake price.2/2pass21s; exact report hash is in current release gates. Ante fee reads remain ante-only; no net-cost receipt or hosted settlement is fabricated.
+
+This uses a separate raw-key namespace and CreateNew journal while the old replication journal remains immutable/unresolved. IndependentPrepared is **not** permission to replay Verify or to reset a ledger. The first fixture used raw InvokeAsync instead of the real backend PutAsync hook, causing one isolated unadmitted test write; stopped and positively reconciled its exact indexed signed bytes/owned key before an admitted cleanup, with compact evidence retained. No production bypass was added to hide the mistake. The corrected actual interface passes. Full incident/recovery hashes are documented in current release gates; no existing avatar/index data was touched. All-interface/native replication, net fees and hosted acceptance remain open.
+
 ## Hedera full budgeted storage composition — 2026-10-17
 
 The controlled integration fixture now exercises direct storage plus both V2 routed modes under one explicit10USD operation maximum and synthetic1USD/HBAR price. Across the three cases,18original signed attempts include all paid activation/index/read requests, encrypted writes and standalone routed reads. Their verified maxima sum exactly to durable exposure. Existing low-budget cases continue to refuse the next query before any storage mutation.
