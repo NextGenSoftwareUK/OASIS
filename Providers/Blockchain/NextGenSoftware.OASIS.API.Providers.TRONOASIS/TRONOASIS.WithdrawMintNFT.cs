@@ -173,12 +173,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     if (!string.Equals(actual, supplied, StringComparison.OrdinalIgnoreCase))
                         throw new ArgumentException("NFT signing key does not match the supplied public key.");
                 }
-                if (!IsProviderActivated)
-                {
-                    var activation = await ActivateProviderAsync();
-                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
-                }
-                var hash = await ExecuteRuntimeAsync(client => client.SendNftAsync(transaction.FromWalletAddress,
+                var hash = await ExecuteNativeRuntimeAsync(client => client.SendNftAsync(transaction.FromWalletAddress,
                     transaction.ToWalletAddress, transaction.TokenAddress, tokenId, transaction.OwnerPrivateKey, transaction.MemoText));
                 response.Result = new Web3NFTTransactionResponse { TransactionResult = hash, SendNFTTransactionResult = hash };
                 response.Message = "TRC721 safe transfer confirmed by solidified contract receipt.";
@@ -212,12 +207,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     if (!string.Equals(actual, supplied, StringComparison.OrdinalIgnoreCase))
                         throw new ArgumentException("NFT signing key does not match the supplied public key.");
                 }
-                if (!IsProviderActivated)
-                {
-                    var activation = await ActivateProviderAsync();
-                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
-                }
-                var hash = await ExecuteRuntimeAsync(client => client.BurnNftAsync(asset.Contract, asset.TokenId, request.OwnerPrivateKey));
+                var hash = await ExecuteNativeRuntimeAsync(client => client.BurnNftAsync(asset.Contract, asset.TokenId, request.OwnerPrivateKey));
                 result.Result = new Web3NFTTransactionResponse { TransactionResult = hash };
                 result.Message = "TRC721 burn extension confirmed by solidified contract receipt.";
             }
