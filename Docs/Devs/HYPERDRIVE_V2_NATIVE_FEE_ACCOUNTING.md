@@ -1,5 +1,13 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Explicit mapping and quote construction (2026-10-17)
+
+Core commit `233ac62d35c5aefbc5a2a9667d8228443106cd3e` adds `NativeFeeAssetCatalogue` and `NativeFeePriceQuoteFactory` in `Services/Subscriptions`. Trusted host configuration supplies a version and 1–256 exact `(Provider, ChainId, Denomination)` mappings to a quote symbol, immutable market asset ID and decimal scale. There are no built-in network mappings: test examples such as local Cosmos `uatom`/ATOM are synthetic configuration, not an assertion that every Cosmos chain uses ATOM. Unknown or case-mismatched tuples fail before fetching. Catalogue construction snapshots configuration and rejects duplicate tuples, unbounded fields and invalid scales.
+
+The host supplies the existing `IAssetUsdQuoteSource`, positive maximum observation age and admission window, then calls `CreateAsync(operationId, provider, chainId, denomination, cancellationToken)`. The factory reuses `NativeFeePriceQuote.BindObservation`; expiry is the earlier of binding time plus admission window and publication time plus freshness limit. Missing, stale, foreign-asset or future observations and regressing/non-UTC clocks fail closed. Cancellation propagates; source errors preserve their original envelope and protocol failures preserve error codes. No additional pricing client or provider-specific oracle was created.
+
+**Boundary:** this component does not authorize spending, sign, submit, persist admission, register native receipt recovery or settle charges. Production mappings/windows and host wiring remain required; Core subscription compilation is net10-only. No live CoinGecko credential or quote was verified. Existing per-operation native fee/rebate netting remains unchanged. Tests: 18 controlled catalogue/factory cases inside 199/199 full subscription passes (16s, no skips); report hash is recorded in the current release gates. Diagnostic Core and WEB4 builds passed, not clean-source release certification. Do not use today's prices to settle unresolved historical transactions.
+
 ## Accounting interpretation verified 2026-10-17
 
 The implemented Core policy is **one floor per admitted operation**: value all original fee/rebate components for that operation, sum them, then charge max(0, net). Do not floor each receipt first; that discards same-operation rebates. No rebate carries to another operation or erases unrelated ordinary API/AI charges.
