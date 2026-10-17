@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Current four-chain consumer refresh: libraries rebuilt0errors; TRON310/310pass2s, Sui102/102pass2m14s, Hashgraph47/47pass17s, Cosmos136/136pass2m11s, all zero skips. Reports: TestResults/ChainUnitCurrent/{TRONOASIS,SuiOASIS}-unit-current.trx and TestResults/SubscriptionUsageCurrent/{hedera,cosmos}-full-owned-current.trx. Unit/controlled-backend coverage only; native original-outcome, complete interface/options and V2 policy/recovery/hosted gates remain open. Existing protected journals unchanged; no native replay.
+
 Encrypted backend boundary delta: stored decrypt/encoding/authentication failures now terminal data errors with original cause; SDK/input validation/cancellation and codec API unchanged. Four new red-before/green-after cases plus preserved exact authentication-inner-cause assertions, Shared292/292pass1s. No cipher/format migration/native/V2/key-custody certification.
 
 Private encrypted envelope delta: malformed authenticated inner JSON/shape now terminal InvalidDataException under one parser with original syntax cause. Six red-before/green-after encrypted Get/List cases; Shared288/288pass1s. No cipher/key/HMAC/format change or native SDK/V2/key-custody certification.

@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 four-chain consumer refresh reused existing libraries, SDKs, fixed reports and retained owned Mongo runner. TRON310/Sui102/Hashgraph47/Cosmos136 all passed without skips. Original Cosmos process completed; no duplicate environment/run. Owned Mongo27029 stopped normally; unrelated mongod6840 retained. Raw mongo-current.log2118891bytes remains below8MiB cap. C free78049456128bytes is systemwide observation, not attributed recovery. Three protected native pending-journal hashes unchanged. No manual deletion, install/download/clone/reset/replay or source/userdata/credential removal.
+
 2026-10-16 ciphertext failure boundary reused existing shared outputs/in-memory synthetic ciphertext. Four baseline failures retained in ciphertext-before-current.trx; finalShared292/292pass1s after updating old authentication assertions to verify preserved inner cause. No cipher/key/storage-format/data migration, runtime/node/download/install/clone/environment or protected ledger/source/userdata/credential removal; fixed compact reports reused.
 
 2026-10-16 private-envelope integrity reused shared outputs/in-memory store with synthetic owned32byte test key and actual encryption. Six baseline failures retained in private-envelope-before-current.trx; finalShared288/288pass1s. No real credentials/storage-format migration/runtime/node/download/install/clone/environment or protected ledger/source/userdata/credential removal; fixed compact reports reused.
