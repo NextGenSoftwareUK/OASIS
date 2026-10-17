@@ -79,6 +79,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string ContractAddress { get; set; } = "";
         public string BridgePoolWalletAddress { get; set; } = "";
         public string EscrowContractAddress { get; set; } = "";
+        public TronIdBoundEscrowSettings IdBoundTokenEscrow { get; set; }
         public string FullNodeGrpcEndpoint { get; set; } = "";
         public string SolidityNodeGrpcEndpoint { get; set; } = "";
         public string GenesisBlockId { get; set; } = "";
@@ -87,6 +88,12 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string RpcEndpoint { get; set; } = "https://api.trongrid.io";
         public string Network { get; set; } = "mainnet";
         public string ChainId { get; set; } = "0x2b6653dc";
+    }
+
+    public class TronIdBoundEscrowSettings
+    {
+        public string ContractAddress { get; set; }
+        public string RuntimeSha256 { get; set; }
     }
 
     public class HashgraphOASISProviderSettings : ProviderSettingsBase
