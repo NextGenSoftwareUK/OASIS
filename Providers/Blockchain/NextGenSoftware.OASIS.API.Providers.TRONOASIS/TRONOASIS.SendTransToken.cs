@@ -340,8 +340,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     throw new InvalidOperationException("A separate EscrowContractAddress must be configured.");
                 NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.AggregateTokenEscrowRequest.Validate(
                     request.Amount, request.LockId, request.EscrowContractAddress, _escrowContractAddress);
-                var hash = await ExecuteNativeRuntimeAsync(client => client.LockEscrowAsync(request.FromWalletAddress,
-                    _escrowContractAddress, request.TokenAddress, request.FromWalletPrivateKey));
+                var sender=request.FromWalletAddress;var tokenAddress=request.TokenAddress;var privateKey=request.FromWalletPrivateKey;
+                var hash = await ExecuteNativeRuntimeAsync(client => client.LockEscrowAsync(sender,
+                    _escrowContractAddress, tokenAddress, privateKey));
                 result.Result = new TransactionResponse { TransactionResult = hash };
                 result.Message = "Spendable TRC20 balance deposited into owned escrow and confirmed by solidified receipt.";
             }
