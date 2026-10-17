@@ -2,6 +2,12 @@
 let input='';for await(const chunk of process.stdin)input+=chunk;
 const request=JSON.parse(input);let result;
 switch(request.operation){
+ case 'tokenEscrowLock':
+  if(request.depositId!=='e9633e93c317a2759f2c757ef61a67e8fae6f739cb86fedc9cba54be2d8681de'
+   ||request.amountUnits!=='1230000000'||request.fromWalletAddress!=='fixture-owner'
+   ||request.escrowObjectId!=='0x'+'2'.repeat(64))throw new Error('Original escrow intent changed');
+  result={transactionHash:'1'.repeat(32),depositId:request.depositId,amountUnits:request.privateKey==='test-only-bad-reply'?'1':request.amountUnits,
+   owner:'fixture-owner',released:false,escrowObjectId:request.escrowObjectId};break;
  case 'history':result=[{digest:'controlled-history',amountUnits:'0',coinType:request.walletAddress==='fixture-coin'?'0x2::sui::SUI':null,
   recipients:[],sender:request.walletAddress,walletAddress:request.walletAddress,success:true,decimals:9,timestampMs:1700000000000}];break;
  case 'tokenSend':

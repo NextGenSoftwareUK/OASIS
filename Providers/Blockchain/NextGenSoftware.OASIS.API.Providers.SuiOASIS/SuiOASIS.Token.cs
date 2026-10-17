@@ -28,6 +28,9 @@ public partial class SuiOASIS
     }
 
     private async Task<string> TokenSigningKeyAsync(Guid avatarId = default, string key = null, string seed = null, string publicKey = null)
+        => (await TokenSignerAsync(avatarId, key, seed, publicKey)).PrivateKey;
+
+    private async Task<(string PrivateKey, string Address)> TokenSignerAsync(Guid avatarId = default, string key = null, string seed = null, string publicKey = null)
     {
         if (!string.IsNullOrWhiteSpace(key) && !string.IsNullOrWhiteSpace(seed))
             throw new ArgumentException("Specify one signing key or seed phrase, not both.");
@@ -45,7 +48,7 @@ public partial class SuiOASIS
         var restored = await InvokeSdkAsync("restoreKey", new { privateKey = key });
         if (!string.IsNullOrWhiteSpace(publicKey) && publicKey != restored.GetProperty("publicKey").GetString())
             throw new ArgumentException("Supplied public key does not match the signing key.");
-        return restored.GetProperty("privateKey").GetString();
+        return (restored.GetProperty("privateKey").GetString(), restored.GetProperty("address").GetString());
     }
 
     private async Task<OASISResult<ITransactionResponse>> TokenCallAsync(string operation, Func<Task<object>> request)
@@ -127,23 +130,15 @@ public partial class SuiOASIS
         => LockTokenAsync(request).GetAwaiter().GetResult();
 
     public Task<OASISResult<ITransactionResponse>> LockTokenAsync(ILockWeb3TokenRequest request)
-        => TokenCallAsync("tokenLock", async () =>
-        {
-            ArgumentNullException.ThrowIfNull(request);
-            ValidateCoinType(request.TokenAddress);
-            return new { privateKey = await TokenSigningKeyAsync(request.LockedByAvatarId, request.FromWalletPrivateKey), fromWalletAddress = request.FromWalletAddress };
-        });
+        => TokenEscrowAsync(true, request?.TokenAddress, request?.LockedByAvatarId ?? Guid.Empty, request?.LockId ?? Guid.Empty,
+            request?.Amount ?? 0, request?.EscrowContractAddress, request?.FromWalletPrivateKey, request?.FromWalletAddress);
 
     public OASISResult<ITransactionResponse> UnlockToken(IUnlockWeb3TokenRequest request)
         => UnlockTokenAsync(request).GetAwaiter().GetResult();
 
     public Task<OASISResult<ITransactionResponse>> UnlockTokenAsync(IUnlockWeb3TokenRequest request)
-        => TokenCallAsync("tokenUnlock", async () =>
-        {
-            ArgumentNullException.ThrowIfNull(request);
-            ValidateCoinType(request.TokenAddress);
-            return new { privateKey = await TokenSigningKeyAsync(request.UnlockedByAvatarId) };
-        });
+        => TokenEscrowAsync(false, request?.TokenAddress, request?.UnlockedByAvatarId ?? Guid.Empty, request?.LockId ?? Guid.Empty,
+            0, request?.EscrowContractAddress);
 
     public async Task<OASISResult<decimal>> GetTokenBalanceAsync(string walletAddress, string tokenAddress, bool locked = false)
     {
