@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+V2 cancelled operations now terminal in Core86cadcf: recursive direct/wrapped/aggregate OperationCanceledException never triggers fallback. HyperDrive548pass1s; actual owned disk-provider+SQLite routing126pass14s verifies cancelled read/save leaves both stores unchanged/backup requests0. No native interruption/restart/hosted-wide claim; original cause preserved, no new environment. Full gated merge still prohibited.
+
 Current cancellation consumers: Shared292pass1s/TRON317pass2s/Sui103pass2m15s/Cosmos137pass2m11s, no skips. Scope tokens now reach TRON lock+backend and Sui/Cosmos SDK reads/mutations; unscoped cancellation identity preserved after full suites caught2regressions each. Existing signed-outcome uncertainty/real process deadlines retained. New tests prove pre-SDK default-token read cancellation, not native rollback/full hosted policy completion. Existing environments and reports reused; native pending journals untouched.
 
 Hedera54/54pass51s adds actual child-process query cancellation under admitted scope: linked scope/invocation tokens terminate held controlled read within5s, original cancellation retained,0attempts/0submissions. Production token wiring now reaches inherited storage calls that supply default token. Post-submission uncertainty unchanged; no native cancellation/rollback/hosted accounting claim.
