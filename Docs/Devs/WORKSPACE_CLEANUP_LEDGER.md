@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 Sui read-only original-attempt inspection reused retained1.81.1 node/ledger/SDK and Mongo27029; inspection1/1pass3s and owned initializer1/1pass185ms. Normal runner shutdown, no new transaction or journal removal; pending SHA unchanged B7E6EECC7C32EF5AD030C740ECF1071CB54FF05905FF69FC8DBE04A759061599. Fixed reports/logs overwritten, no install/download/clone/new environment/reset or source/userdata/credential removal.
+
 2026-10-16 encrypted-corruption routing reused existing fixed guarded disk/SQLite fixture, consumer output and report. Full local routing124/124pass13s, normal synthetic fixture disposal. Synthetic zero32byte encryption key only, no real credentials. No runtime/install/download/clone/new environment or protected ledger/source/userdata removal; compact routing-current.trx overwritten in place.
 
 2026-10-16 four-chain consumer refresh reused existing libraries, SDKs, fixed reports and retained owned Mongo runner. TRON310/Sui102/Hashgraph47/Cosmos136 all passed without skips. Original Cosmos process completed; no duplicate environment/run. Owned Mongo27029 stopped normally; unrelated mongod6840 retained. Raw mongo-current.log2118891bytes remains below8MiB cap. C free78049456128bytes is systemwide observation, not attributed recovery. Three protected native pending-journal hashes unchanged. No manual deletion, install/download/clone/reset/replay or source/userdata/credential removal.

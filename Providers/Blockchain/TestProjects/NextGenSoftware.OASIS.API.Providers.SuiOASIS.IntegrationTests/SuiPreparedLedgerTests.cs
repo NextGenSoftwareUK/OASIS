@@ -24,6 +24,7 @@ public class SuiPreparedLedgerTests
         CollectionAssert.AreEqual(new[]{"write.storage.1","write.storage.2","cleanup.storage.1"},operation.ProviderAttempts.Select(x=>x.ClientRequestId).ToArray());
         Assert.IsTrue(operation.ProviderAttempts.All(x=>x.Provider=="SuiOASIS"&&!string.IsNullOrWhiteSpace(x.ProviderRequestId)));
         Assert.IsFalse(operation.ProviderAttempts.Any(x=>x.ClientRequestId.StartsWith("private-")));
+        var chainOutcomeConfirmed=false;
         if(Environment.GetEnvironmentVariable("OASIS_SUI_TEST_RPC") is string rpc){
             Assert.IsTrue(new Uri(rpc).IsLoopback);
             using var deployment=JsonDocument.Parse(File.ReadAllText(Environment.GetEnvironmentVariable("OASIS_SUI_TEST_DEPLOYMENT")!));
@@ -43,10 +44,13 @@ public class SuiPreparedLedgerTests
             var privateRead=await provider.LoadHolonAsync(intent.RootElement.GetProperty("privateHolonId").GetGuid(),loadChildren:false);
             Assert.IsNull(privateRead.Result);
             Assert.IsTrue(!privateRead.IsError||privateRead.ErrorCode==NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,privateRead.Message);
+            chainOutcomeConfirmed=true;
             Console.WriteLine("Original signed attempts all confirmed successful; raw fixture deleted and private holon absent. Journal retained.");
         }
         Console.WriteLine(JsonSerializer.Serialize(new{operationId=operation.Id,attempts=operation.ProviderAttempts.Select(x=>new{x.ClientRequestId,x.ProviderRequestId}),
-            reconciliationComplete=false,reason="Original identities only; chain terminal status/readback still required."}));
+            chainOutcomeConfirmed,reconciliationComplete=false,reason=chainOutcomeConfirmed
+                ? "Original attempts confirmed successful and fixture absence verified; durable operation settlement/ownership reconciliation still required. Journal retained."
+                : "Original identities only; chain terminal status/readback still required."}));
         CollectionAssert.AreEqual(original,File.ReadAllBytes(journal));
     }
     [TestMethod]
