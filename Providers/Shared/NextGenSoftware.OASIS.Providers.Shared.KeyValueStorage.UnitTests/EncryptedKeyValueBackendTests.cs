@@ -10,6 +10,11 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class EncryptedKeyValueBackendTests
 {
+    private static async Task AssertStoredAuthenticationFailure(Func<Task> action)
+    {
+        var failure=await Assert.ThrowsExceptionAsync<System.IO.InvalidDataException>(action);
+        Assert.IsInstanceOfType(failure.InnerException,typeof(AuthenticationTagMismatchException));
+    }
     [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]
@@ -112,7 +117,7 @@ public class EncryptedKeyValueBackendTests
         }
         CollectionAssert.AreEqual(before,store.Items.OrderBy(pair=>pair.Key).ToArray());
         using var wrong=new PersistedPrivateKeyValueBackend(store,()=>RandomNumberGenerator.GetBytes(32));
-        await Assert.ThrowsExceptionAsync<AuthenticationTagMismatchException>(()=>wrong.VerifyAsync());
+        await AssertStoredAuthenticationFailure(()=>wrong.VerifyAsync());
         CollectionAssert.AreEqual(before,store.Items.OrderBy(pair=>pair.Key).ToArray());
     }
 
@@ -170,9 +175,9 @@ public class EncryptedKeyValueBackendTests
         Assert.IsTrue(store.Items["full"].Length < 10000);
         Assert.AreEqual(full, await original.GetAsync("full"));
         store.Items["moved"] = store.Items["full"];
-        await Assert.ThrowsExceptionAsync<AuthenticationTagMismatchException>(() => compressed.GetAsync("moved"));
+        await AssertStoredAuthenticationFailure(() => compressed.GetAsync("moved"));
         store.Items["full"] = store.Items["full"].Replace("oasis-aes256gcm-gzip-v2:", "oasis-aes256gcm-v1:");
-        await Assert.ThrowsExceptionAsync<AuthenticationTagMismatchException>(() => compressed.GetAsync("full"));
+        await AssertStoredAuthenticationFailure(() => compressed.GetAsync("full"));
     }
 
     [TestMethod]
@@ -223,7 +228,7 @@ public class EncryptedKeyValueBackendTests
         var physicalKey = store.Items.Keys.Single();
         var ciphertext = store.Items[physicalKey];
         using var wrongKey = new PrivateKeyValueBackend(store, RandomNumberGenerator.GetBytes(32));
-        await Assert.ThrowsExceptionAsync<AuthenticationTagMismatchException>(() => wrongKey.VerifyAsync());
+        await AssertStoredAuthenticationFailure(() => wrongKey.VerifyAsync());
         Assert.AreEqual(1, store.Items.Count);
         Assert.AreEqual(ciphertext, store.Items[physicalKey]);
         Assert.AreEqual("preserve me", await backend.GetAsync("existing"));
@@ -304,7 +309,7 @@ public class EncryptedKeyValueBackendTests
         using var backend = new PrivateKeyValueBackend(store, RandomNumberGenerator.GetBytes(32));
         await backend.PutAsync("logical", "secret");
         store.Items["oasis/private/v1/" + new string('0', 64)] = store.Items.Values.Single();
-        await Assert.ThrowsExceptionAsync<AuthenticationTagMismatchException>(() => backend.ListKeysAsync(""));
+        await AssertStoredAuthenticationFailure(() => backend.ListKeysAsync(""));
     }
 
     [TestMethod]
@@ -330,14 +335,14 @@ public class EncryptedKeyValueBackendTests
         using var encrypted = new EncryptedKeyValueBackend(store, RandomNumberGenerator.GetBytes(32));
         await encrypted.PutAsync("record", "secret");
         store.Items["other"] = store.Items["record"];
-        await Assert.ThrowsExceptionAsync<AuthenticationTagMismatchException>(() => encrypted.GetAsync("other"));
+        await AssertStoredAuthenticationFailure(() => encrypted.GetAsync("other"));
         using var wrongKey = new EncryptedKeyValueBackend(store, RandomNumberGenerator.GetBytes(32));
-        await Assert.ThrowsExceptionAsync<AuthenticationTagMismatchException>(() => wrongKey.GetAsync("record"));
+        await AssertStoredAuthenticationFailure(() => wrongKey.GetAsync("record"));
         var separator = store.Items["record"].IndexOf(':');
         var bytes = Convert.FromBase64String(store.Items["record"].Substring(separator + 1));
         bytes[28] ^= 1;
         store.Items["record"] = store.Items["record"].Substring(0, separator + 1) + Convert.ToBase64String(bytes);
-        await Assert.ThrowsExceptionAsync<AuthenticationTagMismatchException>(() => encrypted.GetAsync("record"));
+        await AssertStoredAuthenticationFailure(() => encrypted.GetAsync("record"));
     }
 
     [TestMethod]
@@ -347,8 +352,9 @@ public class EncryptedKeyValueBackendTests
         using var encrypted = new EncryptedKeyValueBackend(store, RandomNumberGenerator.GetBytes(32));
         store.Items["plain"] = "secret";
         store.Items["short"] = "oasis-aes256gcm-v1:AA==";
-        await Assert.ThrowsExceptionAsync<CryptographicException>(() => encrypted.GetAsync("plain"));
-        await Assert.ThrowsExceptionAsync<CryptographicException>(() => encrypted.GetAsync("short"));
+        var plain=await Assert.ThrowsExceptionAsync<System.IO.InvalidDataException>(() => encrypted.GetAsync("plain"));
+        var shortValue=await Assert.ThrowsExceptionAsync<System.IO.InvalidDataException>(() => encrypted.GetAsync("short"));
+        Assert.IsInstanceOfType(plain.InnerException,typeof(CryptographicException));Assert.IsInstanceOfType(shortValue.InnerException,typeof(CryptographicException));
     }
 
     [TestMethod]
