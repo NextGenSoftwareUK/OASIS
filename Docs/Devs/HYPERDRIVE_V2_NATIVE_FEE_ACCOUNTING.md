@@ -1,10 +1,18 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Accounting interpretation verified 2026-10-17
+
+The implemented Core policy is **one floor per admitted operation**: value all original fee/rebate components for that operation, sum them, then charge max(0, net). Do not floor each receipt first; that discards same-operation rebates. No rebate carries to another operation or erases unrelated ordinary API/AI charges.
+
+The four retained Sui receipt sets below now have4read-only regression cases through NativeFeePriceQuote.ValueOriginalReceipt and NativeOperationFeeAccounting.Calculate (51ms/0skip). At an explicitly synthetic $1-per-unit fixture price, the operation-level net for each positive-net fixture equals its raw MIST total:5655120/10300360/5633840/7254904; total28844224MIST-equivalent. The83717624sum of positive receipts below is NOT the implemented charging policy. It is retained only as a comparison showing why per-receipt flooring would overstate these NFT operation totals.
+
+These producers intentionally group each lifecycle under one controlled test execution; this does not authorize grouping separate production HTTP requests into one reservation. The synthetic price, asset ID/catalogue and UTC window are test-only, not historical market data or proof of admission at transaction time. Tests trust prior verified public receipt reports; they do not independently authenticate them or authorize/settle charges. ProductionBillingReconciled remains false. Current regression TRX SHA256EE63AE95605BA95BEF2884AF7E8675605417203E6FEC36A7F2F8E3D8CB07C4C4. No native queries, submissions, oracle requests or public funds used.
+
 ## 2026-10-17 current retained Sui C# live receipts
 
 Actual local-chain signed-original receipt observations, not public-chain prices or production bills. Four live cases pass1m42s;26receipts. Receipt files now have distinct fixed scenario names (previous NFT variants overwrote one another; corrected before this final acceptance). No new package publication or ledger reset.
 
-| Scenario | Native receipts | Raw net MIST | Sum of per-receipt zero-floor MIST |
+| Scenario | Native receipts | Raw net MIST | Positive-receipt subtotal (NOT charge policy) |
 | --- | ---: | ---: | ---: |
 | nft | 5 | 5655120 | 19505140 |
 | nft-batch | 9 | 10300360 | 38000400 |
