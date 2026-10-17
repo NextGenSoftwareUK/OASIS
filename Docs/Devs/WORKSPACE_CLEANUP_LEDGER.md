@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-17 Sui signed custody verification adds6in-memory cases to existing token-escrow.test.mjs, reuses installed SDK/synthetic key/object references, no temporary directory/database/node/download/buildoutput/new environment. Full47JS pass~468ms/0skip/0todo. No production source rebuild or duplicate .NET test run, no native ledger or unrelated artifact removal.
+
 2026-10-17 Sui encrypted-wallet facade tests reuse Cosmos harness fixed HyperDriveCosmos/store.lock/files/avatar/escrow-state.json. Provider-specific environment selectors restored in finally; verified synthetic2mutation file deleted after assertions, existing wallet fixture cleared through API. No new directory/environment/runtime/download/node/ledger/clone.24tests pass3s; bounded producer/integration builds only. No unrelated source/credentials/native journals removed; no full suite reinstall or output copy.
 
 2026-10-17 Sui DNA mapping verification reused retained workspace/.NET dependencies and existing integration output, bounded no-restore builds, no newruntime/download/node/ledger/clone.14configuration tests pass73ms. Free90,101,190,656bytes observation, not reclamation claim; no user data/credentials/unrelated source removed. No new disposable database/artifact directory allocated.
