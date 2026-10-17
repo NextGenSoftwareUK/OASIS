@@ -2,6 +2,8 @@
 
 Updated: 2026-10-16. This is a living implementation and verification report, not a claim of production readiness.
 
+Latest ownership correction2026-10-16: `NativeOperationFeeAccounting`, its value types and seven tests moved from provider-shared storage into Core `Services/Subscriptions` and `Tests/SubscriptionUsage`. There is one implementation, no provider compatibility shim, and central billing need not depend on a provider library. Arithmetic/policy unchanged; Core7/7pass13ms, remaining Shared298/298pass1s (the previous305 consisted of these298 plus the moved7). Core net10.0 and full netstandard2.1/net10.0 builds0errors; warnings remain. Core commit07364fa4b26ec600b92626e1bde3f70bfb19a23d. Older references below to a Shared calculator describe its historical location; the current owner is central Core subscription accounting. Production valuation/receipt contracts/ledger integration remain pending.
+
 ## Approved billing policy — calculator implemented; billing integration pending
 
 The user approved netting native fees and storage rebates **within the same admitted operation**, with a minimum final charge of zero. There is no payout, carry-forward credit, or offset against another operation.
