@@ -1,5 +1,9 @@
 # HyperDrive V2 provider-I/O coverage
 
+Final Sui token wallet checkpoint2026-10-17: full136/136pass2m14s/0skip/runnerexit0 after mint/burn changes; supersedes pending below. TRX SHA256B1E425EF2F6D7B0A5E7D45F45EE71C9D74DBE905BE4BB4C2A7A16A2F6BEF4C0E. Combined73case final shared wallet/config/positive suite pass8s; current report SHA25662999CB9D87D6BE8059CBC1BE35783968374C6431889608BBA8BBA2A7D646274. Owned Mongo27029closed, free89298432000bytes observation. No native submissions/fee settlement/newenvironment/deployment/merge; remaining native/hosted/provider gates OPEN.
+
+2026-10-17 Sui avatar-backed token mint/burn preserve original wallet errors/identity; same shared stored-wallet loader and TokenCallAsync executor.4red-before/green-after error cases plus positive encrypted default-wallet mint/burn added to existing Cosmos/Sui fixture (no new environment).73combined controlled cases pass8s. This is LocalFile/decryption/process proof, NOT live mint/burn receipt or production billing acceptance.
+
 Final NFT wallet checkpoint2026-10-17: full165/165Cosmos pass2m12s/0skip/runnerexit0 after NFT source changes; supersedes pending below. Current full TRX SHA2568898D18157ED64B11F56A0D4BECF963DC6A0913053564A084129A3F3E88C1709. Combined69controlled wallet/config/positive NFT cases pass7s; owned Mongo27029closed. Native wasmd/hosted/fee/full-provider gates remain open; no merge/deployment.
 
 2026-10-17 Cosmos NFT avatar-wallet mint/burn/lock/unlock preserve original errors through public result rather than generic helper wrapping; shared wallet loader reused.8red-before/green-after corrupt-wallet rows; existing positive stored default-wallet/decoy fixture extended to all4NFT operations. Combined69tests pass7s. This is controlled child execution with real LocalFile/decryption, not native signing/consensus/admission proof. Mint mutable caller metadata/recipient snapshot and Sui NFT signer boundary remain open.

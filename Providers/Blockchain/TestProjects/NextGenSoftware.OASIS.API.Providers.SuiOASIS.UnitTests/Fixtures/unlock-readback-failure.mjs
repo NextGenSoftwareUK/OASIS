@@ -2,6 +2,11 @@
 let input='';for await(const chunk of process.stdin)input+=chunk;
 const request=JSON.parse(input);let result;
 switch(request.operation){
+ case 'tokenMint':
+ case 'tokenBurn':
+  if(request.privateKey!=='test-only-explicit'||request.amountUnits!=='1230000000'
+   ||request.operation==='tokenMint'&&request.recipient!=='fixture-owner')throw new Error('Stored default token signer/intent changed');
+  result={transactionHash:'1'.repeat(32)};break;
  case 'tokenEscrowBalance':
   if(request.escrowObjectId!=='0x'+'2'.repeat(64)||request.walletAddress!=='fixture-owner')throw new Error('Wrong selected custody balance');
   result='123';break;

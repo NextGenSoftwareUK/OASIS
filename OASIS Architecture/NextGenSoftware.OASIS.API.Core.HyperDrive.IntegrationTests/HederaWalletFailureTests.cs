@@ -31,6 +31,8 @@ public sealed class HederaWalletFailureTests
     [InlineData(false,"cosmos-escrow-release",false)] [InlineData(true,"cosmos-escrow-release",false)]
     [InlineData(false,"mint",false)] [InlineData(true,"mint",false)]
     [InlineData(false,"burn",false)] [InlineData(true,"burn",false)]
+    [InlineData(false,"mint",true)] [InlineData(true,"mint",true)]
+    [InlineData(false,"burn",true)] [InlineData(true,"burn",true)]
     [InlineData(false,"cosmos-mint",false)] [InlineData(true,"cosmos-mint",false)]
     [InlineData(false,"cosmos-burn",false)] [InlineData(true,"cosmos-burn",false)]
     [InlineData(false,"cosmos-nft-mint",false)] [InlineData(true,"cosmos-nft-mint",false)]
@@ -109,13 +111,15 @@ public sealed class HederaWalletFailureTests
             async Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>> Token(){
                 if(selector=="mint"){
                     var mint=new Core.Objects.Wallet.Requests.MintWeb3TokenRequest { MintedByAvatarId=sender,Amount=1,Symbol=cosmos?"TREE":"HTS",
-                        MetaData=new(){{"TokenAddress","0.0.3001"}} };
+                        MetaData=new(){{"TokenAddress",sui?"0x1::token::TOKEN":"0.0.3001"},{"MintToWalletAddress","fixture-owner"}} };
                     return cosmos?synchronous?cosmosProvider.MintToken(mint):await cosmosProvider.MintTokenAsync(mint)
+                        :sui?synchronous?suiProvider.MintToken(mint):await suiProvider.MintTokenAsync(mint)
                         :synchronous?hedera.MintToken(mint):await hedera.MintTokenAsync(mint);
                 }
-                var burn=new Core.Objects.Wallet.Requests.BurnWeb3TokenRequest { BurntByAvatarId=sender,Amount=1,TokenAddress=cosmos?"TREE":"0.0.3001",
+                var burn=new Core.Objects.Wallet.Requests.BurnWeb3TokenRequest { BurntByAvatarId=sender,Amount=1,TokenAddress=cosmos?"TREE":sui?"0x1::token::TOKEN":"0.0.3001",
                     OwnerSeedPhrase="",OwnerPrivateKey="",OwnerPublicKey="" };
                 return cosmos?synchronous?cosmosProvider.BurnToken(burn):await cosmosProvider.BurnTokenAsync(burn)
+                    :sui?synchronous?suiProvider.BurnToken(burn):await suiProvider.BurnTokenAsync(burn)
                     :synchronous?hedera.BurnToken(burn):await hedera.BurnTokenAsync(burn);
             }
             async Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>> Nft(){
