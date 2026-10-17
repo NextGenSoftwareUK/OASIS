@@ -320,6 +320,10 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             try
             {
                 ArgumentNullException.ThrowIfNull(request);
+                if (_idBoundEscrow != null)
+                    return await ExecuteIdBoundTokenEscrowAsync(request.LockId, request.TokenAddress,
+                        request.EscrowContractAddress, request.LockedByAvatarId, request.FromWalletAddress,
+                        request.FromWalletPrivateKey, request.Amount, false);
                 if (string.IsNullOrWhiteSpace(request.TokenAddress) || string.IsNullOrWhiteSpace(request.FromWalletAddress)
                     || string.IsNullOrWhiteSpace(request.FromWalletPrivateKey))
                     throw new ArgumentException("Token contract, depositor address and private signing key are required.");

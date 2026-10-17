@@ -51,6 +51,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             try
             {
                 ArgumentNullException.ThrowIfNull(request);
+                if (_idBoundEscrow != null)
+                    return await ExecuteIdBoundTokenEscrowAsync(request.LockId, request.TokenAddress,
+                        request.EscrowContractAddress, request.UnlockedByAvatarId, null, null, 0, true);
                 if (request.UnlockedByAvatarId == Guid.Empty)
                     throw new ArgumentException("UnlockedByAvatarId is required for depositor signing-wallet resolution.");
                 if (string.IsNullOrWhiteSpace(request.TokenAddress))
