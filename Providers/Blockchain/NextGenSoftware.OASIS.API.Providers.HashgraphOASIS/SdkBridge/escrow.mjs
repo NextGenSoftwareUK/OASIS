@@ -1,6 +1,7 @@
 import { AccountId, ContractId, TokenId, TransactionId, ContractExecuteTransaction, AccountAllowanceApproveTransaction, Hbar } from '@hiero-ledger/sdk';
 import { Interface, getBytes, keccak256 } from 'ethers';
 import {persistSignedSubmission} from './native-preparation.mjs';
+import {createPaidQuery} from './paid-query-preparation.mjs';
 import { AccountInfoQuery, ContractInfoQuery, ContractByteCodeQuery, TokenNftInfoQuery, ContractCallQuery } from '@hiero-ledger/sdk';
 
 export const escrowAbi = new Interface([
@@ -98,7 +99,7 @@ export function tokenEscrowApprovalTransaction(request) {
     .setTransactionId(validateApprovalId(request, sender, id)).setMaxAttempts(1).setRegenerateTransactionId(false);
 }
 
-export async function executeTokenEscrow(action, request, { createClient, restoreKey,persistPreparedSubmission }) {
+export async function executeTokenEscrow(action, request, { createClient, restoreKey,persistPreparedSubmission,persistPaidQueryPayment }) {
   const mutation = tokenEscrowTransaction(action, request);
   const { sender, contract, token } = validateEscrowContext(request);
   const locking = action === 'tokenEscrowLock';
@@ -113,16 +114,16 @@ export async function executeTokenEscrow(action, request, { createClient, restor
   try {
     client.setOperator(sender, key);
     const payment = Hbar.fromTinybars(request.maxFeeTinybars);
-    const queryAccount = id => new AccountInfoQuery().setAccountId(id).setMaxQueryPayment(payment).execute(client);
+    const queryAccount = id => createPaidQuery(AccountInfoQuery,request,client,key,persistPaidQueryPayment).setAccountId(id).setMaxQueryPayment(payment).execute(client);
     const account = await queryAccount(sender);
     if (account.accountId.toString() !== sender.toString() || account.isDeleted ||
         typeof account.key?.toStringDer !== 'function' || account.key.toStringDer().toLowerCase() !== key.publicKey.toStringDer().toLowerCase())
       throw new Error('Escrow requires the real active sender account single signing key.');
     await verifyDepositorAccount(sender, request.senderEvmAddress, queryAccount);
-    const contractInfo = await new ContractInfoQuery().setContractId(contract).setMaxQueryPayment(payment).execute(client);
+    const contractInfo = await createPaidQuery(ContractInfoQuery,request,client,key,persistPaidQueryPayment).setContractId(contract).setMaxQueryPayment(payment).execute(client);
     if (contractInfo.contractId.toString() !== contract.toString() || contractInfo.isDeleted)
       throw new Error('Escrow contract identity mismatch.');
-    verifyEscrowRuntime(await new ContractByteCodeQuery().setContractId(contract).setMaxQueryPayment(payment).execute(client), request.runtimeCodeHash);
+    verifyEscrowRuntime(await createPaidQuery(ContractByteCodeQuery,request,client,key,persistPaidQueryPayment).setContractId(contract).setMaxQueryPayment(payment).execute(client), request.runtimeCodeHash);
     const owner = request.senderEvmAddress;
     if (!/^[0-9a-f]{40}$/i.test(contractInfo.contractAccountId ?? ''))
       throw new Error('Escrow contract has no valid native EVM address.');
@@ -130,7 +131,7 @@ export async function executeTokenEscrow(action, request, { createClient, restor
     await verifyDepositorAccount(contractInfo.accountId, spender, queryAccount);
     const tokenAddress = '0x' + token.toSolidityAddress();
     async function read(target, abi, name, args) {
-      const response = await new ContractCallQuery().setContractId(target).setGas(request.gas).setMaxQueryPayment(payment)
+      const response = await createPaidQuery(ContractCallQuery,request,client,key,persistPaidQueryPayment).setContractId(target).setGas(request.gas).setMaxQueryPayment(payment)
         .setFunctionParameters(getBytes(abi.encodeFunctionData(name, args))).execute(client);
       if (response.errorMessage) throw new Error('Token escrow state query reverted.');
       return abi.decodeFunctionResult(name, response.bytes)[0];
@@ -185,7 +186,7 @@ export async function executeTokenEscrow(action, request, { createClient, restor
   } finally { client.close(); }
 }
 
-export async function executeEscrow(action, request, { createClient, restoreKey,persistPreparedSubmission }) {
+export async function executeEscrow(action, request, { createClient, restoreKey,persistPreparedSubmission,persistPaidQueryPayment }) {
   const mutation = escrowTransaction(action, request);
   const approval = action === 'nftEscrowLock' ? escrowApprovalTransaction(request) : null;
   const { sender, contract, token } = validateEscrowRequest(request);
@@ -198,24 +199,24 @@ export async function executeEscrow(action, request, { createClient, restoreKey,
   try {
     client.setOperator(sender, key);
     const payment = Hbar.fromTinybars(request.maxFeeTinybars);
-    const account = await new AccountInfoQuery().setAccountId(sender).setMaxQueryPayment(payment).execute(client);
+    const account = await createPaidQuery(AccountInfoQuery,request,client,key,persistPaidQueryPayment).setAccountId(sender).setMaxQueryPayment(payment).execute(client);
     if (account.accountId.toString() !== sender.toString() || account.isDeleted ||
         typeof account.key?.toStringDer !== 'function' || account.key.toStringDer().toLowerCase() !== key.publicKey.toStringDer().toLowerCase())
       throw new Error('Escrow requires the real active sender account single signing key.');
-    const contractInfo = await new ContractInfoQuery().setContractId(contract).setMaxQueryPayment(payment).execute(client);
+    const contractInfo = await createPaidQuery(ContractInfoQuery,request,client,key,persistPaidQueryPayment).setContractId(contract).setMaxQueryPayment(payment).execute(client);
     if (contractInfo.contractId.toString() !== contract.toString() || contractInfo.isDeleted)
       throw new Error('Escrow contract identity mismatch.');
-    const runtimeCode = await new ContractByteCodeQuery().setContractId(contract).setMaxQueryPayment(payment).execute(client);
+    const runtimeCode = await createPaidQuery(ContractByteCodeQuery,request,client,key,persistPaidQueryPayment).setContractId(contract).setMaxQueryPayment(payment).execute(client);
     verifyEscrowRuntime(runtimeCode, request.runtimeCodeHash);
-    const queryAccount = alias => new AccountInfoQuery().setAccountId(alias).setMaxQueryPayment(payment).execute(client);
+    const queryAccount = alias => createPaidQuery(AccountInfoQuery,request,client,key,persistPaidQueryPayment).setAccountId(alias).setMaxQueryPayment(payment).execute(client);
     const nftId = token.toString() + '/' + request.serial;
     async function nftInfo() {
-      const records = await new TokenNftInfoQuery().setNftId(nftId).setMaxQueryPayment(payment).execute(client);
+      const records = await createPaidQuery(TokenNftInfoQuery,request,client,key,persistPaidQueryPayment).setNftId(nftId).setMaxQueryPayment(payment).execute(client);
       if (records.length !== 1 || records[0].nftId.toString() !== nftId) throw new Error('Escrow NFT identity mismatch.');
       return records[0];
     }
     async function depositor() {
-      const read = await new ContractCallQuery().setContractId(contract).setGas(request.gas).setMaxQueryPayment(payment)
+      const read = await createPaidQuery(ContractCallQuery,request,client,key,persistPaidQueryPayment).setContractId(contract).setGas(request.gas).setMaxQueryPayment(payment)
         .setFunctionParameters(getBytes(escrowAbi.encodeFunctionData('nftDepositor', ['0x' + token.toSolidityAddress(), BigInt(request.serial)]))).execute(client);
       if (read.errorMessage) throw new Error('Escrow state query reverted.');
       return escrowAbi.decodeFunctionResult('nftDepositor', read.bytes)[0].toLowerCase();
