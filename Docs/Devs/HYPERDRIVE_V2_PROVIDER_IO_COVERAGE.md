@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+TRON current retained native read-only inspection1/1pass2s after Core refresh: original txNotFound/no receipt, avatar present/detail absent, pending SHA unchanged, node stoppedexited143/noOOM. Existing selection/admission/RoundRobin/disposed-SDK failover checks passed; no new replication/mutation proof. Source confirms prepared native cloned-client API exists but encrypted storage composition is not execution-scoped and TRONOASIS lacks IPreparedNativeStorageProvider. Per-physical storage preparation remains an implementation gate, not merely missing live tests. Original journal lacks signed bytes/expiry; absence cannot safely clear/replay it.
+
 Predictive recovery downstream nativeWeb3 refresh completed4/4pass1m25s, zero skips, normal runner exit/teardown; supersedes pending observation below.
 
 Predictive original-provider recovery implemented in Core51f04b7: one owned request probe per DNA health interval, concurrent redirect, failure reschedule, success clear, stale-generation guard. HyperDrive546pass; nativeEthereum186pass57s/59contract assertions includes deterministic-clock redirect recovery through real SDK after explicit endpoint repair. No automatic replay/background transaction. Supersedes earlier absent-owner notes, but not full native concurrency/all-provider/restart/durable/immutable-release certification; Web3 downstream pending here.
