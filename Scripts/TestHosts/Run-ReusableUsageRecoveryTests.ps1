@@ -126,9 +126,18 @@ try{
         }
     }elseif($SuiPreparedLedger -or $SuiPreparedInspect){
         $suiProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests.csproj'
-        $suiFilter=if($SuiCSharpEscrow){'FullyQualifiedName~AdmittedCSharpIdBoundTokenFacadeUsesEncryptedWalletAndOriginalReceipts'}elseif($SuiCSharpAssets){'FullyQualifiedName~SuiAdmittedNftFacadeTests&FullyQualifiedName!~AdmittedCSharpIdBoundTokenFacadeUsesEncryptedWalletAndOriginalReceipts'}elseif($SuiCSharpNft){'FullyQualifiedName~AdmittedCSharpNftFacadeMintsReadsEscrowsTransfersAndBurns'}elseif($ArchiveSuiPrepared){'FullyQualifiedName~ArchiveConfirmedRetainedLocalFixtureWithoutResubmission'}elseif($SuiPreparedInspect){'FullyQualifiedName~InspectRetainedPreparedAttemptsWithoutMutation'}else{'FullyQualifiedName~PreparedLocalWriteRetainsOriginalSignedEvidenceAndConfirmsLedger'}
+        $suiFilter=if($SuiCSharpEscrow){'FullyQualifiedName~AdmittedCSharpIdBoundTokenFacadeUsesEncryptedWalletAndOriginalReceipts'}elseif($SuiCSharpAssets){'FullyQualifiedName~SuiAdmittedNftFacadeTests&FullyQualifiedName!~AdmittedCSharpIdBoundTokenFacadeUsesEncryptedWalletAndOriginalReceipts'}elseif($SuiCSharpNft){'FullyQualifiedName~AdmittedCSharpNftFacadeMintsReadsEscrowsTransfersAndBurns'}elseif($ArchiveSuiPrepared){'FullyQualifiedName~ArchiveConfirmedRetainedLocalFixtureWithoutResubmission'}elseif($SuiPreparedInspect){'FullyQualifiedName~InspectRetainedPreparedAttemptsWithoutMutation'}else{'FullyQualifiedName~PreparedLocalWriteRetainsOriginalSignedEvidenceAndConfirmsLedger|FullyQualifiedName~NativeHttpReservesExecutesAndRecoversWithoutReplay'}
         $suiReport=if($SuiCSharpEscrow){'trx;LogFileName=sui-csharp-escrow-live-current.trx'}elseif($SuiCSharpAssets){'trx;LogFileName=sui-csharp-assets-live-current.trx'}elseif($SuiCSharpNft){'trx;LogFileName=sui-csharp-nft-live-current.trx'}elseif($ArchiveSuiPrepared){'trx;LogFileName=sui-prepared-original-archive-current.trx'}elseif($SuiPreparedInspect){'trx;LogFileName=sui-prepared-inspection-current.trx'}else{'trx;LogFileName=sui-prepared-ledger-current.trx'}
+        $suiStarted=[DateTime]::UtcNow
         & dotnet test $suiProject --no-build --no-restore --filter $suiFilter --logger $suiReport --results-directory (Join-Path $taskRoot 'TestResults/SuiCurrent') -v:q
+        if($LASTEXITCODE -ne 0){throw 'Sui native verification failed; retain original ownership journals.'}
+        if($SuiPreparedLedger -and !$SuiCSharpNft -and !$SuiCSharpEscrow){
+            $report=Get-Item -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/sui-prepared-ledger-current.trx')
+            if($report.LastWriteTimeUtc -lt $suiStarted){throw 'Sui prepared report is stale.'}
+            [xml]$evidence=Get-Content -LiteralPath $report.FullName -Raw
+            $counts=$evidence.TestRun.ResultSummary.Counters
+            if([int]$counts.total -ne 5 -or [int]$counts.passed -ne 5 -or [int]$counts.notExecuted -ne 0){throw 'All5 Sui native prepared/HTTP cases must execute and pass.'}
+        }
     }elseif($MongoV2){
         $routingProject=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
         $routingStarted=[DateTime]::UtcNow
