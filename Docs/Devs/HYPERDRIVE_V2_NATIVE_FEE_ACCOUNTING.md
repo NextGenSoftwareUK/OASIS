@@ -1,5 +1,7 @@
 # HyperDrive V2 native-chain fees and recovery
 
+2026-10-17 Hedera C#per-deposit constructor selection now forwards captured GUID-derived identity/exact invariant decimal amount to existing SDK executor. Original SDK status/transaction/approval validation remains single-owned in HederaSdkClient; provider checks returned units/deposit identity and retains original mutation/actual approval evidence on reply mismatch. Native response lists ordered IDs, never interprets them as fee quotes or token principal as gas. Invalid intent returns terminal payload error before wallet/mirror/paid SDK calls. Ordinary public invocation is not automatically host-sponsored preparation/settlement; paid-query admission/durable host integration remains an explicit open gate.97C#tests prove local mapping/validation, not funded fees or full encrypted-wallet/process/native acceptance. No sponsorship/fee policy or live DNA change.
+
 ## Hedera per-deposit paid-query exposure measured in controlled SDK transport (2026-10-17)
 
 Nine new loopback scenarios run the actual SDK and selected-payment admission. Every released answer payment must match the exact earlier retained signed bytes, payer/node/key and fee ceiling; unused cost/candidate requests are not counted as released payments. Fixture reports cost10tinybars; SDK selects signed payment11tinybars. The amounts below are **synthetic signed query debits, NOT actual charged native fees or a live price estimate**. Mutation signatures carry the existing100,000,000tinybar fee ceiling, not an observed charge.
