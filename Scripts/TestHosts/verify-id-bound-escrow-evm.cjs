@@ -59,12 +59,14 @@ async function main(){
   equal(await escrow.escrowProtocolVersion(),1n);
   await(await token.approve(e,100)).wait();
   if(hts){
+   equal(await escrow.isTokenAssociated(t),false);
    await reject(async()=>{await(await escrow.lock(id,t,25,{gasLimit:500000})).wait();});
    for(const mode of [1,2]){
     await(await token.setAssociationMode(mode)).wait();
     await reject(async()=>{await(await escrow.associateToken(t,{gasLimit:500000})).wait();});
    }
    await(await token.setAssociationMode(0)).wait();await(await escrow.associateToken(t)).wait();
+   equal(await escrow.isTokenAssociated(t),true);
    await reject(()=>escrow.associateToken.staticCall(t));
    await reject(()=>escrow.associateToken.staticCall(e));
    await reject(()=>escrow.associateToken.staticCall(x));

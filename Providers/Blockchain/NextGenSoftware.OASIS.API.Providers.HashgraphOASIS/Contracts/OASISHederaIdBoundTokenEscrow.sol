@@ -12,6 +12,11 @@ interface IHtsDepositAssociation {
 /// @dev Separate ABI/deployment. HTS association is explicit, before approval/deposit.
 /// Native HTS int64 bounds, runtime verification and fees must also be enforced by the SDK.
 contract OASISHederaIdBoundTokenEscrow is OASISTokenEscrow {
+    function isTokenAssociated(address tokenAddress) external view returns (bool) {
+        require(tokenAddress != address(this) && tokenAddress.code.length > 0, "Invalid token");
+        return IHtsDepositAssociation(tokenAddress).isAssociated();
+    }
+
     function associateToken(address tokenAddress) external nonReentrant {
         require(tokenAddress != address(this) && tokenAddress.code.length > 0, "Invalid token");
         IHtsDepositAssociation token = IHtsDepositAssociation(tokenAddress);

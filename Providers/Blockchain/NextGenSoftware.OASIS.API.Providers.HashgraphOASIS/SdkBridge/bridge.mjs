@@ -2,6 +2,8 @@ import { Client, PrivateKey, AccountId, TransactionId, TransferTransaction, Tran
 import { pathToFileURL } from 'node:url';
 import { Mnemonic } from '@hiero-ledger/sdk';
 import { executeEscrow, executeTokenEscrow,verifyDepositorAccount } from './escrow.mjs';
+import { tokenUnits } from './token-amount.mjs';
+export { tokenUnits } from './token-amount.mjs';
 import {AccountInfoQuery} from '@hiero-ledger/sdk';
 import {executeDeployment} from './deployment.mjs';
 import { ContractId, ContractCallQuery, ContractExecuteTransaction } from '@hiero-ledger/sdk';
@@ -171,17 +173,6 @@ async function createClient(request) {
     await client.updateNetwork();
     return client;
   } catch (error) { client.close(); throw error; }
-}
-
-export function tokenUnits(amount, decimals) {
-  if (!Number.isInteger(decimals) || decimals < 0 || decimals > 255 || !/^[0-9]+(?:\.[0-9]+)?$/.test(amount ?? ''))
-    throw new Error('Exact positive decimal token amount and ledger decimals are required.');
-  const [whole, fractional = ''] = amount.split('.');
-  if (fractional.length > decimals && /[1-9]/.test(fractional.slice(decimals)))
-    throw new Error('Token amount exceeds ledger decimal precision.');
-  const units = BigInt(whole + fractional.slice(0, decimals).padEnd(decimals, '0'));
-  if (units <= 0n || units > 9223372036854775807n) throw new Error('Token units must fit positive int64.');
-  return units;
 }
 
 export function nftTransaction(action, request) {
