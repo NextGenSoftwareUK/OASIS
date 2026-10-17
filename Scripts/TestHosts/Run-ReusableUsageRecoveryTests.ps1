@@ -142,7 +142,7 @@ try{
         if($report.LastWriteTimeUtc -lt $started){throw 'Sui unit report is stale.'}
         [xml]$evidence=Get-Content -LiteralPath $report.FullName
         $counts=$evidence.TestRun.ResultSummary.Counters
-        if([int]$counts.total -ne 142 -or [int]$counts.passed -ne 142 -or [int]$counts.notExecuted -ne 0){throw 'Expected142 Sui unit cases must execute and pass.'}
+        if([int]$counts.total -ne 143 -or [int]$counts.passed -ne 143 -or [int]$counts.notExecuted -ne 0){throw 'Expected143 Sui unit cases must execute and pass.'}
     }elseif($HederaPreparedOwners){
         $env:OASIS_HEDERA_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/SdkBridge/bridge.mjs'
         $hederaProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests.csproj'

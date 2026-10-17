@@ -1,5 +1,11 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Sui signed aggregate maximum adapter — 2026-10-17
+
+Sui preparation now uses the existing Core verified-maximum callback when the admitted operation has an explicit aggregate native-fee budget. Both explicit native calls and async-flow storage owners share CreateNativePreparationServer; no second signing or accounting engine is added. The existing official SDK verifier checks original bytes, digest and signer and extracts gasBudgetMist from those same bytes. That value is retained as MIST/AllFees, with no anticipated rebate deduction. Unbudgeted library calls retain their original identity-only callback.
+
+Protocol basis: [Sui gas budgets](https://www.docs.sui.io/develop/transaction-payment/gas-in-sui) cap computation and storage gas fees, including failed execution charging. This bounds transaction fees, not transferred principal or arbitrary contract payments. Core still requires an exact admitted denomination/price and atomically enforces the operation aggregate; the adapter does not invent a quote or authorize spending. Production host policy/registration, live price acceptance and current native aggregate-budget acceptance remain open. Offline signing/persistence evidence is not consensus or hosted billing certification.
+
 ## Opt-in aggregate maximum admission — implemented in Core, not enabled in hosts
 
 Core `acec76f1b886544242b3b34055679c0bb6d23f1e` reuses the existing WEB4 usage reservation and Mongo outbox. Server-owned `UsageEndpointPolicy.MaximumNativeFeeCostUsd` is nullable: absent preserves existing behavior, not sponsorship approval. When present it must be nonnegative and fit `EstimatedCostUsd - FixedCostUsd` before authorization. Other variable API/provider costs still require their own approved forecasts; this is a native-fee sub-budget, not a cap on arbitrary costs.
