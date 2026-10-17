@@ -419,19 +419,18 @@ public class SuiPreparedLedgerTests
                 cleaned=await store.GetAsync(execution.OperationId,deadline.Token);
                 Assert.IsTrue(cleaned.ProviderAttempts.Count>persisted.ProviderAttempts.Count,"Public delete must also be prepared.");
             }
+            var lookupOwner=new PreparedNativeUsageRecoveryResolver(store,new[]{(NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader)provider});
+            Assert.IsTrue(lookupOwner.CanResolve(cleaned));
+            Assert.IsNull(await lookupOwner.ResolveAsync(cleaned,deadline.Token),"Fee lookup must not invent the unknown logical API outcome.");
+            var measured=await store.GetAsync(execution.OperationId,deadline.Token);
+            Assert.IsNull(measured.ObservedOutcome);Assert.AreEqual(cleaned.ProviderAttempts.Count,measured.Receipts.Count);
+            Assert.IsFalse(lookupOwner.CanResolve(measured),"Recorded fees must not trigger another original receipt lookup.");
             foreach(var physicalAttempt in cleaned.ProviderAttempts){
-                var physicalFee=await provider.GetPreparedNativeFeeReceiptAsync(physicalAttempt,deadline.Token);
-                Assert.IsFalse(physicalFee.IsError,physicalFee.Message);
-                Assert.AreEqual(physicalAttempt.ProviderRequestId,physicalFee.Result.GetProperty("transactionHash").GetString());
-                Assert.AreEqual(settings.GetProperty("chainId").GetString(),physicalFee.Result.GetProperty("chainIdentifier").GetString());
-                Assert.AreEqual(settings.GetProperty("address").GetString(),physicalFee.Result.GetProperty("payer").GetString());
-                Assert.IsTrue(physicalFee.Result.GetProperty("success").GetBoolean());
-                Assert.IsFalse(string.IsNullOrWhiteSpace(physicalFee.Result.GetProperty("netUnits").GetString()));
                 Assert.AreEqual(price,physicalAttempt.NativePreparation.PriceQuotes.Single());
-                var valuation=price.ValueOriginalReceipt(physicalAttempt.ProviderRequestId,physicalFee.Result.GetProperty("netUnits").GetString()!);
-                await execution.RecordAsync(new UsageProviderReceipt {ClientRequestId=physicalAttempt.ClientRequestId,Provider="SuiOASIS",
-                    ProviderRequestId=physicalAttempt.ProviderRequestId,Units=1,ActualCostUsd=Math.Max(0,valuation.NetCostUsd),
-                    CostSource="verified-native/synthetic-price",PricingCatalogueVersion="fixture-v1",NativeFeeValuations=new(){valuation}});
+                var receipt=measured.Receipts.Single(receipt=>receipt.ProviderRequestId==physicalAttempt.ProviderRequestId);
+                Assert.AreEqual("verified-sui-net-effects",receipt.CostSource);
+                var valuation=receipt.NativeFeeValuations.Single();
+                Assert.AreEqual(price.ValueOriginalReceipt(physicalAttempt.ProviderRequestId,valuation.NativeNetUnits),valuation);
                 Console.WriteLine(JsonSerializer.Serialize(new{original=physicalAttempt.ProviderRequestId,valuation.NativeNetUnits,valuation.NetCostUsd,valuation.ValuationVersion}));
             }
             // Preserve the known invocation outcome; a confirmed transaction does not turn a lost API reply into success.
