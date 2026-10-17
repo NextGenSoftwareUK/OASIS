@@ -9,8 +9,29 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
 
-public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeStorageProvider
+public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeStorageProvider,
+    NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader
 {
+    string NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader.NativeFeeProvider=>"HashgraphOASIS";
+    string NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader.NativeFeeChainId=>_hederaNetwork;
+    NativeFeeCoverage NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader.DeclaredFeeCoverage=>NativeFeeCoverage.NetFinal;
+
+    /// <summary>Verified indexed parent fees and original query-payment debit only; no query submission,
+    /// current-key substitution, external RPC charge, principal transfer or fiat-price inference.</summary>
+    public async Task<NextGenSoftware.OASIS.Common.OASISResult<PreparedNativeFeeEvidence>> ReadPreparedNativeFeeEvidenceAsync(
+        UsageProviderAttempt original,CancellationToken token=default)
+    {
+        var result=new NextGenSoftware.OASIS.Common.OASISResult<PreparedNativeFeeEvidence>();
+        try{
+            var fee=await GetPreparedNativeFeeReceiptAsync(original,token);
+            if(fee.IsError)return new(){IsError=true,Message=fee.Message,Exception=fee.Exception,ErrorCode=fee.ErrorCode};
+            result.Result=new("HashgraphOASIS",fee.Result.GetProperty("network").GetString(),fee.Result.GetProperty("transactionId").GetString(),
+                fee.Result.GetProperty("payer").GetString(),fee.Result.GetProperty("success").GetBoolean(),NativeFeeCoverage.NetFinal,
+                new[]{new NativeFeeComponent("tinybar",fee.Result.GetProperty("netUnits").GetString())},
+                fee.Result.GetProperty("basis").GetString());
+        }catch(Exception failure){NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,failure.Message,failure);}
+        return result;
+    }
     /// <summary>Trusted host supplies original payer authority, allowed nodes and distinct query/fee caps.
     /// Each actual selected payment is independently verified and retained before transport acknowledgement.</summary>
     public PreparedSubmissionServer CreatePaidQueryPreparationServer(UsageExecutionHandle execution,string clientRequestId,

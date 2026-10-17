@@ -198,6 +198,29 @@ public partial class HederaPreparationTests
                 var invariant=await provider.GetPreparedNativeFeeReceiptAsync(original,deadline.Token);
                 Assert.IsFalse(invariant.IsError,invariant.Message);Assert.AreEqual("128",invariant.Result.GetProperty("netUnits").GetString());
             }finally{System.Globalization.CultureInfo.CurrentCulture=previousCulture;}
+            var reader=(NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader)provider;
+            Assert.AreEqual("HashgraphOASIS",reader.NativeFeeProvider);Assert.AreEqual("testnet",reader.NativeFeeChainId);
+            Assert.AreEqual(NativeFeeCoverage.NetFinal,reader.DeclaredFeeCoverage);
+            mirror.Mode="wrong-debit";
+            var rejected=await reader.ReadPreparedNativeFeeEvidenceAsync(original,deadline.Token);
+            Assert.IsTrue(rejected.IsError);Assert.IsNull(rejected.Result,"Unverified query debit cannot become typed final evidence.");
+            var recovery=new PreparedNativeUsageRecoveryResolver(store,new[]{reader});
+            Assert.IsTrue(recovery.CanResolve(stored));
+            await Assert.ThrowsExceptionAsync<UsageProtocolException>(()=>recovery.ResolveAsync(stored,deadline.Token));
+            Assert.AreEqual(0,(await store.GetAsync(execution.OperationId,deadline.Token)).Receipts.Count);
+            mirror.Mode="success";
+            Assert.IsNull(await recovery.ResolveAsync(stored,deadline.Token),"Native success is not an observed API outcome.");
+            var recovered=await store.GetAsync(execution.OperationId,deadline.Token);
+            Assert.AreEqual(2,recovered.Receipts.Count);
+            foreach(var receipt in recovered.Receipts){
+                Assert.AreEqual(0.00000128m,receipt.ActualCostUsd);
+                Assert.AreEqual("128",receipt.NativeFeeValuations.Single().NativeNetUnits);
+            }
+            var queriesAfterRecovery=mirror.Requests;
+            await store.RecordObservedOutcomeAsync(recovered.Id,recovered.ExecutionOwner,"failed",deadline.Token);
+            var settlement=await recovery.ResolveAsync(await store.GetAsync(execution.OperationId,deadline.Token),deadline.Token);
+            Assert.IsNotNull(settlement);Assert.AreEqual("failed",settlement.Outcome);Assert.AreEqual(0.00000256m,settlement.ActualCostUsd);
+            Assert.AreEqual(queriesAfterRecovery,mirror.Requests,"Retained receipts must prevent repeated mirror lookups.");
         }finally{
             if(!child.HasExited){child.Kill(entireProcessTree:true);await child.WaitForExitAsync();}
             await mongo.DropDatabaseAsync(database);
@@ -208,9 +231,10 @@ public partial class HederaPreparationTests
     {
         public readonly Dictionary<string,string> Hashes=new();
         public string Mode="success";
+        public int Requests;
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
         {
-            token.ThrowIfCancellationRequested();
+            token.ThrowIfCancellationRequested();Requests++;
             Assert.AreEqual("?nonce=0&scheduled=false",request.RequestUri!.Query);
             var pair=Hashes.Single(entry=>{
                 var parts=entry.Key.Split('@');var time=parts[1].Split('.');
