@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Cosmos pending scan expanded to5exact owned physical keys (3records+2identity indexes), journal labels strictly validated. Native read-only1/1pass1s/280indexed transactions/0matches; original outcome still unproven, journal unchanged/container stopped. No mutation/native V2 completion claim.
+
 Shared provider-key validation delta: GUID-keyed five load/delete/parent methods reject malformed/empty GUIDs terminally before reads/listing, original ArgumentException retained and supplied key not echoed. Two red-before/green-after sync/async cases, Shared282/282pass1s. Not other provider formats/native SDK/V2/hosted certification.
 
 V2 shared malformed-record acceptance: local routing112/112pass11s includes six disk-primary avatar/detail/holon corrupt JSON cases with real stale SQLite records, original JSON cause/null/not-loaded and zero secondary requests. Both stores unchanged; controlled disk payload, not native SDK/collection/search/export/durable/hosted proof.
