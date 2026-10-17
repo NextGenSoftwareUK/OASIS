@@ -107,8 +107,10 @@ public class SuiRealPreparationTests
         Assert.IsFalse(provider.IsProviderActivated);
     }
 
-    [TestMethod]
-    public async Task RealSignedEvidenceIsVerifiedThroughCSharpWithoutLedgerSubmission()
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task RealSignedEvidenceIsVerifiedThroughCSharpWithoutLedgerSubmission(bool aggregateBudget)
     {
         var bridge=Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE") ?? Path.Combine(AppContext.BaseDirectory,"SuiSdkBridge","bridge.mjs");
         var start=new ProcessStartInfo("node") {UseShellExecute=false,CreateNoWindow=true,RedirectStandardOutput=true,RedirectStandardError=true,WorkingDirectory=Path.GetDirectoryName(bridge)};
@@ -136,8 +138,14 @@ public class SuiRealPreparationTests
             using var authorityHttp=new HttpClient(new OfflineAuthority(user));
             var authority=new Web4SubscriptionAuthorizationClient(authorityHttp,"https://offline-authority.test","WEB6","test-only-service-key");
             var executor=new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6",PersistenceTimeout=TimeSpan.FromSeconds(5)});
-            var execution=await executor.BeginAsync("test-only-bearer",user,"signed-test-idempotency",new string('a',64),"POST /offline-test",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1},deadline.Token);
+            var execution=await executor.BeginAsync("test-only-bearer",user,"signed-test-idempotency",new string('a',64),"POST /offline-test",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1,
+                EstimatedCostUsd=1m,MaximumNativeFeeCostUsd=aggregateBudget?0.000001m:null},deadline.Token);
             var operationId=execution.OperationId;
+            if(aggregateBudget){
+                var time=DateTime.UtcNow.AddSeconds(-1);
+                execution=execution.WithNativePrices(new[]{new NativeFeePriceQuote(Guid.Parse(operationId),"SuiOASIS","offline-test-chain","MIST","sui",9,
+                    1m,"synthetic-test-price","v1","test-catalogue",time,time,time,time.AddMinutes(5))});
+            }
             var output=child.StandardOutput.ReadToEndAsync(deadline.Token);
             var error=child.StandardError.ReadToEndAsync(deadline.Token);
             await child.WaitForExitAsync(deadline.Token);
@@ -147,6 +155,7 @@ public class SuiRealPreparationTests
             await provider.VerifyOriginalSignedPreparationAsync(signed.RootElement,deadline.Token);
             var bound=JsonSerializer.Deserialize<Dictionary<string,object>>(signed.RootElement.GetRawText())!;
             bound["chainId"]="offline-test-chain";
+            bound["gasBudgetMist"]="0"; // Untrusted JSON must not replace the signed 1000-MIST budget.
             using var boundEvidence=JsonDocument.Parse(JsonSerializer.Serialize(bound));
             using var server=provider.CreateNativePreparationServer(execution,"signed-preparation","offline-test-chain",signed.RootElement.GetProperty("sender").GetString()!);
             var serve=server.ServeAsync(deadline.Token);
@@ -167,6 +176,13 @@ public class SuiRealPreparationTests
             Assert.AreEqual(signed.RootElement.GetProperty("signature").GetString(),persisted.ProviderAttempts[0].NativePreparation.Signature);
             Assert.AreEqual(signed.RootElement.GetProperty("signedTransactionBase64").GetString(),persisted.ProviderAttempts[0].NativePreparation.SignedTransactionBase64);
             Assert.IsNull(persisted.ProviderAttempts[0].AcknowledgedAtUtc,"Preparation must not claim ledger acknowledgement.");
+            Assert.AreEqual(aggregateBudget?0.000001m:0m,persisted.NativeFeeExposureUsd);
+            if(aggregateBudget){
+                var maximum=persisted.ProviderAttempts[0].NativePreparation.FeeMaximums.Single();
+                Assert.AreEqual("1000",maximum.NativeMaximumUnits);
+                Assert.AreEqual("MIST",maximum.Denomination);
+                Assert.AreEqual(NativeFeeMaximumCoverage.AllFees,maximum.Coverage);
+            }else Assert.IsNull(persisted.ProviderAttempts[0].NativePreparation.FeeMaximums);
             var altered=JsonSerializer.Deserialize<Dictionary<string,object>>(signed.RootElement.GetRawText()) ?? throw new InvalidOperationException("Signed test evidence is absent.");
             altered["signature"]="invalid";
             using var invalid=JsonDocument.Parse(JsonSerializer.Serialize(altered));
@@ -184,6 +200,9 @@ public class SuiRealPreparationTests
                 Assert.IsNull(await reader.ReadLineAsync(deadline.Token),"Rejected signed evidence must not receive an acknowledgement.");
             }
             Assert.IsNull(rejectedServer.PreparedTransactionId);
+            if(aggregateBudget){
+                Assert.ThrowsException<UsageProtocolException>(()=>provider.CreateNativePreparationServer(execution,"wrong-chain","different-chain",signed.RootElement.GetProperty("sender").GetString()!));
+            }else{
             using var wrongChainServer=provider.CreateNativePreparationServer(execution,"wrong-chain","different-chain",signed.RootElement.GetProperty("sender").GetString()!);
             var wrongChainServe=wrongChainServer.ServeAsync(deadline.Token);
             using(var pipe=new System.IO.Pipes.NamedPipeClientStream(".",wrongChainServer.Endpoint.Substring(wrongChainServer.Endpoint.LastIndexOf('\\')+1),System.IO.Pipes.PipeDirection.InOut,System.IO.Pipes.PipeOptions.Asynchronous)){
@@ -196,6 +215,7 @@ public class SuiRealPreparationTests
                 Assert.IsNull(await reader.ReadLineAsync(deadline.Token));
             }
             Assert.IsNull(wrongChainServer.PreparedTransactionId);
+            }
             var afterRejection=await store.GetAsync(operationId,deadline.Token);
             Assert.AreEqual(1,afterRejection.ProviderAttempts.Count);
             Assert.AreEqual(persisted.NativePreparationBytes,afterRejection.NativePreparationBytes);

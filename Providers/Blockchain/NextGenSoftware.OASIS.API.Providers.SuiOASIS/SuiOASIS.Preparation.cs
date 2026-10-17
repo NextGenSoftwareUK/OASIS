@@ -77,6 +77,9 @@ public partial class SuiOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.IPrepa
         string clientRequestId, string expectedChainId, string expectedSender)
     {
         if (execution == null) throw new ArgumentNullException(nameof(execution));
+        if(execution.RequiresVerifiedNativeFeeMaximums)
+            return new PreparedSubmissionServer(execution.NativePreparationPersistenceWithVerifiedFeeMaximums(
+                "SuiOASIS",null,clientRequestId,expectedChainId,expectedSender,VerifyOriginalSignedFeeMaximumsAsync));
         return new PreparedSubmissionServer(execution.NativePreparationPersistence(
             "SuiOASIS", null, clientRequestId, expectedChainId, expectedSender, VerifyOriginalSignedPreparationAsync));
     }
@@ -84,6 +87,15 @@ public partial class SuiOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.IPrepa
     /// <summary>Fail-closed callback for original signed identity verification; performs no ledger submission.</summary>
     public async Task VerifyOriginalSignedPreparationAsync(JsonElement preparation, CancellationToken token = default)
         =>_ = await VerifyOriginalSignedIdentityAsync(preparation,token);
+
+    private async Task<NativeFeeMaximum[]> VerifyOriginalSignedFeeMaximumsAsync(JsonElement preparation,CancellationToken token)
+    {
+        var identity=await VerifyOriginalSignedIdentityAsync(preparation,token);
+        // The SDK reads this from the verified original transaction bytes, never caller JSON.
+        // Sui's signed gas budget caps computation and storage fees; do not anticipate rebates.
+        var maximum=new NativeFeeMaximum("MIST",identity.GetProperty("gasBudgetMist").GetString(),NativeFeeMaximumCoverage.AllFees);
+        return new[]{maximum};
+    }
 
     private async Task<JsonElement> VerifyOriginalSignedIdentityAsync(JsonElement preparation,CancellationToken token)
     {
