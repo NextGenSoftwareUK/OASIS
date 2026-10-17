@@ -15,6 +15,45 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 public sealed class TronIndependentPreparedTests(Xunit.Abstractions.ITestOutputHelper output)
 {
     [Fact]
+    public async Task InspectRetainedIndependentOriginalWithoutMutation()
+    {
+        Assert.Equal("ef2843babd111bde2709159e6eaacf2350977cccee738d62d1bcbd8833c46a12",Environment.GetEnvironmentVariable("OASIS_TRON_TEST_OWNED_CONTAINER"));
+        var directory=new DirectoryInfo(AppContext.BaseDirectory);
+        while(directory!=null&&!File.Exists(Path.Combine(directory.FullName,"Scripts/TestHosts/Use-ReusableTronRuntime.ps1")))directory=directory.Parent;
+        Assert.NotNull(directory);var root=directory!.FullName;
+        using var lease=new FileStream(Path.Combine(root,"TestResults/HyperDriveTron/store.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+        var journal=Path.Combine(root,"TestResults/HyperDriveTron/independent-prepared-native-pending.json");
+        string Hash(string path)=>Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path)));
+        const string journalHash="2494A7BBEA823D2E0BE11A2869EDA891A23E1FD64ABABE975F75DDAC5A743070";
+        Assert.Equal(journalHash,Hash(journal));
+        using var intent=JsonDocument.Parse(File.ReadAllText(journal));var data=intent.RootElement;
+        var report=Path.Combine(root,"TestResults/SubscriptionUsageCurrent/tron-independent-prepared-native-current.trx");
+        Assert.Equal("A33263FD3D2015CA6B8F5D0E6BF2044805AD006CE553C5B9EF4315686A96DF39",Hash(report));
+        var xml=System.Xml.Linq.XDocument.Load(report);
+        var stdout=xml.Descendants().Single(x=>x.Name.LocalName=="UnitTestResult").Descendants().Single(x=>x.Name.LocalName=="StdOut").Value;
+        using var retained=JsonDocument.Parse(stdout.Split('\n').Single(x=>x.StartsWith("{\"retainedOriginal\"",StringComparison.Ordinal)));
+        var attempt=retained.RootElement.GetProperty("retainedOriginal").GetProperty("ProviderAttempts").EnumerateArray().Single();
+        var signed=TronNet.Protocol.Transaction.Parser.ParseFrom(Convert.FromBase64String(attempt.GetProperty("NativePreparation").GetProperty("SignedTransactionBase64").GetString()!));
+        const string original="42a6d77bad2fa29cc59f51d84123687f93ae07005a5dd5c21c7e218290e23bea";
+        Assert.Equal(original,Convert.ToHexString(SHA256.HashData(Google.Protobuf.MessageExtensions.ToByteArray(signed.RawData))).ToLowerInvariant());
+        Assert.True(signed.RawData.Expiration>signed.RawData.Timestamp);
+        var expiredByHostClock=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds()>signed.RawData.Expiration;
+        await using var runtime=new TronSdkRuntime(new Uri("http://127.0.0.1:50051"),new Uri("http://127.0.0.1:50052"),data.GetProperty("genesis").GetString()!,contractFeeLimitSun:100000000);
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(45));
+        var provider=new TRONOASIS(rpcEndpoint:"http://127.0.0.1:9090",nativeTransfers:runtime.NativeTransfers);
+        var status=await provider.GetTransactionStatusAsync(original,deadline.Token);
+        Assert.False(status.IsError,status.Message);
+        var fee=await provider.GetNativeFeeReceiptAsync(original,deadline.Token);
+        using var storage=new TronPrivateStorageBackend(runtime.NativeTransfers,data.GetProperty("owner").GetString()!,data.GetProperty("contract").GetString()!,
+            ()=>throw new InvalidOperationException("Read-only inspection must never request a signing key."),
+            ()=>SHA256.HashData(Encoding.UTF8.GetBytes("public reusable local TRON encryption fixture")));
+        var value=await ((IKeyValueBackend)storage).GetAsync(data.GetProperty("key").GetString()!,deadline.Token);
+        output.WriteLine(JsonSerializer.Serialize(new{original,status=status.Result.ToString(),feeAvailable=!fee.IsError,feeError=fee.Message,keyPresent=value!=null,
+            signed.RawData.Timestamp,signed.RawData.Expiration,signed.RawData.FeeLimit,expiredByHostClock,replacementAuthorized=false}));
+        Assert.Equal(journalHash,Hash(journal));
+    }
+
+    [Fact]
     public async Task IndependentPrivateKeyRetainsOriginalPermissionAndSolidifiedFees()
     {
         Assert.Equal("ef2843babd111bde2709159e6eaacf2350977cccee738d62d1bcbd8833c46a12",Environment.GetEnvironmentVariable("OASIS_TRON_TEST_OWNED_CONTAINER"));
