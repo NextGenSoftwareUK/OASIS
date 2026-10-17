@@ -1,5 +1,13 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Shared WEB4 data/search acquisition (2026-10-17)
+
+SearchController used the same pre-routing BootLoader activation pattern as DataController. Both now call one host-owned `Helpers/AdmittedStorageManagerAcquisition.TryCreate`, using lazy DNA/current-provider/factory delegates. Outside trusted scope it returns false without evaluating any callback; this selects the specified ordinary acquisition mode, not a catch-and-retry fallback. Inside scope it requires configured V2 before provider selection, forwards the exact DNA/provider to the manager factory and rejects a null result or closed inherited scope. Original factory exceptions propagate; no BootLoader retry/secondary activation engine exists. Actual manager constructor activation remains deferred by the prior central Core fix.
+
+Six source-linked helper cases cover ordinary non-evaluation, missing/non-V2 configuration, exact one-time callback selection, original error/null-result refusal and closed-flow refusal before callbacks. Together with428existing provider-execution cases434/434pass1s/0skip. WEB4 build0errors/255warnings. These are helper/constructor unit tests plus compilation, not authenticated HTTP or real native acceptance. No new SDK, environment, quote fetch, native fee or hosted policy activation. This helper does not create usage reservations, authorized signing policies or price catalogues: HTTP composition still must supply them.
+
+Remaining controller scan findings (not implementation claims): Keys, EOSIO, Holochain, ONET, ONODE and HyperDriveSync retain explicit BootLoader activation calls. Each needs operation-specific admission ownership before native fees can be certified. Do not indiscriminately replace dedicated-native endpoints with storage routing or treat helper use in Data/Search as every-route coverage. Legacy gaps remain documentation-only; no expansion of legacy HyperDrive implementation.
+
 ## Manager/controller activation ownership (2026-10-17)
 
 Source trace found a pre-routing fee boundary not covered by direct router tests: `OASISManager.ConfigureStorageProvider` activated providers during V2 manager construction, and WEB4 DataController lazy acquisition explicitly called BootLoader GetAndActivate before constructing HolonManager. Native activation can contain paid prerequisite queries (notably Hedera), so a later prepared routing owner cannot retroactively admit them.
