@@ -15,16 +15,14 @@ public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.
         string clientRequestId,string expectedSender,CancellationToken token=default)
     {
         token.ThrowIfCancellationRequested();ArgumentNullException.ThrowIfNull(operation);ArgumentNullException.ThrowIfNull(execution);
-        if(string.IsNullOrWhiteSpace(clientRequestId)||clientRequestId.Length>110)
-            throw new ArgumentException("Storage correlation must leave room for bounded write sequence suffix.",nameof(clientRequestId));
+        var correlation=new NativeStorageCorrelation(clientRequestId);
         ArgumentException.ThrowIfNullOrWhiteSpace(expectedSender);
-        var sequence=0;
         return ((ConfiguredHederaStorageBackend)Backend).WithPreparationAsync(operation,expectedSender,
             (network,sender,publicKey,id)=>{
                 token.ThrowIfCancellationRequested();
                 if(network!=_hederaNetwork||sender!=expectedSender)
                     throw new InvalidDataException("Prepared Hedera storage identity differs from admitted network/operator.");
-                return CreateNativePreparationServer(execution,clientRequestId+".storage."+Interlocked.Increment(ref sequence),
+                return CreateNativePreparationServer(execution,correlation.Next(),
                     network,sender,publicKey,id);
             },token);
     }

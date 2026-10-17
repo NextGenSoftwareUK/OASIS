@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 shared correlation fix295unitpass/4providerbuilds/Cosmos139ownedpass plus final focused admitted boundary1pass2s reuses same SDK/build dirs/Mongo27029. Final initializer179ms, normal exact synthetic outbox cleanup and service stop. No native chain node/start/submit, no original protected journal mutation, installs/downloads/new environments or per-run copies. Fixed reports retained/overwritten; source/credentials/runtimes/ledgers preserved.
+
 2026-10-16 Azure search visibility baseline73pass4fail47s then final77pass46s reused retained Azurite/SDK/containers/64MB in-memory runtime. No new database files or runtime/environment/download/install; existing exact owned container cleanup/service stop normal, current TRX overwritten. New fixtures are synthetic IDs within existing owned containers, not user/cloud data. No broad filesystem or protected chain ledger deletion.
 
 2026-10-16 retained Ethereum31337 verification186tests/59contract assertions/4shared native cases allpass; same pinned solc0.8.26/Node/runtime/dependencies/build dirs, no installs/downloads/clones/new environments/public-chain funds. Fixed current reports overwritten, owned local node stopped and18545closed. Free79887077376before/79885348864after. No material filesystem deletion or protected Cosmos/TRON/Solana ledger changes; source/keys/reusable runtimes preserved.

@@ -41,13 +41,11 @@ public partial class CosmosBlockChainOASIS : NextGenSoftware.OASIS.API.Core.Inte
         token.ThrowIfCancellationRequested();
         ArgumentNullException.ThrowIfNull(operation);
         ArgumentNullException.ThrowIfNull(execution);
-        if (string.IsNullOrWhiteSpace(clientRequestId) || clientRequestId.Length > 128)
-            throw new ArgumentException("Bounded storage client request identity required.", nameof(clientRequestId));
+        var correlation=new NativeStorageCorrelation(clientRequestId);
         if (string.IsNullOrWhiteSpace(expectedSender)) throw new ArgumentException("Expected storage signer required.", nameof(expectedSender));
-        var sequence = 0;
         return await _sdkBackend.WithStoragePreparationAndCancellationAsync(operation, (_, _) => {
             token.ThrowIfCancellationRequested();
-            return CreateNativePreparationServer(execution, clientRequestId + ".storage." + Interlocked.Increment(ref sequence),
+            return CreateNativePreparationServer(execution, correlation.Next(),
                 _sdkBackend.ChainId, expectedSender);
         },token);
     }

@@ -249,6 +249,16 @@ public class CosmosPreparationTests
             await child.WaitForExitAsync(deadline.Token);Assert.AreEqual(0,child.ExitCode);Assert.AreEqual("",await error);
             using var signed=JsonDocument.Parse(await output);
             using var provider=new CosmosBlockChainOASIS("http://127.0.0.1:1");
+            var operationEntered=false;
+            foreach(var length in new[]{110,128}){
+                await Assert.ThrowsExceptionAsync<ArgumentException>(()=>provider.ExecutePreparedStorageAsync(()=>{
+                    operationEntered=true;return Task.FromResult(true);
+                },execution,new string('x',length),signed.RootElement.GetProperty("sender").GetString()!,deadline.Token));
+            }
+            Assert.IsFalse(operationEntered,"Invalid correlation must reject before operation entry/signing.");
+            Assert.AreEqual(0,(await store.GetAsync(execution.OperationId,deadline.Token)).ProviderAttempts.Count);
+            Assert.IsTrue(await provider.ExecutePreparedStorageAsync(()=>Task.FromResult(true),execution,new string('x',109),
+                signed.RootElement.GetProperty("sender").GetString()!,deadline.Token));
             await provider.VerifyOriginalSignedPreparationAsync(signed.RootElement,deadline.Token);
             using var server=provider.CreateNativePreparationServer(execution,"signed-attempt","offline-test-chain",signed.RootElement.GetProperty("sender").GetString()!);
             var serving=server.ServeAsync(deadline.Token);

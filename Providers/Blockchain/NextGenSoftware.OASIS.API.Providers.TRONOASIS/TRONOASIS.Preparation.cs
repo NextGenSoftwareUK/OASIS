@@ -3,6 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS;
 
@@ -13,12 +14,10 @@ public partial class TRONOASIS : IPreparedNativeStorageProvider
         string clientRequestId,string expectedSender,CancellationToken token=default)
     {
         token.ThrowIfCancellationRequested();ArgumentNullException.ThrowIfNull(operation);ArgumentNullException.ThrowIfNull(execution);
-        if(string.IsNullOrWhiteSpace(clientRequestId)||clientRequestId.Length>110)
-            throw new ArgumentException("Storage correlation must leave room for bounded write sequence suffix.",nameof(clientRequestId));
+        var correlation=new NativeStorageCorrelation(clientRequestId);
         ArgumentException.ThrowIfNullOrWhiteSpace(expectedSender);
-        var sequence=0;
         return ((TronProviderStorageBackend)Backend).WithPreparedStorageAsync(operation,
             client=>client.WithAccountPreparation(execution,
-                ()=>clientRequestId+".storage."+Interlocked.Increment(ref sequence),expectedSender,token),token);
+                correlation.Next,expectedSender,token),token);
     }
 }
