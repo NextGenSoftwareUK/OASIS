@@ -27,7 +27,32 @@ public class HederaMirrorStatusTests
     [DataRow("CONTRACT_REVERT_EXECUTED", BridgeTransactionStatus.Failed)]
     [DataRow("INSUFFICIENT_TX_FEE", BridgeTransactionStatus.InsufficientFundsForFee)]
     public void VerifiedIdentityUsesExistingReceiptClassification(string status, BridgeTransactionStatus expected)
-        => Assert.AreEqual(expected, Map($"{{\"transactions\":[{{\"transaction_id\":\"0.0.1001-1700000000-000000001\",\"result\":\"{status}\"}}]}}"));
+        => Assert.AreEqual(expected, Map("{\"transactions\":[" + Row(status) + "]}"));
+
+    private static string Row(string status, int nonce = 0, bool scheduled = false, string parent = "null")
+        => $$"""
+        {"transaction_id":"0.0.1001-1700000000-000000001","result":"{{status}}",
+        "nonce":{{nonce}},"scheduled":{{scheduled.ToString().ToLowerInvariant()}},"parent_consensus_timestamp":{{parent}}}
+        """;
+
+    [DataTestMethod]
+    [DataRow(1, false, "null")]
+    [DataRow(0, true, "null")]
+    [DataRow(0, false, "\"1700000000.000000002\"")]
+    public void ChildOrScheduledSuccessCannotEstablishOriginalParentOutcome(int nonce, bool scheduled, string parent)
+        => Assert.ThrowsException<TargetInvocationException>(() => Map("{\"transactions\":[" + Row("SUCCESS", nonce, scheduled, parent) + "]}"));
+
+    [TestMethod]
+    public void DuplicateSubmissionsDoNotReplaceOriginalFailure()
+    {
+        var duplicate = Row("DUPLICATE_TRANSACTION");
+        var original = Row("CONTRACT_REVERT_EXECUTED");
+        foreach (var rows in new[] { duplicate + "," + original, original + "," + duplicate })
+            Assert.AreEqual(BridgeTransactionStatus.Failed, Map("{\"transactions\":[" + rows + "]}"));
+        Assert.ThrowsException<TargetInvocationException>(() => Map("{\"transactions\":[" + duplicate + "]}"));
+        Assert.ThrowsException<TargetInvocationException>(() => Map("{\"transactions\":[" + original + "," + Row("SUCCESS") + "]}"));
+        Assert.ThrowsException<TargetInvocationException>(() => Map("{\"transactions\":[" + Row("INVENTED") + "]}"));
+    }
     [DataTestMethod]
     [DataRow("{\"transactions\":[]}")]
     [DataRow("{\"transactions\":[{\"transaction_id\":\"different\",\"result\":\"SUCCESS\"}]}")]
