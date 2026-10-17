@@ -476,9 +476,12 @@ public sealed class TronNativeTransferClient
         // Preserve DEFAULT/missing VM results as unknown, never infer successful execution from them.
         var execution = (int)receipt.Result != 0 ? receipt.Result.ToString()
             : contractExecution ? receipt.Receipt?.Result.ToString() ?? "Unknown" : "Success";
+        var memo=Core.Helpers.NativeWalletMemo.FromBytes(transaction.RawData.Data.Span);
         return new Core.Interfaces.Wallet.Response.WalletTransaction
         {
             NativeTransactionId = Convert.ToHexString(receipt.Id.Span).ToLowerInvariant(),
+            Token=amountUnit.StartsWith("TRC10-RAW/",StringComparison.Ordinal)?amountUnit:"TRX",
+            ProviderType=Core.Enums.ProviderType.TRONOASIS,MemoText=memo.Text,MemoBase64=memo.Base64,
             RawAmount = amount.ToString(System.Globalization.CultureInfo.InvariantCulture), AmountUnit = amountUnit, NativeOperation = contract.Type.ToString(),
             NativeExecutionResult = execution, NativeError = receipt.ResMessage.IsEmpty ? null : receipt.ResMessage.ToStringUtf8(),
             FromWalletAddress = Address(from),

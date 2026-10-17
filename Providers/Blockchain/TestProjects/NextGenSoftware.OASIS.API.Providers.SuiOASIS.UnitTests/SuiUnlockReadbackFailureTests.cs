@@ -8,6 +8,19 @@ public class SuiUnlockReadbackFailureTests
 {
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
+    public async Task HistoryMetadataPreservesCoinIdentityAndDoesNotInventAMemo(bool monetary)
+    {
+        await WithProcessFixture(async provider=>{
+            var history=await provider.GetTransactionsAsync(new Core.Objects.Wallet.Requests.GetWeb3TransactionsRequest {
+                WalletAddress=monetary?"fixture-coin":"fixture-object"});
+            Assert.IsFalse(history.IsError,history.Message);var row=history.Result.Single();
+            Assert.AreEqual(monetary?"0x2::sui::SUI":null,row.Token);
+            Assert.AreEqual(Core.Enums.ProviderType.SuiOASIS,row.ProviderType);
+            Assert.IsNull(row.MemoText);Assert.IsNull(row.MemoBase64);
+        });
+    }
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
     public async Task NativeBridgeErrorsPreserveOriginalReconciliationIdentity(bool deposit)
     {
         await WithProcessFixture(async provider=>{
