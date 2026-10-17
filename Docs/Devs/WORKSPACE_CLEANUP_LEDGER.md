@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 TRON native read-only refresh reused exact pinned retained container/ledger/SDK; no launcher/config rewrite. Native1/1pass2s, original txNotFound/avatarpresent/detailabsent, SHA9A6B6E580DB63E5F20A91D9A345430FA72670CC041B278E3B44E00BD0FDEBAEE unchanged. Normal exact-container stopexited143/oom=false. No transaction broadcast/install/download/new environment/reset/replay or protected journal/source/userdata removal. Fixed compact TRX overwritten. Historical submitted=false report does not establish non-submission.
+
 2026-10-16 predictive recovery implementation reused Core/provider build outputs, fixed unit reports and retained Ethereum local runtime. HyperDrive546unit/nativeEthereum186/59contract/nativeWeb3 4 passed; normal owned node stop. Runner free77336518656before/77334114304after bytes systemwide only. No download/install/new environment/public gas/native pending-journal removal. Unrelated dirty subscription source preserved, not staged; no clean-release/immutable claim. Fixed compact reports overwritten.
 
 2026-10-16 same-instance Ethereum reactivation reused retained local chain/SDK/cache/fixed reports and normal runner teardown:186native/59contract/4Web3 passed. Free77344317440before/77338750976after bytes systemwide only. No install/download/clone/new environment/public gas or protected journal/ledger/source/userdata removal. Fixed reports overwritten, synthetic fixture cleanup owned by runner.
