@@ -994,6 +994,28 @@ public sealed partial class HyperDriveProviderExecutionTests
     }
 
     [Fact]
+    public async Task AdmittedV2ManagerConstructionCannotActivateBeforeRouting()
+    {
+        var dna=CreateDna(HyperDriveModes.V2);var providers=new ProviderManager(null,dna);
+        var provider=CreateActiveProvider(ProviderType.SQLLiteDBOASIS,"deferred-sqlite");
+        provider.SetupGet(x=>x.IsProviderActivated).Returns(false);
+        var execution=new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.UsageExecutionHandle(
+            new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.UsageOutboxOperation(),
+            Mock.Of<NextGenSoftware.OASIS.API.Core.Services.Subscriptions.IUsageOutboxStore>(),
+            new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.Web4UsageLedgerOptions(),
+            new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.SubscriptionAuthorizationResult(),
+            Mock.Of<NextGenSoftware.OASIS.API.Core.Services.Subscriptions.IUsageReservationAuthority>());
+        var policy=new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.PreparedStorageExecution(execution,"constructor",new Dictionary<ProviderType,string>(),new[]{ProviderType.SQLLiteDBOASIS});
+        await policy.RunAsync(()=>{
+            var manager=new HolonManager(provider.Object,dna,providers);
+            providers.GetStorageProvider(ProviderType.SQLLiteDBOASIS).Should().BeSameAs(provider.Object);
+            provider.Verify(x=>x.ActivateProvider(),Times.Never);
+            provider.Verify(x=>x.ActivateProviderAsync(),Times.Never);
+            manager.OASISDNA.Should().BeSameAs(dna);return Task.FromResult(true);
+        });
+    }
+
+    [Fact]
     public void InjectedManagerRegistersItsProviderOnlyInItsOwnRuntime()
     {
         var dna = CreateDna(HyperDriveModes.V2);
