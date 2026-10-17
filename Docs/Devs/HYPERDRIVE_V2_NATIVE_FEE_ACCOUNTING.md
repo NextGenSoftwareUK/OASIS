@@ -1,5 +1,11 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Real non-native routing attribution under inherited admission (2026-10-17)
+
+The existing four-case Mongo/SQLite matrix now exercises inherited preparation through actual provider instances, not preflight-only objects: sync/async and both primary directions. Its helper creates a controlled reservation authority plus real Mongo outbox, deactivates both real stores, then runs a write and two typed explicit-provider reads inside `PreparedStorageExecution.RunAsync`. Primary and replica activation/write complete; independent typed reads return the saved value. Reconstructed outbox contains four unique attempts (primary, replica, two reads), correct first-two provider ordering and no fabricated measurement/receipt. An empty permitted-provider policy rejects a typed read and adds no attempt. This verifies shared scope dispatch for typed requests as well as manager-style storage requests.
+
+The existing end-of-matrix real SQLite missing-table outage is also wrapped in the inherited policy. The helper checks durable SQLite-attempt then Mongo-attempt ordering, distinct correlations, successful Mongo readback via the original fixture and no invented receipt. It reuses the already-owned disposable SQLite/Mongo fixture; it does not induce a second outage, create another environment or reset a native ledger. Test-only authority does not perform production authentication or permit settlement: its settlement method explicitly throws. Attempt attribution is NOT actual usage measurement, native fees, paid billing or hosted admission. Real blockchain execution/quoted native receipt attribution and host policy creation remain separate required gates.
+
 ## Shared trusted routing propagation (2026-10-17)
 
 Core `b3fdc66d03a493927e7782d9a2135e9bc1b2df5d` adds `PreparedStorageExecution.RunAsync<T>(Func<Task<T>>)` for trusted host composition AFTER authorization and quote binding. It carries the existing policy in one async-flow scope, so managers need no per-method HTTP dependency or duplicated provider logic. The host must await ALL work within the delegate. This does not reserve budget, fetch a quote, choose signing authority, register a reader or enable sponsored execution.

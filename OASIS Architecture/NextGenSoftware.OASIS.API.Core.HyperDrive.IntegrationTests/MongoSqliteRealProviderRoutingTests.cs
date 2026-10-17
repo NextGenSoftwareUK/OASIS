@@ -65,6 +65,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             await VerifyCredentialReplicationAsync(mongo,sqlite,synchronous,mongoPrimary);
             await VerifyCredentialRoutingPoliciesAsync(mongo,sqlite,synchronous);
             (await sqlite.ActivateProviderAsync()).IsError.Should().BeFalse();
+            await VerifyInheritedPreparedRoutingAsync(uri,databaseName,mongo,sqlite,synchronous,mongoPrimary);
             var deletionId=Guid.NewGuid(); var deletingActor=Guid.NewGuid();
             (await mongo.SaveAvatarAsync(new Avatar {Id=deletionId,Username="owned tombstone primary",IsActive=true,DeletedByAvatarId=deletingActor,AvatarType=new EnumValue<AvatarType>(AvatarType.User)})).IsError.Should().BeFalse();
             (await mongo.SaveAvatarDetailAsync(new AvatarDetail {Id=deletionId,Username="owned tombstone primary",IsActive=true,XP=57,Karma=29})).IsError.Should().BeFalse();
@@ -1721,7 +1722,7 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             using (var control = new DataContext($"Data Source={dbPath};Pooling=False")) control.Database.ExecuteSqlRaw("DROP TABLE Holon;");
             var fallbackHolon = new Holon { Id = Guid.NewGuid(), Name = "real-mongo-fallback" };
             var fallbackRequest = new StorageOperationRequest { Operation = "SaveHolon", Payload = fallbackHolon, SaveChildren = false };
-            var fallback = synchronous ? router.RouteRequest<IHolon>(fallbackRequest) : await router.RouteRequestAsync<IHolon>(fallbackRequest);
+            var fallback = await VerifyInheritedPreparedFallbackAsync(uri,databaseName,router,fallbackRequest,synchronous);
             fallback.IsError.Should().BeFalse(fallback.Message);
             (await mongo.LoadHolonAsync(fallbackHolon.Id,loadChildren:false)).Result.Name.Should().Be(fallbackHolon.Name);
             manager.LastFailoverDiagnostic.SelectedProvider.Should().Be(ProviderType.MongoDBOASIS);
