@@ -11,6 +11,20 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 public sealed class TronNativeFeeTests
 {
     [Fact]
+    public void EnergyFeeLimitDoesNotTruncateBandwidthOrOtherChargedFees()
+    {
+        var (tx,receipt,_)=Fixture();
+        tx.RawData.FeeLimit=7;
+        var id=ByteString.CopyFrom(SHA256.HashData(tx.RawData.ToByteArray()));receipt.Id=id;
+        receipt.Fee=12;receipt.Receipt.EnergyFee=7;receipt.Receipt.NetFee=3;
+        var mapped=Map(tx,receipt,id);
+        Assert.Equal("12",mapped.GetProperty("netUnits").GetString());
+        var components=mapped.GetProperty("components");
+        Assert.Equal("7",components.GetProperty("energyFee").GetString());
+        Assert.Equal("3",components.GetProperty("bandwidthFee").GetString());
+        Assert.Equal("2",components.GetProperty("otherFee").GetString());
+    }
+    [Fact]
     public void PermissionUpdateFeeRetainsExactOriginalOwnerAndTotal()
     {
         var (tx,receipt,_) = Fixture();
