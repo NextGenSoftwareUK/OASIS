@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Sui public C# NFT batch now native-proven through existing admitted owner: CSharpAssets3/3pass1m37s,0skips covers single NFT, fungible token and2-object batch. Batch validates distinct object/metadata IDs, first alias, each metadata/escrow/ownership/burn, exact9durable signed attempts and bound receipts, non-owner rejection for both objects. Existing5NFT+7token attempts also reconfirmed. Shared fixture/runtime/wallet/Mongo reused; fixed latest NFT report is batch, TRX retains all cases. Not all mint options/off-chain URI/hosted authorization or fiat settlement certification.
+
 Sui C# NFT ownership boundary refreshed on retained native chain: CSharpNFT1/1pass24s, no skips. Four admitted unauthorized requests (recipient-before-transfer and former-owner-after-transfer, each send+burn) reject before signed-attempt persistence; object owner readback unchanged. Existing valid5native operations/receipt binding still pass. Shared fixture, retained recipient/runtime and synthetic authority reused; no hosted authorization or production billing claim. No shipping change needed, no additional installation/download/environment.
 
 Sui C# admitted asset matrix2/2nativepass48s: prior NFT scenario plus token mint/transfer/escrow/partial+remaining burns, exact public decimal balances and restored native treasury supply. Token7/NFT5 distinct signed attempts/receipts; precision preflight0attempts. Shared fixture/retained recipient/environment reused, both journals clear after evidence retained and no blind initial-balance cleanup. Not hosted billing/all option/authorization/interface certification.
