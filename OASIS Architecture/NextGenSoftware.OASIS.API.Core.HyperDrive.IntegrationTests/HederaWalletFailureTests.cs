@@ -43,6 +43,10 @@ public sealed class HederaWalletFailureTests
     [InlineData(false,"nft-burn",true)] [InlineData(true,"nft-burn",true)]
     [InlineData(false,"nft-lock",true)] [InlineData(true,"nft-lock",true)]
     [InlineData(false,"nft-unlock",true)] [InlineData(true,"nft-unlock",true)]
+    [InlineData(false,"nft-mint",false)] [InlineData(true,"nft-mint",false)]
+    [InlineData(false,"nft-recipient-id",false)] [InlineData(true,"nft-recipient-id",false)]
+    [InlineData(false,"nft-recipient-username",false)] [InlineData(true,"nft-recipient-username",false)]
+    [InlineData(false,"nft-recipient-email",false)] [InlineData(true,"nft-recipient-email",false)]
     [InlineData(false,"escrow-create",true)] [InlineData(true,"escrow-create",true)]
     public async Task CorruptStoredSigningWalletRetainsOriginalFailureBeforeSdkUse(bool synchronous, string selector, bool sui)
     {
@@ -67,7 +71,7 @@ public sealed class HederaWalletFailureTests
         {
             if(sui&&selector.StartsWith("nft-",StringComparison.Ordinal))Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",
                 Path.Combine(directory.FullName,"Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests/Fixtures/unlock-readback-failure.mjs"));
-            if (selector is "username" or "email") foreach (var pair in new[] { (sender, "hedera-failure-sender"), (recipient, "hedera-failure-recipient") }) {
+            if (selector is "username" or "email" or "nft-recipient-username" or "nft-recipient-email") foreach (var pair in new[] { (sender, "hedera-failure-sender"), (recipient, "hedera-failure-recipient") }) {
                 Assert.Null((await local.LoadAvatarAsync(pair.Item1)).Result);
                 var saved = await local.SaveAvatarAsync(new Core.Holons.Avatar { Id = pair.Item1, Username = pair.Item2,
                     Email = pair.Item2 + "@example.invalid", IsActive = true });
@@ -81,9 +85,9 @@ public sealed class HederaWalletFailureTests
             var wallets = (WalletManager)constructor.Invoke(new object?[] { local, dna, providers, null });
             await File.WriteAllTextAsync(path, corruptFixture);
             var walletProvider = cosmos ? ProviderType.CosmosBlockChainOASIS : sui ? ProviderType.SuiOASIS : ProviderType.HashgraphOASIS;
-            var expected = selector == "username"
+            var expected = selector.EndsWith("username",StringComparison.Ordinal)
                 ? await wallets.GetAvatarDefaultWalletByUsernameAsync("hedera-failure-sender", showPrivateKeys: true, providerType: walletProvider)
-                : selector == "email"
+                : selector.EndsWith("email",StringComparison.Ordinal)
                 ? await wallets.GetAvatarDefaultWalletByEmailAsync("hedera-failure-sender@example.invalid", walletProvider, showPrivateKeys: true)
                 : await wallets.GetAvatarDefaultWalletByIdAsync(sender, walletProvider, showPrivateKeys: true);
             Assert.True(expected.IsError); Assert.NotNull(expected.Exception);
@@ -132,10 +136,15 @@ public sealed class HederaWalletFailureTests
             async Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>> Nft(){
                 NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.NFT.Responses.IWeb3NFTTransactionResponse> response;
                 var locator=sui?"0x"+new string('3',64):"fixture-contract#fixture-token";
-                if(selector=="nft-mint"){
+                if(selector=="nft-mint"||selector.StartsWith("nft-recipient-",StringComparison.Ordinal)){
                     var request=new Core.Objects.NFT.Requests.MintWeb3NFTRequest{MintedByAvatarId=sender};
+                    if(!cosmos&&!sui){request.CollectionPublicKey="0.0.3001";request.JSONMetaDataURL="https://example.invalid/original.json";}
+                    if(selector=="nft-recipient-id")request.SendToAvatarAfterMintingId=sender;
+                    if(selector=="nft-recipient-username")request.SendToAvatarAfterMintingUsername="hedera-failure-sender";
+                    if(selector=="nft-recipient-email")request.SendToAvatarAfterMintingEmail="hedera-failure-sender@example.invalid";
                     response=sui?synchronous?suiProvider.MintNFT(request):await suiProvider.MintNFTAsync(request)
-                        :synchronous?cosmosProvider.MintNFT(request):await cosmosProvider.MintNFTAsync(request);
+                        :cosmos?synchronous?cosmosProvider.MintNFT(request):await cosmosProvider.MintNFTAsync(request)
+                        :synchronous?hedera.MintNFT(request):await hedera.MintNFTAsync(request);
                 }else if(selector=="nft-burn"){
                     var request=new Core.Objects.NFT.Requests.BurnWeb3NFTRequest{BurntByAvatarId=sender,NFTTokenAddress=locator,OwnerPrivateKey="",OwnerPublicKey="",OwnerSeedPhrase=""};
                     response=sui?synchronous?suiProvider.BurnNFT(request):await suiProvider.BurnNFTAsync(request)
