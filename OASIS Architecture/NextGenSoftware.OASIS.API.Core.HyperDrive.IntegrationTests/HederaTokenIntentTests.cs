@@ -32,6 +32,7 @@ public sealed class HederaTokenIntentTests
     [InlineData(false,false,"cosmos")] [InlineData(true,false,"cosmos")] [InlineData(false,true,"cosmos")] [InlineData(true,true,"cosmos")]
     [InlineData(false,false,"cosmos-nft")] [InlineData(true,false,"cosmos-nft")]
     [InlineData(false,false,"sui-nft")] [InlineData(true,false,"sui-nft")]
+    [InlineData(false,false,"hedera-nft")] [InlineData(true,false,"hedera-nft")]
     public async Task MintBurnCaptureOriginalIntentBeforeEncryptedWalletAwait(bool synchronous,bool burn,string chain)
     {
         var cosmos=chain.StartsWith("cosmos",StringComparison.Ordinal);
@@ -77,13 +78,15 @@ public sealed class HederaTokenIntentTests
             var nftRequest=new Core.Objects.NFT.Requests.MintWeb3NFTRequest {MintedByAvatarId=avatar,Title=sui?"identity/wallet":"NFT original",
                 Price=12.5m,Discount=2m,RoyaltyPercentage=7,MemoText="mint memo",NumberToMint=1,SendToAddressAfterMinting="fixture-owner",
                 MetaData=new(){{"canary","original"}},Tags=new(){"original"},Image=new byte[]{1,2},Thumbnail=new byte[]{3,4}};
+            if(nft&&!cosmos&&!sui){nftRequest.CollectionPublicKey="0.0.3001";nftRequest.RoyaltyPercentage=0;
+                nftRequest.JSONMetaDataURL="https://example.invalid/original.json";nftRequest.SendToAddressAfterMinting="0.0.1001";}
             OASISResult<ITransactionResponse> MapNft(OASISResult<Core.Interfaces.NFT.Responses.IWeb3NFTTransactionResponse> value){
                 var mapped=Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.NFT.Responses.IWeb3NFTTransactionResponse,ITransactionResponse>(value);
                 mapped.Result=value.Result;return mapped;
             }
-            OASISResult<ITransactionResponse> Run()=>nft?MapNft(sui?suiProvider.MintNFT(nftRequest):cosmosProvider.MintNFT(nftRequest)):
+            OASISResult<ITransactionResponse> Run()=>nft?MapNft(sui?suiProvider.MintNFT(nftRequest):cosmos?cosmosProvider.MintNFT(nftRequest):provider.MintNFT(nftRequest)):
                 cosmos?burn?cosmosProvider.BurnToken(burning):cosmosProvider.MintToken(mint):burn?provider.BurnToken(burning):provider.MintToken(mint);
-            async Task<OASISResult<ITransactionResponse>> RunAsync()=>nft?MapNft(await(sui?suiProvider.MintNFTAsync(nftRequest):cosmosProvider.MintNFTAsync(nftRequest))):
+            async Task<OASISResult<ITransactionResponse>> RunAsync()=>nft?MapNft(await(sui?suiProvider.MintNFTAsync(nftRequest):cosmos?cosmosProvider.MintNFTAsync(nftRequest):provider.MintNFTAsync(nftRequest))):
                 await(cosmos?burn?cosmosProvider.BurnTokenAsync(burning):cosmosProvider.MintTokenAsync(mint):burn?provider.BurnTokenAsync(burning):provider.MintTokenAsync(mint));
             pending=synchronous?Task.Run(Run):RunAsync();
             await local.Reached.Task.WaitAsync(TimeSpan.FromSeconds(5));Assert.False(pending.IsCompleted);
@@ -100,9 +103,10 @@ public sealed class HederaTokenIntentTests
             if(cosmos)Assert.Equal(new string('a',64),result.Result.TransactionResult);else if(sui)Assert.Equal(new string('1',32),result.Result.TransactionResult);else Assert.StartsWith("0.0.1001@",result.Result.TransactionResult);
             if(nft){
                 var minted=((Core.Interfaces.NFT.Responses.IWeb3NFTTransactionResponse)result.Result).Web3NFT;
-                Assert.Equal(sui?"identity/wallet":"NFT original",minted.Title);Assert.Equal(12.5m,minted.Price);Assert.Equal(7,minted.RoyaltyPercentage);
+                Assert.Equal(sui?"identity/wallet":"NFT original",minted.Title);Assert.Equal(12.5m,minted.Price);Assert.Equal(cosmos||sui?7:0,minted.RoyaltyPercentage);
                 Assert.Equal("original",minted.MetaData["canary"]);Assert.Equal("original",minted.Tags[0]);
-                Assert.Equal((byte)1,minted.Image[0]);Assert.Equal((byte)3,minted.Thumbnail[0]);Assert.Equal("fixture-owner",minted.SendToAddressAfterMinting);
+                Assert.Equal((byte)1,minted.Image[0]);Assert.Equal((byte)3,minted.Thumbnail[0]);
+                Assert.Equal(cosmos||sui?"fixture-owner":"0.0.1001",minted.SendToAddressAfterMinting);
             }
             Assert.Equal(encrypted,(await local.LoadProviderWalletsForAvatarByIdAsync(avatar)).Result[walletProvider][0].PrivateKey);
             Assert.False(provider.IsProviderActivated);

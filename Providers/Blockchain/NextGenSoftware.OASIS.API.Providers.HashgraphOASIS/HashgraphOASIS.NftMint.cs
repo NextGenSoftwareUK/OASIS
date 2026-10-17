@@ -53,6 +53,7 @@ public partial class HashgraphOASIS
         {
             ArgumentNullException.ThrowIfNull(request);
             cancellationToken.ThrowIfCancellationRequested();
+            request = NftMintIntent.Capture(request);
             var tokenId = request.CollectionPublicKey;
             if (!System.Text.RegularExpressions.Regex.IsMatch(tokenId ?? "", @"\A[0-9]+\.[0-9]+\.[1-9][0-9]*\z"))
                 throw new ArgumentException("CollectionPublicKey must identify an existing HTS NFT token.");
@@ -123,6 +124,7 @@ public partial class HashgraphOASIS
                 NFTTokenAddress = tokenId + "/" + serials[0], CollectionPublicKey = tokenId, MintTransactionHash = mintId,
                 NFTStandardType = new EnumValue<Core.Enums.NFTStandardType>(Core.Enums.NFTStandardType.HederaHTS),
                 NFTMintedUsingWalletAddress = wallet.WalletAddress, MintedByAvatarId = request.MintedByAvatarId,
+                SendToAddressAfterMinting = targets.FirstOrDefault() ?? wallet.WalletAddress,
                 Title = request.Title, Description = request.Description, JSONMetaData = request.JSONMetaData,
                 JSONMetaDataURL = request.JSONMetaDataURL, Image = request.Image, ImageUrl = request.ImageUrl,
                 Thumbnail = request.Thumbnail, ThumbnailUrl = request.ThumbnailUrl, Tags = request.Tags,
