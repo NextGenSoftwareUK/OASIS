@@ -36,7 +36,7 @@ using static NextGenSoftware.Utilities.KeyHelper;
 
 namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
 {
-    public partial class SuiOASIS : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISSmartContractProvider, IOASISNFTProvider, IDisposable
+    public partial class SuiOASIS : NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.KeyValueStorageProviderBase, IOASISNETProvider, IOASISBlockchainStorageProvider, IOASISIdBoundTokenEscrowProvider, IOASISSmartContractProvider, IOASISNFTProvider, IDisposable
     {
         private readonly string _privateKey;
         private readonly string _contractAddress;

@@ -3,11 +3,23 @@ let input='';for await(const chunk of process.stdin)input+=chunk;
 const request=JSON.parse(input);let result;
 switch(request.operation){
  case 'tokenEscrowLock':
+ case 'tokenEscrowRelease': {
+  const releasing=request.operation==='tokenEscrowRelease';
   if(request.depositId!=='e9633e93c317a2759f2c757ef61a67e8fae6f739cb86fedc9cba54be2d8681de'
-   ||request.amountUnits!=='1230000000'||request.fromWalletAddress!=='fixture-owner'
+   ||(!releasing&&request.amountUnits!=='1230000000')||request.fromWalletAddress!=='fixture-owner'
    ||request.escrowObjectId!=='0x'+'2'.repeat(64))throw new Error('Original escrow intent changed');
+  if(process.env.OASIS_SUI_ESCROW_FIXTURE_STATE){
+   if(request.privateKey!=='test-only-explicit')throw new Error('Default encrypted wallet signer was not used');
+   const fs=await import('node:fs');const path=process.env.OASIS_SUI_ESCROW_FIXTURE_STATE;
+   const state=JSON.parse(fs.readFileSync(path,'utf8'));
+   if(releasing&&(!state.deposit||state.deposit.released))throw new Error('Original active deposit required');
+   state.submissions++;state.deposit={depositId:request.depositId,amount:'1230000000',released:releasing};
+   fs.writeFileSync(path,JSON.stringify(state));
+  }else if(releasing)throw new Error('Release requires controlled stored-wallet fixture state');
   result={transactionHash:'1'.repeat(32),depositId:request.depositId,amountUnits:request.privateKey==='test-only-bad-reply'?'1':request.amountUnits,
-   owner:'fixture-owner',released:false,escrowObjectId:request.escrowObjectId};break;
+   owner:'fixture-owner',released:releasing,escrowObjectId:request.escrowObjectId};
+  if(releasing)result.amountUnits='1230000000';break;
+ }
  case 'history':result=[{digest:'controlled-history',amountUnits:'0',coinType:request.walletAddress==='fixture-coin'?'0x2::sui::SUI':null,
   recipients:[],sender:request.walletAddress,walletAddress:request.walletAddress,success:true,decimals:9,timestampMs:1700000000000}];break;
  case 'tokenSend':
