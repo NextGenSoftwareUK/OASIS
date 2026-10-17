@@ -17,6 +17,7 @@ internal sealed class HederaStorageBackend : IKeyValueBackend
     private readonly long _gas;
     private readonly Dictionary<string, string> _nodes;
     private readonly Func<string,string,string,string,PreparedSubmissionServer> _preparation;
+    private readonly CancellationToken _scopeToken;
 
     internal HederaStorageBackend(string network, string contractId, string sender, string keyType,
         Func<string> privateKey, long gas, long maxFeeTinybars, IDictionary<string, string> nodes = null)
@@ -24,9 +25,9 @@ internal sealed class HederaStorageBackend : IKeyValueBackend
 
     internal HederaStorageBackend(string network,string contractId,string sender,string keyType,
         Func<string> privateKey,long gas,long maxFeeTinybars,IDictionary<string,string> nodes,
-        Func<string,string,string,string,PreparedSubmissionServer> preparation)
+        Func<string,string,string,string,PreparedSubmissionServer> preparation,CancellationToken scopeToken=default)
     {
-        _preparation=preparation;
+        _preparation=preparation;_scopeToken=scopeToken;
         if (network != "mainnet" && network != "testnet" && network != "previewnet" && network != "local")
             throw new ArgumentException("An explicit Hedera network is required.");
         if (keyType != "der" && keyType != "ed25519" && keyType != "ecdsa")
@@ -52,6 +53,8 @@ internal sealed class HederaStorageBackend : IKeyValueBackend
     private async Task<JsonElement> InvokeAsync(string action, string key, string value, string prefix, bool mutation,
         CancellationToken cancellationToken)
     {
+        using var linked=CancellationTokenSource.CreateLinkedTokenSource(cancellationToken,_scopeToken);
+        cancellationToken=linked.Token;
         cancellationToken.ThrowIfCancellationRequested();
         var secret = _privateKey();
         if (string.IsNullOrWhiteSpace(secret)) throw new InvalidOperationException("Hedera storage signing key is unavailable.");

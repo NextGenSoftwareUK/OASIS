@@ -16,11 +16,12 @@ public partial class HederaPreparationTests
     [DataRow(false)] [DataRow(true)]
     [DataRow(false,true,false)] [DataRow(true,true,false)]
     [DataRow(false,true,true)] [DataRow(true,true,true)]
-    public async Task AdmittedEncryptedStoragePersistsOriginalBeforeControlledSubmission(bool rejectPersistence,bool routed=false,bool synchronous=false)
+    [DataRow(false,false,false,true)]
+    public async Task AdmittedEncryptedStoragePersistsOriginalBeforeControlledSubmission(bool rejectPersistence,bool routed=false,bool synchronous=false,bool cancelQuery=false)
     {
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
-        var names=new[]{"OASIS_HEDERA_SDK_BRIDGE","OASIS_HEDERA_STORAGE_TEST_REAL_BRIDGE","OASIS_HEDERA_STORAGE_TEST_SUBMISSIONS"};
+        var names=new[]{"OASIS_HEDERA_SDK_BRIDGE","OASIS_HEDERA_STORAGE_TEST_REAL_BRIDGE","OASIS_HEDERA_STORAGE_TEST_SUBMISSIONS","OASIS_HEDERA_STORAGE_TEST_HOLD_QUERY_FILE"};
         var prior=names.ToDictionary(x=>x,Environment.GetEnvironmentVariable);
         Assert.IsFalse(string.IsNullOrWhiteSpace(prior[names[0]]),"Retained real SDK bridge required.");
         var directory=new DirectoryInfo(AppContext.BaseDirectory);
@@ -48,6 +49,20 @@ public partial class HederaPreparationTests
                 ContractId="0.0.2001",OperatorAccountId="0.0.1001",SigningKeyType="ecdsa",
                 SigningKeyResolver=()=>new string('0',63)+"1",EncryptionKeyResolver=()=>new byte[32],
                 GasLimit=100000,MaxFeeTinybars=100000000});
+            if(cancelQuery){
+                var ready=log+".ready";Assert.IsFalse(File.Exists(ready),"Preserve unexpected query fixture evidence.");
+                Environment.SetEnvironmentVariable(names[3],ready);
+                using var cancellation=CancellationTokenSource.CreateLinkedTokenSource(deadline.Token);
+                var read=provider.ExecutePreparedStorageAsync(()=>provider.LoadHolonAsync(Guid.NewGuid(),loadChildren:false),
+                    execution,"cancel-query","0.0.1001",cancellation.Token);
+                while(!File.Exists(ready))await Task.Delay(25,deadline.Token);
+                cancellation.Cancel();
+                var cancelled=await read.WaitAsync(TimeSpan.FromSeconds(5));
+                Assert.IsTrue(cancelled.IsError);Assert.IsInstanceOfType<OperationCanceledException>(cancelled.Exception);
+                Assert.AreEqual(0,File.ReadAllLines(log).Length);
+                Assert.AreEqual(0,(await store.GetAsync(execution.OperationId,deadline.Token)).ProviderAttempts.Count);
+                File.Delete(ready);completed=true;return;
+            }
             var manager=new ProviderManager(null,new OASISDNA {OASIS=new() {HyperDriveMode=HyperDriveModes.V2,
                 StorageProviders=new(),SubscriptionConfig=new() {PlanType="Gold"}}}) {IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=false};
             manager.RegisterProvider(provider);var router=new OASISHyperDrive(manager);
