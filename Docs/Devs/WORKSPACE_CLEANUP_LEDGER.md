@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 expanded Cosmos pending-key inspection reused exact retained wasmd/SDK/environment and fixed reports. Native read-only1/1pass1s,5exact record/index keys across280transactions/0matches. Pending SHA unchanged9B5A15110B0F21FEF8FCA6D2CE215859EEBC8944E9F1F83733CACE90892DEA81; node then verified idle-container shutdown, finalexited. No install/download/clone/new environment/ledger reset/replay/source/userdata/credential removal; fixed compact report overwritten.
+
 2026-10-16 GUID provider-key validation reused shared outputs/in-memory backend. Two baseline failures retained in provider-key-before-current.trx; finalShared282/282pass1s. No runtime/node/download/install/clone/new environment or protected ledger/source/userdata/credential removal; fixed compact reports reused.
 
 2026-10-16 SQLite/Neo4j verification refresh reused fixed SQLite fixtures, retained Neo4j container/SDK and existing build/report paths. SQLite422/422pass30s/Neo4j62/62pass36s, normal synthetic fixture disposal; Neo4j authoritative state exited. No install/download/clone/new environment or protected ledger/source/userdata/credential removal. Neo4j runner C free78487150592before/78485544960after bytes is systemwide observation only. Fixed compact reports overwritten.
