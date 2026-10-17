@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Shared provider-key validation delta: GUID-keyed five load/delete/parent methods reject malformed/empty GUIDs terminally before reads/listing, original ArgumentException retained and supplied key not echoed. Two red-before/green-after sync/async cases, Shared282/282pass1s. Not other provider formats/native SDK/V2/hosted certification.
+
 V2 shared malformed-record acceptance: local routing112/112pass11s includes six disk-primary avatar/detail/holon corrupt JSON cases with real stale SQLite records, original JSON cause/null/not-loaded and zero secondary requests. Both stores unchanged; controlled disk payload, not native SDK/collection/search/export/durable/hosted proof.
 
 Shared stored decode delta: canonical stored-record decoder now used at shared read boundary; malformed avatar/detail/holon JSON yields terminal InvalidDataException with original JsonException. Six red-before/green-after cases, Shared280/280pass1s. No new parser/migration or native/V2/hosted proof.
