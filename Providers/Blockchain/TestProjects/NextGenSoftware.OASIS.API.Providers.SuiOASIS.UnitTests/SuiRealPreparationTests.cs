@@ -125,7 +125,8 @@ public class SuiRealPreparationTests
             """);
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(15));
         using var child=Process.Start(start) ?? throw new InvalidOperationException("Cannot start retained signing SDK.");
-        const string connection="mongodb://127.0.0.1:27017/?serverSelectionTimeoutMS=3000";
+        const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"),"Use the exclusive retained owned replica, not a user Mongo service.");
         var database="usage_sui_signed_test_"+Guid.NewGuid().ToString("N");
         var mongo=new MongoDB.Driver.MongoClient(connection);
         var store=new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.MongoUsageOutboxStore(connection,database);

@@ -185,7 +185,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 foreach(var property in record.Properties().ToList())
                 {
                     if(new[] {"Password","JwtToken","RefreshToken","RefreshTokens","ResetToken","VerificationToken",
-                        "PrivateKey","PrivateKeys","ProviderPrivateKeys","SecretKey","SigningKey","Mnemonic","SeedPhrase"}
+                        "PrivateKey","PrivateKeys","ProviderPrivateKeys","SecretKey","SigningKey","Mnemonic","SeedPhrase","SecretRecoveryPhrase"}
                         .Contains(property.Name,StringComparer.OrdinalIgnoreCase)) property.Remove();
                     else RemoveSearchCredentials(property.Value);
                 }
