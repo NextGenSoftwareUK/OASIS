@@ -530,7 +530,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 OASISDNA.OASIS.StorageProviders.SuiOASIS.StorageObjectId ?? "",
                                 OASISDNA.OASIS.StorageProviders.SuiOASIS.CurrencyObjectId ?? "",
                                 storageEncryptionKeyResolver: () => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend.ResolveEnvironmentKey(
-                                    suiStorageKeyVariable));
+                                    suiStorageKeyVariable),
+                                tokenEscrow: SuiEscrowConfiguration.Create(OASISDNA.OASIS.StorageProviders.SuiOASIS));
                             suiProvider.OnStorageProviderError += SuiOASIS_StorageProviderError;
                             result.Result = suiProvider;
                         }
