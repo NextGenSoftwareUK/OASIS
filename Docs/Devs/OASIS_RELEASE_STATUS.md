@@ -2,6 +2,8 @@
 
 ## Current acceptance summary
 
+2026-10-17 02:25 UTC: Exact merged-master CI38992920097 SUCCESS at b9b477ea98a71f719748aeab4288cbcb17e1a2cd. Dispatched full global38994882617 from master with publish=false, full NuGet packing (not plan-only), All/Automatic, OASIS/STAR, Native/MCP, standalone Edge, both OGEngine profiles and Edge Unity; optional components none. Await integrated result before claiming proof. No duplicate publication or live deployment approval; Claude's canonical dependency pins remain preserved.
+
 2026-10-17 01:55 UTC: PR491 exactf838ecbbf2d52eb351761ae306d04fd038011a52 completed all applicable checks, including Edge validation, with no failures. Reviewed repair/receipt/IPFS changes and concurrent security cleanup5dc64dc76; normally merged with exact-head matching, no admin/force bypass. Security cleanup removes committed chain/explorer credentials from current files but NOT Git history: owner must rotate those exposed credentials; no values reproduced in this status. Next exact merged-master CI then full nonpublishing global proof. Previous planner success alone remains insufficient.
 
 2026-10-16 23:40 UTC: Hosted planner-only38981342158 SUCCESS on the selected-publication receipt/dependency repair, after exact4c4 CI passed. No packing/publication; unselected components intentionally skipped. Requested standard trusted-master promotion of the repaired Development graph through a new checked parent candidate. Prior PR489/490 remain merged and must not be remerged. Full integrated nonpublishing master workflow is still required after this promotion.
