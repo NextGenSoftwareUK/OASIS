@@ -49,7 +49,7 @@ public class TronPreparedStorageTests
             "synthetic-offline-price","fixture-v1","fixture-v1",time,time,time,time.AddMinutes(5));}
         if(!rejectPersistence){execution=execution.WithNativePrices(new[]{Price(execution)});if(other!=null)other=other.WithNativePrices(new[]{Price(other)});}
         var broadcasts=0;var originalId=ByteString.Empty;
-        var feeLookups=0;
+        var feeLookups=0;var accountQueries=0;
         var submitted=new System.Collections.Concurrent.ConcurrentDictionary<ByteString,Transaction>();
         string Selector(string signature)=>new Nethereum.Util.Sha3Keccack().CalculateHash(signature)[..8].ToUpperInvariant();
         byte[] Encode(string[] types,params object[] values)=>(byte[])typeof(TronStorageBackend)
@@ -61,7 +61,13 @@ public class TronPreparedStorageTests
             .AddMethod(TronPermissionRpcTests.Rpc(WalletSolidity.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),
                 (NumberMessage _,ServerCallContext _)=>Task.FromResult(new BlockExtention {Blockid=block}))
             .AddMethod(TronPermissionRpcTests.Rpc(WalletSolidity.Descriptor.FullName,"GetAccount",Account.Parser,Account.Parser),
-                (Account request,ServerCallContext _)=>Task.FromResult(new Account {Address=request.Address}))
+                (Account request,ServerCallContext _)=>{
+                    Interlocked.Increment(ref accountQueries);
+                    var account=new Account {Address=request.Address,Balance=123,AccountName=ByteString.CopyFromUtf8("unrelated private account metadata"),
+                        OwnerPermission=new Permission {Id=0,Threshold=1}};
+                    account.OwnerPermission.Keys.Add(new TronNet.Protocol.Key {Address=request.Address,Weight=1});
+                    return Task.FromResult(account);
+                })
             .AddMethod(TronPermissionRpcTests.Rpc(Wallet.Descriptor.FullName,"TriggerConstantContract",TriggerSmartContract.Parser,TransactionExtention.Parser),
                 (TriggerSmartContract request,ServerCallContext _)=>{
                     var selector=Convert.ToHexString(request.Data.ToByteArray()[..4]);byte[] payload;
@@ -92,6 +98,11 @@ public class TronPreparedStorageTests
                     if(other!=null)attempts=attempts.Concat((await store.GetAsync(other.OperationId,deadline.Token)).ProviderAttempts);
                     var attempt=Assert.Single(attempts.Where(x=>x.ProviderRequestId==Convert.ToHexString(originalId.ToByteArray()).ToLowerInvariant()));
                     Assert.Equal(Convert.ToBase64String(request.ToByteArray()),attempt.NativePreparation.SignedTransactionBase64);
+                    var authority=attempt.NativePreparation.SigningAuthority;
+                    Assert.Equal("tron-account-permissions-v1",authority.Scheme);
+                    var originalAccount=Account.Parser.ParseFrom(Convert.FromBase64String(authority.EvidenceBase64));
+                    Assert.Equal(ByteString.CopyFrom(address),originalAccount.Address);Assert.Equal(0,originalAccount.Balance);
+                    Assert.True(originalAccount.AccountName.IsEmpty);Assert.Equal(1,originalAccount.OwnerPermission.Threshold);
                     var price=Assert.Single(attempt.NativePreparation.PriceQuotes);
                     Assert.Equal("TRONOASIS",price.Provider);Assert.Equal(genesis,price.ChainId);Assert.Equal("SUN",price.Denomination);
                     Assert.Equal(Guid.Parse(other!=null&&attempt.ClientRequestId.StartsWith("right.",StringComparison.Ordinal)?other.OperationId:execution.OperationId),price.OperationId);
@@ -167,7 +178,8 @@ public class TronPreparedStorageTests
             Assert.Equal(rejectPersistence?1:2,retained.ProviderAttempts.Count);
             if(!rejectPersistence){
                 var prepared=retained.ProviderAttempts[0];
-                var fee=await provider.GetPreparedNativeFeeReceiptAsync(prepared,new Account {Address=ByteString.CopyFrom(address)},deadline.Token);
+                var authorityQueries=accountQueries;
+                var fee=await provider.GetPreparedNativeFeeReceiptAsync(prepared,deadline.Token);
                 Assert.False(fee.IsError,fee.Message);
                 Assert.Equal(prepared.ProviderRequestId,fee.Result.GetProperty("transactionHash").GetString());
                 Assert.Equal("17",fee.Result.GetProperty("netUnits").GetString());
@@ -179,6 +191,7 @@ public class TronPreparedStorageTests
                 var wrongHash=await provider.GetPreparedNativeFeeReceiptAsync(substituted,new Account {Address=ByteString.CopyFrom(address)},deadline.Token);
                 Assert.True(wrongHash.IsError);Assert.IsType<System.IO.InvalidDataException>(wrongHash.Exception);
                 Assert.Equal(beforeRejected,feeLookups);
+                Assert.Equal(authorityQueries,accountQueries);
                 Assert.Equal(expectedBroadcasts,broadcasts);
             }
             var flags=BindingFlags.Instance|BindingFlags.NonPublic;

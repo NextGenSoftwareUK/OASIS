@@ -9,6 +9,19 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS;
 
 public partial class TRONOASIS : IPreparedNativeStorageProvider
 {
+    /// <summary>Read-only recovery using the original pre-submission permission snapshot.</summary>
+    public async Task<NextGenSoftware.OASIS.Common.OASISResult<System.Text.Json.JsonElement>> GetPreparedNativeFeeReceiptAsync(
+        UsageProviderAttempt attempt,CancellationToken token=default)
+    {
+        var result=new NextGenSoftware.OASIS.Common.OASISResult<System.Text.Json.JsonElement>();
+        await _runtimeLifecycle.WaitAsync(token);
+        try{
+            EnsureNativeRuntime();
+            result.Result=await _nativeTransfers.GetPreparedNativeFeeReceiptAsync(attempt,token);
+        }catch(Exception failure){NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,failure.Message,failure);}
+        finally{_runtimeLifecycle.Release();}
+        return result;
+    }
     /// <summary>Read-only recovery using independently verified permission authority for the original
     /// transaction. Does not fetch current permissions as a substitute for historical authority.</summary>
     public async Task<NextGenSoftware.OASIS.Common.OASISResult<System.Text.Json.JsonElement>> GetPreparedNativeFeeReceiptAsync(
