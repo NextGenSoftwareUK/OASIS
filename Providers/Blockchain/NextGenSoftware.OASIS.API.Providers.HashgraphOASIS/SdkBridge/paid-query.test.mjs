@@ -170,9 +170,9 @@ for(const cap of ['123','135'])test(`actual file-read bridge enforces explicit $
   const key=PrivateKey.generateED25519();
   try{
     const operation=execute('fileRead',{network:'local',nodes:{['127.0.0.1:'+port]:'0.0.3'},sender:'0.0.1001',privateKey:key.toStringDer(),keyType:'der',
-      fileId:'0.0.2001',maxFeeTinybars:'100000000',queryMaxPaymentTinybars:cap,queryMaxTransactionFeeTinybars:'100000000',queryPersistenceTimeoutMs:3000},
+      fileId:'0.0.2001',maxFeeTinybars:'1',queryMaxPaymentTinybars:cap,queryMaxTransactionFeeTinybars:'100000000',queryPersistenceTimeoutMs:3000},
       undefined,async evidence=>{assert.equal(evidence.queryPaymentTinybars,'135');admitted++;}).catch(error=>{throw error.cause??error;});
-    if(cap==='123'){await assert.rejects(operation,/exceeds admitted node\/payment authority/);assert.equal(admitted,0);assert.equal(answers,0);}
+    if(cap==='123'){await assert.rejects(operation,error=>error.name==='MaxQueryPaymentExceededError'&&error.queryCost.toTinybars().toString()==='135');assert.equal(admitted,0);assert.equal(answers,0);}
     else{const response=await operation;assert.equal(response.contents,'controlled bridge read');assert.equal(answers,1);assert.equal(admitted,1);}
   }finally{server.forceShutdown();}
 });

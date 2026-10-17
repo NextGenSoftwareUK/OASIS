@@ -77,7 +77,7 @@ public partial class HederaPreparationTests
                 .BeginAsync("test-only-bearer",user,"query-grpc",new string('a',64),"POST /fixture",new(){MeterCategory="api.request",ReservedUnits=1},deadline.Token);
             var provider=new HashgraphOASIS(network:"local",rpcEndpoint:$"http://127.0.0.1:{port}/api/v1",consensusNodes:new Dictionary<string,string>{{"127.0.0.1:"+port,"0.0.3"}});
             var operation=provider.ExecutePreparedWithQueriesAsync("fileRead",new {network="local",nodes=new Dictionary<string,string>{{"127.0.0.1:"+port,"0.0.3"}},
-                sender="0.0.1001",privateKey=new string('1',64),keyType="ed25519",fileId="0.0.2001",maxFeeTinybars="100000000",
+                sender="0.0.1001",privateKey=new string('1',64),keyType="ed25519",fileId="0.0.2001",maxFeeTinybars="1",
                 queryMaxPaymentTinybars="999999999999",queryMaximumRequests=512},execution,new string('p',128),"0.0.1001",publicKey,new[]{"0.0.3"},135,100000000,maximumRequests:2,token:deadline.Token);
             var paymentEvent=child.StandardOutput.ReadLineAsync(deadline.Token).AsTask();
             if(await Task.WhenAny(paymentEvent,operation)==operation)await operation;
