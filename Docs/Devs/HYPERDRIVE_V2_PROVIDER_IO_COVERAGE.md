@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Shared root-version acceptance: Shared264/264pass1s includes two provider-level search cases requiringVersion1 child through independently currentVersion2 parent (no historic parentVersion1), direct-only exclusion retained. Not a point-in-time graph/native/V2/hosted proof.
+
 Shared search validation delta: validation-only failures now terminal HYPERDRIVE_PAYLOAD_INVALID with original cause before I/O, separate from data-failure handling. Shared262/262pass1s includes two sync/async five-invalid-input cases/zero list calls. Not native/V2 routing/hosted certification.
 
 Shared/SQLite V2 search delta: full local routing106/106pass11s includes sync/async actual disk/shared and SQLite Version-number AND text/ownership/metadata query pairs, distinct expected identities/exact+1 metrics each under Gold. Initial fixture version/default-Free assumptions corrected, production eligibility unchanged. Not native Vercel/chain search/all-strategy/durable/hosted proof.

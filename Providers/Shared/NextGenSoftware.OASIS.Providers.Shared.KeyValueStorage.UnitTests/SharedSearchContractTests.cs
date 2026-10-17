@@ -13,6 +13,20 @@ public class SharedSearchContractTests
 {
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
+    public async Task ExplicitRootVersionUsesCurrentIndependentParentVersions(bool synchronous)
+    {
+        var provider=new TestProvider(new InMemoryBackend());var grandparent=Guid.NewGuid();var parent=Guid.NewGuid();var child=Guid.NewGuid();
+        Assert.IsFalse((await provider.SaveHolonAsync(new Holon {Id=parent,Version=2,ParentHolonId=grandparent,Name="ancestor"},saveChildren:false)).IsError);
+        Assert.IsFalse((await provider.SaveHolonAsync(new Holon {Id=child,Version=1,ParentHolonId=parent,Name="selected child"},saveChildren:false)).IsError);
+        var query=new SearchParams {SearchOnlyForCurrentAvatar=false,ParentId=grandparent,Recursive=true,SearchGroups=new List<ISearchGroupBase> {
+            new SearchTextGroup {SearchHolons=true,HolonType=HolonType.All,SearchQuery="selected"}}};
+        var result=synchronous ? provider.Search(query,loadChildren:false,version:1):await provider.SearchAsync(query,loadChildren:false,version:1);
+        Assert.IsFalse(result.IsError,result.Message);Assert.AreEqual(1,result.Result.NumberOfResults);Assert.AreEqual(child,result.Result.SearchResultHolons[0].Id);
+        Assert.AreEqual(1,result.Result.SearchResultHolons[0].Version);
+        query.Recursive=false;result=await provider.SearchAsync(query,loadChildren:false,version:1);Assert.IsFalse(result.IsError,result.Message);Assert.AreEqual(0,result.Result.NumberOfResults);
+    }
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
     public async Task InvalidSearchIsTerminalBeforeBackendAccess(bool synchronous)
     {
         var backend=new InMemoryBackend();var provider=new TestProvider(backend);
