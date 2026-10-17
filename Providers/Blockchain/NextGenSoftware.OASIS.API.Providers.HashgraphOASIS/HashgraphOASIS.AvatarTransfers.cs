@@ -27,7 +27,9 @@ public partial class HashgraphOASIS
             var to = byEmail
                 ? await WalletManager.GetAvatarDefaultWalletByEmailAsync(recipient, Core.Enums.ProviderType.HashgraphOASIS)
                 : await WalletManager.GetAvatarDefaultWalletByUsernameAsync(recipient, providerType: Core.Enums.ProviderType.HashgraphOASIS);
-            if (from.IsError || to.IsError || from.Result == null || to.Result == null)
+            if (from.IsError || to.IsError)
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet, ITransactionResponse>(from.IsError ? from : to);
+            if (from.Result == null || to.Result == null)
                 throw new InvalidOperationException("Could not resolve the avatars' Hedera default wallets.");
             return await SendTokenAsync(new SendWeb3TokenRequest {
                 FromWalletAddress = from.Result.WalletAddress, ToWalletAddress = to.Result.WalletAddress,
