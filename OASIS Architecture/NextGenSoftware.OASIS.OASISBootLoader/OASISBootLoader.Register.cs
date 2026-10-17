@@ -406,7 +406,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                  storageOwnerAddress: OASISDNA.OASIS.StorageProviders.TRONOASIS.StorageOwnerAddress,
                                  storageSigningKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.StorageSigningKeyEnvironmentVariable,
                                  storageEncryptionKeyEnvironmentVariable: OASISDNA.OASIS.StorageProviders.TRONOASIS.StorageEncryptionKeyEnvironmentVariable,
-                                 contractFeeLimitSun: OASISDNA.OASIS.StorageProviders.TRONOASIS.ContractFeeLimitSun);
+                                 contractFeeLimitSun: OASISDNA.OASIS.StorageProviders.TRONOASIS.ContractFeeLimitSun,
+                                 idBoundEscrow: TronEscrowConfiguration.Create(OASISDNA.OASIS.StorageProviders.TRONOASIS.IdBoundTokenEscrow));
                                 tronProvider.OnStorageProviderError += TRONOASIS_StorageProviderError;
                                 result.Result = tronProvider;
                                 break;
