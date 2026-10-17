@@ -96,7 +96,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 ContractId = tokenEscrowConfiguration.ContractId,
                 RuntimeCodeHash = tokenEscrowConfiguration.RuntimeCodeHash,
                 GasLimit = tokenEscrowConfiguration.GasLimit,
-                MaxFeeTinybars = tokenEscrowConfiguration.MaxFeeTinybars
+                MaxFeeTinybars = tokenEscrowConfiguration.MaxFeeTinybars,
+                Protocol = tokenEscrowConfiguration.Protocol
             };
             _hederaNetwork = network;
             this.ProviderName = "HashgraphOASIS";
