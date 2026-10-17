@@ -91,20 +91,22 @@ public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.
         }catch(Exception failure){NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,failure.Message,failure);}
         return result;
     }
-    /// <summary>Own each physical encrypted-storage mutation; does not admit, bill or recover the execution.</summary>
+    /// <summary>Own every physical encrypted-storage invocation, including paid reads and mutations.
+    /// Admission, pricing and settlement remain the host/Core responsibility.</summary>
     public Task<T> ExecutePreparedStorageAsync<T>(Func<Task<T>> operation,UsageExecutionHandle execution,
         string clientRequestId,string expectedSender,CancellationToken token=default)
     {
         token.ThrowIfCancellationRequested();ArgumentNullException.ThrowIfNull(operation);ArgumentNullException.ThrowIfNull(execution);
         var correlation=new NativeStorageCorrelation(clientRequestId);
         ArgumentException.ThrowIfNullOrWhiteSpace(expectedSender);
-        return ((ConfiguredHederaStorageBackend)Backend).WithPreparationAsync(operation,expectedSender,
-            (network,sender,publicKey,id)=>{
+        var backend=(ConfiguredHederaStorageBackend)Backend;
+        var query=backend.QueryPreparation;
+        return backend.WithInvocationAsync(operation,expectedSender,
+            (action,request,publicKey,invocationToken)=>{
                 token.ThrowIfCancellationRequested();
-                if(network!=_hederaNetwork||sender!=expectedSender)
-                    throw new InvalidDataException("Prepared Hedera storage identity differs from admitted network/operator.");
-                return CreateNativePreparationServer(execution,correlation.Next(),
-                    network,sender,publicKey,id);
+                return ExecutePreparedWithQueriesAsync(action,request,execution,correlation.Next(),expectedSender,publicKey,
+                    query.AuthorizedNodeAccountIds,query.MaxPaymentTinybars,query.MaxTransactionFeeTinybars,
+                    query.PersistenceTimeoutMs,query.MaximumRequestsPerInvocation,invocationToken);
             },token);
     }
 

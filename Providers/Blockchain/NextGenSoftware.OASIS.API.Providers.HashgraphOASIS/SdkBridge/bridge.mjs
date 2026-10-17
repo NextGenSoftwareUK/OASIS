@@ -108,17 +108,17 @@ async function storageRead(action, request,persistPaidQueryPayment) {
   try {
     client.setOperator(payer, key);
     async function query(name, args) {
-      const response = await createPaidQuery(ContractCallQuery,request,client,key,persistPaidQueryPayment).setContractId(request.contractId).setGas(request.gas)
-        .setFunctionParameters(storageReadCall(name, args)).setMaxQueryPayment(Hbar.fromTinybars(request.maxFeeTinybars)).execute(client);
+      const response = await createPaidQuery(ContractCallQuery,request,client,key,persistPaidQueryPayment,Hbar.fromTinybars(request.maxFeeTinybars)).setContractId(request.contractId).setGas(request.gas)
+        .setFunctionParameters(storageReadCall(name, args)).execute(client);
       if (response.errorMessage) throw new Error('Storage contract query reverted.');
       return storageAbi.decodeFunctionResult(name, response.bytes);
     }
     if(action==='storageProbe'){
       const payment=Hbar.fromTinybars(request.maxFeeTinybars);
-      const account=await createPaidQuery(AccountInfoQuery,request,client,key,persistPaidQueryPayment).setAccountId(payer).setMaxQueryPayment(payment).execute(client);
+      const account=await createPaidQuery(AccountInfoQuery,request,client,key,persistPaidQueryPayment,payment).setAccountId(payer).execute(client);
       verifyStorageAccount(account,payer,key);
       const owner=(await query('owner',[]))[0];
-      await verifyDepositorAccount(payer,owner,alias=>createPaidQuery(AccountInfoQuery,request,client,key,persistPaidQueryPayment).setAccountId(alias).setMaxQueryPayment(payment).execute(client));
+      await verifyDepositorAccount(payer,owner,alias=>createPaidQuery(AccountInfoQuery,request,client,key,persistPaidQueryPayment,payment).setAccountId(alias).execute(client));
       return {owner,sender:payer.toString(),contractId:request.contractId};
     }
     if (action === 'storageGet') {
@@ -235,7 +235,7 @@ async function executeFile(action, request, persist,persistPaidQueryPayment) {
     client.setOperator(payer, key);
     const ceiling = Hbar.fromTinybars(request.maxFeeTinybars);
     if (!mutation) {
-      const bytes = await createPaidQuery(FileContentsQuery,request,client,key,persistPaidQueryPayment).setFileId(request.fileId).setMaxQueryPayment(ceiling).execute(client);
+      const bytes = await createPaidQuery(FileContentsQuery,request,client,key,persistPaidQueryPayment,ceiling).setFileId(request.fileId).execute(client);
       return { fileId: FileId.fromString(request.fileId).toString(), contents: new TextDecoder('utf-8', { fatal: true }).decode(bytes) };
     }
     singleSubmission(mutation, id).setMaxTransactionFee(ceiling).freezeWith(client);

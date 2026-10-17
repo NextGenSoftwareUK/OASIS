@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Security.Cryptography;
+using System.Linq;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
@@ -18,6 +20,29 @@ public sealed class HederaStorageConfiguration
     public Func<byte[]> EncryptionKeyResolver { get; init; }
     public long GasLimit { get; init; }
     public long MaxFeeTinybars { get; init; }
+    public HederaStorageQueryPreparation QueryPreparation {get;init;}
+}
+
+/// <summary>Explicit native spending/admission policy for paid reads within a prepared storage scope.
+/// These are ceilings, not actual charges or authorization to sponsor a user's costs.</summary>
+public sealed class HederaStorageQueryPreparation
+{
+    public string[] AuthorizedNodeAccountIds {get;init;}
+    public long MaxPaymentTinybars {get;init;}
+    public long MaxTransactionFeeTinybars {get;init;}
+    /// <summary>Per SDK invocation, not a replacement for host/Core whole-operation admission limits.</summary>
+    public int MaximumRequestsPerInvocation {get;init;}=64;
+    public int PersistenceTimeoutMs {get;init;}=10000;
+    internal HederaStorageQueryPreparation Capture()
+    {
+        var nodes=AuthorizedNodeAccountIds?.ToArray();
+        if(nodes==null||nodes.Length==0||nodes.Length>1024||nodes.Distinct(StringComparer.Ordinal).Count()!=nodes.Length
+            ||nodes.Any(node=>!System.Text.RegularExpressions.Regex.IsMatch(node??"",@"\A[0-9]+\.[0-9]+\.[0-9]+\z"))
+            ||MaxPaymentTinybars<=0||MaxTransactionFeeTinybars<=0||MaximumRequestsPerInvocation<1||MaximumRequestsPerInvocation>512||PersistenceTimeoutMs<1||PersistenceTimeoutMs>30000)
+            throw new ArgumentException("Prepared Hedera storage requires explicit bounded query nodes, payment/fee ceilings, count and persistence timeout.");
+        return new(){AuthorizedNodeAccountIds=nodes,MaxPaymentTinybars=MaxPaymentTinybars,MaxTransactionFeeTinybars=MaxTransactionFeeTinybars,
+            MaximumRequestsPerInvocation=MaximumRequestsPerInvocation,PersistenceTimeoutMs=PersistenceTimeoutMs};
+    }
 }
 
 // Resolve storage secrets only when storage is used. Offline key operations do not
@@ -26,7 +51,8 @@ internal sealed class ConfiguredHederaStorageBackend : IKeyValueBackend, IDispos
 {
     private readonly Lazy<PrivateKeyValueBackend> _backend;
     private readonly AsyncLocal<PrivateKeyValueBackend> _executionBackend=new();
-    private readonly Func<Func<string,string,string,string,PreparedSubmissionServer>,CancellationToken,PrivateKeyValueBackend> _createBackend;
+    private readonly Func<Func<string,object,string,CancellationToken,Task<JsonElement>>,CancellationToken,PrivateKeyValueBackend> _createBackend;
+    private readonly HederaStorageQueryPreparation _queryPreparation;
     private readonly string _sender;
     private bool _disposed;
 
@@ -34,12 +60,15 @@ internal sealed class ConfiguredHederaStorageBackend : IKeyValueBackend, IDispos
     {
         var copiedNodes = nodes == null ? null : new Dictionary<string, string>(nodes);
         _sender=configuration?.OperatorAccountId;
-        _createBackend = (preparation,scopeToken) => {
+        _queryPreparation=configuration?.QueryPreparation?.Capture();
+        if(_queryPreparation?.AuthorizedNodeAccountIds.Contains(_sender)==true)
+            throw new ArgumentException("The storage payer cannot also be its authorized paid-query node.");
+        _createBackend = (invocation,scopeToken) => {
             if (configuration == null)
                 throw new InvalidOperationException("Hedera storage requires an explicit contract, operator, signing key, encryption key and fee configuration.");
             var inner = new HederaStorageBackend(network, configuration.ContractId, configuration.OperatorAccountId,
                 configuration.SigningKeyType, configuration.SigningKeyResolver, configuration.GasLimit,
-                configuration.MaxFeeTinybars, copiedNodes,preparation,scopeToken);
+                configuration.MaxFeeTinybars, copiedNodes,invocation,scopeToken);
             var key = configuration.EncryptionKeyResolver?.Invoke();
             try { return new PrivateKeyValueBackend(inner, key); }
             finally { if (key != null) CryptographicOperations.ZeroMemory(key); }
@@ -47,14 +76,18 @@ internal sealed class ConfiguredHederaStorageBackend : IKeyValueBackend, IDispos
         _backend=new Lazy<PrivateKeyValueBackend>(()=>_createBackend(null,default));
     }
 
-    internal async Task<T> WithPreparationAsync<T>(Func<Task<T>> operation,string expectedSender,
-        Func<string,string,string,string,PreparedSubmissionServer> preparation,CancellationToken token)
+    internal HederaStorageQueryPreparation QueryPreparation=>_queryPreparation?.Capture()
+        ??throw new InvalidOperationException("Prepared Hedera storage needs an explicitly configured paid-query preparation policy before entering the operation.");
+
+    internal async Task<T> WithInvocationAsync<T>(Func<Task<T>> operation,string expectedSender,
+        Func<string,object,string,CancellationToken,Task<JsonElement>> invocation,CancellationToken token)
     {
+        ArgumentNullException.ThrowIfNull(invocation);
         token.ThrowIfCancellationRequested();ObjectDisposedException.ThrowIf(_disposed,this);
         if(string.IsNullOrWhiteSpace(_sender)||expectedSender!=_sender)
             throw new InvalidOperationException("Admitted Hedera storage sender must match the configured operator.");
         if(_executionBackend.Value!=null)throw new InvalidOperationException("Nested Hedera storage execution owners are not permitted.");
-        using var view=_createBackend(preparation,token);
+        using var view=_createBackend(invocation,token);
         _executionBackend.Value=view;
         try {return await operation();}
         finally {_executionBackend.Value=null;}

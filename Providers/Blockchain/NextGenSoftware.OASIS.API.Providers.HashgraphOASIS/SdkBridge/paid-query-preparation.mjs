@@ -1,5 +1,5 @@
 import {AccountInfoQuery,ContractInfoQuery,ContractByteCodeQuery,ContractCallQuery,FileContentsQuery,TokenInfoQuery,TokenNftInfoQuery,
-  AccountId,PublicKey,Transaction,TransferTransaction} from '@hiero-ledger/sdk';
+  AccountId,PublicKey,Transaction,TransferTransaction,Hbar} from '@hiero-ledger/sdk';
 import {proto} from '@hiero-ledger/proto';
 
 function positiveInt64(value) {
@@ -113,11 +113,15 @@ const ownedQueries=new Map([[AccountInfoQuery,PreparedAccountInfoQuery],[Contrac
   [FileContentsQuery,PreparedFileContentsQuery],[TokenInfoQuery,PreparedTokenInfoQuery],[TokenNftInfoQuery,PreparedTokenNftInfoQuery]]);
 
 // Explicit prepared vs ordinary invocation; rejection never switches to the ordinary path.
-export function createPaidQuery(Query,request,client,key,persist) {
-  if(persist===undefined)return new Query();
+export function createPaidQuery(Query,request,client,key,persist,ordinaryLimit) {
+  if(persist===undefined){
+    const query=new Query();
+    if(ordinaryLimit!==undefined)query.setMaxQueryPayment(ordinaryLimit);
+    return query;
+  }
   const Owned=ownedQueries.get(Query);
   if(!Owned||typeof persist!=='function')throw new Error('Explicit supported paid-query preparation ownership is required.');
   return new Owned({network:request.network,payer:request.sender,publicKey:key.publicKey.toStringDer(),nodes:Object.values(client.network).map(value=>value.toString()),
     maxPaymentTinybars:request.queryMaxPaymentTinybars,maxTransactionFeeTinybars:request.queryMaxTransactionFeeTinybars,
-    persistenceTimeoutMs:request.queryPersistenceTimeoutMs,persist});
+    persistenceTimeoutMs:request.queryPersistenceTimeoutMs,persist}).setMaxQueryPayment(Hbar.fromTinybars(request.queryMaxPaymentTinybars));
 }
