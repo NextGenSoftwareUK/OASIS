@@ -9,6 +9,11 @@ public class SuiPreparedLedgerTests
 {
     [TestMethod]
     public async Task InspectRetainedPreparedAttemptsWithoutMutation()
+        =>await InspectRetainedPreparedAttempts(false);
+    [TestMethod]
+    public async Task ArchiveConfirmedRetainedLocalFixtureWithoutResubmission()
+        =>await InspectRetainedPreparedAttempts(true);
+    private async Task InspectRetainedPreparedAttempts(bool archiveFixture)
     {
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -60,6 +65,38 @@ public class SuiPreparedLedgerTests
                 ? "Original attempts confirmed successful and fixture absence verified; durable operation settlement/ownership reconciliation still required. Journal retained."
                 : "Original identities only; chain terminal status/readback still required."}));
         CollectionAssert.AreEqual(original,File.ReadAllBytes(journal));
+        if(archiveFixture){
+            Assert.IsTrue(chainOutcomeConfirmed,"Never retire fixture ownership without fresh native confirmation/readback.");
+            Assert.AreEqual("B7E6EECC7C32EF5AD030C740ECF1071CB54FF05905FF69FC8DBE04A759061599",
+                Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(original)),"Only this reviewed original fixture may be archived.");
+            Assert.AreEqual("6b9932e3-f624-2f2e-f87e-b3784488cbce",operation.Id);
+            Assert.AreEqual("WEB6",operation.Service);Assert.AreEqual("POST /local-test",operation.Endpoint);
+            Assert.IsNull(operation.Settlement);Assert.AreEqual(0,operation.Receipts.Count);
+            Assert.AreEqual("non-billable-v1",operation.Policy.PricingCatalogueVersion);
+            Assert.AreEqual(0m,operation.Policy.FixedCostUsd);Assert.AreEqual(0m,operation.Policy.EstimatedCostUsd);
+            Assert.IsFalse(operation.Policy.RequiresProviderMeasurement);
+            var mongo=new MongoDB.Driver.MongoClient(connection);var database=mongo.GetDatabase("usage_sui_live_prepared");
+            using(var collections=await database.ListCollectionNamesAsync())
+                CollectionAssert.AreEquivalent(new[]{"subscription_usage_outbox_v1"},await MongoDB.Driver.IAsyncCursorExtensions.ToListAsync(collections));
+            var rows=database.GetCollection<UsageOutboxOperation>("subscription_usage_outbox_v1");
+            Assert.AreEqual(1L,await rows.CountDocumentsAsync(MongoDB.Driver.FilterDefinition<UsageOutboxOperation>.Empty));
+            var archivePath=Path.Combine(directory.FullName,"TestResults/SuiCurrent/prepared-live-reconciled-original.json");
+            using(var archive=new FileStream(archivePath,FileMode.CreateNew,FileAccess.Write,FileShare.None)){
+                await JsonSerializer.SerializeAsync(archive,new {journal=JsonSerializer.Deserialize<JsonElement>(original),operation,nativeFees,
+                    chainOutcomeConfirmed,fixtureCleanup=true,productionBillingReconciled=false,
+                    reason="Reviewed local synthetic-authority fixture only; original signed evidence retained, no replay or external settlement."});
+                archive.Flush(true);
+            }
+            using(var archived=JsonDocument.Parse(File.ReadAllBytes(archivePath))){
+                Assert.AreEqual(operation.Id,archived.RootElement.GetProperty("operation").GetProperty("Id").GetString());
+                Assert.AreEqual(3,archived.RootElement.GetProperty("operation").GetProperty("ProviderAttempts").GetArrayLength());
+            }
+            // Exact disposable test database only, after fresh native receipts, absence, ownership and durable archive checks.
+            await mongo.DropDatabaseAsync("usage_sui_live_prepared");
+            CollectionAssert.AreEqual(original,File.ReadAllBytes(journal));
+            File.Delete(journal);
+            Console.WriteLine("Reviewed synthetic fixture archived with original signed attempts; exact owned test database/journal retired. No production billing settlement or native submission.");
+        }
     }
     [TestMethod]
     public async Task ReconcileControlledMintOwnerFixture()

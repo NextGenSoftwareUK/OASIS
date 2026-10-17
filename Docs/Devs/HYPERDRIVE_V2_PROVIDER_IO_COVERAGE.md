@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Sui native prepared storage gate advanced: exact original3attempt fixture freshly confirmed and durably archived (5473bytes SHA F83E8277858F57ECA7F882C911D299FE377A45E259365106B6E1FF2A07813E55), reviewed synthetic DB/marker retired without native replay/production settlement. Fresh native Prepared4/4pass44s includes encrypted holon save/read/delete. Fresh V2Healthy1case FAILED1m40s at invalid fixture current-avatar search lackingAvatarId; changed fixture explicit global/alltypes, compile0errors only, no passing rerun claim. New exact V2 pending marker69DFE679... retained for readback/archive before next run. Native/SDK reuse only, no new environment.
+
 V2 cancelled operations now terminal in Core86cadcf: recursive direct/wrapped/aggregate OperationCanceledException never triggers fallback. HyperDrive548pass1s; actual owned disk-provider+SQLite routing126pass14s verifies cancelled read/save leaves both stores unchanged/backup requests0. No native interruption/restart/hosted-wide claim; original cause preserved, no new environment. Full gated merge still prohibited.
 
 Current cancellation consumers: Shared292pass1s/TRON317pass2s/Sui103pass2m15s/Cosmos137pass2m11s, no skips. Scope tokens now reach TRON lock+backend and Sui/Cosmos SDK reads/mutations; unscoped cancellation identity preserved after full suites caught2regressions each. Existing signed-outcome uncertainty/real process deadlines retained. New tests prove pre-SDK default-token read cancellation, not native rollback/full hosted policy completion. Existing environments and reports reused; native pending journals untouched.
