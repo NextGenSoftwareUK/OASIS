@@ -354,9 +354,12 @@ public class SuiPreparedLedgerTests
         Assert.IsTrue(new Uri(rpc).IsLoopback,"Never submit this fixture to a public chain.");
         using var deployment=JsonDocument.Parse(File.ReadAllText(Environment.GetEnvironmentVariable("OASIS_SUI_TEST_DEPLOYMENT")??throw new InvalidOperationException("Retained deployment required.")));
         var settings=deployment.RootElement;
-        using var provider=new SuiOASIS(rpc,"localnet",settings.GetProperty("chainId").GetString()!,settings.GetProperty("packageAddress").GetString()!,
+        const ulong localMaximumGasBudgetMist=1_000_000_000; // Explicit test-only ceiling, not production approval.
+        SuiOASIS CreateLimited(ulong maximum)=>SuiOASIS.CreateWithNativeFeeLimits(new SuiNativeFeeLimits(maximum),rpc,"localnet",settings.GetProperty("chainId").GetString()!,settings.GetProperty("packageAddress").GetString()!,
             settings.GetProperty("privateKey").GetString()!,settings.GetProperty("storageObjectId").GetString()!,
             storageEncryptionKeyResolver:()=>System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes("oasis-sui-prepared-storage-fixture-v1")));
+        using var provider=CreateLimited(localMaximumGasBudgetMist);
+        using var limited=CreateLimited(1);
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"),
             "Use the retained owned test service; never fall back to the user's Mongo instance.");
@@ -410,6 +413,14 @@ public class SuiPreparedLedgerTests
             await JsonSerializer.SerializeAsync(journalFile,new{database,key,storageScope,privateHolonId,encryptionKeyLabel="oasis-sui-prepared-storage-fixture-v1",operationId=execution.OperationId,chainId=settings.GetProperty("chainId").GetString(),
                 recovery="Inspect original write and cleanup attempts in this retained Mongo outbox; never resubmit on unknown outcome."},cancellationToken:deadline.Token);
             journalFile.Flush(true);
+            var capError=await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>limited.ExecutePreparedStorageAsync(
+                async()=>await (Task<JsonElement>)sdk.Invoke(limited,new object[]{"put",new{key,value="must not be submitted above ceiling"},deadline.Token})!,
+                execution,"cap-rejection",settings.GetProperty("address").GetString()!,deadline.Token));
+            StringAssert.Contains(capError.Message,"gas budget exceeds");
+            Assert.IsFalse(capError is SuiNativeMutationReconciliationException);
+            Assert.AreEqual(0,(await store.GetAsync(execution.OperationId,deadline.Token)).ProviderAttempts.Count);
+            var beforeWrite=await (Task<JsonElement>)sdk.Invoke(provider,new object[]{"get",new{key},deadline.Token})!;
+            Assert.AreEqual(JsonValueKind.Null,beforeWrite.ValueKind);
             string hash;
             if(loseConfirmedReply){
                 var previous=Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE");
@@ -497,6 +508,15 @@ public class SuiPreparedLedgerTests
             Assert.IsNull(measured.ObservedOutcome);Assert.AreEqual(cleaned.ProviderAttempts.Count,measured.Receipts.Count);
             Assert.IsFalse(lookupOwner.CanResolve(measured),"Recorded fees must not trigger another original receipt lookup.");
             foreach(var physicalAttempt in cleaned.ProviderAttempts){
+                var original=physicalAttempt.NativePreparation;
+                var verified=await (Task<JsonElement>)sdk.Invoke(limited,new object[]{"verifyNativePreparation",new{preparation=new{
+                    transactionHash=physicalAttempt.ProviderRequestId,sender=original.Sender,chainId=original.ChainId,
+                    signedTransactionBase64=original.SignedTransactionBase64,signature=original.Signature}},deadline.Token})!;
+                var signedBudget=ulong.Parse(verified.GetProperty("gasBudgetMist").GetString()!,System.Globalization.CultureInfo.InvariantCulture);
+                Assert.IsTrue(signedBudget>1&&signedBudget<=localMaximumGasBudgetMist);
+                var historical=await limited.GetPreparedNativeFeeReceiptAsync(physicalAttempt,deadline.Token);
+                Assert.IsFalse(historical.IsError,historical.Message);
+                Assert.AreEqual(physicalAttempt.ProviderRequestId,historical.Result.GetProperty("transactionHash").GetString());
                 Assert.AreEqual(price,physicalAttempt.NativePreparation.PriceQuotes.Single());
                 var receipt=measured.Receipts.Single(receipt=>receipt.ProviderRequestId==physicalAttempt.ProviderRequestId);
                 Assert.AreEqual("verified-sui-net-effects",receipt.CostSource);
