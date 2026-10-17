@@ -1,5 +1,17 @@
 # HyperDrive V2 current release gates
 
+## Pending user actions
+
+Recorded at the user's request on2026-10-17; leave these open until independently verified.
+
+- [ ] **CoinGecko credential rotation:** if the credential previously embedded in the bridge price service is active, revoke it and generate a replacement. Removing it from current source does not revoke it or remove it from Git history. Do not copy the old value into new configuration or paste either key in chat.
+- [ ] **Configure the replacement** as `COINGECKO_DEMO_API_KEY` in the retained test environment, using secret configuration. Configure it separately in the relevant Railway environment before deploying consumers of this shared market service. Do not commit the value. Tell the agent when configuration is ready, without sending the secret.
+- [ ] **Live quote acceptance:** after configuration, verify authenticated fresh quotes and the existing bridge-rate consumer using the retained environment. API requests may consume CoinGecko account credits. Current controlled tests do not close this gate; until then live quote verification remains deferred, not passed.
+
+This is an operator dependency, not a request to enable NFT sponsorship, spend native assets, merge or deploy. Continue other safe implementation/verification work meanwhile; no repeated key request is needed until the user reports readiness.
+
+## Implementation and verification checkpoints
+
 2026-10-17 central exact-conversion checkpoint, Core7d38d97: NativeOperationFeeAccounting.ValueNativeUnitsExact converts canonical signed integer units plus explicitly supplied denomination decimal scale and positive USD/whole-unit price using BigInteger decimal mantissas. Exact powers of ten reduce before96-bit/28-place representability checks; no binary float, intermediate decimal rounding, assumed gas asset, minimum charge or rounded-to-zero evidence. Unrepresentable values throw for pricing review. Existing canonical-unit validation reused, no provider-local billing copies. Pure arithmetic only: authorized chain/denomination mapping, durable admission quote binding, historical pricing, resolver/host integration remain open; not a live price/billing completion claim. Focused16pass32ms (nine new), fullCore139pass11s, authority81pass16s/0skip/both runners exit0; Core both targets0errors/254warnings, WEB4build0errors/255warnings. Unrelated middleware/classification excluded, so not immutable-release certification. No merge/deploy/spending/new environment.
 
 2026-10-17 Hedera mirror-status identity correction: HashgraphClient previously accepted a single child/scheduled SUCCESS sharing the payer/start ID and rejected valid original-plus-duplicate responses. Four new cases reproduced these defects (4failed/0pass before fix). Status and fee mapping now share one canonical SDK-ID converter (bounded256chars) and strict unscheduled-parent row validator; status selects exactly one nonduplicate original and preserves its classification. No duplicated provider orchestration. Status HTTP request also sends nonce=0&scheduled=false and disposes response. Final fee/status26/26pass402ms/0skip includes24 controlled mappings plus2 read-only observations of the same historical testnet failure (no submission). Full official-SDK/ownedMongo54/54pass50s, initializer177ms/runnerexit0; producer build0errors/4warnings, integration0errors/3warnings. No native funding, hosted settlement or all-provider completion claim; protected TRON fence unchanged, no runtime resumed/reset. No merge/deploy/new environment.
