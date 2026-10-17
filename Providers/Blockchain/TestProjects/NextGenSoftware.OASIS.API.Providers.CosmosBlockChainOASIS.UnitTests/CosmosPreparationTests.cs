@@ -8,6 +8,24 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 [TestClass,DoNotParallelize]
 public class CosmosPreparationTests
 {
+    [DataTestMethod]
+    [DataRow(false)]
+    [DataRow(true)]
+    public async Task RecoveryRejectsFeePayerDifferentFromVerifiedSignedAuthority(bool foreignPayer)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","nft-signer.mjs"));
+        try{
+            using var provider=new CosmosBlockChainOASIS("http://127.0.0.1:1","fixture-chain");
+            var attempt=new UsageProviderAttempt{Provider="CosmosBlockChainOASIS",ProviderRequestId=new string('A',64),NativePreparation=new(){
+                ChainId="fixture-chain",Sender="different-signer",SignedTransactionBase64="AQID",
+                SignDocBase64=foreignPayer?"fixture-verified-foreign-payer":"fixture-verified"}};
+            var result=await provider.GetPreparedNativeFeeReceiptAsync(attempt);
+            Assert.AreEqual(foreignPayer,result.IsError);
+            if(foreignPayer){Assert.IsInstanceOfType<InvalidDataException>(result.Exception);Assert.AreEqual(JsonValueKind.Undefined,result.Result.ValueKind);}
+            else Assert.AreEqual("fixture-owner",result.Result.GetProperty("payer").GetString());
+        }finally{Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",previous);}
+    }
     [TestMethod]
     public async Task AdmittedCancellationReachesDefaultTokenStorageRead()
     {

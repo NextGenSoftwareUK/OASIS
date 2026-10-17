@@ -36,7 +36,7 @@ else if(['upload','instantiate'].includes(request.operation)){
  if(Object.hasOwn(values,request.mode))result[field]=values[request.mode];
 }
 else if(request.operation==='restoreKey')result={publicKey:'fixture-public',address:'fixture-owner'};
-else if(request.operation==='verifyNativePreparation')result={verified:request.preparation.mode==='valid',transactionHash:request.preparation.transactionHash,sender:request.preparation.sender};
+else if(request.operation==='verifyNativePreparation')result={verified:request.preparation.mode==='valid'||request.preparation.signDocBase64?.startsWith('fixture-verified'),transactionHash:request.preparation.transactionHash,sender:request.preparation.sender,feePayer:request.preparation.signDocBase64==='fixture-verified-foreign-payer'?'foreign-payer':'fixture-owner'};
 else if(request.operation==='verifyNftCustodyReceipt'){
  if(request.contractAddress!=='fixture-contract'||request.tokenId!=='fixture-token'||request.custody!=='fixture-owner')
   error='Custody selectors were not forwarded';

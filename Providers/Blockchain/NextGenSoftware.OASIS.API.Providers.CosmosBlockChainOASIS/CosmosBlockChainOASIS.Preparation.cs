@@ -21,10 +21,15 @@ public partial class CosmosBlockChainOASIS : NextGenSoftware.OASIS.API.Core.Inte
                 ||string.IsNullOrWhiteSpace(attempt.ProviderRequestId)||attempt.NativePreparation.ChainId!=_sdkBackend.ChainId)
                 throw new InvalidDataException("Prepared Cosmos attempt must bind this provider, original hash and configured chain.");
             var preparation=attempt.NativePreparation;
-            await VerifyOriginalSignedPreparationAsync(JsonSerializer.SerializeToElement(new{
+            var identity=await VerifyOriginalSignedIdentityAsync(JsonSerializer.SerializeToElement(new{
                 transactionHash=attempt.ProviderRequestId,chainId=preparation.ChainId,sender=preparation.Sender,
                 signedTransactionBase64=preparation.SignedTransactionBase64,signDocBase64=preparation.SignDocBase64}),token);
-            return await GetNativeFeeReceiptAsync(attempt.ProviderRequestId,token);
+            var receipt=await GetNativeFeeReceiptAsync(attempt.ProviderRequestId,token);
+            if(receipt.IsError)return receipt;
+            if(!identity.TryGetProperty("feePayer",out var payer)||payer.ValueKind!=JsonValueKind.String
+                ||string.IsNullOrWhiteSpace(payer.GetString())||payer.GetString()!=receipt.Result.GetProperty("payer").GetString())
+                throw new InvalidDataException("Cosmos fee receipt payer does not match the original signed fee authority.");
+            return receipt;
         }catch(Exception failure){NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,failure.Message,failure);}
         return result;
     }
@@ -66,6 +71,9 @@ public partial class CosmosBlockChainOASIS : NextGenSoftware.OASIS.API.Core.Inte
 
     /// <summary>Official offline signed identity verification; no ledger submission or fee permission.</summary>
     public async Task VerifyOriginalSignedPreparationAsync(JsonElement preparation, CancellationToken token = default)
+        =>_ = await VerifyOriginalSignedIdentityAsync(preparation,token);
+
+    private async Task<JsonElement> VerifyOriginalSignedIdentityAsync(JsonElement preparation,CancellationToken token)
     {
         var result = await _sdkBackend.InvokeAsync("verifyNativePreparation", new { preparation }, token);
         if (result.ValueKind != JsonValueKind.Object || !result.TryGetProperty("verified", out var verified)
@@ -75,5 +83,6 @@ public partial class CosmosBlockChainOASIS : NextGenSoftware.OASIS.API.Core.Inte
             || !result.TryGetProperty("sender", out var sender) || sender.ValueKind != JsonValueKind.String
             || sender.GetString() != preparation.GetProperty("sender").GetString())
             throw new InvalidDataException("Official Cosmos preparation verification did not bind the original digest and signer.");
+        return result;
     }
 }
