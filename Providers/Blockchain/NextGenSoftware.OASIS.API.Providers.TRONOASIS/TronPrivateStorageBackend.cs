@@ -12,6 +12,10 @@ public sealed class TronPrivateStorageBackend : IKeyValueBackend, IDisposable
 {
     private readonly Lazy<PrivateKeyValueBackend> _backend;
     private bool _disposed;
+    internal TronNativeTransferClient Client { get; }
+    private readonly string _owner,_contract;
+    private readonly Func<string> _signingKeyResolver;
+    private readonly Func<byte[]> _encryptionKeyResolver;
 
     /// <param name="encryptionKeyResolver">Returns an owned 32-byte buffer, cleared after copying into the encryption layer.</param>
     public TronPrivateStorageBackend(TronNativeTransferClient client, string owner, string contract,
@@ -20,6 +24,8 @@ public sealed class TronPrivateStorageBackend : IKeyValueBackend, IDisposable
         ArgumentNullException.ThrowIfNull(client);
         ArgumentNullException.ThrowIfNull(signingKeyResolver);
         ArgumentNullException.ThrowIfNull(encryptionKeyResolver);
+        Client=client;_owner=owner;_contract=contract;
+        _signingKeyResolver=signingKeyResolver;_encryptionKeyResolver=encryptionKeyResolver;
         var storage = new TronStorageBackend(client, owner, contract, signingKeyResolver);
         _backend = new Lazy<PrivateKeyValueBackend>(() =>
         {
@@ -32,6 +38,12 @@ public sealed class TronPrivateStorageBackend : IKeyValueBackend, IDisposable
             }
             finally { if (key != null) CryptographicOperations.ZeroMemory(key); }
         });
+    }
+
+    internal TronPrivateStorageBackend CreatePreparedView(TronNativeTransferClient client)
+    {
+        ObjectDisposedException.ThrowIf(_disposed,this);
+        return new TronPrivateStorageBackend(client,_owner,_contract,_signingKeyResolver,_encryptionKeyResolver);
     }
 
     private PrivateKeyValueBackend Resolve(CancellationToken token)

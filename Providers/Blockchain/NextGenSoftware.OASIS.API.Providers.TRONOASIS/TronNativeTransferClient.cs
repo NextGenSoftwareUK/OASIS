@@ -33,6 +33,26 @@ public sealed class TronNativeTransferClient
     internal TronNativeTransferClient WithPreparation(Func<string,string,string,CancellationToken,Task> persist)
         => new TronNativeTransferClient(_wallet,_transactions,_genesisBlockId,_contractFeeLimitSun,persist);
 
+    internal TronNativeTransferClient WithAccountPreparation(
+        NextGenSoftware.OASIS.API.Core.Services.Subscriptions.UsageExecutionHandle execution,
+        Func<string> nextCorrelation,string expectedOwner,CancellationToken scopeToken=default)
+    {
+        ArgumentNullException.ThrowIfNull(execution);ArgumentNullException.ThrowIfNull(nextCorrelation);
+        ArgumentException.ThrowIfNullOrWhiteSpace(expectedOwner);
+        if(_persistPreparedSubmission!=null)throw new InvalidOperationException("TRON submission already has an execution owner.");
+        return WithPreparation(async(id,genesis,bytes,token)=>{
+            using var linked=CancellationTokenSource.CreateLinkedTokenSource(token,scopeToken);
+            linked.Token.ThrowIfCancellationRequested();
+            if(genesis!=ExpectedGenesisBlockId)throw new InvalidOperationException("Prepared TRON genesis identity mismatch.");
+            var account=await LoadPermissionAuthorityAsync(expectedOwner,linked.Token);
+            TronPreparationVerifier.VerifyWithAccountAuthority(bytes,id,account.Address.ToByteArray(),MaximumContractFeeLimitSun,account);
+            await execution.BeginPreparedNativeAttemptAsync("TRONOASIS",null,nextCorrelation(),id,
+                new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.UsageNativePreparation {
+                    ChainId=genesis,Sender=Convert.ToHexString(account.Address.ToByteArray()).ToLowerInvariant(),SignedTransactionBase64=bytes
+                },linked.Token);
+        });
+    }
+
     private async Task VerifyOwnerSigningAuthorityAsync(ByteString owner, string privateKey,
         Transaction.Types.Contract.Types.ContractType operation, CancellationToken token)
     {
