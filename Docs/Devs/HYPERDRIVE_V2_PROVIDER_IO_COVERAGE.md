@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Encrypted backend boundary delta: stored decrypt/encoding/authentication failures now terminal data errors with original cause; SDK/input validation/cancellation and codec API unchanged. Four new red-before/green-after cases plus preserved exact authentication-inner-cause assertions, Shared292/292pass1s. No cipher/format migration/native/V2/key-custody certification.
+
 Private encrypted envelope delta: malformed authenticated inner JSON/shape now terminal InvalidDataException under one parser with original syntax cause. Six red-before/green-after encrypted Get/List cases; Shared288/288pass1s. No cipher/key/HMAC/format change or native SDK/V2/key-custody certification.
 
 Cosmos pending scan expanded to5exact owned physical keys (3records+2identity indexes), journal labels strictly validated. Native read-only1/1pass1s/280indexed transactions/0matches; original outcome still unproven, journal unchanged/container stopped. No mutation/native V2 completion claim.
