@@ -2,6 +2,14 @@
 
 Updated: 2026-10-16. This is a living implementation and verification report, not a claim of production readiness.
 
+Latest controlled receipt integration2026-10-16 (Core c4017fefd99e92ee320f601f6a6acd0c2a23ed37): optional `UsageProviderReceipt.NativeFeeValuations` retains signed native components. Core completion/recovery and WEB4 validation use one central `UsageReceiptAccounting.OperationCost`; native costs/rebates net once across the operation, floored at zero. Ordinary API/AI/service costs remain nonnegative and are not erased by excess native rebates. Per-receipt `ActualCostUsd` is only a nonnegative native subtotal when typed native evidence exists; the final native charge is computed from retained signed components, NOT by adding those subtotals.
+
+Native identity binds enclosing provider/receipt and operation UUID, bounded denomination evidence, signed exact units, valuation provenance/time and value. New Core/WEB4 fingerprints bind native evidence; the no-native legacy hash path is unchanged (Core golden-encoding test). Mongo mapping is owned by the outbox: explicit standard UUID representation and string-encoded UTC valuation time preserve sub-millisecond provenance through durable round trips. Generic provider-measurement cost-delta corrections cannot replace immutable native evidence; existing audited administrative billing adjustments remain separate.
+
+Verification: Core full owned95/95pass10s (includes13 pure accounting/fingerprint cases and2 native outbox restart cases); WEB4 authority80/80pass16s with concurrent eight-way same-operation duplicate settlements, zero floor, provenance mutation rejection and global cross-operation receipt reuse rejection. Core both targets and actual WEB4 build0errors/warnings remain. Initial Core93pass2fail95 exposed unspecified Mongo UUID encoding; fixed mapping, final95green. Initial authority80green/full runnerexit0; strengthened authority80green but runnerexit1 because owned Mongo shutdown exceeded10s. Subsequent authoritative process/port inspection confirmed owned Mongo gone/27029closed; unrelated6840 left untouched. Teardown timing remains a harness limitation, not a claimed fully clean runner gate.
+
+No native source price feed, cryptographic resolver registration, hosted/rolling-version acceptance or spending authorization is supplied by these tests. Valuations are synthetic authorized-service fixtures, not real market quotes. Deploy/verify WEB4 authority support before enabling any consumer to emit native evidence: old authorities do not bind new optional evidence in fingerprints. Mint sponsorship stays disabled until those gates pass; no public fees were paid.
+
 Latest ownership correction2026-10-16: `NativeOperationFeeAccounting`, its value types and seven tests moved from provider-shared storage into Core `Services/Subscriptions` and `Tests/SubscriptionUsage`. There is one implementation, no provider compatibility shim, and central billing need not depend on a provider library. Arithmetic/policy unchanged; Core7/7pass13ms, remaining Shared298/298pass1s (the previous305 consisted of these298 plus the moved7). Core net10.0 and full netstandard2.1/net10.0 builds0errors; warnings remain. Core commit07364fa4b26ec600b92626e1bde3f70bfb19a23d. Older references below to a Shared calculator describe its historical location; the current owner is central Core subscription accounting. Production valuation/receipt contracts/ledger integration remain pending.
 
 ## Approved billing policy — calculator implemented; billing integration pending
@@ -37,15 +45,17 @@ Native receipt verification is not fiat pricing, billing authorization, or compl
 
 Current controlled verification: full TRON317/317pass3s/0skip, owned Mongo initializer186ms, producer zero errors. Existing seven prepared-storage cases now recover exact hash/owner/17SUN using real SDK signatures and controlled solidified RPC; invalid account and substituted original hash are rejected before extra fee lookup, broadcast count unchanged. First implementation317pass3s, then strengthened negative-lookup assertions317pass3s. Neither run proves native-chain consensus or resolves the retained uncertain original transaction. No public funds or old transaction resubmission.
 
-## Known accounting integration gap
+## Current receipt integration and remaining release gaps
 
 2026-10-16 recovery identity hardening: Cosmos/Sui/Hedera now capture one shared `NativePreparedAttemptSnapshot` before the first verification await. Previously the subsequent receipt lookup re-read mutable `attempt.ProviderRequestId`, allowing the identity to change during verification. The immutable snapshot binds provider/configured chain, original request ID and signing envelope once; existing `UsageNativePreparation.ValidateAndMeasure` remains the canonical envelope validator. Chain-specific signature verification, payer checks and native receipt parsing remain provider-owned. This does not add fiat pricing or settlement. Shared305/305pass1s includes three new snapshot cases; focused Sui recovery3/3pass753ms and Hedera2/2pass2s. Full native/hosted reruns not implied by these focused checks.
 
-Core usage receipts currently validate `ActualCostUsd` as nonnegative. Native Sui evidence can legitimately contain negative net units. Consequently, simply translating each native receipt into the existing positive-only billing receipt would lose rebates or reject valid evidence. The approved policy requires an explicit operation-scoped accounting integration; do not silently clamp each receipt or invent a zero-cost receipt.
+Generic `ActualCostUsd` remains nonnegative. Signed native evidence now has an explicit typed path, netted centrally as described above; never discard negative native components or treat the sum of floored per-receipt summaries as the final charge. Missing outcome/price/authority still requires reconciliation, not a zero-cost receipt. The earlier positive-only receipt integration gap is closed in controlled Core/WEB4 tests, not yet verified in deployed hosts.
 
 The production `IUsageRecoveryResolver` implementation/registration and authoritative valuation source are not yet proven. The settlement worker and test resolvers are not substitutes for those missing production owners. No reservation may be settled from an assumed native outcome or by replaying an uncertain transaction.
 
 ### Coordinated integration owners (source audited 2026-10-16)
+
+The latest controlled integration above implements the receipt/hash/aggregation/validation work in this ownership map. These rows retain the invariants to preserve, not a claim that every listed code change is still pending. Native provider-measurement deltas are explicitly rejected rather than silently altering signed evidence. Production resolver/valuation/host acceptance remains open.
 
 | Owner | Required coordinated change; current invariant to preserve |
 |---|---|

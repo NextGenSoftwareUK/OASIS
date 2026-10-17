@@ -28,5 +28,7 @@
     <Compile Include="../../NextGenSoftware.OASIS.API.ONODE.WebAPI/Services/Subscription/UsageLedgerValidation.cs" Link="Production/UsageLedgerValidation.cs" />
     <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/Web4SubscriptionAuthorizationClient.cs" Link="Production/Web4SubscriptionAuthorizationClient.cs" />
     <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/UsageExecutionContracts.cs" Link="Production/UsageExecutionContracts.cs" />
+    <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/NativeOperationFeeAccounting.cs" Link="Production/NativeOperationFeeAccounting.cs" />
+    <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/UsageReceiptAccounting.cs" Link="Production/UsageReceiptAccounting.cs" />
   </ItemGroup>
 </Project>
