@@ -1679,6 +1679,19 @@ public partial class EthereumOASISIntegrationTests
             Assert.AreEqual(recovered.Name,(await sqlite.LoadHolonAsync(recovered.Id,loadChildren:false)).Result.Name);
             Assert.IsNull((await ethereum.LoadHolonAsync(recovered.Id,loadChildren:false)).Result);
             Assert.AreEqual(1L,failover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests);
+            // Repair the registered endpoint without recreating manager/router or erasing outage metrics.
+            Assert.IsTrue(failover.UnRegisterProvider(unavailable));
+            Assert.IsTrue(failover.RegisterProvider(ethereum));
+            var ethereumBefore=failover.PerformanceMonitor.GetMetrics(ProviderType.EthereumOASIS)?.TotalRequests??0;
+            var sqliteBefore=failover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests;
+            var repairedRequest=new StorageOperationRequest {Operation="LoadHolon",HolonId=selected!.Id,
+                LoadChildren=false,PreferredProvider=ProviderType.EthereumOASIS};
+            var repaired=synchronous ? failoverRouter.RouteRequest<IHolon>(repairedRequest)
+                : await failoverRouter.RouteRequestAsync<IHolon>(repairedRequest);
+            Assert.IsFalse(repaired.IsError,repaired.Message);
+            Assert.AreEqual(selected.Id,repaired.Result.Id);Assert.AreEqual(selected.Name,repaired.Result.Name);
+            Assert.AreEqual(ethereumBefore+1,failover.PerformanceMonitor.GetMetrics(ProviderType.EthereumOASIS).TotalRequests);
+            Assert.AreEqual(sqliteBefore,failover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests);
         }
         finally
         {
