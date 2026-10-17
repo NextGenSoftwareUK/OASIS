@@ -1,5 +1,7 @@
 # HyperDrive V2 native-chain fees and recovery
 
+2026-10-17 Cosmos NFT wallet-error and encrypted-wallet positive acceptance use controlled process transport only; no native fees/submissions/public funds. Original protected Cosmos/TRON journals unchanged. Source revalidation: Core58c96fe already wraps activation AND routing/read operations in PreparedStorageExecution when StorageOperationRequest.PreparedExecution is supplied (current sync1051/async1192). Older notes about activation outside scope are historical/superseded for this explicit path; do NOT reimplement that change. Host supplying trusted policy for every relevant request and funded/hosted query/payment/settlement acceptance still need verification.
+
 2026-10-17 Cosmos mint/burn wallet error regression fails before signing/SDK; no transaction or native fee incurred. Positive encrypted-wallet cases use controlled process transport, not observed gas/consensus charges. Original pending Cosmos/TRON transaction fences hash-match unchanged. No zero-fee inference for actual network operations; no sponsorship or production settlement enabled.
 
 2026-10-17 Sui per-deposit locked-balance fix is read-only: no signing, gas submission or principal transfer. Registry dynamic-field pagination requests values directly (no redundant per-deposit registry/record lookups). External RPC account credits may still apply; these are not invented as native gas. Latest-state pagination is not snapshot isolation. Existing original fee receipts/zero-floor policy unchanged.

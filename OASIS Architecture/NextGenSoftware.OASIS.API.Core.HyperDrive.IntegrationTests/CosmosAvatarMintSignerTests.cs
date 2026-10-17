@@ -90,6 +90,22 @@ public sealed class CosmosAvatarMintSignerTests
             // nft-signer.mjs is a controlled transport fixture, not native consensus evidence.
             // Its execute branch rejects any signer except the decrypted explicit default key.
             minted.Result.TransactionResult.Should().Be(new string('a',64));
+            var nftRequest=new Core.Objects.NFT.Requests.MintWeb3NFTRequest { MintedByAvatarId=avatarId,
+                NFTStandardType=NFTStandardType.OASISCosmWasm,Title="Stored wallet NFT",Price=12.5m,Discount=2m,RoyaltyPercentage=7,MemoText="mint memo" };
+            var nft=synchronous?cosmos.MintNFT(nftRequest):await cosmos.MintNFTAsync(nftRequest);
+            nft.IsError.Should().BeFalse(nft.Message);
+            nft.Result.TransactionResult.Should().Be(new string('a',64));
+            var locator=nft.Result.Web3NFT.NFTTokenAddress;
+            var nftLock=new Core.Objects.NFT.Requests.LockWeb3NFTRequest {LockedByAvatarId=avatarId,NFTTokenAddress=locator};
+            var nftLocked=synchronous?cosmos.LockNFT(nftLock):await cosmos.LockNFTAsync(nftLock);
+            nftLocked.IsError.Should().BeFalse(nftLocked.Message);
+            var nftUnlock=new Core.Objects.NFT.Requests.UnlockWeb3NFTRequest {UnlockedByAvatarId=avatarId,NFTTokenAddress=locator};
+            var nftReleased=synchronous?cosmos.UnlockNFT(nftUnlock):await cosmos.UnlockNFTAsync(nftUnlock);
+            nftReleased.IsError.Should().BeFalse(nftReleased.Message);
+            var nftBurn=new Core.Objects.NFT.Requests.BurnWeb3NFTRequest {BurntByAvatarId=avatarId,NFTTokenAddress=locator,
+                OwnerPrivateKey="",OwnerPublicKey="fixture-public",OwnerSeedPhrase=""};
+            var nftBurned=synchronous?cosmos.BurnNFT(nftBurn):await cosmos.BurnNFTAsync(nftBurn);
+            nftBurned.IsError.Should().BeFalse(nftBurned.Message);
             }
             if (escrow) {
                 var id = Guid.Parse("11111111-2222-3333-4444-555555555555");
