@@ -1,10 +1,10 @@
-param([ValidateSet('Healthy','Outage','Prepared','Fee','NFT','Token','Assets','InspectPrepared','ArchivePrepared')][string]$Mode = 'Healthy')
+param([ValidateSet('Healthy','Outage','Prepared','Fee','NFT','Token','Assets','InspectPrepared','ArchivePrepared','ArchiveReplication')][string]$Mode = 'Healthy')
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
 $fixtureRoot = Join-Path $taskRoot 'TestResults/HyperDriveSui'
 $deploymentPath = '\\wsl.localhost\Ubuntu\var\tmp\oasis-sui\deployment.json'
 if (!(Test-Path -LiteralPath $deploymentPath)) { throw 'Retained protected Sui deployment is unavailable; no copy or new wallet created.' }
-if (Test-Path -LiteralPath (Join-Path $fixtureRoot 'encrypted-replication-pending.json')) { throw 'Pending Sui ownership intent requires reconciliation before another run.' }
+if ($Mode -ne 'ArchiveReplication' -and (Test-Path -LiteralPath (Join-Path $fixtureRoot 'encrypted-replication-pending.json'))) { throw 'Pending Sui ownership intent requires reconciliation before another run.' }
 if ($Mode -notin @('InspectPrepared','ArchivePrepared') -and (Test-Path -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/prepared-live-pending.json'))) { throw 'Pending prepared Sui ownership requires reconciliation before another run.' }
 if (Test-Path -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/nft-live-pending.jsonl')) { throw 'Pending NFT ownership requires reconciliation before another run.' }
 if (Test-Path -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/token-live-pending.jsonl')) { throw 'Pending token ownership requires reconciliation before another run.' }
@@ -95,7 +95,7 @@ try {
         $env:OASIS_SUI_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/bridge.mjs'
         & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -SuiPreparedLedger
     }else{
-        $method = if ($Mode -eq 'Healthy') { 'V2ReplicatesToSuiAndSelectsFromMeasuredRealProviderReads' } else { 'V2FailsOverToRealStoreAfterSuiFailure' }
+        $method = if ($Mode -eq 'ArchiveReplication') {'ArchiveExactSearchValidationFixtureAfterReadback'} elseif ($Mode -eq 'Healthy') { 'V2ReplicatesToSuiAndSelectsFromMeasuredRealProviderReads' } else { 'V2FailsOverToRealStoreAfterSuiFailure' }
         & dotnet test $project --no-build --no-restore --filter "FullyQualifiedName~IntegrationTests.SuiRealProviderRoutingTests.$method" --logger "trx;LogFileName=sui-retained-v2-$($Mode.ToLowerInvariant())-current.trx" --results-directory $fixtureRoot -v:q
         if ($LASTEXITCODE -ne 0) { throw 'Current real Sui V2 verification failed; preserve ownership journal.' }
     }

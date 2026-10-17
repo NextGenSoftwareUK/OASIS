@@ -22,6 +22,54 @@ public sealed class SuiRealProviderRoutingTests
     private static byte[] LocalStorageKey() => System.Security.Cryptography.SHA256.HashData(
         System.Text.Encoding.UTF8.GetBytes("oasis-sui-local-storage-fixture-v1"));
     [Fact]
+    public async Task ArchiveExactSearchValidationFixtureAfterReadback()
+    {
+        var rpc=Required("OASIS_SUI_TEST_RPC");new Uri(rpc).IsLoopback.Should().BeTrue();
+        var root=Path.GetFullPath(Required("OASIS_HYPERDRIVE_TEST_ROOT"));Path.GetFileName(root).Should().Be("HyperDriveSui");
+        using var lease=new FileStream(Path.Combine(root,"store.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
+        var path=Path.Combine(root,"encrypted-replication-pending.json");var original=File.ReadAllBytes(path);
+        Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(original)).Should().Be("69DFE679CD911A28C5C7A10F9E23CDD06837C5B2250694AD9535DDDD3859C292");
+        using var intent=JsonDocument.Parse(original);using var deployment=JsonDocument.Parse(File.ReadAllText(Required("OASIS_SUI_TEST_DEPLOYMENT")));
+        var data=intent.RootElement;var settings=deployment.RootElement;
+        data.GetProperty("chainId").GetString().Should().Be(settings.GetProperty("chainId").GetString());
+        data.GetProperty("storageObjectId").GetString().Should().Be(settings.GetProperty("storageObjectId").GetString());
+        data.GetProperty("encryptionKeyLabel").GetString().Should().Be("oasis-sui-local-storage-fixture-v1");
+        var reportPath=Path.Combine(root,"sui-retained-v2-healthy-current.trx");var reportBytes=File.ReadAllBytes(reportPath);
+        var report=new System.Xml.XmlDocument();using(var xml=new MemoryStream(reportBytes))report.Load(xml);
+        var failed=report.SelectNodes("//*[local-name()='UnitTestResult'][@outcome='Failed']")!;failed.Count.Should().Be(1);
+        failed[0]!.SelectSingleNode(".//*[local-name()='Message']")!.InnerText.Should().Contain("Invalid search request: Current-avatar search requires AvatarId.");
+        using var sui=new SuiOASIS(rpc,"localnet",settings.GetProperty("chainId").GetString()!,settings.GetProperty("packageAddress").GetString()!,
+            settings.GetProperty("privateKey").GetString()!,settings.GetProperty("storageObjectId").GetString()!,storageEncryptionKeyResolver:LocalStorageKey);
+        var local=new LocalFileOASIS(storageDirectory:Path.Combine(root,"files"));var observed=new List<object>();
+        try {
+            foreach(var provider in new IOASISStorageProvider[]{sui,local}){
+                (await provider.ActivateProviderAsync()).IsError.Should().BeFalse();
+                foreach(var pair in new[]{("holonId","real-v2-sui-replication"),("parentId","Owned Sui routing parent")}){
+                    var read=await provider.LoadHolonAsync(data.GetProperty(pair.Item1).GetGuid(),loadChildren:false);
+                    read.Exception.Should().BeNull();
+                    (read.IsError==false||read.ErrorCode==NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound).Should().BeTrue(read.Message);
+                    if(read.Result!=null){read.Result.Id.Should().Be(data.GetProperty(pair.Item1).GetGuid());read.Result.Name.Should().Be(pair.Item2);
+                        read.Result.DeletedDate.Should().NotBe(DateTime.MinValue,"finally acknowledged soft deletion must be visible");}
+                    observed.Add(new {provider=provider.ProviderType.Value.ToString(),record=pair.Item1,absent=read.Result==null,deletedDate=read.Result?.DeletedDate});
+                }
+                var avatarId=data.GetProperty("avatarId").GetGuid();var username=data.GetProperty("Username").GetString()!;var email=data.GetProperty("Email").GetString()!;
+                foreach(var read in new[]{await provider.LoadAvatarAsync(avatarId),await provider.LoadAvatarByUsernameAsync(username),await provider.LoadAvatarByEmailAsync(email)}){
+                    read.Exception.Should().BeNull();read.Result.Should().BeNull();(read.IsError==false||read.ErrorCode==NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound).Should().BeTrue(read.Message);
+                }
+                var detail=await provider.LoadAvatarDetailAsync(avatarId);detail.Exception.Should().BeNull();detail.Result.Should().BeNull();
+                (detail.IsError==false||detail.ErrorCode==NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound).Should().BeTrue(detail.Message);
+            }
+            var archivePath=Path.Combine(root,"search-validation-fixture-archived.json");
+            using(var archive=new FileStream(archivePath,FileMode.CreateNew,FileAccess.Write,FileShare.None)){
+                await JsonSerializer.SerializeAsync(archive,new {intent=data,observed,failedReportSha256=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(reportBytes)),
+                    fixtureCleanupConfirmed=true,nativeMutationSubmitted=false,productionBillingReconciled=false});archive.Flush(true);
+            }
+            using var archived=JsonDocument.Parse(File.ReadAllBytes(archivePath));archived.RootElement.GetProperty("fixtureCleanupConfirmed").GetBoolean().Should().BeTrue();
+            File.ReadAllBytes(path).Should().Equal(original);File.Delete(path);
+            Console.WriteLine("Exact reviewed search-validation fixture archived after native/local deletion readback; no native mutation or replay.");
+        } finally {await sui.DeActivateProviderAsync();await local.DeActivateProviderAsync();}
+    }
+    [Fact]
     public async Task ReconcileExactOwnedInterruptedAvatarFixture()
     {
         var rpc = Required("OASIS_SUI_TEST_RPC"); new Uri(rpc).IsLoopback.Should().BeTrue();
