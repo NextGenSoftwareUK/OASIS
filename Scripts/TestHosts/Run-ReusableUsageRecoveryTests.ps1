@@ -158,7 +158,7 @@ try{
         $tronStarted=[DateTime]::UtcNow
         $tronReport=if($TronNative){'tron-independent-prepared-native-current.trx'}else{'tron-prepared-storage-owned-current.trx'}
         if($TronNative){$tronProject=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'}
-        $tronArgs=if($TronNative){@('--no-build','--filter','FullyQualifiedName~TronIndependentPreparedTests.')}elseif($TronFull){@()}else{@('--filter','FullyQualifiedName~TronPreparedStorageTests')}
+        $tronArgs=if($TronNative){@('--no-build','--filter','FullyQualifiedName~TronIndependentPreparedTests.IndependentPrivateKeyRetainsOriginalPermissionAndSolidifiedFees')}elseif($TronFull){@()}else{@('--filter','FullyQualifiedName~TronPreparedStorageTests')}
         & dotnet test $tronProject --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false @tronArgs --logger "trx;LogFileName=$tronReport" --results-directory $work -v:q
         if($LASTEXITCODE -ne 0){throw 'TRON owned prepared storage verification failed.'}
         $report=Get-Item -LiteralPath (Join-Path $work $tronReport)
