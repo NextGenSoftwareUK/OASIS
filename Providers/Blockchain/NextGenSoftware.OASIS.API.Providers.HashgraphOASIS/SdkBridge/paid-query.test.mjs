@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import {Client,AccountId,AccountInfoQuery,PrivateKey,TransactionId,Transaction,Hbar} from '@hiero-ledger/sdk';
 import {proto} from '@hiero-ledger/proto';
 import {PreparedAccountInfoQuery,PreparedContractInfoQuery,PreparedContractByteCodeQuery,PreparedContractCallQuery,
-  PreparedFileContentsQuery,PreparedTokenInfoQuery,PreparedTokenNftInfoQuery} from './paid-query-preparation.mjs';
+  PreparedFileContentsQuery,PreparedTokenInfoQuery,PreparedTokenNftInfoQuery,verifyPreparedQueryIdentity} from './paid-query-preparation.mjs';
 
 // Offline contract probes against the retained pinned SDK. The protected payment-builder
 // call is test instrumentation only, NOT a proposed production interception API.
@@ -106,6 +106,14 @@ for(const mode of ['accepted','rejected','timeout','wrong-key','payment-limit','
       if(mode==='accepted'){
         assert.equal(observed.queryPaymentTinybars,'123');assert.equal(observed.queryNodeAccountId,'0.0.3');
         assert.equal(observed.purpose,'HederaQueryPayment');
+        const verified=await verifyPreparedQueryIdentity(observed,key.publicKey.toStringDer(),['0.0.3'],'123','100000000');
+        assert.equal(verified.verified,true);assert.equal(verified.queryPaymentTinybars,'123');
+        for(const cap of [123,'0','01','9223372036854775808','1'.repeat(100)]){
+          await assert.rejects(verifyPreparedQueryIdentity(observed,key.publicKey.toStringDer(),['0.0.3'],cap,'100000000'));
+          assert.throws(()=>new PreparedAccountInfoQuery({...context,maxPaymentTinybars:cap}));
+        }
+        for(const replacement of [{purpose:'UserTransfer'},{queryPaymentTinybars:'124'},{queryNodeAccountId:'0.0.4'},{transactionHash:'0.0.1001@1700000000.000000001'}])
+          await assert.rejects(verifyPreparedQueryIdentity({...observed,...replacement},key.publicKey.toStringDer(),['0.0.3'],'123','100000000'));
         assert.equal(key.publicKey.verifyTransaction(Transaction.fromBytes(Buffer.from(observed.signedTransactionBase64,'base64'))),true);
         release();
       }
