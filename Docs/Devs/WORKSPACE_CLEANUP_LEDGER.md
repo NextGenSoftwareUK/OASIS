@@ -1,5 +1,9 @@
 # Workspace cleanup ledger and repeatable checks
 
+Final Cosmos intent runner2026-10-17 exits0/full164pass2m12s/0skip, reuses fixed report/environment. Cosmos/TRON protected journal hashes verified unchanged; no new runtime/download/ledger/reset.
+
+2026-10-17 Cosmos mint/burn intent regressions reuse existing nft-signer fixture/installed .NET, fixed owned report and Mongo environment.4focused cases pass434ms after actual2red/2green run; full164running, bounded no-restore builds. Initial required-seed property test compile corrected without restoring/installing anything. Free89,851,572,224bytes observation, not reclamation claim. No newenvironment/download/clone/native ledger or unrelated removal.
+
 2026-10-17 Sui signed custody verification adds6in-memory cases to existing token-escrow.test.mjs, reuses installed SDK/synthetic key/object references, no temporary directory/database/node/download/buildoutput/new environment. Full47JS pass~468ms/0skip/0todo. No production source rebuild or duplicate .NET test run, no native ledger or unrelated artifact removal.
 
 2026-10-17 Sui encrypted-wallet facade tests reuse Cosmos harness fixed HyperDriveCosmos/store.lock/files/avatar/escrow-state.json. Provider-specific environment selectors restored in finally; verified synthetic2mutation file deleted after assertions, existing wallet fixture cleared through API. No new directory/environment/runtime/download/node/ledger/clone.24tests pass3s; bounded producer/integration builds only. No unrelated source/credentials/native journals removed; no full suite reinstall or output copy.

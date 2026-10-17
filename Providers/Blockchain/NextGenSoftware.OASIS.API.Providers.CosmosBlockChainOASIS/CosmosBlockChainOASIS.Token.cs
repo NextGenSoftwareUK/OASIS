@@ -71,13 +71,16 @@ public partial class CosmosBlockChainOASIS
         {
             if (request == null || string.IsNullOrWhiteSpace(request.Symbol))
                 throw new ArgumentException("Token symbol is required.");
+            var symbol = request.Symbol;
+            var actor = request.MintedByAvatarId;
             var amount = AssetUnits(request.Amount);
-            var key = await SigningKeyAsync(request.MintedByAvatarId);
+            // Serialize caller-owned collections before signer recovery can yield.
+            var metadata = JsonSerializer.Serialize(new { request.Title, request.Description, request.MetaData, request.Tags, request.MintedByAvatarId });
+            var key = await SigningKeyAsync(actor);
             var issuer = await SignerAddressAsync(key);
             var hash = await ExecuteAssetAsync(new { token_mint = new
             {
-                symbol = request.Symbol, recipient = issuer, amount,
-                metadata_json = JsonSerializer.Serialize(new { request.Title, request.Description, request.MetaData, request.Tags, request.MintedByAvatarId })
+                symbol, recipient = issuer, amount, metadata_json = metadata
             } }, key, issuer);
             result.Result = new TransactionResponse { TransactionResult = hash };
         }
@@ -95,9 +98,10 @@ public partial class CosmosBlockChainOASIS
         {
             if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress))
                 throw new ArgumentException("Token identity is required.");
+            var symbol = request.TokenAddress;
             var amount = AssetUnits(request.Amount);
             var key = await SigningKeyAsync(request.BurntByAvatarId, request.OwnerPrivateKey, request.OwnerSeedPhrase, request.OwnerPublicKey);
-            var hash = await ExecuteAssetAsync(new { token_burn = new { symbol = request.TokenAddress, amount } }, key);
+            var hash = await ExecuteAssetAsync(new { token_burn = new { symbol, amount } }, key);
             result.Result = new TransactionResponse { TransactionResult = hash };
             result.Message = "Requested amount burned and on-chain supply reduced.";
         }

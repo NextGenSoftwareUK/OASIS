@@ -7,6 +7,31 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 public sealed class CosmosTokenIntentTests
 {
     [DataTestMethod]
+    [DataRow(false, false)] [DataRow(true, false)] [DataRow(false, true)] [DataRow(true, true)]
+    public async Task MintAndBurnPreserveOriginalSymbolAndMintMetadata(bool synchronous, bool burning)
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","nft-signer.mjs"));
+        try {
+            using var provider=new CosmosBlockChainOASIS("http://127.0.0.1:1","fixture-chain","test-only-explicit","fixture-contract");
+            var mint=new MintWeb3TokenRequest { Symbol="intent-original",Amount=1.23m,Title="original-title",
+                MetaData=new Dictionary<string,string>{{"canary","original"}} };
+            var burn=new BurnWeb3TokenRequest { TokenAddress="intent-original",Amount=1.23m,
+                OwnerPrivateKey="test-only-explicit",OwnerPublicKey="fixture-public",OwnerSeedPhrase="" };
+            NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse> result;
+            if(synchronous)result=burning?provider.BurnToken(burn):provider.MintToken(mint);
+            else {
+                var pending=burning?provider.BurnTokenAsync(burn):provider.MintTokenAsync(mint);
+                Assert.IsFalse(pending.IsCompleted,"Must exercise signer await.");
+                mint.Symbol="intent-mutated";mint.Title="changed";mint.Amount=99;mint.MetaData["canary"]="changed";
+                burn.TokenAddress="intent-mutated";burn.Amount=99;
+                result=await pending;
+            }
+            Assert.IsFalse(result.IsError,result.Message);Assert.AreEqual(new string('a',64),result.Result.TransactionResult);
+            Assert.IsFalse(provider.IsProviderActivated);
+        }finally{Environment.SetEnvironmentVariable("OASIS_COSMOS_SDK_BRIDGE",previous);}
+    }
+    [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     public async Task InvalidUtf16MemoIsRejectedBeforeSignerLookup(bool native)
     {
