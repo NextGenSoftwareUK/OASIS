@@ -1,0 +1,210 @@
+name: Publish HoloNET NuGet Packages
+
+# Light, manual HoloNET-only publish (the global release, global-release.yml, also publishes HoloNET, from the commits
+# pinned in Docker/oasis-dependency-versions.env, along with everything else). Runs from OASIS because this repo holds
+# PRIVATE_SUBMODULE_PAT (for the private HoloNET submodules) and NUGET_API_KEY.
+#
+# Packs and pushes, in order:
+#   1. the NextGenSoftware libraries HoloNET depends on (Logging, Logging.NLog, WebSocket, Utilities, ErrorHandling, CLI.Engine)
+#   2. HoloNET Client, ORM (+ Embedded variants), HDK, HyperNET, Manager and API
+# Pushes use --skip-duplicate, so versions already on NuGet are left alone.
+
+on:
+  workflow_dispatch:
+    inputs:
+      holonet_ref:
+        description: holochain-client-csharp branch, tag or commit to publish
+        type: string
+        default: main
+      libraries_ref:
+        description: NextGenSoftware-Libraries branch, tag or commit to build against (and publish)
+        type: string
+        default: main
+      publish_libraries:
+        description: Also pack and push the NextGenSoftware libraries
+        type: boolean
+        default: true
+      publish:
+        description: Push to NuGet.org (off = build and pack only)
+        type: boolean
+        default: false
+      release_tag:
+        description: Also create/update this holochain-client-csharp GitHub release (e.g. v4.4.1) with every package + a zip of each attached (blank = skip; needs publish)
+        type: string
+        default: ''
+
+jobs:
+  publish:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout holochain-client-csharp
+        uses: actions/checkout@v4
+        with:
+          repository: holochain-open-dev/holochain-client-csharp
+          ref: ${{ inputs.holonet_ref }}
+          path: holochain-client-csharp
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+      - name: Checkout NextGenSoftware-Libraries
+        uses: actions/checkout@v4
+        with:
+          repository: NextGenSoftwareUK/NextGenSoftware-Libraries
+          ref: ${{ inputs.libraries_ref }}
+          path: NextGenSoftware-Libraries
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.x'
+
+      - name: Pack NextGenSoftware libraries
+        if: inputs.publish_libraries
+        shell: pwsh
+        working-directory: NextGenSoftware-Libraries
+        run: |
+          New-Item -ItemType Directory -Force -Path ..\nupkgs-libraries | Out-Null
+          $projects = @(
+            "NextGenSoftware.ErrorHandling\NextGenSoftware.ErrorHandling.csproj",
+            "NextGenSoftware.Utilities\NextGenSoftware.Utilities.csproj",
+            "NextGenSoftware.CLI.Engine\NextGenSoftware.CLI.Engine.csproj",
+            "NextGenSoftware.Logging\NextGenSoftware.Logging.csproj",
+            "NextGenSoftware.Logging.NLog\NextGenSoftware.Logging.NLog.csproj",
+            "NextGenSoftware.WebSocket\NextGenSoftware.WebSocket.csproj"
+          )
+          $failed = 0
+          foreach ($proj in $projects) {
+            dotnet pack $proj --configuration Release --output ..\nupkgs-libraries
+            if ($LASTEXITCODE -ne 0) { $failed++; Write-Host "PACK FAILED: $proj" }
+          }
+          Get-ChildItem ..\nupkgs-libraries\*.nupkg | ForEach-Object { Write-Host $_.Name }
+          if ($failed -gt 0) { exit 1 }
+
+      - name: Build HoloNET
+        shell: pwsh
+        working-directory: holochain-client-csharp
+        run: |
+          $projects = @(
+            "NextGenSoftware.Holochain.HoloNET.Client\NextGenSoftware.Holochain.HoloNET.Client.csproj",
+            "NextGenSoftware.Holochain.HoloNET.ORM\NextGenSoftware.Holochain.HoloNET.ORM.csproj",
+            "NextGenSoftware.Holochain.HoloNET.HDK\NextGenSoftware.Holochain.HoloNET.HDK.csproj",
+            "NextGenSoftware.Holochain.HoloNET.HyperNET\NextGenSoftware.Holochain.HoloNET.HyperNET.csproj",
+            "HoloNET-Manager\NextGenSoftware.Holochain.HoloNET.Manager\NextGenSoftware.Holochain.HoloNET.Manager.csproj",
+            "HoloNET-API\NextGenSoftware.Holochain.HoloNET.API\NextGenSoftware.Holochain.HoloNET.API.csproj"
+          )
+          $failed = 0
+          foreach ($proj in $projects) {
+            dotnet build $proj --configuration Release
+            if ($LASTEXITCODE -ne 0) { $failed++; Write-Host "BUILD FAILED: $proj" }
+          }
+          if ($failed -gt 0) { exit 1 }
+
+      - name: Pack HoloNET
+        shell: pwsh
+        working-directory: holochain-client-csharp
+        run: |
+          New-Item -ItemType Directory -Force -Path .\nupkgs | Out-Null
+          $projects = @(
+            "NextGenSoftware.Holochain.HoloNET.Client\NextGenSoftware.Holochain.HoloNET.Client.csproj",
+            "NextGenSoftware.Holochain.HoloNET.ORM\NextGenSoftware.Holochain.HoloNET.ORM.csproj",
+            "NextGenSoftware.Holochain.HoloNET.HDK\NextGenSoftware.Holochain.HoloNET.HDK.csproj",
+            "NextGenSoftware.Holochain.HoloNET.HyperNET\NextGenSoftware.Holochain.HoloNET.HyperNET.csproj",
+            "HoloNET-Manager\NextGenSoftware.Holochain.HoloNET.Manager\NextGenSoftware.Holochain.HoloNET.Manager.csproj",
+            "HoloNET-API\NextGenSoftware.Holochain.HoloNET.API\NextGenSoftware.Holochain.HoloNET.API.csproj"
+          )
+          $failed = 0
+          foreach ($proj in $projects) {
+            dotnet pack $proj --configuration Release --output .\nupkgs --no-build
+            if ($LASTEXITCODE -ne 0) { $failed++; Write-Host "PACK FAILED: $proj" }
+          }
+          # Embedded variants (Client and ORM): .Embedded bundles Holochain 0.7.1 and 0.7.0, .Embedded.Holochain071 and
+          # .Embedded.Holochain070 one version each. --no-incremental so each variant really gets its own conductors.
+          foreach ($variant in @("both", "0.7.1", "0.7.0")) {
+            foreach ($proj in $projects[0..1]) {
+              dotnet build $proj --configuration Release --no-incremental -p:Embedded=true -p:EmbeddedHolochain=$variant
+              if ($LASTEXITCODE -eq 0) { dotnet pack $proj --configuration Release --output .\nupkgs --no-build -p:Embedded=true -p:EmbeddedHolochain=$variant }
+              if ($LASTEXITCODE -ne 0) { $failed++; Write-Host "PACK FAILED (embedded $variant): $proj" }
+            }
+          }
+          Get-ChildItem .\nupkgs\*.nupkg | ForEach-Object { Write-Host $_.Name }
+          if ($failed -gt 0) { exit 1 }
+
+      - name: Record immutable standalone publication source graph
+        shell: pwsh
+        run: |
+          $repositories = @()
+          foreach ($folder in @('holochain-client-csharp', 'NextGenSoftware-Libraries')) {
+            $commit = (& git -C $folder rev-parse HEAD).Trim()
+            if ($LASTEXITCODE -ne 0) { throw "Cannot resolve source $folder" }
+            $url = (& git -C $folder remote get-url origin).Trim()
+            if ($LASTEXITCODE -ne 0) { throw "Cannot resolve repository $folder" }
+            $repositories += @{ path=$folder; commit=$commit; url=$url }
+          }
+          $gitlinks = @(& git -C holochain-client-csharp submodule status --recursive)
+          if ($LASTEXITCODE -ne 0 -or @($gitlinks | Where-Object { $_ -match '^[+\-U]' }).Count) { throw 'Publication submodule graph is not exact.' }
+          $packages = @(Get-ChildItem holochain-client-csharp/nupkgs/*.nupkg | ForEach-Object {
+            @{ file=$_.Name; sha256=(Get-FileHash $_.FullName -Algorithm SHA256).Hash }
+          })
+          @{ schemaVersion=1; kind='standalone'; run=$env:GITHUB_RUN_ID; repositories=$repositories; gitlinks=$gitlinks; packages=$packages } |
+            ConvertTo-Json -Depth 8 | Set-Content publication-source-graph.json
+      - name: Upload packages
+        uses: actions/upload-artifact@v4
+        with:
+          name: holonet-nupkgs
+          path: |
+            publication-source-graph.json
+            nupkgs-libraries/*.nupkg
+            holochain-client-csharp/nupkgs/*.nupkg
+
+      - name: Push to NuGet.org (libraries first, then HoloNET)
+        if: inputs.publish
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) { throw 'NUGET_API_KEY is required.' }
+          $pushFailed = 0
+          $packages = @()
+          if (Test-Path .\nupkgs-libraries) { $packages += Get-ChildItem .\nupkgs-libraries\*.nupkg }
+          $packages += Get-ChildItem .\holochain-client-csharp\nupkgs\*.nupkg
+          foreach ($package in $packages) {
+            Write-Host "Pushing $($package.Name)..."
+            dotnet nuget push $package.FullName --source https://api.nuget.org/v3/index.json --api-key $env:NUGET_API_KEY --skip-duplicate
+            if ($LASTEXITCODE -ne 0) { $pushFailed++ }
+          }
+          if ($pushFailed -gt 0) { exit 1 }
+
+      - name: GitHub release with every package attached
+        if: inputs.publish && inputs.release_tag != ''
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+          TAG: ${{ inputs.release_tag }}
+        run: |
+          $repo = 'holochain-open-dev/holochain-client-csharp'
+          $version = $env:TAG.TrimStart('v')
+          New-Item -ItemType Directory -Force -Path release-assets | Out-Null
+          $packages = @(Get-ChildItem holochain-client-csharp/nupkgs/*.nupkg)
+          if (Test-Path nupkgs-libraries) { $packages += Get-ChildItem nupkgs-libraries/*.nupkg }
+          foreach ($p in $packages | Where-Object { $_.Name -like "*.$version.nupkg" -or $_.DirectoryName -like '*nupkgs-libraries*' }) {
+            Copy-Item $p.FullName release-assets/
+            $dir = Join-Path $env:RUNNER_TEMP $p.BaseName
+            Expand-Archive $p.FullName -DestinationPath $dir -Force
+            Remove-Item -Recurse -Force (Join-Path $dir '_rels'), (Join-Path $dir 'package'), (Join-Path $dir '*.nuspec') -ErrorAction SilentlyContinue
+            Remove-Item -LiteralPath (Join-Path $dir '[Content_Types].xml') -Force -ErrorAction SilentlyContinue
+            Compress-Archive -Path (Join-Path $dir '*') -DestinationPath "release-assets/$($p.BaseName).zip" -Force
+          }
+          # Notes: this version's CHANGELOG section.
+          $log = Get-Content holochain-client-csharp/CHANGELOG.md -Raw
+          $m = [regex]::Match($log, "(?ms)^## v$([regex]::Escape($version))b.*?(?=^## v)")
+          $notes = if ($m.Success) { $m.Value } else { "HoloNET $version" }
+          $notes += "`n`nFull history: https://github.com/$repo/blob/main/CHANGELOG.md"
+          Set-Content release-notes.md $notes
+          gh release view $env:TAG --repo $repo 2>$null
+          if ($LASTEXITCODE -ne 0) {
+            git -C holochain-client-csharp tag $env:TAG 2>$null
+            gh release create $env:TAG --repo $repo --target (git -C holochain-client-csharp rev-parse HEAD) --title "HoloNET $version" --notes-file release-notes.md
+          }
+          gh release upload $env:TAG (Get-ChildItem release-assets/*).FullName --repo $repo --clobber
+

@@ -9,7 +9,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS.Infrastructure.Services
     public class MidenService : IMidenService
     {
         private readonly MidenAPIClient _apiClient;
-        private const string BRIDGE_PROGRAM_HASH = "bridge_program_hash"; // TODO: Set from config
+        private const string BRIDGE_PROGRAM_HASH = "bridge_program_hash";
 
         public MidenService(MidenAPIClient apiClient)
         {
@@ -97,6 +97,86 @@ namespace NextGenSoftware.OASIS.API.Providers.MidenOASIS.Infrastructure.Services
             response.Result.Status = "nullified";
             response.Result.CreatedAt = DateTime.UtcNow;
             return response.Result;
+        }
+
+        public async Task<OASISResult<decimal>> GetAccountBalanceAsync(string accountAddress)
+        {
+            var result = new OASISResult<decimal>();
+            try
+            {
+                var response = await _apiClient.GetAsync<dynamic>($"/accounts/{accountAddress}/balance");
+                if (response.IsError)
+                {
+                    result.IsError = true;
+                    result.Message = response.Message;
+                    return result;
+                }
+                result.Result = (decimal)(response.Result?.balance ?? 0);
+                result.IsError = false;
+                result.Message = "Balance retrieved successfully";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = ex.Message;
+                result.Exception = ex;
+            }
+            return result;
+        }
+
+        public async Task<OASISResult<(string PublicKey, string PrivateKey, string SeedPhrase)>> CreateAccountAsync()
+        {
+            var result = new OASISResult<(string, string, string)>();
+            try
+            {
+                var response = await _apiClient.PostAsync<dynamic>("/accounts", new { });
+                if (response.IsError)
+                {
+                    result.IsError = true;
+                    result.Message = response.Message;
+                    return result;
+                }
+                string pub = response.Result?.publicKey?.ToString() ?? string.Empty;
+                string priv = response.Result?.privateKey?.ToString() ?? string.Empty;
+                string seed = response.Result?.seedPhrase?.ToString() ?? string.Empty;
+                result.Result = (pub, priv, seed);
+                result.IsError = false;
+                result.Message = "Miden account created successfully";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = ex.Message;
+                result.Exception = ex;
+            }
+            return result;
+        }
+
+        public async Task<OASISResult<(string PublicKey, string PrivateKey)>> RestoreAccountAsync(string seedPhrase)
+        {
+            var result = new OASISResult<(string, string)>();
+            try
+            {
+                var response = await _apiClient.PostAsync<dynamic>("/accounts/restore", new { seedPhrase });
+                if (response.IsError)
+                {
+                    result.IsError = true;
+                    result.Message = response.Message;
+                    return result;
+                }
+                string pub = response.Result?.publicKey?.ToString() ?? string.Empty;
+                string priv = response.Result?.privateKey?.ToString() ?? string.Empty;
+                result.Result = (pub, priv);
+                result.IsError = false;
+                result.Message = "Miden account restored successfully";
+            }
+            catch (Exception ex)
+            {
+                result.IsError = true;
+                result.Message = ex.Message;
+                result.Exception = ex;
+            }
+            return result;
         }
 
         #region Bridge Operations for Zcash ↔ Miden

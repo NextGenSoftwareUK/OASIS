@@ -68,8 +68,10 @@ public static class OasisEntitiesExtensions
             Symbol = nft.Symbol,
             SellerFeeBasisPoints = nft.SellerFeeBasisPoints,
             UpdateAuthority = nft.UpdateAuthority,
-            //MintAddress = nft.Owner, //TODO: What is MintAddress?! How is it different to MintByAddress?!
-            NFTTokenAddress = nft.Mint, //TODO: What is MintAddress?! How is it different to MintByAddress?!
+            // MintAddress vs NFTTokenAddress: In Solana, the Mint address is the unique identifier for the NFT token type
+            // NFTTokenAddress is the mint address (the token's unique identifier on Solana)
+            // OASISMintWalletAddress is the owner's wallet address (who owns the NFT)
+            NFTTokenAddress = nft.Mint, // Mint address = unique token identifier on Solana
             JSONMetaDataURL = nft.Url,
             OnChainProvider = new EnumValue<ProviderType>(ProviderType.SolanaOASIS),
             OffChainProvider = new EnumValue<ProviderType>(ProviderType.IPFSOASIS)

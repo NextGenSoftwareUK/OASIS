@@ -1,0 +1,1212 @@
+{
+  "schemaVersion": 1,
+  "incident": "2026-09-28 initial NuGet versions inherited source/API major versions",
+  "policy": "Packages with no registry history start at 1.0.0",
+  "packages": [
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.AbstractOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AbstractOASIS/NextGenSoftware.OASIS.API.Providers.AbstractOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.AlgoliaOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.AlgoliaOASIS/NextGenSoftware.OASIS.API.Providers.AlgoliaOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.AlgorandOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS/NextGenSoftware.OASIS.API.Providers.AlgorandOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.AnkrOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.AnkrOASIS/NextGenSoftware.OASIS.API.Providers.AnkrOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.AppwriteOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.AppwriteOASIS/NextGenSoftware.OASIS.API.Providers.AppwriteOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS/NextGenSoftware.OASIS.API.Providers.ArangoDBOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS/NextGenSoftware.OASIS.API.Providers.ArcadeDBOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.AxelarOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.AxelarOASIS/NextGenSoftware.OASIS.API.Providers.AxelarOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.BasechainOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BasechainOASIS/NextGenSoftware.OASIS.API.Providers.BasechainOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.BerachainOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.BerachainOASIS/NextGenSoftware.OASIS.API.Providers.BerachainOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.BigQueryOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS/NextGenSoftware.OASIS.API.Providers.BigQueryOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.BittensorOASIS",
+      "project": "Providers/AI/NextGenSoftware.OASIS.API.Providers.BittensorOASIS/NextGenSoftware.OASIS.API.Providers.BittensorOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS/NextGenSoftware.OASIS.API.Providers.BlockscoutOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS",
+      "project": "Providers/Social/NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS/NextGenSoftware.OASIS.API.Providers.BlueSkyOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.CassandraOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.CassandraOASIS/NextGenSoftware.OASIS.API.Providers.CassandraOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.CeramicOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CeramicOASIS/NextGenSoftware.OASIS.API.Providers.CeramicOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.ChainflipOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ChainflipOASIS/NextGenSoftware.OASIS.API.Providers.ChainflipOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.ChainlinkFunctionsOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ChainlinkFunctionsOASIS/NextGenSoftware.OASIS.API.Providers.ChainlinkFunctionsOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.ChromaOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.ChromaOASIS/NextGenSoftware.OASIS.API.Providers.ChromaOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.CivicOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.CivicOASIS/NextGenSoftware.OASIS.API.Providers.CivicOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS/NextGenSoftware.OASIS.API.Providers.ClickHouseOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.CloudflareD1OASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.CloudflareD1OASIS/NextGenSoftware.OASIS.API.Providers.CloudflareD1OASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.CloudflareOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.CloudflareOASIS/NextGenSoftware.OASIS.API.Providers.CloudflareOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.CloudinaryOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.CloudinaryOASIS/NextGenSoftware.OASIS.API.Providers.CloudinaryOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS/NextGenSoftware.OASIS.API.Providers.CockroachDBOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.ConnextOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.ConnextOASIS/NextGenSoftware.OASIS.API.Providers.ConnextOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.ConvexOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.ConvexOASIS/NextGenSoftware.OASIS.API.Providers.ConvexOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS/NextGenSoftware.OASIS.API.Providers.CouchbaseOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.CouchDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.CouchDBOASIS/NextGenSoftware.OASIS.API.Providers.CouchDBOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.CovalentOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.CovalentOASIS/NextGenSoftware.OASIS.API.Providers.CovalentOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.DaprOASIS",
+      "project": "Providers/Other/NextGenSoftware.OASIS.API.Providers.DaprOASIS/NextGenSoftware.OASIS.API.Providers.DaprOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.DatabricksOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.DatabricksOASIS/NextGenSoftware.OASIS.API.Providers.DatabricksOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.deBridgeOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.deBridgeOASIS/NextGenSoftware.OASIS.API.Providers.deBridgeOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.DecentralandOASIS",
+      "project": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.DecentralandOASIS/NextGenSoftware.OASIS.API.Providers.DecentralandOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS/NextGenSoftware.OASIS.API.Providers.DenoDeployOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.DragonflyOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS/NextGenSoftware.OASIS.API.Providers.DragonflyOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.DruidOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.DruidOASIS/NextGenSoftware.OASIS.API.Providers.DruidOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.DuckDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.DuckDBOASIS/NextGenSoftware.OASIS.API.Providers.DuckDBOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.DuneAnalyticsOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.DuneAnalyticsOASIS/NextGenSoftware.OASIS.API.Providers.DuneAnalyticsOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS/NextGenSoftware.OASIS.API.Providers.DynamoDBOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS/NextGenSoftware.OASIS.API.Providers.EigenLayerOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS/NextGenSoftware.OASIS.API.Providers.ElasticsearchOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.ENSOffchainOASIS",
+      "project": "Providers/Identity/NextGenSoftware.OASIS.API.Providers.ENSOffchainOASIS/NextGenSoftware.OASIS.API.Providers.ENSOffchainOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.EspressoSystemsOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.EspressoSystemsOASIS/NextGenSoftware.OASIS.API.Providers.EspressoSystemsOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.FastlyOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.FastlyOASIS/NextGenSoftware.OASIS.API.Providers.FastlyOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.FaunaOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.FaunaOASIS/NextGenSoftware.OASIS.API.Providers.FaunaOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.FhenixOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FhenixOASIS/NextGenSoftware.OASIS.API.Providers.FhenixOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.FilecoinOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.FilecoinOASIS/NextGenSoftware.OASIS.API.Providers.FilecoinOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.FirebaseOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS/NextGenSoftware.OASIS.API.Providers.FirebaseOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.FlyIOOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.FlyIOOASIS/NextGenSoftware.OASIS.API.Providers.FlyIOOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.GaladrielOASIS",
+      "project": "Providers/AI/NextGenSoftware.OASIS.API.Providers.GaladrielOASIS/NextGenSoftware.OASIS.API.Providers.GaladrielOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.GarnetOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.GarnetOASIS/NextGenSoftware.OASIS.API.Providers.GarnetOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.GelatoNetworkOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.GelatoNetworkOASIS/NextGenSoftware.OASIS.API.Providers.GelatoNetworkOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.GoldskyOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.GoldskyOASIS/NextGenSoftware.OASIS.API.Providers.GoldskyOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS",
+      "project": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS/NextGenSoftware.OASIS.API.Providers.GoogleMapsOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.GUNOASIS",
+      "project": "Providers/Other/NextGenSoftware.OASIS.API.Providers.GUNOASIS/NextGenSoftware.OASIS.API.Providers.GUNOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.HEREMapsOASIS",
+      "project": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.HEREMapsOASIS/NextGenSoftware.OASIS.API.Providers.HEREMapsOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.HolonymOASIS",
+      "project": "Providers/Identity/NextGenSoftware.OASIS.API.Providers.HolonymOASIS/NextGenSoftware.OASIS.API.Providers.HolonymOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS/NextGenSoftware.OASIS.API.Providers.HyperlaneOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS/NextGenSoftware.OASIS.API.Providers.InfluxDBOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS",
+      "project": "Providers/Other/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS/NextGenSoftware.OASIS.API.Providers.IntelOpenVINOOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.KeyDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS/NextGenSoftware.OASIS.API.Providers.KeyDBOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.LanceDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.LanceDBOASIS/NextGenSoftware.OASIS.API.Providers.LanceDBOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS/NextGenSoftware.OASIS.API.Providers.LayerZeroV2OASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.LitestreamOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.LitestreamOASIS/NextGenSoftware.OASIS.API.Providers.LitestreamOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.LoomOASIS",
+      "project": "Providers/Social/NextGenSoftware.OASIS.API.Providers.LoomOASIS/NextGenSoftware.OASIS.API.Providers.LoomOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.MapLibreOASIS",
+      "project": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.MapLibreOASIS/NextGenSoftware.OASIS.API.Providers.MapLibreOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.MarqoOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MarqoOASIS/NextGenSoftware.OASIS.API.Providers.MarqoOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.MatrixOASIS",
+      "project": "Providers/Social/NextGenSoftware.OASIS.API.Providers.MatrixOASIS/NextGenSoftware.OASIS.API.Providers.MatrixOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS/NextGenSoftware.OASIS.API.Providers.MeilisearchOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.MemcachedOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MemcachedOASIS/NextGenSoftware.OASIS.API.Providers.MemcachedOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.MilvusOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MilvusOASIS/NextGenSoftware.OASIS.API.Providers.MilvusOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.MinIOOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MinIOOASIS/NextGenSoftware.OASIS.API.Providers.MinIOOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.MoralisStreamsOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.MoralisStreamsOASIS/NextGenSoftware.OASIS.API.Providers.MoralisStreamsOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.MotherDuckOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.MotherDuckOASIS/NextGenSoftware.OASIS.API.Providers.MotherDuckOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.NansenOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.NansenOASIS/NextGenSoftware.OASIS.API.Providers.NansenOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS/NextGenSoftware.OASIS.API.Providers.NATSJetStreamOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.NeonOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.NeonOASIS/NextGenSoftware.OASIS.API.Providers.NeonOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.NetlifyBlobsOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.NetlifyBlobsOASIS/NextGenSoftware.OASIS.API.Providers.NetlifyBlobsOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.NianticLightshipOASIS",
+      "project": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.NianticLightshipOASIS/NextGenSoftware.OASIS.API.Providers.NianticLightshipOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.NileOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.NileOASIS/NextGenSoftware.OASIS.API.Providers.NileOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS/NextGenSoftware.OASIS.API.Providers.OpenSearchOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.OpenZeppelinDefenderOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.OpenZeppelinDefenderOASIS/NextGenSoftware.OASIS.API.Providers.OpenZeppelinDefenderOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.OracleDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS/NextGenSoftware.OASIS.API.Providers.OracleDBOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS",
+      "project": "Providers/Other/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS/NextGenSoftware.OASIS.API.Providers.OrbitDBOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.PgVectorOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.PgVectorOASIS/NextGenSoftware.OASIS.API.Providers.PgVectorOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.PineconeOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.PineconeOASIS/NextGenSoftware.OASIS.API.Providers.PineconeOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.PinotOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.PinotOASIS/NextGenSoftware.OASIS.API.Providers.PinotOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS/NextGenSoftware.OASIS.API.Providers.PlanetScaleOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS/NextGenSoftware.OASIS.API.Providers.PocketBaseOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS",
+      "project": "Providers/Identity/NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS/NextGenSoftware.OASIS.API.Providers.PolygonIDOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS/NextGenSoftware.OASIS.API.Providers.PostgreSQLOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.PouchDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.PouchDBOASIS/NextGenSoftware.OASIS.API.Providers.PouchDBOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.PrivyServerWalletsOASIS",
+      "project": "Providers/Identity/NextGenSoftware.OASIS.API.Providers.PrivyServerWalletsOASIS/NextGenSoftware.OASIS.API.Providers.PrivyServerWalletsOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.ProofOfHumanityOASIS",
+      "project": "Providers/Identity/NextGenSoftware.OASIS.API.Providers.ProofOfHumanityOASIS/NextGenSoftware.OASIS.API.Providers.ProofOfHumanityOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.QdrantOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.QdrantOASIS/NextGenSoftware.OASIS.API.Providers.QdrantOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.QuestDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS/NextGenSoftware.OASIS.API.Providers.QuestDBOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.QuickNodeOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.QuickNodeOASIS/NextGenSoftware.OASIS.API.Providers.QuickNodeOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.RavenDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.RavenDBOASIS/NextGenSoftware.OASIS.API.Providers.RavenDBOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.ReadyPlayerMeOASIS",
+      "project": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.ReadyPlayerMeOASIS/NextGenSoftware.OASIS.API.Providers.ReadyPlayerMeOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS/NextGenSoftware.OASIS.API.Providers.ReclaimProtocolOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.RedisOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.RedisOASIS/NextGenSoftware.OASIS.API.Providers.RedisOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.RedshiftOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.RedshiftOASIS/NextGenSoftware.OASIS.API.Providers.RedshiftOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.ReservoirOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.ReservoirOASIS/NextGenSoftware.OASIS.API.Providers.ReservoirOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.RitualOASIS",
+      "project": "Providers/AI/NextGenSoftware.OASIS.API.Providers.RitualOASIS/NextGenSoftware.OASIS.API.Providers.RitualOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS/NextGenSoftware.OASIS.API.Providers.ScyllaDBOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.SeiOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SeiOASIS/NextGenSoftware.OASIS.API.Providers.SeiOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS",
+      "project": "Providers/Identity/NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS/NextGenSoftware.OASIS.API.Providers.SelfProtocolOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.SnowflakeOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SnowflakeOASIS/NextGenSoftware.OASIS.API.Providers.SnowflakeOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.SolrOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SolrOASIS/NextGenSoftware.OASIS.API.Providers.SolrOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS/NextGenSoftware.OASIS.API.Providers.SQLServerDBOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.StargateOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.StargateOASIS/NextGenSoftware.OASIS.API.Providers.StargateOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.SubqueryOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.SubqueryOASIS/NextGenSoftware.OASIS.API.Providers.SubqueryOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.SupabaseOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS/NextGenSoftware.OASIS.API.Providers.SupabaseOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS/NextGenSoftware.OASIS.API.Providers.SurrealDBOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.SynapseOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SynapseOASIS/NextGenSoftware.OASIS.API.Providers.SynapseOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.TemporalOASIS",
+      "project": "Providers/Other/NextGenSoftware.OASIS.API.Providers.TemporalOASIS/NextGenSoftware.OASIS.API.Providers.TemporalOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.TenderlyOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.TenderlyOASIS/NextGenSoftware.OASIS.API.Providers.TenderlyOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.TheSandboxOASIS",
+      "project": "Providers/Maps/NextGenSoftware.OASIS.API.Providers.TheSandboxOASIS/NextGenSoftware.OASIS.API.Providers.TheSandboxOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.TigrisOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.TigrisOASIS/NextGenSoftware.OASIS.API.Providers.TigrisOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.TimescaleDBOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.TimescaleDBOASIS/NextGenSoftware.OASIS.API.Providers.TimescaleDBOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.TursoOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.TursoOASIS/NextGenSoftware.OASIS.API.Providers.TursoOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.TypesenseOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS/NextGenSoftware.OASIS.API.Providers.TypesenseOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.UpstashOASIS",
+      "project": "Providers/Cloud/NextGenSoftware.OASIS.API.Providers.UpstashOASIS/NextGenSoftware.OASIS.API.Providers.UpstashOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.ValKeyOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.ValKeyOASIS/NextGenSoftware.OASIS.API.Providers.ValKeyOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.VercelKVOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.VercelKVOASIS/NextGenSoftware.OASIS.API.Providers.VercelKVOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.WeaviateOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS/NextGenSoftware.OASIS.API.Providers.WeaviateOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.WormholeOASIS",
+      "project": "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.WormholeOASIS/NextGenSoftware.OASIS.API.Providers.WormholeOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.XataOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.XataOASIS/NextGenSoftware.OASIS.API.Providers.XataOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.ZapperOASIS",
+      "project": "Providers/Network/NextGenSoftware.OASIS.API.Providers.ZapperOASIS/NextGenSoftware.OASIS.API.Providers.ZapperOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.ZillizOASIS",
+      "project": "Providers/Storage/NextGenSoftware.OASIS.API.Providers.ZillizOASIS/NextGenSoftware.OASIS.API.Providers.ZillizOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.0",
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.API.Providers.zkPassOASIS",
+      "project": "Providers/Identity/NextGenSoftware.OASIS.API.Providers.zkPassOASIS/NextGenSoftware.OASIS.API.Providers.zkPassOASIS.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1",
+        "2.0.2"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OASIS.ONODE.Client",
+      "project": "ONODE/ONODEManager/NextGenSoftware.OASIS.ONODE.Client/NextGenSoftware.OASIS.ONODE.Client.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1"
+      ]
+    },
+    {
+      "packageId": "NextGenSoftware.OGEngine.Client",
+      "project": "OASIS Omniverse/OGEngineClient/OGEngineClient.csproj",
+      "correctVersion": "1.0.0",
+      "erroneousVersions": [
+        "2.0.1"
+      ]
+    }
+  ]
+}

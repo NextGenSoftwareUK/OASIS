@@ -1,0 +1,18 @@
+{
+  "runId": "replace-with-build-and-device-run-id",
+  "operator": "replace-with-tester-name",
+  "observedAtUtc": "2026-09-20T00:00:00Z",
+  "build": "replace-with-Our-World-build-identifier",
+  "environment": "replace-with-device-and-WEB4-WEB5-environment",
+  "cases": [
+    { "id": "location-arrival-radius", "status": "PENDING", "notes": "Inside and boundary accept; outside rejects.", "artifacts": [] },
+    { "id": "location-dwell-reset", "status": "PENDING", "notes": "Leaving radius resets the continuous dwell timer.", "artifacts": [] },
+    { "id": "ar-gaze-duration", "status": "PENDING", "notes": "Continuous gaze triggers only after authored duration.", "artifacts": [] },
+    { "id": "ar-touch", "status": "PENDING", "notes": "Touching the authored object submits touch evidence once.", "artifacts": [] },
+    { "id": "map-ar-vr-ir-representation", "status": "PENDING", "notes": "Each authored representation appears in its target mode.", "artifacts": [] },
+    { "id": "audio-video-text-link", "status": "PENDING", "notes": "Authored content runs once and in response order.", "artifacts": [] },
+    { "id": "quest-objective-presentation", "status": "PENDING", "notes": "Objective and final quest effects, titles, images, and audio are correct.", "artifacts": [] },
+    { "id": "two-avatar-deployed-replicas", "status": "PENDING", "notes": "Two avatars competing through separate replicas produce one accepted final allocation.", "artifacts": [] },
+    { "id": "deployed-provider-interruption", "status": "PENDING", "notes": "Interrupted live provider transaction resumes with the same key and grants once.", "artifacts": [] }
+  ]
+}

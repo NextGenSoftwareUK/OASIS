@@ -55,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with fieldName {fieldName} and fieldValue {fieldValue} in the LoadAsync method in the HoloOASIS Provider. Reason: {ex}.");
+                OASISErrorHandling.HandleError(ref result, $"Error loading {hcObjectType} with fieldName {fieldName} and fieldValue {fieldValue} in the LoadAsync method in the HoloOASIS Provider. Reason: {ex}.");
             }
 
             return result;
@@ -94,7 +94,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with fieldName {fieldName} and fieldValue {fieldValue} in the Load method in the HoloOASIS Provider. Reason: {ex}.");
+                OASISErrorHandling.HandleError(ref result, $"Error loading {hcObjectType} with fieldName {fieldName} and fieldValue {fieldValue} in the Load method in the HoloOASIS Provider. Reason: {ex}.");
             }
 
             return result;
@@ -171,7 +171,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"An unknwon error has occured saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} in the SaveAsync method in HoloOASIS Provider. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"An unknwon error has occured saving {hcObjectType} with id {holon.Id} and name {holon.Name} in the SaveAsync method in HoloOASIS Provider. Reason: {ex}");
             }
 
             return result;
@@ -248,7 +248,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"An unknwon error has occured saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} in the Save method in HoloOASIS Provider. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"An unknwon error has occured saving {hcObjectType} with id {holon.Id} and name {holon.Name} in the Save method in HoloOASIS Provider. Reason: {ex}");
             }
 
             return result;
@@ -257,7 +257,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
         public async Task<OASISResult<IHolon>> DeleteAsync(HcObjectTypeEnum hcObjectType, string fieldName, string fieldValue, string zomeDeleteFunctionName = "", Dictionary<string, string> customDataKeyValuePairs = null)
         {
             OASISResult<IHolon> result = new OASISResult<IHolon>();
-            string errorMessage = $"An unknwon error has occured deleting the {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the DeleteAsync method in HoloOASIS Provider. Reason:";
+            string errorMessage = $"An unknwon error has occured deleting the {hcObjectType} with {fieldName} {fieldValue} in the DeleteAsync method in HoloOASIS Provider. Reason:";
 
             try
             {
@@ -327,7 +327,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the Delete method in HoloOASIS Provider. Reason: {ex}");
+                OASISErrorHandling.HandleError(ref result, $"An unknwon error has occured deleting the {hcObjectType} with {fieldName} {fieldValue} in the Delete method in HoloOASIS Provider. Reason: {ex}");
             }
 
             return result;
@@ -340,10 +340,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
                 if (!response.IsError)
                     result = DataHelper.ConvertHCResponseToOASISResult(response, hcObjectType, hcObject, result);
                 else
-                    OASISErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the {methodName} method in the GenericRepository in the HoloOASIS Provider. Reason: {response.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error loading {hcObjectType} with {fieldName} {fieldValue} in the {methodName} method in the GenericRepository in the HoloOASIS Provider. Reason: {response.Message}");
             }
             else
-                OASISErrorHandling.HandleError(ref result, $"Error loading {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the {methodName} method in the GenericRepository in the HoloOASIS Provider. Reason: Unknown.");
+                OASISErrorHandling.HandleError(ref result, $"Error loading {hcObjectType} with {fieldName} {fieldValue} in the {methodName} method in the GenericRepository in the HoloOASIS Provider. Reason: Unknown.");
 
             return result;
         }
@@ -355,10 +355,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
                 if (!response.IsError)
                     result = DataHelper.ConvertHCResponseToOASISResult(response, hcObjectType, hcObject, result);
                 else
-                    OASISErrorHandling.HandleError(ref result, $"Error saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} in the {methodName} method in the GenericRepository in the HoloOASIS Provider. Reason: {response.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error saving {hcObjectType} with id {holon.Id} and name {holon.Name} in the {methodName} method in the GenericRepository in the HoloOASIS Provider. Reason: {response.Message}");
             }
             else
-                OASISErrorHandling.HandleError(ref result, $"Error saving {Enum.GetName(hcObjectType)} with id {holon.Id} and name {holon.Name} in the {methodName} method in the GenericRepository in the HoloOASIS Provider. Reason: Unknown.");
+                OASISErrorHandling.HandleError(ref result, $"Error saving {hcObjectType} with id {holon.Id} and name {holon.Name} in the {methodName} method in the GenericRepository in the HoloOASIS Provider. Reason: Unknown.");
 
             return result;
         }
@@ -370,10 +370,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS.Repositories
                 if (!response.IsError)
                     result = DataHelper.ConvertHCResponseToOASISResult(response, hcObjectType, hcObject, result);
                 else
-                    OASISErrorHandling.HandleError(ref result, $"Error deleting {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the {methodName} method in the GenericRepository in the HoloOASIS Provider. Reason: {response.Message}");
+                    OASISErrorHandling.HandleError(ref result, $"Error deleting {hcObjectType} with {fieldName} {fieldValue} in the {methodName} method in the GenericRepository in the HoloOASIS Provider. Reason: {response.Message}");
             }
             else
-                OASISErrorHandling.HandleError(ref result, $"Error deleting {Enum.GetName(hcObjectType)} with {fieldName} {fieldValue} in the {methodName} method in the GenericRepository in the HoloOASIS Provider. Reason: Unknown.");
+                OASISErrorHandling.HandleError(ref result, $"Error deleting {hcObjectType} with {fieldName} {fieldValue} in the {methodName} method in the GenericRepository in the HoloOASIS Provider. Reason: Unknown.");
 
             return result;
         }

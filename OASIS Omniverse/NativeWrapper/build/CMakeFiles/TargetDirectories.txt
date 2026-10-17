@@ -1,0 +1,5 @@
+﻿C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/CMakeFiles/ogengine.dir
+C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/CMakeFiles/ogengine_static.dir
+C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/CMakeFiles/INSTALL.dir
+C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/CMakeFiles/ALL_BUILD.dir
+C:/Source/OASIS-master/OASIS Omniverse/NativeWrapper/build/CMakeFiles/ZERO_CHECK.dir

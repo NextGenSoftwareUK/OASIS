@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests
             var providerType = _provider.ProviderType;
 
             // Assert
-            Assert.AreEqual(ProviderType.CosmosBlockChainOASIS, providerType);
+            Assert.AreEqual(ProviderType.CosmosBlockChainOASIS, providerType.Value);
         }
 
         [TestMethod]
@@ -89,14 +89,11 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests
         }
 
         [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
+        public void ProviderName_ShouldBeNonEmpty()
         {
-            // Arrange & Act
-            var version = _provider.GetProviderVersion();
-
-            // Assert
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
+            var name = _provider.ProviderName;
+            Assert.IsNotNull(name);
+            Assert.IsFalse(string.IsNullOrEmpty(name));
         }
 
         [TestCleanup]

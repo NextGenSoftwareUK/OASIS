@@ -1,0 +1,118 @@
+diff --git a/libraries/client/settings.gradle b/libraries/client/settings.gradle
+index 91126de..ca64d76 100644
+--- a/libraries/client/settings.gradle
++++ b/libraries/client/settings.gradle
+@@ -13,10 +13,10 @@ pluginManagement {
+                     useVersion("8.7.3")
+                     break
+                 case "org.jetbrains.kotlin.android":
+-                    useVersion("2.1.10")
++                    useVersion("1.6.21")
+                     break
+                 case "org.jetbrains.kotlin.plugin.parcelize":
+-                    useVersion("2.1.10")
++                    useVersion("1.6.21")
+                     break
+             }
+         }
+diff --git a/libraries/client/build.gradle.kts b/libraries/client/build.gradle.kts
+index 90350b0..3ad58f3 100644
+--- a/libraries/client/build.gradle.kts
++++ b/libraries/client/build.gradle.kts
+@@ -84,11 +84,11 @@ dependencies {
+   implementation("androidx.appcompat:appcompat:1.6.0")
+   implementation("com.google.android.material:material:1.7.0")
+   // Coroutines
+-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
+-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1")
++  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
++  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+   // Uniffi
+   implementation("net.java.dev.jna:jna:5.16.0@aar")
+-  implementation("org.jetbrains.kotlin:kotlin-reflect:2.1.10")
++  implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.21")
+   // Tests
+   testImplementation("junit:junit:4.13.2")
+   androidTestImplementation("androidx.test.ext:junit:1.1.5")
+diff --git a/libraries/service/build.gradle.kts b/libraries/service/build.gradle.kts
+index 7a5e039..5e91563 100644
+--- a/libraries/service/build.gradle.kts
++++ b/libraries/service/build.gradle.kts
+@@ -85,11 +85,11 @@ dependencies {
+   implementation("androidx.appcompat:appcompat:1.6.0")
+   implementation("com.google.android.material:material:1.7.0")
+   // Coroutines
+-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.1")
+-  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.10.1")
++  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.4")
++  implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
+   // Uniffi
+   implementation("net.java.dev.jna:jna:5.16.0@aar")
+-  implementation("org.jetbrains.kotlin:kotlin-reflect:2.1.10")
++  implementation("org.jetbrains.kotlin:kotlin-reflect:1.6.21")
+   // Tests
+   testImplementation("junit:junit:4.13.2")
+   androidTestImplementation("androidx.test.ext:junit:1.2.1")
+diff --git a/libraries/service/settings.gradle b/libraries/service/settings.gradle
+index e7ac474..72381a7 100644
+--- a/libraries/service/settings.gradle
++++ b/libraries/service/settings.gradle
+@@ -14,7 +14,7 @@ pluginManagement {
+                     useVersion("8.7.3")
+                     break
+                 case "org.jetbrains.kotlin.android":
+-                    useVersion("2.1.10")
++                    useVersion("1.6.21")
+                     break
+             }
+         }
+diff --git a/libraries/service/src/main/java/org/holochain/androidserviceruntime/service/AppAuthorizationRequestMap.kt b/libraries/service/src/main/java/org/holochain/androidserviceruntime/service/AppAuthorizationRequestMap.kt
+index f3939f8..01b8248 100644
+--- a/libraries/service/src/main/java/org/holochain/androidserviceruntime/service/AppAuthorizationRequestMap.kt
++++ b/libraries/service/src/main/java/org/holochain/androidserviceruntime/service/AppAuthorizationRequestMap.kt
+@@ -1,7 +1,6 @@
+ package org.holochain.androidserviceruntime.service
+ 
+-import kotlin.uuid.ExperimentalUuidApi
+-import kotlin.uuid.Uuid
++import java.util.UUID
+ 
+ /**
+  * Represents a request from an Android app to access a Holochain app.
+@@ -47,7 +46,6 @@ data class PutResponse(
+  *
+  * @param initialNotificationId The starting notification ID to use
+  */
+-@OptIn(ExperimentalUuidApi::class)
+ public class AppAuthorizationRequestMap(
+     initialNotificationId: Int,
+ ) {
+@@ -82,7 +80,7 @@ public class AppAuthorizationRequestMap(
+         var putResponse = this.mapContainsRequest(request)
+ 
+         if (putResponse == null) {
+-            var uuid = Uuid.random().toString()
++            var uuid = UUID.randomUUID().toString()
+             var notificationId = notificationIdGenerator.next()
+             putResponse = PutResponse(uuid, notificationId)
+ 
+diff --git a/libraries/client/src/main/java/org/holochain/androidserviceruntime/client/Json.kt b/libraries/client/src/main/java/org/holochain/androidserviceruntime/client/Json.kt
+index beff32a..c2812c5 100644
+--- a/libraries/client/src/main/java/org/holochain/androidserviceruntime/client/Json.kt
++++ b/libraries/client/src/main/java/org/holochain/androidserviceruntime/client/Json.kt
+@@ -39,10 +39,11 @@ fun normalizeJsonValue(value: Any?): Any? {
+             -> value
+             is Float -> value.toDouble()
+-            is Byte,
+-            is Short,
+-            is Long,
+-            -> value.toInt()
++            // Kotlin 2.x smart-casts a grouped numeric branch to Number; Kotlin 1.9 does
++            // not. Keep the conversions explicit for Unity 2022's supported toolchain.
++            is Byte -> value.toInt()
++            is Short -> value.toInt()
++            is Long -> value.toInt()
+             is UByte -> value.toInt()
+             is UShort -> value.toInt()
+             is ULong -> value.toInt()
+             is UInt -> value.toInt()

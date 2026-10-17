@@ -1,4 +1,5 @@
 using System;
+using NextGenSoftware.OASIS.API.Contracts.Enums;
 
 namespace NextGenSoftware.OASIS.API.Contracts.Interfaces
 {

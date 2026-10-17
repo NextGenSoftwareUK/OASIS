@@ -1,0 +1,26 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "Protos/common.proto";
+
+service VideoService {
+  rpc GetActiveCalls (GetActiveCallsRequest) returns (JsonResponse);
+  rpc GetCallParticipants (GetCallParticipantsRequest) returns (JsonResponse);
+  rpc StartVideoCall (StartVideoCallRequest) returns (StringResponse);
+  rpc JoinVideoCall (JoinVideoCallRequest) returns (OASISGrpcResponse);
+  rpc EndVideoCall (EndVideoCallRequest) returns (OASISGrpcResponse);
+  rpc LeaveVideoCall (LeaveVideoCallRequest) returns (OASISGrpcResponse);
+}
+
+message GetActiveCallsRequest { string avatar_id = 1; }
+message GetCallParticipantsRequest { string call_id = 1; }
+message StartVideoCallRequest {
+  string initiator_id = 1;
+  repeated string participant_ids = 2;
+  string call_name = 3;
+}
+message JoinVideoCallRequest { string call_id = 1; string participant_id = 2; }
+message EndVideoCallRequest { string call_id = 1; string ended_by_id = 2; }
+message LeaveVideoCallRequest { string call_id = 1; string participant_id = 2; }

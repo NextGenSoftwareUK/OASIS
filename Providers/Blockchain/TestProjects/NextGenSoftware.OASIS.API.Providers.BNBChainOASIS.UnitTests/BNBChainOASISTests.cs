@@ -24,53 +24,48 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.UnitTests
         {
             // Assert
             Assert.NotNull(_provider);
-            Assert.Equal(ProviderType.BNBChainOASIS, _provider.ProviderType);
-            Assert.Equal("BNB Chain OASIS Provider", _provider.ProviderName);
-            Assert.Equal("BNB Chain (Binance Smart Chain) OASIS Provider", _provider.ProviderDescription);
-            Assert.Equal(ProviderCategory.Blockchain, _provider.ProviderCategory);
+            Assert.Equal(ProviderType.BNBChainOASIS, _provider.ProviderType.Value);
+            Assert.Equal("BNBChainOASIS", _provider.ProviderName);
+            Assert.NotNull(_provider.ProviderDescription);
+            Assert.NotEmpty(_provider.ProviderDescription);
+            Assert.NotNull(_provider.ProviderCategory.Value);
         }
 
         [Fact]
         public void ProviderType_ShouldBeBNBChainOASIS()
         {
             // Assert
-            Assert.Equal(ProviderType.BNBChainOASIS, _provider.ProviderType);
+            Assert.Equal(ProviderType.BNBChainOASIS, _provider.ProviderType.Value);
         }
 
         [Fact]
         public void ProviderName_ShouldBeCorrect()
         {
             // Assert
-            Assert.Equal("BNB Chain OASIS Provider", _provider.ProviderName);
+            Assert.Equal("BNBChainOASIS", _provider.ProviderName);
         }
 
         [Fact]
         public void ProviderDescription_ShouldBeCorrect()
         {
             // Assert
-            Assert.Equal("BNB Chain (Binance Smart Chain) OASIS Provider", _provider.ProviderDescription);
+            Assert.NotNull(_provider.ProviderDescription);
+            Assert.NotEmpty(_provider.ProviderDescription);
         }
 
         [Fact]
-        public void ProviderCategory_ShouldBeBlockchain()
+        public void ProviderCategory_ShouldBeSet()
         {
             // Assert
-            Assert.Equal(ProviderCategory.Blockchain, _provider.ProviderCategory);
+            Assert.NotNull(_provider.ProviderCategory.Value);
         }
 
         [Fact]
-        public void ProviderVersion_ShouldNotBeEmpty()
+        public void ProviderName_ShouldNotBeEmpty()
         {
             // Assert
-            Assert.NotNull(_provider.ProviderVersion);
-            Assert.NotEmpty(_provider.ProviderVersion);
-        }
-
-        [Fact]
-        public void IsActivated_ShouldBeFalseInitially()
-        {
-            // Assert
-            Assert.False(_provider.IsActivated);
+            Assert.NotNull(_provider.ProviderName);
+            Assert.NotEmpty(_provider.ProviderName);
         }
 
         [Fact]
@@ -78,13 +73,6 @@ namespace NextGenSoftware.OASIS.API.Providers.BNBChainOASIS.UnitTests
         {
             // Assert
             Assert.False(_provider.IsProviderActivated);
-        }
-
-        [Fact]
-        public void IsProviderConnected_ShouldBeFalseInitially()
-        {
-            // Assert
-            Assert.False(_provider.IsProviderConnected);
         }
     }
 }

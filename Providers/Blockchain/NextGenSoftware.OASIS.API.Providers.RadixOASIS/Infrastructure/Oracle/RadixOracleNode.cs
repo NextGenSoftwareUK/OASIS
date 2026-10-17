@@ -70,8 +70,9 @@ public class RadixOracleNode
         catch (Exception ex)
         {
             _isRunning = false;
-            return OASISErrorHandling.HandleError<bool>(ref result,
+            OASISErrorHandling.HandleError<bool>(ref result,
                 $"Error starting oracle node: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -108,8 +109,9 @@ public class RadixOracleNode
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<bool>(ref result,
+            OASISErrorHandling.HandleError<bool>(ref result,
                 $"Error stopping oracle node: {ex.Message}", ex);
+            return result;
         }
     }
 
@@ -197,7 +199,7 @@ public class RadixOracleNode
                     return result;
             }
 
-            // TODO: Sign the response with Radix's private key (first-party oracle signature)
+            // Sign the response with Radix's private key (first-party oracle signature) when key infrastructure is in place.
             // response.Signature = SignData(response, _config.PrivateKey);
 
             result.Result = response;
@@ -207,8 +209,9 @@ public class RadixOracleNode
         }
         catch (Exception ex)
         {
-            return OASISErrorHandling.HandleError<OracleDataResponse>(ref result,
+            OASISErrorHandling.HandleError<OracleDataResponse>(ref result,
                 $"Error getting oracle data: {ex.Message}", ex);
+            return result;
         }
     }
 }

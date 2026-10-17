@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using NextGenSoftware.OASIS.Common;
@@ -12,6 +12,8 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Interfaces
     {
         //TODO: Apply OASISResult pattern to rest of OASIS ASAP! Thanks! :)
         OASISResult<Holon> Add(Holon holon);
+        Task EnsurePublicIdentityIndexAsync();
+        void EnsurePublicIdentityIndex();
         Task<OASISResult<Holon>> AddAsync(Holon holon);
         OASISResult<Holon> Update(Holon holon);
         Task<OASISResult<Holon>> UpdateAsync(Holon holon);

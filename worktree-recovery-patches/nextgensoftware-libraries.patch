@@ -1,0 +1,15 @@
+diff --git a/NextGenSoftware.CLI.Engine/NextGenSoftware.CLI.Engine.csproj b/NextGenSoftware.CLI.Engine/NextGenSoftware.CLI.Engine.csproj
+index 6c3ae78..0defbfe 100644
+--- a/NextGenSoftware.CLI.Engine/NextGenSoftware.CLI.Engine.csproj
++++ b/NextGenSoftware.CLI.Engine/NextGenSoftware.CLI.Engine.csproj
+@@ -70,10 +70,6 @@ After years of continuous development this is the first major v2 release, repres
+     <PackageReference Include="Colorful.Console" Version="1.2.15" />
+     <PackageReference Include="ConsoleTables" Version="2.6.2" />
+     <PackageReference Include="ShellProgressBar" Version="5.2.0" />
+-    <!-- Override transitive refs from Colorful.Console to avoid NU1605 package downgrade -->
+-    <PackageReference Include="System.Collections" Version="4.3.0" />
+-    <PackageReference Include="System.Diagnostics.Debug" Version="4.3.0" />
+-    <PackageReference Include="System.Runtime.Extensions" Version="4.3.0" />
+   </ItemGroup>
+ 
+   <ItemGroup>

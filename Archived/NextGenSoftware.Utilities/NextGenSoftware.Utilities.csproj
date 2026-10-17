@@ -1,15 +1,15 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
 	<GeneratePackageOnBuild>True</GeneratePackageOnBuild>
 	<PackageId>NextGenSoftware.Utilities</PackageId>
 	<Company>NextGen Software Ltd</Company>
 	<Product>NextGen Software Utilities</Product>
 	<Title>NextGen Software Utilities</Title>
-	<Summary>Utilities library used by other NextGen Software libraries.</Summary>
-	<Description>Utilities library used by other NextGen Software libraries.</Description>
-	<PackageProjectUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</PackageProjectUrl>
+	<Summary>Core utility helpers shared across OASIS, HoloNET, and all NextGen Software libraries. String, encryption, reflection, async patterns. https://oasisomniverse.one</Summary>
+	<Description>A shared utility library providing string manipulation, date/time utilities, encryption helpers, async patterns, reflection extensions, and more -- used across the OASIS, HoloNET, STAR, and all NextGen Software projects. A lightweight, no-frills dependency bringing the full NextGen Software toolkit. Part of the OASIS Omniverse ecosystem at https://oasisomniverse.one -- Source: https://github.com/NextGenSoftwareUK/NextGenSoftware-Libraries</Description>
+	<PackageProjectUrl>https://oasisomniverse.one</PackageProjectUrl>
 	<PackageIcon>STARJPG.JPG</PackageIcon>
 	<Authors>David Ellams (NextGen Software Ltd)</Authors>
 	<PackageTags>utilities;net;unity</PackageTags>
@@ -20,8 +20,8 @@
 		- Added new ExpandoObjectHelpers.
 	</PackageReleaseNotes>
 	<RepositoryType>git</RepositoryType>
-	<RepositoryUrl>https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK</RepositoryUrl>
-	<Copyright>Copyright © NextGen Software Ltd 2022 - 2024</Copyright>
+	<RepositoryUrl>https://github.com/NextGenSoftwareUK/OASIS</RepositoryUrl>
+	<Copyright>Copyright © NextGen Software Ltd 2019 - 2026</Copyright>
 	<PackageReadmeFile>README.md</PackageReadmeFile>
 	<!--<PackageLicenseExpression>GNU GPLv3</PackageLicenseExpression>-->
 	<PackageLicenseExpression>MIT</PackageLicenseExpression>

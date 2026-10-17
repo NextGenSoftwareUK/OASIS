@@ -1,95 +1,61 @@
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Net.Http.Headers;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
-using Microsoft.AspNetCore.Mvc;
-using Newtonsoft.Json;
+using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Helpers;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Managers;
-using NextGenSoftware.OASIS.Common;
 
 namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Middleware
 {
     public class JwtMiddleware
     {
+        public const string ValidatedPrincipalKey = "OASIS.ValidatedPrincipal";
+        public const string AuthenticationErrorItemKey = "OASIS.AuthenticationError";
         private readonly RequestDelegate _next;
-        
-        public JwtMiddleware(RequestDelegate next)
-        {
-            _next = next;
-        }
+        public JwtMiddleware(RequestDelegate next) { _next = next; }
 
         public async Task Invoke(HttpContext context)
         {
-            var token = context.Request.Headers["Authorization"].FirstOrDefault()?.Split(" ").Last();
-            if (token != null)
-                await AttachAccountToContext(context, token);
+            var headers = context.Request.Headers.Authorization;
+            if (headers.Count == 0) { await _next(context); return; }
+            if (headers.Count != 1 || !AuthenticationHeaderValue.TryParse(headers[0], out var header) ||
+                !string.Equals(header.Scheme, "Bearer", StringComparison.OrdinalIgnoreCase) || string.IsNullOrWhiteSpace(header.Parameter))
+            { await Reject(context, 401, "INVALID_AUTHORIZATION_HEADER", "A single Bearer authorization value is required."); return; }
+            ClaimsPrincipal principal;
+            try
+            {
+                var security = OASISBootLoader.OASISBootLoader.OASISDNA?.OASIS?.Security;
+                principal = OasisJwtValidation.Validate(header.Parameter, security?.SecretKey, security?.Oidc?.Issuer);
+            }
+            catch (Exception ex) when (ex is SecurityTokenException || ex is ArgumentException || ex is InvalidOperationException)
+            {
+                // Authentication policy belongs to the endpoint/filter. Continuing without an authenticated
+                // principal lets the HyperDrive exchange validate its signed offline-session grant while
+                // authorized bearer-only endpoints are still rejected by their authorization filter.
+                context.Items[AuthenticationErrorItemKey] = ex.Message;
+                await _next(context);
+                return;
+            }
+            var id = Guid.Parse(principal.FindFirst("sub").Value);
+            var avatar = await Program.AvatarManager.LoadAvatarAsync(id);
+            if (avatar.IsError)
+            { await Reject(context, 503, "AVATAR_LOOKUP_UNAVAILABLE", "The authenticated avatar could not be loaded."); return; }
+            if (avatar.Result == null || avatar.Result.Id != id)
+            { await Reject(context, 401, "INVALID_AVATAR", "The authenticated avatar no longer exists."); return; }
+            context.User = principal;
+            context.Items[ValidatedPrincipalKey] = principal;
+            context.Items["Avatar"] = avatar.Result;
+            OASISRequestContext.CurrentAvatarId = id;
+            OASISRequestContext.CurrentAvatar = avatar.Result;
             await _next(context);
         }
 
-        private async Task AttachAccountToContext(HttpContext context, string token)
+        private static Task Reject(HttpContext context, int status, string code, string message)
         {
-            try
-            {
-                var tokenHandler = new JwtSecurityTokenHandler();
-                var key = Encoding.ASCII.GetBytes(OASISBootLoader.OASISBootLoader.OASISDNA.OASIS.Security.SecretKey);
-                tokenHandler.ValidateToken(token, new TokenValidationParameters
-                {
-                    ValidateIssuerSigningKey = true,
-                    IssuerSigningKey = new SymmetricSecurityKey(key),
-                    ValidateIssuer = false,
-                    ValidateAudience = false,
-                    // set clockskew to zero so tokens expire exactly at token expiration time (instead of 5 minutes later)
-                    ClockSkew = TimeSpan.Zero
-                }, out SecurityToken validatedToken);
-
-                var jwtToken = (JwtSecurityToken)validatedToken;
-                var id = Guid.Parse(jwtToken.Claims.First(x => x.Type == "id").Value);
-
-                OASISResult<IAvatar> avatarResult = await Program.AvatarManager.LoadAvatarAsync(id);
-
-                if (!avatarResult.IsError && avatarResult.Result != null)
-                {
-                    context.Items["Avatar"] = avatarResult.Result;
-                    //AvatarManager.LoggedInAvatarSessions[context.Session.Id] = avatarResult.Result; //TODO: Maybe not good idea to set this because its static so will be shared with all client sessions?!
-                    //string test = context.User.Identity.Name;
-                }
-            }
-            catch (Exception ex)
-            {
-                var exceptionResponse = new OASISResult<string>()
-                {
-                    Message = $"Authorization Failed: JWT Token Is Invalid. Make sure it is set in the Authorization Header for your request or alternatively please re-login and try again.",
-                };
-
-                OASISErrorHandling.HandleError(ref exceptionResponse, exceptionResponse.Message, ex.Message);
-                context.Response.StatusCode = 401;
-                context.Response.ContentType = "application/json";
-
-                byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse));
-                //byte[] body = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject("test error"));
-
-               // await context.Response.Body.WriteAsync(body);
-                //await context.Response.Body.WriteAsync(body);
-                //await context.Response.Body.WriteAsync(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exceptionResponse)));
-
-                try
-                {
-                    //context.Response.ContentLength = body.Length;
-
-                    //if (context.Response.Body.CanRead)
-                    //    context.Response.ContentLength = context.Response.Body.Length;
-                }
-                catch (Exception)
-                {
-                    // Ignore exceptions during response body reading
-                }
-            }
+            context.Response.StatusCode = status;
+            return context.Response.WriteAsJsonAsync(new { IsError = true, Code = code, Message = message }, context.RequestAborted);
         }
     }
 }

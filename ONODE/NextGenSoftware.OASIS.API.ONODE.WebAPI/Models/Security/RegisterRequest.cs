@@ -27,5 +27,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.Security
 
         [Range(typeof(bool), "true", "true")]
         public bool AcceptTerms { get; set; }
+
+        /// <summary>
+        /// When true, suppresses the verification email that is normally sent on registration.
+        /// Only honoured when the caller is a Wizard avatar. Intended for automated flows
+        /// (e.g. NFT mint) that handle their own notification and verify the email immediately.
+        /// </summary>
+        public bool SuppressVerificationEmail { get; set; } = false;
     }
 }

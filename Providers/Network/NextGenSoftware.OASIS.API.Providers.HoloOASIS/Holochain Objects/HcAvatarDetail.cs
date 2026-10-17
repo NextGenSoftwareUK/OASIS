@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -35,6 +35,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HoloOASIS
 
         [HolochainRustFieldName("xp")]
         public int XP { get; set; }
+
+        [HolochainRustFieldName("active_quest_id")]
+        public Guid? ActiveQuestId { get; set; }
+        [HolochainRustFieldName("active_objective_id")]
+        public Guid? ActiveObjectiveId { get; set; }
 
         [HolochainRustFieldName("model_3d")]
         public string Model3D { get; set; }

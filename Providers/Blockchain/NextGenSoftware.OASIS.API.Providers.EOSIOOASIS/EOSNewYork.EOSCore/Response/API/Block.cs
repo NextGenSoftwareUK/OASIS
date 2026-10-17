@@ -107,7 +107,8 @@ namespace EOSNewYork.EOSCore.Response.API
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            // CanWrite returns false — this converter is read-only and WriteJson will never be called by Newtonsoft.Json.
+            throw new InvalidOperationException("This JsonConverter is read-only (CanWrite=false). WriteJson should never be called.");
         }
 
         public override bool CanConvert(Type objectType)

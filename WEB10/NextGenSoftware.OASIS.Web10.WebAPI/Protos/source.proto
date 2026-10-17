@@ -1,0 +1,47 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.Web10.WebAPI.Grpc";
+
+package oasis.web10;
+
+import "google/protobuf/timestamp.proto";
+
+// The Source / WEB0 - root-of-truth endpoint combining OASIS runtime identity with WEB9 live unified status.
+service SourceService {
+  // Returns the foundational runtime/version identity plus live unified status across every layer built on top.
+  rpc GetSource (GetSourceRequest) returns (GetSourceResponse);
+}
+
+message GetSourceRequest {}
+
+message GetSourceResponse {
+  bool is_error = 1;
+  string message = 2;
+  SourceReport report = 3;
+}
+
+message SourceReport {
+  string oasis_runtime_version = 1;
+  string oasis_api_version = 2;
+  string star_api_version = 3;
+  UnifiedStatusReport unified_status = 4;
+  google.protobuf.Timestamp generated_utc = 5;
+}
+
+message UnifiedStatusReport {
+  repeated LayerStatus layers = 1;
+  bool all_layers_healthy = 2;
+  int32 healthy_layer_count = 3;
+  int32 total_layer_count = 4;
+  google.protobuf.Timestamp generated_utc = 5;
+}
+
+message LayerStatus {
+  string layer_name = 1;
+  string base_url = 2;
+  bool is_reachable = 3;
+  double response_time_ms = 4;
+  map<string, string> metrics = 5;
+  string error = 6;
+  google.protobuf.Timestamp checked_utc = 7;
+}

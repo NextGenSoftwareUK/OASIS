@@ -1,0 +1,16 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "Protos/common.proto";
+
+service ProviderService {
+  rpc GetCurrentStorageProviderType (ProviderEmptyRequest) returns (StringResponse);
+  rpc GetAllRegisteredProviderTypes (ProviderEmptyRequest) returns (StringListResponse);
+}
+
+message ProviderEmptyRequest {}
+
+
+

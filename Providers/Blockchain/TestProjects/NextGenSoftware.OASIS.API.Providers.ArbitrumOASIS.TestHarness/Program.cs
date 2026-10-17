@@ -1,8 +1,8 @@
-﻿using System.Numerics;
+using System.Numerics;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using Avatar = NextGenSoftware.OASIS.API.Core.Holons.Avatar;
@@ -15,7 +15,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness
     {
         private static readonly BigInteger _chainId = 421614;
         private const string _chainUrl = "https://sepolia-rollup.arbitrum.io/rpc";
-        private const string _chainPrivateKey = "d3c80ec102d5fe42beadcb7346f74df529a0a10a1906f6ecc5fe3770eb65fb1a";
+        // Was a private key committed in source. Supply your own testnet key in OASIS_TEST_CHAIN_PRIVATE_KEY.
+        private static readonly string _chainPrivateKey = System.Environment.GetEnvironmentVariable("OASIS_TEST_CHAIN_PRIVATE_KEY") ?? "";
         private const string _contractAddress = "0x299440d24Cd0e8Ca6425ae92cE66032E58B8c436";
         private const string _accountAddress = "0x604b88BECeD9d6a02113fE1A0129f67fbD565D38";
 
@@ -40,7 +41,7 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness
             Console.WriteLine("Requesting avatar saving...");
             var saveAvatarResult = await arbitrumOASIS.SaveAvatarAsync(avatar);
 
-            if (saveAvatarResult.IsError && !saveAvatarResult.IsSaved)
+            if (saveAvatarResult.IsError)
             {
                 Console.WriteLine($"Saving avatar failed! Error message: {saveAvatarResult.Message}");
                 return;
@@ -207,19 +208,16 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness
             ArbitrumOASIS arbitrumOASIS = new(_chainUrl, _chainPrivateKey, _chainId, _contractAddress);
             arbitrumOASIS.ActivateProvider();
 
-            OASISResult<INFTTransactionRespone> result = await arbitrumOASIS.SendNFTAsync(new NFTWalletTransactionRequest()
+            OASISResult<IWeb3NFTTransactionResponse> result = await arbitrumOASIS.SendNFTAsync(new SendWeb3NFTRequest()
             {
-                //MintWalletAddress = _contractAddress,
                 FromWalletAddress = _contractAddress,
                 ToWalletAddress = _contractAddress,
-                FromProvider = new EnumValue<ProviderType>(ProviderType.IPFSOASIS), // Example provider type
-                ToProvider = new EnumValue<ProviderType>(ProviderType.EthereumOASIS), // Example provider type
-                Amount = 1m, // Example amount
+                Amount = 1m,
                 MemoText = "Sending NFT to a new owner.",
-                TokenId = 10
+                TokenId = "10"
             });
 
-            Console.WriteLine($"Is NFT Sent: {result.IsSaved}, {result.Message}");
+            Console.WriteLine($"Is NFT Sent: {!result.IsError}, {result.Message}");
             Console.WriteLine($"NFT Sending Transaction Hash: {result.Result?.TransactionResult}");
         }
 
@@ -228,40 +226,31 @@ namespace NextGenSoftware.OASIS.API.Providers.ArbitrumOASIS.TestHarness
             ArbitrumOASIS arbitrumOASIS = new(_chainUrl, _chainPrivateKey, _chainId, _contractAddress);
             arbitrumOASIS.ActivateProvider();
 
-            OASISResult<INFTTransactionRespone> result = await arbitrumOASIS.MintNFTAsync(
-                new MintNFTTransactionRequest()
+            OASISResult<IWeb3NFTTransactionResponse> result = await arbitrumOASIS.MintNFTAsync(
+                new MintWeb3NFTRequest()
                 {
-                    //MintWalletAddress = _accountAddress,
                     MintedByAvatarId = Guid.NewGuid(),
                     Title = "Sample NFT Title",
                     Description = "This is a description of the sample NFT. It includes all the unique attributes and features.",
-                    Image = [0x01, 0x02, 0x03, 0x04], // Mock byte array for the image
+                    Image = [0x01, 0x02, 0x03, 0x04],
                     ImageUrl = "https://example.com/images/sample-nft.jpg",
-                    Thumbnail = [0x05, 0x06, 0x07, 0x08], // Mock byte array for the thumbnail
+                    Thumbnail = [0x05, 0x06, 0x07, 0x08],
                     ThumbnailUrl = "https://example.com/thumbnails/sample-nft-thumb.jpg",
-                    Price = 1m, // Price in whatever currency the system uses, e.g., Ether
-                    Discount = 1m, // 5% discount
+                    Price = 1m,
+                    Discount = 1m,
                     MemoText = "Thank you for purchasing this NFT!",
                     NumberToMint = 100,
                     StoreNFTMetaDataOnChain = true,
-                    MetaData = new Dictionary<string, object>
+                    MetaData = new Dictionary<string, string>
                     {
                         { "Creator", "John Doe" },
-                        { "Attributes", new Dictionary<string, string>
-                            {
-                                { "BackgroundColor", "Blue" },
-                                { "Rarity", "Rare" }
-                            }
-                        },
                         { "Edition", "First Edition" }
                     },
-                    OffChainProvider = new EnumValue<ProviderType>(ProviderType.IPFSOASIS),
-                    OnChainProvider = new EnumValue<ProviderType>(ProviderType.ArbitrumOASIS),
                     JSONMetaDataURL = "https://example.com/metadata/sample-nft.json"
                 }
             );
 
-            Console.WriteLine($"Is NFT Minted: {result.IsSaved}, {result.Message}");
+            Console.WriteLine($"Is NFT Minted: {!result.IsError}, {result.Message}");
             Console.WriteLine($"NFT Minting Transaction Hash: {result.Result?.TransactionResult}");
         }
 

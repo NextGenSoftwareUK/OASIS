@@ -1,0 +1,42 @@
+diff --git a/HoloNET-ORM b/HoloNET-ORM
+index 1af4400eb..902851522 160000
+--- a/HoloNET-ORM
++++ b/HoloNET-ORM
+@@ -1 +1 @@
+-Subproject commit 1af4400ebcdf33f5fe2a75142cbbfb7f89ec4deb
++Subproject commit 902851522a4485862ebebfcd843b85211854bddd
+diff --git a/OASIS Architecture/NextGenSoftware.OASIS.API.Core b/OASIS Architecture/NextGenSoftware.OASIS.API.Core
+index 0b8ad0dfc..d2dcc2ad1 160000
+--- a/OASIS Architecture/NextGenSoftware.OASIS.API.Core	
++++ b/OASIS Architecture/NextGenSoftware.OASIS.API.Core	
+@@ -1 +1 @@
+-Subproject commit 0b8ad0dfc128f9c7c94a28e0a168849cf82e93f1
++Subproject commit d2dcc2ad181a7c583ed0acb0811f4942cb173eed
+diff --git a/ONODE/NextGenSoftware.OASIS.API.ONODE.Core b/ONODE/NextGenSoftware.OASIS.API.ONODE.Core
+index d6faf0029..d45234c41 160000
+--- a/ONODE/NextGenSoftware.OASIS.API.ONODE.Core
++++ b/ONODE/NextGenSoftware.OASIS.API.ONODE.Core
+@@ -1 +1 @@
+-Subproject commit d6faf00296affe07b78c23079f889ba28df127a6
++Subproject commit d45234c41db42a72b7899d3fd211b8b23b6b15df
+diff --git a/ONODE/ONODEManager b/ONODE/ONODEManager
+index dc6852c57..0abe9c221 160000
+--- a/ONODE/ONODEManager
++++ b/ONODE/ONODEManager
+@@ -1 +1 @@
+-Subproject commit dc6852c5788e05cfdbd24a7b9a554f618b844c60
++Subproject commit 0abe9c2218d96e741990dd28fd6b2db4d50380f4
+diff --git a/STAR ODK b/STAR ODK
+index 3d0c41913..7e7962272 160000
+--- a/STAR ODK	
++++ b/STAR ODK	
+@@ -1 +1 @@
+-Subproject commit 3d0c41913b93bb72efea643b63eaef88cd34fbd0
++Subproject commit 7e7962272cea1be6998b198751a18db238a9505b
+diff --git a/WEB6 b/WEB6
+index e3c095fa6..cb31f76fd 160000
+--- a/WEB6
++++ b/WEB6
+@@ -1 +1 @@
+-Subproject commit e3c095fa675510c3f8826453629e26249258ad15
++Subproject commit cb31f76fdcd60ba5d79f7ddc9d68cb00303a742b

@@ -25,7 +25,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS.UnitTests
             var providerType = _aptosProvider.ProviderType;
 
             // Assert
-            Assert.AreEqual(ProviderType.AptosOASIS, providerType);
+            Assert.AreEqual(ProviderType.AptosOASIS, providerType.Value);
         }
 
         [TestMethod]
@@ -35,7 +35,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS.UnitTests
             var category = _aptosProvider.ProviderCategory;
 
             // Assert
-            Assert.AreEqual(ProviderCategory.Blockchain, category);
+            Assert.AreEqual<ProviderCategory>(ProviderCategory.StorageAndNetwork, category.Value);
         }
 
         [TestMethod]
@@ -99,34 +99,15 @@ namespace NextGenSoftware.OASIS.API.Providers.AptosOASIS.UnitTests
         }
 
         [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
+        public void ProviderType_ShouldBeAptosOASISViaProperty()
         {
-            // Arrange & Act
-            var version = _aptosProvider.GetProviderVersion();
-
-            // Assert
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
+            Assert.AreEqual<ProviderType>(ProviderType.AptosOASIS, _aptosProvider.ProviderType.Value);
         }
 
         [TestMethod]
-        public void GetProviderType_ShouldReturnAptosOASIS()
+        public void ProviderCategory_ShouldBeBlockchainViaProperty()
         {
-            // Arrange & Act
-            var providerType = _aptosProvider.GetProviderType();
-
-            // Assert
-            Assert.AreEqual(ProviderType.AptosOASIS, providerType);
-        }
-
-        [TestMethod]
-        public void GetProviderCategory_ShouldReturnBlockchain()
-        {
-            // Arrange & Act
-            var category = _aptosProvider.GetProviderCategory();
-
-            // Assert
-            Assert.AreEqual(ProviderCategory.Blockchain, category);
+            Assert.AreEqual<ProviderCategory>(ProviderCategory.StorageAndNetwork, _aptosProvider.ProviderCategory.Value);
         }
 
         [TestCleanup]

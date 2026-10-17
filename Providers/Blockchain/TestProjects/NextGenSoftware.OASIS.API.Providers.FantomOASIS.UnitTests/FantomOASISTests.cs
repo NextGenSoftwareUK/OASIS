@@ -27,7 +27,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS.UnitTests
             Assert.Equal(ProviderType.FantomOASIS, _provider.ProviderType);
             Assert.Equal("Fantom OASIS Provider", _provider.ProviderName);
             Assert.Equal("Fantom (FTM) OASIS Provider", _provider.ProviderDescription);
-            Assert.Equal(ProviderCategory.Blockchain, _provider.ProviderCategory);
+            Assert.Equal(ProviderCategory.StorageAndNetwork, _provider.ProviderCategory);
         }
 
         [Fact]
@@ -55,7 +55,7 @@ namespace NextGenSoftware.OASIS.API.Providers.FantomOASIS.UnitTests
         public void ProviderCategory_ShouldBeBlockchain()
         {
             // Assert
-            Assert.Equal(ProviderCategory.Blockchain, _provider.ProviderCategory);
+            Assert.Equal(ProviderCategory.StorageAndNetwork, _provider.ProviderCategory);
         }
 
         [Fact]

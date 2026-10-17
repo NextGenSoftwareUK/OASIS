@@ -334,8 +334,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 HolonModel holonEntity = CreateHolonModel(holon);
-                _dbContext.Holons.Add(holonEntity);
-                _dbContext.SaveChangesAsync();
+                AddOrUpdateHolon(holonEntity);
+                _dbContext.SaveChanges();
                 return new OASISResult<IHolon>
                     {IsError = false, Result = GetHolonFromEntity(holonEntity), IsSaved = true};
             }
@@ -356,7 +356,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 HolonModel holonEntity = CreateHolonModel(holon);
-                _dbContext.Holons.Add(holonEntity);
+                AddOrUpdateHolon(holonEntity);
                 await _dbContext.SaveChangesAsync();
                 return new OASISResult<IHolon>
                     {IsError = false, Result = GetHolonFromEntity(holonEntity), IsSaved = true};
@@ -381,9 +381,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 foreach (var holonModel in holons)
                 {
                     holonEntity = CreateHolonModel(holonModel);
-                    _dbContext.Holons.Add(holonEntity);
-                    _dbContext.SaveChangesAsync();
+                    AddOrUpdateHolon(holonEntity);
                 }
+
+                _dbContext.SaveChanges();
 
                 return new OASISResult<IEnumerable<IHolon>>
                     {IsError = false, Result = holons, IsSaved = true};
@@ -409,9 +410,10 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 foreach (var holonModel in holons)
                 {
                     holonEntity = CreateHolonModel(holonModel);
-                    _dbContext.Holons.Add(holonEntity);
-                    await _dbContext.SaveChangesAsync();
+                    AddOrUpdateHolon(holonEntity);
                 }
+
+                await _dbContext.SaveChangesAsync();
 
                 return new OASISResult<IEnumerable<IHolon>>
                     {IsError = false, Result = holons, IsSaved = true};
@@ -518,7 +520,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var holonEntity = _dbContext.Holons
-                    .FirstOrDefault(p => p.ProviderKey == providerKey);
+                    .FirstOrDefault(p => p.ProviderKey.Any(pk => pk.Value == providerKey));
                 
                 if (holonEntity != null)
                 {
@@ -567,7 +569,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var holonEntity = await _dbContext.Holons
-                    .FirstOrDefaultAsync(p => p.ProviderKey == providerKey);
+                    .FirstOrDefaultAsync(p => p.ProviderKey.Any(pk => pk.Value == providerKey));
                 
                 if (holonEntity != null)
                 {
@@ -616,7 +618,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
             try
             {
                 var holonEntities = _dbContext.Holons
-                    .Where(p => p.HolonType == Type.ToString())
+                    .Where(p => p.HolonType == Type)
                     .ToList()
                     .Select(GetHolonFromEntity)
                     .ToList();
@@ -670,6 +672,26 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Persistence.Reposit
                 Name = holon.Name,
                 Version = holon.Version
             };
+        }
+
+        // Public OASIS Id is the persistence identity. Provider keys and lifecycle/audit
+        // hints are not available to stateless REST or JavaScript callers.
+        private void AddOrUpdateHolon(HolonModel holon)
+        {
+            HolonModel persistedHolon = _dbContext.Holons
+                .AsNoTracking()
+                .FirstOrDefault(existingHolon => existingHolon.Id == holon.Id);
+
+            if (persistedHolon == null)
+            {
+                _dbContext.Holons.Add(holon);
+                return;
+            }
+
+            // A full replacement may omit immutable creation audit data. Preserve the
+            // persisted value rather than treating its presence as a create signal.
+            holon.CreatedDate = persistedHolon.CreatedDate;
+            _dbContext.Holons.Update(holon);
         }
     }
 }

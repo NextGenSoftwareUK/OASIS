@@ -2,8 +2,8 @@
 
 ## Base URLs
 - **Development**: `https://localhost:5002`
-- **Staging**: `https://staging-api.oasisplatform.world`
-- **Production**: `https://api.oasisplatform.world`
+- **Staging**: `https://staging-api.web4.oasisomniverse.one`
+- **Production**: `https://api.web4.oasisomniverse.one`
 
 ## Authentication
 
@@ -251,7 +251,11 @@ Load all NFTs owned by specific avatar.
 ### Save Holon
 **POST** `/api/data/save-holon`
 
-Save a data holon (generic data object).
+Save a data holon (generic data object). The public `id` is the stable OASIS
+identity: omit it for a server-generated identity, or supply a caller-allocated GUID
+when related metadata/children must reference the holon before its first save. A later
+save with that same `id` updates the same holon. `createdDate`, `isNewHolon`,
+`providerUniqueStorageKey`, and Mongo `_id` are not request identity fields.
 
 **Headers:**
 - `Authorization: Bearer YOUR_JWT_TOKEN`
@@ -513,5 +517,5 @@ Import the OASIS API Postman collection:
 For API support and questions:
 - **Email**: ourworld@nextgensoftware.co.uk
 - **GitHub Issues**: [Create an issue](https://github.com/NextGenSoftwareUK/Our-World-OASIS-API-HoloNET-HoloUnity-And-.NET-HDK/issues)
-- **Telegram**: [OASIS API Chat](https://t.me/ourworldthegamechat)
+- **Telegram**: [OASIS API Chat](https://t.me/oasisweb4chat)
 - **Discord**: [OASIS Discord](https://discord.gg/q9gMKU6)

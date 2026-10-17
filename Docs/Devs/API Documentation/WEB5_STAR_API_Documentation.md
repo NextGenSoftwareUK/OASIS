@@ -1,4 +1,9 @@
-# WEB5 STAR API - Complete Documentation
+﻿# WEB5 STAR API - Complete Documentation
+
+## Subscription protocol update (2026-09-22)
+
+WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](../WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](../WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
+
 
 ## 📋 **Overview**
 
@@ -24,7 +29,7 @@ The WEB5 STAR API is the gamification and business layer that runs on top of the
 
 ## 🔗 **Base URL**
 ```
-https://star-api.oasisplatform.world
+https://api.starnet.oasisomniverse.one
 ```
 
 ## 🔐 **Authentication**
@@ -780,16 +785,20 @@ DELETE /api/quests/{id}
 GET /api/quests/by-avatar/{avatarId}
 GET /api/quests/by-type/{type}
 GET /api/quests/by-status/{status}
+GET /api/quests/by-status/{status}/game
 GET /api/quests/search
 POST /api/quests/create
 ```
+
+Lightweight game read models (`/game` suffix): same auth and filtering semantics as the non-`game` routes, but the response is a flat DTO (no full Quest holon graph). The native **StarApiClient** uses `GET /api/quests/all-for-avatar/game` and `GET /api/quests/by-status/{status}/game` for quest lists. Use `GET /api/quests/all-for-avatar` (no suffix) when you need full holon JSON for tools, graph, or admin.
 
 #### **Quests Loading**
 ```http
 GET /api/quests/{id}/load
 GET /api/quests/load-from-path
 GET /api/quests/load-from-published
-GET /api/quests/load-all-for-avatar
+GET /api/quests/all-for-avatar
+GET /api/quests/all-for-avatar/game
 ```
 
 #### **Quests Publishing**

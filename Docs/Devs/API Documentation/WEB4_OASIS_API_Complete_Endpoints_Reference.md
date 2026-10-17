@@ -1,4 +1,9 @@
-# WEB4 OASIS API - Complete Endpoints Reference
+﻿# WEB4 OASIS API - Complete Endpoints Reference
+
+## Subscription protocol update (2026-09-22)
+
+WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](../WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](../WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
+
 
 ## 📋 **Overview**
 
@@ -13,7 +18,7 @@ https://localhost:5000/api
 
 ### **Production**
 ```
-https://api.oasisplatform.world
+https://api.web4.oasisomniverse.one
 ```
 
 ## 🔐 **Authentication**
@@ -156,6 +161,8 @@ GET    /api/karma/get-karma-history/{avatarId}/{providerType}/{setGlobally}
 ```http
 GET    /api/nft/load-nft-by-id/{id}                                             # Load Web4 NFT by ID
 GET    /api/nft/load-nft-by-id/{id}/{providerType}/{setGlobally}
+GET    /api/nft/load-geo-nft-by-id/{id}                                         # Load typed Web4 GeoNFT by ID
+GET    /api/nft/load-geo-nft-by-id/{id}/{providerType}/{setGlobally}
 GET    /api/nft/load-nft-by-hash/{hash}                                        # Load Web4 NFT by hash
 GET    /api/nft/load-nft-by-hash/{hash}/{providerType}/{setGlobally}
 GET    /api/nft/load-all-nfts-for_avatar/{avatarId}                            # All Web4 NFTs for avatar
@@ -185,7 +192,9 @@ GET    /api/nft/load-web3-nft-by-hash/{onChainNftHash}                         #
 GET    /api/nft/load-all-web3-nfts-for-avatar/{avatarId}                       # Web3 NFTs for avatar
 GET    /api/nft/load-all-web3-nfts-for-mint-address/{mintWalletAddress}        # Web3 NFTs for mint address
 GET    /api/nft/load-all-web3-nfts                                             # All Web3 NFTs (admin)
-POST   /api/nft/create-web4-nft-collection                                     # Create NFT collection
+POST   /api/nft/create-web4-nft-collection                                     # Create Web4 NFT collection (off-chain metadata)
+POST   /api/nft/create-collection-nft                                          # Create on-chain Solana/Metaplex collection NFT (sets collectionDetails for Helius DAS/Phantom)
+POST   /api/nft/set-collection-size                                            # Set collectionDetails.size on existing Solana collection NFT (Metaplex instruction 33)
 GET    /api/nft/search-web4-nfts/{searchTerm}/{avatarId}                       # Search Web4 NFTs
 GET    /api/nft/search-web4-geo-nfts/{searchTerm}/{avatarId}                   # Search GeoNFTs
 GET    /api/nft/search-web4-nft-collections/{searchTerm}/{avatarId}            # Search NFT collections

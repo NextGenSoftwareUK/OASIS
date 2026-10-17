@@ -1,4 +1,4 @@
-# STAR API - Complete Endpoints Reference
+﻿# STAR API - Complete Endpoints Reference
 
 ## 📋 **Overview**
 
@@ -13,7 +13,7 @@ https://localhost:5004/api
 
 ### **Production**
 ```
-https://star-api.oasisplatform.world/api
+https://api.starnet.oasisomniverse.one/api
 ```
 
 ## 🔐 **Authentication**
@@ -182,6 +182,7 @@ POST   /api/geonfts/{id}/deactivate # Deactivate GeoNFT
 ### **GeoHotSpots Controller**
 ```http
 GET    /api/geohotspots             # Get all GeoHotSpots
+GET    /api/geohotspots/eligible    # Active/map-visible hotspots plus avatar eligibility
 GET    /api/geohotspots/{id}         # Get GeoHotSpot by ID
 POST   /api/geohotspots             # Create GeoHotSpot
 PUT    /api/geohotspots/{id}        # Update GeoHotSpot
@@ -683,6 +684,7 @@ POST   /api/parks/{id}/deactivate    # Deactivate park
 ### **GeoHotSpots Controller**
 ```http
 GET    /api/geohotspots              # Get all GeoHotSpots
+GET    /api/geohotspots/eligible     # Active/map-visible hotspots plus avatar eligibility
 GET    /api/geohotspots/{id}         # Get GeoHotSpot by ID
 POST   /api/geohotspots              # Create GeoHotSpot
 PUT    /api/geohotspots/{id}         # Update GeoHotSpot

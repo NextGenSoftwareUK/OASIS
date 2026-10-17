@@ -55,7 +55,11 @@ echo Building OASIS Web4 Marketing Site...
 call npm run build
 if %errorlevel% neq 0 (
     echo ❌ Failed to build OASIS Web4 Marketing Site
-    pause
+echo.
+echo ========================================
+echo   Press any key to exit
+echo ========================================
+if not "%OASIS_BAT_NO_PAUSE%"=="1" pause >nul
     exit /b 1
 )
 

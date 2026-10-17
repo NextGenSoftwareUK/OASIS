@@ -1,4 +1,9 @@
-# WEB4 OASIS API - Complete Documentation
+﻿# WEB4 OASIS API - Complete Documentation
+
+## Subscription protocol update (2026-09-22)
+
+WEB5–WEB10 now share WEB4's operation-ID reserve → execute → settle protocol. Billable calls require a validated bearer and stable `Idempotency-Key`; consuming services use distinct service credentials and durable settlement outboxes. The old `authorize-request` counter is retired (410). See the [sequence, accounting and recovery contract](../WEB4_SUBSCRIPTION_USAGE_LEDGER.md) and [configuration, historical migration, live tests and operational runbook](../WEB4_SUBSCRIPTION_USAGE_OPERATIONS.md). Provider measurements and reviewed price catalogues must be configured before enabling paid execution.
+
 
 ## 📋 **Table of Contents**
 
@@ -85,7 +90,7 @@ The WEB4 OASIS API is the core data aggregation layer that unifies all Web2 and 
 
 ## 🔗 **Base URL**
 ```
-https://api.oasisplatform.world
+https://api.web4.oasisomniverse.one
 ```
 
 ## 🔐 **Authentication**
@@ -1326,7 +1331,7 @@ Authorization: Bearer YOUR_TOKEN
       "size": 1024000,
       "contentType": "application/pdf",
       "uploadedAt": "2024-01-20T14:30:00Z",
-      "url": "https://api.oasisplatform.world/files/file_123",
+      "url": "https://api.web4.oasisomniverse.one/files/file_123",
       "hash": "sha256:abc123...",
       "encrypted": false,
       "compressed": false,
@@ -1358,7 +1363,7 @@ Authorization: Bearer YOUR_TOKEN
       "filename": "document.pdf",
       "size": 1024000,
       "contentType": "application/pdf",
-      "url": "https://api.oasisplatform.world/files/file_123",
+      "url": "https://api.web4.oasisomniverse.one/files/file_123",
       "hash": "sha256:abc123...",
       "createdAt": "2024-01-20T14:30:00Z",
       "metadata": {

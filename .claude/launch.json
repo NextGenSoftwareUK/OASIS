@@ -1,0 +1,23 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Web6Site",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["serve", "-p", "5173", "C:\\Source\\Web6Site"],
+      "port": 5173
+    },
+    {
+      "name": "web6-api",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "WEB6/NextGenSoftware.OASIS.Web6.WebAPI/NextGenSoftware.OASIS.Web6.WebAPI.csproj", "--no-launch-profile", "--urls", "http://localhost:64596"],
+      "port": 64596
+    },
+    {
+      "name": "oasisweb4",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["--prefix", "oasisweb4.com", "run", "dev", "--", "--port", "5174", "--strictPort"],
+      "port": 5174
+    }
+  ]
+}

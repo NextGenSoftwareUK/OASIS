@@ -1,0 +1,296 @@
+name: Build and Publish MCP Server
+
+on:
+  workflow_call:
+    inputs:
+      version:
+        description: "SemVer version to publish"
+        required: true
+        type: string
+      publish:
+        description: "Publish GitHub, NuGet, and npm releases"
+        required: true
+        type: boolean
+    secrets:
+      PRIVATE_SUBMODULE_PAT:
+        required: true
+      NUGET_API_KEY:
+        required: true
+  pull_request:
+    branches: [Development, master]
+    paths:
+      - ".github/workflows/publish-mcp.yml"
+      - "Docker/oasis-dependency-versions.env"
+      - "WEB6/**"
+      - "WEB7/**"
+      - "WEB8/**"
+      - "WEB9/**"
+      - "WEB10/**"
+      - "OASIS Architecture/**"
+      - "ONODE/**"
+      - "STAR ODK/**"
+      - "Providers/**"
+      - "HoloNET-ORM"
+  push:
+    branches: [Development]
+    paths:
+      - ".github/workflows/publish-mcp.yml"
+      - "Docker/oasis-dependency-versions.env"
+      - "WEB6/**"
+      - "WEB7/**"
+      - "WEB8/**"
+      - "WEB9/**"
+      - "WEB10/**"
+      - "OASIS Architecture/**"
+      - "ONODE/**"
+      - "STAR ODK/**"
+      - "Providers/**"
+      - "HoloNET-ORM"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "SemVer version to publish (for example 2.0.2)"
+        required: true
+        default: "2.0.2"
+      publish:
+        description: "Publish GitHub, NuGet, and npm releases after every build passes"
+        required: true
+        type: boolean
+        default: false
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mcp-release-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name != 'workflow_dispatch' }}
+
+jobs:
+  validate-release-input:
+    if: github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate release version
+        shell: bash
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+([+-][0-9A-Za-z.-]+)?$ ]]; then
+            echo "::error::version must be valid SemVer without a leading v"
+            exit 1
+          fi
+
+  build-binaries:
+    name: Build ${{ matrix.rid }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { os: windows-latest, rid: win-x64, artifact: oasis-mcp-win-x64.exe }
+          - { os: ubuntu-latest, rid: linux-x64, artifact: oasis-mcp-linux-x64 }
+          - { os: ubuntu-24.04-arm, rid: linux-arm64, artifact: oasis-mcp-linux-arm64 }
+          - { os: macos-15-intel, rid: osx-x64, artifact: oasis-mcp-osx-x64 }
+          - { os: macos-latest, rid: osx-arm64, artifact: oasis-mcp-osx-arm64 }
+    steps:
+      - name: Checkout the exact OASIS source graph
+        uses: actions/checkout@v7
+        with:
+          path: OASIS
+          fetch-depth: 0
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+
+      - name: Checkout exact sibling dependencies
+        shell: bash
+        working-directory: OASIS
+        run: |
+          set -euo pipefail
+          . Docker/oasis-dependency-versions.env
+          git clone --no-checkout "$LIBRARIES_REPO" ../NextGenSoftware-Libraries
+          git -C ../NextGenSoftware-Libraries checkout --detach "$LIBRARIES_COMMIT"
+          git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
+          git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+      - name: Validate dependency pins
+        working-directory: OASIS
+        run: python Scripts/validate_railway_dependency_manifest.py --require-gitlinks
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+      - name: Publish single-file binary
+        run: >
+          dotnet publish
+          OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/NextGenSoftware.OASIS.MCP.Server.csproj
+          -c Release -r ${{ matrix.rid }}
+          -p:PublishSingleFile=true -p:SelfContained=true -p:PublishTrimmed=false
+          -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:IncludeAllContentForSelfExtract=true
+          -o publish/${{ matrix.rid }}
+      - name: Verify and rename binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          src="publish/${{ matrix.rid }}/NextGenSoftware.OASIS.MCP.Server"
+          [ -f "${src}.exe" ] && src="${src}.exe"
+          test -s "$src"
+          cp "$src" "${{ matrix.artifact }}"
+      - name: Smoke-test the packaged MCP protocol
+        # This validates the packaged binary and its local stdio handshake. The
+        # hosted catalogue is validated from source below; release builds must
+        # not depend on whichever WEB6 version happens to be deployed already.
+        run: python OASIS/Scripts/test_mcp_release_binary.py "${{ matrix.artifact }}" --minimum-tools 0
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ${{ matrix.artifact }}
+          path: ${{ matrix.artifact }}
+          if-no-files-found: error
+
+  validate-npm-package:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout the exact OASIS source graph
+        uses: actions/checkout@v7
+        with:
+          path: OASIS
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.x"
+      - name: Verify npm release contents
+        working-directory: OASIS/WEB6/npm
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s bin/oasis-mcp.js
+          test -s install.js
+          test -s README.md
+          test -s MCP_TOOL_CATALOG.md
+          cmp README.md ../NextGenSoftware.OASIS.MCP.Server/README.md
+          cmp MCP_TOOL_CATALOG.md ../NextGenSoftware.OASIS.MCP.Server/MCP_TOOL_CATALOG.md
+          python ../Scripts/generate_mcp_tool_catalog.py
+          git diff --exit-code -- ../NextGenSoftware.OASIS.MCP.Server/MCP_TOOL_CATALOG.md MCP_TOOL_CATALOG.md
+          npm pack --dry-run
+
+  release:
+    if: (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') && inputs.publish
+    needs: [validate-release-input, build-binaries, validate-npm-package]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout the exact OASIS release source
+        uses: actions/checkout@v7
+        with:
+          path: OASIS
+          fetch-depth: 0
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Verify comprehensive release notes
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/README.md
+          test -s OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/MCP_TOOL_CATALOG.md
+          total=$(sed -n 's/^| \*\*Total\*\* | \*\*\([0-9]*\)\*\* |.*/\1/p' OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/MCP_TOOL_CATALOG.md)
+          test -n "$total"
+          grep -Fq "${total} typed tools" OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/README.md
+          grep -Fq "complete ${total}-command catalog" OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/README.md
+      - name: Generate component and version-specific release notes
+        shell: pwsh
+        run: OASIS/Scripts/New-OASISReleaseNotes.ps1 -Component MCPServer -Version '${{ inputs.version }}' -OutputPath release-notes.md
+      - uses: actions/download-artifact@v7
+        with:
+          path: binaries
+          pattern: oasis-mcp-*
+          merge-multiple: true
+      - name: Create GitHub release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: mcp-v${{ inputs.version }}
+          name: OASIS MCP Server v${{ inputs.version }}
+          body_path: release-notes.md
+          files: binaries/*
+          fail_on_unmatched_files: true
+          draft: false
+          prerelease: false
+
+  publish-nuget:
+    if: (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') && inputs.publish
+    needs: release
+    runs-on: windows-latest
+    timeout-minutes: 90
+    steps:
+      - name: Checkout the exact OASIS source graph
+        uses: actions/checkout@v7
+        with:
+          path: OASIS
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - name: Checkout exact sibling dependencies
+        shell: bash
+        working-directory: OASIS
+        run: |
+          set -euo pipefail
+          . Docker/oasis-dependency-versions.env
+          git clone --no-checkout "$LIBRARIES_REPO" ../NextGenSoftware-Libraries
+          git -C ../NextGenSoftware-Libraries checkout --detach "$LIBRARIES_COMMIT"
+          git clone --no-checkout "$HOLOCHAIN_REPO" ../holochain-client-csharp
+          git -C ../holochain-client-csharp checkout --detach "$HOLOCHAIN_COMMIT"
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: "10.0.x"
+      - name: Pack MCP Server
+        run: >
+          dotnet pack
+          OASIS/WEB6/NextGenSoftware.OASIS.MCP.Server/NextGenSoftware.OASIS.MCP.Server.csproj
+          -c Release -p:Version=${{ inputs.version }} -o OASIS/nupkgs
+      - name: Push to NuGet.org
+        shell: pwsh
+        run: |
+          Get-ChildItem OASIS/nupkgs/*.nupkg |
+            Where-Object { $_.Name -notlike "*.symbols.nupkg" } |
+            ForEach-Object {
+              dotnet nuget push $_.FullName `
+                --source https://api.nuget.org/v3/index.json `
+                --api-key "${{ secrets.NUGET_API_KEY }}" `
+                --skip-duplicate
+              if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+            }
+
+  publish-npm:
+    if: (github.event_name == 'workflow_dispatch' || github.event_name == 'workflow_call') && inputs.publish
+    needs: release
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Checkout the exact WEB6 release source
+        uses: actions/checkout@v7
+        with:
+          path: OASIS
+          submodules: recursive
+          token: ${{ secrets.PRIVATE_SUBMODULE_PAT }}
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+          registry-url: "https://registry.npmjs.org"
+      - name: Set version
+        run: npm version ${{ inputs.version }} --no-git-tag-version
+        working-directory: OASIS/WEB6/npm
+      - name: Publish to npm with trusted publishing
+        run: npm publish --access public
+        working-directory: OASIS/WEB6/npm

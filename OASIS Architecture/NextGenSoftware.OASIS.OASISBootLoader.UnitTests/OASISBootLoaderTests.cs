@@ -1,3 +1,4 @@
+using System.Reflection;
 using NextGenSoftware.OASIS.OASISBootLoader;
 using Xunit;
 using FluentAssertions;
@@ -7,33 +8,45 @@ namespace NextGenSoftware.OASIS.OASISBootLoader.UnitTests
     public class OASISBootLoaderTests
     {
         [Fact]
-        public void OASISBootLoader_DefaultConstructor_ShouldInitializeCorrectly()
+        public void OASISBootLoader_Type_ShouldExist()
         {
             // Act
-            var bootLoader = new OASISBootLoader();
+            var bootLoaderType = typeof(OASISBootLoader);
 
             // Assert
-            bootLoader.Should().NotBeNull();
+            bootLoaderType.Should().NotBeNull();
         }
 
         [Fact]
-        public void OASISBootLoader_ShouldHaveBootMethod()
+        public void OASISBootLoader_ShouldExposeBootOASISMethod()
         {
             // Arrange
-            var bootLoader = new OASISBootLoader();
+            var bootLoaderType = typeof(OASISBootLoader);
+            var method = bootLoaderType.GetMethod(
+                nameof(OASISBootLoader.BootOASIS),
+                BindingFlags.Public | BindingFlags.Static,
+                binder: null,
+                types: new[] { typeof(bool) },
+                modifiers: null);
 
-            // Act & Assert
-            bootLoader.Should().HaveMethod("Boot", new Type[] { });
+            // Assert
+            method.Should().NotBeNull();
         }
 
         [Fact]
-        public void OASISBootLoader_ShouldHaveShutdownMethod()
+        public void OASISBootLoader_ShouldExposeShutdownOASISMethod()
         {
             // Arrange
-            var bootLoader = new OASISBootLoader();
+            var bootLoaderType = typeof(OASISBootLoader);
+            var method = bootLoaderType.GetMethod(
+                nameof(OASISBootLoader.ShutdownOASIS),
+                BindingFlags.Public | BindingFlags.Static,
+                binder: null,
+                types: Type.EmptyTypes,
+                modifiers: null);
 
-            // Act & Assert
-            bootLoader.Should().HaveMethod("Shutdown", new Type[] { });
+            // Assert
+            method.Should().NotBeNull();
         }
 
         [Fact]

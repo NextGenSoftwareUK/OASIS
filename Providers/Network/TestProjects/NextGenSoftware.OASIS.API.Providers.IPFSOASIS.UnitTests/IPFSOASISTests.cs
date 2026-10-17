@@ -12,6 +12,11 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS.UnitTests
 	public class IPFSOASISTests
 	{
 		[Fact]
+		public void PublicClientContractDoesNotLeakPrivateHttpImplementation()
+		{
+			Assert.Equal(typeof(Ipfs.CoreApi.ICoreApi), typeof(IPFSOASIS).GetProperty(nameof(IPFSOASIS.IPFSClient)).PropertyType);
+		}
+		[Fact]
 		public async Task SaveAndLoadHolon_Works()
 		{
 			var provider = new IPFSOASIS();

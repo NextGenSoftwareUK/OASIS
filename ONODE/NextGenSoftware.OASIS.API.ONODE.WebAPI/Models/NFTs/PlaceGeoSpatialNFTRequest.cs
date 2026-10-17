@@ -10,8 +10,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Models.NFT
         //public string NFTHash { get; set; } //The hash generated when the NFT was minted.
         //public string NFTURL { get; set; } //The URL the NFT is on (if applicable).
         //public Guid PlacedByAvatarId { get; set; } //The Avatar ID that is placing this GeoNFT.
-        public long Lat { get; set; }
-        public long Long { get; set; }
+        public double Lat { get; set; }
+        public double Long { get; set; }
         public bool AllowOtherPlayersToAlsoCollect { get; set; }
         public bool PermSpawn { get; set; }
         public int GlobalSpawnQuantity { get; set; }

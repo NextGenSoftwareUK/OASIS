@@ -1,8 +1,9 @@
 using System.Numerics;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
-using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Response;
-using NextGenSoftware.OASIS.API.Core.Objects.NFT.Request;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Responses;
+using NextGenSoftware.OASIS.API.Core.Interfaces.NFT.Requests;
+using NextGenSoftware.OASIS.API.Core.Objects.NFT.Requests;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
 using Avatar = NextGenSoftware.OASIS.API.Core.Holons.Avatar;
@@ -208,18 +209,16 @@ namespace NextGenSoftware.OASIS.API.Providers.BaseOASIS.TestHarness
             BaseOASIS baseOASIS = new(_chainUrl, _chainPrivateKey, _chainId, _contractAddress);
             baseOASIS.ActivateProvider();
 
-            OASISResult<INFTTransactionRespone> result = await baseOASIS.SendNFTAsync(new NFTWalletTransactionRequest()
+            OASISResult<IWeb3NFTTransactionResponse> result = await baseOASIS.SendNFTAsync(new SendWeb3NFTRequest()
             {
                 FromWalletAddress = _contractAddress,
                 ToWalletAddress = _contractAddress,
-                FromProvider = new EnumValue<ProviderType>(ProviderType.IPFSOASIS),
-                ToProvider = new EnumValue<ProviderType>(ProviderType.BaseOASIS),
                 Amount = 1m,
                 MemoText = "Sending NFT on Base L2",
-                TokenId = 1
+                TokenId = "1"
             });
 
-            Console.WriteLine($"NFT Sent: {result.IsSaved}, Message: {result.Message}");
+            Console.WriteLine($"NFT Sent: {!result.IsError}, Message: {result.Message}");
             Console.WriteLine($"Transaction Hash: {result.Result?.TransactionResult}");
         }
 
@@ -228,8 +227,8 @@ namespace NextGenSoftware.OASIS.API.Providers.BaseOASIS.TestHarness
             BaseOASIS baseOASIS = new(_chainUrl, _chainPrivateKey, _chainId, _contractAddress);
             baseOASIS.ActivateProvider();
 
-            OASISResult<INFTTransactionRespone> result = await baseOASIS.MintNFTAsync(
-                new MintNFTTransactionRequest()
+            OASISResult<IWeb3NFTTransactionResponse> result = await baseOASIS.MintNFTAsync(
+                new MintWeb3NFTRequest()
                 {
                     MintedByAvatarId = Guid.NewGuid(),
                     Title = "Base OASIS NFT",
@@ -243,20 +242,12 @@ namespace NextGenSoftware.OASIS.API.Providers.BaseOASIS.TestHarness
                     MemoText = "Minted on Base - Powered by Coinbase!",
                     NumberToMint = 1,
                     StoreNFTMetaDataOnChain = true,
-                    MetaData = new Dictionary<string, object>
+                    MetaData = new Dictionary<string, string>
                     {
                         { "Network", "Base" },
                         { "Layer", "L2" },
-                        { "BackedBy", "Coinbase" },
-                        { "Attributes", new Dictionary<string, string>
-                            {
-                                { "BackgroundColor", "Blue" },
-                                { "Rarity", "Legendary" }
-                            }
-                        }
+                        { "BackedBy", "Coinbase" }
                     },
-                    OffChainProvider = new EnumValue<ProviderType>(ProviderType.IPFSOASIS),
-                    OnChainProvider = new EnumValue<ProviderType>(ProviderType.BaseOASIS),
                     JSONMetaDataURL = "https://example.com/metadata/base-nft.json"
                 }
             );

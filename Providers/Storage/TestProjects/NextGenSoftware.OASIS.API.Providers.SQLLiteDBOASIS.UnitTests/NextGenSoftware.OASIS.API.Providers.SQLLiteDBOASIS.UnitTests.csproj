@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <IsPackable>false</IsPackable>
@@ -17,6 +17,12 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS\NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <!-- Obsolete pre-interface tests assert removed APIs and unsupported persistence.
+         The maintained provider tests use an isolated in-memory SQLite database. -->
+    <Compile Remove="SQLLiteDBOASISTests.cs" />
   </ItemGroup>
 
 </Project>

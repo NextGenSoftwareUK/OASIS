@@ -17,12 +17,13 @@ obj/
 build/
 dist/
 
-# Ignore test files
-*Test*
-*Tests*
-TestHarness/
-UnitTests/
-IntegrationTests/
+# Ignore test projects and their outputs. Do not use name-wide *Test* patterns:
+# WEB4 has production runtime types such as TestDataHelper and
+# TestDataResponseFilter that are compiled into the deployed application.
+**/TestHarness/
+**/UnitTests/
+**/IntegrationTests/
+**/TestResults/
 
 # Ignore documentation
 Docs/

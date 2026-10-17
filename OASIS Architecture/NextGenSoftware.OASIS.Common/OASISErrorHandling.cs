@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.Design;
+using System.ComponentModel.Design;
 using NextGenSoftware.ErrorHandling;
 using NextGenSoftware.Logging;
 
@@ -40,10 +40,12 @@ namespace NextGenSoftware.OASIS.Common
         }
 
         public delegate void Error(object sender, OASISErrorEventArgs e);
+#pragma warning disable CS8618 // Non-nullable event: no subscribers is valid
         public static event Error OnError;
 
         public delegate void Warning(object sender, OASISWarningEventArgs e);
         public static event Warning OnWarning;
+#pragma warning restore CS8618
 
         //WARNING: ONLY set includeStackTrace to true for debug/dev mode due to performance overhead. This param should never be needed because the ShowStackTrace flag will be used for Dev/Debug mode. 
 

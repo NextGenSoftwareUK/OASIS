@@ -1,0 +1,27 @@
+syntax = "proto3";
+
+option csharp_namespace = "NextGenSoftware.OASIS.API.ONODE.WebAPI.Grpc";
+package oasis.web4;
+
+import "Protos/common.proto";
+
+service BridgeService {
+  rpc GetExchangeRate (GetExchangeRateRequest) returns (DoubleResponse);
+  rpc GetBridgeOrderBalance (GetBridgeOrderBalanceRequest) returns (JsonResponse);
+  rpc CreateBridgeOrder (CreateBridgeOrderRequest) returns (JsonResponse);
+  rpc CreatePrivateBridgeOrder (CreateBridgeOrderRequest) returns (JsonResponse);
+  rpc VerifyBridgeProof (VerifyBridgeProofRequest) returns (OASISGrpcResponse);
+}
+
+message GetExchangeRateRequest { string from_token = 1; string to_token = 2; }
+message GetBridgeOrderBalanceRequest { string order_id = 1; }
+message CreateBridgeOrderRequest {
+  string from_token = 1;
+  string to_token = 2;
+  double amount = 3;
+}
+message VerifyBridgeProofRequest {
+  string proof_payload = 1;
+  string proof_type = 2;
+}
+

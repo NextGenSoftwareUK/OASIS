@@ -1,21 +1,24 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS;
-using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Objects;
-using System.Threading.Tasks;
+using NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Helpers;
+using NextGenSoftware.OASIS.Common;
+using MongoProvider = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.MongoDBOASIS;
+using MongoAvatarDetail = NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.Entities.AvatarDetail;
 
 namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests
 {
     [TestClass]
     public class MongoDBOASISProviderTests
     {
-        private MongoDBOASIS _provider;
+        private MongoProvider _provider = null!;
 
         [TestInitialize]
         public void Setup()
         {
-            _provider = new MongoDBOASIS();
+            // Construction is deliberately backend-free. Activation belongs to the
+            // disposable integration profile because it opens a real MongoDB connection.
+            _provider = new MongoProvider("mongodb://127.0.0.1:27017", "oasis-unit-tests");
         }
 
         [TestMethod]
@@ -25,7 +28,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests
             var providerType = _provider.ProviderType;
 
             // Assert
-            Assert.AreEqual(ProviderType.MongoDBOASIS, providerType);
+            Assert.AreEqual(ProviderType.MongoDBOASIS, providerType.Value);
         }
 
         [TestMethod]
@@ -60,43 +63,26 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.UnitTests
         }
 
         [TestMethod]
-        public void ActivateProvider_ShouldSetIsProviderActivatedToTrue()
+        public void ConvertAvatarDetail_WithKarmaHistory_InitializesAndCopiesHistory()
         {
-            // Arrange
-            Assert.IsFalse(_provider.IsProviderActivated);
+            var stored = new MongoAvatarDetail
+            {
+                HolonId = Guid.NewGuid(),
+                Karma = 333,
+                KarmaAkashicRecords = new List<KarmaAkashicRecord>
+                {
+                    new KarmaAkashicRecord { Karma = 7, TotalKarma = 333 }
+                }
+            };
 
-            // Act
-            var result = _provider.ActivateProvider();
+            var converted = DataHelper.ConvertMongoEntityToOASISAvatarDetail(
+                new OASISResult<MongoAvatarDetail>(stored));
 
-            // Assert
-            Assert.IsTrue(result.IsError == false);
-            Assert.IsTrue(_provider.IsProviderActivated);
-        }
-
-        [TestMethod]
-        public void DeActivateProvider_ShouldSetIsProviderActivatedToFalse()
-        {
-            // Arrange
-            _provider.ActivateProvider();
-            Assert.IsTrue(_provider.IsProviderActivated);
-
-            // Act
-            var result = _provider.DeActivateProvider();
-
-            // Assert
-            Assert.IsTrue(result.IsError == false);
-            Assert.IsFalse(_provider.IsProviderActivated);
-        }
-
-        [TestMethod]
-        public void GetProviderVersion_ShouldReturnValidVersion()
-        {
-            // Arrange & Act
-            var version = _provider.GetProviderVersion();
-
-            // Assert
-            Assert.IsNotNull(version);
-            Assert.IsFalse(string.IsNullOrEmpty(version));
+            Assert.IsFalse(converted.IsError);
+            Assert.IsNotNull(converted.Result);
+            Assert.IsNotNull(converted.Result.KarmaAkashicRecords);
+            Assert.AreEqual(1, converted.Result.KarmaAkashicRecords.Count);
+            Assert.AreEqual(333, converted.Result.Karma);
         }
 
         [TestCleanup]
