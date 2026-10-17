@@ -14,43 +14,23 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 
             try
             {
+                var query = new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordLocationQuery(geoLat, geoLong, radiusInMeters);
                 if (!IsProviderActivated)
                 {
                     var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cosmos Blockchain provider: {activateResult.Message}");
-                        return response;
+                        return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, IEnumerable<IAvatar>>(activateResult);
                     }
                 }
 
                 var avatarsResult = LoadAllAvatars();
-                if (avatarsResult.IsError || avatarsResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Error loading avatars: {avatarsResult.Message}");
-                    return response;
-                }
-
-                var centerLat = geoLat / 1e6d;
-                var centerLng = geoLong / 1e6d;
-                var nearby = new List<IAvatar>();
-
-                foreach (var avatar in avatarsResult.Result)
-                {
-                    if (avatar.MetaData != null &&
-                        avatar.MetaData.TryGetValue("Latitude", out var latObj) &&
-                        avatar.MetaData.TryGetValue("Longitude", out var lngObj) &&
-                        double.TryParse(latObj?.ToString(), out var lat) &&
-                        double.TryParse(lngObj?.ToString(), out var lng))
-                    {
-                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
-                        if (distance <= radiusInMeters)
-                            nearby.Add(avatar);
-                    }
-                }
+                if (avatarsResult.IsError) return avatarsResult;
+                var nearby = query.Select(avatarsResult.Result, row => row.IsActive && !row.IsDeleted);
 
                 response.Result = nearby;
                 response.IsError = false;
+                response.IsLoaded = true;
                 response.Message = $"Found {nearby.Count} avatars within {radiusInMeters}m";
             }
             catch (Exception ex)
@@ -67,43 +47,25 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
 
             try
             {
+                var query = new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordLocationQuery(geoLat, geoLong, radiusInMeters);
+                if (!Enum.IsDefined(typeof(HolonType), Type)) throw new ArgumentOutOfRangeException(nameof(Type));
                 if (!IsProviderActivated)
                 {
                     var activateResult = ActivateProvider();
                     if (activateResult.IsError)
                     {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate Cosmos Blockchain provider: {activateResult.Message}");
-                        return response;
+                        return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool, IEnumerable<IHolon>>(activateResult);
                     }
                 }
 
                 var holonsResult = LoadAllHolons(Type);
-                if (holonsResult.IsError || holonsResult.Result == null)
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Error loading holons: {holonsResult.Message}");
-                    return response;
-                }
-
-                var centerLat = geoLat / 1e6d;
-                var centerLng = geoLong / 1e6d;
-                var nearby = new List<IHolon>();
-
-                foreach (var holon in holonsResult.Result)
-                {
-                    if (holon.MetaData != null &&
-                        holon.MetaData.TryGetValue("Latitude", out var latObj) &&
-                        holon.MetaData.TryGetValue("Longitude", out var lngObj) &&
-                        double.TryParse(latObj?.ToString(), out var lat) &&
-                        double.TryParse(lngObj?.ToString(), out var lng))
-                    {
-                        var distance = GeoHelper.CalculateDistance(centerLat, centerLng, lat, lng);
-                        if (distance <= radiusInMeters)
-                            nearby.Add(holon);
-                    }
-                }
+                if (holonsResult.IsError) return holonsResult;
+                var nearby = query.Select(holonsResult.Result,
+                    row => row.IsActive && !row.IsDeleted && (Type == HolonType.All || row.HolonType == Type));
 
                 response.Result = nearby;
                 response.IsError = false;
+                response.IsLoaded = true;
                 response.Message = $"Found {nearby.Count} holons within {radiusInMeters}m";
             }
             catch (Exception ex)
