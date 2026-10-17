@@ -9,6 +9,24 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 public class MongoSerializerOwnershipTests
 {
     [Fact]
+    public void NativePriceBsonContractDoesNotDependOnCreatingAnOutboxFirst()
+    {
+        var id=Guid.NewGuid();var time=new DateTime(2026,10,17,1,2,3,DateTimeKind.Utc).AddTicks(1234567);
+        var quote=new NextGenSoftware.OASIS.API.Core.Services.Subscriptions.NativeFeePriceQuote(id,"SuiOASIS","fixture","MIST","fixture",9,
+            1.234567890123456789m,"synthetic","fixture","fixture",time,time,time,time.AddMinutes(5));
+        var raw=quote.ToBsonDocument();
+        Assert.Equal(BsonType.Binary,raw["OperationId"].BsonType);
+        Assert.Equal(BsonBinarySubType.UuidStandard,raw["OperationId"].AsBsonBinaryData.SubType);
+        Assert.Equal(BsonType.Decimal128,raw["UsdPerWholeUnit"].BsonType);
+        Assert.Equal(BsonType.String,raw["BoundAtUtc"].BsonType);
+        Assert.Equal(quote,BsonSerializer.Deserialize<NextGenSoftware.OASIS.API.Core.Services.Subscriptions.NativeFeePriceQuote>(raw));
+        var valuation=quote.ValueOriginalReceipt("serialization-only","1000000000");
+        var fee=valuation.ToBsonDocument();
+        Assert.Equal(BsonBinarySubType.UuidStandard,fee["OperationId"].AsBsonBinaryData.SubType);
+        Assert.Equal(BsonType.Decimal128,fee["NetCostUsd"].BsonType);Assert.Equal(BsonType.String,fee["ValuedAtUtc"].BsonType);
+        Assert.Equal(valuation,BsonSerializer.Deserialize<NextGenSoftware.OASIS.API.Core.Services.Subscriptions.NativeFeeValuation>(fee));
+    }
+    [Fact]
     public void ProviderConstructionDoesNotReplaceAnAlreadyResolvedGlobalObjectSerializer()
     {
         var original=BsonSerializer.LookupSerializer<object>();
