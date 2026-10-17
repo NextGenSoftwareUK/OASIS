@@ -103,10 +103,13 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS
                         throw new InvalidOperationException("Invalid Cosmos bank history operation or output index.");
                     var rowIdentity = $"{ProviderType.Value}:tx:{hash}:{messageIndex}";
                     if (operation == "/cosmos.bank.v1beta1.MsgMultiSend") rowIdentity += ":" + transferIndex;
+                    var memo=Core.Helpers.NativeWalletMemo.FromText(tx.GetProperty("memo").GetString());
                     return new Core.Interfaces.Wallet.Response.WalletTransaction
                     {
                         TransactionId = CreateDeterministicGuid(rowIdentity),
                         NativeTransactionId = hash,
+                        Token=tx.GetProperty("denom").GetString(),ProviderType=Core.Enums.ProviderType.CosmosBlockChainOASIS,
+                        MemoText=memo.Text,MemoBase64=memo.Base64,
                         RawAmount = rawAmount,
                         AmountUnit = tx.GetProperty("denom").GetString(),
                         NativeOperation = operation,

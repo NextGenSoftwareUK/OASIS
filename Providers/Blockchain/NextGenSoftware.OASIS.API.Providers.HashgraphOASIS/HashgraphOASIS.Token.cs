@@ -400,9 +400,11 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 if (transfer.GetProperty("account").GetString() == accountId)
                     delta = checked(delta + transfer.GetProperty("amount").GetInt64());
             var seconds = decimal.Parse(timestamp, System.Globalization.CultureInfo.InvariantCulture);
+            var memo=Core.Helpers.NativeWalletMemo.FromBase64(tx.TryGetProperty("memo_base64",out var encodedMemo)?encodedMemo.GetString():null);
             return new WalletTransaction
             {
                 TransactionId = Guid.Empty, NativeTransactionId = id, NativeOperation = operation,
+                Token="HBAR",ProviderType=Core.Enums.ProviderType.HashgraphOASIS,MemoText=memo.Text,MemoBase64=memo.Base64,
                 NativeExecutionResult = nativeResult, NativeError = nativeResult == "SUCCESS" ? null : nativeResult,
                 RawAmount = delta.ToString(System.Globalization.CultureInfo.InvariantCulture), AmountUnit = "tinybar",
                 Amount = (double)((decimal)delta / 100000000m),

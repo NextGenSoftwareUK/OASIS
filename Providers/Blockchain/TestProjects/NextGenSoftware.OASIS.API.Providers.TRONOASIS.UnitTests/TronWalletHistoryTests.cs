@@ -20,13 +20,15 @@ public sealed class TronWalletHistoryTests
                 Parameter=Any.Pack(new WithdrawBalanceContract { OwnerAddress=owner }) }
             : new Transaction.Types.Contract { Type=Transaction.Types.Contract.Types.ContractType.UnfreezeBalanceContract,
                 Parameter=Any.Pack(new UnfreezeBalanceContract { OwnerAddress=owner }) };
-        var transaction=new Transaction { RawData=new Transaction.Types.raw { Timestamp=1700000000000 } };
+        var transaction=new Transaction { RawData=new Transaction.Types.raw { Timestamp=1700000000000,Data=ByteString.CopyFromUtf8("native memo") } };
         transaction.RawData.Contract.Add(contract);
         var receipt=new TransactionInfo { Id=ByteString.CopyFrom(new byte[32]),Result=(TransactionInfo.Types.code)1,
             ResMessage=ByteString.CopyFromUtf8("owned failed receipt") };
         var map=typeof(TronNativeTransferClient).GetMethod("MapWalletTransaction",BindingFlags.NonPublic|BindingFlags.Static)!;
         var mapped=(NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses.IWalletTransaction)map.Invoke(null,new object[]{transaction,receipt,owner})!;
         Assert.NotEqual("Success",mapped.NativeExecutionResult);
+        Assert.Equal("TRX",mapped.Token);Assert.Equal(Core.Enums.ProviderType.TRONOASIS,mapped.ProviderType);
+        Assert.Equal("native memo",mapped.MemoText);Assert.Equal("bmF0aXZlIG1lbW8=",mapped.MemoBase64);
         Assert.Equal("owned failed receipt",mapped.NativeError);
         Assert.Equal("0",mapped.RawAmount);Assert.Equal(0d,mapped.Amount);
         var error=Assert.Throws<TargetInvocationException>(()=>map.Invoke(null,new object[]{transaction,receipt,foreign}));
@@ -166,6 +168,7 @@ public sealed class TronWalletHistoryTests
         var method=typeof(TronNativeTransferClient).GetMethod("MapWalletTransaction",BindingFlags.NonPublic|BindingFlags.Static)!;
         var mapped=(NextGenSoftware.OASIS.API.Core.Interfaces.Wallet.Responses.IWalletTransaction)method.Invoke(null,new object[]{transaction,receipt,owner})!;
         Assert.Equal("9007199254740993",mapped.RawAmount);Assert.Equal("TRC10-RAW/31303030303031",mapped.AmountUnit);
+        Assert.Equal("TRC10-RAW/31303030303031",mapped.Token);Assert.Equal(Core.Enums.ProviderType.TRONOASIS,mapped.ProviderType);
         Assert.Equal("TransferAssetContract",mapped.NativeOperation);Assert.Equal(failed?"Failed":"Success",mapped.NativeExecutionResult);
         Assert.Equal((double)9007199254740993m,mapped.Amount);
         Assert.Equal(owner,typeof(TronNativeTransferClient).GetMethod("OriginalOperationOwner",BindingFlags.NonPublic|BindingFlags.Static)!.Invoke(null,new object[]{contract}));
