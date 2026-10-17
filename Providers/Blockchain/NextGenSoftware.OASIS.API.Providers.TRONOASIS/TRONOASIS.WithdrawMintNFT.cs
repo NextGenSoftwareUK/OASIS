@@ -124,12 +124,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 token.ThrowIfCancellationRequested();
                 if (string.IsNullOrWhiteSpace(transactionHash) || !System.Text.RegularExpressions.Regex.IsMatch(transactionHash, "\\A[0-9a-fA-F]{64}\\z"))
                     throw new ArgumentException("A 32-byte hexadecimal TRON transaction ID is required.");
-                if (!IsProviderActivated)
-                {
-                    var activation = await ActivateProviderAsync();
-                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
-                }
-                result.Result = await ExecuteRuntimeAsync(client => client.GetTransactionStatusAsync(transactionHash, token));
+                result.Result = await ExecuteReadOnlyRuntimeAsync(client => client.GetTransactionStatusAsync(transactionHash, token), token);
                 result.Message = "Native-chain transaction status queried through genesis-verified SDK nodes; cross-chain settlement is separate.";
             }
             catch (Exception ex)
