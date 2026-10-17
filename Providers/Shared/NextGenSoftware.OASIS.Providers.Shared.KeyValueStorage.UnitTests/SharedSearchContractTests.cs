@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -11,6 +12,28 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 [TestClass]
 public class SharedSearchContractTests
 {
+    [DataTestMethod]
+    [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
+    public async Task WalletRecoveryPhraseIsNeverAnAllFieldsOrIdSearchCandidate(bool synchronous,bool ids)
+    {
+        var provider=new TestProvider(new InMemoryBackend());var secret=Guid.NewGuid().ToString();
+        var wallet=new NextGenSoftware.OASIS.API.Core.Objects.ProviderWallet {WalletId=Guid.NewGuid(),
+            WalletAddress="visible-public-wallet",SecretRecoveryPhrase=secret};
+        var avatar=new Avatar {Id=Guid.NewGuid(),Username="owned-wallet-search",Email="owned-wallet-search@example.test",
+            ProviderWallets=new() {{ProviderType.SolanaOASIS,new() {wallet}}}};
+        Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
+        var group=new SearchTextGroup {SearchAvatars=true,HolonType=HolonType.All,SearchQuery=secret,SearchIds=ids,
+            AvatarSearchParams=new NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar.SearchAvatarParams {SearchAllFields=!ids}};
+        var query=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new List<ISearchGroupBase> {group}};
+        var hidden=synchronous?provider.Search(query,loadChildren:false):await provider.SearchAsync(query,loadChildren:false);
+        Assert.IsFalse(hidden.IsError,hidden.Message);Assert.AreEqual(0,hidden.Result.NumberOfResults);
+        group.SearchIds=false;group.AvatarSearchParams.SearchAllFields=true;group.SearchQuery=wallet.WalletAddress;
+        var visible=await provider.SearchAsync(query,loadChildren:false);
+        Assert.IsFalse(visible.IsError,visible.Message);Assert.AreEqual(avatar.Id,visible.Result.SearchResultAvatars.Single().Id);
+        var persisted=(await provider.LoadAvatarAsync(avatar.Id)).Result;
+        Assert.AreEqual(secret,persisted.ProviderWallets[ProviderType.SolanaOASIS].Single().SecretRecoveryPhrase,
+            "Search projection must not modify the stored wallet.");
+    }
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     public async Task AllFieldsSearchCannotMatchNestedCredentialValues(bool synchronous)

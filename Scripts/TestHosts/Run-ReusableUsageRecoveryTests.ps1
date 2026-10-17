@@ -1,6 +1,7 @@
 #Requires -Version 7.0
-param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft,[switch]$SuiCSharpAssets,[switch]$TronPreparedStorage,[switch]$TronFull)
+param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft,[switch]$SuiCSharpAssets,[switch]$TronPreparedStorage,[switch]$TronFull,[switch]$SuiUnit)
 $ErrorActionPreference='Stop'
+if($SuiUnit -and $PSBoundParameters.Count -ne 1){throw 'Sui unit verification requires its own exclusive owned environment mode.'}
 if($TronFull -and !$TronPreparedStorage){throw 'TRON full unit suite requires owned prepared storage mode.'}
 if($TronPreparedStorage -and $PSBoundParameters.Count -ne $(if($TronFull){2}else{1})){throw 'TRON prepared storage requires its own exclusive mode.'}
 if($SuiCSharpAssets -and !$SuiCSharpNft){throw 'Sui CSharp asset matrix requires admitted facade owner mode.'}
@@ -30,7 +31,7 @@ New-Item -ItemType Directory -Force -Path $work | Out-Null
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 $owned=$null
 $prior=@{}
-foreach($name in 'OASIS_OWNED_RECOVERY_REPLICA_URI','SUBSCRIPTION_TEST_MONGODB_URI','OASIS_HEDERA_SDK_BRIDGE','OASIS_MONGO_REPLICA_SET_CONNECTION','OASIS_WEB3_PREPARED_OUTBOX_REQUIRED'){$prior[$name]=[Environment]::GetEnvironmentVariable($name)}
+foreach($name in 'OASIS_OWNED_RECOVERY_REPLICA_URI','SUBSCRIPTION_TEST_MONGODB_URI','OASIS_HEDERA_SDK_BRIDGE','OASIS_SUI_SDK_BRIDGE','OASIS_MONGO_REPLICA_SET_CONNECTION','OASIS_WEB3_PREPARED_OUTBOX_REQUIRED'){$prior[$name]=[Environment]::GetEnvironmentVariable($name)}
 try{
     if($MongoV2){
         foreach($relative in @(
@@ -129,6 +130,18 @@ try{
         $counts=$evidence.TestRun.ResultSummary.Counters
         $expectedTron=if($TronFull){317}else{7}
         if([int]$counts.total -ne $expectedTron -or [int]$counts.passed -ne $expectedTron -or [int]$counts.notExecuted -ne 0){throw 'Expected complete selected TRON unit suite without skips.'}
+    }elseif($SuiUnit){
+        $env:OASIS_SUI_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/bridge.mjs'
+        if(!(Test-Path -LiteralPath $env:OASIS_SUI_SDK_BRIDGE) -or !(Test-Path -LiteralPath (Join-Path (Split-Path $env:OASIS_SUI_SDK_BRIDGE) 'node_modules/@mysten/sui/package.json'))){throw 'Retained Sui SDK installation required; no automatic download.'}
+        $suiProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests.csproj'
+        $started=[DateTime]::UtcNow
+        & dotnet test $suiProject --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --logger 'trx;LogFileName=sui-full-owned-current.trx' --results-directory $work -v:q
+        if($LASTEXITCODE -ne 0){throw 'Sui owned unit regression failed.'}
+        $report=Get-Item -LiteralPath (Join-Path $work 'sui-full-owned-current.trx')
+        if($report.LastWriteTimeUtc -lt $started){throw 'Sui unit report is stale.'}
+        [xml]$evidence=Get-Content -LiteralPath $report.FullName
+        $counts=$evidence.TestRun.ResultSummary.Counters
+        if([int]$counts.total -ne 107 -or [int]$counts.passed -ne 107 -or [int]$counts.notExecuted -ne 0){throw 'Expected107 Sui unit cases must execute and pass.'}
     }elseif($HederaPreparedOwners){
         $env:OASIS_HEDERA_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/SdkBridge/bridge.mjs'
         $hederaProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests.csproj'
