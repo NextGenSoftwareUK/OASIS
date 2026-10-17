@@ -33,7 +33,7 @@ try {
     if($reportFile.LastWriteTimeUtc -lt $started){throw 'Azure native report is stale; no verification claim permitted.'}
     [xml]$report=Get-Content -LiteralPath $reportFile.FullName -Raw
     $counts=$report.TestRun.ResultSummary.Counters
-    if([int]$counts.total -ne 73 -or [int]$counts.passed -ne 73 -or [int]$counts.notExecuted -ne 0) {throw 'Expected 73 Azure tests including SDK deadline classification, no skips.'}
+    if([int]$counts.total -ne 77 -or [int]$counts.passed -ne 77 -or [int]$counts.notExecuted -ne 0) {throw 'Expected 77 Azure tests including search visibility and SDK deadline classification, no skips.'}
 }
 finally {
     $env:OASIS_AZURE_NATIVE_TEST=$previous
