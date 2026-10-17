@@ -48,6 +48,12 @@ else if(request.operation==='verifyNftCustodyReceipt'){
  else error='Source custody transfer not found';
 }
 else if(request.operation==='execute'){
+ const transfer=request.message?.asset?.message?.token_transfer;
+ if(transfer?.symbol?.startsWith('intent-')){
+  if(transfer.symbol!=='intent-original'||transfer.recipient!=='fixture-recipient'||transfer.amount!=='123000000'
+    ||request.fromWalletAddress!=='fixture-owner'||request.memo!=='Original seed 🌱 memo')
+   throw new Error('Original token transfer intent and Unicode memo were not preserved.');
+ }
  const mint=request.message?.asset?.message?.nft_mint;
  const burn=request.message?.asset?.message?.nft_burn??request.message?.asset?.message?.token_burn;
  if(burn?.token_id?.startsWith('native-evidence-')) {

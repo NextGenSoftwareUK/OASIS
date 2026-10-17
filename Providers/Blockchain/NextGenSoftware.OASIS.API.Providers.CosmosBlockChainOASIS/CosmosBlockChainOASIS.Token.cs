@@ -43,13 +43,18 @@ public partial class CosmosBlockChainOASIS
             if (request == null || string.IsNullOrWhiteSpace(request.FromTokenAddress)
                 || string.IsNullOrWhiteSpace(request.FromWalletAddress) || string.IsNullOrWhiteSpace(request.ToWalletAddress))
                 throw new ArgumentException("Token identity and sender/recipient wallet addresses are required.");
+            // Capture caller-owned scalar intent before signer recovery can yield.
+            var symbol=request.FromTokenAddress;var sender=request.FromWalletAddress;var recipient=request.ToWalletAddress;
+            var amount=request.Amount;var memo=NativeWalletMemo.FromText(request.MemoText).Text;
+            if(amount<=0)throw new ArgumentOutOfRangeException(nameof(request.Amount),"Transfer amount must be positive.");
+            var assetUnits=symbol==_nativeDenom?null:AssetUnits(amount);
             var key = await SigningKeyAsync(Guid.Empty, request.OwnerPrivateKey, request.OwnerSeedPhrase, request.OwnerPublicKey);
-            if (request.FromTokenAddress == _nativeDenom)
-                return await SendBankTransferAsync(request.FromWalletAddress, request.ToWalletAddress, request.Amount, request.MemoText, _nativeDenom, key);
+            if (symbol == _nativeDenom)
+                return await SendBankTransferAsync(sender, recipient, amount, memo, _nativeDenom, key);
             var hash = await ExecuteAssetAsync(new { token_transfer = new
             {
-                symbol = request.FromTokenAddress, recipient = request.ToWalletAddress, amount = AssetUnits(request.Amount)
-            } }, key, request.FromWalletAddress);
+                symbol, recipient, amount = assetUnits
+            } }, key, sender,memoText:memo);
             result.Result = new TransactionResponse { TransactionResult = hash };
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
