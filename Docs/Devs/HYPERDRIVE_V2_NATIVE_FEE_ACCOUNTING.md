@@ -1,5 +1,20 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## 2026-10-17 current retained Sui C# live receipts
+
+Actual local-chain signed-original receipt observations, not public-chain prices or production bills. Four live cases pass1m42s;26receipts. Receipt files now have distinct fixed scenario names (previous NFT variants overwrote one another; corrected before this final acceptance). No new package publication or ledger reset.
+
+| Scenario | Native receipts | Raw net MIST | Sum of per-receipt zero-floor MIST |
+| --- | ---: | ---: | ---: |
+| nft | 5 | 5655120 | 19505140 |
+| nft-batch | 9 | 10300360 | 38000400 |
+| nft-offchain | 5 | 5633840 | 18957180 |
+| token | 7 | 7254904 | 7254904 |
+
+Raw total28844224MIST; per-native-receipt zero-floor arithmetic83717624MIST. Negative burn receipts reflect native storage rebates. This arithmetic is not an issued charge or fiat valuation; every report states productionBillingReconciled=false. Do not apply cross-scenario credits, confuse token principal with gas, or use current quotes to reprice historical receipts. Actual production admission/valuation/settlement remains unverified.
+
+Fixed public reports in TestResults/SuiCurrent (original digests/payers/chain IDs/netUnits/success retained): sui-csharp-nft-receipts-current.json SHA25615F84EFB1AE36D95853700F466E2ED1A4542A2EE2F324D1C00C86D0ED5FF4A08; sui-csharp-nft-batch-receipts-current.json SHA25687A0575A25E5DB01D6F23EC650E09B22B375CB5433956341D3E7453AB5DC7E7D; sui-csharp-nft-offchain-receipts-current.json SHA256383E4B71B14D6B1B840C5580790BE5A5E1BEC9642A1BAA18E7254927EBF1278E; sui-csharp-token-receipts-current.json SHA2563320759D153265DF97F8CC23F34434669E7BBA215403BAAF33F42C3C7A27602D. Test TRX SHA256F5172EE294657249010ED4BF50AC7D91B2645D6E3E3BC4E5F098F34AEB4009C1. No private keys copied into these reports. Pending journals removed only after verified complete execution/receipt report, native node stopped; original Cosmos/TRON uncertainty fences unchanged.
+
 2026-10-17 aggregate lock contention proof preserves original approval+deposit sequence. Zero allowance can still mean TWO native fee exposures; approval receipt precedes deposit construction and identities are distinct. No fee bundling, automatic extra operation, live chain mutation or sponsored spending introduced. Controlled SDK/gRPC results do not establish actual fee amounts or production settlement. Protected Cosmos/TRON journals unchanged.
 
 2026-10-17 aggregate TRON native withdrawal now avoids an unrelated encrypted-storage activation/probe; wallet storage lookup remains owned by WalletManager's configured provider. Existing SDK queries original depositor/token locked amount and validates original solidified receipt returned amount123 in controlled fixture. This is aggregate principal return, not a gas refund/fee payment/per-deposit release. No actual public spending/native ledger mutation/fee settlement; original Cosmos/TRON uncertainty fences unchanged.

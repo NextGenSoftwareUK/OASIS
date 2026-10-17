@@ -55,7 +55,8 @@ public class SuiAdmittedNftFacadeTests
         var assetKind=idBound?"escrow":token?"token":"nft";
         Assert.IsNotNull(directory);var journalPath=Path.Combine(directory!.FullName,$"TestResults/SuiCurrent/csharp-{assetKind}-live-pending.jsonl");
         Assert.IsFalse(File.Exists(journalPath),"Retained facade ownership must be reconciled before rerun.");
-        var reportPath=Path.Combine(directory.FullName,$"TestResults/SuiCurrent/sui-csharp-{assetKind}-receipts-current.json");
+        var scenario=token?assetKind:offChain?"nft-offchain":nftCount>1?"nft-batch":assetKind;
+        var reportPath=Path.Combine(directory.FullName,$"TestResults/SuiCurrent/sui-csharp-{scenario}-receipts-current.json");
         var depositGuid=Guid.Parse("33333333-4444-5555-6666-777777777777");
         var depositId=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(depositGuid.ToString("N")))).ToLowerInvariant();
         var sdk=typeof(SuiOASIS).GetMethod("InvokeSdkAsync",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
@@ -237,7 +238,7 @@ public class SuiAdmittedNftFacadeTests
                     chainId=attempt.NativePreparation.ChainId,netUnits=fee.Result.GetProperty("netUnits").GetString(),success=true});
             }
             using(var report=new FileStream(reportPath,FileMode.Create,FileAccess.Write,FileShare.None)){
-                await JsonSerializer.SerializeAsync(report,new {operationId=execution.OperationId,assetId,assetKind,
+                await JsonSerializer.SerializeAsync(report,new {operationId=execution.OperationId,assetId,assetKind,scenario,
                     receipts,burned=true,productionBillingReconciled=false});report.Flush(true);
             }
             using(var report=JsonDocument.Parse(File.ReadAllBytes(reportPath)))Assert.AreEqual(stages.Length,report.RootElement.GetProperty("receipts").GetArrayLength());
