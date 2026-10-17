@@ -1,5 +1,11 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## TRON admission boundary: Energy cap is not a total-fee cap
+
+Verified2026-10-17 against official [FeeLimit documentation](https://developers.tron.network/docs/set-feelimit) and [Bandwidth/Energy documentation](https://developers.tron.network/docs/bandwidth-and-energy): `fee_limit` bounds caller Energy cost; Bandwidth is separate. Consequently `ContractFeeLimitSun × MaximumProviderAttempts` is **not a guaranteed total native-fee reservation**. Do not enable sponsorship using that calculation. Admission-ceiling coverage and final-receipt coverage are distinct contracts; estimates cannot silently become protocol guarantees.
+
+Current mapper correctly retains total solidified `TransactionInfo.Fee` and Energy/Bandwidth/other components. New controlled regression with synthetic7SUNEnergy limit and12SUNtotal (7Energy+3Bandwidth+2other) proves no truncation to7.396/396fullTRONpass3s/0skip/runnerexit0; SHA256 `0176BE2299C4ADF320CA966F40457957AC77AB5453F4A3F4521BBE6FB265B2A3`. No live submission or actual fee claimed. Aggregate admission must explicitly cover every fee component before sponsored execution; current unregistered sponsorship remains disabled.
+
 2026-10-17 shared location numerical correction incurs no native fees: pure GeoHelper antipodal clamp after3redcases,330Sharedtests green. All four stored-location adapters reuse it. No provider activation/signing/query/submission, native fee accounting or spending-policy change; hosted/native/aggregate USD gates unchanged. Core pin and parent gitlink advanced together; exact evidence in release gates.
 
 2026-10-17 generated schema compiler verification used retained solc0.8.26 only, no chain or fees. Shared initialization emitter fixes actual extra-field struct constructor failure in Hedera/TRON; both real outputs compile to nonempty bytecode. Runtime initialization semantics clear old struct then assign base fields, leaving extra fields at Solidity defaults; generated contract runtime/security/deployment are not certified. Full120/395/327case suites green; native fee/aggregate USD/hosted gates unchanged. Exact hashes in release gates.

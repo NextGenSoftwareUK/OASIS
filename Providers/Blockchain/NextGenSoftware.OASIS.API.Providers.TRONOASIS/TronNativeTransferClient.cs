@@ -41,6 +41,7 @@ public sealed partial class TronNativeTransferClient
     private readonly long _contractFeeLimitSun;
     private readonly Func<string,string,string,CancellationToken,Task> _persistPreparedSubmission;
     internal string ExpectedGenesisBlockId => _genesisBlockId;
+    /// <summary>Signed contract Energy-cost ceiling in SUN, not a cap on Bandwidth/other fees or aggregate spending.</summary>
     internal long MaximumContractFeeLimitSun => _contractFeeLimitSun;
     /// <summary>Solidified account snapshot from the configured verified network; no mutation or inferred permissions.</summary>
     public async Task<Account> LoadPermissionAuthorityAsync(string owner,CancellationToken token=default)
