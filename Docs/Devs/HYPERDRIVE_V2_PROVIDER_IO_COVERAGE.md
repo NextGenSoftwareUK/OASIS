@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Sui C# NFT ownership boundary refreshed on retained native chain: CSharpNFT1/1pass24s, no skips. Four admitted unauthorized requests (recipient-before-transfer and former-owner-after-transfer, each send+burn) reject before signed-attempt persistence; object owner readback unchanged. Existing valid5native operations/receipt binding still pass. Shared fixture, retained recipient/runtime and synthetic authority reused; no hosted authorization or production billing claim. No shipping change needed, no additional installation/download/environment.
+
 Sui C# admitted asset matrix2/2nativepass48s: prior NFT scenario plus token mint/transfer/escrow/partial+remaining burns, exact public decimal balances and restored native treasury supply. Token7/NFT5 distinct signed attempts/receipts; precision preflight0attempts. Shared fixture/retained recipient/environment reused, both journals clear after evidence retained and no blind initial-balance cleanup. Not hosted billing/all option/authorization/interface certification.
 
 Sui actual C# facade under admitted owner1/1pass19s, zero skips: mint/read metadata/lock/unlock/send/recipient burn;5distinct durable signed attempts validated against actual native fee receipts. Fixed compact receipt JSON retained before successful synthetic DB/journal cleanup. Retained recipient/runtime reused, no public fees. Covers single-object/rich selected metadata, NOT older batch/off-chain/alloptions/hosted billing/API authorization matrix. Previous SDK-only asset proof now supplemented, not replaced or expanded into untested claims.
