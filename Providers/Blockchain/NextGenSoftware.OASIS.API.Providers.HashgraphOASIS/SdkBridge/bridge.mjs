@@ -29,7 +29,7 @@ export function storageTransaction(action, request) {
 }
 
 import {persistSignedSubmission,verifyPreparedIdentity} from './native-preparation.mjs';
-import {verifyPreparedQueryIdentity} from './paid-query-preparation.mjs';
+import {verifyPreparedQueryIdentity,createPaidQuery} from './paid-query-preparation.mjs';
 export {persistSignedSubmission} from './native-preparation.mjs';
 async function storageWrite(action, request, persist) {
   const mutation = storageTransaction(action, request);
@@ -93,7 +93,7 @@ export function verifyStorageAccount(account,payer,key) {
     throw new Error('Storage activation requires the real active sender single signing key');
 }
 
-async function storageRead(action, request) {
+async function storageRead(action, request,persistPaidQueryPayment) {
   ContractId.fromString(request.contractId);
   if (action === 'storageGet' && typeof request.key !== 'string') throw new Error('An explicit storage key is required.');
   if (action === 'storageList' && typeof request.prefix !== 'string') throw new Error('An explicit prefix is required.');
@@ -108,17 +108,17 @@ async function storageRead(action, request) {
   try {
     client.setOperator(payer, key);
     async function query(name, args) {
-      const response = await new ContractCallQuery().setContractId(request.contractId).setGas(request.gas)
+      const response = await createPaidQuery(ContractCallQuery,request,client,key,persistPaidQueryPayment).setContractId(request.contractId).setGas(request.gas)
         .setFunctionParameters(storageReadCall(name, args)).setMaxQueryPayment(Hbar.fromTinybars(request.maxFeeTinybars)).execute(client);
       if (response.errorMessage) throw new Error('Storage contract query reverted.');
       return storageAbi.decodeFunctionResult(name, response.bytes);
     }
     if(action==='storageProbe'){
       const payment=Hbar.fromTinybars(request.maxFeeTinybars);
-      const account=await new AccountInfoQuery().setAccountId(payer).setMaxQueryPayment(payment).execute(client);
+      const account=await createPaidQuery(AccountInfoQuery,request,client,key,persistPaidQueryPayment).setAccountId(payer).setMaxQueryPayment(payment).execute(client);
       verifyStorageAccount(account,payer,key);
       const owner=(await query('owner',[]))[0];
-      await verifyDepositorAccount(payer,owner,alias=>new AccountInfoQuery().setAccountId(alias).setMaxQueryPayment(payment).execute(client));
+      await verifyDepositorAccount(payer,owner,alias=>createPaidQuery(AccountInfoQuery,request,client,key,persistPaidQueryPayment).setAccountId(alias).setMaxQueryPayment(payment).execute(client));
       return {owner,sender:payer.toString(),contractId:request.contractId};
     }
     if (action === 'storageGet') {
@@ -218,7 +218,7 @@ export function fileTransaction(action, request, publicKey) {
   return new FileDeleteTransaction().setFileId(request.fileId);
 }
 
-async function executeFile(action, request, persist) {
+async function executeFile(action, request, persist,persistPaidQueryPayment) {
   const key = restoreKey(request);
   if (request.publicKey && request.publicKey.toLowerCase() !== key.publicKey.toStringDer().toLowerCase())
     throw new Error('File signing key does not match the supplied public key.');
@@ -235,7 +235,7 @@ async function executeFile(action, request, persist) {
     client.setOperator(payer, key);
     const ceiling = Hbar.fromTinybars(request.maxFeeTinybars);
     if (!mutation) {
-      const bytes = await new FileContentsQuery().setFileId(request.fileId).setMaxQueryPayment(ceiling).execute(client);
+      const bytes = await createPaidQuery(FileContentsQuery,request,client,key,persistPaidQueryPayment).setFileId(request.fileId).setMaxQueryPayment(ceiling).execute(client);
       return { fileId: FileId.fromString(request.fileId).toString(), contents: new TextDecoder('utf-8', { fatal: true }).decode(bytes) };
     }
     singleSubmission(mutation, id).setMaxTransactionFee(ceiling).freezeWith(client);
@@ -250,7 +250,7 @@ async function executeFile(action, request, persist) {
     return { transactionId: submitted.transactionId.toString(), status: 'SUCCESS',
       fileId: action === 'fileCreate' ? receipt.fileId.toString() : FileId.fromString(request.fileId).toString() };
   } catch (cause) {
-    const error = new Error('Hedera file operation failed.');
+    const error = new Error('Hedera file operation failed.',{cause});
     if(stage==='preparation')throw cause;
     error.transactionId = id?.toString();
     error.stage = stage;
@@ -259,8 +259,9 @@ async function executeFile(action, request, persist) {
   } finally { client.close(); }
 }
 
-export async function execute(action, request, persistPreparedSubmission) {
+export async function execute(action, request, persistPreparedSubmission,persistPaidQueryPayment) {
   if(persistPreparedSubmission!==undefined&&typeof persistPreparedSubmission!=='function')throw new TypeError('Prepared Hedera persistence must be an awaited callback.');
+  if(persistPaidQueryPayment!==undefined&&typeof persistPaidQueryPayment!=='function')throw new TypeError('Paid-query persistence must be an awaited callback.');
   if(action==='verifyNativePreparation'){
     if(persistPreparedSubmission)throw new Error('Read-only verification cannot prepare a submission.');
     return verifyPreparedIdentity(request.preparation,request.expectedPublicKey);
@@ -271,8 +272,8 @@ export async function execute(action, request, persistPreparedSubmission) {
   }
   if(['bytecodeFileCreate','bytecodeFileAppend','contractCreate','nftCollectionCreate','tokenCollectionDelete','nftMetadataUpdate'].includes(action)) return executeDeployment(action,request,{createClient,restoreKey,persistPreparedSubmission});
   if(persistPreparedSubmission&&!['storagePut','storageDelete','fileCreate','fileUpdate','fileDelete','transfer','tokenTransfer','tokenMint','tokenBurn','nftTransfer','nftMint','nftBurn','nftEscrowLock','nftEscrowUnlock','tokenEscrowLock','tokenEscrowUnlock'].includes(action))throw new Error('Prepared submission is not yet supported for this Hedera action.');
-  if (['nftEscrowLock', 'nftEscrowUnlock'].includes(action)) return executeEscrow(action, request, { createClient, restoreKey,persistPreparedSubmission });
-  if (['tokenEscrowLock', 'tokenEscrowUnlock'].includes(action)) return executeTokenEscrow(action, request, { createClient, restoreKey,persistPreparedSubmission });
+  if (['nftEscrowLock', 'nftEscrowUnlock'].includes(action)) return executeEscrow(action, request, { createClient, restoreKey,persistPreparedSubmission,persistPaidQueryPayment });
+  if (['tokenEscrowLock', 'tokenEscrowUnlock'].includes(action)) return executeTokenEscrow(action, request, { createClient, restoreKey,persistPreparedSubmission,persistPaidQueryPayment });
   if (['generateMnemonic', 'restoreMnemonic'].includes(action)) {
     if (request.keyType !== 'ed25519') throw new Error('Mnemonic derivation requires the explicit standard Ed25519 algorithm.');
     if (action === 'restoreMnemonic' && (typeof request.seedPhrase !== 'string' || !request.seedPhrase.trim()))
@@ -282,8 +283,8 @@ export async function execute(action, request, persistPreparedSubmission) {
     return { privateKey: key.toStringDer(), publicKey: key.publicKey.toStringDer(), seedPhrase: mnemonic.toString() };
   }
   if (['storagePut', 'storageDelete'].includes(action)) return storageWrite(action, request,persistPreparedSubmission);
-  if (['storageProbe','storageGet', 'storageList'].includes(action)) return storageRead(action, request);
-  if (['fileCreate', 'fileUpdate', 'fileDelete', 'fileRead'].includes(action)) return executeFile(action, request,persistPreparedSubmission);
+  if (['storageProbe','storageGet', 'storageList'].includes(action)) return storageRead(action, request,persistPaidQueryPayment);
+  if (['fileCreate', 'fileUpdate', 'fileDelete', 'fileRead'].includes(action)) return executeFile(action, request,persistPreparedSubmission,persistPaidQueryPayment);
   if (action === 'generateKey') {
     const key = request.keyType === 'ed25519' ? PrivateKey.generateED25519()
       : request.keyType === 'ecdsa' ? PrivateKey.generateECDSA() : null;
@@ -334,7 +335,7 @@ export async function execute(action, request, persistPreparedSubmission) {
       transfer.addHbarTransfer(sender, Hbar.fromTinybars('-' + request.tinybars))
         .addHbarTransfer(recipient, Hbar.fromTinybars(request.tinybars));
     } else {
-      const info = await new TokenInfoQuery().setTokenId(request.tokenId).execute(client);
+      const info = await createPaidQuery(TokenInfoQuery,request,client,key,persistPaidQueryPayment).setTokenId(request.tokenId).execute(client);
       if (info.tokenType.toString() !== (nft ? 'NON_FUNGIBLE_UNIQUE' : 'FUNGIBLE_COMMON'))
         throw new Error('HTS token type does not match the requested operation.');
       if (['nftMint', 'nftBurn'].includes(action)) {
@@ -389,7 +390,20 @@ if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) 
       const {preparationClient}=await import(pathToFileURL(process.env.OASIS_NATIVE_PREPARATION_MODULE).href);
       persistPreparedSubmission=preparationClient(process.env.OASIS_NATIVE_PREPARATION_PIPE);
     }
-    process.stdout.write(JSON.stringify(await execute(envelope.action, envelope.request,persistPreparedSubmission)));
+    let querySequence;
+    if(process.env.OASIS_NATIVE_QUERY_PREPARATION_PIPE||process.env.OASIS_NATIVE_QUERY_PREPARATION_MODULE){
+      if(!process.env.OASIS_NATIVE_QUERY_PREPARATION_PIPE||!process.env.OASIS_NATIVE_QUERY_PREPARATION_MODULE)
+        throw new Error('Complete parent query preparation configuration required.');
+      const {preparationSequenceClient}=await import(pathToFileURL(process.env.OASIS_NATIVE_QUERY_PREPARATION_MODULE).href);
+      querySequence=preparationSequenceClient(process.env.OASIS_NATIVE_QUERY_PREPARATION_PIPE,envelope.request.queryMaximumRequests);
+    }
+    const result=await execute(envelope.action,envelope.request,persistPreparedSubmission,querySequence?.persist);
+    if(querySequence){
+      try{await querySequence.complete();}
+      catch(error){error.transactionId=envelope.request.transactionId;error.mutationTransactionId=envelope.request.transactionId;
+        error.approvalTransactionId=result?.approvalTransactionId;error.stage='query-completion';throw error;}
+    }
+    process.stdout.write(JSON.stringify(result));
   } catch (error) {
     // Do not expose SDK exception text or stacks which could contain key input.
     process.stderr.write(JSON.stringify({ error: 'Hedera SDK operation failed',

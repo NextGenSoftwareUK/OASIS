@@ -54,13 +54,22 @@ public sealed class PreparedSubmissionServer : IDisposable
     private PreparedSubmissionServer(Func<JsonElement,CancellationToken,Task> persist,string[] stages)
         : this(persist,stages[0]) { _expectedStages = (string[])stages.Clone(); }
     public void ConfigureChild(System.Diagnostics.ProcessStartInfo child, string preparationModulePath)
+        =>ConfigureChildTransport(child,preparationModulePath,"OASIS_NATIVE_PREPARATION_PIPE","OASIS_NATIVE_PREPARATION_MODULE");
+
+    public void ConfigureQueryChild(System.Diagnostics.ProcessStartInfo child,string preparationModulePath)
+    {
+        if(!IsBoundedRequestSequence)throw new InvalidOperationException("Query preparation requires a bounded completion-aware request sequence.");
+        ConfigureChildTransport(child,preparationModulePath,"OASIS_NATIVE_QUERY_PREPARATION_PIPE","OASIS_NATIVE_QUERY_PREPARATION_MODULE");
+    }
+
+    private void ConfigureChildTransport(System.Diagnostics.ProcessStartInfo child,string preparationModulePath,string pipeVariable,string moduleVariable)
     {
         if (child == null) throw new ArgumentNullException(nameof(child));
         if (!Path.IsPathFullyQualified(preparationModulePath) || !File.Exists(preparationModulePath))
             throw new ArgumentException("Installed preparation transport module must exist at an absolute path.", nameof(preparationModulePath));
         if (child.UseShellExecute) throw new ArgumentException("Preparation requires a directly owned child process.", nameof(child));
-        child.Environment["OASIS_NATIVE_PREPARATION_PIPE"] = Endpoint;
-        child.Environment["OASIS_NATIVE_PREPARATION_MODULE"] = preparationModulePath;
+        child.Environment[pipeVariable] = Endpoint;
+        child.Environment[moduleVariable] = preparationModulePath;
     }
     public PreparedSubmissionServer(Func<JsonElement, CancellationToken, Task> persist) : this(persist,(string)null) { }
     public PreparedSubmissionServer(Func<JsonElement, CancellationToken, Task> persist, string expectedTransactionId)

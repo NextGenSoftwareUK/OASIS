@@ -2,6 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {Client,AccountId,AccountInfoQuery,PrivateKey,TransactionId,Transaction,Hbar} from '@hiero-ledger/sdk';
 import {proto} from '@hiero-ledger/proto';
+import grpc from '@grpc/grpc-js';
+import {execute} from './bridge.mjs';
 import {PreparedAccountInfoQuery,PreparedContractInfoQuery,PreparedContractByteCodeQuery,PreparedContractCallQuery,
   PreparedFileContentsQuery,PreparedTokenInfoQuery,PreparedTokenNftInfoQuery,verifyPreparedQueryIdentity} from './paid-query-preparation.mjs';
 
@@ -152,3 +154,25 @@ for(const [name,Query,configure,service,method] of [
     }finally{client.close();}
   });
 }
+
+for(const cap of ['123','135'])test(`actual file-read bridge enforces explicit ${cap} cap against SDK-buffered payment over loopback gRPC`,{timeout:10000},async()=>{
+  const server=new grpc.Server();let admitted=0,answers=0;
+  server.addService({getFileContent:{path:'/proto.FileService/getFileContent',requestStream:false,responseStream:false,
+    requestSerialize:value=>Buffer.from(proto.Query.encode(value).finish()),requestDeserialize:bytes=>proto.Query.decode(bytes),
+    responseSerialize:value=>Buffer.from(proto.Response.encode(value).finish()),responseDeserialize:bytes=>proto.Response.decode(bytes)}},
+    {getFileContent:(call,callback)=>{
+      const query=call.request.fileGetContents,header=query.header;
+      if(header.responseType===proto.ResponseType.ANSWER_ONLY){assert.equal(admitted,1);answers++;}
+      callback(null,{fileGetContents:{header:{nodeTransactionPrecheckCode:proto.ResponseCodeEnum.OK,responseType:header.responseType,cost:123},
+        fileContents:{fileID:query.fileID,contents:Buffer.from('controlled bridge read')}}});
+    }});
+  const port=await new Promise((resolve,reject)=>server.bindAsync('127.0.0.1:0',grpc.ServerCredentials.createInsecure(),(error,port)=>error?reject(error):resolve(port)));
+  const key=PrivateKey.generateED25519();
+  try{
+    const operation=execute('fileRead',{network:'local',nodes:{['127.0.0.1:'+port]:'0.0.3'},sender:'0.0.1001',privateKey:key.toStringDer(),keyType:'der',
+      fileId:'0.0.2001',maxFeeTinybars:'100000000',queryMaxPaymentTinybars:cap,queryMaxTransactionFeeTinybars:'100000000',queryPersistenceTimeoutMs:3000},
+      undefined,async evidence=>{assert.equal(evidence.queryPaymentTinybars,'135');admitted++;}).catch(error=>{throw error.cause??error;});
+    if(cap==='123'){await assert.rejects(operation,/exceeds admitted node\/payment authority/);assert.equal(admitted,0);assert.equal(answers,0);}
+    else{const response=await operation;assert.equal(response.contents,'controlled bridge read');assert.equal(answers,1);assert.equal(admitted,1);}
+  }finally{server.forceShutdown();}
+});

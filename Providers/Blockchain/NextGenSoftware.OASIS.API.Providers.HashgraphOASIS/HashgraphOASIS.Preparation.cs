@@ -18,7 +18,7 @@ public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.
     {
         ArgumentNullException.ThrowIfNull(execution);ArgumentException.ThrowIfNullOrWhiteSpace(expectedSender);
         ArgumentException.ThrowIfNullOrWhiteSpace(expectedPublicKey);
-        if(string.IsNullOrWhiteSpace(clientRequestId)||clientRequestId.Length>118||maxPaymentTinybars<=0||maxTransactionFeeTinybars<=0
+        if(string.IsNullOrWhiteSpace(clientRequestId)||clientRequestId.Length>128||maxPaymentTinybars<=0||maxTransactionFeeTinybars<=0
             ||expectedNodes==null||expectedNodes.Length==0||expectedNodes.Length>1024)
             throw new ArgumentException("Bounded correlation, positive separate payment/fee caps and explicit authorized query nodes are required.");
         var nodes=(string[])expectedNodes.Clone();
@@ -28,6 +28,8 @@ public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.
         var cap=maxPaymentTinybars.ToString(System.Globalization.CultureInfo.InvariantCulture);
         var feeCap=maxTransactionFeeTinybars.ToString(System.Globalization.CultureInfo.InvariantCulture);
         var next=0;
+        // A complete128-character parent correlation still needs room for the physical query ordinal.
+        var prefix="query."+Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(clientRequestId))).ToLowerInvariant();
         return PreparedSubmissionServer.ForBoundedRequests(async(evidence,token)=>{
             if(evidence.GetProperty("purpose").GetString()!="HederaQueryPayment"||evidence.GetProperty("chainId").GetString()!=_hederaNetwork
                 ||evidence.GetProperty("sender").GetString()!=expectedSender)
@@ -42,7 +44,7 @@ public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.
                 throw new InvalidDataException("Official SDK verification did not bind the original signed query payment.");
             var authority=new NativeSigningAuthority("hedera-query-payment-v1",Convert.ToBase64String(JsonSerializer.SerializeToUtf8Bytes(new {
                 PublicKey=expectedPublicKey,NodeAccountId=node,PaymentTinybars=units,MaxPaymentTinybars=cap,MaxTransactionFeeTinybars=feeCap})));
-            var correlation=clientRequestId+".query."+Interlocked.Increment(ref next).ToString(System.Globalization.CultureInfo.InvariantCulture);
+            var correlation=prefix+"."+Interlocked.Increment(ref next).ToString(System.Globalization.CultureInfo.InvariantCulture);
             await execution.BeginPreparedNativeAttemptAsync("HashgraphOASIS",null,correlation,identity,new UsageNativePreparation {
                 ChainId=_hederaNetwork,Sender=expectedSender,SignedTransactionBase64=evidence.GetProperty("signedTransactionBase64").GetString(),SigningAuthority=authority},token);
         },maximumRequests);
