@@ -34,6 +34,7 @@ public sealed class TronAvatarWalletSendTests
     [InlineData(true, true, "mint")]
     [InlineData(false,true,"mint-await")] [InlineData(true,true,"mint-await")]
     [InlineData(false,false,"send-token-await")] [InlineData(false,true,"send-token-await")]
+    [InlineData(false,true,"burn-token-await")]
     [InlineData(false, true, "mint-nft")]
     [InlineData(true, true, "mint-nft")]
     [InlineData(false, true, "escrow-release")]
@@ -143,12 +144,15 @@ public sealed class TronAvatarWalletSendTests
                         Assert.Equal(new System.Numerics.BigInteger(96), new System.Numerics.BigInteger(data.AsSpan(68,32),true,true));
                         var length = (int)new System.Numerics.BigInteger(data.AsSpan(100,32),true,true);
                         Assert.Equal("https://example.invalid/owned-nft/1", System.Text.Encoding.UTF8.GetString(data,132,length));
+                    } else if(selector=="burn-token-await"){
+                        Assert.Equal(36,data.Length);Assert.Equal("42966C68",Convert.ToHexString(data.AsSpan(0,4)));
+                        Assert.Equal(new System.Numerics.BigInteger(123),new System.Numerics.BigInteger(data.AsSpan(4),true,true));
                     } else {
                     Assert.Equal(68, data.Length);
                     Assert.Equal(mintToken ? "40C10F19" : "A9059CBB", Convert.ToHexString(data.AsSpan(0, 4)));
                     Assert.Equal(new System.Numerics.BigInteger(123), new System.Numerics.BigInteger(data.AsSpan(36), isUnsigned: true, isBigEndian: true));
                     }
-                    if(!escrowRelease)Assert.Equal((mintToken ? sourceBytes : destinationBytes).ToByteArray()[1..], data.AsSpan(16, 20).ToArray());
+                    if(!escrowRelease&&selector!="burn-token-await")Assert.Equal((mintToken ? sourceBytes : destinationBytes).ToByteArray()[1..], data.AsSpan(16, 20).ToArray());
                     var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                     var transaction = new Transaction { RawData = new Transaction.Types.raw { Timestamp = now, Expiration = now + 60000 } };
                     transaction.RawData.Contract.Add(new Transaction.Types.Contract { Type = Transaction.Types.Contract.Types.ContractType.TriggerSmartContract,
@@ -249,21 +253,24 @@ public sealed class TronAvatarWalletSendTests
                     gate.Resume.TrySetResult();return await pending;
                 }finally{gate.Resume.TrySetResult();await pending;}
             }
-            async Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>> SendTokenAwait(){
+            async Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>> TokenOperationAwait(){
                 var request=new Core.Objects.Wallet.Requests.SendWeb3TokenRequest {FromTokenAddress=token?tokenAddress:"TRX",
                     FromWalletAddress=owner,ToWalletAddress=destination,Amount=1.23m,OwnerPrivateKey=key,OwnerSeedPhrase="",OwnerPublicKey="",
                     MemoText="Original seed 🌱 memo"};
+                var burn=new Core.Objects.Wallet.Requests.BurnWeb3TokenRequest {TokenAddress=tokenAddress,Amount=1.23m,
+                    OwnerPrivateKey=key,OwnerPublicKey="",OwnerSeedPhrase=""};
                 var gate=(SemaphoreSlim)typeof(TRONOASIS).GetField("_runtimeLifecycle",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(tron)!;
                 await gate.WaitAsync();var released=false;
                 Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>>? pending=null;
                 try{
-                    pending=tron.SendTokenAsync(request);Assert.False(pending.IsCompleted);
+                    pending=selector=="burn-token-await"?tron.BurnTokenAsync(burn):tron.SendTokenAsync(request);Assert.False(pending.IsCompleted);
                     request.FromWalletAddress=destination;request.ToWalletAddress=owner;request.Amount=99;
                     request.MemoText="changed";request.FromTokenAddress=destination;
+                    burn.Amount=99;burn.TokenAddress=destination;
                     gate.Release();released=true;return await pending;
                 }finally{if(!released)gate.Release();if(pending!=null)await pending;}
             }
-            var result = selector=="send-token-await"?await SendTokenAwait():escrowRelease?await ReleaseEscrow():selector == "mint-nft" ? await MintNft() : mintToken
+            var result = selector is "send-token-await" or "burn-token-await"?await TokenOperationAwait():escrowRelease?await ReleaseEscrow():selector == "mint-nft" ? await MintNft() : mintToken
                 ? await MintToken()
                 : selector == "username"
                 ? token
