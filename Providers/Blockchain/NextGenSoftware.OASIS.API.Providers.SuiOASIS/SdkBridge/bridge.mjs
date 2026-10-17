@@ -21,7 +21,9 @@ export async function verifyPreparedIdentity(evidence) {
   const signer=await verifyTransactionSignature(bytes,evidence.signature);
   if(signer.toSuiAddress()!==evidence.sender || tx.getData().sender!==evidence.sender)
     throw new Error('Prepared Sui signature/sender does not match original transaction');
-  return {verified:true,transactionHash:evidence.transactionHash,sender:evidence.sender};
+  const gasPayer=tx.getData().gasData.owner;
+  if(!isValidSuiAddress(gasPayer))throw new Error('Original signed Sui transaction has no valid gas payer');
+  return {verified:true,transactionHash:evidence.transactionHash,sender:evidence.sender,gasPayer:normalizeSuiAddress(gasPayer)};
 }
 import { generateMnemonic } from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english.js';

@@ -4,7 +4,7 @@ const request=JSON.parse(input);let result;
 switch(request.operation){
  case 'transfer':process.stdout.write(JSON.stringify({ok:false,error:'controlled original transfer outcome',nativeMutation:{transactionHash:'1'.repeat(32),executionSucceeded:true}}));process.exitCode=1;break;
  case 'nativeFeeReceipt':result={transactionHash:request.transactionHash,currency:'SUI',unit:'MIST',payer:'fixture-owner',chainIdentifier:'fixture-chain',success:false,netUnits:'5'};break;
- case 'verifyNativePreparation':result={verified:request.preparation.mode==='valid',transactionHash:request.preparation.transactionHash,sender:request.preparation.sender};break;
+ case 'verifyNativePreparation':result={verified:request.preparation.mode==='valid'||request.preparation.signature?.startsWith('fixture-verified'),transactionHash:request.preparation.transactionHash,sender:request.preparation.sender,gasPayer:request.preparation.signature==='fixture-verified-foreign-payer'?'foreign-payer':'fixture-owner'};break;
  case 'put': case 'get': {
   const mode=request.mode;
   if(mode==='prepared' || mode==='prepared-wrong-id' || mode==='prepared-hold' || mode==='prepared-error') {
