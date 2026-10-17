@@ -27,8 +27,12 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureStorageOASIS
     /// Avatars are stored in a separate "avatars" container, keyed by avatar ID or username.
     /// SDK: Azure.Storage.Blobs v12
     /// </summary>
-    public partial class AzureStorageOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
+    public partial class AzureStorageOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider, IProviderTransportFailureClassifier
     {
+        // These storage APIs pass no caller token to Azure, so TaskCanceledException
+        // returned by their SDK call belongs to the SDK's transport deadline.
+        // If caller-token support is introduced, this boundary must carry that context.
+        public bool IsProviderTransportFailure(Exception failure)=>failure is TaskCanceledException;
         private readonly BlobServiceClient _serviceClient;
         private readonly string _holonContainer;
         private readonly string _avatarContainer;
