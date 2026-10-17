@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Shared stored decode delta: canonical stored-record decoder now used at shared read boundary; malformed avatar/detail/holon JSON yields terminal InvalidDataException with original JsonException. Six red-before/green-after cases, Shared280/280pass1s. No new parser/migration or native/V2/hosted proof.
+
 Shared export completeness delta: avatar-filtered export preserves original partial warning/failed-read metadata instead of fresh false-complete Ok; LoadedCount reflects filtered rows. Two red-before/green-after cases, Shared274/274pass1s. Full native/history/graph/privacy/V2/hosted export gates remain open.
 
 Shared export selector delta: username/email export retains authoritative absence code/original corruption cause; four red-before/green-after cases, Shared272/272pass1s. Partial-warning preservation/full graph/history/native/V2/hosted export acceptance still open.
