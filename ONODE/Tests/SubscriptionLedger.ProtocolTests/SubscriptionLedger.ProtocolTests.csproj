@@ -31,6 +31,7 @@
     <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/UsageExecutionContracts.cs" Link="Production/UsageExecutionContracts.cs" />
     <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/NativeOperationFeeAccounting.cs" Link="Production/NativeOperationFeeAccounting.cs" />
     <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/NativeFeePriceQuote.cs" Link="Production/NativeFeePriceQuote.cs" />
+    <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/NativeFeeMaximum.cs" Link="Production/NativeFeeMaximum.cs" />
     <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Managers/Bridge/Services/IAssetUsdQuoteSource.cs" Link="Production/IAssetUsdQuoteSource.cs" />
     <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/UsageReceiptAccounting.cs" Link="Production/UsageReceiptAccounting.cs" />
     <Compile Include="../../../OASIS Architecture/NextGenSoftware.OASIS.API.Core/Services/Subscriptions/UsageSettlementProtocol.cs" Link="Production/UsageSettlementProtocol.cs" />
