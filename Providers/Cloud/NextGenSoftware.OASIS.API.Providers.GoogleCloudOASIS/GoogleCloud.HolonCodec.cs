@@ -133,7 +133,7 @@ public partial class GoogleCloudOASIS
             if(ready.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IHolon>(ready);
             var document=await _firestoreDb.Collection("holons").Document(id.ToString()).GetSnapshotAsync();
             var holon=document.Exists ? DecodeHolon(document.ConvertTo<Dictionary<string,object>>(),document.Id):null;
-            if(holon==null || !holon.IsActive) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Firestore holon not found.";}
+            if(holon==null || holon.DeletedDate!=DateTime.MinValue) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Firestore holon not found.";}
             else
             {
                 IEnumerable<IHolon> records = new[] { holon };
