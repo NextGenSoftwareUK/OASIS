@@ -1,5 +1,23 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Explicit association and asset-type validation update (2026-10-17)
+
+The SDK bridge now supports `tokenEscrowAssociate` as a **separate single-stage native operation**, not a public HTTP route or hidden third spend during lock. It requires the existing sender/key/runtime/gas/fee/original transaction context and explicit id-bound protocol; deposit ID, amount/units and approval ID must be absent (null approval permitted). Original signed mutation persists before transport, one attempt/no ID regeneration, successful receipt AND association readback required. Already-associated token rejects without a native replacement, but validation queries can still cost. C#generic native action classification is wired; dedicated wallet/process association integration remains open.
+
+An asset-type gap was found and fixed: every fungible escrow operation now checks native TokenInfo identity, deletion and exact SDK FungibleCommon type before mutation. NFT-like balance interfaces are not sufficient proof of fungibility. This adds a paid query to release/association and early-rejection paths that did not previously fetch token info; lock already fetched it and reuses the result. Updated controlled SDK measurements supersede prior query counts:
+
+| Fixture path | Selected payments | Native submissions | Synthetic query debit (11tinybars each) |
+|---|---:|---:|---:|
+| Lock with approval |24|2|264|
+| Existing exact allowance |23|1|253|
+| Release |19|1|209|
+| Association |9|1|99|
+| Already associated |8|0|88|
+| Unassociated lock |10|0|110|
+| NFT/deleted/wrong token rejection |6|0|66|
+
+Association readback failure9payments/1native and unknown acknowledgement8/1 retain original mutation without replacement. These are **synthetic signed fixture query debits, not real consensus charges or live fee estimates**. Existing100,000,000tinybar signed native fee ceiling is not an observed fee.157bridge tests/98C#tests/8process cases pass; native HTS acceptance, host durable admission/billing/settlement remain open. No real HBAR used.
+
 2026-10-17 Hedera C#public lock/release and WalletManager facade now have8positive encrypted-wallet/mirror/real SDK-process loopback cases. Native stage IDs returned to C#match actual observed signed submissions; this closes local boundary wiring, NOT hosted billing/admission. **Ordinary public invocation does not currently supply host durable preparation callbacks**: fixture explicitly marks prepared=false and only observes/validates wire traffic. This must not be confused with9separate prepared SDK scenarios that prove callback-before-transport ordering. Host adoption/reservation, immutable pricing, durable stage/query settlement and real HTS fees remain open release gates. Manager's token facade direct provider selection is not automatic gas failover/LB/replication evidence. No sponsor enablement, real HBAR or live setting change.
 
 2026-10-17 Hedera OASISDNA protocol setting now maps explicitly into token escrow config. Existing MaxFeeTinybars/GasLimit remain explicit caller configuration, not observed fees; default aggregate-v1 is not silently upgraded to per-deposit. RuntimeCodeHash remains 0x-prefixed Keccak256, distinct from TRON SHA256. New corrupt-wallet lock/release tests fail with original wallet cause before mirror/paid query/signing, proving no later SDK spend in those paths.21mapping/wallet-boundary tests do not prove positive C#consensus/native charges, association workflow or sponsorship. Capability stays disabled pending full integration; no live setting/public HBAR/fee policy change.

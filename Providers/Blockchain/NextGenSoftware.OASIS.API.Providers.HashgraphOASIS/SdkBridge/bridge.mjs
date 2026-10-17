@@ -262,9 +262,9 @@ export async function execute(action, request, persistPreparedSubmission,persist
     return verifyPreparedQueryIdentity(request.preparation,request.expectedPublicKey,request.expectedNodes,request.maxPaymentTinybars,request.maxTransactionFeeTinybars);
   }
   if(['bytecodeFileCreate','bytecodeFileAppend','contractCreate','nftCollectionCreate','tokenCollectionDelete','nftMetadataUpdate'].includes(action)) return executeDeployment(action,request,{createClient,restoreKey,persistPreparedSubmission});
-  if(persistPreparedSubmission&&!['storagePut','storageDelete','fileCreate','fileUpdate','fileDelete','transfer','tokenTransfer','tokenMint','tokenBurn','nftTransfer','nftMint','nftBurn','nftEscrowLock','nftEscrowUnlock','tokenEscrowLock','tokenEscrowUnlock'].includes(action))throw new Error('Prepared submission is not yet supported for this Hedera action.');
+  if(persistPreparedSubmission&&!['storagePut','storageDelete','fileCreate','fileUpdate','fileDelete','transfer','tokenTransfer','tokenMint','tokenBurn','nftTransfer','nftMint','nftBurn','nftEscrowLock','nftEscrowUnlock','tokenEscrowLock','tokenEscrowUnlock','tokenEscrowAssociate'].includes(action))throw new Error('Prepared submission is not yet supported for this Hedera action.');
   if (['nftEscrowLock', 'nftEscrowUnlock'].includes(action)) return executeEscrow(action, request, { createClient, restoreKey,persistPreparedSubmission,persistPaidQueryPayment });
-  if (['tokenEscrowLock', 'tokenEscrowUnlock'].includes(action)) return executeTokenEscrow(action, request, { createClient, restoreKey,persistPreparedSubmission,persistPaidQueryPayment });
+  if (['tokenEscrowLock', 'tokenEscrowUnlock','tokenEscrowAssociate'].includes(action)) return executeTokenEscrow(action, request, { createClient, restoreKey,persistPreparedSubmission,persistPaidQueryPayment });
   if (['generateMnemonic', 'restoreMnemonic'].includes(action)) {
     if (request.keyType !== 'ed25519') throw new Error('Mnemonic derivation requires the explicit standard Ed25519 algorithm.');
     if (action === 'restoreMnemonic' && (typeof request.seedPhrase !== 'string' || !request.seedPhrase.trim()))
