@@ -70,10 +70,27 @@ public class SuiAdmittedNftFacadeTests
             var read=await owner.LoadOnChainNFTDataAsync(nft.NFTTokenAddress);Assert.IsFalse(read.IsError,read.Message);
             Assert.AreEqual("Admitted CSharp oak 🌳",read.Result.Title);Assert.AreEqual("owned native facade",read.Result.MetaData["park"]);
             Assert.AreEqual(12.5m,read.Result.Price);Assert.AreEqual(700u,read.Result.SellerFeeBasisPoints);
+            async Task RejectNonOwner(SuiOASIS signer,string address,string expectedOwner,string stage){
+                var before=(await store.GetAsync(execution.OperationId,deadline.Token)).ProviderAttempts.Count;
+                Record(new {stage,state="before-authorization-check"});
+                var deniedSend=await signer.ExecutePreparedNativeOperationAsync(()=>signer.SendNFTAsync(new SendWeb3NFTRequest {
+                    TokenId=nft.NFTTokenAddress,FromWalletAddress=address,ToWalletAddress=expectedOwner,Amount=1}),execution,stage+"-send",address,deadline.Token);
+                Assert.IsTrue(deniedSend.IsError,"Non-owner transfer must fail.");
+                Assert.AreEqual(before,(await store.GetAsync(execution.OperationId,deadline.Token)).ProviderAttempts.Count,"Rejected transfer must not persist a signed attempt.");
+                var deniedBurn=await signer.ExecutePreparedNativeOperationAsync(()=>signer.BurnNFTAsync(new BurnWeb3NFTRequest {
+                    NFTTokenAddress=nft.NFTTokenAddress,OwnerPrivateKey="",OwnerPublicKey="",OwnerSeedPhrase=""}),execution,stage+"-burn",address,deadline.Token);
+                Assert.IsTrue(deniedBurn.IsError,"Non-owner burn must fail.");
+                Assert.AreEqual(before,(await store.GetAsync(execution.OperationId,deadline.Token)).ProviderAttempts.Count,"Rejected burn must not persist a signed attempt.");
+                var unchanged=await owner.LoadOnChainNFTDataAsync(nft.NFTTokenAddress);Assert.IsFalse(unchanged.IsError,unchanged.Message);
+                Assert.AreEqual(expectedOwner,unchanged.Result.SendToAddressAfterMinting);
+                Record(new {stage,state="rejected-without-signed-attempt",expectedOwner});
+            }
+            await RejectNonOwner(recipient,recipientAddress,ownerAddress,"recipient-before-transfer");
             await Owned(owner,ownerAddress,"lock",()=>owner.LockNFTAsync(new LockWeb3NFTRequest {NFTTokenAddress=nft.NFTTokenAddress,Web3NFTId=nft.Id}));
             await Owned(owner,ownerAddress,"unlock",()=>owner.UnlockNFTAsync(new UnlockWeb3NFTRequest {NFTTokenAddress=nft.NFTTokenAddress,Web3NFTId=nft.Id}));
             var sent=await Owned(owner,ownerAddress,"send",()=>owner.SendNFTAsync(new SendWeb3NFTRequest {TokenId=nft.NFTTokenAddress,FromWalletAddress=ownerAddress,ToWalletAddress=recipientAddress,Amount=1}));
             Assert.AreEqual(recipientAddress,sent.Result.Web3NFT.SendToAddressAfterMinting);
+            await RejectNonOwner(owner,ownerAddress,recipientAddress,"former-owner-after-transfer");
             await Owned(recipient,recipientAddress,"burn",()=>recipient.BurnNFTAsync(new BurnWeb3NFTRequest {NFTTokenAddress=nft.NFTTokenAddress,
                 OwnerPrivateKey=recipientKey,OwnerPublicKey=recipientIdentity.Result.PublicKey,OwnerSeedPhrase=""}));
             Assert.IsTrue((await owner.LoadOnChainNFTDataAsync(nft.NFTTokenAddress)).IsError);
