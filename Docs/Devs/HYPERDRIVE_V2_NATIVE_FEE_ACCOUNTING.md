@@ -1,5 +1,7 @@
 # HyperDrive V2 native-chain fees and recovery
 
+2026-10-17 shared location numerical correction incurs no native fees: pure GeoHelper antipodal clamp after3redcases,330Sharedtests green. All four stored-location adapters reuse it. No provider activation/signing/query/submission, native fee accounting or spending-policy change; hosted/native/aggregate USD gates unchanged. Core pin and parent gitlink advanced together; exact evidence in release gates.
+
 2026-10-17 generated schema compiler verification used retained solc0.8.26 only, no chain or fees. Shared initialization emitter fixes actual extra-field struct constructor failure in Hedera/TRON; both real outputs compile to nonempty bytecode. Runtime initialization semantics clear old struct then assign base fields, leaving extra fields at Solidity defaults; generated contract runtime/security/deployment are not certified. Full120/395/327case suites green; native fee/aggregate USD/hosted gates unchanged. Exact hashes in release gates.
 
 2026-10-17 interface audit/source-generation correction incurs no native fees: Hedera/TRON reject absent/blank input instead of reporting source generation success with no artifact. Shared tests verify exact supplied source only; compilation/deployment are separate unproven gates, as are automatic schema correctness and all existing native/aggregate fee/USD gates. Full119/394unit suites green; exact hashes in release gates. No signing/submission/paid service or sponsorship enabled by this change.
