@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Sui recovery evidence now checks native receipt genesis/payer and emits netUnits for each original attempt. Native1/1pass3s: durable WEB6 local-test operation executing/3attempts/0receipts/no settlement; write fees3703548 and1028348, cleanup rebate-1620100. Missing production registered IUsageRecoveryResolver/valuation/rebate policy remains open; native confirmation alone does not justify zero-cost settlement or journal removal. Separate test encryption key already configured, no production encryption bypass.
+
 Sui native original-attempt inspection1/1pass3s: all three retained attempt receipts successful, raw fixture and private holon absent. Corrected report separates confirmed native outcomes from incomplete durable settlement/ownership. Journal retained unchanged; no resubmission. Retained node/SDK only, not full V2/native mutation certification.
 
 Encrypted V2 point-read acceptance: twelve new actual encrypted-disk/SQLite cases verify avatar/detail/holon sync/async authentication/base64 corruption preserves original cause and blocks stale secondary reads (zero secondary request delta, both stores unchanged). Full local routing124/124pass13s, zero skips. Controlled backend, not chain SDK/key custody/full policy or durable certification.
