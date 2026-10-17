@@ -55,7 +55,10 @@ public partial class HederaPreparationTests
             const tx=new TransferTransaction().setTransactionId(TransactionId.fromString('0.0.1001@1700000000.000000001'))
               .setNodeAccountIds([AccountId.fromString('0.0.3')]).addHbarTransfer('0.0.1001',-1).addHbarTransfer('0.0.1002',1).freeze();
             const signed=await tx.sign(key);
-            console.log(JSON.stringify({signed:Buffer.from(signed.toBytes()).toString('base64'),publicKey:key.publicKey.toStringDer(),wrongKey:wrong.publicKey.toStringDer()}));
+            const other=await new TransferTransaction().setTransactionId(TransactionId.fromString('0.0.1001@1700000000.000000001'))
+              .setNodeAccountIds([AccountId.fromString('0.0.3')]).addHbarTransfer('0.0.1001',-2).addHbarTransfer('0.0.1002',2).freeze().sign(key);
+            console.log(JSON.stringify({signed:Buffer.from(signed.toBytes()).toString('base64'),publicKey:key.publicKey.toStringDer(),wrongKey:wrong.publicKey.toStringDer(),
+              nativeHash:Buffer.from(await signed.getTransactionHash()).toString('base64'),otherHash:Buffer.from(await other.getTransactionHash()).toString('base64')}));
             """);
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(30));
         using var child=Process.Start(start)??throw new InvalidOperationException("Retained SDK process unavailable.");
@@ -71,7 +74,7 @@ public partial class HederaPreparationTests
             await provider.VerifyOriginalSignedPreparationAsync(JsonSerializer.SerializeToElement(new {
                 transactionHash=attempt.ProviderRequestId,chainId="testnet",sender="0.0.1001",
                 signedTransactionBase64=attempt.NativePreparation.SignedTransactionBase64 }),document.RootElement.GetProperty("publicKey").GetString()!,deadline.Token);
-            var mirror=new PreparedFeeMirror();
+            var mirror=new PreparedFeeMirror {NativeHash=document.RootElement.GetProperty("nativeHash").GetString()!,OtherHash=document.RootElement.GetProperty("otherHash").GetString()!};
             using var http=new HttpClient(mirror){BaseAddress=new Uri("https://testnet.mirrornode.hedera.com/api/v1/")};
             var httpField=typeof(HashgraphOASIS).GetField("_httpClient",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance)!;
             ((HttpClient)httpField.GetValue(provider)!).Dispose(); httpField.SetValue(provider,http);
@@ -85,17 +88,25 @@ public partial class HederaPreparationTests
             Assert.AreEqual(attempt.ProviderRequestId,accepted.Result.GetProperty("transactionId").GetString());
             Assert.AreEqual("0.0.1001",accepted.Result.GetProperty("payer").GetString());
             Assert.AreEqual("123",accepted.Result.GetProperty("netUnits").GetString());
+            mirror.SubstituteHash=true;
+            var differentBody=await provider.GetPreparedNativeFeeReceiptAsync(attempt,document.RootElement.GetProperty("publicKey").GetString()!,deadline.Token);
+            Assert.IsTrue(differentBody.IsError,"A different signed payload with the SAME Hedera transaction ID must not supply this attempt's fee.");
+            Assert.AreEqual(JsonValueKind.Undefined,differentBody.Result.ValueKind);
+            mirror.SubstituteHash=false;
             mirror.SubstituteIdentity=true;
             var substituted=await provider.GetPreparedNativeFeeReceiptAsync(attempt,document.RootElement.GetProperty("publicKey").GetString()!,deadline.Token);
             Assert.IsTrue(substituted.IsError); Assert.IsNotNull(substituted.Exception);
             Assert.AreEqual(JsonValueKind.Undefined,substituted.Result.ValueKind);
-            Assert.AreEqual(2,mirror.Requests);
+            Assert.AreEqual(3,mirror.Requests);
         } finally { if(!child.HasExited){child.Kill(entireProcessTree:true);await child.WaitForExitAsync();} }
     }
     private sealed class PreparedFeeMirror:HttpMessageHandler
     {
         public int Requests {get;private set;}
         public bool SubstituteIdentity {get;set;}
+        public bool SubstituteHash {get;set;}
+        public string NativeHash {get;set;}="";
+        public string OtherHash {get;set;}="";
         protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
         {
             token.ThrowIfCancellationRequested(); Requests++;
@@ -103,10 +114,10 @@ public partial class HederaPreparationTests
             Assert.AreEqual("?nonce=0&scheduled=false",request.RequestUri.Query,
                 "Fee recovery must request only the original unscheduled parent; an omitted nonce also matches child records.");
             return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK){Content=new StringContent("""
-                {"transactions":[{"transaction_id":"0.0.1001-1700000000-000000001","nonce":0,"scheduled":false,
+                {"transactions":[{"transaction_id":"0.0.1001-1700000000-000000001","transaction_hash":"NATIVE_HASH","nonce":0,"scheduled":false,
                 "parent_consensus_timestamp":null,"name":"CRYPTOTRANSFER","result":"SUCCESS",
                 "consensus_timestamp":"1700000001.000000001","charged_tx_fee":123}]}
-                """.Replace("0.0.1001-1700000000-000000001",SubstituteIdentity?"0.0.1002-1700000000-000000001":"0.0.1001-1700000000-000000001"))});
+                """.Replace("NATIVE_HASH",SubstituteHash?OtherHash:NativeHash).Replace("0.0.1001-1700000000-000000001",SubstituteIdentity?"0.0.1002-1700000000-000000001":"0.0.1001-1700000000-000000001"))});
         }
     }
     [DataTestMethod]
