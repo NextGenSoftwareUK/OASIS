@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 priority Mongo/SQLite refresh reused same Mongo8.3.11 replica27029, fixed guarded fixtures/SDK/build/report paths. Native4/4pass2m8s, initializer1/1pass176ms, normal owned synthetic DB teardown/service stop;27029 confirmed closed. Raw mongo-current.log1628203bytes below8MiB limiter, prior tail63193bytes retained, no manual truncation needed. C free78492524544after bytes is systemwide observation only. No install/download/clone/new environment, source/userdata/credential/protected ledger removal; fixed compact report overwritten.
+
 2026-10-16 V2 stored-JSON corruption acceptance reused fixed guarded disk/SQLite fixture/exclusive lease and SDK/build outputs. Local routing112/112pass11s, normal synthetic fixture disposal. No runtime/node/download/install/clone/new environment or protected ledger/source/userdata/credential removal; fixed compact report overwritten.
 
 2026-10-16 shared stored-JSON boundary fix reused shared outputs/in-memory malformed payloads. Six baseline failures retained in stored-decode-before-current.trx; finalShared280/280pass1s. No storage format/data mutation, runtime/node/download/install/clone/environment or protected ledger/source/userdata/credential removal; fixed compact reports reused.
