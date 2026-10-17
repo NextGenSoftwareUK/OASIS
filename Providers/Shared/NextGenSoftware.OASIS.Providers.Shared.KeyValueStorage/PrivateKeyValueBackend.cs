@@ -34,11 +34,16 @@ public sealed class PrivateKeyValueBackend : IKeyValueBackend, IDisposable
 
     private static (string Key, string Value) Parse(string payload)
     {
-        using var record = JsonDocument.Parse(payload);
-        var key = record.RootElement.GetProperty("key").GetString();
-        var value = record.RootElement.GetProperty("value").GetString();
-        if (key == null || value == null) throw new InvalidDataException("Private storage record has missing fields.");
-        return (key, value);
+        try
+        {
+            using var record=JsonDocument.Parse(payload);
+            var root=record.RootElement;
+            if(root.ValueKind!=JsonValueKind.Object || !root.TryGetProperty("key",out var key)
+                || !root.TryGetProperty("value",out var value) || key.ValueKind!=JsonValueKind.String || value.ValueKind!=JsonValueKind.String)
+                throw new InvalidDataException("Private storage record requires string key/value fields.");
+            return (key.GetString(),value.GetString());
+        }
+        catch(JsonException cause){throw new InvalidDataException("Private storage record JSON is invalid.",cause);}
     }
 
     public async Task<string> GetAsync(string key, CancellationToken cancellationToken = default)

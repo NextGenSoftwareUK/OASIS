@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 private-envelope integrity reused shared outputs/in-memory store with synthetic owned32byte test key and actual encryption. Six baseline failures retained in private-envelope-before-current.trx; finalShared288/288pass1s. No real credentials/storage-format migration/runtime/node/download/install/clone/environment or protected ledger/source/userdata/credential removal; fixed compact reports reused.
+
 2026-10-16 expanded Cosmos pending-key inspection reused exact retained wasmd/SDK/environment and fixed reports. Native read-only1/1pass1s,5exact record/index keys across280transactions/0matches. Pending SHA unchanged9B5A15110B0F21FEF8FCA6D2CE215859EEBC8944E9F1F83733CACE90892DEA81; node then verified idle-container shutdown, finalexited. No install/download/clone/new environment/ledger reset/replay/source/userdata/credential removal; fixed compact report overwritten.
 
 2026-10-16 GUID provider-key validation reused shared outputs/in-memory backend. Two baseline failures retained in provider-key-before-current.trx; finalShared282/282pass1s. No runtime/node/download/install/clone/new environment or protected ledger/source/userdata/credential removal; fixed compact reports reused.
