@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 V2 stored-JSON corruption acceptance reused fixed guarded disk/SQLite fixture/exclusive lease and SDK/build outputs. Local routing112/112pass11s, normal synthetic fixture disposal. No runtime/node/download/install/clone/new environment or protected ledger/source/userdata/credential removal; fixed compact report overwritten.
+
 2026-10-16 shared stored-JSON boundary fix reused shared outputs/in-memory malformed payloads. Six baseline failures retained in stored-decode-before-current.trx; finalShared280/280pass1s. No storage format/data mutation, runtime/node/download/install/clone/environment or protected ledger/source/userdata/credential removal; fixed compact reports reused.
 
 2026-10-16 partial-export truthfulness reused shared outputs/in-memory backend. Two baseline failures retained in export-partial-before-current.trx; finalShared274/274pass1s. No runtime/node/download/install/clone/environment or protected ledger/source/userdata/credential removal; fixed compact reports reused.
