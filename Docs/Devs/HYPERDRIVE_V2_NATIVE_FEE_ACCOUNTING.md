@@ -1,5 +1,11 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Cosmos real routed primary/replica admission — 2026-10-17
+
+Four retained-node cases now cover Cosmos and LocalFile as primary in both sync/async V2 routing. Each operation saves and replicates one new encrypted leaf, reads both copies, replicates hard deletion and confirms both absent. All8native write/delete originals are admitted through the existing provider storage interface; signed bytes/SignDocs, bound synthetic quote, maxima and matching native ante receipts remain in the compact TRX. Ordinary LocalFile attempts are distinct and do not masquerade as native fee maxima. Measured admitted exposure sums exactly across physical attempts and remains below the explicit0.25USD test budget. No native maximum is reused to authorize an entire replica chain.
+
+Actual native fee receipts are still ante-only; these tests do not turn them into net-cost settlement or hosted billing. The old uncertain replication intent remains untouched/unresolved; a separate known-new leaf namespace/journal proves current behavior without replaying it. No existing avatar/index updates or ledger replacement. Four cases pass40s with exact report hash in current release gates; broader interface/child/version acceptance and host release gates remain open.
+
 ## Cosmos isolated real-node aggregate acceptance — 2026-10-17
 
 The reviewed standard-SDK profile now has actual retained-wasmd acceptance, not only offline signatures: direct native and actual storage-interface cases refuse a zero-budget signed put before durable attempt/native key mutation; accepted put/delete pairs retain original signatures and exact fee declarations. Four original receipts report3625stake per put and3437per cleanup, matching the signed maxima and aggregate exposure at an explicitly synthetic0.000001USD/stake price.2/2pass21s; exact report hash is in current release gates. Ante fee reads remain ante-only; no net-cost receipt or hosted settlement is fabricated.
