@@ -110,10 +110,21 @@ namespace NextGenSoftware.OASIS.API.DNA
         public string StorageEncryptionKeyEnvironmentVariable { get; set; } = "OASIS_HEDERA_STORAGE_ENCRYPTION_KEY";
         public long StorageGasLimit { get; set; }
         public long StorageMaxFeeTinybars { get; set; }
+        // Optional admission ceilings; absence must not implicitly enable sponsored paid queries.
+        public HashgraphStorageQueryPreparationSettings StorageQueryPreparation { get; set; }
         public System.Collections.Generic.Dictionary<string, string> ConsensusNodes { get; set; } = new();
         public string RpcEndpoint { get; set; } = "https://mainnet-public.mirrornode.hedera.com/api/v1";
         public string Network { get; set; } = "mainnet";
         public string ChainId { get; set; } = "295";
+    }
+
+    public class HashgraphStorageQueryPreparationSettings
+    {
+        public string[] AuthorizedNodeAccountIds { get; set; }
+        public long MaxPaymentTinybars { get; set; }
+        public long MaxTransactionFeeTinybars { get; set; }
+        public int MaximumRequestsPerInvocation { get; set; } = 64;
+        public int PersistenceTimeoutMs { get; set; } = 10000;
     }
 
     public class AvalancheOASISProviderSettings : ProviderSettingsBase
