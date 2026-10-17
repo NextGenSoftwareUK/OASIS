@@ -8,12 +8,16 @@ export const Escrow = bcs.struct('Escrow', { id:bcs.Address, protocol:bcs.u64(),
   deposits:bcs.struct('Table',{id:bcs.Address,size:bcs.u64()}) });
 export const Deposit = bcs.struct('Deposit',{owner:bcs.Address,amount:bcs.u64(),released:bcs.bool(),funds:bcs.u64()});
 
+function registrySelectors(request) {
+  if(!isValidSuiAddress(request.packageAddress)||!isValidSuiAddress(request.escrowObjectId))
+    throw new Error('Explicit package and shared escrow required');
+  return {packageId:normalizeSuiAddress(request.packageAddress),escrowId:normalizeSuiAddress(request.escrowObjectId)};
+}
 function selectors(request) {
-  if(!isValidSuiAddress(request.packageAddress)||!isValidSuiAddress(request.escrowObjectId)
-    ||typeof request.depositId!=='string'||!/^[0-9a-f]{64}$/.test(request.depositId))
-    throw new Error('Explicit package, shared escrow and canonical original SHA256 deposit ID required');
-  return {packageId:normalizeSuiAddress(request.packageAddress),escrowId:normalizeSuiAddress(request.escrowObjectId),
-    id:Buffer.from(request.depositId,'hex')};
+  const registry=registrySelectors(request);
+  if(typeof request.depositId!=='string'||!/^[0-9a-f]{64}$/.test(request.depositId))
+    throw new Error('Canonical original SHA256 deposit ID required');
+  return {...registry,id:Buffer.from(request.depositId,'hex')};
 }
 function units(value) {
   if(typeof value!=='string'||!/^[1-9][0-9]*$/.test(value)||BigInt(value)>18446744073709551615n)
@@ -66,12 +70,45 @@ export async function readTokenDeposit(client,request) {
     field=(await client.core.getDynamicField({parentId:registry.deposits.id,
       name:{type:'vector<u8>',bcs:bcs.vector(bcs.u8()).serialize([...id]).toBytes()}})).dynamicField;
   }catch(error){if(error instanceof ObjectError&&error.reason==='notFound')return null;throw error;}
-  if(normalizeStructTag(field.value.type)!==`${packageId}::token_escrow::Deposit`)
+  const saved=parseDeposit(field.value,packageId);
+  return {...saved,depositId:request.depositId,escrowObjectId:escrowId};
+}
+
+function parseDeposit(value,packageId) {
+  if(normalizeStructTag(value.type)!==`${packageId}::token_escrow::Deposit`)
     throw new Error('Deposit field has an unexpected Move type');
-  const saved=Deposit.parse(field.value.bcs);
+  const saved=Deposit.parse(value.bcs);
   units(saved.amount);
   if(saved.funds!==(saved.released?'0':saved.amount))throw new Error('Deposit funds disagree with original amount/release state');
-  return {...saved,depositId:request.depositId,escrowObjectId:escrowId};
+  return saved;
+}
+
+// Registry custody is not represented by legacy address-owned LockedCoin objects.
+export async function readTokenEscrowBalance(client,request) {
+  const intent={...request};
+  const {packageId,escrowId}=registrySelectors(intent);
+  if(!isValidSuiAddress(intent.walletAddress))throw new Error('Valid escrow owner wallet required');
+  const owner=normalizeSuiAddress(intent.walletAddress);
+  const {registry}=await registryInfo(client,packageId,escrowId);
+  const ids=new Set(),cursors=new Set();let cursor=null,total=0n;
+  do {
+    const page=await client.listDynamicFields({parentId:registry.deposits.id,limit:100,cursor,include:{value:true}});
+    for(const field of page.dynamicFields) {
+      if(field.$kind!=='DynamicField'||field.name.type!=='vector<u8>')throw new Error('Unexpected escrow deposit field');
+      const bytes=bcs.vector(bcs.u8()).parse(field.name.bcs);
+      const id=Buffer.from(bytes).toString('hex');
+      if(bytes.length!==32||ids.has(id))throw new Error('Invalid or repeated escrow deposit ID');
+      ids.add(id);
+      const saved=parseDeposit(field.value,packageId);
+      if(saved.owner===owner&&!saved.released)total+=BigInt(saved.funds);
+      if(total>18446744073709551615n)throw new Error('Escrow balance exceeds u64 supply');
+    }
+    if(!page.hasNextPage)break;
+    if(!page.cursor||cursors.has(page.cursor))throw new Error('Non-advancing escrow cursor');
+    cursors.add(page.cursor);cursor=page.cursor;
+  }while(true);
+  if(BigInt(ids.size)!==BigInt(registry.deposits.size))throw new Error('Escrow listing changed or is incomplete; no partial balance returned');
+  return total.toString();
 }
 
 // Signing/preparation/submission stays owned by bridge.execute. This builds only

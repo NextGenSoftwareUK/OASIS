@@ -2,6 +2,13 @@
 let input='';for await(const chunk of process.stdin)input+=chunk;
 const request=JSON.parse(input);let result;
 switch(request.operation){
+ case 'tokenEscrowBalance':
+  if(request.escrowObjectId!=='0x'+'2'.repeat(64)||request.walletAddress!=='fixture-owner')throw new Error('Wrong selected custody balance');
+  result='123';break;
+ case 'tokenLockedBalance':
+ case 'tokenBalance':
+  if(request.escrowObjectId!==null)throw new Error('Unexpected custody selection');
+  result='7';break;
  case 'tokenEscrowCreate':
   if(request.privateKey!=='test-only-explicit'||request.fromWalletAddress!=='fixture-owner')throw new Error('Original registry creator changed');
   result={transactionHash:'1'.repeat(32),escrowObjectId:'0x'+'2'.repeat(64),creator:'fixture-owner',protocol:1};break;

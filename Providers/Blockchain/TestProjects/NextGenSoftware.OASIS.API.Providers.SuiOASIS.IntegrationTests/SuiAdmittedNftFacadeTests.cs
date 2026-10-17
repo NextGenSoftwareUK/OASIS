@@ -67,6 +67,8 @@ public class SuiAdmittedNftFacadeTests
             Assert.IsTrue(saved.GetProperty("released").GetBoolean());Assert.AreEqual("0",saved.GetProperty("funds").GetString());
             Assert.AreEqual("123",saved.GetProperty("amount").GetString());Assert.AreEqual(ownerIdentity.Result.WalletAddressLegacy,saved.GetProperty("owner").GetString());
             Assert.AreEqual("0",(await ReadSdk("tokenProbe")).GetProperty("treasury").GetProperty("supply").GetString());
+            var retainedBalance=await owner.GetTokenBalanceAsync(ownerIdentity.Result.WalletAddressLegacy,settings.GetProperty("coinType").GetString()!,true);
+            Assert.IsFalse(retainedBalance.IsError,retainedBalance.Message);Assert.AreEqual(0m,retainedBalance.Result);
             Console.WriteLine("Retained CSharp escrow verification rechecked read-only; no signed mutation.");return;
         }
         var database=idBound?"usage_sui_csharp_escrow_live":token?"usage_sui_csharp_token_live":"usage_sui_csharp_nft_live";var mongo=new MongoDB.Driver.MongoClient(connection);
@@ -188,11 +190,13 @@ public class SuiAdmittedNftFacadeTests
                         EscrowContractAddress=escrowObjectId,FromWalletAddress=ownerAddress,ProviderType=new(Core.Enums.ProviderType.SuiOASIS)};
                     var locked=await Owned(owner,ownerAddress,"lock",()=>Task.FromResult(walletManager!.LockToken(locking)));
                     Assert.AreEqual(depositGuid,((SuiIdBoundEscrowResponse)locked.Result).LockId);Assert.AreEqual(0.000000877m,await Balance(owner,ownerAddress));
+                    Assert.AreEqual(0.000000123m,await Balance(owner,ownerAddress,true));Assert.AreEqual(0m,await Balance(owner,recipientAddress,true));
                     var active=await ReadSdk("tokenEscrowGet",new{depositId,escrowObjectId});Assert.AreEqual("123",active.GetProperty("funds").GetString());
                     var unlocking=new UnlockWeb4TokenRequest{UnlockedByAvatarId=walletAvatar,LockId=depositGuid,TokenAddress=coinType,
                         EscrowContractAddress=escrowObjectId,ProviderType=new(Core.Enums.ProviderType.SuiOASIS)};
                     await Owned(owner,ownerAddress,"unlock",()=>walletManager!.UnlockTokenAsync(unlocking));
                     Assert.AreEqual(0.000001m,await Balance(owner,ownerAddress));
+                    Assert.AreEqual(0m,await Balance(owner,ownerAddress,true));
                     var released=await ReadSdk("tokenEscrowGet",new{depositId,escrowObjectId});Assert.IsTrue(released.GetProperty("released").GetBoolean());Assert.AreEqual("0",released.GetProperty("funds").GetString());
                     await Owned(owner,ownerAddress,"burn",()=>owner.BurnTokenAsync(new BurnWeb3TokenRequest{BurntByAvatarId=walletAvatar,TokenAddress=coinType,
                         Amount=0.000001m,OwnerPrivateKey="",OwnerPublicKey="",OwnerSeedPhrase=""}));
