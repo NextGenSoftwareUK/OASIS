@@ -37,6 +37,18 @@ Core usage receipts currently validate `ActualCostUsd` as nonnegative. Native Su
 
 The production `IUsageRecoveryResolver` implementation/registration and authoritative valuation source are not yet proven. The settlement worker and test resolvers are not substitutes for those missing production owners. No reservation may be settled from an assumed native outcome or by replaying an uncertain transaction.
 
+### Coordinated integration owners (source audited 2026-10-16)
+
+| Owner | Required coordinated change; current invariant to preserve |
+|---|---|
+| Core `Services/Subscriptions/UsageExecutionContracts.cs` | Receipt validation/hash and operation aggregation: retain exact signed native valuation evidence without allowing arbitrary negative generic API/AI usage; preserve existing receipt fingerprints when no native evidence is present. |
+| Core `Services/Subscriptions/MongoUsageOutboxStore.cs`, `ResolveAsync` | Recovery currently requires total cost equal the sum of nonnegative receipts. Preserve every persisted attempt's exact receipt binding and immutable recorded evidence while introducing the final operation zero floor. Updating only `Aggregate` would still fail recovery. |
+| WEB4 `Services/Subscription/UsageLedgerValidation.cs` | Validation and settlement fingerprint must agree with Core accounting and bind all new evidence; reject a caller-supplied total that differs from verified operation accounting. |
+| WEB4 `Services/Subscription/MongoSubscriptionUsageRepository.cs` | Atomic settlement, globally unique receipt attribution and corrections must stay consistent. `CorrectAsync` currently prevents each receipt and the operation from becoming negative. A native rebate cannot be implemented as a generic negative correction; recompute the operation from retained evidence and its zero floor. |
+| Core `Services/Subscriptions/Web4UsageSettlementWorker.cs` and actual hosts | Worker accepts injected resolvers but cannot discover native outcomes or prices itself. Registration of the worker alone does not supply a production resolver. No resolver means recovery-required, not free usage. |
+
+Core paths above are relative to `OASIS Architecture/NextGenSoftware.OASIS.API.Core`; WEB4 paths are relative to `ONODE/NextGenSoftware.OASIS.API.ONODE.WebAPI`. This audit is not a claim those integration changes have been implemented. Existing dirty subscription middleware changes belong to separate work and were not staged into this fee change.
+
 ## Required acceptance before fee recovery is complete
 
 1. Preserve original attempt identity, chain, signatures, payer and exact signed fee components.
