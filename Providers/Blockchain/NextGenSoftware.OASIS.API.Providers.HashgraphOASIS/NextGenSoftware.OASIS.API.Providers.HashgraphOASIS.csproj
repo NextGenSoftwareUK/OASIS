@@ -65,6 +65,9 @@
     <None Update="SdkBridge\bridge.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="HederaSdkBridge\bridge.mjs" />
     <None Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\prepared-submission.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="HederaSdkBridge\prepared-submission.mjs" />
     <None Update="SdkBridge\escrow.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="HederaSdkBridge\escrow.mjs" />
+    <None Update="SdkBridge\id-bound-escrow.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="HederaSdkBridge\id-bound-escrow.mjs" />
+    <None Update="SdkBridge\token-amount.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="HederaSdkBridge\token-amount.mjs" />
+    <None Update="SdkBridge\paid-query-preparation.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="HederaSdkBridge\paid-query-preparation.mjs" />
     <None Update="SdkBridge\native-preparation.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="HederaSdkBridge\native-preparation.mjs" />
     <None Update="SdkBridge\deployment.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="HederaSdkBridge\deployment.mjs" />
     <None Update="SdkBridge\package.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="HederaSdkBridge\package.json" />
