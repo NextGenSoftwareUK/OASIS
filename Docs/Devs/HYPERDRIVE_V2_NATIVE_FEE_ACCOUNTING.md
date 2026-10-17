@@ -1,5 +1,24 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Existing provider execution-policy wiring — Corea382472 (2026-10-17)
+
+The trusted host derives `pricedExecution = execution.WithNativePrices(authorizedQuotes)` BEFORE provider work and passes that returned handle into the existing prepared-native APIs or `PreparedStorageExecution` constructor. No adapter-specific price source, billing branch or interface-signature replacement is needed: Sui/Cosmos/Hedera callbacks and TRON's direct preparation persistence use the same central handle. The original handle is intentionally unchanged; hosts must use the returned priced handle, not assume a system-wide feature was enabled. This is trusted service composition, never policy from user request JSON.
+
+Prices are snapshotted (at most128 total, at most32 per provider/chain, unique denominations), operation-bound and window-validated. Rebinding a priced handle fails; provider/chain without a mapping fails; generic unsigned attempts for a priced native provider fail. Explicit preparation prices cannot override the handle. Priced failure does not fall back to an unpriced path. Current production hosts are NOT automatically configured: approved asset/denomination maps, acceptable observation age/window, oracle credentials, source authorization and receipt lookup/recovery owners remain required.
+
+Verification uses real SDKs with synthetic test-only prices. FullCore153pass13s, TRON317pass2s (price retained at controlled broadcast, including concurrent scopes), Hedera54pass1m18s and Cosmos139pass2m12s (controlled transports/real signing), zero skips. All four producer libraries build without errors. Retained Sui localnet4pass53s exercises actual signed writes/cleanup, original fee/payer/signature recovery, exact quote conversion, receipt append, explicit known logical outcome, built-in recorded-evidence recovery and durable pending queue. It does NOT call a hosted settlement authority. Eleven original native mutations have eleven retained fee receipts; compact per-attempt valuation and full test quote/queue summaries are in the fixed TRX before owned fixture DB/journal removal.
+
+Observed Sui fixture amounts below use the deliberately synthetic rate **1 USD per SUI**, not a market price, subscription tariff or real charge. Native MIST fee evidence comes from the retained local chain; queued USD is test arithmetic only.
+
+| Fixture | Recorded logical outcome | Original attempts / receipts | Synthetic queued USD |
+|---|---|---:|---:|
+| Direct write/cleanup | succeeded | 2 / 2 | 0.002083448 |
+| Direct lost reply/cleanup | failed | 2 / 2 | 0.002083448 |
+| Storage scope plus encrypted public save/delete | succeeded | 5 / 5 | 0.005260832 |
+| Storage scope lost reply/cleanup | failed | 2 / 2 | 0.002083448 |
+
+Failed API invocations retain actual native fee evidence; confirmed native execution does not rewrite API failure as success. Operation-scoped rebates still net once with a final zero floor. WEB4build0errors and authority81pass17s verify existing authority compatibility separately, not this fixture's hosted settlement. No public-chain spending, sponsorship, real FX quote, production activation, merge or deploy. Protected original Cosmos/TRON uncertain transactions are not replayed or cleared.
+
 ## Original price binding — implemented 2026-10-17 (Core44f0ae4)
 
 `NativeFeePriceQuote` and `NativePreparationPersistenceWithPrices` are central Core facilities, not provider-local billing engines. They retain the original service-owned price with signed preparation before submission. Existing unpriced callback signature is preserved and delegates to the same implementation.
@@ -12,7 +31,7 @@
 
 Verification: Core149/149pass12s/0skip (ten new cases), authority81/81pass18s/both runners exit0, Core both-target+actualWEB4build0errors. Tests use a controlled identity verifier/synthetic price plus real owned Mongo, not real native lookup or a live market quote. They cover restart with29-significant-digit price/sub-millisecond provenance, caller-array mutation, all fingerprint fields, wrong/expired/future admission and malformed source/price/time metadata, measurement/queue/resolver replacement and wrong total. An initial authority compile failed on its selective source-link list; production quote and existing market-interface sources added, final81green.
 
-Remaining integration: trusted production source/catalogue/freshness/window policy; quote-aware adoption by the four provider preparation factories; actual native receipt lookup/authority owner; hosted recovery/settlement and live quote acceptance. Current provider factories still call the unpriced callback. No automatic sponsorship, spend, deployment or all-provider completion claim. The user-deferred key action below remains open.
+Remaining integration: trusted production source/catalogue/freshness/window policy; actual host adoption of the priced execution handle; native receipt lookup/authority owner; hosted recovery/settlement and live quote acceptance. The newer Corea382472 wiring above makes existing provider entry points quote-aware when a priced handle is explicitly supplied; ordinary unpriced handles are unchanged. No automatic sponsorship, spend, deployment or all-provider completion claim. The user-deferred key action below remains open.
 
 Operator dependency2026-10-17: user requested that CoinGecko rotation/configuration be recorded for later action, not prompted again now. The actionable checklist is [Pending user actions](HYPERDRIVE_V2_CURRENT_RELEASE_GATES.md#pending-user-actions): revoke the old embedded credential if active, configure a replacement via COINGECKO_DEMO_API_KEY secret configuration in the retained test environment and separately in relevant Railway environments before deployment, then perform live quote/bridge acceptance. No key values are retained in this report. Source removal is not credential revocation. Live quote verification remains deferred; this does not authorize sponsorship, paid native actions or deployment.
 

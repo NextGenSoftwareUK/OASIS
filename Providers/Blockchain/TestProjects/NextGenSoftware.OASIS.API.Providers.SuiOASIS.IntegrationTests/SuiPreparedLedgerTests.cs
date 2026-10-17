@@ -325,6 +325,10 @@ public class SuiPreparedLedgerTests
             var authority=new Web4SubscriptionAuthorizationClient(http,"https://test-authority.invalid","WEB6","test-key");
             var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6",PersistenceTimeout=TimeSpan.FromSeconds(5)})
                 .BeginAsync("test-only",user,key,new string('a',64),"POST /local-test",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1},deadline.Token);
+            var priceTime=DateTime.UtcNow.AddSeconds(-1);
+            var price=new NativeFeePriceQuote(Guid.Parse(execution.OperationId),"SuiOASIS",settings.GetProperty("chainId").GetString()!,
+                "MIST","sui",9,1m,"synthetic-local-price","fixture-v1","fixture-v1",priceTime,priceTime,priceTime,priceTime.AddMinutes(5));
+            execution=execution.WithNativePrices(new[]{price});
             var sdk=typeof(SuiOASIS).GetMethod("InvokeSdkAsync",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
             if(storageScope){
                 var entered=false;
@@ -370,6 +374,8 @@ public class SuiPreparedLedgerTests
             var stored=await store.GetAsync(execution.OperationId,deadline.Token);
             var expectedWrites=storageScope&&!loseConfirmedReply?2:1;
             Assert.AreEqual(expectedWrites,stored.ProviderAttempts.Count);
+            foreach(var pricedAttempt in stored.ProviderAttempts)
+                Assert.AreEqual(price,pricedAttempt.NativePreparation.PriceQuotes.Single());
             for(var index=0;index<expectedWrites;index++)
                 Assert.AreEqual(storageScope?"write.storage."+(index+1):"write",stored.ProviderAttempts[index].ClientRequestId);
             if(expectedWrites==2)Assert.AreNotEqual(stored.ProviderAttempts[0].ProviderRequestId,stored.ProviderAttempts[1].ProviderRequestId);
@@ -381,6 +387,8 @@ public class SuiPreparedLedgerTests
             Assert.IsFalse(recoveredFee.IsError,recoveredFee.Message);
             Assert.AreEqual(hash,recoveredFee.Result.GetProperty("transactionHash").GetString());
             Assert.AreEqual(settings.GetProperty("chainId").GetString(),recoveredFee.Result.GetProperty("chainIdentifier").GetString());
+            var valued=attempt.NativePreparation.PriceQuotes.Single().ValueOriginalReceipt(hash,recoveredFee.Result.GetProperty("netUnits").GetString()!);
+            Assert.AreEqual("bound-native-v1:"+price.Fingerprint(),valued.ValuationVersion);
             var status=await provider.GetTransactionStatusAsync(hash,deadline.Token);Assert.IsFalse(status.IsError,status.Message);
             Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,status.Result);
             var readback=await (Task<JsonElement>)sdk.Invoke(provider,new object[]{"get",new{key},deadline.Token})!;
@@ -419,7 +427,21 @@ public class SuiPreparedLedgerTests
                 Assert.AreEqual(settings.GetProperty("address").GetString(),physicalFee.Result.GetProperty("payer").GetString());
                 Assert.IsTrue(physicalFee.Result.GetProperty("success").GetBoolean());
                 Assert.IsFalse(string.IsNullOrWhiteSpace(physicalFee.Result.GetProperty("netUnits").GetString()));
+                Assert.AreEqual(price,physicalAttempt.NativePreparation.PriceQuotes.Single());
+                var valuation=price.ValueOriginalReceipt(physicalAttempt.ProviderRequestId,physicalFee.Result.GetProperty("netUnits").GetString()!);
+                await execution.RecordAsync(new UsageProviderReceipt {ClientRequestId=physicalAttempt.ClientRequestId,Provider="SuiOASIS",
+                    ProviderRequestId=physicalAttempt.ProviderRequestId,Units=1,ActualCostUsd=Math.Max(0,valuation.NetCostUsd),
+                    CostSource="verified-native/synthetic-price",PricingCatalogueVersion="fixture-v1",NativeFeeValuations=new(){valuation}});
+                Console.WriteLine(JsonSerializer.Serialize(new{original=physicalAttempt.ProviderRequestId,valuation.NativeNetUnits,valuation.NetCostUsd,valuation.ValuationVersion}));
             }
+            // Preserve the known invocation outcome; a confirmed transaction does not turn a lost API reply into success.
+            var observed=await store.RecordObservedOutcomeAsync(execution.OperationId,cleaned.ExecutionOwner,loseConfirmedReply?"failed":"succeeded",deadline.Token);
+            var settlement=await new RecordedUsageRecoveryResolver().ResolveAsync(observed,deadline.Token);
+            Assert.AreEqual(UsageReceiptAccounting.OperationCost(execution.OperationId,observed.Receipts),settlement.ActualCostUsd);
+            await store.EnqueueAsync(execution.OperationId,observed.ExecutionOwner,settlement,observed.EvidenceRevision,deadline.Token);
+            Assert.AreEqual("pending",(await store.GetAsync(execution.OperationId,deadline.Token)).State);
+            Console.WriteLine(JsonSerializer.Serialize(new{testOnlyPrice=price,logicalOutcome=settlement.Outcome,queuedCostUsd=settlement.ActualCostUsd,
+                originalAttemptCount=observed.ProviderAttempts.Count,receiptCount=observed.Receipts.Count,hostedSettlementVerified=false}));
             var cleanupStatus=await provider.GetTransactionStatusAsync(cleanupHash,deadline.Token);Assert.IsFalse(cleanupStatus.IsError,cleanupStatus.Message);
             Assert.AreEqual(NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,cleanupStatus.Result);
             var absent=await (Task<JsonElement>)sdk.Invoke(provider,new object[]{"get",new{key},deadline.Token})!;
