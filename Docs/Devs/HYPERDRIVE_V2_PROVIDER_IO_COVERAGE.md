@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+TRON prepared encrypted-storage composition implemented via existing interface/runtime/account-authority verifier. Execution-local view, shared SDK channels/resolvers, unique physical attempt correlations, persistence-before-broadcast. FullTRON312pass2s;2new controlled-gRPC+real-Mongo cases verify exact bytes durable before broadcast/rejected persistence0broadcasts/unchanged ordinary callback/scope restoration/nested rejection/cancel. Supersedes missing implementation below, not live native/hosted/restart/concurrent-scope or settlement certification. Pending native fence retained.
+
 TRON current retained native read-only inspection1/1pass2s after Core refresh: original txNotFound/no receipt, avatar present/detail absent, pending SHA unchanged, node stoppedexited143/noOOM. Existing selection/admission/RoundRobin/disposed-SDK failover checks passed; no new replication/mutation proof. Source confirms prepared native cloned-client API exists but encrypted storage composition is not execution-scoped and TRONOASIS lacks IPreparedNativeStorageProvider. Per-physical storage preparation remains an implementation gate, not merely missing live tests. Original journal lacks signed bytes/expiry; absence cannot safely clear/replay it.
 
 Predictive recovery downstream nativeWeb3 refresh completed4/4pass1m25s, zero skips, normal runner exit/teardown; supersedes pending observation below.
