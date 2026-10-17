@@ -16,8 +16,10 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 public sealed class CosmosAvatarMintSignerTests
 {
     [Theory]
-    [InlineData(false, false)] [InlineData(true, false)] [InlineData(false, true)] [InlineData(true, true)]
-    public async Task TokenOperationsUseEncryptedAvatarDefaultWalletInsteadOfConfiguredOrFirstWallet(bool synchronous, bool escrow)
+    [InlineData(false, false, false)] [InlineData(true, false, false)]
+    [InlineData(false, true, false)] [InlineData(true, true, false)]
+    [InlineData(false, true, true)] [InlineData(true, true, true)]
+    public async Task TokenOperationsUseEncryptedAvatarDefaultWalletInsteadOfConfiguredOrFirstWallet(bool synchronous, bool escrow, bool viaManager)
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory != null && !File.Exists(Path.Combine(directory.FullName, "Scripts/TestHosts/Use-ReusableTronRuntime.ps1"))) directory = directory.Parent;
@@ -69,14 +71,17 @@ public sealed class CosmosAvatarMintSignerTests
             minted.Result.TransactionResult.Should().Be(new string('a',64));
             if (escrow) {
                 var id = Guid.Parse("11111111-2222-3333-4444-555555555555");
-                var locking = new LockWeb3TokenRequest { LockedByAvatarId = avatarId, LockId = id, Amount = 1.23m,
-                    TokenAddress = "TREE", EscrowContractAddress = "fixture-contract", FromWalletAddress = "fixture-owner" };
-                var locked = synchronous ? cosmos.LockToken(locking) : await cosmos.LockTokenAsync(locking);
+                var locking = new LockWeb4TokenRequest { LockedByAvatarId = avatarId, LockId = id, Amount = 1.23m,
+                    TokenAddress = "TREE", EscrowContractAddress = "fixture-contract", FromWalletAddress = "fixture-owner",
+                    ProviderType = new(ProviderType.CosmosBlockChainOASIS) };
+                var locked = viaManager ? synchronous ? cosmos.WalletManager.LockToken(locking) : await cosmos.WalletManager.LockTokenAsync(locking)
+                    : synchronous ? cosmos.LockToken(locking) : await cosmos.LockTokenAsync(locking);
                 locked.IsError.Should().BeFalse(locked.Message);
                 ((CosmosIdBoundEscrowResponse)locked.Result).LockId.Should().Be(id);
-                var unlocking = new UnlockWeb3TokenRequest { UnlockedByAvatarId = avatarId, LockId = id,
-                    TokenAddress = "TREE", EscrowContractAddress = "fixture-contract" };
-                var released = synchronous ? cosmos.UnlockToken(unlocking) : await cosmos.UnlockTokenAsync(unlocking);
+                var unlocking = new UnlockWeb4TokenRequest { UnlockedByAvatarId = avatarId, LockId = id,
+                    TokenAddress = "TREE", EscrowContractAddress = "fixture-contract", ProviderType = new(ProviderType.CosmosBlockChainOASIS) };
+                var released = viaManager ? synchronous ? cosmos.WalletManager.UnlockToken(unlocking) : await cosmos.WalletManager.UnlockTokenAsync(unlocking)
+                    : synchronous ? cosmos.UnlockToken(unlocking) : await cosmos.UnlockTokenAsync(unlocking);
                 released.IsError.Should().BeFalse(released.Message);
                 ((CosmosIdBoundEscrowResponse)released.Result).LockId.Should().Be(id);
                 using var observed = JsonDocument.Parse(File.ReadAllText(state));
