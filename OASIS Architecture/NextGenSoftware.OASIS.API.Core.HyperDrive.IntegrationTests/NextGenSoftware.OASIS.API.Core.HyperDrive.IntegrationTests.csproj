@@ -18,6 +18,7 @@
     <Compile Include="../NextGenSoftware.OASIS.OASISBootLoader/TronEscrowConfiguration.cs" Link="Production/TronEscrowConfiguration.cs" />
     <Compile Include="../NextGenSoftware.OASIS.OASISBootLoader/HederaEscrowConfiguration.cs" Link="Production/HederaEscrowConfiguration.cs" />
     <Compile Include="../NextGenSoftware.OASIS.OASISBootLoader/CosmosEscrowConfiguration.cs" Link="Production/CosmosEscrowConfiguration.cs" />
+    <Compile Include="../NextGenSoftware.OASIS.OASISBootLoader/SuiEscrowConfiguration.cs" Link="Production/SuiEscrowConfiguration.cs" />
     <Compile Include="../../ONODE/NextGenSoftware.OASIS.API.ONODE.Core/Managers/NftBurnExecution.cs" Link="Production/NftBurnExecution.cs" />
     <ProjectReference Include="..\..\Providers\Storage\NextGenSoftware.OASIS.API.Providers.MongoOASIS\NextGenSoftware.OASIS.API.Providers.MongoDBOASIS.csproj" />
     <ProjectReference Include="..\NextGenSoftware.OASIS.API.Core\NextGenSoftware.OASIS.API.Core.csproj" />
