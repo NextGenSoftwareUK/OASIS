@@ -1,6 +1,7 @@
 #Requires -Version 7.0
-param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft)
+param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft,[switch]$SuiCSharpAssets)
 $ErrorActionPreference='Stop'
+if($SuiCSharpAssets -and !$SuiCSharpNft){throw 'Sui CSharp asset matrix requires admitted facade owner mode.'}
 if($SuiCSharpNft -and !$SuiPreparedLedger){throw 'Sui CSharp NFT verification requires owned prepared-ledger environment.'}
 if($ArchiveSuiPrepared -and !$SuiPreparedInspect){throw 'Reviewed Sui fixture archive requires its exclusive native inspection mode.'}
 if($HederaFull -and !$HederaPreparedOwners){throw 'HederaFull requires the owned HederaPreparedOwners environment.'}
@@ -87,8 +88,8 @@ try{
         }
     }elseif($SuiPreparedLedger -or $SuiPreparedInspect){
         $suiProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests.csproj'
-        $suiFilter=if($SuiCSharpNft){'FullyQualifiedName~AdmittedCSharpNftFacadeMintsReadsEscrowsTransfersAndBurns'}elseif($ArchiveSuiPrepared){'FullyQualifiedName~ArchiveConfirmedRetainedLocalFixtureWithoutResubmission'}elseif($SuiPreparedInspect){'FullyQualifiedName~InspectRetainedPreparedAttemptsWithoutMutation'}else{'FullyQualifiedName~PreparedLocalWriteRetainsOriginalSignedEvidenceAndConfirmsLedger'}
-        $suiReport=if($SuiCSharpNft){'trx;LogFileName=sui-csharp-nft-live-current.trx'}elseif($ArchiveSuiPrepared){'trx;LogFileName=sui-prepared-original-archive-current.trx'}elseif($SuiPreparedInspect){'trx;LogFileName=sui-prepared-inspection-current.trx'}else{'trx;LogFileName=sui-prepared-ledger-current.trx'}
+        $suiFilter=if($SuiCSharpAssets){'FullyQualifiedName~SuiAdmittedNftFacadeTests'}elseif($SuiCSharpNft){'FullyQualifiedName~AdmittedCSharpNftFacadeMintsReadsEscrowsTransfersAndBurns'}elseif($ArchiveSuiPrepared){'FullyQualifiedName~ArchiveConfirmedRetainedLocalFixtureWithoutResubmission'}elseif($SuiPreparedInspect){'FullyQualifiedName~InspectRetainedPreparedAttemptsWithoutMutation'}else{'FullyQualifiedName~PreparedLocalWriteRetainsOriginalSignedEvidenceAndConfirmsLedger'}
+        $suiReport=if($SuiCSharpAssets){'trx;LogFileName=sui-csharp-assets-live-current.trx'}elseif($SuiCSharpNft){'trx;LogFileName=sui-csharp-nft-live-current.trx'}elseif($ArchiveSuiPrepared){'trx;LogFileName=sui-prepared-original-archive-current.trx'}elseif($SuiPreparedInspect){'trx;LogFileName=sui-prepared-inspection-current.trx'}else{'trx;LogFileName=sui-prepared-ledger-current.trx'}
         & dotnet test $suiProject --no-build --no-restore --filter $suiFilter --logger $suiReport --results-directory (Join-Path $taskRoot 'TestResults/SuiCurrent') -v:q
     }elseif($MongoV2){
         $routingProject=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
