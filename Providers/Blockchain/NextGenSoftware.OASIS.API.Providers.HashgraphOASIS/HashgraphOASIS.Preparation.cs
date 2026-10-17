@@ -35,10 +35,23 @@ public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.
         try {
             ArgumentException.ThrowIfNullOrWhiteSpace(expectedPublicKey);
             var preparation=NativePreparedAttemptSnapshot.Capture(attempt,"HashgraphOASIS",_hederaNetwork);
-            await VerifyOriginalSignedPreparationAsync(JsonSerializer.SerializeToElement(new {
+            var identity=await VerifyOriginalSignedIdentityAsync(JsonSerializer.SerializeToElement(new {
                 transactionHash=preparation.ProviderRequestId,chainId=preparation.ChainId,sender=preparation.Sender,
                 signedTransactionBase64=preparation.SignedTransactionBase64 }),expectedPublicKey,token);
-            return await GetNativeFeeReceiptAsync(preparation.ProviderRequestId,token);
+            if(!identity.TryGetProperty("signedTransactionHashes",out var signedHashes)||signedHashes.ValueKind!=JsonValueKind.Array
+                ||signedHashes.GetArrayLength()==0||signedHashes.GetArrayLength()>1024)
+                throw new InvalidDataException("Verified original Hedera native transaction hashes are required.");
+            var allowed=new System.Collections.Generic.HashSet<string>(StringComparer.Ordinal);
+            foreach(var hash in signedHashes.EnumerateArray()){
+                if(hash.ValueKind!=JsonValueKind.String||!System.Text.RegularExpressions.Regex.IsMatch(hash.GetString()??"",@"\A[0-9a-f]{96}\z")||!allowed.Add(hash.GetString()!))
+                    throw new InvalidDataException("Bounded unique original Hedera signed hashes are required.");
+            }
+            var fee=await GetNativeFeeReceiptAsync(preparation.ProviderRequestId,token);
+            if(fee.IsError)return fee;
+            foreach(var record in fee.Result.GetProperty("records").EnumerateArray())
+                if(!allowed.Contains(record.GetProperty("transactionHash").GetString()!))
+                    throw new InvalidDataException("Indexed Hedera fee record does not match an original SDK signed transaction hash.");
+            return fee;
         } catch(Exception failure) { NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,failure.Message,failure); }
         return result;
     }
@@ -86,6 +99,9 @@ public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.
     }
 
     public async Task VerifyOriginalSignedPreparationAsync(JsonElement preparation,string expectedPublicKey,CancellationToken token=default)
+        =>_=await VerifyOriginalSignedIdentityAsync(preparation,expectedPublicKey,token);
+
+    private async Task<JsonElement> VerifyOriginalSignedIdentityAsync(JsonElement preparation,string expectedPublicKey,CancellationToken token)
     {
         ArgumentException.ThrowIfNullOrWhiteSpace(expectedPublicKey);
         var result=await HederaSdkClient.InvokeAsync("verifyNativePreparation",new{preparation,expectedPublicKey},token);
@@ -93,5 +109,6 @@ public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.
             ||!result.TryGetProperty("transactionHash",out var hash)||hash.ValueKind!=JsonValueKind.String||hash.GetString()!=preparation.GetProperty("transactionHash").GetString()
             ||!result.TryGetProperty("sender",out var sender)||sender.ValueKind!=JsonValueKind.String||sender.GetString()!=preparation.GetProperty("sender").GetString())
             throw new InvalidDataException("Official Hedera verification did not bind the original signed identity and payer.");
+        return result;
     }
 }

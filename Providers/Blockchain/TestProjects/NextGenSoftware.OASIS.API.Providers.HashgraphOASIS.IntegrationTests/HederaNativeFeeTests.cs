@@ -8,11 +8,12 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 public class HederaNativeFeeTests
 {
     private const string Id = "0.0.1001@1700000000.000000001";
+    private static readonly string Hash=Convert.ToBase64String(new byte[48]);
     private static JsonElement Map(string fee = "9007199254740993", string status = "SUCCESS", int nonce = 0,
         string scheduled = "false", string operation = "TOKENMINT")
     {
         using var document = JsonDocument.Parse($$"""
-        {"transactions":[{"transaction_id":"0.0.1001-1700000000-000000001","nonce":{{nonce}},
+        {"transactions":[{"transaction_id":"0.0.1001-1700000000-000000001","transaction_hash":"{{Hash}}","nonce":{{nonce}},
         "scheduled":{{scheduled}},"parent_consensus_timestamp":null,"name":"{{operation}}",
         "result":"{{status}}","consensus_timestamp":"1700000001.000000001","charged_tx_fee":{{fee}}}]}
         """);
@@ -47,7 +48,7 @@ public class HederaNativeFeeTests
             .Invoke(null, new object[] { document.RootElement, Id, "testnet" })!;
     }
     private static string Row(string status, string timestamp, long fee) => $$"""
-        {"transaction_id":"0.0.1001-1700000000-000000001","nonce":0,"scheduled":false,
+        {"transaction_id":"0.0.1001-1700000000-000000001","transaction_hash":"{{Hash}}","nonce":0,"scheduled":false,
         "parent_consensus_timestamp":null,"name":"TOKENMINT","result":"{{status}}",
         "consensus_timestamp":"{{timestamp}}","charged_tx_fee":{{fee}}}
         """;
@@ -61,6 +62,16 @@ public class HederaNativeFeeTests
         Assert.IsFalse(receipt.GetProperty("success").GetBoolean());
         Assert.AreEqual("CONTRACT_REVERT_EXECUTED", receipt.GetProperty("nativeStatus").GetString());
         Assert.AreEqual(2, receipt.GetProperty("records").GetArrayLength());
+    }
+
+    [DataTestMethod]
+    [DataRow("missing")] [DataRow("invalid")] [DataRow("short")] [DataRow("whitespace")]
+    public void MissingOrNoncanonicalNativeHashesCannotSupplyFeeEvidence(string invalid)
+    {
+        var row=Row("SUCCESS","1700000001.000000001",11);
+        row=invalid=="missing"?row.Replace("\"transaction_hash\":\""+Hash+"\",",""):
+            row.Replace(Hash,invalid=="short"?Convert.ToBase64String(new byte[47]):invalid=="whitespace"?Hash+" ":"not-base64");
+        Assert.ThrowsException<TargetInvocationException>(()=>MapRows(row));
     }
 
     [TestMethod]

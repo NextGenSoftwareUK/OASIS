@@ -5,7 +5,7 @@ export async function persistSignedSubmission(signed,request,persist){
 }
 import {Transaction,PublicKey,AccountId} from '@hiero-ledger/sdk';
 
-export function verifyPreparedIdentity(evidence,expectedPublicKey){
+export async function verifyPreparedIdentity(evidence,expectedPublicKey){
   if(typeof evidence.signedTransactionBase64!=='string'||!evidence.signedTransactionBase64.length||evidence.signedTransactionBase64.length>1048576)
     throw new Error('Bounded original Hedera signed bytes required.');
   const bytes=Buffer.from(evidence.signedTransactionBase64,'base64');
@@ -15,6 +15,9 @@ export function verifyPreparedIdentity(evidence,expectedPublicKey){
       ||transaction.transactionId.accountId.toString()!==AccountId.fromString(evidence.sender).toString())
     throw new Error('Original Hedera signed identity or payer mismatch.');
   if(!PublicKey.fromString(expectedPublicKey).verifyTransaction(transaction))throw new Error('Original Hedera transaction signature mismatch.');
-  return {verified:true,transactionHash:evidence.transactionHash,sender:evidence.sender};
+  const hashes=[...(await transaction.getTransactionHashPerNode()).values()].map(hash=>Buffer.from(hash).toString('hex'));
+  if(hashes.length===0||hashes.length>1024||hashes.some(hash=>!/^[0-9a-f]{96}$/.test(hash))||new Set(hashes).size!==hashes.length)
+    throw new Error('Bounded original Hedera signed transaction hashes required.');
+  return {verified:true,transactionHash:evidence.transactionHash,sender:evidence.sender,signedTransactionHashes:hashes};
 }
 
