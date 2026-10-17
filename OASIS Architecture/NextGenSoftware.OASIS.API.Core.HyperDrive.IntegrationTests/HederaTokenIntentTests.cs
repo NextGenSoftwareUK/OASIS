@@ -16,7 +16,7 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 public sealed class HederaTokenIntentTests
 {
     // Pause only lookup scheduling; actual storage read and detached decryption remain production code.
-    private sealed class GatedWalletStore(string root) : LocalFileOASIS(filePath: root + Path.DirectorySeparatorChar, storageDirectory: root), IOASISLocalStorageProvider
+    internal sealed class GatedWalletStore(string root) : LocalFileOASIS(filePath: root + Path.DirectorySeparatorChar, storageDirectory: root), IOASISLocalStorageProvider
     {
         internal readonly TaskCompletionSource Reached = new(TaskCreationOptions.RunContinuationsAsynchronously);
         internal readonly TaskCompletionSource Resume = new(TaskCreationOptions.RunContinuationsAsynchronously);

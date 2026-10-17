@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-17 TRON wallet-await tests reuse existing avatar-wallet-files/lease/server fixture and existing gated LocalFile class; no fresh environment/runtime/download/install.102cases pass4s, fixed TRX overwritten; fixture wallet cleanup existing exact owners. Free89285042176bytes observation, not isolated reclamation. No native node/ledger/database started in this focused verification; protected journals unchanged.
+
 2026-10-17 TRON mint verification reuses existing corrupt-wallet fixture, official SDK controlled gRPC fixture and retained Mongo27029runner. Full386pass4s;86combined pass2s; owned27029closed. No installs/downloads/newenvironment/native node/reset. Both original Cosmos/TRON uncertainty journal hashes unchanged. Free89283411968bytes observation, not isolated savings. Exact disposable fixture cleanup remains existing owners.
 
 2026-10-17 Hedera NFT wallet-error tests reuse fixed corrupt-wallet/default-wallet fixture, sender/recipient avatars and one retained Mongo27029 environment. No new environment/install/download/runtime/native ledger. Corrupt synthetic file verified unchanged before exact deletion; created fixture avatars removed through existing local provider owner. Reports overwrite fixed paths; unrelated source/dependency edits preserved.

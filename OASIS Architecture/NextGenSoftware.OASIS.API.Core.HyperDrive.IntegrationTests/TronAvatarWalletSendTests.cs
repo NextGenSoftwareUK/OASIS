@@ -32,6 +32,7 @@ public sealed class TronAvatarWalletSendTests
     [InlineData(true, true, "email")]
     [InlineData(false, true, "mint")]
     [InlineData(true, true, "mint")]
+    [InlineData(false,true,"mint-await")] [InlineData(true,true,"mint-await")]
     [InlineData(false, true, "mint-nft")]
     [InlineData(true, true, "mint-nft")]
     [InlineData(false, true, "escrow-release")]
@@ -41,6 +42,7 @@ public sealed class TronAvatarWalletSendTests
     public async Task AvatarTransferUsesEncryptedDetachedWalletAndRealSdkSigning(bool synchronous, bool token, string selector)
     {
         var escrowRelease=selector is "escrow-release" or "escrow-manager-release";
+        var mintToken=selector is "mint" or "mint-await";
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory != null && !File.Exists(Path.Combine(directory.FullName, "AGENTS.md"))) directory = directory.Parent;
         Assert.NotNull(directory);
@@ -50,7 +52,8 @@ public sealed class TronAvatarWalletSendTests
         var walletRoot = Path.Combine(root, "avatar-wallet-files");
         Directory.CreateDirectory(walletRoot);
         // LocalFile's wallet prefix is distinct from its avatar/holon storage directory.
-        var local = new LocalFileOASIS(filePath: walletRoot + Path.DirectorySeparatorChar, storageDirectory: walletRoot);
+        LocalFileOASIS local = selector=="mint-await"?new HederaTokenIntentTests.GatedWalletStore(walletRoot)
+            :new LocalFileOASIS(filePath: walletRoot + Path.DirectorySeparatorChar, storageDirectory: walletRoot);
         var sender = Guid.Parse("cfa31df2-584d-47e4-aeb6-14745e5142f1");
         var recipient = Guid.Parse("cfa31df2-584d-47e4-aeb6-14745e5142f2");
         const string key = "0000000000000000000000000000000000000000000000000000000000000001";
@@ -141,10 +144,10 @@ public sealed class TronAvatarWalletSendTests
                         Assert.Equal("https://example.invalid/owned-nft/1", System.Text.Encoding.UTF8.GetString(data,132,length));
                     } else {
                     Assert.Equal(68, data.Length);
-                    Assert.Equal(selector == "mint" ? "40C10F19" : "A9059CBB", Convert.ToHexString(data.AsSpan(0, 4)));
+                    Assert.Equal(mintToken ? "40C10F19" : "A9059CBB", Convert.ToHexString(data.AsSpan(0, 4)));
                     Assert.Equal(new System.Numerics.BigInteger(123), new System.Numerics.BigInteger(data.AsSpan(36), isUnsigned: true, isBigEndian: true));
                     }
-                    if(!escrowRelease)Assert.Equal((selector == "mint" ? sourceBytes : destinationBytes).ToByteArray()[1..], data.AsSpan(16, 20).ToArray());
+                    if(!escrowRelease)Assert.Equal((mintToken ? sourceBytes : destinationBytes).ToByteArray()[1..], data.AsSpan(16, 20).ToArray());
                     var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                     var transaction = new Transaction { RawData = new Transaction.Types.raw { Timestamp = now, Expiration = now + 60000 } };
                     transaction.RawData.Contract.Add(new Transaction.Types.Contract { Type = Transaction.Types.Contract.Types.ContractType.TriggerSmartContract,
@@ -154,6 +157,7 @@ public sealed class TronAvatarWalletSendTests
             .AddMethod(Rpc(Wallet.Descriptor.FullName, "BroadcastTransaction", Transaction.Parser, Return.Parser),
                 (Transaction request, ServerCallContext _) => {
                     broadcasts++; transactionId = ByteString.CopyFrom(SHA256.HashData(request.RawData.ToByteArray()));
+                    if(selector=="mint-await")Assert.Equal("Original seed 🌱 memo",request.RawData.Data.ToStringUtf8());
                     TronPreparationVerifier.VerifyWithAccountAuthority(Convert.ToBase64String(request.ToByteArray()),
                         Convert.ToHexString(transactionId.ToByteArray()).ToLowerInvariant(), sourceBytes.ToByteArray(), 100000000, authority);
                     if(escrowRelease)released=true;
@@ -202,7 +206,7 @@ public sealed class TronAvatarWalletSendTests
             var wallets = (WalletManager)constructor.Invoke(new object?[] { local, dna, providers, null });
             var port = server.Ports.Single().BoundPort;
             await using var runtime = new TronSdkRuntime(new Uri($"http://127.0.0.1:{port}"), new Uri($"http://127.0.0.1:{port}"), genesis);
-            var tron = new TRONOASIS(contractAddress: selector == "mint" ? tokenAddress : "storage-contract-must-not-be-used-as-token", walletManager: wallets, nativeTransfers: runtime.NativeTransfers,
+            var tron = new TRONOASIS(contractAddress: mintToken ? tokenAddress : "storage-contract-must-not-be-used-as-token", walletManager: wallets, nativeTransfers: runtime.NativeTransfers,
                 idBoundEscrow:escrowRelease?new(escrowAddress,runtimeHash):null,
                 nativeSigningKeyResolver: _ => throw new InvalidOperationException("Avatar send must not use raw-address key resolution."));
             // Official SDK signing against controlled RPC, without bypassing provider activation state.
@@ -233,9 +237,19 @@ public sealed class TronAvatarWalletSendTests
                 Assert.Equal(depositId,native.LockId);Assert.Equal(native.TransactionResult,Assert.Single(native.NativeTransactions));
                 Assert.True(response.IsSaved);Assert.Equal(1,response.SavedCount);return response;
             }
-            var result = escrowRelease?await ReleaseEscrow():selector == "mint-nft" ? await MintNft() : selector == "mint"
-                ? synchronous ? tron.MintToken(new Core.Objects.Wallet.Requests.MintWeb3TokenRequest { MintedByAvatarId = sender, Amount = 1.23m })
-                    : await tron.MintTokenAsync(new Core.Objects.Wallet.Requests.MintWeb3TokenRequest { MintedByAvatarId = sender, Amount = 1.23m })
+            async Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>> MintToken(){
+                var request=new Core.Objects.Wallet.Requests.MintWeb3TokenRequest {MintedByAvatarId=sender,Amount=1.23m,
+                    MemoText=selector=="mint-await"?"Original seed 🌱 memo":null};
+                if(local is not HederaTokenIntentTests.GatedWalletStore gate)return synchronous?tron.MintToken(request):await tron.MintTokenAsync(request);
+                var pending=synchronous?Task.Run(()=>tron.MintToken(request)):tron.MintTokenAsync(request);
+                try{
+                    await gate.Reached.Task.WaitAsync(TimeSpan.FromSeconds(5));Assert.False(pending.IsCompleted);
+                    request.Amount=99;request.MemoText="changed";request.MintedByAvatarId=recipient;
+                    gate.Resume.TrySetResult();return await pending;
+                }finally{gate.Resume.TrySetResult();await pending;}
+            }
+            var result = escrowRelease?await ReleaseEscrow():selector == "mint-nft" ? await MintNft() : mintToken
+                ? await MintToken()
                 : selector == "username"
                 ? token
                     ? synchronous ? tron.SendTransactionByUsername("tron-avatar-sender", "tron-avatar-recipient", 1.23m, tokenAddress)
