@@ -307,16 +307,20 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 result.IsError = true; result.Message = "Exact TRON transaction ID required."; return result;
             }
-            await _runtimeLifecycle.WaitAsync(token);
             try
             {
-                // SDK read only: do not activate the provider's charge-bearing storage probe.
-                EnsureNativeRuntime();
-                result.Result = await _nativeTransfers.GetNativeFeeReceiptAsync(transactionHash, token);
+                result.Result = await ExecuteReadOnlyRuntimeAsync(client => client.GetNativeFeeReceiptAsync(transactionHash, token), token);
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
-            finally { _runtimeLifecycle.Release(); }
             return result;
+        }
+
+        // Native reads own only their SDK runtime lease, never storage activation or signing.
+        private async Task<T> ExecuteReadOnlyRuntimeAsync<T>(Func<TronNativeTransferClient, Task<T>> operation, CancellationToken token = default)
+        {
+            await _runtimeLifecycle.WaitAsync(token);
+            try { EnsureNativeRuntime(); return await operation(_nativeTransfers); }
+            finally { _runtimeLifecycle.Release(); }
         }
 
         private async Task<T> ExecuteRuntimeAsync<T>(Func<TronNativeTransferClient, Task<T>> operation)
