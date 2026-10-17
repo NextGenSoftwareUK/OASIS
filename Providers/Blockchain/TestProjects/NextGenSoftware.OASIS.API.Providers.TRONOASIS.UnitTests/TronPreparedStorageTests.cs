@@ -13,7 +13,8 @@ public class TronPreparedStorageTests
 {
     [Theory]
     [InlineData(false)] [InlineData(true)]
-    public async Task EncryptedPhysicalWritesPersistBeforeSdkBroadcast(bool rejectPersistence)
+    [InlineData(false,true)]
+    public async Task EncryptedPhysicalWritesPersistBeforeSdkBroadcast(bool rejectPersistence,bool concurrent=false)
     {
         const string connection="mongodb://127.0.0.1:27017/?serverSelectionTimeoutMS=3000";
         const string database="usage_tron_prepared_storage_owned";
@@ -28,6 +29,9 @@ public class TronPreparedStorageTests
         var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions {Service="WEB6"})
             .BeginAsync("test-only",user,"prepared-storage",new string('a',64),"POST /offline-storage",
                 new UsageEndpointPolicy {MeterCategory="api.request",ReservedUnits=1},deadline.Token);
+        var other=concurrent ? await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions {Service="WEB6"})
+            .BeginAsync("test-only",user,"prepared-storage-other",new string('a',64),"POST /offline-storage",
+                new UsageEndpointPolicy {MeterCategory="api.request",ReservedUnits=1},deadline.Token):null;
         var key=new string('0',63)+"1";
         var owner=new TronNet.TronECKey(key,TronNet.TronNetwork.MainNet).GetPublicAddress();
         var address=NBitcoin.DataEncoders.Encoders.Base58Check.DecodeData(owner);
@@ -69,9 +73,12 @@ public class TronPreparedStorageTests
                     broadcasts++;Assert.Single(request.Signature);
                     originalId=ByteString.CopyFrom(SHA256.HashData(request.RawData.ToByteArray()));
                     var durable=await store.GetAsync(execution.OperationId,deadline.Token);
-                    var attempt=Assert.Single(durable.ProviderAttempts.Where(x=>x.ProviderRequestId==Convert.ToHexString(originalId.ToByteArray()).ToLowerInvariant()));
+                    var attempts=durable.ProviderAttempts.AsEnumerable();
+                    if(other!=null)attempts=attempts.Concat((await store.GetAsync(other.OperationId,deadline.Token)).ProviderAttempts);
+                    var attempt=Assert.Single(attempts.Where(x=>x.ProviderRequestId==Convert.ToHexString(originalId.ToByteArray()).ToLowerInvariant()));
                     Assert.Equal(Convert.ToBase64String(request.ToByteArray()),attempt.NativePreparation.SignedTransactionBase64);
-                    Assert.Null(attempt.AcknowledgedAtUtc);Assert.Equal("storage.storage."+broadcasts,attempt.ClientRequestId);
+                    Assert.Null(attempt.AcknowledgedAtUtc);
+                    if(!concurrent)Assert.Equal("storage.storage."+broadcasts,attempt.ClientRequestId);
                     Assert.DoesNotContain("owned secret holon",System.Text.Encoding.UTF8.GetString(request.ToByteArray()));
                     return new Return {Result=true};
                 })
@@ -87,12 +94,33 @@ public class TronPreparedStorageTests
             var provider=new TRONOASIS(nativeTransfers:runtime.NativeTransfers,storageBackend:storage);
             Assert.False((await provider.ActivateProviderAsync()).IsError);
             if(rejectPersistence)await execution.BeginProviderAttemptAsync("TRONOASIS",null,"storage.storage.1",deadline.Token);
-            var result=await provider.ExecutePreparedStorageAsync(async()=>{
+            async Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>> SavePair(){
                 var one=await provider.SaveHolonAsync(new Holon {Id=Guid.NewGuid(),Name="owned secret holon one"},saveChildren:false);
                 if(one.IsError)return one;
+                await Task.Yield();
                 return await provider.SaveHolonAsync(new Holon {Id=Guid.NewGuid(),Name="owned secret holon two"},saveChildren:false);
-            },execution,"storage",owner,deadline.Token);
-            Assert.Equal(rejectPersistence,result.IsError);Assert.Equal(rejectPersistence?0:2,broadcasts);
+            }
+            if(concurrent){
+                var bothEntered=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);var entered=0;
+                async Task Run(UsageExecutionHandle handle,string prefix){
+                    var result=await provider.ExecutePreparedStorageAsync(async()=>{
+                        if(Interlocked.Increment(ref entered)==2)bothEntered.SetResult();
+                        await bothEntered.Task.WaitAsync(deadline.Token);
+                        return await SavePair();
+                    },handle,prefix,owner,deadline.Token);
+                    Assert.False(result.IsError,result.Message);
+                }
+                await Task.WhenAll(Run(execution,"left"),Run(other!,"right"));
+                var left=await store.GetAsync(execution.OperationId,deadline.Token);var right=await store.GetAsync(other!.OperationId,deadline.Token);
+                Assert.Equal(new[]{"left.storage.1","left.storage.2"},left.ProviderAttempts.Select(x=>x.ClientRequestId));
+                Assert.Equal(new[]{"right.storage.1","right.storage.2"},right.ProviderAttempts.Select(x=>x.ClientRequestId));
+                Assert.Equal(4,left.ProviderAttempts.Concat(right.ProviderAttempts).Select(x=>x.ProviderRequestId).Distinct().Count());
+            }else{
+                var result=await provider.ExecutePreparedStorageAsync(SavePair,execution,"storage",owner,deadline.Token);
+                Assert.Equal(rejectPersistence,result.IsError);
+            }
+            var expectedBroadcasts=rejectPersistence?0:concurrent?4:2;
+            Assert.Equal(expectedBroadcasts,broadcasts);
             var retained=await store.GetAsync(execution.OperationId,deadline.Token);
             Assert.Equal(rejectPersistence?1:2,retained.ProviderAttempts.Count);
             var flags=BindingFlags.Instance|BindingFlags.NonPublic;
@@ -107,7 +135,7 @@ public class TronPreparedStorageTests
             await Assert.ThrowsAnyAsync<OperationCanceledException>(async()=>await provider.ExecutePreparedStorageAsync(
                 ()=>{called=true;return Task.FromResult(1);},execution,"cancelled",owner,cancelled.Token));
             Assert.False(called);
-            Assert.Equal(rejectPersistence?0:2,broadcasts);
+            Assert.Equal(expectedBroadcasts,broadcasts);
             await provider.DeActivateProviderAsync();
         } finally {await server.ShutdownAsync();await mongo.DropDatabaseAsync(database);}
     }
