@@ -423,6 +423,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 SigningKeyType = settings.StorageSigningKeyType,
                                 GasLimit = settings.StorageGasLimit,
                                 MaxFeeTinybars = settings.StorageMaxFeeTinybars,
+                                QueryPreparation = HederaQueryPreparationConfiguration.Create(settings.StorageQueryPreparation),
                                 SigningKeyResolver = () => Environment.GetEnvironmentVariable(signingKeyEnvironmentVariable),
                                 EncryptionKeyResolver = () => {
                                     var encoded = Environment.GetEnvironmentVariable(encryptionKeyEnvironmentVariable);
