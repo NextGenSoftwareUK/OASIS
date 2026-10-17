@@ -215,7 +215,7 @@ try{
         if($report.LastWriteTimeUtc -lt $usageStarted){throw 'Usage recovery report is stale.'}
         [xml]$evidence=Get-Content -LiteralPath $report.FullName -Raw
         $counts=$evidence.TestRun.ResultSummary.Counters
-        if([int]$counts.total -ne 266 -or [int]$counts.passed -ne 266 -or [int]$counts.notExecuted -ne 0){throw 'Expected266 passing usage recovery cases without skips.'}
+        if([int]$counts.total -ne 272 -or [int]$counts.passed -ne 272 -or [int]$counts.notExecuted -ne 0){throw 'Expected272 passing usage recovery cases without skips.'}
     }
     if($LASTEXITCODE -ne 0){throw 'Usage recovery regression failed.'}
 }finally{
