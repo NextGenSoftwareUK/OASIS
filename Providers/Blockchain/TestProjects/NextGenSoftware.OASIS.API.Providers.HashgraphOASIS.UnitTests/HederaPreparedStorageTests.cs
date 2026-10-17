@@ -13,6 +13,41 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests;
 public partial class HederaPreparationTests
 {
     [DataTestMethod]
+    [DataRow("payment")] [DataRow("duplicate-node")] [DataRow("payer-node")] [DataRow("timeout")]
+    public void InvalidPreparedStorageQueryPolicyIsRejectedBeforeResolvingSecrets(string mode)
+    {
+        var secrets=0;
+        Assert.ThrowsException<ArgumentException>(()=>new HashgraphOASIS(network:"testnet",storageConfiguration:new(){
+            ContractId="0.0.2001",OperatorAccountId="0.0.1001",SigningKeyType="ecdsa",SigningKeyResolver=()=>{secrets++;return "unneeded";},
+            EncryptionKeyResolver=()=>{secrets++;return new byte[32];},GasLimit=100000,MaxFeeTinybars=100000000,
+            QueryPreparation=new(){AuthorizedNodeAccountIds=mode=="duplicate-node"?new[]{"0.0.3","0.0.3"}:mode=="payer-node"?new[]{"0.0.1001"}:new[]{"0.0.3"},
+                MaxPaymentTinybars=mode=="payment"?0:123,MaxTransactionFeeTinybars=100000000,PersistenceTimeoutMs=mode=="timeout"?0:10000}}));
+        Assert.AreEqual(0,secrets);
+    }
+
+    [TestMethod]
+    public async Task MissingPreparedStorageQueryPolicyFailsBeforeEnteringOperationOrResolvingSecrets()
+    {
+        const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
+        var database="usage_hedera_missing_policy_"+Guid.NewGuid().ToString("N");var mongo=new MongoDB.Driver.MongoClient(connection);
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(10));
+        try{
+            var store=new MongoUsageOutboxStore(connection,database);await store.InitializeAsync(deadline.Token);
+            var user=Guid.NewGuid().ToString("D");using var http=new HttpClient(new OfflineAuthority(user));
+            var authority=new Web4SubscriptionAuthorizationClient(http,"https://offline-authority.test","WEB6","test-only-key");
+            var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6"})
+                .BeginAsync("test-only",user,"missing-policy",new string('a',64),"POST /fixture",new(){MeterCategory="api.request",ReservedUnits=1},deadline.Token);
+            var secrets=0;var entered=false;
+            var provider=new HashgraphOASIS(network:"testnet",storageConfiguration:new(){ContractId="0.0.2001",OperatorAccountId="0.0.1001",SigningKeyType="ecdsa",
+                SigningKeyResolver=()=>{secrets++;return "unneeded";},EncryptionKeyResolver=()=>{secrets++;return new byte[32];},GasLimit=100000,MaxFeeTinybars=100000000});
+            await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>provider.ExecutePreparedStorageAsync(
+                ()=>{entered=true;return Task.FromResult(1);},execution,"missing-policy","0.0.1001",deadline.Token));
+            Assert.IsFalse(entered);Assert.AreEqual(0,secrets);Assert.AreEqual(0,(await store.GetAsync(execution.OperationId,deadline.Token)).ProviderAttempts.Count);
+        }finally{await mongo.DropDatabaseAsync(database);}
+    }
+
+    [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
     [DataRow(false,true,false)] [DataRow(true,true,false)]
     [DataRow(false,true,true)] [DataRow(true,true,true)]
@@ -49,10 +84,12 @@ public partial class HederaPreparationTests
             Environment.SetEnvironmentVariable(names[1],prior[names[0]]);
             Environment.SetEnvironmentVariable(names[2],log);
             Environment.SetEnvironmentVariable(names[0],Path.Combine(AppContext.BaseDirectory,"Fixtures/storage-prepared.mjs"));
+            var policyNodes=new[]{"0.0.3"};
             var provider=new HashgraphOASIS(network:"testnet",chainId:"296",storageConfiguration:new() {
                 ContractId="0.0.2001",OperatorAccountId="0.0.1001",SigningKeyType="ecdsa",
                 SigningKeyResolver=()=>new string('0',63)+"1",EncryptionKeyResolver=()=>new byte[32],
-                GasLimit=100000,MaxFeeTinybars=100000000});
+                GasLimit=100000,MaxFeeTinybars=100000000,QueryPreparation=new(){AuthorizedNodeAccountIds=policyNodes,MaxPaymentTinybars=123,MaxTransactionFeeTinybars=100000000}});
+            policyNodes[0]="0.0.4"; // Configured policy must retain its independent admitted node snapshot.
             var entered=false;
             foreach(var length in new[]{110,128})
                 await Assert.ThrowsExceptionAsync<ArgumentException>(()=>provider.ExecutePreparedStorageAsync(
@@ -86,7 +123,11 @@ public partial class HederaPreparationTests
                     PreferredProvider=ProviderType.HashgraphOASIS,PreparedExecution=admitted};
                 return synchronous?Task.FromResult(router.RouteRequest<IHolon>(request)):router.RouteRequestAsync<IHolon>(request);
             }
-            if(rejectPersistence)await execution.BeginProviderAttemptAsync("HashgraphOASIS",null,routed?"storage.route.1.storage.1":"storage.storage.1",deadline.Token);
+            if(rejectPersistence){
+                var parent=routed?"storage.route.1.storage.1":"storage.storage.1";
+                var query="query."+Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes(parent))).ToLowerInvariant()+".1";
+                await execution.BeginProviderAttemptAsync("HashgraphOASIS",null,query,deadline.Token);
+            }
             async Task<NextGenSoftware.OASIS.Common.OASISResult<IHolon>> SavePair(){
                 var one=await Save(new Holon {Id=Guid.NewGuid(),Name="owned secret one"});
                 if(one.IsError)return one;
@@ -97,14 +138,20 @@ public partial class HederaPreparationTests
             var submissions=File.ReadAllLines(log);
             Assert.AreEqual(rejectPersistence?0:2,submissions.Length);
             var durable=await store.GetAsync(execution.OperationId,deadline.Token);
-            Assert.AreEqual(rejectPersistence?1:2,durable.ProviderAttempts.Count);
+            Assert.AreEqual(rejectPersistence?1:4,durable.ProviderAttempts.Count);
+            var writes=durable.ProviderAttempts.Where(attempt=>attempt.NativePreparation?.SigningAuthority?.Scheme=="hedera-payer-public-key-v1").ToArray();
             if(!rejectPersistence)for(var index=0;index<2;index++){
-                var attempt=durable.ProviderAttempts[index];Assert.AreEqual(routed?"storage.route."+(index+1)+".storage.1":"storage.storage."+(index+1),attempt.ClientRequestId);
+                var attempt=writes[index];Assert.AreEqual(routed?"storage.route."+(index+1)+".storage.2":"storage.storage."+(2*(index+1)),attempt.ClientRequestId);
                 Assert.IsFalse(string.IsNullOrWhiteSpace(attempt.NativePreparation.SignedTransactionBase64));
                 Assert.AreEqual(price,attempt.NativePreparation.PriceQuotes.Single());
                 Assert.IsNull(attempt.AcknowledgedAtUtc);
                 using var entry=System.Text.Json.JsonDocument.Parse(submissions[index]);
                 Assert.AreEqual(attempt.ProviderRequestId,entry.RootElement.GetProperty("transactionId").GetString());
+            }
+            if(!rejectPersistence){
+                var queries=durable.ProviderAttempts.Where(attempt=>attempt.NativePreparation.SigningAuthority.Scheme=="hedera-query-payment-v1").ToArray();
+                Assert.AreEqual(2,queries.Length);
+                foreach(var query in queries){Assert.AreEqual(price,query.NativePreparation.PriceQuotes.Single());Assert.IsNull(query.AcknowledgedAtUtc);}
             }
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>provider.ExecutePreparedStorageAsync<int>(
                 ()=>throw new InvalidOperationException("controlled operation failure"),execution,"failed","0.0.1001",deadline.Token));

@@ -16,7 +16,7 @@ internal sealed class HederaStorageBackend : IKeyValueBackend
     private readonly Func<string> _privateKey;
     private readonly long _gas;
     private readonly Dictionary<string, string> _nodes;
-    private readonly Func<string,string,string,string,PreparedSubmissionServer> _preparation;
+    private readonly Func<string,object,string,CancellationToken,Task<JsonElement>> _invocation;
     private readonly CancellationToken _scopeToken;
 
     internal HederaStorageBackend(string network, string contractId, string sender, string keyType,
@@ -25,9 +25,10 @@ internal sealed class HederaStorageBackend : IKeyValueBackend
 
     internal HederaStorageBackend(string network,string contractId,string sender,string keyType,
         Func<string> privateKey,long gas,long maxFeeTinybars,IDictionary<string,string> nodes,
-        Func<string,string,string,string,PreparedSubmissionServer> preparation,CancellationToken scopeToken=default)
+        Func<string,object,string,CancellationToken,Task<JsonElement>> invocation,CancellationToken scopeToken=default)
     {
-        _preparation=preparation;_scopeToken=scopeToken;
+        _invocation=invocation;
+        _scopeToken=scopeToken;
         if (network != "mainnet" && network != "testnet" && network != "previewnet" && network != "local")
             throw new ArgumentException("An explicit Hedera network is required.");
         if (keyType != "der" && keyType != "ed25519" && keyType != "ecdsa")
@@ -64,13 +65,12 @@ internal sealed class HederaStorageBackend : IKeyValueBackend
             keyType = _keyType, privateKey = secret, gas = _gas, maxFeeTinybars = _maxFeeTinybars,
             transactionId, key, value, prefix
         };
-        if(mutation && _preparation!=null) {
+        if(_invocation!=null) {
             // Derive trusted signer identity from the configured key, never from child-supplied evidence.
             var restored=await HederaSdkClient.InvokeAsync("restoreKey",new {keyType=_keyType,privateKey=secret},cancellationToken);
             var publicKey=restored.GetProperty("publicKey").GetString();
             ArgumentException.ThrowIfNullOrWhiteSpace(publicKey);
-            using var server=_preparation(_network,_sender,publicKey,transactionId);
-            return await HederaSdkClient.InvokePreparedAsync(action,request,server,cancellationToken);
+            return await _invocation(action,request,publicKey,cancellationToken);
         }
         return await HederaSdkClient.InvokeAsync(action,request,cancellationToken);
     }
