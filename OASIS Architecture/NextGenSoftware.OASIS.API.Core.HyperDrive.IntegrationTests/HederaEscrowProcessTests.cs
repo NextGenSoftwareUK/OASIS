@@ -17,10 +17,14 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 public sealed class HederaEscrowProcessTests
 {
     [Theory]
-    [InlineData(false,false,false)] [InlineData(true,false,false)] [InlineData(false,true,false)] [InlineData(true,true,false)]
-    [InlineData(false,false,true)] [InlineData(true,false,true)] [InlineData(false,true,true)] [InlineData(true,true,true)]
-    public async Task EncryptedWalletPublicEscrowUsesRealSdkProcess(bool synchronous,bool release,bool viaManager)
+    [InlineData(false,"lock",false)] [InlineData(true,"lock",false)] [InlineData(false,"release",false)] [InlineData(true,"release",false)]
+    [InlineData(false,"lock",true)] [InlineData(true,"lock",true)] [InlineData(false,"release",true)] [InlineData(true,"release",true)]
+    [InlineData(false,"associate",false)] [InlineData(true,"associate",false)]
+    [InlineData(false,"associate-readback",false)] [InlineData(true,"associate-readback",false)]
+    public async Task EncryptedWalletPublicEscrowUsesRealSdkProcess(bool synchronous,string operation,bool viaManager)
     {
+        var release=operation=="release";var association=operation.StartsWith("associate",StringComparison.Ordinal);
+        var readbackFailure=operation=="associate-readback";
         var directory=new DirectoryInfo(AppContext.BaseDirectory);
         while(directory!=null&&!File.Exists(Path.Combine(directory.FullName,"AGENTS.md")))directory=directory.Parent;
         Assert.NotNull(directory);var repository=directory!.FullName;
@@ -31,7 +35,7 @@ public sealed class HederaEscrowProcessTests
         var walletFile=Path.Combine(walletRoot,"wallets_"+avatar+".json");Assert.False(File.Exists(walletFile),"Preserve existing fixture before retry.");
         var start=new ProcessStartInfo(Environment.GetEnvironmentVariable("OASIS_NODE_PATH")??"node"){
             UseShellExecute=false,CreateNoWindow=true,RedirectStandardInput=true,RedirectStandardOutput=true,RedirectStandardError=true,WorkingDirectory=bridge};
-        start.ArgumentList.Add(Path.Combine(bridge,"id-bound-execution.test.mjs"));start.ArgumentList.Add(release?"--serve-csharp-release":"--serve-csharp-lock");
+        start.ArgumentList.Add(Path.Combine(bridge,"id-bound-execution.test.mjs"));start.ArgumentList.Add("--serve-csharp-"+operation);
         using var fixture=new Process{StartInfo=start};Assert.True(fixture.Start());
         var errors=fixture.StandardError.ReadToEndAsync();var priorBridge=Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE");
         var local=new LocalFileOASIS(filePath:walletRoot+Path.DirectorySeparatorChar,storageDirectory:walletRoot);
@@ -63,21 +67,31 @@ public sealed class HederaEscrowProcessTests
                 ProviderType=new NextGenSoftware.Utilities.EnumValue<ProviderType>(ProviderType.HashgraphOASIS)};
             var unlocked=new Core.Objects.Wallet.Requests.UnlockWeb4TokenRequest{UnlockedByAvatarId=avatar,LockId=id,TokenAddress="0.0.3001",EscrowContractAddress="0.0.2001",
                 ProviderType=new NextGenSoftware.Utilities.EnumValue<ProviderType>(ProviderType.HashgraphOASIS)};
-            var result=viaManager?release?synchronous?wallets.UnlockToken(unlocked):await wallets.UnlockTokenAsync(unlocked)
+            var result=association?synchronous?hedera.AssociateTokenWithEscrow(avatar,"0.0.3001","0.0.2001"):await hedera.AssociateTokenWithEscrowAsync(avatar,"0.0.3001","0.0.2001")
+                :viaManager?release?synchronous?wallets.UnlockToken(unlocked):await wallets.UnlockTokenAsync(unlocked)
                 :synchronous?wallets.LockToken(locked):await wallets.LockTokenAsync(locked)
                 :release?synchronous?hedera.UnlockToken(unlocked):await hedera.UnlockTokenAsync(unlocked)
                 :synchronous?hedera.LockToken(locked):await hedera.LockTokenAsync(locked);
-            Assert.False(result.IsError,result.Message);Assert.True(result.IsSaved);Assert.Equal(1,result.SavedCount);
-            var response=Assert.IsType<HederaIdBoundEscrowResponse>(result.Result);Assert.Equal(id,response.LockId);
-            Assert.Equal(release?1:2,response.NativeTransactions.Count);Assert.Equal(response.NativeTransactions.Last(),response.TransactionResult);
+            IReadOnlyList<string> nativeIds;
+            if(readbackFailure){
+                Assert.True(result.IsError);Assert.False(result.IsSaved);Assert.Null(result.Result);
+                var error=Assert.IsType<HederaNativeMutationReconciliationException>(result.Exception);Assert.Equal("readback",error.Evidence.Stage);
+                nativeIds=new[]{error.OriginalTransactionId};
+            }else{
+                Assert.False(result.IsError,result.Message);Assert.True(result.IsSaved);Assert.Equal(1,result.SavedCount);
+                if(association){Assert.IsType<Core.Objects.Wallet.Responses.TransactionResponse>(result.Result);nativeIds=new[]{result.Result.TransactionResult};}
+                else{var response=Assert.IsType<HederaIdBoundEscrowResponse>(result.Result);Assert.Equal(id,response.LockId);nativeIds=response.NativeTransactions;}
+                Assert.Equal(nativeIds.Last(),result.Result.TransactionResult);
+            }
+            Assert.Equal(release||association?1:2,nativeIds.Count);
             Assert.False(hedera.IsProviderActivated);
             var retained=await local.LoadProviderWalletsForAvatarByIdAsync(avatar);Assert.False(retained.IsError);
             Assert.Equal(encrypted,retained.Result[ProviderType.HashgraphOASIS].Single().PrivateKey);
             await fixture.StandardInput.WriteLineAsync("stop");fixture.StandardInput.Close();
             using var finish=JsonDocument.Parse((await fixture.StandardOutput.ReadLineAsync().WaitAsync(TimeSpan.FromSeconds(15)))!);
             Assert.True(finish.RootElement.GetProperty("completed").GetBoolean());Assert.False(finish.RootElement.GetProperty("prepared").GetBoolean());
-            Assert.Equal(release?1:2,finish.RootElement.GetProperty("submissions").GetInt32());
-            Assert.Equal(response.NativeTransactions,finish.RootElement.GetProperty("nativeTransactions").EnumerateArray().Select(row=>row.GetString()!));
+            Assert.Equal(release||association?1:2,finish.RootElement.GetProperty("submissions").GetInt32());
+            Assert.Equal(nativeIds,finish.RootElement.GetProperty("nativeTransactions").EnumerateArray().Select(row=>row.GetString()!));
             await fixture.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(15));Assert.True(fixture.ExitCode==0,await errors);
             completed=true;
         }finally{
