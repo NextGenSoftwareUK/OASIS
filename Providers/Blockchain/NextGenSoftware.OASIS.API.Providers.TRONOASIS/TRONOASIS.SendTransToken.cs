@@ -53,52 +53,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             return SendTransactionByUsernameAsync(fromAvatarUsername, toAvatarUsername, amount, token).Result;
         }
 
-        public async Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
-        {
-            var response = new OASISResult<ITransactionResponse>();
-            try
-            {
-                TronNativeTransferClient.NativeUnits(amount);
-                if (string.IsNullOrWhiteSpace(fromAvatarEmail) || string.IsNullOrWhiteSpace(toAvatarEmail))
-                    throw new ArgumentException("Sender and recipient email addresses are required.");
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Get wallet addresses for both avatars by email
-                var fromWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS, fromAvatarEmail);
-                var toWalletResult = await WalletHelper.GetWalletAddressForAvatarByEmailAsync(WalletManager, NextGenSoftware.OASIS.API.Core.Enums.ProviderType.TRONOASIS, toAvatarEmail);
-                
-                if (fromWalletResult.IsError || toWalletResult.IsError)
-                {
-                    OASISErrorHandling.HandleError(ref response, "Failed to get wallet addresses for avatars by email");
-                    return response;
-                }
-                
-                var fromWalletAddress = fromWalletResult.Result;
-                var toWalletAddress = toWalletResult.Result;
-
-                if (string.IsNullOrEmpty(fromWalletAddress) || string.IsNullOrEmpty(toWalletAddress))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Unable to get wallet addresses for avatars by email");
-                    return response;
-                }
-
-                return await SendTransactionAsync(fromWalletAddress, toWalletAddress, amount, string.Empty);
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error sending TRX transaction on TRON: {ex.Message}");
-            }
-            return response;
-        }
+        public Task<OASISResult<ITransactionResponse>> SendTransactionByEmailAsync(string fromAvatarEmail, string toAvatarEmail, decimal amount)
+            => SendAvatarTokenAsync(fromAvatarEmail, toAvatarEmail, amount, "TRX", byEmail: true);
 
         public OASISResult<ITransactionResponse> SendTransactionByEmail(string fromAvatarEmail, string toAvatarEmail, decimal amount)
         {
@@ -119,11 +75,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var result = new OASISResult<ITransactionResponse>();
             try
             {
+                if (string.Equals(tokenAddress, "TRX", StringComparison.OrdinalIgnoreCase)) TronNativeTransferClient.NativeUnits(amount);
                 if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
                 if (string.IsNullOrWhiteSpace(sender) || string.IsNullOrWhiteSpace(recipient))
                     throw new ArgumentException("Sender and recipient avatar identifiers are required.");
                 if (string.IsNullOrWhiteSpace(tokenAddress))
-                    throw new ArgumentException("An explicit TRC20 token contract address is required.");
+                    throw new ArgumentException("An explicit TRX or TRC20 token contract address is required.");
                 if (WalletManager == null) throw new InvalidOperationException("Avatar wallet manager is unavailable.");
                 var senderAvatar = byEmail ? await AvatarManager.Instance.LoadAvatarByEmailAsync(sender)
                     : await AvatarManager.Instance.LoadAvatarAsync(sender);
@@ -146,6 +103,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var result = new OASISResult<ITransactionResponse>();
             try
             {
+                if (string.Equals(tokenAddress, "TRX", StringComparison.OrdinalIgnoreCase)) TronNativeTransferClient.NativeUnits(amount);
                 if (amount <= 0) throw new ArgumentOutOfRangeException(nameof(amount));
                 if (sender == Guid.Empty || recipient == Guid.Empty || sender == recipient)
                     throw new ArgumentException("Distinct real sender and recipient avatars are required.");
@@ -172,7 +130,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             }
             catch (Exception ex)
             {
-                OASISErrorHandling.HandleError(ref result, $"Error sending avatar TRC20 token: {ex.Message}", ex);
+                OASISErrorHandling.HandleError(ref result, $"Error sending avatar TRON token: {ex.Message}", ex);
                 return result;
             }
         }
