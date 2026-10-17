@@ -2,6 +2,6 @@
   "name": "oasis-sui-sdk-bridge",
   "private": true,
   "type": "module",
-  "scripts": { "test": "node --test bridge.test.mjs" },
+  "scripts": { "test": "node --test bridge.test.mjs token-escrow.test.mjs" },
   "dependencies": { "@mysten/sui": "2.35.0", "@scure/bip39": "2.4.0" }
 }
