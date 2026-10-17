@@ -92,6 +92,20 @@ public sealed class CosmosAvatarMintSignerTests
                     OwnerPrivateKey="",OwnerPublicKey="fixture-public",OwnerSeedPhrase=""};
                 var burntToken=synchronous?sui.BurnToken(burnToken):await sui.BurnTokenAsync(burnToken);
                 burntToken.IsError.Should().BeFalse(burntToken.Message);burntToken.Result.TransactionResult.Should().Be(new string('1',32));
+                var nftRequest=new Core.Objects.NFT.Requests.MintWeb3NFTRequest {MintedByAvatarId=avatarId,Title="identity/wallet",NumberToMint=1};
+                var nft=synchronous?sui.MintNFT(nftRequest):await sui.MintNFTAsync(nftRequest);
+                nft.IsError.Should().BeFalse(nft.Message);
+                var locator=nft.Result.Web3NFT.NFTTokenAddress;var nftId=nft.Result.Web3NFT.Id;
+                var nftLock=new Core.Objects.NFT.Requests.LockWeb3NFTRequest {LockedByAvatarId=avatarId,NFTTokenAddress=locator,Web3NFTId=nftId};
+                var lockedNft=synchronous?sui.LockNFT(nftLock):await sui.LockNFTAsync(nftLock);
+                lockedNft.IsError.Should().BeFalse(lockedNft.Message);
+                var nftUnlock=new Core.Objects.NFT.Requests.UnlockWeb3NFTRequest {UnlockedByAvatarId=avatarId,NFTTokenAddress=locator,Web3NFTId=nftId};
+                var releasedNft=synchronous?sui.UnlockNFT(nftUnlock):await sui.UnlockNFTAsync(nftUnlock);
+                releasedNft.IsError.Should().BeFalse(releasedNft.Message);releasedNft.Result.Web3NFT.Id.Should().Be(nftId);
+                var nftBurn=new Core.Objects.NFT.Requests.BurnWeb3NFTRequest {BurntByAvatarId=avatarId,NFTTokenAddress=locator,Web3NFTId=nftId,
+                    OwnerPrivateKey="",OwnerPublicKey="fixture-public",OwnerSeedPhrase=""};
+                var burnedNft=synchronous?sui.BurnNFT(nftBurn):await sui.BurnNFTAsync(nftBurn);
+                burnedNft.IsError.Should().BeFalse(burnedNft.Message);
             }
             if (!useSui) {
             var request=new MintWeb3TokenRequest { Symbol = "fixture-token", Amount = 1, MintedByAvatarId = avatarId };

@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-17 Sui NFT error/positive matrix reuses existing fixed LocalFile lease/default-wallet state and existing controlled bridge;81cases passed12s and existing cleanup owners retained. No new fixture environment/runtime/download/native ledger. Same Mongo27029full136runner/report reused. Protected Cosmos/TRON journal hashes unchanged. Windows free observation89299279872bytes (not isolated savings).
+
 2026-10-17 Sui token mint/burn tests reuse existing fixed encrypted-wallet/default-wallet fixtures and bridge process; successful73case run cleans controlled wallets/state through existing owners. No install/download/newenvironment/nativechain. Full136unit run uses same Mongo27029 retained environment/report. No original native uncertainty journal touched; free disk observation89301655552bytes before run (not isolated cleanup savings).
 
 2026-10-17 Cosmos NFT wallet tests extended existing failure/default-wallet fixtures, no new environment/install/download. Final69case controlled run passed and synthetic wallet/state cleanup completed through existing owners. Exact original Cosmos/TRON journal hashes unchanged. Full165suite uses same retained Mongo runner/report; no native ledger started. Windows free observation89304383488bytes, not isolated reclamation.

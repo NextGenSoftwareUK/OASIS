@@ -39,6 +39,10 @@ public sealed class HederaWalletFailureTests
     [InlineData(false,"cosmos-nft-burn",false)] [InlineData(true,"cosmos-nft-burn",false)]
     [InlineData(false,"cosmos-nft-lock",false)] [InlineData(true,"cosmos-nft-lock",false)]
     [InlineData(false,"cosmos-nft-unlock",false)] [InlineData(true,"cosmos-nft-unlock",false)]
+    [InlineData(false,"nft-mint",true)] [InlineData(true,"nft-mint",true)]
+    [InlineData(false,"nft-burn",true)] [InlineData(true,"nft-burn",true)]
+    [InlineData(false,"nft-lock",true)] [InlineData(true,"nft-lock",true)]
+    [InlineData(false,"nft-unlock",true)] [InlineData(true,"nft-unlock",true)]
     [InlineData(false,"escrow-create",true)] [InlineData(true,"escrow-create",true)]
     public async Task CorruptStoredSigningWalletRetainsOriginalFailureBeforeSdkUse(bool synchronous, string selector, bool sui)
     {
@@ -58,8 +62,11 @@ public sealed class HederaWalletFailureTests
         var local = new LocalFileOASIS(filePath: root + Path.DirectorySeparatorChar, storageDirectory: root);
         Assert.False((await local.ActivateProviderAsync()).IsError);
         var created = new List<Guid>();
+        var previousSuiBridge=Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE");
         try
         {
+            if(sui&&selector.StartsWith("nft-",StringComparison.Ordinal))Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",
+                Path.Combine(directory.FullName,"Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.UnitTests/Fixtures/unlock-readback-failure.mjs"));
             if (selector is "username" or "email") foreach (var pair in new[] { (sender, "hedera-failure-sender"), (recipient, "hedera-failure-recipient") }) {
                 Assert.Null((await local.LoadAvatarAsync(pair.Item1)).Result);
                 var saved = await local.SaveAvatarAsync(new Core.Holons.Avatar { Id = pair.Item1, Username = pair.Item2,
@@ -124,19 +131,23 @@ public sealed class HederaWalletFailureTests
             }
             async Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>> Nft(){
                 NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.NFT.Responses.IWeb3NFTTransactionResponse> response;
-                const string locator="fixture-contract#fixture-token";
+                var locator=sui?"0x"+new string('3',64):"fixture-contract#fixture-token";
                 if(selector=="nft-mint"){
                     var request=new Core.Objects.NFT.Requests.MintWeb3NFTRequest{MintedByAvatarId=sender};
-                    response=synchronous?cosmosProvider.MintNFT(request):await cosmosProvider.MintNFTAsync(request);
+                    response=sui?synchronous?suiProvider.MintNFT(request):await suiProvider.MintNFTAsync(request)
+                        :synchronous?cosmosProvider.MintNFT(request):await cosmosProvider.MintNFTAsync(request);
                 }else if(selector=="nft-burn"){
                     var request=new Core.Objects.NFT.Requests.BurnWeb3NFTRequest{BurntByAvatarId=sender,NFTTokenAddress=locator,OwnerPrivateKey="",OwnerPublicKey="",OwnerSeedPhrase=""};
-                    response=synchronous?cosmosProvider.BurnNFT(request):await cosmosProvider.BurnNFTAsync(request);
+                    response=sui?synchronous?suiProvider.BurnNFT(request):await suiProvider.BurnNFTAsync(request)
+                        :synchronous?cosmosProvider.BurnNFT(request):await cosmosProvider.BurnNFTAsync(request);
                 }else if(selector=="nft-lock"){
                     var request=new Core.Objects.NFT.Requests.LockWeb3NFTRequest{LockedByAvatarId=sender,NFTTokenAddress=locator};
-                    response=synchronous?cosmosProvider.LockNFT(request):await cosmosProvider.LockNFTAsync(request);
+                    response=sui?synchronous?suiProvider.LockNFT(request):await suiProvider.LockNFTAsync(request)
+                        :synchronous?cosmosProvider.LockNFT(request):await cosmosProvider.LockNFTAsync(request);
                 }else{
                     var request=new Core.Objects.NFT.Requests.UnlockWeb3NFTRequest{UnlockedByAvatarId=sender,NFTTokenAddress=locator};
-                    response=synchronous?cosmosProvider.UnlockNFT(request):await cosmosProvider.UnlockNFTAsync(request);
+                    response=sui?synchronous?suiProvider.UnlockNFT(request):await suiProvider.UnlockNFTAsync(request)
+                        :synchronous?cosmosProvider.UnlockNFT(request):await cosmosProvider.UnlockNFTAsync(request);
                 }
                 return Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.NFT.Responses.IWeb3NFTTransactionResponse,Core.Interfaces.Wallet.Responses.ITransactionResponse>(response);
             }
@@ -162,6 +173,7 @@ public sealed class HederaWalletFailureTests
         }
         finally
         {
+            Environment.SetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE",previousSuiBridge);
             try {
                 if (File.Exists(path)) {
                     Assert.Equal(corruptFixture, await File.ReadAllTextAsync(path));
