@@ -37,7 +37,7 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                 throw new SubscriptionUsageConflictException("Duplicate provider receipt identifiers are not permitted.");
             if (value.ProviderReceipts.Sum(x => x.PromptTokens) != value.PromptTokens ||
                 value.ProviderReceipts.Sum(x => x.CompletionTokens) != value.CompletionTokens ||
-                value.ProviderReceipts.Sum(x => x.Units) != value.Units || value.ProviderReceipts.Sum(x => x.ActualCostUsd) != value.ActualCostUsd.Value)
+                value.ProviderReceipts.Sum(x => x.Units) != value.Units || UsageReceiptAccounting.OperationCost(value.OperationId,value.ProviderReceipts) != value.ActualCostUsd.Value)
                 throw new ArgumentException("Settlement totals must exactly equal their measured receipt totals.");
         }
 
@@ -54,7 +54,12 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                     x.Provider, x.Model, x.ProviderRequestId, x.ClientRequestId, x.PromptTokens, x.CompletionTokens, x.Units,
                     ActualCostUsd = x.ActualCostUsd.ToString("G29", System.Globalization.CultureInfo.InvariantCulture), x.CostSource, x.PricingCatalogueVersion })
             });
-            return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(json)));
+            var legacy=Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(json)));
+            if(!value.ProviderReceipts.Any(x=>x.NativeFeeValuations!=null))return legacy;
+            return Convert.ToHexStringLower(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(new{
+                LegacyFingerprint=legacy,NativeReceipts=value.ProviderReceipts.Where(x=>x.NativeFeeValuations!=null)
+                    .OrderBy(x=>x.Provider,StringComparer.Ordinal).ThenBy(x=>x.ProviderRequestId,StringComparer.Ordinal)
+                    .Select(x=>new{x.Provider,x.ProviderRequestId,NativeEvidenceHash=UsageReceiptAccounting.NativeEvidenceHash(x)})}))));
         }
     }
 }

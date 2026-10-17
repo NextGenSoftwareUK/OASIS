@@ -266,6 +266,8 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Services.Subscription
                     var receipts = JsonSerializer.Deserialize<List<UsageProviderReceipt>>(operation.ProviderReceiptsJson ?? "[]");
                     var receipt = receipts?.SingleOrDefault(x => x.Provider == correction.Provider && x.ProviderRequestId == correction.ProviderRequestId)
                         ?? throw new SubscriptionUsageConflictException("The referenced provider receipt does not belong to this operation.");
+                    if(receipt.NativeFeeValuations!=null)
+                        throw new SubscriptionUsageConflictException("Native measurement evidence is immutable; a generic receipt-cost delta cannot replace verified native valuation evidence.");
                     var providerCorrections = previous.Where(x => x.CorrectionKind == "provider-measurement" && x.Provider == correction.Provider && x.ProviderRequestId == correction.ProviderRequestId).ToList();
                     if (checked(receipt.ActualCostUsd + providerCorrections.Sum(x => x.SettledCostDeltaUsd) + correction.CostDeltaUsd) < 0 ||
                         checked(receipt.PromptTokens + receipt.CompletionTokens + providerCorrections.Sum(x => x.SettledUnitsDelta) + correction.UnitsDelta) < 0)

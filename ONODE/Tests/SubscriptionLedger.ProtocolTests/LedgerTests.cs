@@ -225,6 +225,33 @@ public sealed class MongoLedgerTests : IAsyncLifetime
         await Assert.ThrowsAsync<SubscriptionUsageConflictException>(() => _ledger.SettleAsync(_user, settlement, default));
     }
 
+    [Theory]
+    [InlineData(10,3,7)] [InlineData(3,10,0)]
+    public async Task NativeFeesNetOnceAndRetainImmutableEvidence(int fee,int rebate,int expected)
+    {
+        var op=await AuthorizeAndStart();var id=Guid.Parse(op.OperationId);
+        UsageProviderReceipt Native(string request,decimal cost)=>new(){Provider="SuiOASIS",ProviderRequestId=request,Units=1,
+            ActualCostUsd=Math.Max(0,cost),CostSource="verified-native-fixture",PricingCatalogueVersion="fixture-v1",
+            NativeFeeValuations=new(){new(id,"SuiOASIS",request,"MIST",Math.Sign(cost).ToString(),cost,"test-only-price","v1",_clock.Now)}};
+        var settlement=Settlement(op,expected,tokens:0);settlement.Provider="SuiOASIS";settlement.Units=2;
+        settlement.ProviderReceipts=new(){Native("native-fee",fee),Native("native-rebate",-rebate)};
+        await Task.WhenAll(Enumerable.Range(0,8).Select(_=>_ledger.SettleAsync(_user,settlement,default)));
+        Assert.Equal((decimal)expected,(await _ledger.GetAggregateAsync(_user,default)).SettledCostUsd);
+        var stored=(await _ledger.GetEventsAsync(_user,10,default)).Single();
+        Assert.Contains("NativeFeeValuations",stored.ProviderReceiptsJson);
+        await Assert.ThrowsAsync<SubscriptionUsageConflictException>(()=>_ledger.CorrectAsync("admin",new UsageCorrectionRequest{
+            CorrectionId=Guid.NewGuid().ToString("D"),OperationId=op.OperationId,CorrectionKind="provider-measurement",
+            Provider="SuiOASIS",ProviderRequestId="native-fee",Reason="Cannot replace signed evidence with a delta",EvidenceReference="test-only"},default));
+        var original=settlement.ProviderReceipts[1].NativeFeeValuations[0];
+        settlement.ProviderReceipts[1].NativeFeeValuations[0]=original with {ValuationVersion="changed-but-same-cost"};
+        await Assert.ThrowsAsync<SubscriptionUsageConflictException>(()=>_ledger.SettleAsync(_user,settlement,default));
+        var other=await AuthorizeAndStart();settlement.OperationId=other.OperationId;
+        foreach(var receipt in settlement.ProviderReceipts)
+            receipt.NativeFeeValuations[0]=receipt.NativeFeeValuations[0] with {OperationId=Guid.Parse(other.OperationId)};
+        await Assert.ThrowsAsync<SubscriptionUsageConflictException>(()=>_ledger.SettleAsync(_user,settlement,default));
+        Assert.Equal((decimal)expected,(await _ledger.GetAggregateAsync(_user,default)).SettledCostUsd);
+    }
+
     [Fact]
     public async Task ReceiptCannotBeChargedToTwoOperations()
     {
