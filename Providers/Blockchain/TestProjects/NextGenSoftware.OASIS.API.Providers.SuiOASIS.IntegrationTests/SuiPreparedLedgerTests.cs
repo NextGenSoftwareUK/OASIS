@@ -384,11 +384,16 @@ public class SuiPreparedLedgerTests
             var user=Guid.NewGuid().ToString("D");using var http=new HttpClient(new TestAuthority(user));
             var authority=new Web4SubscriptionAuthorizationClient(http,"https://test-authority.invalid","WEB6","test-key");
             var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6",PersistenceTimeout=TimeSpan.FromSeconds(5)})
-                .BeginAsync("test-only",user,key,new string('a',64),"POST /local-test",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1},deadline.Token);
+                .BeginAsync("test-only",user,key,new string('a',64),"POST /local-test",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1,
+                    EstimatedCostUsd=10m,MaximumNativeFeeCostUsd=10m},deadline.Token);
             var priceTime=DateTime.UtcNow.AddSeconds(-1);
             var price=new NativeFeePriceQuote(Guid.Parse(execution.OperationId),"SuiOASIS",settings.GetProperty("chainId").GetString()!,
                 "MIST","sui",9,1m,"synthetic-local-price","fixture-v1","fixture-v1",priceTime,priceTime,priceTime,priceTime.AddMinutes(5));
             execution=execution.WithNativePrices(new[]{price});
+            var rejectedExecution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6",PersistenceTimeout=TimeSpan.FromSeconds(5)})
+                .BeginAsync("test-only",user,key+"-zero-budget",new string('b',64),"POST /local-test",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1,
+                    EstimatedCostUsd=1m,MaximumNativeFeeCostUsd=0m},deadline.Token);
+            rejectedExecution=rejectedExecution.WithNativePrices(new[]{price with{OperationId=Guid.Parse(rejectedExecution.OperationId)}});
             var sdk=typeof(SuiOASIS).GetMethod("InvokeSdkAsync",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
             if(storageScope){
                 var entered=false;
@@ -410,7 +415,7 @@ public class SuiPreparedLedgerTests
                 },execution,correlation,
                     settings.GetProperty("address").GetString()!,deadline.Token)
                 : provider.ExecutePreparedNativeAsync(operation,args,execution,correlation,settings.GetProperty("chainId").GetString()!,settings.GetProperty("address").GetString()!,deadline.Token);
-            await JsonSerializer.SerializeAsync(journalFile,new{database,key,storageScope,privateHolonId,encryptionKeyLabel="oasis-sui-prepared-storage-fixture-v1",operationId=execution.OperationId,chainId=settings.GetProperty("chainId").GetString(),
+            await JsonSerializer.SerializeAsync(journalFile,new{database,key,storageScope,privateHolonId,encryptionKeyLabel="oasis-sui-prepared-storage-fixture-v1",operationId=execution.OperationId,rejectedOperationId=rejectedExecution.OperationId,chainId=settings.GetProperty("chainId").GetString(),
                 recovery="Inspect original write and cleanup attempts in this retained Mongo outbox; never resubmit on unknown outcome."},cancellationToken:deadline.Token);
             journalFile.Flush(true);
             var capError=await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>limited.ExecutePreparedStorageAsync(
@@ -421,6 +426,13 @@ public class SuiPreparedLedgerTests
             Assert.AreEqual(0,(await store.GetAsync(execution.OperationId,deadline.Token)).ProviderAttempts.Count);
             var beforeWrite=await (Task<JsonElement>)sdk.Invoke(provider,new object[]{"get",new{key},deadline.Token})!;
             Assert.AreEqual(JsonValueKind.Null,beforeWrite.ValueKind);
+            var aggregateError=await Assert.ThrowsExceptionAsync<UsageProtocolException>(()=>provider.ExecutePreparedStorageAsync(
+                async()=>await (Task<JsonElement>)sdk.Invoke(provider,new object[]{"put",new{key,value="must not submit beyond aggregate budget"},deadline.Token})!,
+                rejectedExecution,"aggregate-rejection",settings.GetProperty("address").GetString()!,deadline.Token));
+            Assert.AreEqual("NATIVE_FEE_BUDGET_EXCEEDED",aggregateError.Code);
+            var rejected=await store.GetAsync(rejectedExecution.OperationId,deadline.Token);
+            Assert.AreEqual(0,rejected.ProviderAttempts.Count);Assert.AreEqual(0m,rejected.NativeFeeExposureUsd);
+            Assert.AreEqual(JsonValueKind.Null,(await (Task<JsonElement>)sdk.Invoke(provider,new object[]{"get",new{key},deadline.Token})!).ValueKind);
             string hash;
             if(loseConfirmedReply){
                 var previous=Environment.GetEnvironmentVariable("OASIS_SUI_SDK_BRIDGE");
@@ -507,6 +519,7 @@ public class SuiPreparedLedgerTests
             var measured=await store.GetAsync(execution.OperationId,deadline.Token);
             Assert.IsNull(measured.ObservedOutcome);Assert.AreEqual(cleaned.ProviderAttempts.Count,measured.Receipts.Count);
             Assert.IsFalse(lookupOwner.CanResolve(measured),"Recorded fees must not trigger another original receipt lookup.");
+            decimal verifiedMaximumUsd=0m;
             foreach(var physicalAttempt in cleaned.ProviderAttempts){
                 var original=physicalAttempt.NativePreparation;
                 var verified=await (Task<JsonElement>)sdk.Invoke(limited,new object[]{"verifyNativePreparation",new{preparation=new{
@@ -514,6 +527,10 @@ public class SuiPreparedLedgerTests
                     signedTransactionBase64=original.SignedTransactionBase64,signature=original.Signature}},deadline.Token})!;
                 var signedBudget=ulong.Parse(verified.GetProperty("gasBudgetMist").GetString()!,System.Globalization.CultureInfo.InvariantCulture);
                 Assert.IsTrue(signedBudget>1&&signedBudget<=localMaximumGasBudgetMist);
+                var maximum=original.FeeMaximums.Single();
+                Assert.AreEqual("MIST",maximum.Denomination);Assert.AreEqual(NativeFeeMaximumCoverage.AllFees,maximum.Coverage);
+                Assert.AreEqual(signedBudget.ToString(System.Globalization.CultureInfo.InvariantCulture),maximum.NativeMaximumUnits);
+                verifiedMaximumUsd+=NativeFeeMaximumAccounting.ValueUsd(original.FeeMaximums,original.PriceQuotes);
                 var historical=await limited.GetPreparedNativeFeeReceiptAsync(physicalAttempt,deadline.Token);
                 Assert.IsFalse(historical.IsError,historical.Message);
                 Assert.AreEqual(physicalAttempt.ProviderRequestId,historical.Result.GetProperty("transactionHash").GetString());
@@ -524,6 +541,8 @@ public class SuiPreparedLedgerTests
                 Assert.AreEqual(price.ValueOriginalReceipt(physicalAttempt.ProviderRequestId,valuation.NativeNetUnits),valuation);
                 Console.WriteLine(JsonSerializer.Serialize(new{original=physicalAttempt.ProviderRequestId,valuation.NativeNetUnits,valuation.NetCostUsd,valuation.ValuationVersion}));
             }
+            Assert.AreEqual(verifiedMaximumUsd,measured.NativeFeeExposureUsd);
+            Assert.IsTrue(verifiedMaximumUsd>0m&&verifiedMaximumUsd<=10m);
             // Preserve the known invocation outcome; a confirmed transaction does not turn a lost API reply into success.
             var observed=await store.RecordObservedOutcomeAsync(execution.OperationId,cleaned.ExecutionOwner,loseConfirmedReply?"failed":"succeeded",deadline.Token);
             var settlement=await new RecordedUsageRecoveryResolver().ResolveAsync(observed,deadline.Token);
