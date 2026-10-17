@@ -177,16 +177,6 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     throw new ArgumentException("TRON token transfer requires an explicit private signing key; seed phrases are not accepted.");
                 if (string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
                     throw new ArgumentException("A real sender private signing key is required for TRON token transfer.");
-                if (!IsProviderActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref result, $"Failed to activate TRON provider: {activateResult.Message}");
-                        return result;
-                    }
-                }
-
                 if (string.IsNullOrEmpty(request.FromWalletAddress) || string.IsNullOrEmpty(request.ToWalletAddress))
                 {
                     OASISErrorHandling.HandleError(ref result, "FromWalletAddress and ToWalletAddress are required");
@@ -202,9 +192,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 }
 
                 var hash = native
-                    ? await ExecuteRuntimeAsync(client => client.SendAsync(request.FromWalletAddress, request.ToWalletAddress,
+                    ? await ExecuteNativeRuntimeAsync(client => client.SendAsync(request.FromWalletAddress, request.ToWalletAddress,
                         request.Amount, request.OwnerPrivateKey, request.MemoText, publicKey: request.OwnerPublicKey))
-                    : await ExecuteRuntimeAsync(client => client.SendTokenAsync(request.FromWalletAddress, request.ToWalletAddress,
+                    : await ExecuteNativeRuntimeAsync(client => client.SendTokenAsync(request.FromWalletAddress, request.ToWalletAddress,
                         tokenAddress, request.Amount, request.OwnerPrivateKey, request.MemoText, request.OwnerPublicKey));
                 result.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse { TransactionResult = hash };
                 result.Message = native ? "TRX transfer confirmed by solidified native receipt." : "TRC20 transfer confirmed by solidified contract receipt.";
@@ -309,27 +299,26 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             }
             try
             {
-                result.Result = await ExecuteReadOnlyRuntimeAsync(client => client.GetNativeFeeReceiptAsync(transactionHash, token), token);
+                result.Result = await ExecuteNativeRuntimeAsync(client => client.GetNativeFeeReceiptAsync(transactionHash, token), token);
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
             return result;
         }
 
-        // Native reads own only their SDK runtime lease, never storage activation or signing.
-        private async Task<T> ExecuteReadOnlyRuntimeAsync<T>(Func<TronNativeTransferClient, Task<T>> operation, CancellationToken token = default)
+        // Native operations own their SDK lease. Encrypted storage has its own activation gate.
+        // Mutation callers still validate explicit signing authority before entering this owner.
+        private Task<T> ExecuteRuntimeAsync<T>(Func<TronNativeTransferClient, Task<T>> operation)
+            => ExecuteNativeRuntimeAsync(operation, default, requiresStorageActivation: true);
+
+        private async Task<T> ExecuteNativeRuntimeAsync<T>(Func<TronNativeTransferClient, Task<T>> operation,
+            CancellationToken token = default, bool requiresStorageActivation = false)
         {
             await _runtimeLifecycle.WaitAsync(token);
-            try { EnsureNativeRuntime(); return await operation(_nativeTransfers); }
-            finally { _runtimeLifecycle.Release(); }
-        }
-
-        private async Task<T> ExecuteRuntimeAsync<T>(Func<TronNativeTransferClient, Task<T>> operation)
-        {
-            await _runtimeLifecycle.WaitAsync();
             try
             {
-                if (!IsProviderActivated || _nativeTransfers == null)
-                    throw new InvalidOperationException("The configured TRON SDK runtime is no longer active.");
+                if (requiresStorageActivation && (!IsProviderActivated || _nativeTransfers == null))
+                    throw new InvalidOperationException("The configured TRON storage-dependent SDK runtime is no longer active.");
+                EnsureNativeRuntime();
                 return await operation(_nativeTransfers);
             }
             finally { _runtimeLifecycle.Release(); }

@@ -53,7 +53,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 if (string.IsNullOrWhiteSpace(collectionAddress) || string.IsNullOrWhiteSpace(ownerAddress))
                     throw new ArgumentException("Explicit collection and owner addresses are required.");
-                result.Result = await ExecuteReadOnlyRuntimeAsync(async client =>
+                result.Result = await ExecuteNativeRuntimeAsync(async client =>
                 {
                     var ids = await client.GetNftIdsForOwnerAsync(collectionAddress, ownerAddress);
                     var items = new List<IWeb3NFT>();
@@ -110,7 +110,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             try
             {
                 if (string.IsNullOrWhiteSpace(mintWalletAddress)) throw new ArgumentException("A TRON owner wallet is required.");
-                result.Result = await ExecuteReadOnlyRuntimeAsync(async client =>
+                result.Result = await ExecuteNativeRuntimeAsync(async client =>
                 {
                     var history = await new TronGridTokenHistoryClient(_httpClient, client.ExpectedGenesisBlockId)
                         .ReadAsync(mintWalletAddress, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
@@ -199,7 +199,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             try
             {
                 var asset = TronNativeTransferClient.ParseNftAddress(nftTokenAddress);
-                var uri = await ExecuteReadOnlyRuntimeAsync(client => client.GetNftMetadataUriAsync(asset.Contract, asset.TokenId));
+                var uri = await ExecuteNativeRuntimeAsync(client => client.GetNftMetadataUriAsync(asset.Contract, asset.TokenId));
                 response.Result = new Web3NFT
                 {
                     NFTTokenAddress = nftTokenAddress,

@@ -151,8 +151,8 @@ public sealed class TronAvatarWalletSendTests
             await using var runtime = new TronSdkRuntime(new Uri($"http://127.0.0.1:{port}"), new Uri($"http://127.0.0.1:{port}"), genesis);
             var tron = new TRONOASIS(contractAddress: "storage-contract-must-not-be-used-as-token", walletManager: wallets, nativeTransfers: runtime.NativeTransfers,
                 nativeSigningKeyResolver: _ => throw new InvalidOperationException("Avatar send must not use raw-address key resolution."));
-            // Controlled RPC fixture: bypass unrelated encrypted native storage activation, not evidence of native-chain readiness.
-            typeof(TRONOASIS).GetProperty("IsProviderActivated")!.SetValue(tron, true);
+            // Official SDK signing against controlled RPC, without bypassing provider activation state.
+            Assert.False(tron.IsProviderActivated);
             var result = selector == "username"
                 ? token
                     ? synchronous ? tron.SendTransactionByUsername("tron-avatar-sender", "tron-avatar-recipient", 1.23m, tokenAddress)
@@ -173,6 +173,7 @@ public sealed class TronAvatarWalletSendTests
             Assert.False(result.IsError, result.Message);
             Assert.Equal(Convert.ToHexString(transactionId.ToByteArray()).ToLowerInvariant(), result.Result.TransactionResult);
             Assert.Equal(1, constructions); Assert.Equal(1, broadcasts); Assert.Equal(1, receipts);
+            Assert.False(tron.IsProviderActivated);
             var retained = await local.LoadProviderWalletsForAvatarByIdAsync(sender);
             Assert.False(retained.IsError, retained.Message);
             Assert.Equal(encrypted, retained.Result[ProviderType.TRONOASIS].Single().PrivateKey);
