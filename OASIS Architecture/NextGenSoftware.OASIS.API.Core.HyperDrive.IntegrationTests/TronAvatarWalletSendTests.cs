@@ -33,6 +33,7 @@ public sealed class TronAvatarWalletSendTests
     [InlineData(false, true, "mint")]
     [InlineData(true, true, "mint")]
     [InlineData(false,true,"mint-await")] [InlineData(true,true,"mint-await")]
+    [InlineData(false,false,"send-token-await")] [InlineData(false,true,"send-token-await")]
     [InlineData(false, true, "mint-nft")]
     [InlineData(true, true, "mint-nft")]
     [InlineData(false, true, "escrow-release")]
@@ -157,7 +158,7 @@ public sealed class TronAvatarWalletSendTests
             .AddMethod(Rpc(Wallet.Descriptor.FullName, "BroadcastTransaction", Transaction.Parser, Return.Parser),
                 (Transaction request, ServerCallContext _) => {
                     broadcasts++; transactionId = ByteString.CopyFrom(SHA256.HashData(request.RawData.ToByteArray()));
-                    if(selector=="mint-await")Assert.Equal("Original seed 🌱 memo",request.RawData.Data.ToStringUtf8());
+                    if(selector is "mint-await" or "send-token-await")Assert.Equal("Original seed 🌱 memo",request.RawData.Data.ToStringUtf8());
                     TronPreparationVerifier.VerifyWithAccountAuthority(Convert.ToBase64String(request.ToByteArray()),
                         Convert.ToHexString(transactionId.ToByteArray()).ToLowerInvariant(), sourceBytes.ToByteArray(), 100000000, authority);
                     if(escrowRelease)released=true;
@@ -248,7 +249,21 @@ public sealed class TronAvatarWalletSendTests
                     gate.Resume.TrySetResult();return await pending;
                 }finally{gate.Resume.TrySetResult();await pending;}
             }
-            var result = escrowRelease?await ReleaseEscrow():selector == "mint-nft" ? await MintNft() : mintToken
+            async Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>> SendTokenAwait(){
+                var request=new Core.Objects.Wallet.Requests.SendWeb3TokenRequest {FromTokenAddress=token?tokenAddress:"TRX",
+                    FromWalletAddress=owner,ToWalletAddress=destination,Amount=1.23m,OwnerPrivateKey=key,OwnerSeedPhrase="",OwnerPublicKey="",
+                    MemoText="Original seed 🌱 memo"};
+                var gate=(SemaphoreSlim)typeof(TRONOASIS).GetField("_runtimeLifecycle",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(tron)!;
+                await gate.WaitAsync();var released=false;
+                Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>>? pending=null;
+                try{
+                    pending=tron.SendTokenAsync(request);Assert.False(pending.IsCompleted);
+                    request.FromWalletAddress=destination;request.ToWalletAddress=owner;request.Amount=99;
+                    request.MemoText="changed";request.FromTokenAddress=destination;
+                    gate.Release();released=true;return await pending;
+                }finally{if(!released)gate.Release();if(pending!=null)await pending;}
+            }
+            var result = selector=="send-token-await"?await SendTokenAwait():escrowRelease?await ReleaseEscrow():selector == "mint-nft" ? await MintNft() : mintToken
                 ? await MintToken()
                 : selector == "username"
                 ? token
