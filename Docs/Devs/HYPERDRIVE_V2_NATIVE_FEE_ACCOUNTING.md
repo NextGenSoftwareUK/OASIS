@@ -1,5 +1,11 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## TRON aggregate escrow limitation and spending implications (2026-10-17)
+
+The current supported contract has `lockAll(address)`/`unlockAll(address)`, not amount-selected or individually identified deposits. The generic provider request now **rejects a nonzero `Amount`, a nonempty `LockId`, or an escrow address conflicting with configured custody**, rather than silently ignoring it. Default/zero `Amount` is the existing **lock-all sentinel**: it can move the sender's entire spendable token balance, not zero tokens. Callers/UI must not present it as a partial-amount lock. Exact-amount/individual-deposit support remains an open contract/API gate.
+
+An allowance of zero can require an approval transaction followed by the lock transaction, hence two separate native fee exposures. The controlled public-provider test confirms approval receipt before lock construction. Transfer principal/allowance is not a network fee. Existing nonzero incompatible allowance requires explicit revocation; successful approval followed by uncertain/failed lock retains original reconciliation evidence and is not permission to replay or assume zero cost. No new ABI or deployment was made; contract source edit only corrects an obsolete comment. This safety fix and controlled signing tests do not certify funded escrow, fee recovery completeness or hosted authorization.
+
 ## Hedera prepared-query policy in OASISDNA (2026-10-17)
 
 The optional `OASIS.StorageProviders.HashgraphOASIS.StorageQueryPreparation` object now maps through BootLoader into the existing provider policy. Omit it to leave prepared-query ownership unavailable; ordinary/unprepared behavior is not silently promoted to sponsored execution. Presence is not a subscription reservation, original price, permission to spend, or host-scope adoption.

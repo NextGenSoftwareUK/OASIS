@@ -57,6 +57,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     throw new ArgumentException("A TRC20 token contract address is required.");
                 if (string.IsNullOrWhiteSpace(_escrowContractAddress))
                     throw new InvalidOperationException("A separate EscrowContractAddress must be configured.");
+                ValidateAggregateEscrowRequest(request.LockId, request.EscrowContractAddress);
                 var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(request.UnlockedByAvatarId,
                     Core.Enums.ProviderType.TRONOASIS, showPrivateKeys: true);
                 if (wallet.IsError || wallet.Result == null || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
