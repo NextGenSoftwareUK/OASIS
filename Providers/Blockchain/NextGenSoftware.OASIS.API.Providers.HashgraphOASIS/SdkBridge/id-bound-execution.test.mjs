@@ -31,7 +31,7 @@ async function runFixture(mode,t,serveCSharp=false){
  assert.notEqual(request.transactionId,request.approvalTransactionId);
  if(association){delete request.depositId;delete request.amount;delete request.approvalTransactionId;}
  if(mode==='aggregate-nonfungible'){request.escrowProtocol='aggregate-v1';delete request.depositId;delete request.amount;}
- if(serveCSharp)request.depositId='0x'+createHash('sha256').update('5f31afde12294e998088a0034d33a557').digest('hex');
+ if(serveCSharp&&!association)request.depositId='0x'+createHash('sha256').update('5f31afde12294e998088a0034d33a557').digest('hex');
  const originalDeposit=request.depositId;let originalMutation=request.transactionId;
  const tokenAbi=new Interface(['function balanceOf(address) view returns(uint256)','function totalSupply() view returns(uint256)',
   'function allowance(address,address) view returns(uint256)']);
@@ -134,8 +134,8 @@ async function runFixture(mode,t,serveCSharp=false){
     // Synthetic fixture key travels only through redirected process stdout to the C# test, never command arguments.
     process.stdout.write(JSON.stringify({port,mirrorPort:mirror.address().port,privateKey:key.toStringDer(),publicKey:key.publicKey.toStringDer(),runtimeCodeHash:request.runtimeCodeHash})+'\n');
     const [line]=await new Promise(resolve=>lines.once('line',value=>resolve([value])));
-    assert.equal(line,'stop');assert.equal(mirrorReads,1);assert.equal(submissions,release?1:2);
-    assert.equal(balance,release?1000n:877n);assert.equal(answers,payments.size);
+    assert.equal(line,'stop');assert.equal(mirrorReads,1);assert.equal(submissions,release||association?1:2);
+    assert.equal(balance,release||association?1000n:877n);assert.equal(answers,payments.size);if(association)assert.equal(associated,mode!=='associate-readback');
     process.stdout.write(JSON.stringify({completed:true,submissions,queries:answers,nativeTransactions:submittedIds,prepared:false})+'\n');
    }finally{lines.close();await new Promise(resolve=>mirror.close(resolve));}
    return;
@@ -183,8 +183,8 @@ async function runFixture(mode,t,serveCSharp=false){
  }finally{await new Promise(resolve=>server.tryShutdown(resolve));}
 }
 
-if(process.argv[2]==='--serve-csharp-lock'||process.argv[2]==='--serve-csharp-release'){
- await runFixture(process.argv[2].endsWith('release')?'release':'lock',{diagnostic(){}},true);
+if(['--serve-csharp-lock','--serve-csharp-release','--serve-csharp-associate','--serve-csharp-associate-readback'].includes(process.argv[2])){
+ await runFixture(process.argv[2].slice('--serve-csharp-'.length),{diagnostic(){}},true);
 }else{
  for(const mode of ['lock','existing-allowance','release','unassociated','readback','query-rejected','mutation-rejected','approval-unknown','wrong-runtime',
   'associate','associate-existing','associate-readback','associate-unknown','nonfungible','associate-nonfungible','release-nonfungible','aggregate-nonfungible','deleted-token','wrong-token'])
