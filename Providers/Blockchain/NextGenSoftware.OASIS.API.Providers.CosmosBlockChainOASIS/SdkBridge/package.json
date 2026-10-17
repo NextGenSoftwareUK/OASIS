@@ -2,7 +2,7 @@
   "name": "oasis-cosmos-sdk-bridge",
   "private": true,
   "type": "module",
-  "scripts": { "postinstall": "node patch-cosmjs.mjs", "test": "node --test bridge.test.mjs transaction-results.test.mjs" },
+  "scripts": { "postinstall": "node patch-cosmjs.mjs", "test": "node --test bridge.test.mjs transaction-results.test.mjs fee-limits.test.mjs" },
   "dependencies": {
     "@cosmjs/amino": "0.39.0",
     "@cosmjs/crypto": "0.39.0",

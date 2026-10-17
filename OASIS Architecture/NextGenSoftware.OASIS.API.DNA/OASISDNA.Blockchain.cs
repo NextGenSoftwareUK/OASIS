@@ -152,6 +152,9 @@ namespace NextGenSoftware.OASIS.API.DNA
 
     public class CosmosBlockChainOASISProviderSettings : ProviderSettingsBase
     {
+        /// <summary>Optional explicit per-transaction fee+tip ceilings: denomination to positive integer unit text.
+        /// Absent means unconfigured; not a USD budget or sponsorship grant.</summary>
+        public Dictionary<string,string> MaximumFeeUnitsByDenomination { get; set; }
         public CosmosIdBoundTokenEscrowSettings IdBoundTokenEscrow { get; set; }
         public string StorageEncryptionKeyEnvironmentVariable { get; set; } = "OASIS_COSMOS_STORAGE_ENCRYPTION_KEY";
         public string RpcEndpoint { get; set; } = "https://cosmos-rpc.polkachu.com";

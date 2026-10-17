@@ -470,19 +470,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.CosmosBlockChainOASIS:
                         {
-                            var cosmosStorageKeyVariable=OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.StorageEncryptionKeyEnvironmentVariable;
-                            var cosmosProvider = new CosmosBlockChainOASIS(
-                                OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.RpcEndpoint ?? "https://cosmos-rpc.polkachu.com",
-                                OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.ChainId ?? "cosmoshub-4",
-                                OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.PrivateKey ?? "",
-                                OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.ContractAddress ?? "",
-                                OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.AddressPrefix ?? "cosmos",
-                                OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.GasPrice ?? "0.025uatom",
-                                OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.NativeDenom,
-                                OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.NativeDecimals,
-                                storageEncryptionKeyResolver: () => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend.ResolveEnvironmentKey(
-                                    cosmosStorageKeyVariable),
-                                tokenEscrow: CosmosEscrowConfiguration.Create(OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS));
+                            var cosmosProvider = CosmosProviderConfiguration.Create(OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS);
                             cosmosProvider.OnStorageProviderError += CosmosBlockChainOASIS_StorageProviderError;
                             result.Result = cosmosProvider;
                         }
