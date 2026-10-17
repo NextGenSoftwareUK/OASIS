@@ -1,0 +1,14 @@
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using ProviderTestSupport;
+
+namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests;
+
+[TestClass,DoNotParallelize]
+public class NativeCodeGenesisTests
+{
+    [DataTestMethod]
+    [DataRow(null,false)] [DataRow("",false)] [DataRow("  ",false)]
+    [DataRow("// 🌳\npragma solidity ^0.8.0; contract SourceFixture {}",true)]
+    public void ResultRequiresAnActualSourceArtifact(string? source,bool expected)
+        =>NativeCodeGenesisContract.Verify((path,text)=>new HashgraphOASIS(network:"testnet").NativeCodeGenesis(null!,path,text!),source,expected);
+}
