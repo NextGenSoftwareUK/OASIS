@@ -182,6 +182,24 @@ public class TronPreparedStorageTests
             Assert.Equal(rejectPersistence?1:2,retained.ProviderAttempts.Count);
             if(!rejectPersistence){
                 var prepared=retained.ProviderAttempts[0];
+                var clientFlags=BindingFlags.Instance|BindingFlags.NonPublic;
+                var wallet=(TronNet.IWalletClient)typeof(TronNativeTransferClient).GetField("_wallet",clientFlags)!.GetValue(runtime.NativeTransfers)!;
+                var transactions=(TronNet.ITransactionClient)typeof(TronNativeTransferClient).GetField("_transactions",clientFlags)!.GetValue(runtime.NativeTransfers)!;
+                var lowered=new TronNativeTransferClient(wallet,transactions,genesis,1);
+                var originalAccount=Account.Parser.ParseFrom(Convert.FromBase64String(prepared.NativePreparation.SigningAuthority.EvidenceBase64));
+                Assert.True(Transaction.Parser.ParseFrom(Convert.FromBase64String(prepared.NativePreparation.SignedTransactionBase64)).RawData.FeeLimit>1);
+                var newAdmissionFailure=Assert.Throws<System.IO.InvalidDataException>(()=>TronPreparationVerifier.VerifyWithAccountAuthority(
+                    prepared.NativePreparation.SignedTransactionBase64,prepared.ProviderRequestId,address,1,originalAccount));
+                Assert.Contains("ceiling",newAdmissionFailure.Message);
+                var historicalAuthorityQueries=accountQueries;var historicalBroadcasts=broadcasts;
+                foreach(var explicitOriginalAuthority in new[]{false,true}){
+                    var historical=explicitOriginalAuthority?await lowered.GetPreparedNativeFeeReceiptAsync(prepared,originalAccount,deadline.Token)
+                        :await lowered.GetPreparedNativeFeeReceiptAsync(prepared,deadline.Token);
+                    Assert.Equal(prepared.ProviderRequestId,historical.GetProperty("transactionHash").GetString());
+                    Assert.Equal("17",historical.GetProperty("netUnits").GetString());
+                }
+                Assert.Equal(historicalAuthorityQueries,accountQueries);
+                Assert.Equal(historicalBroadcasts,broadcasts);
                 var authorityQueries=accountQueries;
                 var fee=await provider.GetPreparedNativeFeeReceiptAsync(prepared,deadline.Token);
                 Assert.False(fee.IsError,fee.Message);
