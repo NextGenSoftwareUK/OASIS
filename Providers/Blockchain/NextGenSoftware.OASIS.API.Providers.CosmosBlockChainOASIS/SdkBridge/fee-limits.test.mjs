@@ -72,3 +72,36 @@ test('historical Cosmos identity verification is not new spending approval under
  const identity=await invoke({operation:'verifyNativePreparation',preparation:evidence,maximumFeeUnitsByDenomination:{stake:'1'}});
  assert.equal(identity.verified,true);assert.equal(identity.transactionHash,evidence.transactionHash);
 });
+
+test('verified fee evidence derives exact sorted fee plus tip totals only from original signed bytes',async()=>{
+ const {evidence}=await signedFee([{denom:'uatom',amount:'9007199254740993'},{denom:'stake',amount:'3'}],
+  [{denom:'uatom',amount:'7'},{denom:'stake',amount:'4'}]);
+ const verified=verifyCosmosPreparedIdentity({...evidence,declaredFeeAndTip:[{denom:'stake',amount:'0'}]});
+ assert.deepEqual(verified.declaredFeeAndTip,[{denom:'stake',amount:'7'},{denom:'uatom',amount:'9007199254741000'}]);
+ assert.ok(Object.isFrozen(verified.declaredFeeAndTip));assert.ok(verified.declaredFeeAndTip.every(Object.isFrozen));
+});
+
+test('signed identity verification and admission share rejection of ambiguous or malformed fee coins',async()=>{
+ for(const coins of [[{denom:'stake',amount:'01'}],[{denom:'stake',amount:'-1'}],
+  [{denom:'bad denom',amount:'1'}],[{denom:'stake',amount:'1'},{denom:'stake',amount:'2'}]]){
+  const {evidence,bytes}=await signedFee(coins);
+  assert.throws(()=>verifyCosmosPreparedIdentity(evidence),/denomination\/amount/);
+  const {client,counts}=guarded({stake:'100'});
+  await assert.rejects(client.broadcastTx(bytes));assert.deepEqual(counts,{persist:0,broadcast:0});
+ }
+});
+
+test('empty and explicitly zero signed fee declarations remain distinct without invented denominations',async()=>{
+ assert.deepEqual(verifyCosmosPreparedIdentity((await signedFee([])).evidence).declaredFeeAndTip,[]);
+ assert.deepEqual(verifyCosmosPreparedIdentity((await signedFee([{denom:'stake',amount:'0'}])).evidence).declaredFeeAndTip,[{denom:'stake',amount:'0'}]);
+});
+
+test('combined fee and tip denomination count is bounded rather than each array alone',async()=>{
+ const fee=Array.from({length:17},(_,i)=>({denom:'fee'+i,amount:'1'}));
+ const tip=Array.from({length:16},(_,i)=>({denom:'tip'+i,amount:'1'}));
+ const {evidence,bytes}=await signedFee(fee,tip);
+ assert.throws(()=>verifyCosmosPreparedIdentity(evidence),/combined Cosmos fee denominations/);
+ const {client,counts}=guarded({stake:'1'});
+ await assert.rejects(client.broadcastTx(bytes),/combined Cosmos fee denominations/);
+ assert.deepEqual(counts,{persist:0,broadcast:0});
+});

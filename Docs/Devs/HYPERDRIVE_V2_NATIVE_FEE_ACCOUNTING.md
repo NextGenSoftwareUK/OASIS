@@ -1,5 +1,11 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Cosmos original declared fee evidence — 2026-10-17
+
+The official SDK verifier now derives immutable sorted declaredFeeAndTip totals from verified original canonical AuthInfo. Existing transaction fee ceilings share that exact bounded parser: per-array duplicate checks, canonical nonnegative integer strings, bounded denominations/amounts and combined32-denomination limit. Fees and tips in the same denomination sum with BigInt; values above JavaScript's safe integer range are not rounded. Caller-supplied totals cannot replace signed data; no denomination is invented for an empty fee declaration.
+
+This is a signed declaration, not a complete native cost receipt or a universal Cosmos-chain AllFees assertion. [Standard SDK ante fee deduction](https://github.com/cosmos/cosmos-sdk/blob/main/x/auth/ante/fee.go) does not by itself prove a chain-specific refund/custom-fee model. Recovery stays AnteDeductionOnly and automatic total-fee settlement remains disabled. A reviewed total-fee model is still needed before wiring these totals into aggregate AllFees admission. No sponsorship, public spend or production configuration enabled. SDK84/84 and C#178/178 passed; exact reports/hashes are recorded in the current release journal.
+
 ## Sui signed aggregate maximum adapter — 2026-10-17
 
 Retained-native acceptance: four prepared-ledger cases passed (1m/0skip), report SHA256 `A5722EA21930279F74EBF6283805954881F5532312C41BE19D424FD90CFB6D05`. Each refuses an actual SDK-prepared mutation under zero aggregate budget with no durable attempt/exposure/native key; accepted operations use explicit10USD maximum and synthetic1USD/SUI. Eleven original signed maxima match independent SDK verification and their exact quoted sum equals stored exposure. Receipts recover actual net costs separately; missing API reply still yields failed logical outcome. This is local native evidence, not live quote/hosted settlement/production enablement. No new node, ledger or wallet was created.

@@ -27,6 +27,8 @@ export function verifyCosmosPreparedIdentity(evidence) {
       || !Buffer.from(raw.bodyBytes).equals(doc.bodyBytes) || !Buffer.from(raw.authInfoBytes).equals(doc.authInfoBytes))
     throw new Error('Cosmos original signed document binding mismatch');
   const auth=AuthInfo.decode(raw.authInfoBytes);
+  if(!Buffer.from(AuthInfo.encode(auth).finish()).equals(raw.authInfoBytes))
+    throw new Error('Canonical original Cosmos AuthInfo required');
   if (raw.signatures.length !== 1 || auth.signerInfos.length !== 1
       || auth.signerInfos[0].modeInfo?.single?.mode !== 1
       || auth.signerInfos[0].publicKey?.typeUrl !== '/cosmos.crypto.secp256k1.PubKey')
@@ -41,7 +43,8 @@ export function verifyCosmosPreparedIdentity(evidence) {
   if(!auth.fee)throw new Error('Original signed Cosmos fee declaration is required');
   const feePayer=auth.fee.granter||auth.fee.payer||evidence.sender;
   if(!fromBech32(feePayer,90).data.length)throw new Error('Original signed Cosmos fee payer is invalid');
-  return {verified:true,transactionHash:evidence.transactionHash,sender:evidence.sender,feePayer};
+  return {verified:true,transactionHash:evidence.transactionHash,sender:evidence.sender,feePayer,
+    declaredFeeAndTip:declaredCosmosFeeTotals(auth)};
 }
 
 // Capture the actual wallet-returned SignDoc, not a reconstructed account-number guess.
@@ -111,22 +114,32 @@ export function snapshotCosmosFeeLimits(value) {
   return Object.freeze(captured);
 }
 
-function verifyDeclaredCosmosFee(bytes,limits) {
-  const raw=TxRaw.decode(bytes),auth=AuthInfo.decode(raw.authInfoBytes);
-  if(!Buffer.from(TxRaw.encode(raw).finish()).equals(bytes)||!Buffer.from(AuthInfo.encode(auth).finish()).equals(raw.authInfoBytes)||!auth.fee)
-    throw new Error('Canonical original Cosmos fee declaration required');
+function declaredCosmosFeeTotals(auth) {
+  if(!auth.fee)throw new Error('Original signed Cosmos fee declaration is required');
   const totals=new Map();
   for(const coins of [auth.fee.amount,auth.tip?.amount??[]]){
     if(!Array.isArray(coins)||coins.length>32)throw new Error('Bounded original Cosmos fee coins required');
     const seen=new Set();
     for(const coin of coins){
-      if(typeof coin.denom!=='string'||!Object.hasOwn(limits,coin.denom)||seen.has(coin.denom)
+      if(typeof coin.denom!=='string'||!coin.denom||coin.denom.length>128||/[\s\p{Cc}]/u.test(coin.denom)||seen.has(coin.denom)
           ||typeof coin.amount!=='string'||coin.amount.length>128||!(/^(0|[1-9][0-9]*)$/).test(coin.amount))
-        throw new Error('Original Cosmos fee denomination/amount is unapproved or ambiguous');
+        throw new Error('Original Cosmos fee denomination/amount is invalid or ambiguous');
       seen.add(coin.denom);totals.set(coin.denom,(totals.get(coin.denom)??0n)+BigInt(coin.amount));
     }
   }
-  for(const [denom,total] of totals)if(total>BigInt(limits[denom]))throw new Error('Signed Cosmos fee and tip exceed the configured denomination ceiling');
+  if(totals.size>32)throw new Error('Bounded combined Cosmos fee denominations required');
+  return Object.freeze([...totals].sort(([a],[b])=>a<b?-1:a>b?1:0)
+    .map(([denom,total])=>Object.freeze({denom,amount:total.toString()})));
+}
+
+function verifyDeclaredCosmosFee(bytes,limits) {
+  const raw=TxRaw.decode(bytes),auth=AuthInfo.decode(raw.authInfoBytes);
+  if(!Buffer.from(TxRaw.encode(raw).finish()).equals(bytes)||!Buffer.from(AuthInfo.encode(auth).finish()).equals(raw.authInfoBytes))
+    throw new Error('Canonical original Cosmos fee declaration required');
+  for(const {denom,amount} of declaredCosmosFeeTotals(auth)){
+    if(!Object.hasOwn(limits,denom))throw new Error('Original Cosmos fee denomination is unapproved');
+    if(BigInt(amount)>BigInt(limits[denom]))throw new Error('Signed Cosmos fee and tip exceed the configured denomination ceiling');
+  }
 }
 
 export function guardCosmosSigningClient(client, persistPreparedSubmission, maximumFeeUnitsByDenomination) {
