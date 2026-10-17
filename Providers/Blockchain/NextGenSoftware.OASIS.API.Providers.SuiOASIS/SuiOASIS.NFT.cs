@@ -163,6 +163,7 @@ public partial class SuiOASIS
         {
             ArgumentNullException.ThrowIfNull(request);
             cancellationToken.ThrowIfCancellationRequested();
+            request = NftMintIntent.Capture(request);
             if (createPreparationServer != null && string.IsNullOrWhiteSpace(_sdkClient.ChainId))
                 throw new InvalidOperationException("Prepared mint ownership requires the configured Sui chain identity.");
             var count = request.NumberToMint ?? 1;
