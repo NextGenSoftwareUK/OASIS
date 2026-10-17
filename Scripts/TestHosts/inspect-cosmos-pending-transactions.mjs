@@ -22,6 +22,11 @@ const key=createHash('sha256').update(intent.encryptionKeyLabel).digest();
 const indexKey=createHmac('sha256',key).update('OASIS private storage index v1').digest();
 const logicalKeys=[`oasis/avatar/${intent.avatarId.replaceAll('-','')}`,
   `oasis/avatardetail/${intent.avatarId.replaceAll('-','')}`,`oasis/holon/${intent.holonId.replaceAll('-','')}`];
+// The exact original avatar also owns two identity-index mutations; record keys alone cannot cover them.
+if(!/^cosmos-v2-[0-9a-f]{32}$/.test(intent.Username)||! /^[0-9a-f]{32}@example\.invalid$/.test(intent.Email))
+  throw new Error('Expected original synthetic Cosmos identity labels; refusing guessed index ownership.');
+const identityKey=value=>Buffer.from(value.trim().toLowerCase(),'utf8').toString('base64url');
+logicalKeys.push(`oasis/avatar-username/${identityKey(intent.Username)}`,`oasis/avatar-email/${identityKey(intent.Email)}`);
 const physicalKeys=new Set(logicalKeys.map(value=>'oasis/private/v1/'+createHmac('sha256',indexKey).update(value).digest('hex')));
 key.fill(0);indexKey.fill(0);
 const client=await CosmWasmClient.connect(rpc);
@@ -44,7 +49,7 @@ try {
           gasUsed:tx.gasUsed.toString(),gasWanted:tx.gasWanted.toString()});
     }
   }
-  const report={chain:intent.chain,contract:intent.contract,indexedTransactionCount:transactions.length,matches,
+  const report={chain:intent.chain,contract:intent.contract,inspectedExactKeyCount:physicalKeys.size,indexedTransactionCount:transactions.length,matches,
     reconciliationComplete:false,explanation:'Positive exact-key transaction evidence only; absent matches do not prove non-submission. Pending intent remains untouched.'};
   fs.writeFileSync(path.join(fixture,'cosmos-pending-transactions-current.json'),JSON.stringify(report,null,2));
   console.log(JSON.stringify(report));
