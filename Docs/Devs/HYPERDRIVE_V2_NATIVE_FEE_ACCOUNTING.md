@@ -1,5 +1,7 @@
 # HyperDrive V2 native-chain fees and recovery
 
+2026-10-17 Hedera signed-payload fee binding: reproduced an ID-only recovery defect with an actual official-SDK signed alternate transfer using the same payer/key/transaction ID (red:1 failed). Recovery now uses official getTransactionHashPerNode SHA384 hashes and requires every charged mirror record to match the original signed payload; canonical 48-byte base64 mirror hashes are mandatory. No handwritten transaction hash/parser or ID-only fallback. Final controlled C#54/54 passed (1m23s), fee/status30/30 passed, SDK103/103 passed; no skips. Two real read-only mirror observations are not consensus submission proof. No transaction/public funds/new runtime/environment. Historical admission-authority capture, query-fee completeness, authorized live pricing and hosted settlement remain open; this does not establish full Hedera/HyperDrive completion.
+
 ## Original fee lookup owner — Core3cc2809 (2026-10-17)
 
 `IPreparedNativeFeeEvidenceReader` is a separate capability because a raw transaction-ID fee lookup does not establish original signed payer authority or complete net coverage. Existing SDK verification methods are reused; adapters only translate verified native data into typed evidence. `PreparedNativeUsageRecoveryResolver` centrally snapshots request context, dispatches by exact provider/chain, converts using retained prices, appends immutable receipts and invokes existing recorded-outcome accounting. It never submits a transaction or fetches a replacement quote.

@@ -1,5 +1,7 @@
 # HyperDrive V2 current release gates
 
+2026-10-17 Hedera signed-payload fee binding: reproduced an ID-only recovery defect with an actual official-SDK signed alternate transfer using the same payer/key/transaction ID (red:1 failed). Recovery now uses official getTransactionHashPerNode SHA384 hashes and requires every charged mirror record to match the original signed payload; canonical 48-byte base64 mirror hashes are mandatory. No handwritten transaction hash/parser or ID-only fallback. Final controlled C#54/54 passed (1m23s), fee/status30/30 passed, SDK103/103 passed; no skips. Two real read-only mirror observations are not consensus submission proof. No transaction/public funds/new runtime/environment. Historical admission-authority capture, query-fee completeness, authorized live pricing and hosted settlement remain open; this does not establish full Hedera/HyperDrive completion.
+
 ## Pending user actions
 
 Recorded at the user's request on2026-10-17; leave these open until independently verified.

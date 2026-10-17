@@ -68,6 +68,10 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             JsonElement? primary = null;
             foreach (var tx in rows.EnumerateArray())
             {
+                var encodedHash=tx.GetProperty("transaction_hash").GetString();
+                var hashBytes=Convert.FromBase64String(encodedHash??"");
+                if(hashBytes.Length!=48||Convert.ToBase64String(hashBytes)!=encodedHash)
+                    throw new InvalidOperationException("Canonical native SHA384 transaction hash is required for every charged Hedera record.");
                 // Ethereum/batch/scheduled execution can have different or multiple fee payers.
                 var operation = tx.GetProperty("name").GetString();
                 if (operation is not ("CRYPTOTRANSFER" or "CONTRACTCREATEINSTANCE" or "CONTRACTCALL"
@@ -93,6 +97,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 }
                 records.Add(JsonSerializer.SerializeToElement(new
                 {
+                    transactionHash=Convert.ToHexString(hashBytes).ToLowerInvariant(),
                     nativeStatus,
                     consensusTimestamp = timestamp,
                     chargedUnits = fee.ToString(CultureInfo.InvariantCulture)

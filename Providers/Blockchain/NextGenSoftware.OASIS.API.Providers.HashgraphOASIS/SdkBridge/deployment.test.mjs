@@ -1,8 +1,24 @@
 import test from 'node:test';import assert from 'node:assert/strict';
-import {PrivateKey,Transaction,AccountId,Client} from '@hiero-ledger/sdk';
+import {PrivateKey,Transaction,AccountId,Client,TransferTransaction,TransactionId} from '@hiero-ledger/sdk';
 import {deploymentTransaction,executeDeployment} from './deployment.mjs';
 import {execute,persistSignedSubmission} from './bridge.mjs';
 import {verifyPreparedIdentity} from './native-preparation.mjs';
+
+test('original signed hashes bind every SDK node variant and distinguish payloads sharing an ID',async()=>{
+ const key=PrivateKey.generateED25519(),id='0.0.1001@1700000000.000000001';
+ let previous;
+ for(const amount of [1,2]){
+  const signed=await new TransferTransaction().setTransactionId(TransactionId.fromString(id))
+   .setNodeAccountIds([AccountId.fromString('0.0.3'),AccountId.fromString('0.0.4')])
+   .addHbarTransfer('0.0.1001',-amount).addHbarTransfer('0.0.1002',amount).freeze().sign(key);
+  const evidence={transactionHash:id,sender:'0.0.1001',signedTransactionBase64:Buffer.from(signed.toBytes()).toString('base64')};
+  const verified=await verifyPreparedIdentity(evidence,key.publicKey.toStringDer());
+  const expected=[...(await signed.getTransactionHashPerNode()).values()].map(hash=>Buffer.from(hash).toString('hex'));
+  assert.deepEqual(verified.signedTransactionHashes,expected);assert.equal(expected.length,2);
+  for(const hash of expected){assert.match(hash,/^[0-9a-f]{96}$/);if(previous)assert.equal(previous.includes(hash),false);}
+  previous=expected;
+ }
+});
 test('prepared dispatcher refuses invalid callback and unwired actions before network use',async()=>{
  await assert.rejects(execute('contractCreate',{},true),/awaited callback/);
  let calls=0;
@@ -18,12 +34,12 @@ test('real SDK signed deployment waits for persistence and rejection prevents su
    calls++;assert.equal(evidence.transactionHash,request.transactionId);assert.equal(evidence.sender,request.sender);
    const original=Transaction.fromBytes(Buffer.from(evidence.signedTransactionBase64,'base64'));
    assert.equal(original.transactionId.toString(),request.transactionId);assert.equal(Object.isFrozen(evidence),true);
-   assert.equal(verifyPreparedIdentity(evidence,key.publicKey.toStringDer()).verified,true);
+   assert.equal((await verifyPreparedIdentity(evidence,key.publicKey.toStringDer())).verified,true);
    assert.equal((await execute('verifyNativePreparation',{preparation:evidence,expectedPublicKey:key.publicKey.toStringDer()})).verified,true);
    await assert.rejects(execute('verifyNativePreparation',{preparation:evidence,expectedPublicKey:PrivateKey.generateECDSA().publicKey.toStringDer()}),/signature mismatch/);
-   assert.throws(()=>verifyPreparedIdentity(evidence,PrivateKey.generateECDSA().publicKey.toStringDer()),/signature mismatch/);
-   assert.throws(()=>verifyPreparedIdentity({...evidence,sender:'0.0.1002'},key.publicKey.toStringDer()),/payer mismatch/);
-   assert.throws(()=>verifyPreparedIdentity({...evidence,transactionHash:'0.0.1001@1700000001.000000001'},key.publicKey.toStringDer()),/identity or payer mismatch/);
+   await assert.rejects(verifyPreparedIdentity(evidence,PrivateKey.generateECDSA().publicKey.toStringDer()),/signature mismatch/);
+   await assert.rejects(verifyPreparedIdentity({...evidence,sender:'0.0.1002'},key.publicKey.toStringDer()),/payer mismatch/);
+   await assert.rejects(verifyPreparedIdentity({...evidence,transactionHash:'0.0.1001@1700000001.000000001'},key.publicKey.toStringDer()),/identity or payer mismatch/);
    let persisted=0;
    await assert.rejects(persistSignedSubmission(original,{...request,network:'controlled-local'},async prepared=>{
     persisted++;assert.equal(prepared.signedTransactionBase64,evidence.signedTransactionBase64);throw failure;
