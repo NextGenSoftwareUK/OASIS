@@ -157,7 +157,7 @@ public class TronUnknownBroadcastEvidenceTests
                 BeforeBroadcast?.Invoke();
                 BroadcastCount++;
                 if(NegativeResponseCode.HasValue){
-                    var response=new Return{Result=false};
+                    var response=new Return{Result=false,Message=ByteString.CopyFromUtf8("node prevalidation\n"+new string('x',2048))};
                     var property=typeof(Return).GetProperty(nameof(Return.Code))!;
                     property.SetValue(response,Enum.ToObject(property.PropertyType,NegativeResponseCode.Value));
                     return Task.FromResult(response);
@@ -261,7 +261,15 @@ public class TronUnknownBroadcastEvidenceTests
         Assert.Equal(now, evidence.TransactionTimestampMilliseconds);
         Assert.Equal(now + 60000, evidence.TransactionExpirationMilliseconds);
         Assert.Equal(genesis, evidence.ChainGenesisId);
-        if(negativeResponseCode.HasValue)Assert.Contains("original reconciliation",evidence.InnerException!.Message);
+        if(negativeResponseCode.HasValue){
+            Assert.Contains("original reconciliation",evidence.InnerException!.Message);
+            Assert.Equal(negativeResponseCode,evidence.BroadcastResponseCode);
+            Assert.True(evidence.BroadcastResponseMessageTruncated);
+            var bytes=Convert.FromBase64String(evidence.BroadcastResponseMessageBase64!);
+            Assert.Equal(1024,bytes.Length);
+            Assert.Equal(System.Text.Encoding.UTF8.GetBytes("node prevalidation\n"+new string('x',2048))[..1024],bytes);
+            Assert.DoesNotContain("node prevalidation",evidence.Message);
+        }
         else if(nullAcknowledgement)Assert.Contains("no broadcast acknowledgement",evidence.InnerException!.Message);
         else Assert.Same(controlled.Interruption, evidence.InnerException);
         } finally { await server.ShutdownAsync(); }
@@ -280,6 +288,23 @@ public class TronUnknownBroadcastEvidenceTests
         Assert.Same(original, evidence.InnerException);
         Assert.True(evidence.HasOriginalValidityWindow);
         Assert.Contains("unknown", evidence.Message);
+        Assert.Null(evidence.BroadcastResponseCode);
+        Assert.Null(evidence.BroadcastResponseMessageBase64);
+        Assert.False(evidence.BroadcastResponseMessageTruncated);
+    }
+
+    [Theory]
+    [InlineData(0)] [InlineData(1024)] [InlineData(1025)]
+    public void UntrustedBroadcastDiagnosticsAreBoundedAndCopied(int length)
+    {
+        var message=Enumerable.Repeat((byte)0xff,length).ToArray();
+        var evidence=new TronBroadcastOutcomeUnknownException(new string('a',64),new string('b',64),1,2,
+            new InvalidOperationException("ambiguous"),20,message);
+        Array.Fill(message,(byte)0);
+        Assert.Equal(20,evidence.BroadcastResponseCode);
+        Assert.Equal(length>1024,evidence.BroadcastResponseMessageTruncated);
+        Assert.Equal(Enumerable.Repeat((byte)0xff,Math.Min(length,1024)).ToArray(),Convert.FromBase64String(evidence.BroadcastResponseMessageBase64!));
+        Assert.True(Core.Helpers.NativeMutationReconciliation.IsRequired(evidence));
     }
 
     [Theory]
