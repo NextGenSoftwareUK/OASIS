@@ -1679,6 +1679,17 @@ public partial class EthereumOASISIntegrationTests
             Assert.AreEqual(recovered.Name,(await sqlite.LoadHolonAsync(recovered.Id,loadChildren:false)).Result.Name);
             Assert.IsNull((await ethereum.LoadHolonAsync(recovered.Id,loadChildren:false)).Result);
             Assert.AreEqual(1L,failover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests);
+            // Failed activation must not permanently quarantine the same registered instance.
+            Assert.IsFalse(unavailable.IsProviderActivated);
+            unavailable.HostURI=Host;
+            var reactivationSqliteBefore=failover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests;
+            var reactivationRequest=new StorageOperationRequest {Operation="LoadHolon",HolonId=selected!.Id,
+                LoadChildren=false,PreferredProvider=ProviderType.EthereumOASIS};
+            var reactivated=synchronous ? failoverRouter.RouteRequest<IHolon>(reactivationRequest)
+                : await failoverRouter.RouteRequestAsync<IHolon>(reactivationRequest);
+            Assert.IsFalse(reactivated.IsError,reactivated.Message);Assert.IsTrue(unavailable.IsProviderActivated);
+            Assert.AreEqual(selected.Id,reactivated.Result.Id);Assert.AreEqual(selected.Name,reactivated.Result.Name);
+            Assert.AreEqual(reactivationSqliteBefore,failover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests);
             // Repair the registered endpoint without recreating manager/router or erasing outage metrics.
             Assert.IsTrue(failover.UnRegisterProvider(unavailable));
             Assert.IsTrue(failover.RegisterProvider(ethereum));

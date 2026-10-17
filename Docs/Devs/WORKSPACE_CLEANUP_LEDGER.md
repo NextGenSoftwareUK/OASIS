@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 same-instance Ethereum reactivation reused retained local chain/SDK/cache/fixed reports and normal runner teardown:186native/59contract/4Web3 passed. Free77344317440before/77338750976after bytes systemwide only. No install/download/clone/new environment/public gas or protected journal/ledger/source/userdata removal. Fixed reports overwritten, synthetic fixture cleanup owned by runner.
+
 2026-10-16 Ethereum same-manager endpoint repair reused retained local31337/Hardhat/solc/SDK and fixed reports/fixtures; native186/186pass58s,59contract assertions, downstreamWeb3native4/4pass1m25s. Normal runner node teardown, no install/download/clone/new environment/public gas. Runner free77346672640before/77347155968after bytes is systemwide observation only. Fixed reports overwritten; no protected native ledger/journal/source/userdata removal.
 
 2026-10-16 Sui durable-owner diagnosis reused same retained native/Mongo services and fixed reports; native inspection1/1pass3s, initializer1/1pass177ms. Added compact public receipt net-unit evidence, never signed bytes/keys; no settlement or journal deletion because ownership/valuation unresolved. Pending SHA unchanged B7E6EECC7C32EF5AD030C740ECF1071CB54FF05905FF69FC8DBE04A759061599; normal runner shutdown. No download/install/new environment/reset/replay or source/userdata removal.
