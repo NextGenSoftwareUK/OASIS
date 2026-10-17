@@ -18,11 +18,19 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 public sealed class TronAvatarWalletSendTests
 {
     [Theory]
-    [InlineData(false, false)]
-    [InlineData(true, false)]
-    [InlineData(false, true)]
-    [InlineData(true, true)]
-    public async Task IdTransferUsesEncryptedDetachedWalletAndRealSdkSigning(bool synchronous, bool token)
+    [InlineData(false, false, "id")]
+    [InlineData(true, false, "id")]
+    [InlineData(false, true, "id")]
+    [InlineData(true, true, "id")]
+    [InlineData(false, false, "username")]
+    [InlineData(true, false, "username")]
+    [InlineData(false, true, "username")]
+    [InlineData(true, true, "username")]
+    [InlineData(false, false, "email")]
+    [InlineData(true, false, "email")]
+    [InlineData(false, true, "email")]
+    [InlineData(true, true, "email")]
+    public async Task AvatarTransferUsesEncryptedDetachedWalletAndRealSdkSigning(bool synchronous, bool token, string selector)
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
         while (directory != null && !File.Exists(Path.Combine(directory.FullName, "AGENTS.md"))) directory = directory.Parent;
@@ -116,6 +124,8 @@ public sealed class TronAvatarWalletSendTests
             foreach (var id in new[] { sender, recipient }) {
                 var prior = await local.LoadProviderWalletsForAvatarByIdAsync(id);
                 Assert.False(prior.IsError, prior.Message); Assert.True(prior.Result == null || prior.Result.Count == 0, "Preserve prior fixture; inspect before retry.");
+                var avatar = await local.LoadAvatarAsync(id);
+                Assert.Null(avatar.Result);
             }
             async Task Save(Guid id, string address, string secret) {
                 var wallet = new ProviderWallet { Id = Guid.NewGuid(), AvatarId = id, ProviderType = ProviderType.TRONOASIS,
@@ -124,6 +134,11 @@ public sealed class TronAvatarWalletSendTests
                 Assert.False(saved.IsError, saved.Message);
             }
             await Save(sender, owner, encrypted); await Save(recipient, destination, "");
+            foreach (var pair in new[] { (sender, "tron-avatar-sender"), (recipient, "tron-avatar-recipient") }) {
+                var saved = await local.SaveAvatarAsync(new Core.Holons.Avatar { Id = pair.Item1,
+                    Username = pair.Item2, Email = pair.Item2 + "@example.invalid", IsActive = true });
+                Assert.False(saved.IsError, saved.Message);
+            }
             var dna = new OASISDNA(); dna.OASIS.HyperDriveMode = HyperDriveModes.V2;
             dna.OASIS.StorageProviders = new StorageProviderSettings { LogSwitchingProviders = false };
             dna.OASIS.Security = new SecuritySettings { OASISProviderPrivateKeys = new EncryptionSettings {
@@ -138,7 +153,19 @@ public sealed class TronAvatarWalletSendTests
                 nativeSigningKeyResolver: _ => throw new InvalidOperationException("Avatar send must not use raw-address key resolution."));
             // Controlled RPC fixture: bypass unrelated encrypted native storage activation, not evidence of native-chain readiness.
             typeof(TRONOASIS).GetProperty("IsProviderActivated")!.SetValue(tron, true);
-            var result = token
+            var result = selector == "username"
+                ? token
+                    ? synchronous ? tron.SendTransactionByUsername("tron-avatar-sender", "tron-avatar-recipient", 1.23m, tokenAddress)
+                        : await tron.SendTransactionByUsernameAsync("tron-avatar-sender", "tron-avatar-recipient", 1.23m, tokenAddress)
+                    : synchronous ? tron.SendTransactionByUsername("tron-avatar-sender", "tron-avatar-recipient", 1.23m)
+                        : await tron.SendTransactionByUsernameAsync("tron-avatar-sender", "tron-avatar-recipient", 1.23m)
+                : selector == "email"
+                ? token
+                    ? synchronous ? tron.SendTransactionByEmail("tron-avatar-sender@example.invalid", "tron-avatar-recipient@example.invalid", 1.23m, tokenAddress)
+                        : await tron.SendTransactionByEmailAsync("tron-avatar-sender@example.invalid", "tron-avatar-recipient@example.invalid", 1.23m, tokenAddress)
+                    : synchronous ? tron.SendTransactionByEmail("tron-avatar-sender@example.invalid", "tron-avatar-recipient@example.invalid", 1.23m)
+                        : await tron.SendTransactionByEmailAsync("tron-avatar-sender@example.invalid", "tron-avatar-recipient@example.invalid", 1.23m)
+                : token
                 ? synchronous ? tron.SendTransactionById(sender, recipient, 1.23m, tokenAddress)
                     : await tron.SendTransactionByIdAsync(sender, recipient, 1.23m, tokenAddress)
                 : synchronous ? tron.SendTransactionById(sender, recipient, 1.23m)
@@ -154,8 +181,10 @@ public sealed class TronAvatarWalletSendTests
         finally
         {
             try {
-                if (completed) foreach (var id in new[] { sender, recipient })
+                if (completed) foreach (var id in new[] { sender, recipient }) {
                     Assert.False((await local.SaveProviderWalletsForAvatarByIdAsync(id, new())).IsError);
+                    Assert.False((await local.DeleteAvatarAsync(id, softDelete: false)).IsError);
+                }
             } finally { try { await local.DeActivateProviderAsync(); } finally { await server.ShutdownAsync(); } }
         }
     }
