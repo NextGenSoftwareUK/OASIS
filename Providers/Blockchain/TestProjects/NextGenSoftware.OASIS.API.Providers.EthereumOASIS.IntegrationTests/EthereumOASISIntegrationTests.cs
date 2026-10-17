@@ -1681,13 +1681,29 @@ public partial class EthereumOASISIntegrationTests
             Assert.AreEqual(1L,failover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests);
             // Failed activation must not permanently quarantine the same registered instance.
             Assert.IsFalse(unavailable.IsProviderActivated);
+            dna.OASIS.OASISHyperDriveConfig=new() {HealthCheckIntervalMs=1000};
+            var predictionEngine=PredictiveFailoverEngine.ForProviderManager(failover);
+            var recoveryFlags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+            var recoveryNow=DateTime.UtcNow;
+            typeof(PredictiveFailoverEngine).GetField("_utcNow",recoveryFlags)!.SetValue(predictionEngine,(Func<DateTime>)(()=>recoveryNow));
+            await (Task)typeof(PredictiveFailoverEngine).GetMethod("ExecutePreventiveFailoverAsync",recoveryFlags)!
+                .Invoke(predictionEngine,new object[] {ProviderType.EthereumOASIS,ProviderType.SQLLiteDBOASIS})!;
+            var redirectedBefore=failover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests;
+            var redirectedRequest=new StorageOperationRequest {Operation="LoadHolon",HolonId=selected!.Id,
+                LoadChildren=false,PreferredProvider=ProviderType.EthereumOASIS};
+            var redirected=synchronous ? failoverRouter.RouteRequest<IHolon>(redirectedRequest)
+                : await failoverRouter.RouteRequestAsync<IHolon>(redirectedRequest);
+            Assert.IsFalse(redirected.IsError,redirected.Message);
+            Assert.AreEqual(redirectedBefore+1,failover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests);
             unavailable.HostURI=Host;
+            recoveryNow=recoveryNow.AddSeconds(1);
             var reactivationSqliteBefore=failover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests;
             var reactivationRequest=new StorageOperationRequest {Operation="LoadHolon",HolonId=selected!.Id,
                 LoadChildren=false,PreferredProvider=ProviderType.EthereumOASIS};
             var reactivated=synchronous ? failoverRouter.RouteRequest<IHolon>(reactivationRequest)
                 : await failoverRouter.RouteRequestAsync<IHolon>(reactivationRequest);
             Assert.IsFalse(reactivated.IsError,reactivated.Message);Assert.IsTrue(unavailable.IsProviderActivated);
+            Assert.AreEqual(ProviderType.Default,predictionEngine.GetFailoverOverride(ProviderType.EthereumOASIS));
             Assert.AreEqual(selected.Id,reactivated.Result.Id);Assert.AreEqual(selected.Name,reactivated.Result.Name);
             Assert.AreEqual(reactivationSqliteBefore,failover.PerformanceMonitor.GetMetrics(ProviderType.SQLLiteDBOASIS).TotalRequests);
             // Repair the registered endpoint without recreating manager/router or erasing outage metrics.
