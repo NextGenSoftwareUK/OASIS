@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Private encrypted envelope delta: malformed authenticated inner JSON/shape now terminal InvalidDataException under one parser with original syntax cause. Six red-before/green-after encrypted Get/List cases; Shared288/288pass1s. No cipher/key/HMAC/format change or native SDK/V2/key-custody certification.
+
 Cosmos pending scan expanded to5exact owned physical keys (3records+2identity indexes), journal labels strictly validated. Native read-only1/1pass1s/280indexed transactions/0matches; original outcome still unproven, journal unchanged/container stopped. No mutation/native V2 completion claim.
 
 Shared provider-key validation delta: GUID-keyed five load/delete/parent methods reject malformed/empty GUIDs terminally before reads/listing, original ArgumentException retained and supplied key not echoed. Two red-before/green-after sync/async cases, Shared282/282pass1s. Not other provider formats/native SDK/V2/hosted certification.
