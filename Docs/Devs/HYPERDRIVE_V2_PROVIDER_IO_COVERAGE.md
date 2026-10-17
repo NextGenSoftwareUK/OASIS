@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-17 TRON aggregate LockToken snapshots validated sender/token/key before native runtime acquisition. Reuses original SDK executor;1red-before/green-after controlled contention test asserts original authority/contract and existing2-stage approval-then-lock ordering/distinct IDs. Full387pass3s/0skip. Scope is current aggregate protocol on provider, not complete provider/API/hosted/native-consensus or legacy V1 implementation.
+
 2026-10-17 TRON aggregate release no longer requires unrelated storage activation; native lease owner reused, original actor/token captured, wallet errors preserved/exact avatar checked.2positive stored-wallet+SDK/gRPC async/sync cases and2corrupt-wallet cases added to existing fixtures;110combined pass5s/full386pass3s. No switch of protocol, new fallback or per-deposit claim. Actual TVM/native fees/hosted acceptance remain open; aggregate lock mutable-lambda audit separately open.
 
 2026-10-17 TRON SendNFT captures and validates invocation-owned asset/from-to/signing/memo scalars before lifecycle wait; existing executor retained.1new controlled SDK/gRPC await-mutation case verifies original owner query and exact safeTransferFrom ABI/signature/memo despite changed caller request.106combined cases pass5s/full386pass3s. This closes identified local scalar-await gap, NOT live native consensus or independent post-transfer ownership verification/hosted admission/settlement.

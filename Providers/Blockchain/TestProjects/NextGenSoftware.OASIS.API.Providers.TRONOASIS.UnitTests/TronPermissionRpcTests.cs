@@ -55,9 +55,12 @@ public class TronPermissionRpcTests
     [InlineData("nft-burn-provider")]
     [InlineData("token-burn-provider")]
     [InlineData("escrow-lock-provider")]
+    [InlineData("escrow-lock-provider-await")]
     [InlineData("contradictory-broadcast")]
     public async Task RotatedContractSignerAndConfirmedDeploymentReadbackPreserveOneSubmission(string mode)
     {
+        var mutateWhileWaiting=mode=="escrow-lock-provider-await";
+        if(mutateWhileWaiting)mode="escrow-lock-provider";
         var genesis=new string('a',64);var block=ByteString.CopyFrom(Convert.FromHexString(genesis));
         var key=new string('0',63)+"1";var ownerKey=mode is "nft-burn-provider" or "token-burn-provider" ? key : new string('0',63)+"2";
         var owner=new TronNet.TronECKey(ownerKey,TronNet.TronNetwork.MainNet).GetPublicAddress();
@@ -69,6 +72,7 @@ public class TronPermissionRpcTests
         var escrowLock = mode is "escrow-lock" or "escrow-lock-provider";
         var submitted=new System.Collections.Generic.List<ByteString>();
         TransactionExtention Construct(IMessage request,Transaction.Types.Contract.Types.ContractType type){
+            if(mutateWhileWaiting&&request is TriggerSmartContract call)Assert.Equal(ByteString.CopyFrom(contractBytes),call.ContractAddress);
             constructions++;var now=DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();var tx=new Transaction{RawData=new Transaction.Types.raw{Timestamp=now,Expiration=now+60000}};
             if(escrowLock&&constructions==2){Assert.Equal(1,broadcasts);Assert.Equal(1,receiptReads);}
             tx.RawData.Contract.Add(new Transaction.Types.Contract{Type=type,Parameter=Google.Protobuf.WellKnownTypes.Any.Pack(request)});
@@ -140,8 +144,17 @@ public class TronPermissionRpcTests
                 Assert.False(provider.IsProviderActivated);
             }else if(mode == "escrow-lock-provider"){
                 var provider = new TRONOASIS(nativeTransfers:runtime.NativeTransfers,escrowContractAddress:contract);
-                var response = await provider.LockTokenAsync(new Core.Objects.Wallet.Requests.LockWeb3TokenRequest {
-                    FromWalletAddress=owner,FromWalletPrivateKey=key,TokenAddress=contract,EscrowContractAddress=contract });
+                var request=new Core.Objects.Wallet.Requests.LockWeb3TokenRequest {
+                    FromWalletAddress=owner,FromWalletPrivateKey=key,TokenAddress=contract,EscrowContractAddress=contract };
+                NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse> response;
+                if(mutateWhileWaiting){
+                    var gate=(SemaphoreSlim)typeof(TRONOASIS).GetField("_runtimeLifecycle",BindingFlags.Instance|BindingFlags.NonPublic)!.GetValue(provider)!;
+                    await gate.WaitAsync();var released=false;Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>>? pending=null;
+                    try{pending=provider.LockTokenAsync(request);Assert.False(pending.IsCompleted);
+                        request.FromWalletAddress=contract;request.TokenAddress=owner;request.EscrowContractAddress=owner;
+                        gate.Release();released=true;response=await pending;
+                    }finally{if(!released)gate.Release();if(pending!=null)await pending;}
+                }else response=await provider.LockTokenAsync(request);
                 Assert.False(response.IsError,response.Message);
                 Assert.Equal(Convert.ToHexString(id.ToByteArray()).ToLowerInvariant(),response.Result.TransactionResult);
                 Assert.False(provider.IsProviderActivated);
