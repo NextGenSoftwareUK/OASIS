@@ -7,7 +7,7 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
 /// <summary>Explicit reviewed custom-asset contract, not a CW20 or native-bank escrow.</summary>
 public sealed record CosmosTokenEscrowConfiguration(string ContractAddress, string CodeSha256)
 {
-    internal void Validate(string assetContract)
+    public void Validate(string assetContract)
     {
         if (string.IsNullOrWhiteSpace(ContractAddress) || ContractAddress != assetContract
             || CodeSha256?.Length != 64)
