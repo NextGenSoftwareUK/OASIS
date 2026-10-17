@@ -1,6 +1,12 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.UnitTests;
 
@@ -8,7 +14,9 @@ public partial class HederaPreparationTests
 {
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
-    public async Task AdmittedEncryptedStoragePersistsOriginalBeforeControlledSubmission(bool rejectPersistence)
+    [DataRow(false,true,false)] [DataRow(true,true,false)]
+    [DataRow(false,true,true)] [DataRow(true,true,true)]
+    public async Task AdmittedEncryptedStoragePersistsOriginalBeforeControlledSubmission(bool rejectPersistence,bool routed=false,bool synchronous=false)
     {
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -40,19 +48,30 @@ public partial class HederaPreparationTests
                 ContractId="0.0.2001",OperatorAccountId="0.0.1001",SigningKeyType="ecdsa",
                 SigningKeyResolver=()=>new string('0',63)+"1",EncryptionKeyResolver=()=>new byte[32],
                 GasLimit=100000,MaxFeeTinybars=100000000});
-            if(rejectPersistence)await execution.BeginProviderAttemptAsync("HashgraphOASIS",null,"storage.storage.1",deadline.Token);
-            var result=await provider.ExecutePreparedStorageAsync(async()=>{
-                var one=await provider.SaveHolonAsync(new Holon {Id=Guid.NewGuid(),Name="owned secret one"},saveChildren:false);
+            var manager=new ProviderManager(null,new OASISDNA {OASIS=new() {HyperDriveMode=HyperDriveModes.V2,
+                StorageProviders=new(),SubscriptionConfig=new() {PlanType="Gold"}}}) {IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=false};
+            manager.RegisterProvider(provider);var router=new OASISHyperDrive(manager);
+            var admitted=new PreparedStorageExecution(execution,"storage",new Dictionary<ProviderType,string> {{ProviderType.HashgraphOASIS,"0.0.1001"}},Array.Empty<ProviderType>());
+            Task<NextGenSoftware.OASIS.Common.OASISResult<IHolon>> Save(Holon holon){
+                if(!routed)return provider.SaveHolonAsync(holon,saveChildren:false);
+                var request=new StorageOperationRequest {Operation="SaveHolon",Payload=holon,SaveChildren=false,
+                    PreferredProvider=ProviderType.HashgraphOASIS,PreparedExecution=admitted};
+                return synchronous?Task.FromResult(router.RouteRequest<IHolon>(request)):router.RouteRequestAsync<IHolon>(request);
+            }
+            if(rejectPersistence)await execution.BeginProviderAttemptAsync("HashgraphOASIS",null,routed?"storage.route.1.storage.1":"storage.storage.1",deadline.Token);
+            async Task<NextGenSoftware.OASIS.Common.OASISResult<IHolon>> SavePair(){
+                var one=await Save(new Holon {Id=Guid.NewGuid(),Name="owned secret one"});
                 if(one.IsError)return one;
-                return await provider.SaveHolonAsync(new Holon {Id=Guid.NewGuid(),Name="owned secret two"},saveChildren:false);
-            },execution,"storage","0.0.1001",deadline.Token);
+                return await Save(new Holon {Id=Guid.NewGuid(),Name="owned secret two"});
+            }
+            var result=routed?await SavePair():await provider.ExecutePreparedStorageAsync(SavePair,execution,"storage","0.0.1001",deadline.Token);
             Assert.AreEqual(rejectPersistence,result.IsError,result.Message);
             var submissions=File.ReadAllLines(log);
             Assert.AreEqual(rejectPersistence?0:2,submissions.Length);
             var durable=await store.GetAsync(execution.OperationId,deadline.Token);
             Assert.AreEqual(rejectPersistence?1:2,durable.ProviderAttempts.Count);
             if(!rejectPersistence)for(var index=0;index<2;index++){
-                var attempt=durable.ProviderAttempts[index];Assert.AreEqual("storage.storage."+(index+1),attempt.ClientRequestId);
+                var attempt=durable.ProviderAttempts[index];Assert.AreEqual(routed?"storage.route."+(index+1)+".storage.1":"storage.storage."+(index+1),attempt.ClientRequestId);
                 Assert.IsFalse(string.IsNullOrWhiteSpace(attempt.NativePreparation.SignedTransactionBase64));
                 Assert.IsNull(attempt.AcknowledgedAtUtc);
                 using var entry=System.Text.Json.JsonDocument.Parse(submissions[index]);

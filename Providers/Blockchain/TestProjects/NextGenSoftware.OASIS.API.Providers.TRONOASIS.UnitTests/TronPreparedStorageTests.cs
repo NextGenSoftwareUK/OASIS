@@ -5,6 +5,12 @@ using Grpc.Core;
 using TronNet.Protocol;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.DNA;
 using Xunit;
 
 namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
@@ -14,7 +20,9 @@ public class TronPreparedStorageTests
     [Theory]
     [InlineData(false)] [InlineData(true)]
     [InlineData(false,true)]
-    public async Task EncryptedPhysicalWritesPersistBeforeSdkBroadcast(bool rejectPersistence,bool concurrent=false)
+    [InlineData(false,false,true,false)] [InlineData(true,false,true,false)]
+    [InlineData(false,false,true,true)] [InlineData(true,false,true,true)]
+    public async Task EncryptedPhysicalWritesPersistBeforeSdkBroadcast(bool rejectPersistence,bool concurrent=false,bool routed=false,bool synchronous=false)
     {
         const string connection="mongodb://127.0.0.1:27017/?serverSelectionTimeoutMS=3000";
         const string database="usage_tron_prepared_storage_owned";
@@ -78,7 +86,7 @@ public class TronPreparedStorageTests
                     var attempt=Assert.Single(attempts.Where(x=>x.ProviderRequestId==Convert.ToHexString(originalId.ToByteArray()).ToLowerInvariant()));
                     Assert.Equal(Convert.ToBase64String(request.ToByteArray()),attempt.NativePreparation.SignedTransactionBase64);
                     Assert.Null(attempt.AcknowledgedAtUtc);
-                    if(!concurrent)Assert.Equal("storage.storage."+broadcasts,attempt.ClientRequestId);
+                    if(!concurrent)Assert.Equal(routed?"storage.route."+broadcasts+".storage.1":"storage.storage."+broadcasts,attempt.ClientRequestId);
                     Assert.DoesNotContain("owned secret holon",System.Text.Encoding.UTF8.GetString(request.ToByteArray()));
                     return new Return {Result=true};
                 })
@@ -93,12 +101,22 @@ public class TronPreparedStorageTests
             using var storage=new TronPrivateStorageBackend(runtime.NativeTransfers,owner,owner,()=>key,()=>new byte[32]);
             var provider=new TRONOASIS(nativeTransfers:runtime.NativeTransfers,storageBackend:storage);
             Assert.False((await provider.ActivateProviderAsync()).IsError);
-            if(rejectPersistence)await execution.BeginProviderAttemptAsync("TRONOASIS",null,"storage.storage.1",deadline.Token);
+            var manager=new ProviderManager(null,new OASISDNA {OASIS=new() {HyperDriveMode=HyperDriveModes.V2,
+                StorageProviders=new(),SubscriptionConfig=new() {PlanType="Gold"}}}) {IsAutoFailOverEnabled=true,IsAutoReplicationEnabled=false};
+            manager.RegisterProvider(provider);var router=new OASISHyperDrive(manager);
+            var admitted=new PreparedStorageExecution(execution,"storage",new Dictionary<ProviderType,string> {{ProviderType.TRONOASIS,owner}},Array.Empty<ProviderType>());
+            Task<NextGenSoftware.OASIS.Common.OASISResult<IHolon>> Save(Holon holon){
+                if(!routed)return provider.SaveHolonAsync(holon,saveChildren:false);
+                var request=new StorageOperationRequest {Operation="SaveHolon",Payload=holon,SaveChildren=false,
+                    PreferredProvider=ProviderType.TRONOASIS,PreparedExecution=admitted};
+                return synchronous?Task.FromResult(router.RouteRequest<IHolon>(request)):router.RouteRequestAsync<IHolon>(request);
+            }
+            if(rejectPersistence)await execution.BeginProviderAttemptAsync("TRONOASIS",null,routed?"storage.route.1.storage.1":"storage.storage.1",deadline.Token);
             async Task<NextGenSoftware.OASIS.Common.OASISResult<NextGenSoftware.OASIS.API.Core.Interfaces.IHolon>> SavePair(){
-                var one=await provider.SaveHolonAsync(new Holon {Id=Guid.NewGuid(),Name="owned secret holon one"},saveChildren:false);
+                var one=await Save(new Holon {Id=Guid.NewGuid(),Name="owned secret holon one"});
                 if(one.IsError)return one;
                 await Task.Yield();
-                return await provider.SaveHolonAsync(new Holon {Id=Guid.NewGuid(),Name="owned secret holon two"},saveChildren:false);
+                return await Save(new Holon {Id=Guid.NewGuid(),Name="owned secret holon two"});
             }
             if(concurrent){
                 var bothEntered=new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);var entered=0;
@@ -116,8 +134,9 @@ public class TronPreparedStorageTests
                 Assert.Equal(new[]{"right.storage.1","right.storage.2"},right.ProviderAttempts.Select(x=>x.ClientRequestId));
                 Assert.Equal(4,left.ProviderAttempts.Concat(right.ProviderAttempts).Select(x=>x.ProviderRequestId).Distinct().Count());
             }else{
-                var result=await provider.ExecutePreparedStorageAsync(SavePair,execution,"storage",owner,deadline.Token);
+                var result=routed?await SavePair():await provider.ExecutePreparedStorageAsync(SavePair,execution,"storage",owner,deadline.Token);
                 Assert.Equal(rejectPersistence,result.IsError);
+                if(routed&&rejectPersistence)Assert.Equal(PreparedStorageExecution.RejectedCode,result.ErrorCode);
             }
             var expectedBroadcasts=rejectPersistence?0:concurrent?4:2;
             Assert.Equal(expectedBroadcasts,broadcasts);
