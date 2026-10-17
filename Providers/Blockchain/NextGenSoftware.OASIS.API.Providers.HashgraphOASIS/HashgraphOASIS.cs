@@ -398,7 +398,7 @@ public HashgraphTransactionData SendTransaction(HashgraphTransactionData transac
         public async Task<NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus> GetTransactionStatusAsync(string transactionId)
         {
             using var httpClient = new System.Net.Http.HttpClient { Timeout = TimeSpan.FromSeconds(20) };
-            var response = await httpClient.GetAsync($"{_networkUrl.TrimEnd('/')}/api/v1/transactions/{Uri.EscapeDataString(MirrorTransactionId(transactionId))}");
+            using var response = await httpClient.GetAsync($"{_networkUrl.TrimEnd('/')}/api/v1/transactions/{Uri.EscapeDataString(HashgraphOASIS.NativeMirrorTransactionId(transactionId))}?nonce=0&scheduled=false");
             if (response.StatusCode == System.Net.HttpStatusCode.NotFound)
                 return NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus.NotFound;
             response.EnsureSuccessStatusCode();
@@ -408,22 +408,12 @@ public HashgraphTransactionData SendTransaction(HashgraphTransactionData transac
 
         internal static NextGenSoftware.OASIS.API.Core.Managers.Bridge.Enums.BridgeTransactionStatus MapMirrorTransactionStatus(JsonElement body, string transactionId)
         {
-            var transactions = body.GetProperty("transactions");
-            if (transactions.GetArrayLength() != 1)
-                throw new InvalidOperationException("Mirror transaction lookup must return exactly one record.");
-            var record = transactions[0];
-            var expected = MirrorTransactionId(transactionId);
-            if (record.GetProperty("transaction_id").GetString() != expected)
-                throw new InvalidOperationException("Mirror returned a different transaction identity.");
-            return HashgraphOASIS.MapReceiptStatus(record.GetProperty("result").GetString());
-        }
-
-        private static string MirrorTransactionId(string transactionId)
-        {
-            if (string.IsNullOrWhiteSpace(transactionId)) throw new ArgumentException("Hedera transaction ID is required.");
-            var id = transactionId.Replace('@', '-');
-            var separator = id.LastIndexOf('.');
-            return separator > id.LastIndexOf('-') ? id[..separator] + "-" + id[(separator + 1)..] : id;
+            var transactions = HashgraphOASIS.UnscheduledParentMirrorRecords(body, transactionId);
+            var originals = transactions.EnumerateArray()
+                .Where(record => record.GetProperty("result").GetString() != "DUPLICATE_TRANSACTION").ToArray();
+            if (originals.Length != 1)
+                throw new InvalidOperationException("Mirror lookup must establish exactly one original parent outcome.");
+            return HashgraphOASIS.MapReceiptStatus(originals[0].GetProperty("result").GetString());
         }
     }
 

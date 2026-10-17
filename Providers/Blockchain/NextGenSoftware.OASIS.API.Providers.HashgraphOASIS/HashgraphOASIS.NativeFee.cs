@@ -20,7 +20,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             var result = new OASISResult<JsonElement>();
             try
             {
-                var id = NativeFeeMirrorId(transactionId);
+                var id = NativeMirrorTransactionId(transactionId);
                 using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 timeout.CancelAfter(TimeSpan.FromSeconds(20));
                 // An omitted nonce also returns consensus-generated children. This capability
@@ -38,29 +38,36 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             return result;
         }
 
-        private static string NativeFeeMirrorId(string id)
+        internal static string NativeMirrorTransactionId(string id)
         {
-            if (!Regex.IsMatch(id ?? "", @"\A[0-9]+\.[0-9]+\.[0-9]+@[0-9]+\.[0-9]{9}\z"))
+            if (id == null || id.Length > 256 || !Regex.IsMatch(id, @"\A[0-9]+\.[0-9]+\.[0-9]+@[0-9]+\.[0-9]{9}\z"))
                 throw new ArgumentException("An unscheduled native Hedera SDK transaction ID is required.");
             return id.Replace('@', '-').Remove(id.LastIndexOf('.'), 1).Insert(id.LastIndexOf('.'), "-");
         }
 
-        private static JsonElement MapNativeFeeReceipt(JsonElement root, string transactionId, string network)
+        internal static JsonElement UnscheduledParentMirrorRecords(JsonElement root, string transactionId)
         {
-            var id = NativeFeeMirrorId(transactionId);
+            var id = NativeMirrorTransactionId(transactionId);
             var rows = root.GetProperty("transactions");
             if (rows.GetArrayLength() == 0)
-                throw new InvalidOperationException("No indexed fee records are available.");
+                throw new InvalidOperationException("No indexed parent records are available.");
+            foreach (var tx in rows.EnumerateArray())
+                if (tx.GetProperty("transaction_id").GetString() != id || tx.GetProperty("nonce").GetInt64() != 0
+                    || tx.GetProperty("scheduled").GetBoolean()
+                    || tx.GetProperty("parent_consensus_timestamp").ValueKind != JsonValueKind.Null)
+                    throw new InvalidOperationException("Receipt identity is not the requested unscheduled parent transaction.");
+            return rows;
+        }
+
+        private static JsonElement MapNativeFeeReceipt(JsonElement root, string transactionId, string network)
+        {
+            var rows = UnscheduledParentMirrorRecords(root, transactionId);
             var timestamps = new HashSet<string>(StringComparer.Ordinal);
             var records = new List<JsonElement>();
             long total = 0;
             JsonElement? primary = null;
             foreach (var tx in rows.EnumerateArray())
             {
-                if (tx.GetProperty("transaction_id").GetString() != id || tx.GetProperty("nonce").GetInt64() != 0
-                    || tx.GetProperty("scheduled").GetBoolean()
-                    || tx.GetProperty("parent_consensus_timestamp").ValueKind != JsonValueKind.Null)
-                    throw new InvalidOperationException("Receipt identity is not the requested unscheduled parent transaction.");
                 // Ethereum/batch/scheduled execution can have different or multiple fee payers.
                 var operation = tx.GetProperty("name").GetString();
                 if (operation is not ("CRYPTOTRANSFER" or "CONTRACTCREATEINSTANCE" or "CONTRACTCALL"
