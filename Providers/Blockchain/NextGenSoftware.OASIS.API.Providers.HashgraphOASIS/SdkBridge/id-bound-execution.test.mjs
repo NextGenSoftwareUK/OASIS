@@ -7,11 +7,13 @@ import {Interface,getBytes,keccak256} from 'ethers';
 import {execute} from './bridge.mjs';
 import {idBoundEscrowAbi} from './id-bound-escrow.mjs';
 import {verifyPreparedQueryIdentity} from './paid-query-preparation.mjs';
+import {createServer} from 'node:http';
+import {createHash} from 'node:crypto';
+import {createInterface} from 'node:readline';
 
 // Real SDK transport/signatures/preparation against controlled protobuf consensus responses.
 // No native HTS execution, funded network, testnet fee or hosted billing claim.
-for(const mode of ['lock','existing-allowance','release','unassociated','readback','query-rejected','mutation-rejected','approval-unknown','wrong-runtime'])
-test(`id-bound escrow full SDK loopback flow: ${mode}`,{timeout:15000},async t=>{
+async function runFixture(mode,t,serveCSharp=false){
  const key=PrivateKey.generateED25519(),owner='0x'+'12'.repeat(20),spender='0x'+'34'.repeat(20);
  const tokenAddress='0x0000000000000000000000000000000000000bb9';
  const accountID={shardNum:0,realmNum:0,accountNum:1001},contractAccountID={shardNum:0,realmNum:0,accountNum:2001};
@@ -26,7 +28,8 @@ test(`id-bound escrow full SDK loopback flow: ${mode}`,{timeout:15000},async t=>
   transactionId:TransactionId.generate('0.0.1001').toString(),approvalTransactionId:TransactionId.generate('0.0.1001').toString(),
   queryMaxPaymentTinybars:'100',queryMaxTransactionFeeTinybars:'100000000',queryPersistenceTimeoutMs:2000};
  assert.notEqual(request.transactionId,request.approvalTransactionId);
- const originalDeposit=request.depositId,originalMutation=request.transactionId;
+ if(serveCSharp)request.depositId='0x'+createHash('sha256').update('5f31afde12294e998088a0034d33a557').digest('hex');
+ const originalDeposit=request.depositId;let originalMutation=request.transactionId;
  const tokenAbi=new Interface(['function balanceOf(address) view returns(uint256)','function totalSupply() view returns(uint256)',
   'function allowance(address,address) view returns(uint256)']);
  const server=new grpc.Server();
@@ -41,6 +44,13 @@ test(`id-bound escrow full SDK loopback flow: ${mode}`,{timeout:15000},async t=>
   if(header.responseType===proto.ResponseType.ANSWER_ONLY){
    const payment=header.payment,signed=proto.SignedTransaction.decode(payment.signedTransactionBytes),body=proto.TransactionBody.decode(signed.bodyBytes);
    const id=TransactionId.fromBytes(proto.TransactionID.encode(body.transactionID).finish()).toString();
+   if(serveCSharp){
+    // Ordinary public provider does not supply host preparation callbacks: verify observed wire bytes,
+    // never pretend observation was prior durable admission.
+    const bytes=Buffer.from(proto.TransactionList.encode({transactionList:[payment]}).finish());
+    assert.equal(key.publicKey.verifyTransaction(Transaction.fromBytes(bytes)),true);
+    payments.set(id,{signedTransactionBase64:bytes.toString('base64')});
+   }
    const admitted=payments.get(id);assert.ok(admitted,'Actual selected payment must be persisted before transport');
    const retained=proto.TransactionList.decode(Buffer.from(admitted.signedTransactionBase64,'base64')).transactionList[0];
    assert.deepEqual(Buffer.from(retained.signedTransactionBytes),Buffer.from(payment.signedTransactionBytes));answers++;
@@ -74,6 +84,10 @@ test(`id-bound escrow full SDK loopback flow: ${mode}`,{timeout:15000},async t=>
  function submission(transaction,approval){
   const encoded=Buffer.from(proto.TransactionList.encode({transactionList:[transaction]}).finish());
   const native=Transaction.fromBytes(encoded),id=native.transactionId.toString();
+  if(serveCSharp){
+   mutations.set(id,{signedTransactionBase64:encoded.toString('base64')});
+   if(approval)request.approvalTransactionId=id;else{request.transactionId=id;originalMutation=id;}
+  }
   assert.ok(mutations.has(id),'Original mutation must persist before SDK submission');
   assert.equal(key.publicKey.verifyTransaction(native),true);
   assert.equal(native.maxTransactionFee.toTinybars().toString(),'100000000');
@@ -102,6 +116,24 @@ test(`id-bound escrow full SDK loopback flow: ${mode}`,{timeout:15000},async t=>
  const port=await new Promise((resolve,reject)=>server.bindAsync('127.0.0.1:0',grpc.ServerCredentials.createInsecure(),(error,port)=>error?reject(error):resolve(port)));
  request.nodes={['127.0.0.1:'+port]:'0.0.3'};
  try{
+  if(serveCSharp){
+   let mirrorReads=0;
+   const mirror=createServer((incoming,response)=>{
+    if(!incoming.url.endsWith('/accounts/0.0.1001')){response.writeHead(404);response.end();return;}
+    mirrorReads++;response.setHeader('content-type','application/json');response.end(JSON.stringify({account:'0.0.1001',deleted:false,evm_address:owner}));
+   });
+   await new Promise(resolve=>mirror.listen(0,'127.0.0.1',resolve));
+   const lines=createInterface({input:process.stdin});
+   try{
+    // Synthetic fixture key travels only through redirected process stdout to the C# test, never command arguments.
+    process.stdout.write(JSON.stringify({port,mirrorPort:mirror.address().port,privateKey:key.toStringDer(),publicKey:key.publicKey.toStringDer(),runtimeCodeHash:request.runtimeCodeHash})+'\n');
+    const [line]=await new Promise(resolve=>lines.once('line',value=>resolve([value])));
+    assert.equal(line,'stop');assert.equal(mirrorReads,1);assert.equal(submissions,release?1:2);
+    assert.equal(balance,release?1000n:877n);assert.equal(answers,payments.size);
+    process.stdout.write(JSON.stringify({completed:true,submissions,queries:answers,nativeTransactions:submittedIds,prepared:false})+'\n');
+   }finally{lines.close();await new Promise(resolve=>mirror.close(resolve));}
+   return;
+  }
   const operation=execute(release?'tokenEscrowUnlock':'tokenEscrowLock',request,
    async evidence=>{
     if(mode==='mutation-rejected'&&evidence.transactionHash===originalMutation)throw new Error('controlled mutation persistence rejection');
@@ -135,4 +167,11 @@ test(`id-bound escrow full SDK loopback flow: ${mode}`,{timeout:15000},async t=>
   assert.ok(payments.size<=24,'This bounded scenario must not release an unbounded query sequence');
   t.diagnostic(`selected payments=${payments.size}, submitted mutations=${submissions}; fixture debit11tinybars/query, NOT observed native fees`);
  }finally{await new Promise(resolve=>server.tryShutdown(resolve));}
-});
+}
+
+if(process.argv[2]==='--serve-csharp-lock'||process.argv[2]==='--serve-csharp-release'){
+ await runFixture(process.argv[2].endsWith('release')?'release':'lock',{diagnostic(){}},true);
+}else{
+ for(const mode of ['lock','existing-allowance','release','unassociated','readback','query-rejected','mutation-rejected','approval-unknown','wrong-runtime'])
+  test(`id-bound escrow full SDK loopback flow: ${mode}`,{timeout:15000},t=>runFixture(mode,t));
+}
