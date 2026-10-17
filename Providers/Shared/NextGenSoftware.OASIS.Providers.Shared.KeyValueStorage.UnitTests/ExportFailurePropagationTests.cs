@@ -10,6 +10,20 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.UnitTests;
 public class ExportFailurePropagationTests
 {
     [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task AvatarExportRetainsIncompleteCollectionWarning(bool synchronous)
+    {
+        var backend=new InMemoryBackend();var provider=new TestProvider(backend);var owner=Guid.NewGuid();var missing=Guid.NewGuid();var good=Guid.NewGuid();
+        Assert.IsFalse((await provider.SaveHolonAsync(new Holon {Id=good,CreatedByAvatarId=owner,Name="owned available"},saveChildren:false)).IsError);
+        Assert.IsFalse((await provider.SaveHolonAsync(new Holon {Id=missing,CreatedByAvatarId=owner,Name="owned unavailable"},saveChildren:false)).IsError);
+        Assert.IsFalse((await provider.SaveHolonAsync(new Holon {Id=Guid.NewGuid(),CreatedByAvatarId=Guid.NewGuid(),Name="other owner"},saveChildren:false)).IsError);
+        backend.FailGetKey="oasis/holon/"+missing.ToString("N");backend.FailGetException=new System.IO.IOException("owned partial export read");
+        var result=synchronous ? provider.ExportAllDataForAvatarById(owner):await provider.ExportAllDataForAvatarByIdAsync(owner);
+        Assert.IsFalse(result.IsError,result.Message);Assert.IsTrue(result.IsWarning);Assert.AreEqual(good,result.Result.Single().Id);
+        Assert.AreEqual("true",result.MetaData["partialHolonReads"]);Assert.AreEqual("1",result.MetaData["failedHolonReadCount"]);
+        Assert.AreEqual(1,result.LoadedCount);
+    }
+    [DataTestMethod]
     [DataRow(false,false)] [DataRow(true,false)] [DataRow(false,true)] [DataRow(true,true)]
     public async Task ExportSelectorRetainsAbsenceAndCorruption(bool synchronous,bool email)
     {
