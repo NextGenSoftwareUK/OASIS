@@ -45,6 +45,9 @@ public class TronPreparedStorageTests
         var owner=new TronNet.TronECKey(key,TronNet.TronNetwork.MainNet).GetPublicAddress();
         var address=NBitcoin.DataEncoders.Encoders.Base58Check.DecodeData(owner);
         var genesis=new string('a',64);var block=ByteString.CopyFrom(Convert.FromHexString(genesis));
+        NativeFeePriceQuote Price(UsageExecutionHandle handle){var time=DateTime.UtcNow.AddSeconds(-1);return new(Guid.Parse(handle.OperationId),"TRONOASIS",genesis,"SUN","tron",6,1m,
+            "synthetic-offline-price","fixture-v1","fixture-v1",time,time,time,time.AddMinutes(5));}
+        if(!rejectPersistence){execution=execution.WithNativePrices(new[]{Price(execution)});if(other!=null)other=other.WithNativePrices(new[]{Price(other)});}
         var broadcasts=0;var originalId=ByteString.Empty;
         var feeLookups=0;
         var submitted=new System.Collections.Concurrent.ConcurrentDictionary<ByteString,Transaction>();
@@ -89,6 +92,9 @@ public class TronPreparedStorageTests
                     if(other!=null)attempts=attempts.Concat((await store.GetAsync(other.OperationId,deadline.Token)).ProviderAttempts);
                     var attempt=Assert.Single(attempts.Where(x=>x.ProviderRequestId==Convert.ToHexString(originalId.ToByteArray()).ToLowerInvariant()));
                     Assert.Equal(Convert.ToBase64String(request.ToByteArray()),attempt.NativePreparation.SignedTransactionBase64);
+                    var price=Assert.Single(attempt.NativePreparation.PriceQuotes);
+                    Assert.Equal("TRONOASIS",price.Provider);Assert.Equal(genesis,price.ChainId);Assert.Equal("SUN",price.Denomination);
+                    Assert.Equal(Guid.Parse(other!=null&&attempt.ClientRequestId.StartsWith("right.",StringComparison.Ordinal)?other.OperationId:execution.OperationId),price.OperationId);
                     Assert.Null(attempt.AcknowledgedAtUtc);
                     if(!concurrent)Assert.Equal(routed?"storage.route."+broadcasts+".storage.1":"storage.storage."+broadcasts,attempt.ClientRequestId);
                     Assert.DoesNotContain("owned secret holon",System.Text.Encoding.UTF8.GetString(request.ToByteArray()));
