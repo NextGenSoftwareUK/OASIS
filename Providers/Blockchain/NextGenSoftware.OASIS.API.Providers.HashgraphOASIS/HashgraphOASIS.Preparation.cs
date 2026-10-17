@@ -8,8 +8,27 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS;
 
-public partial class HashgraphOASIS
+public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeStorageProvider
 {
+    /// <summary>Own each physical encrypted-storage mutation; does not admit, bill or recover the execution.</summary>
+    public Task<T> ExecutePreparedStorageAsync<T>(Func<Task<T>> operation,UsageExecutionHandle execution,
+        string clientRequestId,string expectedSender,CancellationToken token=default)
+    {
+        token.ThrowIfCancellationRequested();ArgumentNullException.ThrowIfNull(operation);ArgumentNullException.ThrowIfNull(execution);
+        if(string.IsNullOrWhiteSpace(clientRequestId)||clientRequestId.Length>110)
+            throw new ArgumentException("Storage correlation must leave room for bounded write sequence suffix.",nameof(clientRequestId));
+        ArgumentException.ThrowIfNullOrWhiteSpace(expectedSender);
+        var sequence=0;
+        return ((ConfiguredHederaStorageBackend)Backend).WithPreparationAsync(operation,expectedSender,
+            (network,sender,publicKey,id)=>{
+                token.ThrowIfCancellationRequested();
+                if(network!=_hederaNetwork||sender!=expectedSender)
+                    throw new InvalidDataException("Prepared Hedera storage identity differs from admitted network/operator.");
+                return CreateNativePreparationServer(execution,clientRequestId+".storage."+Interlocked.Increment(ref sequence),
+                    network,sender,publicKey,id);
+            },token);
+    }
+
     /// <summary>Read-only original fee recovery. Public key must be independently authorized for the original payer.</summary>
     public async Task<NextGenSoftware.OASIS.Common.OASISResult<JsonElement>> GetPreparedNativeFeeReceiptAsync(
         UsageProviderAttempt attempt,string expectedPublicKey,CancellationToken token=default)
