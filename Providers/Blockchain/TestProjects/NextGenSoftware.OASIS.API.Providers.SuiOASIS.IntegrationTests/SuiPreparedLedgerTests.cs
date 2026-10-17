@@ -1,6 +1,12 @@
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using System.Text.Json;
 using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
+using NextGenSoftware.OASIS.API.Core;
+using NextGenSoftware.OASIS.API.Core.Enums;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
+using NextGenSoftware.OASIS.API.DNA;
 
 namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests;
 
@@ -22,6 +28,10 @@ public class SuiPreparedLedgerTests
         Assert.IsNotNull(directory);
         var journal=Path.Combine(directory!.FullName,"TestResults/SuiCurrent/prepared-live-pending.json");
         var original=File.ReadAllBytes(journal);using var intent=JsonDocument.Parse(original);
+        if(Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(original))=="D5DE1EC760F1E9F7DD19FC1ED66B592AD5CC5917A88A65A918241DAE2CACC354"){
+            await InspectRoutingFixtureAsync(connection,intent.RootElement,archiveFixture,journal,original);
+            if(!archiveFixture)CollectionAssert.AreEqual(original,File.ReadAllBytes(journal));return;
+        }
         Assert.AreEqual("usage_sui_live_prepared",intent.RootElement.GetProperty("database").GetString());
         var store=new MongoUsageOutboxStore(connection,"usage_sui_live_prepared");
         var operation=await store.GetAsync(intent.RootElement.GetProperty("operationId").GetString()!,CancellationToken.None);
@@ -97,6 +107,53 @@ public class SuiPreparedLedgerTests
             File.Delete(journal);
             Console.WriteLine("Reviewed synthetic fixture archived with original signed attempts; exact owned test database/journal retired. No production billing settlement or native submission.");
         }
+    }
+    private static async Task InspectRoutingFixtureAsync(string connection,JsonElement intent,bool cleanup,string journal,byte[] original)
+    {
+        Assert.AreEqual("2c3ae4e5-ef34-fb7c-1711-b7c8beca1fdc",intent.GetProperty("operationId").GetString());
+        var store=new MongoUsageOutboxStore(connection,"usage_sui_live_prepared");
+        var operation=await store.GetAsync(intent.GetProperty("operationId").GetString()!,default);
+        CollectionAssert.AreEqual(new[]{"write.storage.1","write.storage.2","cleanup.storage.1","private-routing.route.1.storage.1"},operation.ProviderAttempts.Select(attempt=>attempt.ClientRequestId).ToArray());
+        using var deployment=JsonDocument.Parse(File.ReadAllText(Environment.GetEnvironmentVariable("OASIS_SUI_TEST_DEPLOYMENT")!));var settings=deployment.RootElement;
+        var rpc=Environment.GetEnvironmentVariable("OASIS_SUI_TEST_RPC")!;Assert.IsTrue(new Uri(rpc).IsLoopback);
+        Assert.AreEqual(intent.GetProperty("chainId").GetString(),settings.GetProperty("chainId").GetString());
+        using var provider=new SuiOASIS(rpc,"localnet",settings.GetProperty("chainId").GetString()!,settings.GetProperty("packageAddress").GetString()!,settings.GetProperty("privateKey").GetString()!,settings.GetProperty("storageObjectId").GetString()!,
+            storageEncryptionKeyResolver:()=>System.Security.Cryptography.SHA256.HashData(System.Text.Encoding.UTF8.GetBytes("oasis-sui-prepared-storage-fixture-v1")));
+        foreach(var attempt in operation.ProviderAttempts){
+            var fee=await provider.GetPreparedNativeFeeReceiptAsync(attempt);Assert.IsFalse(fee.IsError,fee.Message);Assert.IsTrue(fee.Result.GetProperty("success").GetBoolean());
+            Assert.AreEqual(attempt.ProviderRequestId,fee.Result.GetProperty("transactionHash").GetString());
+            Console.WriteLine(JsonSerializer.Serialize(new{attempt.ClientRequestId,attempt.ProviderRequestId,confirmed=true}));
+        }
+        var read=await provider.LoadHolonAsync(intent.GetProperty("privateHolonId").GetGuid(),loadChildren:false);
+        Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual("owned encrypted prepared holon",read.Result.Name);
+        Console.WriteLine(JsonSerializer.Serialize(new {operation.Id,attempts=operation.ProviderAttempts.Count,ownedHolonConfirmed=true,readOnly=true}));
+        if(!cleanup)return;
+        var archive=Path.Combine(Path.GetDirectoryName(journal)!,"prepared-routing-reconciled-original.json");
+        Assert.IsFalse(File.Exists(archive),"Never replace existing reconciliation evidence.");
+        var sdk=typeof(SuiOASIS).GetMethod("InvokeSdkAsync",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance)!;
+        var absent=await (Task<JsonElement>)sdk.Invoke(provider,new object[]{"get",new{key=intent.GetProperty("key").GetString()},CancellationToken.None})!;
+        Assert.AreEqual(JsonValueKind.Null,absent.ValueKind);
+        using var http=new HttpClient(new TestAuthority(operation.UserId));
+        var authority=new Web4SubscriptionAuthorizationClient(http,"https://test-authority.invalid","WEB6","test-key");
+        var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6"})
+            .BeginAsync("test-only",operation.UserId,"reviewed-routing-hard-delete",new string('c',64),"POST /reviewed-local-cleanup",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1});
+        var removed=await provider.ExecutePreparedStorageAsync(()=>provider.DeleteHolonAsync(intent.GetProperty("privateHolonId").GetGuid()),execution,"reviewed-cleanup",settings.GetProperty("address").GetString()!);
+        Assert.IsFalse(removed.IsError,removed.Message);Assert.IsNotNull(removed.Result);
+        var missing=await provider.LoadHolonAsync(intent.GetProperty("privateHolonId").GetGuid(),loadChildren:false);
+        Assert.IsNull(missing.Result);Assert.IsTrue(!missing.IsError||missing.ErrorCode==NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound);
+        var retainedCleanup=await store.GetAsync(execution.OperationId,default);Assert.AreEqual(1,retainedCleanup.ProviderAttempts.Count);
+        var receipt=await provider.GetPreparedNativeFeeReceiptAsync(retainedCleanup.ProviderAttempts.Single());
+        Assert.IsFalse(receipt.IsError,receipt.Message);Assert.IsTrue(receipt.Result.GetProperty("success").GetBoolean());
+        var mongo=new MongoDB.Driver.MongoClient(connection);var database=mongo.GetDatabase("usage_sui_live_prepared");
+        using(var collections=await database.ListCollectionNamesAsync())CollectionAssert.AreEquivalent(new[]{"subscription_usage_outbox_v1"},await MongoDB.Driver.IAsyncCursorExtensions.ToListAsync(collections));
+        Assert.AreEqual(2L,await database.GetCollection<UsageOutboxOperation>("subscription_usage_outbox_v1").CountDocumentsAsync(MongoDB.Driver.FilterDefinition<UsageOutboxOperation>.Empty));
+        using(var file=new FileStream(archive,FileMode.CreateNew,FileAccess.Write,FileShare.None)){
+            await JsonSerializer.SerializeAsync(file,new{intent,operation,cleanup=retainedCleanup,nativeCleanupReceipt=receipt.Result,fixtureAbsent=true,productionBillingReconciled=false});file.Flush(true);
+        }
+        using(var verified=JsonDocument.Parse(File.ReadAllBytes(archive)))Assert.IsTrue(verified.RootElement.GetProperty("fixtureAbsent").GetBoolean());
+        CollectionAssert.AreEqual(original,File.ReadAllBytes(journal));
+        await mongo.DropDatabaseAsync("usage_sui_live_prepared");File.Delete(journal);
+        Console.WriteLine("Exact reviewed routed fixture cleaned with one separately prepared delete; all five originals retained in archive. No replay or production settlement.");
     }
     [TestMethod]
     public async Task ReconcileControlledMintOwnerFixture()
@@ -405,19 +462,33 @@ public class SuiPreparedLedgerTests
             Assert.AreEqual(cleanupHash,cleaned.ProviderAttempts[expectedWrites].ProviderRequestId);
             if(storageScope&&!loseConfirmedReply){
                 var holon=new NextGenSoftware.OASIS.API.Core.Holons.Holon {Id=privateHolonId,Name="owned encrypted prepared holon"};
-                var saved=await provider.ExecutePreparedStorageAsync(()=>provider.SaveHolonAsync(holon),execution,"private-save",
-                    settings.GetProperty("address").GetString()!,deadline.Token);
-                Assert.IsFalse(saved.IsError,saved.Message);
-                var persisted=await store.GetAsync(execution.OperationId,deadline.Token);
-                Assert.IsTrue(persisted.ProviderAttempts.Count>cleaned.ProviderAttempts.Count,"Encrypted public save must persist physical write attempts.");
-                var read=await provider.LoadHolonAsync(privateHolonId,loadChildren:false);
-                Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(holon.Name,read.Result.Name);
-                var removed=await provider.ExecutePreparedStorageAsync(()=>provider.DeleteHolonAsync(privateHolonId),execution,"private-delete",
-                    settings.GetProperty("address").GetString()!,deadline.Token);
-                Assert.IsFalse(removed.IsError,removed.Message);
+                var dna=new OASISDNA {OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {HyperDriveMode=HyperDriveModes.V2,StorageProviders=new StorageProviderSettings()}};
+                dna.OASIS.SubscriptionConfig.PlanType="Gold";
+                var manager=new ProviderManager(null,dna){IsAutoFailOverEnabled=false,IsAutoReplicationEnabled=false,IsAutoLoadBalanceEnabled=false};
+                manager.RegisterProvider(provider);var router=new OASISHyperDrive(manager);
+                var routingPolicy=new PreparedStorageExecution(execution,"private-routing",new Dictionary<ProviderType,string> {
+                    [ProviderType.SuiOASIS]=settings.GetProperty("address").GetString()!},Array.Empty<ProviderType>());
+                var beforePrivate=cleaned.ProviderAttempts.Count;
+                await routingPolicy.RunAsync(async()=>{
+                    var write=new StorageOperationRequest {Operation="SaveHolon",Payload=holon,SaveChildren=false,PreferredProvider=ProviderType.SuiOASIS};
+                    var saved=await router.RouteRequestAsync<IHolon>(write);
+                    Assert.IsFalse(saved.IsError,saved.Message);Assert.AreSame(routingPolicy,write.PreparedExecution);
+                    Assert.IsTrue(provider.IsProviderActivated,"Real activation must complete inside admitted dispatch.");
+                    var persisted=await store.GetAsync(execution.OperationId,deadline.Token);
+                    Assert.IsTrue(persisted.ProviderAttempts.Count>beforePrivate,"Routed encrypted save must retain original physical attempts.");
+                    var typed=new LoadHolonRequest {HolonId=privateHolonId,LoadChildren=false};
+                    foreach(var read in new[]{router.RouteRequestToProvider<IHolon>(typed,ProviderType.SuiOASIS),await router.RouteRequestToProviderAsync<IHolon>(typed,ProviderType.SuiOASIS)}){
+                        Assert.IsFalse(read.IsError,read.Message);Assert.AreEqual(holon.Name,read.Result.Name);
+                    }
+                    var removed=await router.RouteRequestAsync<IHolon>(new StorageOperationRequest {Operation="DeleteHolon",HolonId=privateHolonId,SoftDelete=false,PreferredProvider=ProviderType.SuiOASIS});
+                    Assert.IsFalse(removed.IsError,removed.Message);Assert.IsNotNull(removed.Result);
+                    cleaned=await store.GetAsync(execution.OperationId,deadline.Token);
+                    Assert.IsTrue(cleaned.ProviderAttempts.Count>persisted.ProviderAttempts.Count,"Routed public delete must retain original preparation.");
+                    return true;
+                });
+                Assert.IsNull(PreparedStorageExecution.Current);
                 var missing=await provider.LoadHolonAsync(privateHolonId,loadChildren:false);Assert.IsNull(missing.Result);
-                cleaned=await store.GetAsync(execution.OperationId,deadline.Token);
-                Assert.IsTrue(cleaned.ProviderAttempts.Count>persisted.ProviderAttempts.Count,"Public delete must also be prepared.");
+                Assert.IsTrue(cleaned.ProviderAttempts.Skip(beforePrivate).All(attempt=>attempt.ClientRequestId.StartsWith("private-routing.route.",StringComparison.Ordinal)));
             }
             var lookupOwner=new PreparedNativeUsageRecoveryResolver(store,new[]{(NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader)provider});
             Assert.IsTrue(lookupOwner.CanResolve(cleaned));
