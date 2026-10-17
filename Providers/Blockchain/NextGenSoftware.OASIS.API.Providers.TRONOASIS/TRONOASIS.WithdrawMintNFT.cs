@@ -147,34 +147,37 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             try
             {
                 ArgumentNullException.ThrowIfNull(transaction);
-                if (transaction.Amount != 1) throw new ArgumentException("TRC721 transfer amount must be exactly one.");
-                if (string.IsNullOrWhiteSpace(transaction.TokenAddress) || string.IsNullOrWhiteSpace(transaction.TokenId)
-                    || !System.Text.RegularExpressions.Regex.IsMatch(transaction.TokenId, "\\A[0-9]+\\z")
-                    || !System.Numerics.BigInteger.TryParse(transaction.TokenId, out var tokenId))
+                var amount=transaction.Amount;var tokenAddress=transaction.TokenAddress;var requestedId=transaction.TokenId;
+                var sourceNft=transaction.FromNFTTokenAddress;var sender=transaction.FromWalletAddress;var recipient=transaction.ToWalletAddress;
+                var privateKey=transaction.OwnerPrivateKey;var publicKey=transaction.OwnerPublicKey;var seed=transaction.OwnerSeedPhrase;var memo=transaction.MemoText;
+                if (amount != 1) throw new ArgumentException("TRC721 transfer amount must be exactly one.");
+                if (string.IsNullOrWhiteSpace(tokenAddress) || string.IsNullOrWhiteSpace(requestedId)
+                    || !System.Text.RegularExpressions.Regex.IsMatch(requestedId, "\\A[0-9]+\\z")
+                    || !System.Numerics.BigInteger.TryParse(requestedId, out var tokenId))
                     throw new ArgumentException("An explicit TRC721 contract and unsigned decimal token ID are required.");
-                var selectedAsset = TronNativeTransferClient.ParseNftAddress(transaction.TokenAddress + "/" + transaction.TokenId);
-                if (!string.IsNullOrWhiteSpace(transaction.FromNFTTokenAddress))
+                var selectedAsset = TronNativeTransferClient.ParseNftAddress(tokenAddress + "/" + requestedId);
+                if (!string.IsNullOrWhiteSpace(sourceNft))
                 {
-                    var sourceAsset = TronNativeTransferClient.ParseNftAddress(transaction.FromNFTTokenAddress);
+                    var sourceAsset = TronNativeTransferClient.ParseNftAddress(sourceNft);
                     if (!string.Equals(sourceAsset.Contract, selectedAsset.Contract, StringComparison.Ordinal)
                         || sourceAsset.TokenId != selectedAsset.TokenId)
                         throw new ArgumentException("TRC721 NFT asset identifiers must agree.");
                 }
-                if (string.IsNullOrWhiteSpace(transaction.FromWalletAddress) || string.IsNullOrWhiteSpace(transaction.ToWalletAddress)
-                    || string.IsNullOrWhiteSpace(transaction.OwnerPrivateKey))
+                if (string.IsNullOrWhiteSpace(sender) || string.IsNullOrWhiteSpace(recipient)
+                    || string.IsNullOrWhiteSpace(privateKey))
                     throw new ArgumentException("Sender, recipient and private signing key are required.");
-                if (!string.IsNullOrWhiteSpace(transaction.OwnerSeedPhrase))
+                if (!string.IsNullOrWhiteSpace(seed))
                     throw new ArgumentException("Recover an explicit signing key before sending a TRC721 NFT.");
-                if (!string.IsNullOrWhiteSpace(transaction.OwnerPublicKey))
+                if (!string.IsNullOrWhiteSpace(publicKey))
                 {
-                    var actual = Convert.ToHexString(new EthECKey(transaction.OwnerPrivateKey).GetPubKey());
-                    var supplied = transaction.OwnerPublicKey.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
-                        ? transaction.OwnerPublicKey[2..] : transaction.OwnerPublicKey;
+                    var actual = Convert.ToHexString(new EthECKey(privateKey).GetPubKey());
+                    var supplied = publicKey.StartsWith("0x", StringComparison.OrdinalIgnoreCase)
+                        ? publicKey[2..] : publicKey;
                     if (!string.Equals(actual, supplied, StringComparison.OrdinalIgnoreCase))
                         throw new ArgumentException("NFT signing key does not match the supplied public key.");
                 }
-                var hash = await ExecuteNativeRuntimeAsync(client => client.SendNftAsync(transaction.FromWalletAddress,
-                    transaction.ToWalletAddress, transaction.TokenAddress, tokenId, transaction.OwnerPrivateKey, transaction.MemoText));
+                var hash = await ExecuteNativeRuntimeAsync(client => client.SendNftAsync(sender,
+                    recipient, tokenAddress, tokenId, privateKey, memo));
                 response.Result = new Web3NFTTransactionResponse { TransactionResult = hash, SendNFTTransactionResult = hash };
                 response.Message = "TRC721 safe transfer confirmed by solidified contract receipt.";
             }
