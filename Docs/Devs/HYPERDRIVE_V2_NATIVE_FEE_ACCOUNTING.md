@@ -33,6 +33,8 @@ Native receipt verification is not fiat pricing, billing authorization, or compl
 
 ## Known accounting integration gap
 
+2026-10-16 recovery identity hardening: Cosmos/Sui/Hedera now capture one shared `NativePreparedAttemptSnapshot` before the first verification await. Previously the subsequent receipt lookup re-read mutable `attempt.ProviderRequestId`, allowing the identity to change during verification. The immutable snapshot binds provider/configured chain, original request ID and signing envelope once; existing `UsageNativePreparation.ValidateAndMeasure` remains the canonical envelope validator. Chain-specific signature verification, payer checks and native receipt parsing remain provider-owned. This does not add fiat pricing or settlement. Shared305/305pass1s includes three new snapshot cases; focused Sui recovery3/3pass753ms and Hedera2/2pass2s. Full native/hosted reruns not implied by these focused checks.
+
 Core usage receipts currently validate `ActualCostUsd` as nonnegative. Native Sui evidence can legitimately contain negative net units. Consequently, simply translating each native receipt into the existing positive-only billing receipt would lose rebates or reject valid evidence. The approved policy requires an explicit operation-scoped accounting integration; do not silently clamp each receipt or invent a zero-cost receipt.
 
 The production `IUsageRecoveryResolver` implementation/registration and authoritative valuation source are not yet proven. The settlement worker and test resolvers are not substitutes for those missing production owners. No reservation may be settled from an assumed native outcome or by replaying an uncertain transaction.

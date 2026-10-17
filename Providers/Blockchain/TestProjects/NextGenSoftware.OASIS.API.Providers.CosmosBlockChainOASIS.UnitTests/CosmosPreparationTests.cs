@@ -19,7 +19,7 @@ public class CosmosPreparationTests
             using var provider=new CosmosBlockChainOASIS("http://127.0.0.1:1","fixture-chain");
             var attempt=new UsageProviderAttempt{Provider="CosmosBlockChainOASIS",ProviderRequestId=new string('A',64),NativePreparation=new(){
                 ChainId="fixture-chain",Sender="different-signer",SignedTransactionBase64="AQID",
-                SignDocBase64=foreignPayer?"fixture-verified-foreign-payer":"fixture-verified"}};
+                SignDocBase64=Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(foreignPayer?"fixture-verified-foreign-payer":"fixture-verified"))}};
             var result=await provider.GetPreparedNativeFeeReceiptAsync(attempt);
             Assert.AreEqual(foreignPayer,result.IsError);
             if(foreignPayer){Assert.IsInstanceOfType<InvalidDataException>(result.Exception);Assert.AreEqual(JsonValueKind.Undefined,result.Result.ValueKind);}
