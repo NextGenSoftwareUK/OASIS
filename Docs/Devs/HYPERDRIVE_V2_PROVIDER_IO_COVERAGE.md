@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-17 Cosmos/Sui explicit token escrow preserves original corrupt-wallet OASISResult through shared copy helper and validates wallet AvatarId before existing signer/SDK.8newcorrupt-file sync/async paths plus existing shared tests total48pass4s/0skip; no SDK work on failure, positive encrypted-wallet paths retained. Both producers/integration build0errors. Generic non-custody mint/NFT key helpers' error wrapping remains separately open, as do native/fee/hosted/routing gates. No new wallet/crypto subsystem.
+
 Final Cosmos mint memo regression2026-10-17:165C#pass2m11s/0skip/runnerexit0 plus73offlineJS pass~1.50s, superseding pending entry below. Remaining native-chain/fee/hosted/routing gates open.
 
 2026-10-17 Cosmos MintToken now captures/validates/forwards MemoText through shared strict memo/contract owners; prior omission closed. Sync/async Unicode/caller-mutation plus invalid UTF16 cases actually3red/2pass before fix.2additional real CosmJS offline-signed mint Unicode/empty cases/full73JS pass~1.50s; producer0errors/2warnings, full165C#pending. Controlled transport is not consensus/gas/hosted/routing acceptance.
