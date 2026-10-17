@@ -46,12 +46,16 @@ public partial class SuiOASIS
             var from = byEmail
                 ? await WalletManager.GetAvatarDefaultWalletByEmailAsync(sender, Core.Enums.ProviderType.SuiOASIS, showPrivateKeys: true)
                 : await WalletManager.GetAvatarDefaultWalletByUsernameAsync(sender, showPrivateKeys: true, providerType: Core.Enums.ProviderType.SuiOASIS);
-            if (from.IsError || from.Result == null || string.IsNullOrWhiteSpace(from.Result.PrivateKey))
+            if (from.IsError)
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet, ITransactionResponse>(from);
+            if (from.Result == null || string.IsNullOrWhiteSpace(from.Result.PrivateKey))
                 throw new InvalidOperationException("Could not resolve the sender avatar's Sui signing wallet.");
             var to = byEmail
                 ? await WalletManager.GetAvatarDefaultWalletByEmailAsync(recipient, Core.Enums.ProviderType.SuiOASIS)
                 : await WalletManager.GetAvatarDefaultWalletByUsernameAsync(recipient, providerType: Core.Enums.ProviderType.SuiOASIS);
-            if (to.IsError || to.Result == null)
+            if (to.IsError)
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet, ITransactionResponse>(to);
+            if (to.Result == null)
                 throw new InvalidOperationException("Could not resolve the recipient avatar's Sui wallet.");
             return await SendTokenAsync(new SendWeb3TokenRequest
             {
