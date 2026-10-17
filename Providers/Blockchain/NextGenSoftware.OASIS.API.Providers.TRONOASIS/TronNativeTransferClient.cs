@@ -185,8 +185,8 @@ public sealed partial class TronNativeTransferClient
         if(original.SigningAuthority!=null&&CaptureAuthority(account)!=original.SigningAuthority)
             throw new System.IO.InvalidDataException("Recovery permissions differ from the original admitted TRON authority.");
         var owner=Convert.FromHexString(original.Sender);
-        TronPreparationVerifier.VerifyWithAccountAuthority(original.SignedTransactionBase64,original.ProviderRequestId,
-            owner,_contractFeeLimitSun,account);
+        TronPreparationVerifier.VerifyHistoricalWithAccountAuthority(original.SignedTransactionBase64,original.ProviderRequestId,
+            owner,account);
         var receipt=await ReadNativeFeeReceiptAsync(original.ProviderRequestId,original.SignedTransactionBase64,token);
         if(!CryptographicOperations.FixedTimeEquals(owner,_wallet.ParseAddress(receipt.GetProperty("payer").GetString()).ToByteArray()))
             throw new System.IO.InvalidDataException("TRON fee receipt payer differs from the verified original operation owner.");

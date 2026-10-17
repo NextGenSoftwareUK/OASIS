@@ -1,5 +1,15 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## TRON historical receipt recovery must not apply today's fee ceiling (2026-10-17)
+
+Fee-path audit found `TronNativeTransferClient.GetPreparedNativeFeeReceiptAsync` applying current ContractFeeLimitSun to the already admitted original signed transaction. A deployment lowering the configured limit could therefore block reconciliation of a previously valid original. Read-only recovery is not new spending authorization.
+
+Recovery now calls explicit `TronPreparationVerifier.VerifyHistoricalWithAccountAuthority`, reusing existing VerifyCore with the signed protocol field's structural range rather than today's configured cap. All canonical signed bytes/digest/window/operation owner/signature/permission checks remain; retained original authority must still match the independently supplied account snapshot, network receipt and original signed payload. It does NOT look up current account permissions as historical authority. Admission continues to call VerifyWithAccountAuthority with the configured ceiling before preparation/broadcast; no admission check was widened. No second signing/client/receipt engine or retry fallback.
+
+Four positive rows in existing seven-row storage matrix failed before fix with exact signed-fee-exceeds-ceiling error; three pre-existing rejection rows passed. New assertions construct a read-only client with ceiling1SUN using the SAME wallet/transaction clients, reject the original signed higher FeeLimit under NEW admission verification, and successfully recover the original fee17SUN through BOTH retained-authority and independently supplied original-authority overloads. Counters verify no new broadcast or current-permission query. Existing wrong-account/hash/changed-signature rejections remain. Final full387/387pass3s/0skip/runnerexit0; source count unchanged (assertions added, not four new test cases).
+
+This proves controlled real-SDK protobuf/signature/gRPC/outbox recovery, not live TVM consensus, real resource charging or hosted settlement. TRON Contract FeeLimit is not asserted to bound all possible bandwidth/other resource charges; whole-operation reservation still needs separate proof. Old unresolved native journal remains untouched; this fix cannot reconstruct its lost original bytes/expiry and does not authorize replay. Current ceilings govern future effects, while actual historical receipts and original bound price govern recovery.
+
 ## Configured C# ceiling reaches production SDK executor (2026-10-17)
 
 Two new Sui tests extend the previously separate C# configuration and SDK guard proofs across the real process boundary. `SuiOASIS.CreateWithNativeFeeLimits` -> existing private provider SDK invocation -> actual SuiSdkClient stdin serialization -> controlled child -> retained official Transaction/Ed25519 SDK modules -> PRODUCTION withNativeMutationEvidence/execute functions. The child asserts the exact cap arrived from C#; it does not reimplement gas checking or signing. SDK modules are resolved from the existing production bridge dependency tree (same MJS entries), no additional install/copy/client engine.
