@@ -13,6 +13,22 @@ public class SharedSearchContractTests
 {
     [DataTestMethod]
     [DataRow(false)] [DataRow(true)]
+    public async Task SearchExcludesTombstonesWithoutExcludingInactiveRecords(bool synchronous)
+    {
+        var provider=new TestProvider(new InMemoryBackend());var avatar=new Avatar {Id=Guid.NewGuid(),Username="ownedvisibility-live",IsActive=false};
+        var deleted=new Avatar {Id=Guid.NewGuid(),Username="ownedvisibility-deleted",IsActive=true};
+        Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);Assert.IsFalse((await provider.SaveAvatarAsync(deleted)).IsError);
+        Assert.IsFalse((await provider.DeleteAvatarAsync(deleted.Id,true)).IsError);
+        var holon=new Holon {Id=Guid.NewGuid(),Name="ownedvisibility-live",IsActive=false};
+        Assert.IsFalse((await provider.SaveHolonAsync(holon,saveChildren:false)).IsError);
+        Assert.IsFalse((await provider.SaveHolonAsync(new Holon {Id=Guid.NewGuid(),Name="ownedvisibility-deleted",DeletedDate=DateTime.UtcNow,IsActive=false},saveChildren:false)).IsError);
+        var query=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new List<ISearchGroupBase> {new SearchTextGroup {HolonType=HolonType.All,SearchQuery="ownedvisibility"}}};
+        var found=synchronous ? provider.Search(query,loadChildren:false):await provider.SearchAsync(query,loadChildren:false);
+        Assert.IsFalse(found.IsError,found.Message);Assert.AreEqual(2,found.Result.NumberOfResults);
+        Assert.AreEqual(avatar.Id,found.Result.SearchResultAvatars[0].Id);Assert.AreEqual(holon.Id,found.Result.SearchResultHolons[0].Id);
+    }
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
     public async Task ExplicitRootVersionUsesCurrentIndependentParentVersions(bool synchronous)
     {
         var provider=new TestProvider(new InMemoryBackend());var grandparent=Guid.NewGuid();var parent=Guid.NewGuid();var child=Guid.NewGuid();

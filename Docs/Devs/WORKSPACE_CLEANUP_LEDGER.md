@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-16 search tombstone visibility reused shared outputs/in-memory backend. Two baseline failures retained in search-tombstone-before-current.trx; finalShared266/266pass1s. No stored data/history cleanup or runtime/node/download/install/clone/environment/protected ledger/source/userdata/credential removal; fixed compact reports reused.
+
 2026-10-16 root-Version search acceptance reused shared outputs/in-memory backend; Shared264/264pass1s, no new runtime/download/install/clone/environment or ledger/source/userdata/credential removal. Fixed compact report overwritten in place; no generated disk fixture needed.
 
 2026-10-16 search validation classification reused shared outputs/in-memory backend. Two baseline failures retained in search-validation-before-current.trx; finalShared262/262pass1s. Zero backend list calls for invalid cases. No runtime/node/download/install/clone/new environment or protected ledger/source/userdata/credential removal; fixed compact reports reused.

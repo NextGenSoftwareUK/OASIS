@@ -817,8 +817,8 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                     if(current.IsError)return Fail<ISearchResults>(current.Message,current.Exception,current.ErrorCode);
                     ancestry=current.Result.ToList();
                 }
-                results.SearchResultAvatars.AddRange(avatars.Where(row=>StoredRecordSearch.Matches(row,true,searchParams,ancestry)));
-                if(searchHolons)results.SearchResultHolons.AddRange(holons.Where(row=>StoredRecordSearch.Matches(row,false,searchParams,ancestry)));
+                results.SearchResultAvatars.AddRange(avatars.Where(row=>row.DeletedDate==DateTime.MinValue && StoredRecordSearch.Matches(row,true,searchParams,ancestry)));
+                if(searchHolons)results.SearchResultHolons.AddRange(holons.Where(row=>row.DeletedDate==DateTime.MinValue && StoredRecordSearch.Matches(row,false,searchParams,ancestry)));
                 results.NumberOfResults = results.SearchResultAvatars.Count + results.SearchResultHolons.Count;
                 var result=Ok<ISearchResults>(results);
                 if(partialCollection!=null){result.IsWarning=true;result.Message=partialCollection.Message;result.MetaData=partialCollection.MetaData;}
