@@ -1,9 +1,22 @@
-param([ValidateSet('Verify','InspectPending')][string]$Mode = 'Verify')
+param([ValidateSet('Verify','InspectPending','IndependentPrepared','IndependentInspect','IndependentReconcile')][string]$Mode = 'Verify')
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
 $fixtureRoot = Join-Path $taskRoot 'TestResults/HyperDriveCosmos'
 if ($Mode -eq 'Verify' -and (Test-Path -LiteralPath (Join-Path $fixtureRoot 'replication-pending.json'))) {
     throw 'Existing Cosmos replication intent requires reconciliation; refusing replay.'
+}
+if($Mode -eq 'IndependentPrepared'){
+    if((Get-FileHash -LiteralPath (Join-Path $fixtureRoot 'replication-pending.json') -Algorithm SHA256).Hash -ne '9B5A15110B0F21FEF8FCA6D2CE215859EEBC8944E9F1F83733CACE90892DEA81'){throw 'Original intent changed; re-review isolation before native testing.'}
+    if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'prepared-native-pending.json')){throw 'Independent original-attempt journal requires reconciliation; no rerun allowed.'}
+}
+if($Mode -in @('IndependentPrepared','IndependentReconcile')){
+    if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'prepared-native-cleanup-pending.json')){throw 'An original cleanup is pending; inspect without replay.'}
+    $nativeProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests.csproj'
+    foreach($project in @('Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj',$nativeProject)){
+        & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+        if($LASTEXITCODE -ne 0){throw 'Independent Cosmos current source build failed.'}
+    }
+    & (Join-Path $PSScriptRoot 'Use-ReusableHederaOutputDependencies.ps1') -Provider Cosmos -OutputBridge 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests/bin/Debug/net10.0/CosmosSdkBridge'
 }
 $containerId = (& wsl -d Ubuntu -u root -- podman inspect oasis-wasmd --format '{{.Id}}').Trim()
 if ($LASTEXITCODE -ne 0 -or $containerId -ne '58a873de020d2f79ab11e7087361db25063c277a5b5a5c2cabba72263b35f8f3') { throw 'Retained Cosmos container identity mismatch.' }
@@ -53,10 +66,21 @@ try {
         & node (Join-Path $PSScriptRoot 'inspect-cosmos-pending-transactions.mjs')
         if ($LASTEXITCODE -ne 0) { throw 'Read-only Cosmos native transaction inspection failed; pending intent preserved.' }
     }
+    if($Mode -eq 'IndependentInspect'){
+        & node (Join-Path $PSScriptRoot 'inspect-cosmos-independent-prepared.mjs')
+        if($LASTEXITCODE -ne 0){throw 'Independent original inspection failed; preserve evidence.'}
+    }elseif($Mode -eq 'IndependentReconcile'){
+        & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CosmosPreparedOwners -CosmosNative -CosmosReconcile
+        if($LASTEXITCODE -ne 0){throw 'Original independent reconciliation failed; no retry permitted.'}
+    }elseif($Mode -eq 'IndependentPrepared'){
+        & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CosmosPreparedOwners -CosmosNative
+        if($LASTEXITCODE -ne 0){throw 'Independent Cosmos native verification failed; preserve its original journal.'}
+    }else{
     $method = if ($Mode -eq 'InspectPending') { 'InspectPendingCosmosV2IntentWithoutMutations' } else { 'V2ReplicatesToCosmosAndSelectsFromMeasuredRealProviderReads' }
     $reportName = if ($Mode -eq 'InspectPending') { 'cosmos-pending-inspection-current.trx' } else { 'cosmos-retained-v2-current.trx' }
     & dotnet test (Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj') --no-build --no-restore --filter "FullyQualifiedName~IntegrationTests.CosmosRealProviderRoutingTests.$method" --logger "trx;LogFileName=$reportName" --results-directory $fixtureRoot -v:q
     if ($LASTEXITCODE -ne 0) { throw 'Real Cosmos V2 regression failed; preserve pending intent and inspect TRX.' }
+    }
 }
 catch { $failures.Add($_.Exception) }
 finally {
