@@ -183,7 +183,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                             sb.AppendLine();
 
                             sb.AppendLine($"    function create{holonTypeName}(string memory id, string memory name, string memory description) public {{");
-                            sb.AppendLine($"        {holonTypeName.ToCamelCase()}s[id] = {holonTypeName}(id, name, description);");
+                            NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.SolidityHolonSource.AppendInitialization(sb,$"{holonTypeName.ToCamelCase()}s[id]");
                             sb.AppendLine($"        {holonTypeName.ToCamelCase()}Ids.push(id);");
                             sb.AppendLine($"    }}");
                             sb.AppendLine();
