@@ -18,6 +18,10 @@ public static class TronPreparationVerifier
         ArgumentNullException.ThrowIfNull(verifiedAccount);
         VerifyCore(signedTransactionBase64,expectedTransactionId,expectedOwner,maximumFeeLimitSun,verifiedAccount);
     }
+    /// <summary>Read-only verification of an already prepared original. Current execution limits must
+    /// not retroactively prevent receipt recovery; this does not authorize a new submission.</summary>
+    public static void VerifyHistoricalWithAccountAuthority(string signedTransactionBase64,string expectedTransactionId,byte[] expectedOwner,Account verifiedOriginalAccount)
+        =>VerifyWithAccountAuthority(signedTransactionBase64,expectedTransactionId,expectedOwner,long.MaxValue,verifiedOriginalAccount);
     private static void VerifyCore(string signedTransactionBase64,string expectedTransactionId,byte[] expectedSender,long maximumFeeLimitSun,Account verifiedAccount)
     {
         if(maximumFeeLimitSun<0)throw new ArgumentOutOfRangeException(nameof(maximumFeeLimitSun));
