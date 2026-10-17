@@ -1,4 +1,5 @@
 #Requires -Version 7.0
+param([switch]$ReconcileTimeoutFixtures)
 $ErrorActionPreference='Stop'
 $taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $taskRoot 'TestResults/Neo4jCurrent'
@@ -35,13 +36,16 @@ try {
     $env:OASIS_OWNED_NEO4J_URI='bolt://127.0.0.1:17687'
     $env:OASIS_OWNED_NEO4J_WORK=$work
     $testStarted=[DateTime]::UtcNow
-    & dotnet test $project --no-build --no-restore /m:2 /nr:false --filter FullyQualifiedName~Neo4jNativeAvatarTests --logger 'trx;LogFileName=neo4j-native-current.trx' --results-directory $work -v:q
+    $filter=if($ReconcileTimeoutFixtures){'FullyQualifiedName~Neo4jTimeoutFixtureReconciliation'}else{'FullyQualifiedName~Neo4jNativeAvatarTests'}
+    $reportName=if($ReconcileTimeoutFixtures){'neo4j-timeout-reconciliation-current.trx'}else{'neo4j-native-current.trx'}
+    & dotnet test $project --no-build --no-restore /m:2 /nr:false --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
     if($LASTEXITCODE){throw 'Native Neo4j test failed; preserve database for inspection.'}
-    $report=Get-Item -LiteralPath (Join-Path $work 'neo4j-native-current.trx')
+    $report=Get-Item -LiteralPath (Join-Path $work $reportName)
     if($report.LastWriteTimeUtc -lt $testStarted){throw 'Native Neo4j report is stale.'}
     [xml]$evidence=Get-Content -LiteralPath $report.FullName
     $counts=$evidence.SelectSingleNode("//*[local-name()='Counters']")
-    if(!$counts -or [int]$counts.total -ne 62 -or [int]$counts.passed -ne 62 -or [int]$counts.notExecuted -ne 0){throw 'Exactly sixty-two fresh native cases including credential selectors and V2 nearby routing, no skips, required.'}
+    $expectedCount=if($ReconcileTimeoutFixtures){1}else{63}
+    if(!$counts -or [int]$counts.total -ne $expectedCount -or [int]$counts.passed -ne $expectedCount -or [int]$counts.notExecuted -ne 0){throw 'Exact fresh native case count, including timeout classification, with no skips required.'}
     Write-Output "Free bytes before=$freeBefore after=$((Get-PSDrive C).Free)"
 } finally {
     try {
