@@ -2,6 +2,8 @@
 
 ## Authoritative provider snapshot — audited 2026-10-16
 
+Hedera prepared generic encrypted storage now implemented: explicit execution-local backend/preparation server per physical write, official SDK configured-key public identity/original-ID binding and persistence-before-submission. Full49/49pass32s includes2new controlled-submission/realSDK-signature/realMongo cases; no fake live-consensus claim. Supersedes absent implementation note; native fee-limited consensus, actual contract ABI, concurrent scopes/restart/hosted admission/settlement still open. No public testnet mutation or new environment.
+
 TRON313/313pass2s now includes overlapping SAME-provider execution scopes: two independently admitted Mongo operations/two encrypted writes each, exact separate left/right correlations and4distinct original IDs with bytes durable at controlled SDK broadcast. No native/restart/hosted claim. Hedera generic storage ownership remains implementation gap: prepared native APIs exist, but storage backend still uses ordinary InvokeAsync and no IPreparedNativeStorageProvider composition.
 
 TRON prepared encrypted-storage composition implemented via existing interface/runtime/account-authority verifier. Execution-local view, shared SDK channels/resolvers, unique physical attempt correlations, persistence-before-broadcast. FullTRON312pass2s;2new controlled-gRPC+real-Mongo cases verify exact bytes durable before broadcast/rejected persistence0broadcasts/unchanged ordinary callback/scope restoration/nested rejection/cancel. Supersedes missing implementation below, not live native/hosted/restart/concurrent-scope or settlement certification. Pending native fence retained.

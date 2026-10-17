@@ -25,28 +25,46 @@ public sealed class HederaStorageConfiguration
 internal sealed class ConfiguredHederaStorageBackend : IKeyValueBackend, IDisposable
 {
     private readonly Lazy<PrivateKeyValueBackend> _backend;
+    private readonly AsyncLocal<PrivateKeyValueBackend> _executionBackend=new();
+    private readonly Func<Func<string,string,string,string,PreparedSubmissionServer>,PrivateKeyValueBackend> _createBackend;
+    private readonly string _sender;
     private bool _disposed;
 
     internal ConfiguredHederaStorageBackend(string network, IDictionary<string, string> nodes, HederaStorageConfiguration configuration)
     {
         var copiedNodes = nodes == null ? null : new Dictionary<string, string>(nodes);
-        _backend = new Lazy<PrivateKeyValueBackend>(() => {
+        _sender=configuration?.OperatorAccountId;
+        _createBackend = preparation => {
             if (configuration == null)
                 throw new InvalidOperationException("Hedera storage requires an explicit contract, operator, signing key, encryption key and fee configuration.");
             var inner = new HederaStorageBackend(network, configuration.ContractId, configuration.OperatorAccountId,
                 configuration.SigningKeyType, configuration.SigningKeyResolver, configuration.GasLimit,
-                configuration.MaxFeeTinybars, copiedNodes);
+                configuration.MaxFeeTinybars, copiedNodes,preparation);
             var key = configuration.EncryptionKeyResolver?.Invoke();
             try { return new PrivateKeyValueBackend(inner, key); }
             finally { if (key != null) CryptographicOperations.ZeroMemory(key); }
-        });
+        };
+        _backend=new Lazy<PrivateKeyValueBackend>(()=>_createBackend(null));
+    }
+
+    internal async Task<T> WithPreparationAsync<T>(Func<Task<T>> operation,string expectedSender,
+        Func<string,string,string,string,PreparedSubmissionServer> preparation,CancellationToken token)
+    {
+        token.ThrowIfCancellationRequested();ObjectDisposedException.ThrowIf(_disposed,this);
+        if(string.IsNullOrWhiteSpace(_sender)||expectedSender!=_sender)
+            throw new InvalidOperationException("Admitted Hedera storage sender must match the configured operator.");
+        if(_executionBackend.Value!=null)throw new InvalidOperationException("Nested Hedera storage execution owners are not permitted.");
+        using var view=_createBackend(preparation);
+        _executionBackend.Value=view;
+        try {return await operation();}
+        finally {_executionBackend.Value=null;}
     }
 
     private PrivateKeyValueBackend Resolve(CancellationToken cancellationToken)
     {
         cancellationToken.ThrowIfCancellationRequested();
         ObjectDisposedException.ThrowIf(_disposed, this);
-        return _backend.Value;
+        return _executionBackend.Value ?? _backend.Value;
     }
 
     public Task<string> GetAsync(string key, CancellationToken cancellationToken = default) => Resolve(cancellationToken).GetAsync(key, cancellationToken);
