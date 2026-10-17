@@ -5,6 +5,9 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public class NativeCodeGenesisTests
 {
+    [Fact]
+    public void GeneratedSchemaWithAdditionalFieldsCompiles()
+        =>NativeCodeGenesisContract.VerifySchema((body,path)=>new TRONOASIS().NativeCodeGenesis(body,path,""));
     [Theory]
     [InlineData(null,false)] [InlineData("",false)] [InlineData("  ",false)]
     [InlineData("// 🌳\npragma solidity ^0.8.0; contract SourceFixture {}",true)]
