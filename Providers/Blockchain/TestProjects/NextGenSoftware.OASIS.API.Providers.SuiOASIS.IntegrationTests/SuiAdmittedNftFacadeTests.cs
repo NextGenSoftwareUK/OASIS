@@ -21,7 +21,10 @@ public class SuiAdmittedNftFacadeTests
     [TestMethod]
     public async Task AdmittedCSharpNftBatchReturnsDistinctObjectsAndCleansEachOwner()
         =>await RunNativeFacade(false,2);
-    private async Task RunNativeFacade(bool token,int nftCount=1)
+    [TestMethod]
+    public async Task AdmittedCSharpOffChainNftKeepsMetadataOutOfNativeObject()
+        =>await RunNativeFacade(false,1,true);
+    private async Task RunNativeFacade(bool token,int nftCount=1,bool offChain=false)
     {
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -65,20 +68,35 @@ public class SuiAdmittedNftFacadeTests
             async Task<string> NftScenario(){
             var minted=await Owned(owner,ownerAddress,"mint",()=>owner.MintNFTAsync(new MintWeb3NFTRequest {
                 Title="Admitted CSharp oak 🌳",Description="Retained local native facade fixture",NumberToMint=nftCount,
-                NFTStandardType=Core.Enums.NFTStandardType.SuiObject,StoreNFTMetaDataOnChain=true,
+                NFTStandardType=Core.Enums.NFTStandardType.SuiObject,StoreNFTMetaDataOnChain=!offChain,
+                JSONMetaDataURL=offChain?"ipfs://bafy-test-owned-metadata/manifest.json":null,
                 MetaData=new Dictionary<string,string>{{"park","owned native facade"}},Price=12.5m,RoyaltyPercentage=7,
                 SendToAddressAfterMinting=ownerAddress}));
             var objects=minted.Result.Web3NFTs.ToList();Assert.AreEqual(nftCount,objects.Count);
             Assert.AreEqual(nftCount,objects.Select(x=>x.Id).Distinct().Count());
             Assert.AreEqual(nftCount,objects.Select(x=>x.NFTTokenAddress).Distinct().Count());
             Assert.AreEqual(objects[0].Id,minted.Result.Web3NFT.Id);
+            Assert.AreEqual("Admitted CSharp oak 🌳",minted.Result.Web3NFT.Title,"Mint response must retain original caller metadata.");
             for(var index=0;index<objects.Count;index++){
             var nft=objects[index];Assert.IsFalse(string.IsNullOrWhiteSpace(nft.NFTTokenAddress));
             string Stage(string value)=>nftCount==1?value:value+"-"+index;
             Record(new {tokenId=nft.NFTTokenAddress,metadataId=nft.Id});
             var read=await owner.LoadOnChainNFTDataAsync(nft.NFTTokenAddress);Assert.IsFalse(read.IsError,read.Message);
-            Assert.AreEqual("Admitted CSharp oak 🌳",read.Result.Title);Assert.AreEqual("owned native facade",read.Result.MetaData["park"]);
-            Assert.AreEqual(12.5m,read.Result.Price);Assert.AreEqual(700u,read.Result.SellerFeeBasisPoints);
+            if(offChain){
+                Assert.IsFalse(read.Result.StoreNFTMetaDataOnChain);
+                Assert.AreEqual("ipfs://bafy-test-owned-metadata/manifest.json",read.Result.JSONMetaDataURL);
+                Assert.IsTrue(string.IsNullOrEmpty(read.Result.Title));Assert.AreEqual(0m,read.Result.Price);
+                Assert.IsFalse(read.Result.MetaData?.ContainsKey("park")==true);
+                var invoke=typeof(SuiOASIS).GetMethod("InvokeSdkAsync",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+                var raw=await (Task<JsonElement>)invoke.Invoke(owner,new object[]{"nftGet",new {tokenId=nft.NFTTokenAddress},deadline.Token})!;
+                var metadata=raw.GetProperty("metadata").GetString()!;
+                Assert.IsFalse(metadata.Contains("owned native facade",StringComparison.Ordinal));
+                Assert.IsFalse(metadata.Contains("Admitted CSharp oak",StringComparison.Ordinal));
+                Record(new {stage="off-chain-projection-verified",tokenId=nft.NFTTokenAddress});
+            }else{
+                Assert.AreEqual("Admitted CSharp oak 🌳",read.Result.Title);Assert.AreEqual("owned native facade",read.Result.MetaData["park"]);
+                Assert.AreEqual(12.5m,read.Result.Price);Assert.AreEqual(700u,read.Result.SellerFeeBasisPoints);
+            }
             async Task RejectNonOwner(SuiOASIS signer,string address,string expectedOwner,string stage){
                 var before=(await store.GetAsync(execution.OperationId,deadline.Token)).ProviderAttempts.Count;
                 Record(new {stage,state="before-authorization-check"});
