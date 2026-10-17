@@ -3,6 +3,7 @@ $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
 $fixtureRoot = Join-Path $taskRoot 'TestResults/HyperDriveSui'
 $deploymentPath = '\\wsl.localhost\Ubuntu\var\tmp\oasis-sui\deployment.json'
+if(Test-Path -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/prepared-http-native-pending.jsonl')){throw 'Pending HTTP native Sui ownership requires original reconciliation; do not replay.'}
 if (!(Test-Path -LiteralPath $deploymentPath)) { throw 'Retained protected Sui deployment is unavailable; no copy or new wallet created.' }
 if ($Mode -notin @('ArchiveReplication','ArchiveWalletSearch') -and (Test-Path -LiteralPath (Join-Path $fixtureRoot 'encrypted-replication-pending.json'))) { throw 'Pending Sui ownership intent requires reconciliation before another run.' }
 if ($Mode -notin @('InspectPrepared','ArchivePrepared') -and (Test-Path -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/prepared-live-pending.json'))) { throw 'Pending prepared Sui ownership requires reconciliation before another run.' }
