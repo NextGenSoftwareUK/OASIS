@@ -300,8 +300,8 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
 
                 if (fromWalletResult.IsError || toWalletResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, "Failed to get wallet addresses for avatars");
-                    return result;
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IProviderWallet, ITransactionResponse>(
+                        fromWalletResult.IsError ? fromWalletResult : toWalletResult);
                 }
 
                 var fromAddress = fromWalletResult.Result?.WalletAddress;
