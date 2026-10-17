@@ -1,6 +1,8 @@
 using Moq;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.API.Core.Managers;
+using NextGenSoftware.Utilities;
 using NextGenSoftware.OASIS.API.Core.Services.Subscriptions;
 using NextGenSoftware.OASIS.API.DNA;
 using NextGenSoftware.OASIS.API.ONODE.WebAPI.Helpers;
@@ -13,6 +15,24 @@ public class AdmittedStorageManagerAcquisitionTests
         new Web4UsageLedgerOptions(),new SubscriptionAuthorizationResult(),Mock.Of<IUsageReservationAuthority>()),
         "acquisition",new Dictionary<ProviderType,string>(),Array.Empty<ProviderType>());
     private static OASISDNA Dna()=>new(){OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS {HyperDriveMode=HyperDriveModes.V2}};
+
+    [Fact]
+    public async Task RealKeyManagerAndNestedManagersDoNotActivateDuringAdmittedAcquisition()
+    {
+        var dna=Dna();var providers=new ProviderManager(null,dna);
+        var storage=new Mock<IOASISStorageProvider>(MockBehavior.Strict);
+        storage.SetupGet(p=>p.ProviderType).Returns(new EnumValue<ProviderType>(ProviderType.HashgraphOASIS));
+        storage.SetupAdd(p=>p.OnStorageProviderError+=It.IsAny<NextGenSoftware.OASIS.API.Core.Events.EventDelegates.StorageProviderError>());
+        await Policy().RunAsync(()=>{
+            Assert.True(AdmittedStorageManagerAcquisition.TryCreate(()=>dna,()=>storage.Object,
+                (selected,configuration)=>new KeyManager(selected,configuration,providers),out KeyManager manager));
+            Assert.Same(dna,manager.OASISDNA);
+            Assert.Same(storage.Object,providers.GetStorageProvider(ProviderType.HashgraphOASIS));
+            return Task.FromResult(0);
+        });
+        storage.Verify(p=>p.ActivateProvider(),Times.Never);
+        storage.Verify(p=>p.ActivateProviderAsync(),Times.Never);
+    }
 
     [Fact]
     public void OrdinaryAcquisitionNeverEvaluatesAdmittedCallbacks()
