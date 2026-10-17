@@ -114,12 +114,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             {
                 ArgumentNullException.ThrowIfNull(request);
                 if (string.IsNullOrWhiteSpace(request.WalletAddress)) throw new ArgumentException("Wallet address is required.");
-                if (!IsProviderActivated)
-                {
-                    var activation = await ActivateProviderAsync();
-                    if (activation.IsError) throw new InvalidOperationException(activation.Message);
-                }
-                result.Result = await ExecuteRuntimeAsync(async client =>
+                result.Result = await ExecuteReadOnlyRuntimeAsync(async client =>
                 {
                     var history = await new TronGridTokenHistoryClient(_httpClient, client.ExpectedGenesisBlockId)
                         .ReadNativeAsync(request.WalletAddress, DateTimeOffset.UtcNow.ToUnixTimeMilliseconds());
