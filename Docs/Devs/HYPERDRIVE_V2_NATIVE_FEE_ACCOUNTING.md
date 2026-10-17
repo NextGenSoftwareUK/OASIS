@@ -1,5 +1,15 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Concrete priced storage composition — 2026-10-17
+
+Core `bf5fac1` provides `PricedStorageAdmissionFactory`, an implementation of the existing admission interface. A host explicitly supplies provider types, exact chain identifiers, public signer identities, fee denominations and permitted ordinary providers, plus the existing `NativeFeePriceQuoteFactory`. Construction snapshots bounded configuration and rejects duplicate/overlapping providers and malformed identities/denominations. No private key is supplied to this component. Request JSON cannot choose or replace these bindings.
+
+Native bindings require the existing reservation to carry `MaximumNativeFeeCostUsd` (including an explicit zero budget); otherwise admission fails before fetching prices. Quotes use the shared approved catalogue/source/window logic, bind to the same operation and derive a priced handle sharing the same admission. Existing preparation callbacks still own signature/maximum verification and durable before-broadcast admission; this factory never activates providers, signs, submits, reserves again or settles. Original source/mapping errors and cancellation propagate. It grants no automatic sponsorship or permission to use a particular chain.
+
+Nine new controlled tests cover HTTP budget refusal/zero-budget composition, copied configuration, invalid bindings and mapping errors before endpoint execution. They use real TestServer/owned Mongo with controlled authentication/authority/quotes and **no actual provider execution**. These tests do not certify fees or funded consensus.
+
+Still required: approved deployment-specific bindings and quote sources/windows; explicit route selection and DI/Startup registration after authentication/usage admission; complete recovery reader registration; real authenticated HTTP/native-provider/original-fee/restart delivery acceptance; all seven immutable pinned host publishes and hosted verification. No Startup registration or Railway variable change was made by this component commit. Existing statements that no concrete factory existed are historical; production registration remains OPEN.
+
 2026-10-17 Cosmos routing matrix now additionally proves120real matching-record reads/strategy distribution/Free eligibility checks cause no additional signed native mutation attempts or exposure. Ordinary LocalFile read attempts remain accounted separately.4cases pass1m1s; subsequent read-only current-source stopped-node failover/ante-fee inspection passes8s. Pricing remains synthetic and lookup remains AnteDeductionOnly; these reads do not fabricate settlements or charge expected maxima. Exact evidence and remaining scope are in current release gates.
 
 ## Cosmos real routed primary/replica admission — 2026-10-17
