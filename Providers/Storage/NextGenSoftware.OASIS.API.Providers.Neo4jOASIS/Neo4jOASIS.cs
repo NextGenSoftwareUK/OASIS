@@ -19,8 +19,11 @@ using System.Runtime.CompilerServices;
 
 namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS
 {
-    public partial class Neo4jOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider
+    public partial class Neo4jOASIS : OASISStorageProviderBase, IOASISDBStorageProvider, IOASISNETProvider, IProviderTransportFailureClassifier
     {
+        // Native operations do not pass caller cancellation tokens to the driver. Its typed
+        // ServiceUnavailableException owns nested connect-deadline cancellations; a raw OCE does not.
+        public bool IsProviderTransportFailure(Exception failure)=>failure is ServiceUnavailableException;
         public string Host { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
