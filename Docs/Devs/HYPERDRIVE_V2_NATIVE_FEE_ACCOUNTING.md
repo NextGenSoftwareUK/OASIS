@@ -1,5 +1,7 @@
 # HyperDrive V2 native-chain fees and recovery
 
+2026-10-17 host acquisition follow-through: Keys/EOSIO/Holochain storage KeyManager construction now uses existing admitted helper, so default storage activation (potentially paid for native providers) is not performed by BootLoader before routing ownership. Real nested-manager strict-provider test asserts0activation; compiled controllers reject invalid admission DNA. Combined441routing/acquisition tests pass1s, WEB4build0errors. This closes these three lazy storage acquisition paths only; direct EOSIO client activation/native actions and concrete production host admission factory/aggregate worst-case reservation/receipt resolver registration are not claimed. No native fees incurred or sponsorship enabled.
+
 2026-10-17 configured Cosmos child acceptance: C#provider map stake5/6 reaches actual child unchanged. Retained official SDK signs fee3+tip3; production guard rejects5 before any preparation or broadcast, accepts6 once and verifies original signature/hash. Focused12/12pass617ms; full177/177pass2m12s/0skip/runnerexit0 (hashes in release gates). Controlled transport, no RPC/chain; this closes local C#child wiring only. Signing occurs before fee inspection by design; no claim of pre-sign rejection. Public prepared-facade, native consensus, aggregate operation reservation, quote/host factory registration and hosted settlement remain gates. No production behavior/live configuration changed.
 
 ## Cosmos declared transaction ceilings (2026-10-17)

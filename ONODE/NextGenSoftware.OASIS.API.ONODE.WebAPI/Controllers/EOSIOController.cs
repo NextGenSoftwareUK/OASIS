@@ -43,6 +43,14 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
             {
                 if (_keyManager == null)
                 {
+                    if(AdmittedStorageManagerAcquisition.TryCreate(
+                        ()=>OASISBootLoader.OASISBootLoader.OASISDNA,
+                        ()=>ProviderManager.Instance.CurrentStorageProvider,
+                        (provider,dna)=>new KeyManager(provider,dna),out KeyManager admitted))
+                    {
+                        _keyManager=admitted;
+                        return _keyManager;
+                    }
                     OASISResult<IOASISStorageProvider> result = Task.Run(OASISBootLoader.OASISBootLoader.GetAndActivateDefaultStorageProviderAsync).Result;
 
                     if (result.IsError)
