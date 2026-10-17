@@ -50,6 +50,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
+                var query = new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordLocationQuery(geoLat, geoLong, radiusInMeters);
                 if (!IsProviderActivated)
                 {
                     var activateResult = ActivateProvider();
@@ -63,27 +64,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 var allAvatarsResult = LoadAllAvatars();
                 if (allAvatarsResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {allAvatarsResult.Message}");
-                    return result;
+                    return allAvatarsResult;
                 }
-
-                var nearby = new List<IAvatar>();
-                foreach (var avatar in allAvatarsResult.Result)
-                {
-                    var meta = avatar.MetaData;
-                    if (meta != null && meta.ContainsKey("Latitude") && meta.ContainsKey("Longitude"))
-                    {
-                        if (double.TryParse(meta["Latitude"]?.ToString(), out double aLat) &&
-                            double.TryParse(meta["Longitude"]?.ToString(), out double aLong))
-                        {
-                            double distance = GeoHelper.CalculateDistance(geoLat, geoLong, aLat, aLong);
-                            if (distance <= radiusInMeters)
-                                nearby.Add(avatar);
-                        }
-                    }
-                }
-
+                var nearby = query.Select(allAvatarsResult.Result, avatar => avatar.IsActive && !avatar.IsDeleted);
                 result.Result = nearby;
+                result.IsLoaded = true;
                 result.Message = $"Retrieved {nearby.Count} avatars within {radiusInMeters}m";
             }
             catch (Exception ex)
@@ -98,6 +83,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                var query = new NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.StoredRecordLocationQuery(geoLat, geoLong, radiusInMeters);
+                if (!Enum.IsDefined(typeof(HolonType), Type)) throw new ArgumentOutOfRangeException(nameof(Type));
                 if (!IsProviderActivated)
                 {
                     var activateResult = ActivateProvider();
@@ -111,27 +98,12 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 var allHolonsResult = LoadAllHolons(Type);
                 if (allHolonsResult.IsError)
                 {
-                    OASISErrorHandling.HandleError(ref result, $"Error loading holons: {allHolonsResult.Message}");
-                    return result;
+                    return allHolonsResult;
                 }
-
-                var nearby = new List<IHolon>();
-                foreach (var holon in allHolonsResult.Result)
-                {
-                    var meta = holon.MetaData;
-                    if (meta != null && meta.ContainsKey("Latitude") && meta.ContainsKey("Longitude"))
-                    {
-                        if (double.TryParse(meta["Latitude"]?.ToString(), out double hLat) &&
-                            double.TryParse(meta["Longitude"]?.ToString(), out double hLong))
-                        {
-                            double distance = GeoHelper.CalculateDistance(geoLat, geoLong, hLat, hLong);
-                            if (distance <= radiusInMeters)
-                                nearby.Add(holon);
-                        }
-                    }
-                }
-
+                var nearby = query.Select(allHolonsResult.Result,
+                    holon => holon.IsActive && !holon.IsDeleted && (Type == HolonType.All || holon.HolonType == Type));
                 result.Result = nearby;
+                result.IsLoaded = true;
                 result.Message = $"Retrieved {nearby.Count} holons within {radiusInMeters}m";
             }
             catch (Exception ex)
