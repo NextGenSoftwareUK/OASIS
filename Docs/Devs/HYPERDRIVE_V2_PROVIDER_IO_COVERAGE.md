@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-17 Sui SDK tokenEscrowCreate explicit bootstrap verifies unique original Created shared-object effects/type/version and same empty protocol1registry readback/previous digest. Shared registry reader reused; no lock fallback/new signing engine.10newcontrolled cases/full57JS pass~460ms,6C#preparation tests pass151ms with create classified native; output/source hashes match and producer0errors/2warnings. No actual creation/live-consensus/paid fee/host authorization or C#convenience endpoint acceptance claimed. Remaining live escrow/full routing gates open.
+
 2026-10-17 Hedera mint/burn4positive sync/async intent-mutation cases exercise gated real encrypted stored-wallet lookup then existing controlled Node transport. Original actor/token/amount/recipient/memo/signer unaffected; stored key encrypted/provider inactive.42combined tests pass4s/0skip, final consumer0errors/40warnings, fixture syntax pass. This is C#intent boundary proof, not actual HTS signing/consensus/paid fees. No production source changes/full113rerun claimed this checkpoint; broader live gates unchanged.
 
 Final Hedera token wallet propagation regression2026-10-17:113fullunit pass59s/0skip/runnerexit0 plus final-source38targeted wallet pass4s, consumer0errors/2warnings. Supersedes pending/pre-final entries; positive intent mutation/native consensus/funding and broad routing gates remain unproven.

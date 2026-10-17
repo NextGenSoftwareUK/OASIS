@@ -7,7 +7,7 @@ import {normalizeSuiAddress,toBase58} from '@mysten/sui/utils';
 import {Transaction,Inputs} from '@mysten/sui/transactions';
 import {verifyTransactionSignature} from '@mysten/sui/verify';
 import {execute,withNativeMutationEvidence,sdkErrorEnvelope} from './bridge.mjs';
-import {Escrow,Deposit,readTokenDeposit,executeTokenEscrow} from './token-escrow.mjs';
+import {Escrow,Deposit,readTokenDeposit,executeTokenEscrow,createTokenEscrow} from './token-escrow.mjs';
 
 const address=n=>normalizeSuiAddress('0x'+n);
 const key=Ed25519Keypair.fromSecretKey(new Uint8Array(32).fill(7));
@@ -132,3 +132,34 @@ for(const locking of [false,true])for(const mode of ['success','reject-preparati
   });
   assert.equal(submissions,mode==='reject-preparation'?0:1);assert.equal(f.count(),submissions);
  });
+
+for(const mode of ['valid','duplicate','not-created','foreign-effects','foreign-readback','version','nonempty','missing-version','shared-version'])
+ test('explicit registry creation verifies unique original effects and empty readback: '+mode,async()=>{
+  let submits=0;
+  const digest='controlled-creation';
+  const client={getObject:async args=>{
+   assert.equal(args.objectId,base.escrowObjectId);
+   return {object:{objectId:base.escrowObjectId,type:`${base.packageAddress}::token_escrow::Escrow`,
+    owner:{$kind:'Shared',Shared:{initialSharedVersion:'1'}},version:mode==='version'?'2':'1',
+    previousTransaction:mode==='foreign-readback'?'foreign':digest,
+    content:Escrow.serialize({id:base.escrowObjectId,protocol:'1',deposits:{id:address('3'),size:mode==='nonempty'?'1':'0'}}).toBytes()}};
+  }};
+  const nativeExecute=async(_client,tx,signer,include)=>{
+   submits++;assert.equal(signer.toSuiAddress(),key.toSuiAddress());assert.deepEqual(include,{objectTypes:true});
+   const data=tx.getData();assert.equal(data.commands.length,1);
+   assert.equal(data.commands[0].MoveCall.module,'token_escrow');assert.equal(data.commands[0].MoveCall.function,'create');
+   assert.deepEqual(data.commands[0].MoveCall.arguments,[]);
+   const changed={objectId:base.escrowObjectId,outputState:'ObjectWrite',idOperation:mode==='not-created'?'None':'Created',
+    outputVersion:mode==='missing-version'?undefined:'1',outputOwner:{Shared:{initialSharedVersion:mode==='shared-version'?'2':'1'}}};
+   return {digest,effects:{transactionDigest:mode==='foreign-effects'?'foreign':digest,
+    changedObjects:mode==='duplicate'?[changed,changed]:[changed]},
+    objectTypes:{[base.escrowObjectId]:`${base.packageAddress}::token_escrow::Escrow`}};
+  };
+  const operation=createTokenEscrow(client,{packageAddress:base.packageAddress,privateKey:base.privateKey},nativeExecute);
+  if(mode==='valid')assert.deepEqual(await operation,{transactionHash:digest,escrowObjectId:base.escrowObjectId,creator:key.toSuiAddress(),protocol:1});
+  else await assert.rejects(operation);
+  assert.equal(submits,1);
+ });
+test('explicit creation never replaces an already selected registry',async()=>{
+ await assert.rejects(createTokenEscrow({},base,()=>assert.fail('No creation allowed')),/cannot replace/);
+});
