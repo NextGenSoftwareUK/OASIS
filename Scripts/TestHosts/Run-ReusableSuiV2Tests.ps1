@@ -106,8 +106,15 @@ try {
         & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -SuiPreparedLedger -SuiCSharpNft:($Mode -in @('CSharpNFT','CSharpAssets')) -SuiCSharpAssets:($Mode -eq 'CSharpAssets') -SuiCSharpEscrow:($Mode -eq 'CSharpEscrow')
     }else{
         $method = if ($Mode -eq 'ArchiveReplication') {'ArchiveExactSearchValidationFixtureAfterReadback'} elseif ($Mode -eq 'ArchiveWalletSearch') {'ArchiveExactWalletSearchFixtureAfterReadback'} elseif ($Mode -eq 'Healthy') { 'V2ReplicatesToSuiAndSelectsFromMeasuredRealProviderReads' } else { 'V2FailsOverToRealStoreAfterSuiFailure' }
+        $testStarted=[DateTime]::UtcNow
         & dotnet test $project --no-build --no-restore --filter "FullyQualifiedName~IntegrationTests.SuiRealProviderRoutingTests.$method" --logger "trx;LogFileName=sui-retained-v2-$($Mode.ToLowerInvariant())-current.trx" --results-directory $fixtureRoot -v:q
         if ($LASTEXITCODE -ne 0) { throw 'Current real Sui V2 verification failed; preserve ownership journal.' }
+        $report=Get-Item -LiteralPath (Join-Path $fixtureRoot "sui-retained-v2-$($Mode.ToLowerInvariant())-current.trx")
+        if($report.LastWriteTimeUtc -lt $testStarted){throw 'Sui native routing report is stale.'}
+        [xml]$evidence=Get-Content -LiteralPath $report.FullName -Raw
+        $counts=$evidence.TestRun.ResultSummary.Counters
+        $expectedCount=if($Mode -eq 'Outage'){2}else{1}
+        if([int]$counts.total -ne $expectedCount -or [int]$counts.passed -ne $expectedCount -or [int]$counts.notExecuted -ne 0){throw 'Every selected Sui native routing test must actually execute and pass.'}
     }
 } finally {
     foreach ($name in $names) { [Environment]::SetEnvironmentVariable($name,$prior[$name],'Process') }
