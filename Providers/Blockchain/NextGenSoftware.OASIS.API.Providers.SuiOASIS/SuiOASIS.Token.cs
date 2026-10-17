@@ -83,25 +83,32 @@ public partial class SuiOASIS
 
     public async Task<OASISResult<ITransactionResponse>> SendTokenAsync(ISendWeb3TokenRequest request)
     {
-        if (request?.FromTokenAddress == "0x2::sui::SUI")
-        {
-            var result = new OASISResult<ITransactionResponse>();
-            try
-            {
-                var key = await TokenSigningKeyAsync(key: request.OwnerPrivateKey, seed: request.OwnerSeedPhrase, publicKey: request.OwnerPublicKey);
-                return await SendSuiAsync(request.FromWalletAddress, request.ToWalletAddress, request.Amount, key, request.MemoText);
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); return result; }
-        }
-        return await TokenCallAsync("tokenSend", async () =>
+        var result = new OASISResult<ITransactionResponse>();
+        try
         {
             ArgumentNullException.ThrowIfNull(request);
-            ValidateCoinType(request.FromTokenAddress);
-            if (!string.IsNullOrEmpty(request.MemoText)) throw new ArgumentException("Sui coin transactions have no memo field.");
-            var amountUnits = TokenUnits(request.Amount);
-            return new { privateKey = await TokenSigningKeyAsync(key: request.OwnerPrivateKey, seed: request.OwnerSeedPhrase, publicKey: request.OwnerPublicKey),
-                fromWalletAddress = request.FromWalletAddress, recipient = request.ToWalletAddress, amountUnits };
-        });
+            // Capture the complete caller intent before any signer process or wallet await.
+            var tokenAddress = request.FromTokenAddress;
+            var sender = request.FromWalletAddress;
+            var recipient = request.ToWalletAddress;
+            var amount = request.Amount;
+            var memo = request.MemoText;
+            var privateKey = request.OwnerPrivateKey;
+            var seed = request.OwnerSeedPhrase;
+            var publicKey = request.OwnerPublicKey;
+            var native = tokenAddress == "0x2::sui::SUI";
+            if (!native) ValidateCoinType(tokenAddress);
+            if (!string.IsNullOrEmpty(memo)) throw new ArgumentException("Sui coin transactions have no memo field.");
+            var amountUnits = TokenUnits(amount);
+            var key = await TokenSigningKeyAsync(key: privateKey, seed: seed, publicKey: publicKey);
+            if (native)
+            {
+                return await SendSuiAsync(sender, recipient, amount, key, memo);
+            }
+            return await TokenCallAsync("tokenSend", () => Task.FromResult<object>(new {
+                privateKey = key, fromWalletAddress = sender, recipient, amountUnits }));
+        }
+        catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); return result; }
     }
 
     public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
