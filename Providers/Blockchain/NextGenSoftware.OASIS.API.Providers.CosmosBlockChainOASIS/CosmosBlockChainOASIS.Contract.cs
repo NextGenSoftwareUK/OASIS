@@ -12,6 +12,15 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
 
 public partial class CosmosBlockChainOASIS
 {
+    private async Task<OASISResult<Core.Interfaces.IProviderWallet>> LoadSigningWalletAsync(Guid avatarId)
+    {
+        var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(avatarId,
+            Core.Enums.ProviderType.CosmosBlockChainOASIS, showPrivateKeys: true);
+        if (!wallet.IsError && (wallet.Result == null || wallet.Result.AvatarId != avatarId || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey)))
+            throw new InvalidOperationException("Exact requesting avatar signing wallet is required.");
+        return wallet;
+    }
+
     private async Task<string> SigningKeyAsync(Guid avatarId, string suppliedKey = null, string suppliedSeed = null, string suppliedPublicKey = null)
     {
         if (!string.IsNullOrWhiteSpace(suppliedKey) && !string.IsNullOrWhiteSpace(suppliedSeed) && suppliedKey != suppliedSeed)

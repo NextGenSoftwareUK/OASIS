@@ -77,7 +77,15 @@ public partial class CosmosBlockChainOASIS
             var memo = NativeWalletMemo.FromText(request.MemoText).Text;
             // Serialize caller-owned collections before signer recovery can yield.
             var metadata = JsonSerializer.Serialize(new { request.Title, request.Description, request.MetaData, request.Tags, request.MintedByAvatarId });
-            var key = await SigningKeyAsync(actor);
+            string suppliedKey = null;
+            if (actor != Guid.Empty)
+            {
+                var wallet = await LoadSigningWalletAsync(actor);
+                if (wallet.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet,ITransactionResponse>(wallet);
+                suppliedKey = wallet.Result.PrivateKey;
+            }
+            var key = await SigningKeyAsync(actor, suppliedKey);
             var issuer = await SignerAddressAsync(key);
             var hash = await ExecuteAssetAsync(new { token_mint = new
             {
@@ -101,7 +109,18 @@ public partial class CosmosBlockChainOASIS
                 throw new ArgumentException("Token identity is required.");
             var symbol = request.TokenAddress;
             var amount = AssetUnits(request.Amount);
-            var key = await SigningKeyAsync(request.BurntByAvatarId, request.OwnerPrivateKey, request.OwnerSeedPhrase, request.OwnerPublicKey);
+            var actor = request.BurntByAvatarId;
+            var suppliedKey = request.OwnerPrivateKey;
+            var seed = request.OwnerSeedPhrase;
+            var publicKey = request.OwnerPublicKey;
+            if (actor != Guid.Empty && string.IsNullOrWhiteSpace(suppliedKey) && string.IsNullOrWhiteSpace(seed))
+            {
+                var wallet = await LoadSigningWalletAsync(actor);
+                if (wallet.IsError)
+                    return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet,ITransactionResponse>(wallet);
+                suppliedKey = wallet.Result.PrivateKey;
+            }
+            var key = await SigningKeyAsync(actor, suppliedKey, seed, publicKey);
             var hash = await ExecuteAssetAsync(new { token_burn = new { symbol, amount } }, key);
             result.Result = new TransactionResponse { TransactionResult = hash };
             result.Message = "Requested amount burned and on-chain supply reduced.";

@@ -34,11 +34,9 @@ public partial class CosmosBlockChainOASIS
             var id = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(lockId.ToString("N")))).ToLowerInvariant();
             if (string.IsNullOrWhiteSpace(suppliedKey))
             {
-                var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(actor, Core.Enums.ProviderType.CosmosBlockChainOASIS, showPrivateKeys: true);
+                var wallet = await LoadSigningWalletAsync(actor);
                 if (wallet.IsError)
                     return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<Core.Interfaces.IProviderWallet, ITransactionResponse>(wallet);
-                if (wallet.Result == null || wallet.Result.AvatarId != actor || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
-                    throw new InvalidOperationException("Exact requesting avatar signing wallet is required.");
                 suppliedKey = wallet.Result.PrivateKey;
             }
             var key = await SigningKeyAsync(actor, suppliedKey);

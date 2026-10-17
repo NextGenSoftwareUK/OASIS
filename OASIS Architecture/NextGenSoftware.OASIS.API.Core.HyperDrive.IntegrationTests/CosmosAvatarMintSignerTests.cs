@@ -116,7 +116,8 @@ public sealed class CosmosAvatarMintSignerTests
             var absent=new MintWeb3TokenRequest { Symbol = "fixture-token", Amount = 1, MintedByAvatarId = Guid.NewGuid() };
             var missing = synchronous ? cosmos.MintToken(absent):await cosmos.MintTokenAsync(absent);
             missing.IsError.Should().BeTrue(); missing.Result.Should().BeNull();
-            missing.Message.Should().Contain("sender wallet could not be loaded");
+            missing.Message.Should().Be("Exact requesting avatar signing wallet is required.");
+            missing.Exception.Should().BeOfType<InvalidOperationException>();
             }
             if (escrow) File.Delete(state);
         }

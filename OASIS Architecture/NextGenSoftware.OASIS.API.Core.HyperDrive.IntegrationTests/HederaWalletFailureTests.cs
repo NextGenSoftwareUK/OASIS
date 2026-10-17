@@ -31,6 +31,8 @@ public sealed class HederaWalletFailureTests
     [InlineData(false,"cosmos-escrow-release",false)] [InlineData(true,"cosmos-escrow-release",false)]
     [InlineData(false,"mint",false)] [InlineData(true,"mint",false)]
     [InlineData(false,"burn",false)] [InlineData(true,"burn",false)]
+    [InlineData(false,"cosmos-mint",false)] [InlineData(true,"cosmos-mint",false)]
+    [InlineData(false,"cosmos-burn",false)] [InlineData(true,"cosmos-burn",false)]
     [InlineData(false,"escrow-create",true)] [InlineData(true,"escrow-create",true)]
     public async Task CorruptStoredSigningWalletRetainsOriginalFailureBeforeSdkUse(bool synchronous, string selector, bool sui)
     {
@@ -102,13 +104,15 @@ public sealed class HederaWalletFailureTests
             }
             async Task<NextGenSoftware.OASIS.Common.OASISResult<Core.Interfaces.Wallet.Responses.ITransactionResponse>> Token(){
                 if(selector=="mint"){
-                    var mint=new Core.Objects.Wallet.Requests.MintWeb3TokenRequest { MintedByAvatarId=sender,Amount=1,
+                    var mint=new Core.Objects.Wallet.Requests.MintWeb3TokenRequest { MintedByAvatarId=sender,Amount=1,Symbol=cosmos?"TREE":"HTS",
                         MetaData=new(){{"TokenAddress","0.0.3001"}} };
-                    return synchronous?hedera.MintToken(mint):await hedera.MintTokenAsync(mint);
+                    return cosmos?synchronous?cosmosProvider.MintToken(mint):await cosmosProvider.MintTokenAsync(mint)
+                        :synchronous?hedera.MintToken(mint):await hedera.MintTokenAsync(mint);
                 }
-                var burn=new Core.Objects.Wallet.Requests.BurnWeb3TokenRequest { BurntByAvatarId=sender,Amount=1,TokenAddress="0.0.3001",
+                var burn=new Core.Objects.Wallet.Requests.BurnWeb3TokenRequest { BurntByAvatarId=sender,Amount=1,TokenAddress=cosmos?"TREE":"0.0.3001",
                     OwnerSeedPhrase="",OwnerPrivateKey="",OwnerPublicKey="" };
-                return synchronous?hedera.BurnToken(burn):await hedera.BurnTokenAsync(burn);
+                return cosmos?synchronous?cosmosProvider.BurnToken(burn):await cosmosProvider.BurnTokenAsync(burn)
+                    :synchronous?hedera.BurnToken(burn):await hedera.BurnTokenAsync(burn);
             }
             var result = selector is "mint" or "burn"?await Token():selector.StartsWith("escrow-",StringComparison.Ordinal)?await Escrow():sui
                 ? selector == "username"
