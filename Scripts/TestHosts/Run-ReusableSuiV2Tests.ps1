@@ -1,4 +1,4 @@
-param([ValidateSet('Healthy','Outage','Prepared','Fee','NFT','Token','Assets','InspectPrepared','ArchivePrepared','ArchiveReplication','CSharpNFT')][string]$Mode = 'Healthy')
+param([ValidateSet('Healthy','Outage','Prepared','Fee','NFT','Token','Assets','InspectPrepared','ArchivePrepared','ArchiveReplication','CSharpNFT','CSharpAssets')][string]$Mode = 'Healthy')
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
 $fixtureRoot = Join-Path $taskRoot 'TestResults/HyperDriveSui'
@@ -9,15 +9,16 @@ if ($Mode -notin @('InspectPrepared','ArchivePrepared') -and (Test-Path -Literal
 if (Test-Path -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/nft-live-pending.jsonl')) { throw 'Pending NFT ownership requires reconciliation before another run.' }
 if (Test-Path -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/token-live-pending.jsonl')) { throw 'Pending token ownership requires reconciliation before another run.' }
 if (Test-Path -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/csharp-nft-live-pending.jsonl')) { throw 'Pending CSharp NFT ownership requires original-attempt reconciliation before another run.' }
+if (Test-Path -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/csharp-token-live-pending.jsonl')) { throw 'Pending CSharp token ownership requires original-attempt reconciliation before another run.' }
 & wsl -d Ubuntu -u root -- test -f /var/tmp/oasis-sui/network/network.yaml
 if ($LASTEXITCODE -ne 0) { throw 'Existing Sui ledger configuration missing; refusing genesis creation.' }
 & wsl -d Ubuntu -u root -- pgrep -x sui *> $null
 if ($LASTEXITCODE -eq 0) { throw 'Existing Sui runtime is in use; refusing to take ownership.' }
 $project = Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
-if($Mode -in @('Prepared','Fee','InspectPrepared','ArchivePrepared','CSharpNFT')){$project=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests.csproj'}
+if($Mode -in @('Prepared','Fee','InspectPrepared','ArchivePrepared','CSharpNFT','CSharpAssets')){$project=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests.csproj'}
 & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
 if ($LASTEXITCODE -ne 0) { throw 'Current V2 integration consumer build failed.' }
-$outputBridge=if($Mode -in @('Prepared','Fee','InspectPrepared','ArchivePrepared','CSharpNFT')){'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/bin/Debug/net10.0/SuiSdkBridge'}else{'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/bin/Debug/net10.0/SuiSdkBridge'}
+$outputBridge=if($Mode -in @('Prepared','Fee','InspectPrepared','ArchivePrepared','CSharpNFT','CSharpAssets')){'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/bin/Debug/net10.0/SuiSdkBridge'}else{'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/bin/Debug/net10.0/SuiSdkBridge'}
 & (Join-Path $PSScriptRoot 'Use-ReusableHederaOutputDependencies.ps1') -Provider Sui -OutputBridge $outputBridge
 $names = @('OASIS_SUI_TEST_RPC','OASIS_SUI_TEST_DEPLOYMENT','OASIS_SUI_TEST_OWNED_PID','OASIS_SUI_TEST_STOP_SCRIPT','OASIS_HYPERDRIVE_TEST_ROOT','OASIS_SUI_SDK_BRIDGE','OASIS_SUI_SUCCESSFUL_FEE_RECEIPT','OASIS_SUI_TEST_NFT_JOURNAL','OASIS_SUI_TEST_FAUCET','OASIS_SUI_TEST_TOKEN_JOURNAL')
 $prior = @{}
@@ -92,9 +93,9 @@ try {
     }elseif($Mode -in @('InspectPrepared','ArchivePrepared')){
         $env:OASIS_SUI_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/bridge.mjs'
         & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -SuiPreparedInspect -ArchiveSuiPrepared:($Mode -eq 'ArchivePrepared')
-    }elseif($Mode -in @('Prepared','CSharpNFT')){
+    }elseif($Mode -in @('Prepared','CSharpNFT','CSharpAssets')){
         $env:OASIS_SUI_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/bridge.mjs'
-        & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -SuiPreparedLedger -SuiCSharpNft:($Mode -eq 'CSharpNFT')
+        & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -SuiPreparedLedger -SuiCSharpNft:($Mode -in @('CSharpNFT','CSharpAssets')) -SuiCSharpAssets:($Mode -eq 'CSharpAssets')
     }else{
         $method = if ($Mode -eq 'ArchiveReplication') {'ArchiveExactSearchValidationFixtureAfterReadback'} elseif ($Mode -eq 'Healthy') { 'V2ReplicatesToSuiAndSelectsFromMeasuredRealProviderReads' } else { 'V2FailsOverToRealStoreAfterSuiFailure' }
         & dotnet test $project --no-build --no-restore --filter "FullyQualifiedName~IntegrationTests.SuiRealProviderRoutingTests.$method" --logger "trx;LogFileName=sui-retained-v2-$($Mode.ToLowerInvariant())-current.trx" --results-directory $fixtureRoot -v:q
