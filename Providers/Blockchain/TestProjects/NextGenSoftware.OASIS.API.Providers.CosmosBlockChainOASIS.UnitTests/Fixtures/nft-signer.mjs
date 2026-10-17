@@ -47,6 +47,21 @@ else if(request.operation==='verifyNftCustodyReceipt'){
  else if(request.transactionHash==='b'.repeat(64))result={verified:true,transactionHash:'a'.repeat(64)};
  else error='Source custody transfer not found';
 }
+else if(request.operation==='tokenEscrowInfo')result={contractAddress:request.targetContractAddress,codeSha256:request.codeSha256,protocol:1};
+else if(request.operation==='execute' && request.message?.asset?.message?.token_deposit){
+ const fs=await import('node:fs');const path=process.env.OASIS_COSMOS_ESCROW_FIXTURE_STATE;
+ const state=JSON.parse(fs.readFileSync(path,'utf8'));const deposit=request.message.asset.message.token_deposit;
+ if(deposit.deposit_id!=='e9633e93c317a2759f2c757ef61a67e8fae6f739cb86fedc9cba54be2d8681de'
+  ||deposit.symbol!=='TREE'||deposit.amount!=='123000000'||request.fromWalletAddress!=='fixture-owner'
+  ||request.privateKey!=='test-only-explicit'||request.targetContractAddress!=='fixture-contract')throw new Error('Original escrow intent changed');
+ state.submissions++;state.deposit={...deposit,owner:'fixture-owner',released:false};fs.writeFileSync(path,JSON.stringify(state));
+ result={transactionHash:'a'.repeat(64)};
+}
+else if(request.operation==='query' && request.message?.asset?.message?.token_deposit){
+ const fs=await import('node:fs');const state=JSON.parse(fs.readFileSync(process.env.OASIS_COSMOS_ESCROW_FIXTURE_STATE,'utf8'));
+ result=state.deposit;
+ if(state.deposit && state.mode==='bad-readback')result={...state.deposit,amount:'1'};
+}
 else if(request.operation==='execute'){
  const transfer=request.message?.asset?.message?.token_transfer;
  if(transfer?.symbol?.startsWith('intent-')){
