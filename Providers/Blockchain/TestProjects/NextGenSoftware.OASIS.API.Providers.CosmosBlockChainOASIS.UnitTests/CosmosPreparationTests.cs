@@ -245,6 +245,10 @@ public class CosmosPreparationTests
             var authority=new Web4SubscriptionAuthorizationClient(http,"https://offline-authority.test","WEB6","test-only-key");
             var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6",PersistenceTimeout=TimeSpan.FromSeconds(5)})
                 .BeginAsync("test-only-bearer",user,"cosmos-signed-test",new string('a',64),"POST /offline-test",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1},deadline.Token);
+            var priceTime=DateTime.UtcNow.AddSeconds(-1);
+            var price=new NativeFeePriceQuote(Guid.Parse(execution.OperationId),"CosmosBlockChainOASIS","offline-test-chain","stake","fixture-asset",6,1m,
+                "synthetic-offline-price","fixture-v1","fixture-v1",priceTime,priceTime,priceTime,priceTime.AddMinutes(5));
+            execution=execution.WithNativePrices(new[]{price});
             var output=child.StandardOutput.ReadToEndAsync(deadline.Token);var error=child.StandardError.ReadToEndAsync(deadline.Token);
             await child.WaitForExitAsync(deadline.Token);Assert.AreEqual(0,child.ExitCode);Assert.AreEqual("",await error);
             using var signed=JsonDocument.Parse(await output);
@@ -276,6 +280,7 @@ public class CosmosPreparationTests
             Assert.AreEqual(1,stored.ProviderAttempts.Count);Assert.AreEqual(server.PreparedTransactionId,stored.ProviderAttempts[0].ProviderRequestId);
             Assert.AreEqual(signed.RootElement.GetProperty("signDocBase64").GetString(),stored.ProviderAttempts[0].NativePreparation.SignDocBase64);
             Assert.AreEqual(signed.RootElement.GetProperty("signedTransactionBase64").GetString(),stored.ProviderAttempts[0].NativePreparation.SignedTransactionBase64);
+            Assert.AreEqual(price,stored.ProviderAttempts[0].NativePreparation.PriceQuotes.Single());
             Assert.IsNull(stored.ProviderAttempts[0].AcknowledgedAtUtc,"Preparation is not ledger acceptance.");
             using var duplicateServer=provider.CreateNativePreparationServer(execution,"signed-attempt","offline-test-chain",signed.RootElement.GetProperty("sender").GetString()!);
             var duplicateServing=duplicateServer.ServeAsync(deadline.Token);

@@ -42,6 +42,10 @@ public partial class HederaPreparationTests
             var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions {Service="WEB6"})
                 .BeginAsync("test-only",user,"hedera-storage",new string('a',64),"POST /offline-storage",
                     new UsageEndpointPolicy {MeterCategory="api.request",ReservedUnits=1},deadline.Token);
+            var priceTime=DateTime.UtcNow.AddSeconds(-1);
+            var price=new NativeFeePriceQuote(Guid.Parse(execution.OperationId),"HashgraphOASIS","testnet","tinybar","hedera-hashgraph",8,1m,
+                "synthetic-offline-price","fixture-v1","fixture-v1",priceTime,priceTime,priceTime,priceTime.AddMinutes(5));
+            if(!rejectPersistence)execution=execution.WithNativePrices(new[]{price});
             Environment.SetEnvironmentVariable(names[1],prior[names[0]]);
             Environment.SetEnvironmentVariable(names[2],log);
             Environment.SetEnvironmentVariable(names[0],Path.Combine(AppContext.BaseDirectory,"Fixtures/storage-prepared.mjs"));
@@ -97,6 +101,7 @@ public partial class HederaPreparationTests
             if(!rejectPersistence)for(var index=0;index<2;index++){
                 var attempt=durable.ProviderAttempts[index];Assert.AreEqual(routed?"storage.route."+(index+1)+".storage.1":"storage.storage."+(index+1),attempt.ClientRequestId);
                 Assert.IsFalse(string.IsNullOrWhiteSpace(attempt.NativePreparation.SignedTransactionBase64));
+                Assert.AreEqual(price,attempt.NativePreparation.PriceQuotes.Single());
                 Assert.IsNull(attempt.AcknowledgedAtUtc);
                 using var entry=System.Text.Json.JsonDocument.Parse(submissions[index]);
                 Assert.AreEqual(attempt.ProviderRequestId,entry.RootElement.GetProperty("transactionId").GetString());
