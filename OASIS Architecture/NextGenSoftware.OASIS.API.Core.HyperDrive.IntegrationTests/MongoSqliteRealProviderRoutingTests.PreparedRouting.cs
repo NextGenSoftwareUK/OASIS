@@ -25,13 +25,13 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             =>throw new InvalidOperationException("This routing test does not authorize billing or fabricated measurements.");
     }
 
-    private static async Task<(MongoUsageOutboxStore Store,UsageExecutionHandle Execution,PreparedStorageExecution Policy)> CreatePreparedRoutingAsync(string uri,string database,string correlation)
+    private static async Task<(MongoUsageOutboxStore Store,UsageExecutionHandle Execution,PreparedStorageExecution Policy)> CreatePreparedRoutingAsync(string uri,string database,string correlation,int maximumProviderAttempts=512)
     {
         var store=new MongoUsageOutboxStore(uri,database);await store.InitializeAsync(default);
         var user=Guid.NewGuid().ToString("D");
         var executor=new Web4UsageExecution(new RoutingAdmissionAuthority(user),store,new Web4UsageLedgerOptions {Service="WEB4"});
         var execution=await executor.BeginAsync("controlled-bearer",user,"prepared-"+correlation,new string('b',64),"POST /controlled-routing",
-            new UsageEndpointPolicy {MeterCategory="api.request",ReservedUnits=1,RequiresProviderMeasurement=true});
+            new UsageEndpointPolicy {MeterCategory="api.request",ReservedUnits=1,RequiresProviderMeasurement=true,MaximumProviderAttempts=maximumProviderAttempts});
         var types=new[]{ProviderType.MongoDBOASIS,ProviderType.SQLLiteDBOASIS};
         return(store,execution,new PreparedStorageExecution(execution,correlation,new Dictionary<ProviderType,string>(),types));
     }
@@ -76,6 +76,25 @@ public sealed partial class MongoSqliteRealProviderRoutingTests
             return true;
         });
         (await store.GetAsync(execution.OperationId,default)).ProviderAttempts.Should().HaveCount(4);
+        var bounded=await CreatePreparedRoutingAsync(uri,database,"bounded-routing",1);
+        var boundedHolon=new Holon {Id=Guid.NewGuid(),Name="owned-primary-only-budget"};
+        var boundedRequest=new StorageOperationRequest {Operation="SaveHolon",Payload=boundedHolon,SaveChildren=false,PreferredProvider=mongoPrimary?types[0]:types[1]};
+        await bounded.Policy.RunAsync(async()=>{
+            var saved=synchronous?router.RouteRequest<IHolon>(boundedRequest):await router.RouteRequestAsync<IHolon>(boundedRequest);
+            saved.IsError.Should().BeFalse(saved.Message);saved.IsSaved.Should().BeTrue();saved.IsWarning.Should().BeTrue();
+            saved.Exception.Should().BeOfType<UsageProtocolException>().Which.Code.Should().Be("PROVIDER_ATTEMPT_BUDGET_EXCEEDED");
+            return true;
+        });
+        var primary=mongoPrimary?(IOASISStorageProvider)mongo:sqlite;
+        var replica=mongoPrimary?(IOASISStorageProvider)sqlite:mongo;
+        var committed=await primary.LoadHolonAsync(boundedHolon.Id,loadChildren:false);
+        committed.IsError.Should().BeFalse(committed.Message);committed.Result.Name.Should().Be(boundedHolon.Name);
+        var absent=await replica.LoadHolonAsync(boundedHolon.Id,loadChildren:false);
+        absent.Result.Should().BeNull();
+        var boundedStored=await new MongoUsageOutboxStore(uri,database).GetAsync(bounded.Execution.OperationId,default);
+        boundedStored.Policy.MaximumProviderAttempts.Should().Be(1);
+        boundedStored.ProviderAttempts.Should().ContainSingle().Which.Provider.Should().Be(primary.ProviderType.Value.ToString());
+        boundedStored.Receipts.Should().BeEmpty();
     }
 
     private static async Task<NextGenSoftware.OASIS.Common.OASISResult<IHolon>> VerifyInheritedPreparedFallbackAsync(string uri,string database,OASISHyperDrive router,StorageOperationRequest request,bool synchronous)
