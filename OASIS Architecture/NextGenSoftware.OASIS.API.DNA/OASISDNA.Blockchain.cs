@@ -107,6 +107,7 @@ namespace NextGenSoftware.OASIS.API.DNA
         public long NftEscrowGasLimit { get; set; }
         public long NftEscrowMaxFeeTinybars { get; set; }
         public string TokenEscrowContractId { get; set; } = "";
+        public string TokenEscrowProtocol { get; set; } = "aggregate-v1";
         public string TokenEscrowRuntimeCodeHash { get; set; } = "";
         public long TokenEscrowGasLimit { get; set; }
         public long TokenEscrowMaxFeeTinybars { get; set; }
