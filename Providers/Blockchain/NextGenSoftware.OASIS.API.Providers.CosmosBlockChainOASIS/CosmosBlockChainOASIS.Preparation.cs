@@ -8,8 +8,26 @@ using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
 
-public partial class CosmosBlockChainOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeStorageProvider
+public partial class CosmosBlockChainOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeStorageProvider,
+    NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader
 {
+    string NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader.NativeFeeProvider=>"CosmosBlockChainOASIS";
+    string NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader.NativeFeeChainId=>_sdkBackend.ChainId;
+    NativeFeeCoverage NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader.DeclaredFeeCoverage=>NativeFeeCoverage.AnteDeductionOnly;
+    public async Task<NextGenSoftware.OASIS.Common.OASISResult<PreparedNativeFeeEvidence>> ReadPreparedNativeFeeEvidenceAsync(UsageProviderAttempt original,CancellationToken token=default)
+    {
+        var result=new NextGenSoftware.OASIS.Common.OASISResult<PreparedNativeFeeEvidence>();
+        try{
+            var fee=await GetPreparedNativeFeeReceiptAsync(original,token);
+            if(fee.IsError)return new(){IsError=true,Message=fee.Message,Exception=fee.Exception,ErrorCode=fee.ErrorCode};
+            var components=new System.Collections.Generic.List<NativeFeeComponent>();
+            foreach(var coin in fee.Result.GetProperty("fees").EnumerateArray())components.Add(new(coin.GetProperty("denom").GetString(),coin.GetProperty("amount").GetString()));
+            result.Result=new("CosmosBlockChainOASIS",fee.Result.GetProperty("chainId").GetString(),fee.Result.GetProperty("transactionHash").GetString(),
+                fee.Result.GetProperty("payer").GetString(),fee.Result.GetProperty("success").GetBoolean(),NativeFeeCoverage.AnteDeductionOnly,
+                components.ToArray(),"observed-ante-fee-deduction");
+        }catch(Exception failure){NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,failure.Message,failure);}
+        return result;
+    }
     /// <summary>Read only: verify persisted original signed identity before native fee recovery lookup.</summary>
     public async Task<NextGenSoftware.OASIS.Common.OASISResult<JsonElement>> GetPreparedNativeFeeReceiptAsync(
         UsageProviderAttempt attempt,CancellationToken token=default)
