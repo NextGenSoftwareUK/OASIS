@@ -207,7 +207,10 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         private static OASISResult<T> Ok<T>(T value, string message = null) => new(value) { IsLoaded = true, Message = message };
 
-        private static bool ParseKey(string providerKey, out Guid id) => Guid.TryParse(providerKey, out id);
+        private static bool ParseKey(string providerKey, out Guid id) => Guid.TryParse(providerKey, out id) && id!=Guid.Empty;
+
+        private OASISResult<T> InvalidProviderKey<T>()=>Fail<T>("A nonempty GUID provider key is required.",
+            new ArgumentException("A nonempty GUID provider key is required.","providerKey"),"HYPERDRIVE_PAYLOAD_INVALID");
 
         #endregion
 
@@ -282,7 +285,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override OASISResult<IAvatar> LoadAvatar(Guid id, int version = 0) => LoadAvatarAsync(id, version).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IAvatar>> LoadAvatarByProviderKeyAsync(string providerKey, int version = 0)
-            => ParseKey(providerKey, out var id) ? await LoadAvatarAsync(id, version) : Fail<IAvatar>($"'{providerKey}' is not a {Name} provider key (expected an avatar id).");
+            => ParseKey(providerKey, out var id) ? await LoadAvatarAsync(id, version) : InvalidProviderKey<IAvatar>();
 
         public override OASISResult<IAvatar> LoadAvatarByProviderKey(string providerKey, int version = 0) => LoadAvatarByProviderKeyAsync(providerKey, version).GetAwaiter().GetResult();
 
@@ -388,7 +391,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override OASISResult<bool> DeleteAvatar(Guid id, bool softDelete = true) => DeleteAvatarAsync(id, softDelete).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<bool>> DeleteAvatarAsync(string providerKey, bool softDelete = true)
-            => ParseKey(providerKey, out var id) ? await DeleteAvatarAsync(id, softDelete) : Fail<bool>($"'{providerKey}' is not a {Name} provider key (expected an avatar id).");
+            => ParseKey(providerKey, out var id) ? await DeleteAvatarAsync(id, softDelete) : InvalidProviderKey<bool>();
 
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => DeleteAvatarAsync(providerKey, softDelete).GetAwaiter().GetResult();
 
@@ -649,7 +652,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<IHolon>> LoadHolonAsync(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => ParseKey(providerKey, out var id)
                 ? await LoadHolonAsync(id, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version)
-                : Fail<IHolon>($"'{providerKey}' is not a {Name} provider key (expected a holon id).");
+                : InvalidProviderKey<IHolon>();
 
         public override OASISResult<IHolon> LoadHolon(string providerKey, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonAsync(providerKey, loadChildren, recursive, maxChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
@@ -695,7 +698,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override async Task<OASISResult<IEnumerable<IHolon>>> LoadHolonsForParentAsync(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => ParseKey(providerKey, out var id)
                 ? await LoadHolonsForParentAsync(id, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version)
-                : Fail<IEnumerable<IHolon>>($"'{providerKey}' is not a {Name} provider key (expected a holon id).");
+                : InvalidProviderKey<IEnumerable<IHolon>>();
 
         public override OASISResult<IEnumerable<IHolon>> LoadHolonsForParent(string providerKey, HolonType type = HolonType.All, bool loadChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0, bool continueOnError = true, bool loadChildrenFromProvider = false, int version = 0)
             => LoadHolonsForParentAsync(providerKey, type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).GetAwaiter().GetResult();
@@ -776,7 +779,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
         public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).GetAwaiter().GetResult();
 
         public override async Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
-            => ParseKey(providerKey, out var id) ? await DeleteHolonAsync(id) : Fail<IHolon>($"'{providerKey}' is not a {Name} provider key (expected a holon id).");
+            => ParseKey(providerKey, out var id) ? await DeleteHolonAsync(id) : InvalidProviderKey<IHolon>();
 
         public override OASISResult<IHolon> DeleteHolon(string providerKey) => DeleteHolonAsync(providerKey).GetAwaiter().GetResult();
 
