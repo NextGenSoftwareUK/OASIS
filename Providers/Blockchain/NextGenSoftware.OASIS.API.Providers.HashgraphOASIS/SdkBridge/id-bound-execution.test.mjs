@@ -19,7 +19,8 @@ async function runFixture(mode,t,serveCSharp=false){
  const accountID={shardNum:0,realmNum:0,accountNum:1001},contractAccountID={shardNum:0,realmNum:0,accountNum:2001};
  const contractID={shardNum:0,realmNum:0,contractNum:2001},tokenID={shardNum:0,realmNum:0,tokenNum:3001};
  const runtime=Uint8Array.from([0x60,0x01,0x60,0x00]);
- const release=mode==='release';let deposited=release,released=false,approvalConfirmed=false;
+ const release=mode==='release'||mode==='release-nonfungible';let deposited=release,released=false,approvalConfirmed=false;
+ const association=mode.startsWith('associate');let associated=mode==='associate-existing'||(!association&&mode!=='unassociated');
  let balance=release?877n:1000n,custody=release?123n:0n,allowance=mode==='existing-allowance'?123n:0n;
  let answers=0,submissions=0;const payments=new Map(),mutations=new Map(),submittedIds=[];
  const request={network:'local',sender:'0.0.1001',senderEvmAddress:owner,privateKey:key.toStringDer(),publicKey:key.publicKey.toStringDer(),keyType:'der',
@@ -28,6 +29,8 @@ async function runFixture(mode,t,serveCSharp=false){
   transactionId:TransactionId.generate('0.0.1001').toString(),approvalTransactionId:TransactionId.generate('0.0.1001').toString(),
   queryMaxPaymentTinybars:'100',queryMaxTransactionFeeTinybars:'100000000',queryPersistenceTimeoutMs:2000};
  assert.notEqual(request.transactionId,request.approvalTransactionId);
+ if(association){delete request.depositId;delete request.amount;delete request.approvalTransactionId;}
+ if(mode==='aggregate-nonfungible'){request.escrowProtocol='aggregate-v1';delete request.depositId;delete request.amount;}
  if(serveCSharp)request.depositId='0x'+createHash('sha256').update('5f31afde12294e998088a0034d33a557').digest('hex');
  const originalDeposit=request.depositId;let originalMutation=request.transactionId;
  const tokenAbi=new Interface(['function balanceOf(address) view returns(uint256)','function totalSupply() view returns(uint256)',
@@ -67,12 +70,12 @@ async function runFixture(mode,t,serveCSharp=false){
   contractInfo:{contractID,accountID:contractAccountID,contractAccountID:spender.slice(2),expirationTime:{seconds:2000000000,nanos:0},autoRenewPeriod:{seconds:7776000}}}}));
  rpc('SmartContractService','ContractGetBytecode',proto.Query,proto.Response,query=>({contractGetBytecodeResponse:{header:queryHeader(query.contractGetBytecode),bytecode:mode==='wrong-runtime'?Uint8Array.from([1,2,3]):runtime}}));
  rpc('TokenService','getTokenInfo',proto.Query,proto.Response,query=>({tokenGetInfo:{header:queryHeader(query.tokenGetInfo),
-  tokenInfo:{tokenId:tokenID,decimals:2,totalSupply:1000,name:'fixture',symbol:'FIX'}}}));
+  tokenInfo:{tokenId:mode==='wrong-token'?{...tokenID,tokenNum:3002}:tokenID,deleted:mode==='deleted-token',decimals:2,totalSupply:1000,name:'fixture',symbol:'FIX',tokenType:mode.endsWith('nonfungible')?1:0}}}));
  rpc('SmartContractService','contractCallLocalMethod',proto.Query,proto.Response,query=>{
   const q=query.contractCallLocal,header=queryHeader(q),escrow=Number(q.contractID.contractNum)===2001;
   const abi=escrow?idBoundEscrowAbi:tokenAbi,call=abi.parseTransaction({data:q.functionParameters});let values;
   if(call.name==='escrowProtocolVersion')values=[1n];
-  else if(call.name==='isTokenAssociated')values=[mode!=='unassociated'];
+  else if(call.name==='isTokenAssociated')values=[associated];
   else if(call.name==='deposits'){
    assert.equal(call.args[0],originalDeposit);
    values=deposited?[owner,tokenAddress,mode==='readback'?124n:123n,released]:['0x'+'0'.repeat(40),'0x'+'0'.repeat(40),0n,false];
@@ -98,12 +101,15 @@ async function runFixture(mode,t,serveCSharp=false){
    request.amount='99';request.depositId='0x'+'ab'.repeat(32);
   }else{
    assert.equal(id,originalMutation);const call=idBoundEscrowAbi.parseTransaction({data:native.functionParameters});
+   if(association){assert.equal(call.name,'associateToken');assert.equal(call.args[0].toLowerCase(),tokenAddress);associated=mode!=='associate-readback';}
+   else{
    assert.equal(call.args[0],originalDeposit);assert.equal(call.name,release?'unlock':'lock');
    if(!release){assert.equal(call.args[2],123n);assert.ok(mode==='existing-allowance'||approvalConfirmed);}
    deposited=true;released=release;balance+=release?123n:-123n;custody+=release?-123n:123n;
+   }
   }
   submittedIds.push(id);submissions++;
-  if(approval&&mode==='approval-unknown')throw Object.assign(new Error('controlled lost approval acknowledgement'),{code:grpc.status.UNAVAILABLE});
+  if((approval&&mode==='approval-unknown')||mode==='associate-unknown')throw Object.assign(new Error('controlled lost mutation acknowledgement'),{code:grpc.status.UNAVAILABLE});
   return {nodeTransactionPrecheckCode:proto.ResponseCodeEnum.OK,cost:0};
  }
  rpc('CryptoService','approveAllowances',proto.Transaction,proto.TransactionResponse,tx=>submission(tx,true));
@@ -134,7 +140,7 @@ async function runFixture(mode,t,serveCSharp=false){
    }finally{lines.close();await new Promise(resolve=>mirror.close(resolve));}
    return;
   }
-  const operation=execute(release?'tokenEscrowUnlock':'tokenEscrowLock',request,
+  const operation=execute(association?'tokenEscrowAssociate':release?'tokenEscrowUnlock':'tokenEscrowLock',request,
    async evidence=>{
     if(mode==='mutation-rejected'&&evidence.transactionHash===originalMutation)throw new Error('controlled mutation persistence rejection');
     assert.ok(!mutations.has(evidence.transactionHash));mutations.set(evidence.transactionHash,evidence);
@@ -145,8 +151,13 @@ async function runFixture(mode,t,serveCSharp=false){
     assert.equal(evidence.queryPaymentTinybars,'11');
     assert.ok(!payments.has(evidence.transactionHash));payments.set(evidence.transactionHash,evidence);
    });
-  if(mode==='unassociated'||mode==='query-rejected'||mode==='wrong-runtime'){
-   await assert.rejects(operation,error=>{assert.equal(error.stage,'validation');assert.match(error.cause?.message??'',mode==='unassociated'?/Associate this HTS token/:mode==='wrong-runtime'?/runtime code/:/controlled paid-query persistence rejection/);return true;});assert.equal(submissions,0);
+  if(mode==='unassociated'||mode==='query-rejected'||mode==='wrong-runtime'||mode==='associate-existing'||mode.endsWith('nonfungible')||mode==='deleted-token'||mode==='wrong-token'){
+   await assert.rejects(operation,error=>{assert.equal(error.stage,'validation');assert.match(error.cause?.message??'',mode.endsWith('nonfungible')||mode==='deleted-token'||mode==='wrong-token'?/exact active fungible HTS token/:mode==='unassociated'?/Associate this HTS token/:mode==='wrong-runtime'?/runtime code/:mode==='associate-existing'?/already associated/:/controlled paid-query persistence rejection/);return true;});assert.equal(submissions,0);
+  }else if(mode==='associate-readback'||mode==='associate-unknown'){
+   await assert.rejects(operation,error=>{
+    assert.equal(error.stage,mode==='associate-readback'?'readback':'mutation');assert.equal(error.mutationTransactionId,originalMutation);
+    assert.equal(error.approvalTransactionId,null);return true;
+   });assert.equal(submissions,1);assert.equal(balance,1000n);assert.equal(custody,0n);
   }else if(mode==='mutation-rejected'||mode==='approval-unknown'){
    await assert.rejects(operation,error=>{
     assert.equal(error.stage,mode==='mutation-rejected'?'mutation':'approval');
@@ -160,8 +171,11 @@ async function runFixture(mode,t,serveCSharp=false){
    assert.equal(submissions,2);
   }else{
    const result=await operation;assert.equal(result.status,'SUCCESS');assert.equal(result.transactionId,originalMutation);
+   if(association){assert.equal(result.associated,true);assert.equal(result.tokenId,'0.0.3001');assert.equal(submissions,1);assert.equal(balance,1000n);assert.equal(custody,0n);}
+   else{
    assert.equal(result.depositId,originalDeposit);assert.equal(result.amountUnits,'123');
    assert.equal(submissions,mode==='lock'?2:1);assert.equal(balance,release?1000n:877n);
+   }
   }
   assert.equal(answers,payments.size);assert.equal(submissions,mutations.size);
   assert.ok(payments.size<=24,'This bounded scenario must not release an unbounded query sequence');
@@ -172,6 +186,7 @@ async function runFixture(mode,t,serveCSharp=false){
 if(process.argv[2]==='--serve-csharp-lock'||process.argv[2]==='--serve-csharp-release'){
  await runFixture(process.argv[2].endsWith('release')?'release':'lock',{diagnostic(){}},true);
 }else{
- for(const mode of ['lock','existing-allowance','release','unassociated','readback','query-rejected','mutation-rejected','approval-unknown','wrong-runtime'])
+ for(const mode of ['lock','existing-allowance','release','unassociated','readback','query-rejected','mutation-rejected','approval-unknown','wrong-runtime',
+  'associate','associate-existing','associate-readback','associate-unknown','nonfungible','associate-nonfungible','release-nonfungible','aggregate-nonfungible','deleted-token','wrong-token'])
   test(`id-bound escrow full SDK loopback flow: ${mode}`,{timeout:15000},t=>runFixture(mode,t));
 }

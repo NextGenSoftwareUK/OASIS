@@ -19,7 +19,12 @@ export function isIdBoundEscrow(request) {
 }
 
 export function validateIdBoundIntent(action, request) {
-  if (!['tokenEscrowLock','tokenEscrowUnlock'].includes(action)) throw new Error('Unknown id-bound escrow mutation.');
+  if (!['tokenEscrowLock','tokenEscrowUnlock','tokenEscrowAssociate'].includes(action)) throw new Error('Unknown id-bound escrow mutation.');
+  if(action==='tokenEscrowAssociate'){
+    if(request.depositId!==undefined || request.amount!==undefined || request.amountUnits!==undefined || request.approvalTransactionId!=null)
+      throw new Error('Association is a separate single-stage operation without deposit, amount or approval intent.');
+    return;
+  }
   if (!/^0x[0-9a-f]{64}$/i.test(request.depositId ?? '') || /^0x0{64}$/i.test(request.depositId))
     throw new Error('A nonempty canonical bytes32 deposit identity is required.');
   if (action === 'tokenEscrowLock' && (typeof request.amount !== 'string' || !/^[0-9]+(?:\.[0-9]+)?$/.test(request.amount) || !/[1-9]/.test(request.amount)))
