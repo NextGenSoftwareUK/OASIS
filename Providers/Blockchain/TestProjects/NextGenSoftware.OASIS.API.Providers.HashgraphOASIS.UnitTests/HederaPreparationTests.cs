@@ -100,6 +100,8 @@ public partial class HederaPreparationTests
         {
             token.ThrowIfCancellationRequested(); Requests++;
             Assert.AreEqual("/api/v1/transactions/0.0.1001-1700000000-000000001",request.RequestUri!.AbsolutePath);
+            Assert.AreEqual("?nonce=0&scheduled=false",request.RequestUri.Query,
+                "Fee recovery must request only the original unscheduled parent; an omitted nonce also matches child records.");
             return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK){Content=new StringContent("""
                 {"transactions":[{"transaction_id":"0.0.1001-1700000000-000000001","nonce":0,"scheduled":false,
                 "parent_consensus_timestamp":null,"name":"CRYPTOTRANSFER","result":"SUCCESS",
