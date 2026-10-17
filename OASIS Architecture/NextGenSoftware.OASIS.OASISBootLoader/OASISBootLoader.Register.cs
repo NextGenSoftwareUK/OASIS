@@ -520,18 +520,7 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
 
                         case ProviderType.SuiOASIS:
                         {
-                            var suiStorageKeyVariable=OASISDNA.OASIS.StorageProviders.SuiOASIS.StorageEncryptionKeyEnvironmentVariable;
-                            var suiProvider = new SuiOASIS(
-                                OASISDNA.OASIS.StorageProviders.SuiOASIS.RpcEndpoint ?? "https://fullnode.mainnet.sui.io:443",
-                                OASISDNA.OASIS.StorageProviders.SuiOASIS.Network ?? "mainnet",
-                                OASISDNA.OASIS.StorageProviders.SuiOASIS.ChainId ?? "",
-                                OASISDNA.OASIS.StorageProviders.SuiOASIS.ContractAddress ?? "",
-                                OASISDNA.OASIS.StorageProviders.SuiOASIS.PrivateKey ?? "",
-                                OASISDNA.OASIS.StorageProviders.SuiOASIS.StorageObjectId ?? "",
-                                OASISDNA.OASIS.StorageProviders.SuiOASIS.CurrencyObjectId ?? "",
-                                storageEncryptionKeyResolver: () => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend.ResolveEnvironmentKey(
-                                    suiStorageKeyVariable),
-                                tokenEscrow: SuiEscrowConfiguration.Create(OASISDNA.OASIS.StorageProviders.SuiOASIS));
+                            var suiProvider = SuiProviderConfiguration.Create(OASISDNA.OASIS.StorageProviders.SuiOASIS);
                             suiProvider.OnStorageProviderError += SuiOASIS_StorageProviderError;
                             result.Result = suiProvider;
                         }
