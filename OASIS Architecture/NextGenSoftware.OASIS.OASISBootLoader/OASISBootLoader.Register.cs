@@ -481,7 +481,8 @@ namespace NextGenSoftware.OASIS.OASISBootLoader
                                 OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.NativeDenom,
                                 OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS.NativeDecimals,
                                 storageEncryptionKeyResolver: () => NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PersistedPrivateKeyValueBackend.ResolveEnvironmentKey(
-                                    cosmosStorageKeyVariable));
+                                    cosmosStorageKeyVariable),
+                                tokenEscrow: CosmosEscrowConfiguration.Create(OASISDNA.OASIS.StorageProviders.CosmosBlockChainOASIS));
                             cosmosProvider.OnStorageProviderError += CosmosBlockChainOASIS_StorageProviderError;
                             result.Result = cosmosProvider;
                         }
