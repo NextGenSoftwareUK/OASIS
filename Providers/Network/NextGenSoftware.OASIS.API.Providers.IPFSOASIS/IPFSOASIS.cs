@@ -27,7 +27,9 @@ namespace NextGenSoftware.OASIS.API.Providers.IPFSOASIS
 {
     public partial class IPFSOASIS : OASISStorageProviderBase, IOASISStorageProvider, IOASISNETProvider
     {
-        public IpfsClient IPFSClient;
+        private IpfsClient _ipfsClient;
+        // The bundled HTTP implementation is private; consumers use the published core contract.
+        public ICoreApi IPFSClient => _ipfsClient;
         //public IpfsEngine IPFSEngine; //= new IpfsEngine();
 
         private List<IAvatarDetail> AvatarsDetailsList;
