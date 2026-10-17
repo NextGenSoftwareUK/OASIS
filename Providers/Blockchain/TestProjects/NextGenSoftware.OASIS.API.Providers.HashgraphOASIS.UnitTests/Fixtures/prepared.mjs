@@ -1,7 +1,11 @@
 // Controlled process lifecycle only, no consensus client or SDK submission.
 let input='';for await(const chunk of process.stdin)input+=chunk;
 const {action,request}=JSON.parse(input);
-if(['tokenMint','tokenBurn'].includes(action)){
+if(action==='nftMint'){
+ if(request.tokenId!=='0.0.3001'||request.sender!=='0.0.1001'||request.privateKey!=='test-only-explicit'
+  ||request.memo!=='mint memo'||request.metadata?.length!==1||request.metadata[0]!=='https://example.invalid/original.json')throw new Error('Original NFT intent changed');
+ process.stdout.write(JSON.stringify({transactionId:request.transactionId,status:'SUCCESS',serials:['1']}));
+}else if(['tokenMint','tokenBurn'].includes(action)){
  if(request.tokenId!=='0.0.3001'||request.amount!=='1.23'||request.sender!=='0.0.1001'||request.recipient!=='0.0.1001'
   ||request.privateKey!=='test-only-explicit'||request.publicKey!=='fixture-public'
   ||(action==='tokenMint'&&request.memo!=='Original seed 🌱 memo'))throw new Error('Original treasury token intent changed');
