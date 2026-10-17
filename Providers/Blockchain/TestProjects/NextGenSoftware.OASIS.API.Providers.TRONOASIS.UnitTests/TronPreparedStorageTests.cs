@@ -22,7 +22,9 @@ public class TronPreparedStorageTests
     [InlineData(false,true)]
     [InlineData(false,false,true,false)] [InlineData(true,false,true,false)]
     [InlineData(false,false,true,true)] [InlineData(true,false,true,true)]
-    public async Task EncryptedPhysicalWritesPersistBeforeSdkBroadcast(bool rejectPersistence,bool concurrent=false,bool routed=false,bool synchronous=false)
+    [InlineData(false,false,false,false,true)]
+    [InlineData(false,false,true,false,true)] [InlineData(false,false,true,true,true)]
+    public async Task EncryptedPhysicalWritesPersistBeforeSdkBroadcast(bool rejectPersistence,bool concurrent=false,bool routed=false,bool synchronous=false,bool attemptBudget=false)
     {
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.Equal(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -37,7 +39,7 @@ public class TronPreparedStorageTests
         var authority=new Web4SubscriptionAuthorizationClient(http,"https://offline-authority.test","WEB6","test-only-key");
         var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions {Service="WEB6"})
             .BeginAsync("test-only",user,"prepared-storage",new string('a',64),"POST /offline-storage",
-                new UsageEndpointPolicy {MeterCategory="api.request",ReservedUnits=1},deadline.Token);
+                new UsageEndpointPolicy {MeterCategory="api.request",ReservedUnits=1,MaximumProviderAttempts=attemptBudget?1:512},deadline.Token);
         var other=concurrent ? await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions {Service="WEB6"})
             .BeginAsync("test-only",user,"prepared-storage-other",new string('a',64),"POST /offline-storage",
                 new UsageEndpointPolicy {MeterCategory="api.request",ReservedUnits=1},deadline.Token):null;
@@ -173,6 +175,22 @@ public class TronPreparedStorageTests
                 Assert.Equal(4,left.ProviderAttempts.Concat(right.ProviderAttempts).Select(x=>x.ProviderRequestId).Distinct().Count());
             }else{
                 var result=routed?await SavePair():await provider.ExecutePreparedStorageAsync(SavePair,execution,"storage",owner,deadline.Token);
+                if(attemptBudget){
+                    Assert.True(result.IsError);
+                    bool HasBudgetCause(Exception? error)=>error is UsageProtocolException protocol&&protocol.Code=="PROVIDER_ATTEMPT_BUDGET_EXCEEDED"
+                        ||error is AggregateException aggregate&&aggregate.InnerExceptions.Any(HasBudgetCause)
+                        ||error?.InnerException!=null&&HasBudgetCause(error.InnerException);
+                    Assert.True(HasBudgetCause(result.Exception),"Original durable attempt-budget rejection must survive the adapter.");
+                    Assert.Equal(1,broadcasts);
+                    var bounded=await new MongoUsageOutboxStore(connection,database).GetAsync(execution.OperationId,deadline.Token);
+                    Assert.Equal(1,bounded.Policy.MaximumProviderAttempts);
+                    var original=Assert.Single(bounded.ProviderAttempts);
+                    Assert.NotNull(original.NativePreparation);
+                    Assert.False(string.IsNullOrWhiteSpace(original.NativePreparation.SignedTransactionBase64));
+                    Assert.Equal("TRONOASIS",original.Provider);
+                    Assert.Null(original.AcknowledgedAtUtc);Assert.Null(bounded.Settlement);
+                    return;
+                }
                 Assert.Equal(rejectPersistence,result.IsError);
                 if(routed&&rejectPersistence)Assert.Equal(PreparedStorageExecution.RejectedCode,result.ErrorCode);
             }
