@@ -149,12 +149,19 @@ namespace NextGenSoftware.OASIS.API.ONODE.WebAPI.Controllers
 
         /// <summary>Service credentials authorize durable outbox delivery after the original avatar JWT expires.</summary>
         [HttpPost("usage/settle")]
-        public async Task<ActionResult> SettleUsage([FromBody] UsageSettlementRequest request)
+        public Task<ActionResult> SettleUsage([FromBody] UsageSettlementRequest request)=>SettleUsageCore(request,false);
+
+        /// <summary>Versioned native accounting contract. Older authorities must reject rather than ignore signed evidence.</summary>
+        [HttpPost("usage/settle-native-v1")]
+        public Task<ActionResult> SettleNativeUsage([FromBody] UsageSettlementRequest request)=>SettleUsageCore(request,true);
+
+        private async Task<ActionResult> SettleUsageCore(UsageSettlementRequest request,bool nativeProtocol)
         {
             try
             {
                 if (request == null) return BadRequest(new { IsError = true, Code = "INVALID_USAGE_SETTLEMENT" });
                 OASISSub.SubscriptionServiceIdentity.RequireService(HttpContext, _configuration, request.ConsumingService);
+                UsageSettlementProtocol.RequireMode(request,nativeProtocol);
                 return Ok(await _subscriptionService.SettleUsageAsync(request.UserId, request, HttpContext.RequestAborted));
             }
             catch (UnauthorizedAccessException ex) { return Unauthorized(new { IsError = true, Code = "SERVICE_IDENTITY_REQUIRED", ex.Message }); }

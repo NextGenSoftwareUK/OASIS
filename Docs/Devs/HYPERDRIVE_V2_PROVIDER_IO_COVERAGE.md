@@ -1,6 +1,8 @@
 # HyperDrive V2 provider-I/O coverage
 
-## Authoritative provider snapshot — audited 2026-10-16
+## Authoritative provider snapshot — audited 2026-10-17
+
+REST native settlement capability now explicit via settle-native-v1; old authority404 cannot silently drop native evidence because SDK has no ordinary-route fallback. Core102pass10s and WEB4 authority81pass17s include durable404 reconciliation and actual compiled controller HTTP authentication/protocol matrix. Core owns protocol/transport selection; WEB4 owns artifact tests and server action, no upward Core test dependency or duplicated settlement logic. Uses cached TestHost10.0.0/local-only restore and existing output. Real native valuation/resolver registration, hosted Startup/middleware/other-transport acceptance remain unproven; no native sponsorship enabled. See fee report for test scopes and corrected fixture-order failure.
 
 Central native receipt integration now implemented across Core outbox/completion/recovery and WEB4 ledger validation/fingerprint. Typed signed native valuations net once per operation, floor0, preserve ordinary API costs; no provider billing duplication. Core95pass10s (initial2 UUID serialization failures fixed with Mongo-owned mapping preserving exact UTC time), authority80pass16s includes concurrent retries/reuse/provenance. Core both targets+WEB4build0errors; production pricing/registered resolvers/native authority/hosted acceptance still open. Strengthened authority80green but teardown10s timeout caused runnerexit1; subsequent read-only owner/27029 checks terminal, so do not call runner gate fully clean. Sponsored minting not enabled. Legacy no-native hash encoding preserved; coordinate WEB4-first deployed contract verification before new producers emit evidence.
 
