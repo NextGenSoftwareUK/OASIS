@@ -146,7 +146,7 @@ public partial class GoogleCloudOASIS : IAvatarTombstoneStorageProvider
             if(ready.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<bool,IAvatar>(ready);
             var document=await _firestoreDb.Collection("avatars").Document(id.ToString()).GetSnapshotAsync();
             var avatar=document.Exists ? DecodeAvatar(document.ConvertTo<Dictionary<string,object>>(),document.Id):null;
-            if(avatar==null || !avatar.IsActive) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Firestore avatar not found.";}
+            if(avatar==null || avatar.DeletedDate!=DateTime.MinValue) {result.IsError=true;result.ErrorCode=OASISResultErrorCodes.RecordNotFound;result.Message="Firestore avatar not found.";}
             else {result.Result=avatar;result.IsLoaded=true;}
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}

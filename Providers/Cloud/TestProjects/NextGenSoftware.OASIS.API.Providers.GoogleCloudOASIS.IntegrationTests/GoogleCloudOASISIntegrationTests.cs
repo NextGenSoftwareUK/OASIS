@@ -61,7 +61,7 @@ public sealed partial class GoogleCloudOASISIntegrationTests
             Description = "Official Firestore emulator integration",
             CreatedDate = now,
             ModifiedDate = now,
-            DeletedDate = now,
+            DeletedDate = DateTime.MinValue,
             IsActive = true
         };
 

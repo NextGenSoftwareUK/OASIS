@@ -3,6 +3,8 @@ using NextGenSoftware.OASIS.API.Core;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Holons;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Interfaces;
+using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.API.Core.Managers;
 using NextGenSoftware.OASIS.API.Core.Managers.OASISHyperDrive;
@@ -30,10 +32,22 @@ public class GoogleSearchVisibilityTests
         try{
             foreach(var avatar in new[]{liveAvatar,deletedAvatar})Assert.IsFalse((await provider.SaveAvatarAsync(avatar)).IsError);
             foreach(var holon in new[]{liveHolon,deletedHolon})Assert.IsFalse((await provider.SaveHolonAsync(holon,saveChildren:false)).IsError);
-            Assert.AreNotEqual(DateTime.MinValue,(await provider.LoadAvatarAsync(deletedAvatar.Id)).Result.DeletedDate);
-            Assert.AreNotEqual(DateTime.MinValue,(await provider.LoadHolonAsync(deletedHolon.Id,loadChildren:false)).Result.DeletedDate);
             var dna=new OASISDNA{OASIS=new NextGenSoftware.OASIS.API.DNA.OASIS{HyperDriveMode=HyperDriveModes.V2,StorageProviders=new(),SubscriptionConfig=new(){PlanType="Gold"}}};
             var manager=new ProviderManager(null,dna);manager.RegisterProvider(provider);var router=new OASISHyperDrive(manager);
+            foreach(var deleted in new[]{false,true}){
+                var avatarId=deleted?deletedAvatar.Id:liveAvatar.Id;var holonId=deleted?deletedHolon.Id:liveHolon.Id;
+                var avatarRequest=new StorageOperationRequest{Operation="LoadAvatar",AvatarId=avatarId,PreferredProvider=ProviderType.GoogleCloudOASIS};
+                var holonRequest=new StorageOperationRequest{Operation="LoadHolon",HolonId=holonId,LoadChildren=false,PreferredProvider=ProviderType.GoogleCloudOASIS};
+                var avatarRead=v2?(synchronous?router.RouteRequest<IAvatar>(avatarRequest):await router.RouteRequestAsync<IAvatar>(avatarRequest)):
+                    (synchronous?provider.LoadAvatar(avatarId):await provider.LoadAvatarAsync(avatarId));
+                var holonRead=v2?(synchronous?router.RouteRequest<IHolon>(holonRequest):await router.RouteRequestAsync<IHolon>(holonRequest)):
+                    (synchronous?provider.LoadHolon(holonId,loadChildren:false):await provider.LoadHolonAsync(holonId,loadChildren:false));
+                Assert.AreEqual(deleted&&!v2,avatarRead.IsError,avatarRead.Message);Assert.AreEqual(deleted&&!v2,holonRead.IsError,holonRead.Message);
+                if(deleted){Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,avatarRead.ErrorCode);Assert.AreEqual(OASISResultErrorCodes.RecordNotFound,holonRead.ErrorCode);
+                    Assert.IsNull(avatarRead.Result);Assert.IsNull(holonRead.Result);}
+                else{Assert.AreEqual(avatarId,avatarRead.Result.Id);Assert.AreEqual(holonId,holonRead.Result.Id);
+                    Assert.IsFalse(avatarRead.Result.IsActive);Assert.IsFalse(holonRead.Result.IsActive);}
+            }
             var query=new SearchParams{SearchOnlyForCurrentAvatar=false};
             var request=new StorageOperationRequest{Operation="Search",SearchParams=query,LoadChildren=false,PreferredProvider=ProviderType.GoogleCloudOASIS};
             var result=v2?(synchronous?router.RouteRequest<ISearchResults>(request):await router.RouteRequestAsync<ISearchResults>(request)):
