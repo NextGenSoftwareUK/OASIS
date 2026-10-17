@@ -1,3 +1,4 @@
+param([ValidateSet('Inspect','IndependentPrepared')][string]$Mode='Inspect')
 $ErrorActionPreference='Stop'
 $taskRoot=[IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
 $work=Join-Path $taskRoot 'TestResults/HyperDriveTron'
@@ -17,11 +18,16 @@ if($runtime.HostConfig.Memory -ne 3GB -or $runtime.HostConfig.MemorySwap -ne 3GB
 $fence=Join-Path $work 'pending-native-outcome.json'
 $expectedFence='9A6B6E580DB63E5F20A91D9A345430FA72670CC041B278E3B44E00BD0FDEBAEE'
 if((Get-FileHash -LiteralPath $fence).Hash -ne $expectedFence){throw 'Protected original TRON fence differs; inspect before resuming.'}
+if($Mode -eq 'IndependentPrepared' -and (Test-Path -LiteralPath (Join-Path $work 'independent-prepared-native-pending.json'))){throw 'Independent original outcome requires reconciliation; refusing another run.'}
 $lease=[IO.File]::Open((Join-Path $work 'runtime-inspection.lock'),[IO.FileMode]::OpenOrCreate,[IO.FileAccess]::ReadWrite,[IO.FileShare]::None)
 $failures=[Collections.Generic.List[Exception]]::new();$started=$false
 $priorOwner=[Environment]::GetEnvironmentVariable('OASIS_TRON_TEST_OWNED_CONTAINER')
 try{
     $project=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
+    if($Mode -eq 'IndependentPrepared'){
+        & dotnet build (Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TRONOASIS/NextGenSoftware.OASIS.API.Providers.TRONOASIS.csproj') --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+        if($LASTEXITCODE -ne 0){throw 'Current TRON native producer build failed.'}
+    }
     & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
     if($LASTEXITCODE -ne 0){throw 'TRON inspection consumer build failed.'}
     if((Inspect-OwnedRuntime).State.Status -ne 'exited'){throw 'Retained runtime became active before ownership was acquired.'}
@@ -43,8 +49,20 @@ try{
     }
     if(!$ready){throw "Retained TRON readiness window elapsed; no restart permitted. Last observation: $readinessError"}
     $env:OASIS_TRON_TEST_OWNED_CONTAINER=$expected
-    & dotnet test $project --no-build --no-restore --filter FullyQualifiedName~TronRealProviderRoutingTests.InspectOriginalInterruptedFixtureWithoutMutation --logger 'trx;LogFileName=tron-readonly-inspection-current.trx' --results-directory $work -v:q
+    if($Mode -eq 'IndependentPrepared'){
+        & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -TronPreparedStorage -TronNative
+    }else{
+        $testStarted=[DateTime]::UtcNow
+        & dotnet test $project --no-build --no-restore --filter FullyQualifiedName~TronRealProviderRoutingTests.InspectOriginalInterruptedFixtureWithoutMutation --logger 'trx;LogFileName=tron-readonly-inspection-current.trx' --results-directory $work -v:q
+    }
     if($LASTEXITCODE -ne 0){throw 'TRON read-only inspection failed; original fence retained.'}
+    if($Mode -eq 'Inspect'){
+        $report=Get-Item -LiteralPath (Join-Path $work 'tron-readonly-inspection-current.trx')
+        if($report.LastWriteTimeUtc -lt $testStarted){throw 'TRON inspection report is stale.'}
+        [xml]$evidence=Get-Content -LiteralPath $report.FullName -Raw
+        $counts=$evidence.TestRun.ResultSummary.Counters
+        if([int]$counts.total -ne 1 -or [int]$counts.passed -ne 1 -or [int]$counts.notExecuted -ne 0){throw 'The selected TRON inspection must actually execute and pass.'}
+    }
     if((Get-FileHash -LiteralPath $fence).Hash -ne $expectedFence){throw 'Original TRON fence changed during inspection.'}
 }catch{$failures.Add($_.Exception)}finally{
     try{
