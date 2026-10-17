@@ -30,6 +30,8 @@ public sealed class TronAvatarWalletSendTests
     [InlineData(true, false, "email")]
     [InlineData(false, true, "email")]
     [InlineData(true, true, "email")]
+    [InlineData(false, true, "mint")]
+    [InlineData(true, true, "mint")]
     public async Task AvatarTransferUsesEncryptedDetachedWalletAndRealSdkSigning(bool synchronous, bool token, string selector)
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
@@ -91,8 +93,8 @@ public sealed class TronAvatarWalletSendTests
                     Assert.True(token); constructions++; Assert.Equal(sourceBytes, request.OwnerAddress);
                     Assert.Equal(NBitcoin.DataEncoders.Encoders.Base58Check.DecodeData(tokenAddress), request.ContractAddress.ToByteArray());
                     var data = request.Data.ToByteArray(); Assert.Equal(68, data.Length);
-                    Assert.Equal("A9059CBB", Convert.ToHexString(data.AsSpan(0, 4)));
-                    Assert.Equal(destinationBytes.ToByteArray()[1..], data.AsSpan(16, 20).ToArray());
+                    Assert.Equal(selector == "mint" ? "40C10F19" : "A9059CBB", Convert.ToHexString(data.AsSpan(0, 4)));
+                    Assert.Equal((selector == "mint" ? sourceBytes : destinationBytes).ToByteArray()[1..], data.AsSpan(16, 20).ToArray());
                     Assert.Equal(new System.Numerics.BigInteger(123), new System.Numerics.BigInteger(data.AsSpan(36), isUnsigned: true, isBigEndian: true));
                     var now = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
                     var transaction = new Transaction { RawData = new Transaction.Types.raw { Timestamp = now, Expiration = now + 60000 } };
@@ -149,11 +151,14 @@ public sealed class TronAvatarWalletSendTests
             var wallets = (WalletManager)constructor.Invoke(new object?[] { local, dna, providers, null });
             var port = server.Ports.Single().BoundPort;
             await using var runtime = new TronSdkRuntime(new Uri($"http://127.0.0.1:{port}"), new Uri($"http://127.0.0.1:{port}"), genesis);
-            var tron = new TRONOASIS(contractAddress: "storage-contract-must-not-be-used-as-token", walletManager: wallets, nativeTransfers: runtime.NativeTransfers,
+            var tron = new TRONOASIS(contractAddress: selector == "mint" ? tokenAddress : "storage-contract-must-not-be-used-as-token", walletManager: wallets, nativeTransfers: runtime.NativeTransfers,
                 nativeSigningKeyResolver: _ => throw new InvalidOperationException("Avatar send must not use raw-address key resolution."));
             // Official SDK signing against controlled RPC, without bypassing provider activation state.
             Assert.False(tron.IsProviderActivated);
-            var result = selector == "username"
+            var result = selector == "mint"
+                ? synchronous ? tron.MintToken(new Core.Objects.Wallet.Requests.MintWeb3TokenRequest { MintedByAvatarId = sender, Amount = 1.23m })
+                    : await tron.MintTokenAsync(new Core.Objects.Wallet.Requests.MintWeb3TokenRequest { MintedByAvatarId = sender, Amount = 1.23m })
+                : selector == "username"
                 ? token
                     ? synchronous ? tron.SendTransactionByUsername("tron-avatar-sender", "tron-avatar-recipient", 1.23m, tokenAddress)
                         : await tron.SendTransactionByUsernameAsync("tron-avatar-sender", "tron-avatar-recipient", 1.23m, tokenAddress)
