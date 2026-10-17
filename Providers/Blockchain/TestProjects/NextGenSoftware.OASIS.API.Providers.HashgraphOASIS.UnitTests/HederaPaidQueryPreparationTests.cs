@@ -18,7 +18,7 @@ public partial class HederaPreparationTests
             RedirectStandardOutput=true,RedirectStandardError=true,WorkingDirectory=Path.GetDirectoryName(bridge)};
         start.ArgumentList.Add("--input-type=module");start.ArgumentList.Add("-e");
         start.ArgumentList.Add("""
-            import {PrivateKey,AccountId,Client,Hbar} from '@hiero-ledger/sdk';
+            import {PrivateKey,AccountId,Client,Hbar,Transaction} from '@hiero-ledger/sdk';
             import {pathToFileURL} from 'node:url';
             import {PreparedAccountInfoQuery} from './paid-query-preparation.mjs';
             const key=PrivateKey.generateED25519();process.stdout.write(JSON.stringify({publicKey:key.publicKey.toStringDer()})+'\n');
@@ -28,20 +28,22 @@ public partial class HederaPreparationTests
             const sequence=preparationSequenceClient(config.endpoint,2,10000);
             const payer=AccountId.fromString('0.0.1001'),node=AccountId.fromString('0.0.3');
             const client=Client.forNetwork({'127.0.0.1:50211':node});client.setOperator(payer,key);
-            let transports=0;
+            let transports=0;const hashes=[];
             try{
               for(let index=0;index<2;index++){
                 const query=new PreparedAccountInfoQuery({network:'testnet',payer:payer.toString(),publicKey:key.publicKey.toStringDer(),nodes:[node.toString()],
-                  maxPaymentTinybars:'123',maxTransactionFeeTinybars:'100000000',persistenceTimeoutMs:10000,persist:sequence.persist})
+                  maxPaymentTinybars:'123',maxTransactionFeeTinybars:'100000000',persistenceTimeoutMs:10000,persist:async evidence=>{
+                    await sequence.persist(evidence);hashes.push({id:evidence.transactionHash,hash:Buffer.from(await Transaction.fromBytes(Buffer.from(evidence.signedTransactionBase64,'base64')).getTransactionHash()).toString('base64')});
+                  }})
                   .setAccountId(payer).setNodeAccountIds([node]).setQueryPayment(Hbar.fromTinybars('123'));
                 await query._beforeExecute(client);const request=await query._makeRequestAsync();
                 try{await query._executeRequestWithGrpcDeadline({crypto:{getAccountInfo:async()=>{transports++;throw new Error('controlled transport stop');}}},request);}
                 catch(error){if(error.message!=='controlled transport stop')throw error;}
               }
-              await sequence.complete();process.stdout.write(JSON.stringify({transports})+'\n');
+              await sequence.complete();process.stdout.write(JSON.stringify({transports,hashes})+'\n');
             }finally{client.close();}
             """);
-        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(25));
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(45));
         using var child=Process.Start(start)??throw new InvalidOperationException("Cannot start retained SDK query fixture.");
         var errors=child.StandardError.ReadToEndAsync(deadline.Token);
         var database="usage_hedera_paid_query_"+Guid.NewGuid().ToString("N");var mongo=new MongoDB.Driver.MongoClient(connection);
@@ -77,9 +79,67 @@ public partial class HederaPreparationTests
                 Assert.AreEqual("0.0.3",context.RootElement.GetProperty("NodeAccountId").GetString());
                 Assert.AreEqual(quote,attempt.NativePreparation.PriceQuotes.Single());Assert.IsNull(attempt.AcknowledgedAtUtc);
             }
+            var mirror=new QueryPaymentMirror();
+            foreach(var hash in result.RootElement.GetProperty("hashes").EnumerateArray())mirror.Hashes.Add(hash.GetProperty("id").GetString()!,hash.GetProperty("hash").GetString()!);
+            using var mirrorHttp=new HttpClient(mirror){BaseAddress=new Uri("https://testnet.mirrornode.hedera.com/api/v1/")};
+            var httpField=typeof(HashgraphOASIS).GetField("_httpClient",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+            ((HttpClient)httpField.GetValue(provider)!).Dispose();httpField.SetValue(provider,mirrorHttp);
+            var original=stored.ProviderAttempts[0];
+            foreach(var mode in new[]{"success","duplicate","failed","missing-transfers","wrong-debit","wrong-hash","foreign-id"}){
+                mirror.Mode=mode;
+                var fee=await provider.GetPreparedNativeFeeReceiptAsync(original,deadline.Token);
+                if(mode is "success" or "duplicate" or "failed"){
+                    Assert.IsFalse(fee.IsError,fee.Message);
+                    Assert.AreEqual(mode=="failed"?"5":mode=="duplicate"?"135":"128",fee.Result.GetProperty("netUnits").GetString());
+                    Assert.AreEqual(mode=="duplicate"?"12":"5",fee.Result.GetProperty("networkFeeUnits").GetString());
+                    Assert.AreEqual(mode=="failed"?"0":"123",fee.Result.GetProperty("queryPaymentUnits").GetString());
+                    Assert.AreEqual(mode!="failed",fee.Result.GetProperty("success").GetBoolean());
+                }else{Assert.IsTrue(fee.IsError,mode);Assert.AreEqual(JsonValueKind.Undefined,fee.Result.ValueKind);}
+            }
+            mirror.Mode="success";
+            var queryAuthority=original.NativePreparation.SigningAuthority;
+            try{
+                original.NativePreparation.SigningAuthority=new("hedera-payer-public-key-v1",Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(publicKey)));
+                var ordinary=await provider.GetPreparedNativeFeeReceiptAsync(original,deadline.Token);
+                Assert.IsFalse(ordinary.IsError,ordinary.Message);Assert.AreEqual("5",ordinary.Result.GetProperty("netUnits").GetString(),
+                    "An ordinary user transfer must not relabel its principal as a service query fee.");
+            }finally{original.NativePreparation.SigningAuthority=queryAuthority;}
+            var previousCulture=System.Globalization.CultureInfo.CurrentCulture;
+            try{
+                var custom=(System.Globalization.CultureInfo)System.Globalization.CultureInfo.InvariantCulture.Clone();custom.NumberFormat.NegativeSign="~";
+                System.Globalization.CultureInfo.CurrentCulture=custom;
+                var invariant=await provider.GetPreparedNativeFeeReceiptAsync(original,deadline.Token);
+                Assert.IsFalse(invariant.IsError,invariant.Message);Assert.AreEqual("128",invariant.Result.GetProperty("netUnits").GetString());
+            }finally{System.Globalization.CultureInfo.CurrentCulture=previousCulture;}
         }finally{
             if(!child.HasExited){child.Kill(entireProcessTree:true);await child.WaitForExitAsync();}
             await mongo.DropDatabaseAsync(database);
+        }
+    }
+
+    private sealed class QueryPaymentMirror:HttpMessageHandler
+    {
+        public readonly Dictionary<string,string> Hashes=new();
+        public string Mode="success";
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+            Assert.AreEqual("?nonce=0&scheduled=false",request.RequestUri!.Query);
+            var pair=Hashes.Single(entry=>{
+                var parts=entry.Key.Split('@');var time=parts[1].Split('.');
+                return request.RequestUri.AbsolutePath.EndsWith(parts[0]+"-"+time[0]+"-"+time[1],StringComparison.Ordinal);
+            });
+            var id=pair.Key.Split('@');var start=id[1].Split('.');var mirrorId=id[0]+"-"+start[0]+"-"+start[1];
+            Dictionary<string,object?> Row(string status,long fee,long debit,string timestamp){
+                var row=new Dictionary<string,object?> { ["transaction_id"]=Mode=="foreign-id"?"0.0.9999-"+start[0]+"-"+start[1]:mirrorId,
+                    ["transaction_hash"]=Mode=="wrong-hash"?Convert.ToBase64String(new byte[48]):pair.Value,["nonce"]=0,["scheduled"]=false,
+                    ["parent_consensus_timestamp"]=null,["name"]="CRYPTOTRANSFER",["result"]=status,["consensus_timestamp"]=timestamp,["charged_tx_fee"]=fee};
+                if(Mode!="missing-transfers")row["transfers"]=new[]{new {account="0.0.1001",amount=-debit,is_approval=false},new {account="0.0.3",amount=debit,is_approval=false}};
+                return row;
+            }
+            var rows=new List<Dictionary<string,object?>> {Row(Mode=="failed"?"INSUFFICIENT_TX_FEE":"SUCCESS",5,Mode=="failed"?5:Mode=="wrong-debit"?127:128,"1700000001.000000001")};
+            if(Mode=="duplicate")rows.Add(Row("DUPLICATE_TRANSACTION",7,7,"1700000002.000000001"));
+            return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK){Content=new StringContent(JsonSerializer.Serialize(new {transactions=rows}))});
         }
     }
 }

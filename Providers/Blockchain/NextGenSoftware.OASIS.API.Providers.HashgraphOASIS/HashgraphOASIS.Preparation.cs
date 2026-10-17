@@ -56,10 +56,26 @@ public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.
 
     private static string OriginalPayerKey(NativeSigningAuthority authority)
     {
+        var query=OriginalQueryContext(authority);
+        if(query.HasValue)return query.Value.GetProperty("PublicKey").GetString();
         if(authority==null||authority.Scheme!="hedera-payer-public-key-v1")
             throw new InvalidDataException("Original admitted Hedera payer authority is required; current account keys cannot replace it.");
         authority.Validate();
         return new System.Text.UTF8Encoding(false,true).GetString(Convert.FromBase64String(authority.EvidenceBase64));
+    }
+
+    private static JsonElement? OriginalQueryContext(NativeSigningAuthority authority)
+    {
+        if(authority?.Scheme!="hedera-query-payment-v1")return null;
+        authority.Validate();
+        using var document=JsonDocument.Parse(Convert.FromBase64String(authority.EvidenceBase64));
+        var context=document.RootElement;
+        var names=new[]{"PublicKey","NodeAccountId","PaymentTinybars","MaxPaymentTinybars","MaxTransactionFeeTinybars"};
+        if(context.ValueKind!=JsonValueKind.Object||context.EnumerateObject().Count()!=names.Length
+            ||context.EnumerateObject().Select(item=>item.Name).Distinct(StringComparer.Ordinal).Count()!=names.Length
+            ||names.Any(name=>!context.TryGetProperty(name,out var value)||value.ValueKind!=JsonValueKind.String||string.IsNullOrEmpty(value.GetString())))
+            throw new InvalidDataException("Complete original admitted query-payment authority is required.");
+        return context.Clone();
     }
 
     /// <summary>Read-only recovery using the independently trusted key retained before original submission.</summary>
@@ -100,9 +116,23 @@ public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.
             var preparation=NativePreparedAttemptSnapshot.Capture(attempt,"HashgraphOASIS",_hederaNetwork);
             if(preparation.SigningAuthority!=null&&OriginalPayerKey(preparation.SigningAuthority)!=expectedPublicKey)
                 throw new InvalidDataException("Recovery key differs from the original admitted Hedera payer authority.");
-            var identity=await VerifyOriginalSignedIdentityAsync(JsonSerializer.SerializeToElement(new {
+            var query=OriginalQueryContext(preparation.SigningAuthority);
+            var signingDocument=JsonSerializer.SerializeToElement(new {
                 transactionHash=preparation.ProviderRequestId,chainId=preparation.ChainId,sender=preparation.Sender,
-                signedTransactionBase64=preparation.SignedTransactionBase64 }),expectedPublicKey,token);
+                signedTransactionBase64=preparation.SignedTransactionBase64,purpose=query.HasValue?"HederaQueryPayment":null,
+                queryNodeAccountId=query?.GetProperty("NodeAccountId").GetString(),queryPaymentTinybars=query?.GetProperty("PaymentTinybars").GetString() });
+            JsonElement identity;
+            if(query.HasValue){
+                identity=await HederaSdkClient.InvokeAsync("verifyNativeQueryPreparation",new {preparation=signingDocument,expectedPublicKey,
+                    expectedNodes=new[]{query.Value.GetProperty("NodeAccountId").GetString()},
+                    maxPaymentTinybars=query.Value.GetProperty("MaxPaymentTinybars").GetString(),
+                    maxTransactionFeeTinybars=query.Value.GetProperty("MaxTransactionFeeTinybars").GetString()},token);
+                if(identity.GetProperty("verified").ValueKind!=JsonValueKind.True||identity.GetProperty("transactionHash").GetString()!=preparation.ProviderRequestId
+                    ||identity.GetProperty("sender").GetString()!=preparation.Sender
+                    ||identity.GetProperty("queryPaymentTinybars").GetString()!=query.Value.GetProperty("PaymentTinybars").GetString()
+                    ||identity.GetProperty("queryNodeAccountId").GetString()!=query.Value.GetProperty("NodeAccountId").GetString())
+                    throw new InvalidDataException("Original signed query-payment authority is unverified.");
+            }else identity=await VerifyOriginalSignedIdentityAsync(signingDocument,expectedPublicKey,token);
             if(!identity.TryGetProperty("signedTransactionHashes",out var signedHashes)||signedHashes.ValueKind!=JsonValueKind.Array
                 ||signedHashes.GetArrayLength()==0||signedHashes.GetArrayLength()>1024)
                 throw new InvalidDataException("Verified original Hedera native transaction hashes are required.");
@@ -116,6 +146,27 @@ public partial class HashgraphOASIS : NextGenSoftware.OASIS.API.Core.Interfaces.
             foreach(var record in fee.Result.GetProperty("records").EnumerateArray())
                 if(!allowed.Contains(record.GetProperty("transactionHash").GetString()!))
                     throw new InvalidDataException("Indexed Hedera fee record does not match an original SDK signed transaction hash.");
+            if(query.HasValue){
+                var principal=System.Numerics.BigInteger.Parse(query.Value.GetProperty("PaymentTinybars").GetString(),System.Globalization.CultureInfo.InvariantCulture);
+                var net=System.Numerics.BigInteger.Zero;var paid=System.Numerics.BigInteger.Zero;
+                foreach(var record in fee.Result.GetProperty("records").EnumerateArray()){
+                    var charge=System.Numerics.BigInteger.Parse(record.GetProperty("chargedUnits").GetString(),System.Globalization.CultureInfo.InvariantCulture);
+                    var payment=record.GetProperty("nativeStatus").GetString()=="SUCCESS"?principal:System.Numerics.BigInteger.Zero;
+                    if(!record.TryGetProperty("payerNetUnits",out var observed)||observed.ValueKind!=JsonValueKind.String
+                        ||!System.Numerics.BigInteger.TryParse(observed.GetString(),System.Globalization.NumberStyles.AllowLeadingSign,
+                            System.Globalization.CultureInfo.InvariantCulture,out var payerNet)||payerNet!=-(charge+payment))
+                        throw new InvalidDataException("Indexed query payer debit does not establish the exact original payment plus network fee.");
+                    net-=payerNet;paid+=payment;
+                }
+                var mapped=JsonSerializer.Deserialize<System.Collections.Generic.Dictionary<string,JsonElement>>(fee.Result.GetRawText());
+                mapped["networkFeeUnits"]=fee.Result.GetProperty("netUnits");
+                mapped["queryPaymentUnits"]=JsonSerializer.SerializeToElement(paid.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                mapped["netUnits"]=JsonSerializer.SerializeToElement(net.ToString(System.Globalization.CultureInfo.InvariantCulture));
+                mapped["basis"]=JsonSerializer.SerializeToElement("mirror-verified-original-query-payer-debit");
+                mapped["coverage"]=JsonSerializer.SerializeToElement("indexed-query-payment-parent-records");
+                fee.Result=JsonSerializer.SerializeToElement(mapped);
+                fee.Message="Verified original query payment debit and indexed network fees; not fiat valuation or subscription settlement.";
+            }
             return fee;
         } catch(Exception failure) { NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,failure.Message,failure); }
         return result;
