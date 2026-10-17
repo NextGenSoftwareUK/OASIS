@@ -22,13 +22,22 @@ public sealed class SuiRealProviderRoutingTests
     private static byte[] LocalStorageKey() => System.Security.Cryptography.SHA256.HashData(
         System.Text.Encoding.UTF8.GetBytes("oasis-sui-local-storage-fixture-v1"));
     [Fact]
-    public async Task ArchiveExactSearchValidationFixtureAfterReadback()
+    public Task ArchiveExactSearchValidationFixtureAfterReadback()
+        =>ArchiveReviewedSearchFixtureAfterReadback("69DFE679CD911A28C5C7A10F9E23CDD06837C5B2250694AD9535DDDD3859C292",
+            "Invalid search request: Current-avatar search requires AvatarId.","search-validation-fixture-archived.json",false);
+
+    [Fact]
+    public Task ArchiveExactWalletSearchFixtureAfterReadback()
+        =>ArchiveReviewedSearchFixtureAfterReadback("B36471A993DE7188B76FF89C2127DE0656A063188E31594CC1796DB3F90E1DC7",
+            "Sequence contains no elements","wallet-search-fixture-archived.json",true);
+
+    private async Task ArchiveReviewedSearchFixtureAfterReadback(string expectedIntentHash,string expectedFailure,string archiveName,bool nativeMutationSubmitted)
     {
         var rpc=Required("OASIS_SUI_TEST_RPC");new Uri(rpc).IsLoopback.Should().BeTrue();
         var root=Path.GetFullPath(Required("OASIS_HYPERDRIVE_TEST_ROOT"));Path.GetFileName(root).Should().Be("HyperDriveSui");
         using var lease=new FileStream(Path.Combine(root,"store.lock"),FileMode.OpenOrCreate,FileAccess.ReadWrite,FileShare.None);
         var path=Path.Combine(root,"encrypted-replication-pending.json");var original=File.ReadAllBytes(path);
-        Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(original)).Should().Be("69DFE679CD911A28C5C7A10F9E23CDD06837C5B2250694AD9535DDDD3859C292");
+        Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(original)).Should().Be(expectedIntentHash);
         using var intent=JsonDocument.Parse(original);using var deployment=JsonDocument.Parse(File.ReadAllText(Required("OASIS_SUI_TEST_DEPLOYMENT")));
         var data=intent.RootElement;var settings=deployment.RootElement;
         data.GetProperty("chainId").GetString().Should().Be(settings.GetProperty("chainId").GetString());
@@ -37,7 +46,7 @@ public sealed class SuiRealProviderRoutingTests
         var reportPath=Path.Combine(root,"sui-retained-v2-healthy-current.trx");var reportBytes=File.ReadAllBytes(reportPath);
         var report=new System.Xml.XmlDocument();using(var xml=new MemoryStream(reportBytes))report.Load(xml);
         var failed=report.SelectNodes("//*[local-name()='UnitTestResult'][@outcome='Failed']")!;failed.Count.Should().Be(1);
-        failed[0]!.SelectSingleNode(".//*[local-name()='Message']")!.InnerText.Should().Contain("Invalid search request: Current-avatar search requires AvatarId.");
+        failed[0]!.SelectSingleNode(".//*[local-name()='Message']")!.InnerText.Should().Contain(expectedFailure);
         using var sui=new SuiOASIS(rpc,"localnet",settings.GetProperty("chainId").GetString()!,settings.GetProperty("packageAddress").GetString()!,
             settings.GetProperty("privateKey").GetString()!,settings.GetProperty("storageObjectId").GetString()!,storageEncryptionKeyResolver:LocalStorageKey);
         var local=new LocalFileOASIS(storageDirectory:Path.Combine(root,"files"));var observed=new List<object>();
@@ -59,10 +68,10 @@ public sealed class SuiRealProviderRoutingTests
                 var detail=await provider.LoadAvatarDetailAsync(avatarId);detail.Exception.Should().BeNull();detail.Result.Should().BeNull();
                 (detail.IsError==false||detail.ErrorCode==NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound).Should().BeTrue(detail.Message);
             }
-            var archivePath=Path.Combine(root,"search-validation-fixture-archived.json");
+            var archivePath=Path.Combine(root,archiveName);
             using(var archive=new FileStream(archivePath,FileMode.CreateNew,FileAccess.Write,FileShare.None)){
                 await JsonSerializer.SerializeAsync(archive,new {intent=data,observed,failedReportSha256=Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(reportBytes)),
-                    fixtureCleanupConfirmed=true,nativeMutationSubmitted=false,productionBillingReconciled=false});archive.Flush(true);
+                    fixtureCleanupConfirmed=true,nativeMutationSubmitted,productionBillingReconciled=false});archive.Flush(true);
             }
             using var archived=JsonDocument.Parse(File.ReadAllBytes(archivePath));archived.RootElement.GetProperty("fixtureCleanupConfirmed").GetBoolean().Should().BeTrue();
             File.ReadAllBytes(path).Should().Equal(original);File.Delete(path);
@@ -214,6 +223,11 @@ public sealed class SuiRealProviderRoutingTests
         avatar.ProviderUniqueStorageKey = new() { [ProviderType.LocalFileOASIS] = avatar.Id.ToString() };
         avatar.ResetToken = "owned-sui-reset-" + avatar.Id;
         avatar.RefreshTokens = new() { new RefreshToken { Token = "owned-sui-refresh-" + avatar.Id } };
+        // Synthetic stored wallet fields, not an on-chain balance or a newly funded wallet.
+        var walletAddress="owned-search-wallet-"+avatar.Id;
+        var walletSecret="owned-hidden-recovery-"+avatar.Id;
+        avatar.ProviderWallets=new() {{ProviderType.SuiOASIS,new() {new ProviderWallet {
+            WalletId=avatar.Id,WalletAddress=walletAddress,SecretRecoveryPhrase=walletSecret,ProviderType=ProviderType.SuiOASIS,Balance=123}}}};
         var detail = new AvatarDetail { Id = avatar.Id, Username = avatar.Username, Email = avatar.Email };
         var avatarSaved = false;
         var allAssertionsPassed=false;
@@ -250,6 +264,21 @@ public sealed class SuiRealProviderRoutingTests
             manager.LastReplicationDiagnostic.SucceededCount.Should().Be(1);
             (await sui.LoadAvatarAsync(avatar.Id)).Result.Username.Should().Be(avatar.Username);
             (await local.LoadAvatarAsync(avatar.Id)).Result.Username.Should().Be(avatar.Username);
+            foreach(var providerType in new[]{ProviderType.LocalFileOASIS,ProviderType.SuiOASIS}){
+                var group=new SearchTextGroup {SearchAvatars=true,HolonType=HolonType.All,SearchQuery=walletAddress,
+                    AvatarSearchParams=new NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar.SearchAvatarParams {
+                        SearchAvatarWalletParams=new SearchAvatarWalletParams {WalletAddress=true}}};
+                var search=new StorageOperationRequest {Operation="Search",PreferredProvider=providerType,LoadChildren=false,
+                    SearchParams=new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new() {group}}};
+                foreach(var read in new[]{router.RouteRequest<ISearchResults>(search),await router.RouteRequestAsync<ISearchResults>(search)}){
+                    read.IsError.Should().BeFalse(read.Message);read.Result.SearchResultAvatars.Single().Id.Should().Be(avatar.Id);
+                }
+                group.SearchQuery=walletSecret;
+                group.AvatarSearchParams=new NextGenSoftware.OASIS.API.Core.Objects.Search.Avatrar.SearchAvatarParams {SearchAllFields=true};
+                foreach(var read in new[]{router.RouteRequest<ISearchResults>(search),await router.RouteRequestAsync<ISearchResults>(search)}){
+                    read.IsError.Should().BeFalse(read.Message);read.Result.NumberOfResults.Should().Be(0,"stored recovery phrases are never search candidates");
+                }
+            }
             var savedDetail = await router.RouteRequestAsync<IAvatarDetail>(new StorageOperationRequest
                 { Operation = "SaveAvatarDetail", Payload = detail, PreferredProvider = ProviderType.LocalFileOASIS });
             savedDetail.IsError.Should().BeFalse(savedDetail.Message);

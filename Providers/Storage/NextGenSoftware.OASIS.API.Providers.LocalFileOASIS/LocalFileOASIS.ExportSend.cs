@@ -16,6 +16,7 @@ using NextGenSoftware.OASIS.API.Core.Objects;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 using NextGenSoftware.OASIS.Common;
 using NextGenSoftware.Utilities;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
 {
@@ -392,9 +393,7 @@ namespace NextGenSoftware.OASIS.API.Providers.LocalFileOASIS
                             // Filter avatars based on search criteria
                             foreach (var avatar in avatarsToSearch)
                             {
-                                bool matches = text == null || ContainsQuery(avatar.Username) || ContainsQuery(avatar.Email)
-                                    || ContainsQuery(avatar.FirstName) || ContainsQuery(avatar.LastName)
-                                    || (text.SearchIds && ContainsQuery(avatar.Id.ToString()));
+                                bool matches = StoredRecordSearch.MatchesSelectedFields(avatar,true,searchGroup);
 
                                 // Filter by avatar ID if specified
                                 if (searchParams.SearchOnlyForCurrentAvatar && searchParams.AvatarId != Guid.Empty)

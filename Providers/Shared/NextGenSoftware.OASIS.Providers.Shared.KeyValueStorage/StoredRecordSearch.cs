@@ -7,6 +7,7 @@ using Newtonsoft.Json.Linq;
 using NextGenSoftware.OASIS.API.Core.Enums;
 using NextGenSoftware.OASIS.API.Core.Interfaces;
 using NextGenSoftware.OASIS.API.Core.Interfaces.Search;
+using NextGenSoftware.OASIS.API.Core.Interfaces.Search.Avatar;
 using NextGenSoftware.OASIS.API.Core.Objects.Search;
 
 namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
@@ -34,8 +35,13 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                     if(group is ISearchDateGroup date && !Enum.IsDefined(typeof(SearchOperatorType),date.DateOperator)
                         || group is ISearchNumberGroup number && !Enum.IsDefined(typeof(SearchOperatorType),number.NumberOperator))
                         throw new ArgumentException("Unknown search comparison operator.");
-                    if(group.AvatarSearchParams?.SearchAvatarWalletParams != null)
-                        throw new NotSupportedException("Stored-record wallet-field search is not implemented.");
+                    var wallet=group.AvatarSearchParams?.SearchAvatarWalletParams;
+                    var transaction=wallet?.SearchAvatarWalletTransactionParams;
+                    if(transaction!=null && (transaction.Token || transaction.MemoText || transaction.ProviderType))
+                        throw new NotSupportedException("Stored wallet transactions do not expose Token, MemoText or ProviderType; these fields cannot be inferred from description or the wallet's provider.");
+                    if(wallet!=null && !SelectedFields(wallet,typeof(ISearchAvatarWalletParams)).Any()
+                        && !SelectedFields(wallet.SearchAvatarWalletTransactionParams,typeof(ISearchAvatarWalletTransactionParams)).Any())
+                        throw new ArgumentException("An explicit wallet search mask requires at least one selected wallet or transaction field.");
                 }
                 if(version != 0 && !supportsHistory) throw new NotSupportedException("Stored-record search history is not implemented; only current version 0 is supported.");
                 if(supportsHistory && version<0) throw new ArgumentOutOfRangeException(nameof(version));
@@ -70,15 +76,17 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 if(match)
                 {
                     object selection=avatar ? group.AvatarSearchParams : group.HolonSearchParams;
+                    var walletSelection=avatar ? group.AvatarSearchParams?.SearchAvatarWalletParams : null;
                     var json=SearchDocument(record);
                     RemoveSearchCredentials(json);
                     var flags=selection?.GetType().GetProperties().Where(p=>p.PropertyType == typeof(bool) && (bool)p.GetValue(selection)).Select(p=>p.Name).ToList();
                     if(flags?.Contains("SearchAllFields") == true)
                         flags=json.Properties().Select(p=>p.Name).ToList();
-                    if(flags == null || flags.Count == 0)
+                    if((flags == null || flags.Count == 0) && walletSelection==null)
                         flags=group is ISearchDateGroup ? new List<string> {"CreatedDate","ModifiedDate"}
                             : group is ISearchNumberGroup ? new List<string> {"Version"}
                             : avatar ? new List<string> {"Username","Email","FirstName","LastName"} : new List<string> {"Name","Description"};
+                    flags ??=new List<string>();
                     // Credentials are never searchable even under an all-fields request.
                     flags.RemoveAll(name=>name is "Password" or "JwtToken" or "RefreshToken" or "ResetToken" or "VerificationToken");
                     flags=flags.Select(name=>name == "VerifiedDate" ? "Verified" : name == "AvatarId" ? "Id" : name).ToList();
@@ -87,14 +95,16 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                     if(group is ISearchTextGroup text)
                     {
                         if(text.SearchProviderKeys) flags.Add("ProviderUniqueStorageKey");
-                        match=flags.SelectMany(name=>SearchValues(json[name])).Any(value=>value.ToString().Contains(text.SearchQuery,StringComparison.OrdinalIgnoreCase));
+                        match=flags.SelectMany(name=>SearchValues(json[name])).Concat(WalletValues(json,walletSelection))
+                            .Any(value=>value.ToString().Contains(text.SearchQuery,StringComparison.OrdinalIgnoreCase));
                         if(text.SearchIds)
                             match |= MatchesTextIds(json,text.SearchQuery);
                     }
                     else if(group is ISearchNumberGroup number)
-                        match=flags.SelectMany(name=>SearchValues(json[name])).Any(token=>decimal.TryParse(token.ToString(),NumberStyles.Number,CultureInfo.InvariantCulture,out var value) && CompareSearch(value.CompareTo(number.Number),number.NumberOperator));
+                        match=flags.SelectMany(name=>SearchValues(json[name])).Concat(WalletValues(json,walletSelection))
+                            .Any(token=>decimal.TryParse(token.ToString(),NumberStyles.Number,CultureInfo.InvariantCulture,out var value) && CompareSearch(value.CompareTo(number.Number),number.NumberOperator));
                     else if(group is ISearchDateGroup date)
-                        match=flags.SelectMany(name=>SearchValues(json[name])).Any(token=>token.Type == JTokenType.Date
+                        match=flags.SelectMany(name=>SearchValues(json[name])).Concat(WalletValues(json,walletSelection)).Any(token=>token.Type == JTokenType.Date
                             && CompareSearch(token.Value<DateTime>().CompareTo(date.Date),date.DateOperator));
                     else throw new NotSupportedException("Unknown Stored-record search group type.");
                 }
@@ -178,6 +188,26 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
 
         private static IEnumerable<JValue> SearchValues(JToken token)
             => token is JValue value ? new[] {value} : token is JContainer container ? container.Descendants().OfType<JValue>() : Enumerable.Empty<JValue>();
+
+        // Select only fields declared by the public mask interfaces, never arbitrary runtime properties.
+        private static IEnumerable<string> SelectedFields(object selection,Type contract)
+            => selection==null ? Enumerable.Empty<string>() : contract.GetProperties()
+                .Where(property=>property.PropertyType==typeof(bool) && (bool)property.GetValue(selection)).Select(property=>property.Name);
+
+        private static IEnumerable<JValue> WalletValues(JObject document,ISearchAvatarWalletParams selection)
+        {
+            if(selection==null || document["ProviderWallets"] is not JObject providers)yield break;
+            var fields=SelectedFields(selection,typeof(ISearchAvatarWalletParams)).ToArray();
+            var transactionFields=SelectedFields(selection.SearchAvatarWalletTransactionParams,typeof(ISearchAvatarWalletTransactionParams)).ToArray();
+            foreach(var provider in providers.Properties())
+                if(provider.Value is JArray wallets)
+                    foreach(var wallet in wallets.OfType<JObject>()){
+                        foreach(var field in fields)foreach(var value in SearchValues(wallet[field]))yield return value;
+                        if(wallet["Transactions"] is JArray transactions)
+                            foreach(var transaction in transactions.OfType<JObject>())
+                                foreach(var field in transactionFields)foreach(var value in SearchValues(transaction[field]))yield return value;
+                    }
+        }
 
         private static void RemoveSearchCredentials(JToken token)
         {
