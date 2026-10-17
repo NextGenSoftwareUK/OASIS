@@ -23,7 +23,9 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 var id = NativeFeeMirrorId(transactionId);
                 using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
                 timeout.CancelAfter(TimeSpan.FromSeconds(20));
-                using var response = await _httpClient.GetAsync("transactions/" + Uri.EscapeDataString(id), timeout.Token);
+                // An omitted nonce also returns consensus-generated children. This capability
+                // attributes only original unscheduled parents; still validate every returned row.
+                using var response = await _httpClient.GetAsync("transactions/" + Uri.EscapeDataString(id) + "?nonce=0&scheduled=false", timeout.Token);
                 response.EnsureSuccessStatusCode();
                 using var document = JsonDocument.Parse(await response.Content.ReadAsStringAsync(timeout.Token));
                 result.Result = MapNativeFeeReceipt(document.RootElement, transactionId, _hederaNetwork);
