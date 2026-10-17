@@ -21,14 +21,46 @@ function units(value) {
   return value;
 }
 
-export async function readTokenDeposit(client,request) {
-  const {packageId,escrowId,id}=selectors(request);
-  const {object}=await client.getObject({objectId:escrowId,include:{content:true}});
+async function registryInfo(client,packageId,escrowId) {
+  const {object}=await client.getObject({objectId:escrowId,include:{content:true,previousTransaction:true}});
   if(object.objectId!==escrowId || object.type!==`${packageId}::token_escrow::Escrow`
     ||object.owner?.$kind!=='Shared'||!object.content)
     throw new Error('Exact shared escrow object and package ABI required');
   const registry=Escrow.parse(object.content);
   if(registry.id!==escrowId || registry.protocol!=='1')throw new Error('Exact escrow registry identity/protocol1 required');
+  return {registry,object};
+}
+
+export async function createTokenEscrow(client,request,execute) {
+  const intent=Object.freeze({...request});
+  if(!isValidSuiAddress(intent.packageAddress)||intent.escrowObjectId)
+    throw new Error('Explicit package required; registry creation cannot replace a selected escrow');
+  const packageId=normalizeSuiAddress(intent.packageAddress);
+  const signer=Ed25519Keypair.fromSecretKey(intent.privateKey);
+  if(intent.fromWalletAddress&&normalizeSuiAddress(intent.fromWalletAddress)!==signer.toSuiAddress())
+    throw new Error('Registry creator must own requested signer wallet');
+  const tx=new Transaction();tx.moveCall({target:`${packageId}::token_escrow::create`,arguments:[]});
+  const committed=await execute(client,tx,signer,{objectTypes:true});
+  if(committed.effects?.transactionDigest!==committed.digest||!Array.isArray(committed.effects.changedObjects))
+    throw new Error('Original successful creation effects required');
+  const created=committed.effects.changedObjects.filter(item=>item.idOperation==='Created'&&item.outputState==='ObjectWrite'
+    &&item.outputOwner?.Shared&&committed.objectTypes?.[item.objectId]===`${packageId}::token_escrow::Escrow`);
+  if(created.length!==1||!isValidSuiAddress(created[0].objectId)
+    ||typeof created[0].outputVersion!=='string'||!/^[1-9][0-9]*$/.test(created[0].outputVersion)
+    ||BigInt(created[0].outputVersion)>18446744073709551615n
+    ||created[0].outputOwner.Shared.initialSharedVersion!==created[0].outputVersion)
+    throw new Error('Exactly one original shared registry creation/version required');
+  const escrowObjectId=normalizeSuiAddress(created[0].objectId);
+  const {registry,object}=await registryInfo(client,packageId,escrowObjectId);
+  if(registry.deposits.size!=='0'||object.previousTransaction!==committed.digest||object.version!==created[0].outputVersion
+    ||object.owner.Shared.initialSharedVersion!==created[0].outputVersion)
+    throw new Error('Created registry readback does not match original empty creation');
+  return {transactionHash:committed.digest,escrowObjectId,creator:signer.toSuiAddress(),protocol:1};
+}
+
+export async function readTokenDeposit(client,request) {
+  const {packageId,escrowId,id}=selectors(request);
+  const {registry}=await registryInfo(client,packageId,escrowId);
   let field;
   try {
     field=(await client.core.getDynamicField({parentId:registry.deposits.id,
