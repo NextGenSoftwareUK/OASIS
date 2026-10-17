@@ -326,6 +326,17 @@ public class SuiPreparedLedgerTests
             var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions{Service="WEB6",PersistenceTimeout=TimeSpan.FromSeconds(5)})
                 .BeginAsync("test-only",user,key,new string('a',64),"POST /local-test",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1},deadline.Token);
             var sdk=typeof(SuiOASIS).GetMethod("InvokeSdkAsync",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+            if(storageScope){
+                var entered=false;
+                foreach(var length in new[]{110,128})
+                    await Assert.ThrowsExceptionAsync<ArgumentException>(()=>provider.ExecutePreparedStorageAsync(
+                        ()=>{entered=true;return Task.FromResult(true);},execution,new string('x',length),
+                        settings.GetProperty("address").GetString()!,deadline.Token));
+                Assert.IsFalse(entered,"Invalid correlation must fail before entering the storage operation.");
+                Assert.AreEqual(0,(await store.GetAsync(execution.OperationId,deadline.Token)).ProviderAttempts.Count);
+                Assert.IsTrue(await provider.ExecutePreparedStorageAsync(()=>Task.FromResult(true),execution,new string('x',109),
+                    settings.GetProperty("address").GetString()!,deadline.Token));
+            }
             Task<JsonElement> Mutate(string operation,object args,string correlation)=>storageScope
                 ? provider.ExecutePreparedStorageAsync(async()=>{
                     var response=await (Task<JsonElement>)sdk.Invoke(provider,new object[]{operation,args,deadline.Token})!;
