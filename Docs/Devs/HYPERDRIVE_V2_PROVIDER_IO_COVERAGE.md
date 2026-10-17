@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-17 TRON avatar token/NFT mint preserve original wallet error envelopes and require exact avatar key. Token amount/memo now captured before asynchronous wallet lookup; NFT limited URI extension already captured supported values. Resolved NFT recipient included in response and asserted in existing positive SDK/gRPC fixture.4red-before/green-after wallet cases, final86combined pass2s; full386pass4s. SDK/gRPC controlled consensus responses are not retained TVM acceptance, host authorization or paid settlement proof.
+
 Final Hedera NFT wallet checkpoint2026-10-17:95/95combined local wallet/config/process cases pass13s/0skip, TRX SHA256211A8C096146187594183194AE991ACBD2913BD0E7F4C7C07BBB669EBB699325; full113/113Hedera pass53s/0skip/runnerexit0 SHA256DDD05132DD20DAA3E0AFE8CB4F488854A10CA466E70FC74975189F34B6FB4AFA. Supersedes pending below. Owned27029closed/free89287409664bytes observation; original Cosmos/TRON journal hashes unchanged. Native/hosted/full-goal gates remain OPEN; no merge/deployment/public funds.
 
 2026-10-17 Hedera NFT mint preserves original wallet read/decryption errors for minter and3recipient selectors, validates exact minter/ID-recipient AvatarId and signing key presence before SDK.8new corrupt-wallet sync/async rows extend existing fixture; initial expected username/email envelope wrongly used ID lookup corrected without weakening equality assertions. Same positive gated encrypted-wallet NFT tests retained. Controlled wallet/process evidence only; no HTS/native/hosted certification.

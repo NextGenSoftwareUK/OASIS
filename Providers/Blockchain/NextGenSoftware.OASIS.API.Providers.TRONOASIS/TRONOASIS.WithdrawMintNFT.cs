@@ -257,13 +257,14 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                 var requestedRecipient = transaction.SendToAddressAfterMinting;
                 var wallet = await WalletManager.GetAvatarDefaultWalletByIdAsync(mintedByAvatarId,
                     Core.Enums.ProviderType.TRONOASIS, showPrivateKeys: true);
-                if (wallet.IsError || wallet.Result == null || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
-                    throw new InvalidOperationException("Could not resolve the avatar's TRON minter signing wallet.");
+                if (wallet.IsError) return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IProviderWallet,IWeb3NFTTransactionResponse>(wallet);
+                if (wallet.Result == null || wallet.Result.AvatarId != mintedByAvatarId || string.IsNullOrWhiteSpace(wallet.Result.PrivateKey))
+                    throw new InvalidOperationException("Exact requesting avatar TRON signing wallet required.");
                 var recipient = string.IsNullOrWhiteSpace(requestedRecipient) ? wallet.Result.WalletAddress : requestedRecipient;
                 var hash = await ExecuteNativeRuntimeAsync(client => client.MintNftAsync(wallet.Result.WalletAddress,
                     recipient, contract, tokenId, metadataUri, wallet.Result.PrivateKey, memo));
                 var nft = new Web3NFT { NFTTokenAddress = contract + "/" + tokenId.ToString(System.Globalization.CultureInfo.InvariantCulture),
-                    JSONMetaDataURL = metadataUri, MintedByAvatarId = mintedByAvatarId,
+                    JSONMetaDataURL = metadataUri, MintedByAvatarId = mintedByAvatarId, SendToAddressAfterMinting = recipient,
                     OnChainProvider = new EnumValue<ProviderType>(Core.Enums.ProviderType.TRONOASIS) };
                 response.Result = new Web3NFTTransactionResponse { TransactionResult = hash, Web3NFT = nft,
                     Web3NFTs = new List<IWeb3NFT> { nft } };
