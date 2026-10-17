@@ -1,5 +1,7 @@
 # HyperDrive V2 native-chain fees and recovery
 
+2026-10-17 TRON raw native transfer now uses existing native SDK lease without encrypted-storage activation. Positive amount must convert to exact int64 SUN before key resolution; invalid amount or resolver failure submits nothing. The configured resolver delegate survives runtime disposal but private keys are resolved per invocation, not newly cached. Controlled public-provider tests confirm actual SDK authority checks, one construction/broadcast and exact solidified receipt ID; these do not prove funded fees or settlement. Protected uncertain submissions are not replayed; full native fee/hosted acceptance gates remain open.
+
 ## Hedera aggregate escrow request integrity (2026-10-17)
 
 Hedera's current HTS escrow also exposes aggregate `lockAll`/`unlock`, not exact-amount or per-deposit custody. Shared validation now rejects nonzero requested Amount, nonempty LockId or conflicting configured contract before wallet lookup, signing or paid queries. Zero/default Amount retains the existing all-balance meaning; principal is not a fee. Six public-provider rejection tests and full77-case suite pass, but do not prove native settlement, sponsorship or completed amount-aware support. That implementation gate stays open; existing Ethereum per-deposit source is a reuse candidate, not a deployed HTS solution. No funded operation was performed.

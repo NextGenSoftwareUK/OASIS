@@ -241,33 +241,20 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
 
             try
             {
-                if (!IsProviderActivated)
+                TronNativeTransferClient.NativeUnits(amount);
+                var transactionId = await ExecuteNativeRuntimeAsync(async client =>
                 {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate TRON provider: {activateResult.Message}",
-                            activateResult.Exception, detailedMessage: activateResult.DetailedMessage);
-                        response.ErrorCode = activateResult.ErrorCode;
-                        return response;
-                    }
-                }
-
-                await _runtimeLifecycle.WaitAsync();
-                try
-                {
-                    if (!IsProviderActivated || _nativeTransfers == null || _nativeSigningKeyResolver == null)
-                        throw new InvalidOperationException("TRON signed transfer runtime is not active or signing credentials are not configured.");
+                    if (_nativeSigningKeyResolver == null)
+                        throw new InvalidOperationException("TRON signing credentials are not configured.");
                     var privateKey = await _nativeSigningKeyResolver(fromWalletAddress);
-                    var transactionId = await _nativeTransfers.SendAsync(fromWalletAddress, toWalletAddress, amount, privateKey, memoText);
-                    response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
-                    {
-                        TransactionResult = transactionId
-                    };
-                    response.IsError = false;
-                    response.Message = "TRON transfer confirmed by a solidified receipt.";
-                }
-                finally { _runtimeLifecycle.Release(); }
+                    return await client.SendAsync(fromWalletAddress, toWalletAddress, amount, privateKey, memoText);
+                });
+                response.Result = new NextGenSoftware.OASIS.API.Core.Objects.Wallet.Responses.TransactionResponse
+                {
+                    TransactionResult = transactionId
+                };
+                response.IsError = false;
+                response.Message = "TRON transfer confirmed by a solidified receipt.";
             }
             catch (Exception ex)
             {

@@ -72,7 +72,6 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     var failedRuntime = _ownedRuntime;
                     _ownedRuntime = null;
                     _nativeTransfers = null;
-                    _nativeSigningKeyResolver = null;
                     try { await failedRuntime.DisposeAsync(); }
                     catch (Exception cleanupError) { ex = new AggregateException(ex, cleanupError); }
                 }
@@ -101,7 +100,6 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
                     var runtime = _ownedRuntime;
                     _ownedRuntime = null;
                     _nativeTransfers = null;
-                    _nativeSigningKeyResolver = null;
                     await runtime.DisposeAsync();
                 }
                 IsProviderActivated = false;

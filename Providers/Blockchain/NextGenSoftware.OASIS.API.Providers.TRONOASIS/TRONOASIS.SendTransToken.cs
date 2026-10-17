@@ -272,7 +272,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             _ownedRuntime = new TronSdkRuntime(new Uri(_fullNodeGrpcEndpoint), new Uri(_solidityNodeGrpcEndpoint),
                 _genesisBlockId, Environment.GetEnvironmentVariable(_apiKeyEnvironmentVariable), _contractFeeLimitSun);
             _nativeTransfers = _ownedRuntime.NativeTransfers;
-            _nativeSigningKeyResolver = address => Task.FromResult(Environment.GetEnvironmentVariable(_signingKeyEnvironmentVariable));
+            _nativeSigningKeyResolver ??= address => Task.FromResult(Environment.GetEnvironmentVariable(_signingKeyEnvironmentVariable));
         }
 
         public async Task<OASISResult<System.Text.Json.JsonElement>> GetNativeFeeReceiptAsync(string transactionHash, CancellationToken token = default)
