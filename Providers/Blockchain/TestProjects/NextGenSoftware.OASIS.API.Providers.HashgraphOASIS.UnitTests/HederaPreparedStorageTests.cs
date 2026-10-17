@@ -67,7 +67,9 @@ public partial class HederaPreparationTests
     [DataRow(false,false,false,true)]
     [DataRow(false,true,false,false,true)] [DataRow(false,true,true,false,true)]
     [DataRow(false,true,false,false,false,true)] [DataRow(false,true,true,false,false,true)]
-    public async Task AdmittedEncryptedStoragePersistsOriginalBeforeControlledSubmission(bool rejectPersistence,bool routed=false,bool synchronous=false,bool cancelQuery=false,bool attemptBudget=false,bool aggregateBudget=false)
+    [DataRow(false,false,false,false,false,true,true)]
+    [DataRow(false,true,false,false,false,true,true)] [DataRow(false,true,true,false,false,true,true)]
+    public async Task AdmittedEncryptedStoragePersistsOriginalBeforeControlledSubmission(bool rejectPersistence,bool routed=false,bool synchronous=false,bool cancelQuery=false,bool attemptBudget=false,bool aggregateBudget=false,bool acceptAggregateBudget=false)
     {
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.AreEqual(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
@@ -92,7 +94,7 @@ public partial class HederaPreparationTests
             var execution=await new Web4UsageExecution(authority,store,new Web4UsageLedgerOptions {Service="WEB6"})
                 .BeginAsync("test-only",user,"hedera-storage",new string('a',64),"POST /offline-storage",
                     new UsageEndpointPolicy {MeterCategory="api.request",ReservedUnits=1,MaximumProviderAttempts=attemptBudget?1:512,
-                        EstimatedCostUsd=2m,MaximumNativeFeeCostUsd=aggregateBudget?1.5m:null},deadline.Token);
+                        EstimatedCostUsd=10m,MaximumNativeFeeCostUsd=aggregateBudget?(acceptAggregateBudget?10m:1.5m):null},deadline.Token);
             var priceTime=DateTime.UtcNow.AddSeconds(-1);
             var price=new NativeFeePriceQuote(Guid.Parse(execution.OperationId),"HashgraphOASIS","testnet","tinybar","hedera-hashgraph",8,1m,
                 "synthetic-offline-price","fixture-v1","fixture-v1",priceTime,priceTime,priceTime,priceTime.AddMinutes(5));
@@ -163,7 +165,7 @@ public partial class HederaPreparationTests
                 Assert.AreEqual(0,File.ReadAllLines(log).Length);
                 return await SavePair();
             }):await provider.ExecutePreparedStorageAsync(SavePair,execution,"storage","0.0.1001",deadline.Token);
-            if(attemptBudget||aggregateBudget){
+            if(attemptBudget||aggregateBudget&&!acceptAggregateBudget){
                 Assert.IsTrue(result.IsError,result.Message);
                 bool HasBudgetCause(Exception? error)=>error is UsageProtocolException protocol&&protocol.Code==(aggregateBudget?"NATIVE_FEE_BUDGET_EXCEEDED":"PROVIDER_ATTEMPT_BUDGET_EXCEEDED")
                     ||error is AggregateException aggregate&&aggregate.InnerExceptions.Any(HasBudgetCause)
@@ -220,6 +222,14 @@ public partial class HederaPreparationTests
                     Assert.AreEqual(price,retainedRead.NativePreparation.PriceQuotes.Single());
                 }
             }
+            if(acceptAggregateBudget){
+                var all=await new MongoUsageOutboxStore(connection,database).GetAsync(execution.OperationId,deadline.Token);
+                Assert.AreEqual(routed?7:4,all.ProviderAttempts.Count);
+                var expectedExposure=all.ProviderAttempts.Sum(attempt=>NativeFeeMaximumAccounting.ValueUsd(attempt.NativePreparation.FeeMaximums,attempt.NativePreparation.PriceQuotes));
+                Assert.AreEqual(expectedExposure,all.NativeFeeExposureUsd);Assert.IsTrue(expectedExposure>0m&&expectedExposure<=10m);
+                Assert.AreEqual(0,all.Receipts.Count);Assert.IsNull(all.Settlement);
+                await VerifyBudgetedStorageRecoveryAsync(provider,store,all,deadline.Token);
+            }
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>provider.ExecutePreparedStorageAsync<int>(
                 ()=>throw new InvalidOperationException("controlled operation failure"),execution,"failed","0.0.1001",deadline.Token));
             await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>provider.ExecutePreparedStorageAsync(
@@ -233,6 +243,55 @@ public partial class HederaPreparationTests
             foreach(var name in names)Environment.SetEnvironmentVariable(name,prior[name]);
             await mongo.DropDatabaseAsync(database);
             if(completed)File.Delete(log);
+        }
+    }
+
+    private static async Task VerifyBudgetedStorageRecoveryAsync(HashgraphOASIS provider,MongoUsageOutboxStore store,UsageOutboxOperation operation,CancellationToken token)
+    {
+        var verifier=typeof(HashgraphOASIS).GetMethod("VerifyOriginalSignedIdentityAsync",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+        var originals=new Dictionary<string,(string Hash,bool Query)>();
+        foreach(var attempt in operation.ProviderAttempts){
+            var preparation=attempt.NativePreparation;
+            var authority=preparation.SigningAuthority;
+            var query=authority.Scheme=="hedera-query-payment-v1";
+            string key;
+            if(query){using var context=System.Text.Json.JsonDocument.Parse(Convert.FromBase64String(authority.EvidenceBase64));key=context.RootElement.GetProperty("PublicKey").GetString()!;}
+            else key=System.Text.Encoding.UTF8.GetString(Convert.FromBase64String(authority.EvidenceBase64));
+            var identity=await (Task<System.Text.Json.JsonElement>)verifier.Invoke(provider,new object[]{System.Text.Json.JsonSerializer.SerializeToElement(new{
+                transactionHash=attempt.ProviderRequestId,sender=preparation.Sender,signedTransactionBase64=preparation.SignedTransactionBase64}),key,token})!;
+            var hash=identity.GetProperty("signedTransactionHashes").EnumerateArray().Single().GetString()!;
+            originals.Add(attempt.ProviderRequestId,(Convert.ToBase64String(Convert.FromHexString(hash)),query));
+        }
+        using var mirrorHttp=new HttpClient(new BudgetedStorageMirror(originals)){BaseAddress=new Uri("https://testnet.mirrornode.hedera.com/api/v1/")};
+        var field=typeof(HashgraphOASIS).GetField("_httpClient",System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic)!;
+        ((HttpClient)field.GetValue(provider)!).Dispose();field.SetValue(provider,mirrorHttp);
+        var resolver=new PreparedNativeUsageRecoveryResolver(store,new[]{(NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader)provider});
+        Assert.IsNull(await resolver.ResolveAsync(operation,token),"Fee recovery cannot invent a logical API outcome.");
+        var recovered=await store.GetAsync(operation.Id,token);
+        Assert.AreEqual(operation.ProviderAttempts.Count,recovered.Receipts.Count);
+        Assert.AreEqual(operation.NativeFeeExposureUsd,recovered.NativeFeeExposureUsd,"Receipt lookup must not release admitted maxima.");
+        Assert.IsNull(recovered.ObservedOutcome);Assert.IsNull(recovered.Settlement);
+        var observed=await store.RecordObservedOutcomeAsync(operation.Id,operation.ExecutionOwner,"succeeded",token);
+        var settlement=await new RecordedUsageRecoveryResolver().ResolveAsync(observed,token);
+        Assert.AreEqual(UsageReceiptAccounting.OperationCost(operation.Id,observed.Receipts),settlement.ActualCostUsd);
+        Assert.IsTrue(settlement.ActualCostUsd>0m&&settlement.ActualCostUsd<operation.NativeFeeExposureUsd);
+    }
+
+    private sealed class BudgetedStorageMirror(IReadOnlyDictionary<string,(string Hash,bool Query)> originals):HttpMessageHandler
+    {
+        protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request,CancellationToken token)
+        {
+            token.ThrowIfCancellationRequested();
+            Assert.AreEqual("?nonce=0&scheduled=false",request.RequestUri!.Query);
+            var original=originals.Single(pair=>{var parts=pair.Key.Split('@');return request.RequestUri.AbsolutePath.EndsWith(parts[0]+"-"+parts[1].Replace('.','-'),StringComparison.Ordinal);});
+            var id=original.Key.Split('@');var start=id[1].Split('.');
+            var row=new Dictionary<string,object?> { ["transaction_id"]=id[0]+"-"+start[0]+"-"+start[1],
+                ["transaction_hash"]=original.Value.Hash,["nonce"]=0,["scheduled"]=false,["parent_consensus_timestamp"]=null,
+                ["name"]=original.Value.Query?"CRYPTOTRANSFER":"CONTRACTCALL",["result"]="SUCCESS",
+                ["consensus_timestamp"]=(long.Parse(start[0],System.Globalization.CultureInfo.InvariantCulture)+1).ToString(System.Globalization.CultureInfo.InvariantCulture)+"."+start[1],
+                ["charged_tx_fee"]=original.Value.Query?5:7};
+            if(original.Value.Query)row["transfers"]=new[]{new{account="0.0.1001",amount=-128,is_approval=false},new{account="0.0.3",amount=128,is_approval=false}};
+            return Task.FromResult(new HttpResponseMessage(System.Net.HttpStatusCode.OK){Content=new StringContent(System.Text.Json.JsonSerializer.Serialize(new{transactions=new[]{row}}))});
         }
     }
 }
