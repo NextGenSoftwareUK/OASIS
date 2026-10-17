@@ -18,7 +18,10 @@ public sealed partial class HyperDriveProviderExecutionTests
     [Theory]
     [InlineData(false,false,false)] [InlineData(true,false,false)] [InlineData(false,true,false)]
     [InlineData(false,false,true)] [InlineData(true,false,true)]
-    public async Task ExhaustedOperationAttemptBudgetStopsRemainingRoutesAndPreservesCause(bool synchronous,bool explicitReplication,bool failover)
+    [InlineData(false,false,false,"NATIVE_FEE_BUDGET_EXCEEDED")] [InlineData(true,false,false,"NATIVE_FEE_BUDGET_EXCEEDED")]
+    [InlineData(false,true,false,"NATIVE_FEE_BUDGET_EXCEEDED")]
+    [InlineData(false,false,true,"NATIVE_FEE_BUDGET_EXCEEDED")] [InlineData(true,false,true,"NATIVE_FEE_BUDGET_EXCEEDED")]
+    public async Task ExhaustedOperationAttemptBudgetStopsRemainingRoutesAndPreservesCause(bool synchronous,bool explicitReplication,bool failover,string budgetCode="PROVIDER_ATTEMPT_BUDGET_EXCEEDED")
     {
         var primary=CreateActiveProvider();var replica=CreateActiveProvider(ProviderType.LocalFileOASIS,"budget-replica");
         var later=CreateActiveProvider(ProviderType.IPFSOASIS,"must-not-be-visited");var holon=new Holon {Id=Guid.NewGuid()};
@@ -32,7 +35,7 @@ public sealed partial class HyperDriveProviderExecutionTests
         var entries=types.Select(type=>new EnumValue<ProviderType>(type)).ToArray();
         providers.SetAndReplaceAutoReplicationListForProviders(entries).IsError.Should().BeFalse();
         providers.SetAndReplaceAutoFailOverListForProviders(entries).IsError.Should().BeFalse();
-        var cause=new UsageProtocolException("PROVIDER_ATTEMPT_BUDGET_EXCEEDED","controlled durable limit reached");
+        var cause=new UsageProtocolException(budgetCode,"controlled durable limit reached");
         var store=new Mock<IUsageOutboxStore>();var calls=0;
         store.Setup(x=>x.BeginProviderAttemptAsync(It.IsAny<string>(),It.IsAny<string>(),It.IsAny<UsageProviderAttempt>(),It.IsAny<CancellationToken>()))
             .Returns((string id,string owner,UsageProviderAttempt attempt,CancellationToken token)=>Interlocked.Increment(ref calls)==1?Task.CompletedTask:Task.FromException(cause));
