@@ -49,6 +49,7 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
         private const string TRON_API_BASE_URL = "https://api.trongrid.io";
         private readonly string _contractAddress;
         private readonly string _escrowContractAddress;
+        private readonly TronIdBoundEscrowConfiguration _idBoundEscrow;
         private readonly string _bridgePoolWalletAddress;
         private WalletManager _walletManager;
         private TronNativeTransferClient _nativeTransfers;
@@ -77,7 +78,8 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             string escrowContractAddress = "", string bridgePoolWalletAddress = "", TronPrivateStorageBackend storageBackend = null,
             string storageContractAddress = "", string storageOwnerAddress = "",
             string storageSigningKeyEnvironmentVariable = "OASIS_TRON_STORAGE_PRIVATE_KEY",
-            string storageEncryptionKeyEnvironmentVariable = "OASIS_TRON_STORAGE_ENCRYPTION_KEY", long contractFeeLimitSun = 100000000)
+            string storageEncryptionKeyEnvironmentVariable = "OASIS_TRON_STORAGE_ENCRYPTION_KEY", long contractFeeLimitSun = 100000000,
+            TronIdBoundEscrowConfiguration idBoundEscrow = null)
             : base(new TronProviderStorageBackend(storageBackend))
         {
             ((TronProviderStorageBackend)Backend).Lifecycle = _runtimeLifecycle;
@@ -112,6 +114,11 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS
             _walletManager = walletManager;
             _contractAddress = contractAddress ?? "";
             _escrowContractAddress = escrowContractAddress ?? "";
+            idBoundEscrow?.Validate();
+            if (idBoundEscrow != null && (idBoundEscrow.ContractAddress == _escrowContractAddress
+                || idBoundEscrow.ContractAddress == _contractAddress || idBoundEscrow.ContractAddress == storageContractAddress))
+                throw new ArgumentException("Id-bound custody requires a separate explicitly configured contract.");
+            _idBoundEscrow = idBoundEscrow;
             _bridgePoolWalletAddress = bridgePoolWalletAddress ?? "";
             this.ProviderName = "TRONOASIS";
             this.ProviderDescription = "TRON Provider";

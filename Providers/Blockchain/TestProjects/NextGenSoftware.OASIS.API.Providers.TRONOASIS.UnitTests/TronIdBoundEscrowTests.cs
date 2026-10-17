@@ -18,6 +18,7 @@ public sealed class TronIdBoundEscrowTests
     [InlineData("allowance")] [InlineData("approval-readback")] [InlineData("readback")]
     [InlineData("existing-readback")] [InlineData("unlock-readback")]
     [InlineData("broadcast-unknown")] [InlineData("runtime-identity")]
+    [InlineData("provider-lock-sync")] [InlineData("provider-lock-async")] [InlineData("provider-readback")]
     public async Task ExactDepositSdkPreservesIdentityAmountsAndOriginalStages(string mode)
     {
         const string key="0000000000000000000000000000000000000000000000000000000000000001";
@@ -37,6 +38,7 @@ public sealed class TronIdBoundEscrowTests
         BigInteger allowance=mode is "existing-allowance" or "existing-readback"?123:mode=="allowance"?1:0;
         var constructed=0;var broadcasts=0;var persisted=new Dictionary<string,string>();var originalIds=new List<string>();
         var lastId=ByteString.Empty;var approvalConfirmed=false;
+        Action? mutateProviderRequest=null;
         var authority=new Account{Address=ownerBytes,OwnerPermission=new Permission{Id=0,Threshold=1}};
         authority.OwnerPermission.Keys.Add(new Key{Address=Bytes(signer),Weight=1});
         var service=ServerServiceDefinition.CreateBuilder()
@@ -110,6 +112,7 @@ public sealed class TronIdBoundEscrowTests
                         depositExists=true;released=unlocking;ownerBalance+=unlocking?123:-123;escrowBalance+=unlocking?-123:123;
                         if(mode=="broadcast-unknown")throw new RpcException(new Status(StatusCode.Unavailable,"controlled lost acknowledgement"));
                     }
+                    mutateProviderRequest?.Invoke();
                     return Task.FromResult(new Return{Result=true});
                 })
             .AddMethod(TronPermissionRpcTests.Rpc(WalletSolidity.Descriptor.FullName,"GetTransactionInfoById",BytesMessage.Parser,TransactionInfo.Parser),
@@ -126,14 +129,30 @@ public sealed class TronIdBoundEscrowTests
                 Assert.Equal(genesis,chain);Assert.True(persisted.TryAdd(hash,bytes));return Task.CompletedTask;
             });
             using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(15));
-            async Task<TronNativeTransferClient.IdBoundEscrowResult> Run()=>await client.ExecuteIdBoundEscrowAsync(owner,escrow,token,lockId,unlocking?0:1.23m,key,codeHash,unlocking,deadline.Token);
-            if(mode is "lock" or "existing-allowance" or "unlock"){
+            async Task<TronNativeTransferClient.IdBoundEscrowResult> Run(){
+                if(!mode.StartsWith("provider-",StringComparison.Ordinal))
+                    return await client.ExecuteIdBoundEscrowAsync(owner,escrow,token,lockId,unlocking?0:1.23m,key,codeHash,unlocking,deadline.Token);
+                var provider=new TRONOASIS(nativeTransfers:client,idBoundEscrow:new(escrow,codeHash));
+                var request=new Core.Objects.Wallet.Requests.LockWeb3TokenRequest{
+                    LockedByAvatarId=Guid.NewGuid(),LockId=lockId,TokenAddress=token,EscrowContractAddress=escrow,
+                    FromWalletAddress=owner,FromWalletPrivateKey=key,Amount=1.23m};
+                mutateProviderRequest=()=>{request.LockId=Guid.NewGuid();request.Amount=99;request.TokenAddress=owner;};
+                var response=mode=="provider-lock-sync"?provider.LockToken(request):await provider.LockTokenAsync(request);
+                Assert.False(provider.IsProviderActivated);
+                if(response.IsError){Assert.Null(response.Result);Assert.False(response.IsSaved);throw response.Exception!;}
+                Assert.True(response.IsSaved);Assert.Equal(1,response.SavedCount);
+                var actual=Assert.IsType<TronIdBoundEscrowResponse>(response.Result);
+                Assert.Equal(originalIds,actual.NativeTransactions);
+                return new(actual.LockId,actual.TransactionResult,actual.NativeTransactions.Count==2?actual.NativeTransactions[0]:null);
+            }
+            if(mode is "lock" or "existing-allowance" or "unlock" or "provider-lock-sync" or "provider-lock-async"){
                 var result=await Run();Assert.Equal(lockId,result.LockId);Assert.Equal(originalIds.Last(),result.TransactionId);
-                Assert.Equal(mode=="lock"?originalIds.First():null,result.ApprovalTransactionId);
-                Assert.Equal(mode=="lock"?2:1,broadcasts);Assert.Equal(unlocking?1000:877,ownerBalance);
+                var approval=mode=="lock"||mode.StartsWith("provider-",StringComparison.Ordinal);
+                Assert.Equal(approval?originalIds.First():null,result.ApprovalTransactionId);
+                Assert.Equal(approval?2:1,broadcasts);Assert.Equal(unlocking?1000:877,ownerBalance);
             }else{
                 var error=await Assert.ThrowsAnyAsync<Exception>(async()=>await Run());
-                if(mode is "approval-readback" or "readback" or "broadcast-unknown"){
+                if(mode is "approval-readback" or "readback" or "broadcast-unknown" or "provider-readback"){
                     var reconciliation=Assert.IsType<TronEscrowReconciliationException>(error);
                     Assert.Equal(originalIds.First(),reconciliation.ApprovalTransactionId);
                     Assert.Equal(mode=="approval-readback"?null:originalIds.Last(),reconciliation.MutationTransactionId);
