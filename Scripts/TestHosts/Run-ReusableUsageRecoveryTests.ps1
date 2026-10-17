@@ -85,11 +85,19 @@ try{
         if(!$ledgerCounters -or [int]$ledgerCounters.total -lt 1 -or [int]$ledgerCounters.passed -ne [int]$ledgerCounters.total){throw 'Authority ledger must actually run and pass every case.'}
     }elseif($CosmosPreparedOwners){
         $cosmosProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests.csproj'
+        $cosmosStarted=[DateTime]::UtcNow
         if($CosmosFull){
             & dotnet test $cosmosProject --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --logger 'trx;LogFileName=cosmos-full-owned-current.trx' --results-directory $work -v:q
         }else{
             & dotnet test $cosmosProject --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --filter 'FullyQualifiedName~RealOfflineSignedDocumentVerifiesThroughCSharp' --logger 'trx;LogFileName=cosmos-signed-owner-mongo-current.trx' --results-directory $work -v:q
         }
+        if($LASTEXITCODE -ne 0){throw 'Cosmos owned regression failed.'}
+        $cosmosReport=Get-Item -LiteralPath (Join-Path $work $(if($CosmosFull){'cosmos-full-owned-current.trx'}else{'cosmos-signed-owner-mongo-current.trx'}))
+        if($cosmosReport.LastWriteTimeUtc -lt $cosmosStarted){throw 'Cosmos report is stale.'}
+        [xml]$cosmosEvidence=Get-Content -LiteralPath $cosmosReport.FullName
+        $cosmosCounts=$cosmosEvidence.TestRun.ResultSummary.Counters
+        $expectedCosmos=if($CosmosFull){180}else{3}
+        if([int]$cosmosCounts.total -ne $expectedCosmos -or [int]$cosmosCounts.passed -ne $expectedCosmos -or [int]$cosmosCounts.notExecuted -ne 0){throw 'All selected Cosmos cases must actually execute and pass without skips.'}
     }elseif($SuiPreparedLedger -or $SuiPreparedInspect){
         $suiProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests.csproj'
         $suiFilter=if($SuiCSharpEscrow){'FullyQualifiedName~AdmittedCSharpIdBoundTokenFacadeUsesEncryptedWalletAndOriginalReceipts'}elseif($SuiCSharpAssets){'FullyQualifiedName~SuiAdmittedNftFacadeTests&FullyQualifiedName!~AdmittedCSharpIdBoundTokenFacadeUsesEncryptedWalletAndOriginalReceipts'}elseif($SuiCSharpNft){'FullyQualifiedName~AdmittedCSharpNftFacadeMintsReadsEscrowsTransfersAndBurns'}elseif($ArchiveSuiPrepared){'FullyQualifiedName~ArchiveConfirmedRetainedLocalFixtureWithoutResubmission'}elseif($SuiPreparedInspect){'FullyQualifiedName~InspectRetainedPreparedAttemptsWithoutMutation'}else{'FullyQualifiedName~PreparedLocalWriteRetainsOriginalSignedEvidenceAndConfirmsLedger'}

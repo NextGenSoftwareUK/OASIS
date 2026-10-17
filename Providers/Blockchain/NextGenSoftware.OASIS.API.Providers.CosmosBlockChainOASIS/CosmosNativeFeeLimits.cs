@@ -9,7 +9,22 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS;
 public sealed class CosmosNativeFeeLimits
 {
     public IReadOnlyDictionary<string,string> MaximumFeeUnitsByDenomination {get;}
+    /// <summary>Trusted deployment review, not an RPC/code attestation or user spending permission.
+    /// The chain must use standard signed SDK transaction fees with no additional network fee debits.</summary>
+    public string ReviewedStandardSdkChainId {get;}
     public CosmosNativeFeeLimits(IReadOnlyDictionary<string,string> limits)
+        :this(limits,null) { }
+
+    /// <summary>Opt in only after reviewing this exact chain's fee checker and post-handler.
+    /// Contract funds/transferred principal are not transaction fees. No production default is inferred.</summary>
+    public static CosmosNativeFeeLimits ForReviewedStandardSdkChain(IReadOnlyDictionary<string,string> limits,string chainId)
+    {
+        if(string.IsNullOrWhiteSpace(chainId)||chainId.Length>128||chainId.Any(c=>char.IsWhiteSpace(c)||char.IsControl(c)))
+            throw new ArgumentException("Exact reviewed Cosmos chain ID required.",nameof(chainId));
+        return new(limits,chainId);
+    }
+
+    private CosmosNativeFeeLimits(IReadOnlyDictionary<string,string> limits,string reviewedChainId)
     {
         ArgumentNullException.ThrowIfNull(limits);
         var captured=new Dictionary<string,string>(StringComparer.Ordinal);
@@ -20,5 +35,6 @@ public sealed class CosmosNativeFeeLimits
         }
         if(captured.Count==0)throw new ArgumentException("At least one explicit Cosmos fee denomination ceiling required.",nameof(limits));
         MaximumFeeUnitsByDenomination=new ReadOnlyDictionary<string,string>(captured);
+        ReviewedStandardSdkChainId=reviewedChainId;
     }
 }

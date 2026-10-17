@@ -18,6 +18,7 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
     private readonly IReadOnlyDictionary<string,string> _maximumFeeUnitsByDenomination;
     private readonly OwnedPreparationScope _storagePreparation = new();
     internal string ChainId => _chainId;
+    internal bool HasReviewedStandardSdkFeeModel {get;}
 
     public CosmosSdkBackend(string rpcEndpoint, string chainId, string privateKey, string contractAddress,
         string addressPrefix = "cosmos", string gasPrice = "0.025uatom", string nodeExecutable = null, string bridgePath = null)
@@ -30,6 +31,10 @@ internal sealed class CosmosSdkBackend : IKeyValueBackend, IDisposable
         if (string.IsNullOrWhiteSpace(rpcEndpoint) || !Uri.TryCreate(rpcEndpoint, UriKind.Absolute, out var uri)
             || (uri.Scheme != "http" && uri.Scheme != "https")) throw new ArgumentException("HTTP(S) Cosmos RPC endpoint is required.", nameof(rpcEndpoint));
         if (string.IsNullOrWhiteSpace(chainId)) throw new ArgumentException("Expected Cosmos chain ID is required.", nameof(chainId));
+        if(nativeFeeLimits?.ReviewedStandardSdkChainId is string reviewedChain){
+            if(reviewedChain!=chainId)throw new ArgumentException("Reviewed Cosmos fee model belongs to a different chain.",nameof(chainId));
+            HasReviewedStandardSdkFeeModel=true;
+        }
         _rpcEndpoint = rpcEndpoint;
         _chainId = chainId;
         _privateKey = privateKey;

@@ -1,7 +1,8 @@
 [CmdletBinding()]
-param([Parameter(Mandatory)][switch]$ReviewedSyntheticFixture)
+param([Parameter(Mandatory)][switch]$ReviewedSyntheticFixture,[switch]$CosmosOffline,[switch]$InspectOnly)
 $ErrorActionPreference='Stop'
 if(!$ReviewedSyntheticFixture){throw 'Review the failed synthetic fixture and retain compact failure evidence before cleanup.'}
+if($InspectOnly -and !$CosmosOffline){throw 'InspectOnly is supported only for the exact Cosmos offline fixture.'}
 $taskRoot=[IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
 $work=Join-Path $taskRoot 'TestResults/SubscriptionUsageCurrent'
 $lease=[IO.File]::Open((Join-Path $work 'environment.lock'),'OpenOrCreate','ReadWrite','None')
@@ -24,6 +25,39 @@ try {
     Add-Type -Path (Join-Path $framework.FullName 'Microsoft.Extensions.Logging.Abstractions.dll')
     foreach($assembly in 'MongoDB.Bson.dll','MongoDB.Driver.dll'){Add-Type -Path (Join-Path $dll $assembly)}
     $client=[MongoDB.Driver.MongoClient]::new('mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=5000')
+    if($CosmosOffline){
+        # Exact offline signing/pipe fixture only. Never target the retained native Cosmos journal/database.
+        $offline=$client.GetDatabase('usage_cosmos_signed_test')
+        $offlineNames=@();$offlineCursor=$offline.ListCollectionNames()
+        try{while($offlineCursor.MoveNext([Threading.CancellationToken]::None)){$offlineNames+=@($offlineCursor.Current)}}finally{$offlineCursor.Dispose()}
+        if(@($offlineNames|Where-Object{$_ -ne 'subscription_usage_outbox_v1'}).Count){throw 'Unknown offline collection; preserve database.'}
+        $command=[MongoDB.Driver.BsonDocumentCommand[MongoDB.Bson.BsonDocument]]::new([MongoDB.Bson.BsonDocument]::Parse('{"find":"subscription_usage_outbox_v1","filter":{},"batchSize":2}'))
+        $reply=$offline.RunCommand[MongoDB.Bson.BsonDocument]($command,$null,[Threading.CancellationToken]::None)
+        $batch=$reply['cursor']['firstBatch'].AsBsonArray
+        if($batch.Count -ne 1){throw 'Expected exactly one reviewed offline outbox; preserve database.'}
+        $record=$batch[0].AsBsonDocument
+        if($record -isnot [MongoDB.Bson.BsonDocument]){throw ('Unexpected document type: '+$record.GetType().FullName)}
+        Write-Output ('Offline document field names: '+($record.Names -join ','))
+        $evidence=$record.ToString()
+        $evidenceHash=[Convert]::ToHexString([Security.Cryptography.SHA256]::HashData([Text.Encoding]::UTF8.GetBytes($evidence)))
+        Write-Output ('Offline evidence SHA256: '+$evidenceHash)
+        Write-Output ('Offline state: '+$record['State'].AsString+'; attempts='+$record['ProviderAttempts'].AsBsonArray.Count+'; policy='+$record['Policy'].ToString())
+        if($InspectOnly){return}
+        # Reviewed 2026-10-17: offline SDK signing + parent pipe only, never broadcast.
+        if($evidenceHash -ne '9B8218F990C086A8BB6EC71CA4A7E759D2D3BD85A4F2B3E6B8F011761A19B60E'){throw 'Offline evidence changed; preserve it for a new review.'}
+        $attempt=$record['ProviderAttempts'].AsBsonArray[0].AsBsonDocument
+        if($record['State'].AsString -ne 'executing' -or $record['Endpoint'].AsString -ne 'POST /offline-test' -or
+            $record['Receipts'].AsBsonArray.Count -ne 0 -or !$record['Settlement'].IsBsonNull -or
+            $attempt['Provider'].AsString -ne 'CosmosBlockChainOASIS' -or !$attempt['AcknowledgedAtUtc'].IsBsonNull -or
+            $attempt['NativePreparation']['ChainId'].AsString -ne 'offline-test-chain'){throw 'Not the reviewed offline-only preparation; preserve database.'}
+        $evidencePath=Join-Path $work 'cosmos-offline-reviewed-evidence.json'
+        if((Test-Path -LiteralPath $evidencePath) -and (Get-FileHash -LiteralPath $evidencePath -Algorithm SHA256).Hash -ne $evidenceHash){throw 'Different retained review evidence already exists.'}
+        [IO.File]::WriteAllText($evidencePath,$evidence,[Text.UTF8Encoding]::new($false))
+        if((Get-FileHash -LiteralPath $evidencePath -Algorithm SHA256).Hash -ne $evidenceHash){throw 'Offline evidence export verification failed.'}
+        $client.DropDatabase('usage_cosmos_signed_test',[Threading.CancellationToken]::None)
+        Write-Output 'Removed only reviewed offline usage_cosmos_signed_test; original evidence retained in fixed JSON report. Native Cosmos journal/ledger untouched.'
+        return
+    }
     $database='oasis_web3_prepared_native'
     $cursor=$client.GetDatabase($database).ListCollectionNames();$names=@()
     try {while($cursor.MoveNext([Threading.CancellationToken]::None)){$names+=@($cursor.Current)}} finally {$cursor.Dispose()}
