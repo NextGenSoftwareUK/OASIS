@@ -46,6 +46,8 @@ public class TronPreparedStorageTests
         var address=NBitcoin.DataEncoders.Encoders.Base58Check.DecodeData(owner);
         var genesis=new string('a',64);var block=ByteString.CopyFrom(Convert.FromHexString(genesis));
         var broadcasts=0;var originalId=ByteString.Empty;
+        var feeLookups=0;
+        var submitted=new System.Collections.Concurrent.ConcurrentDictionary<ByteString,Transaction>();
         string Selector(string signature)=>new Nethereum.Util.Sha3Keccack().CalculateHash(signature)[..8].ToUpperInvariant();
         byte[] Encode(string[] types,params object[] values)=>(byte[])typeof(TronStorageBackend)
             .GetMethod("Encode",BindingFlags.Static|BindingFlags.NonPublic)!
@@ -81,6 +83,7 @@ public class TronPreparedStorageTests
                 async(Transaction request,ServerCallContext _)=>{
                     broadcasts++;Assert.Single(request.Signature);
                     originalId=ByteString.CopyFrom(SHA256.HashData(request.RawData.ToByteArray()));
+                    Assert.True(submitted.TryAdd(originalId,request.Clone()));
                     var durable=await store.GetAsync(execution.OperationId,deadline.Token);
                     var attempts=durable.ProviderAttempts.AsEnumerable();
                     if(other!=null)attempts=attempts.Concat((await store.GetAsync(other.OperationId,deadline.Token)).ProviderAttempts);
@@ -92,8 +95,13 @@ public class TronPreparedStorageTests
                     return new Return {Result=true};
                 })
             .AddMethod(TronPermissionRpcTests.Rpc(WalletSolidity.Descriptor.FullName,"GetTransactionInfoById",BytesMessage.Parser,TransactionInfo.Parser),
-                (BytesMessage request,ServerCallContext _)=>Task.FromResult(new TransactionInfo {Id=request.Value,BlockNumber=1,
-                    Receipt=new ResourceReceipt {Result=Transaction.Types.Result.Types.contractResult.Success}})).Build();
+                (BytesMessage request,ServerCallContext _)=>{
+                    Interlocked.Increment(ref feeLookups);
+                    return Task.FromResult(new TransactionInfo {Id=request.Value,BlockNumber=1,
+                        BlockTimeStamp=1700000001000,Fee=17,Receipt=new ResourceReceipt {Result=Transaction.Types.Result.Types.contractResult.Success}});
+                })
+            .AddMethod(TronPermissionRpcTests.Rpc(WalletSolidity.Descriptor.FullName,"GetTransactionById",BytesMessage.Parser,Transaction.Parser),
+                (BytesMessage request,ServerCallContext _)=>Task.FromResult(submitted.TryGetValue(request.Value,out var tx)?tx.Clone():new Transaction())).Build();
         var server=new Server {Services={service},Ports={new ServerPort("127.0.0.1",0,ServerCredentials.Insecure)}};
         server.Start();
         try {
@@ -151,6 +159,22 @@ public class TronPreparedStorageTests
             Assert.Equal(expectedBroadcasts,broadcasts);
             var retained=await store.GetAsync(execution.OperationId,deadline.Token);
             Assert.Equal(rejectPersistence?1:2,retained.ProviderAttempts.Count);
+            if(!rejectPersistence){
+                var prepared=retained.ProviderAttempts[0];
+                var fee=await provider.GetPreparedNativeFeeReceiptAsync(prepared,new Account {Address=ByteString.CopyFrom(address)},deadline.Token);
+                Assert.False(fee.IsError,fee.Message);
+                Assert.Equal(prepared.ProviderRequestId,fee.Result.GetProperty("transactionHash").GetString());
+                Assert.Equal("17",fee.Result.GetProperty("netUnits").GetString());
+                Assert.Equal(owner,fee.Result.GetProperty("payer").GetString());
+                var beforeRejected=feeLookups;
+                var wrongAccount=await provider.GetPreparedNativeFeeReceiptAsync(prepared,new Account(),deadline.Token);
+                Assert.True(wrongAccount.IsError);Assert.IsType<System.IO.InvalidDataException>(wrongAccount.Exception);
+                var substituted=new UsageProviderAttempt {Provider="TRONOASIS",ProviderRequestId=new string('0',64),NativePreparation=prepared.NativePreparation};
+                var wrongHash=await provider.GetPreparedNativeFeeReceiptAsync(substituted,new Account {Address=ByteString.CopyFrom(address)},deadline.Token);
+                Assert.True(wrongHash.IsError);Assert.IsType<System.IO.InvalidDataException>(wrongHash.Exception);
+                Assert.Equal(beforeRejected,feeLookups);
+                Assert.Equal(expectedBroadcasts,broadcasts);
+            }
             var flags=BindingFlags.Instance|BindingFlags.NonPublic;
             Assert.Null(typeof(TronNativeTransferClient).GetField("_persistPreparedSubmission",flags)!.GetValue(runtime.NativeTransfers));
             await Assert.ThrowsAsync<InvalidOperationException>(()=>provider.ExecutePreparedStorageAsync<int>(
