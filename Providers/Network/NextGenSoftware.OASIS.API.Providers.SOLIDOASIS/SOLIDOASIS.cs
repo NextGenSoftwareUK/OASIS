@@ -200,11 +200,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             var result = new OASISResult<bool>();
             try
             {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.DeleteAsync($"{_podServerUrl}/oasis/avatars/by-key/{Uri.EscapeDataString(providerKey)}.ttl");
-                result.Result = response.IsSuccessStatusCode;
-                result.IsError = !result.Result;
-                result.Message = result.Result ? "Avatar deleted from SOLID pod" : $"SOLID LDP error: {response.StatusCode}";
+                return await DeleteAvatarAsync(ParsePrivateRecordKey(providerKey),softDelete);
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by provider key: {ex.Message}", ex); }
             return result;
@@ -213,34 +209,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         public override OASISResult<bool> DeleteAvatar(string providerKey, bool softDelete = true) => DeleteAvatarAsync(providerKey, softDelete).Result;
 
         public override async Task<OASISResult<bool>> DeleteAvatarByUsernameAsync(string username, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.DeleteAsync($"{_podServerUrl}/oasis/avatars/by-username/{Uri.EscapeDataString(username)}.ttl");
-                result.Result = response.IsSuccessStatusCode;
-                result.IsError = !result.Result;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by username: {ex.Message}", ex); }
-            return result;
-        }
+            => await DeleteAvatarByIdentityAsync(username,false,softDelete);
 
         public override OASISResult<bool> DeleteAvatarByUsername(string username, bool softDelete = true) => DeleteAvatarByUsernameAsync(username, softDelete).Result;
 
         public override async Task<OASISResult<bool>> DeleteAvatarByEmailAsync(string email, bool softDelete = true)
-        {
-            var result = new OASISResult<bool>();
-            try
-            {
-                if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var response = await _httpClient.DeleteAsync($"{_podServerUrl}/oasis/avatars/by-email/{Uri.EscapeDataString(email)}.ttl");
-                result.Result = response.IsSuccessStatusCode;
-                result.IsError = !result.Result;
-            }
-            catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error deleting avatar by email: {ex.Message}", ex); }
-            return result;
-        }
+            => await DeleteAvatarByIdentityAsync(email,true,softDelete);
 
         public override OASISResult<bool> DeleteAvatarByEmail(string email, bool softDelete = true) => DeleteAvatarByEmailAsync(email, softDelete).Result;
 
