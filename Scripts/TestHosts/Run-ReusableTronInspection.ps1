@@ -1,4 +1,4 @@
-param([ValidateSet('Inspect','IndependentPrepared','IndependentInspect','History')][string]$Mode='Inspect')
+param([ValidateSet('Inspect','IndependentPrepared','IndependentInspect','History','FeeSchedule')][string]$Mode='Inspect')
 $ErrorActionPreference='Stop'
 $taskRoot=[IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
 $work=Join-Path $taskRoot 'TestResults/HyperDriveTron'
@@ -24,7 +24,7 @@ $failures=[Collections.Generic.List[Exception]]::new();$started=$false
 $priorOwner=[Environment]::GetEnvironmentVariable('OASIS_TRON_TEST_OWNED_CONTAINER')
 try{
     $project=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
-    if($Mode -in @('IndependentPrepared','History')){
+    if($Mode -in @('IndependentPrepared','History','FeeSchedule')){
         & dotnet build (Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.TRONOASIS/NextGenSoftware.OASIS.API.Providers.TRONOASIS.csproj') --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if($LASTEXITCODE -ne 0){throw 'Current TRON native producer build failed.'}
     }
@@ -53,8 +53,8 @@ try{
         & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -TronPreparedStorage -TronNative
     }else{
         $testStarted=[DateTime]::UtcNow
-        $filter=if($Mode -eq 'History'){'FullyQualifiedName~TronRetainedHistoryRangeTests.ExistingSolidifiedOriginalUsesInclusiveBlockRangeWithoutMutation'}elseif($Mode -eq 'IndependentInspect'){'FullyQualifiedName~TronIndependentPreparedTests.InspectRetainedIndependentOriginalWithoutMutation'}else{'FullyQualifiedName~TronRealProviderRoutingTests.InspectOriginalInterruptedFixtureWithoutMutation'}
-        $reportName=if($Mode -eq 'History'){'tron-retained-history-range-current.trx'}elseif($Mode -eq 'IndependentInspect'){'tron-independent-inspection-current.trx'}else{'tron-readonly-inspection-current.trx'}
+        $filter=if($Mode -eq 'FeeSchedule'){'FullyQualifiedName~TronRetainedHistoryRangeTests.FeeScheduleObservationUsesOfficialSdkWithoutMutationOrAdmissionClaim'}elseif($Mode -eq 'History'){'FullyQualifiedName~TronRetainedHistoryRangeTests.ExistingSolidifiedOriginalUsesInclusiveBlockRangeWithoutMutation'}elseif($Mode -eq 'IndependentInspect'){'FullyQualifiedName~TronIndependentPreparedTests.InspectRetainedIndependentOriginalWithoutMutation'}else{'FullyQualifiedName~TronRealProviderRoutingTests.InspectOriginalInterruptedFixtureWithoutMutation'}
+        $reportName=if($Mode -eq 'FeeSchedule'){'tron-fee-schedule-native-current.trx'}elseif($Mode -eq 'History'){'tron-retained-history-range-current.trx'}elseif($Mode -eq 'IndependentInspect'){'tron-independent-inspection-current.trx'}else{'tron-readonly-inspection-current.trx'}
         & dotnet test $project --no-build --no-restore --filter $filter --logger "trx;LogFileName=$reportName" --results-directory $work -v:q
     }
     if($LASTEXITCODE -ne 0){throw 'TRON read-only inspection failed; original fence retained.'}
