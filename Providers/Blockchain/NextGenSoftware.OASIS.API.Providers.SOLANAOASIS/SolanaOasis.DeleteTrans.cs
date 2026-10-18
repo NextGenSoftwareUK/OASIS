@@ -101,11 +101,19 @@ public partial class SolanaOASIS
 
         try
         {
+            if(string.IsNullOrWhiteSpace(providerKey)) throw new ArgumentException("A Solana storage signature is required.",nameof(providerKey));
+            if(!IsProviderActivated)
+            {
+                var activation=await ActivateProviderAsync();
+                if(activation.IsError) throw new InvalidOperationException(activation.Message,activation.Exception);
+            }
             var stored = await _solanaRepository.GetAsync<SolanaHolonDto>(providerKey);
-            stored.IsDeleted = true;
-            stored.Version = checked(stored.Version + 1);
-            stored.PreviousVersionId = stored.Id;
-            var deleted = stored.GetHolon();
+            var snapshot=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<SolanaHolonDto>(
+                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(stored));
+            snapshot.IsDeleted = true;
+            snapshot.Version = checked(stored.Version + 1);
+            snapshot.PreviousVersionId = stored.Id;
+            var deleted = snapshot.GetHolon();
             var tombstone = await _solanaRepository.CreateTombstoneAsync(providerKey);
             deleted.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = tombstone;
             result.Result = deleted;
