@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-17 Sui original escrow receipt refresh1/1passed3s reused retained runtime/ledger/deployment/SDK and fixed outputs. No new mutations/accounts/install/download/environment; compact TRX overwritten and hash documented. Owned node and Mongo stopped, Sui pending markers absent. Retained historical receipts/deployment preserved. Free C:85,697,470,464bytes; no material deletion/reclaimed-space claim.
+
 2026-10-17 Sui native assets4/4passed using the retained local node/ledger/wallet/deployment/SDK and existing owned Mongo environment. No installs/downloads/clones/new account/reset. Success fixtures burned their owned test assets/restored token supply, dropped their own DBs and removed own completed journals; compact original receipt JSON/TRX retained. Runner stopped owned node/Mongo; no Sui pending markers. Protected deployment hash unchanged. Free C:85,776,650,240bytes after run; no broad cleanup or reclaimed-space claim.
 
 2026-10-17 query-cap diagnostic verification reused existing provider/test bins and SDK dependencies; no download/install/runtime/native service or new environment. Fixed compact SDK163/non-funded299 reports overwritten only after prior evidence hashes were documented. Free C:86,054,404,096bytes after terminal test run. No material deletion or reclaimed-space claim; failed native-read database/journal retained unchanged.
