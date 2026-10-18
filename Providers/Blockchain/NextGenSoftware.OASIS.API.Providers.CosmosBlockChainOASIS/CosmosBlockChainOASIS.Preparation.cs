@@ -13,18 +13,27 @@ public partial class CosmosBlockChainOASIS : NextGenSoftware.OASIS.API.Core.Inte
 {
     string NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader.NativeFeeProvider=>"CosmosBlockChainOASIS";
     string NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader.NativeFeeChainId=>_sdkBackend.ChainId;
-    NativeFeeCoverage NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader.DeclaredFeeCoverage=>NativeFeeCoverage.AnteDeductionOnly;
+    NativeFeeCoverage NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader.DeclaredFeeCoverage=>CurrentFeeCoverage;
     public async Task<NextGenSoftware.OASIS.Common.OASISResult<PreparedNativeFeeEvidence>> ReadPreparedNativeFeeEvidenceAsync(UsageProviderAttempt original,CancellationToken token=default)
     {
         var result=new NextGenSoftware.OASIS.Common.OASISResult<PreparedNativeFeeEvidence>();
         try{
-            var fee=await GetPreparedNativeFeeReceiptAsync(original,token);
+            var coverage=CurrentFeeCoverage;
+            var verified=await ReadOriginalSignedFeeAsync(original,token);
+            var fee=verified.Receipt;
             if(fee.IsError)return new(){IsError=true,Message=fee.Message,Exception=fee.Exception,ErrorCode=fee.ErrorCode};
+            var basis="observed-ante-fee-deduction";
+            if(_reviewedDeployment!=null){
+                if(!verified.Identity.TryGetProperty("hasSignedTip",out var tip)||tip.ValueKind!=JsonValueKind.False)
+                    throw new InvalidDataException("The reviewed no-post-handler Cosmos fee model requires independently verified absence of a signed tip.");
+                await _reviewedDeployment.ValidateAsync(fee.Result.GetProperty("height").GetInt64(),token);
+                basis=_reviewedDeployment.Review.EvidenceBasis;
+            }
             var components=new System.Collections.Generic.List<NativeFeeComponent>();
             foreach(var coin in fee.Result.GetProperty("fees").EnumerateArray())components.Add(new(coin.GetProperty("denom").GetString(),coin.GetProperty("amount").GetString()));
             result.Result=new("CosmosBlockChainOASIS",fee.Result.GetProperty("chainId").GetString(),fee.Result.GetProperty("transactionHash").GetString(),
-                fee.Result.GetProperty("payer").GetString(),fee.Result.GetProperty("success").GetBoolean(),NativeFeeCoverage.AnteDeductionOnly,
-                components.ToArray(),"observed-ante-fee-deduction");
+                fee.Result.GetProperty("payer").GetString(),fee.Result.GetProperty("success").GetBoolean(),coverage,
+                components.ToArray(),basis,coverage==NativeFeeCoverage.NetFinal&&components.Count==0);
         }catch(Exception failure){NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,failure.Message,failure);}
         return result;
     }
@@ -34,18 +43,24 @@ public partial class CosmosBlockChainOASIS : NextGenSoftware.OASIS.API.Core.Inte
     {
         var result=new NextGenSoftware.OASIS.Common.OASISResult<JsonElement>();
         try{
+            return (await ReadOriginalSignedFeeAsync(attempt,token)).Receipt;
+        }catch(Exception failure){NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,failure.Message,failure);}
+        return result;
+    }
+
+    private async Task<(NextGenSoftware.OASIS.Common.OASISResult<JsonElement> Receipt,JsonElement Identity)> ReadOriginalSignedFeeAsync(
+        UsageProviderAttempt attempt,CancellationToken token)
+    {
             var preparation=NativePreparedAttemptSnapshot.Capture(attempt,"CosmosBlockChainOASIS",_sdkBackend.ChainId);
             var identity=await VerifyOriginalSignedIdentityAsync(JsonSerializer.SerializeToElement(new{
                 transactionHash=preparation.ProviderRequestId,chainId=preparation.ChainId,sender=preparation.Sender,
                 signedTransactionBase64=preparation.SignedTransactionBase64,signDocBase64=preparation.SignDocBase64}),token);
             var receipt=await GetNativeFeeReceiptAsync(preparation.ProviderRequestId,token);
-            if(receipt.IsError)return receipt;
+            if(receipt.IsError)return (receipt,identity);
             if(!identity.TryGetProperty("feePayer",out var payer)||payer.ValueKind!=JsonValueKind.String
                 ||string.IsNullOrWhiteSpace(payer.GetString())||payer.GetString()!=receipt.Result.GetProperty("payer").GetString())
                 throw new InvalidDataException("Cosmos fee receipt payer does not match the original signed fee authority.");
-            return receipt;
-        }catch(Exception failure){NextGenSoftware.OASIS.Common.OASISErrorHandling.HandleError(ref result,failure.Message,failure);}
-        return result;
+            return (receipt,identity);
     }
     /// <summary>Bind all storage writes in this admitted operation to the existing durable usage owner.
     /// Each native write has its own original signed identity; this does not settle fees or resolve prior attempts.</summary>

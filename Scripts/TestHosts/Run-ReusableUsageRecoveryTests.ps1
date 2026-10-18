@@ -1,6 +1,7 @@
 #Requires -Version 7.0
-param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft,[switch]$SuiCSharpAssets,[switch]$TronPreparedStorage,[switch]$TronFull,[switch]$SuiUnit,[switch]$SuiCSharpEscrow,[switch]$CosmosNative,[switch]$CosmosReconcile,[switch]$CosmosRouting,[switch]$TronNative,[switch]$HederaNativeRead,[switch]$HederaReadInspect,[switch]$HederaReadArchive,[switch]$HederaRoutedRead,[switch]$HederaFeeRecovery,[switch]$CosmosRoutingInspect,[switch]$CosmosRoutingReconcile,[switch]$CosmosRoutingProbe)
+param([switch]$SuiMintOwner,[switch]$ReconcileControlledMintOwner,[switch]$HederaPreparedOwners,[switch]$HederaFull,[switch]$MongoProjection,[switch]$MongoTransactions,[switch]$MongoV2,[switch]$SuiPreparedLedger,[switch]$CosmosPreparedOwners,[switch]$CosmosFull,[switch]$AuthorityLedger,[switch]$SuiPreparedInspect,[switch]$Web3PreparedOwners,[switch]$MongoGraphReconcile,[switch]$ArchiveSuiPrepared,[switch]$SuiCSharpNft,[switch]$SuiCSharpAssets,[switch]$TronPreparedStorage,[switch]$TronFull,[switch]$SuiUnit,[switch]$SuiCSharpEscrow,[switch]$CosmosNative,[switch]$CosmosReconcile,[switch]$CosmosRouting,[switch]$TronNative,[switch]$HederaNativeRead,[switch]$HederaReadInspect,[switch]$HederaReadArchive,[switch]$HederaRoutedRead,[switch]$HederaFeeRecovery,[switch]$CosmosRoutingInspect,[switch]$CosmosRoutingReconcile,[switch]$CosmosRoutingProbe,[switch]$CosmosReviewedFees)
 $ErrorActionPreference='Stop'
+if($CosmosReviewedFees -and (!$CosmosPreparedOwners -or $PSBoundParameters.Count -ne 2)){throw 'Reviewed Cosmos fee test requires exclusive existing-owner environment mode.'}
 if($CosmosRoutingReconcile -and !$CosmosRoutingInspect){throw 'Reviewed Cosmos routing cleanup requires explicit incident selection.'}
 if($CosmosRoutingProbe -and (!$CosmosRoutingInspect -or $CosmosRoutingReconcile)){throw 'Zero-budget probe requires exclusive incident selection, never cleanup.'}
 if($CosmosRoutingInspect -and (!$CosmosPreparedOwners -or $PSBoundParameters.Count -ne $(if($CosmosRoutingReconcile -or $CosmosRoutingProbe){3}else{2}))){throw 'Cosmos routing incident inspection/reconciliation requires exclusive owned environment mode.'}
@@ -98,7 +99,11 @@ try{
     }elseif($CosmosPreparedOwners){
         $cosmosProject=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests.csproj'
         $cosmosStarted=[DateTime]::UtcNow
-        if($CosmosRoutingInspect){
+        if($CosmosReviewedFees){
+            $cosmosProject=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
+            $nativeReport='cosmos-reviewed-final-fee-current.trx'
+            & dotnet test $cosmosProject --no-build --no-restore --filter 'FullyQualifiedName~CosmosReviewedFinalFeeTests.ActualReviewedDeploymentRecoversSuccessfulAndChargedFailedOriginalsWithoutReplay' --logger "trx;LogFileName=$nativeReport" --results-directory $work -v:q
+        }elseif($CosmosRoutingInspect){
             $cosmosProject=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
             $nativeReport=if($CosmosRoutingProbe){'cosmos-routing-zero-budget-probe-current.trx'}elseif($CosmosRoutingReconcile){'cosmos-routing-profile-reconciliation-current.trx'}else{'cosmos-routing-profile-inspection-current.trx'}
             $incidentMethod=if($CosmosRoutingProbe){'ZeroBudgetPostOutageDeleteCannotPersistOrBroadcast'}elseif($CosmosRoutingReconcile){'ReconcileExactFailedProfileWithNewAdmittedCleanupWithoutReplay'}else{'InspectCurrentFailedProfileOriginalsWithoutMutation'}
@@ -128,11 +133,11 @@ try{
             & dotnet test $cosmosProject --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false --filter 'FullyQualifiedName~RealOfflineSignedDocumentVerifiesThroughCSharp' --logger 'trx;LogFileName=cosmos-signed-owner-mongo-current.trx' --results-directory $work -v:q
         }
         if($LASTEXITCODE -ne 0){throw 'Cosmos owned regression failed.'}
-        $cosmosReport=Get-Item -LiteralPath (Join-Path $work $(if($CosmosNative -or $CosmosRouting -or $CosmosRoutingInspect){$nativeReport}elseif($CosmosFull){'cosmos-full-owned-current.trx'}else{'cosmos-signed-owner-mongo-current.trx'}))
+        $cosmosReport=Get-Item -LiteralPath (Join-Path $work $(if($CosmosNative -or $CosmosRouting -or $CosmosRoutingInspect -or $CosmosReviewedFees){$nativeReport}elseif($CosmosFull){'cosmos-full-owned-current.trx'}else{'cosmos-signed-owner-mongo-current.trx'}))
         if($cosmosReport.LastWriteTimeUtc -lt $cosmosStarted){throw 'Cosmos report is stale.'}
         [xml]$cosmosEvidence=Get-Content -LiteralPath $cosmosReport.FullName
         $cosmosCounts=$cosmosEvidence.TestRun.ResultSummary.Counters
-        $expectedCosmos=if($CosmosRoutingInspect){1}elseif($CosmosRouting){4}elseif($CosmosNative){if($CosmosReconcile){1}else{2}}elseif($CosmosFull){216}else{3}
+        $expectedCosmos=if($CosmosRoutingInspect -or $CosmosReviewedFees){1}elseif($CosmosRouting){4}elseif($CosmosNative){if($CosmosReconcile){1}else{2}}elseif($CosmosFull){226}else{3}
         if([int]$cosmosCounts.total -ne $expectedCosmos -or [int]$cosmosCounts.passed -ne $expectedCosmos -or [int]$cosmosCounts.notExecuted -ne 0){throw 'All selected Cosmos cases must actually execute and pass without skips.'}
         if($CosmosRouting){
             foreach($case in $cosmosEvidence.TestRun.Results.UnitTestResult){
