@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-18 SQLite relationship validation/isolation acceptance reused SAME project/cache/runtime/leased fixed DB.12focusednative then full493/session19102terminal0; fixture DB/WAL/SHM absent afterward, regenerable by same fixture. Full suite --no-build, no restore/download/install/new environment. Compact reports fixed-path retained; free86219169792bytes. No userDB/source/credentials/sharedcache removed; prior rejected bin cleanup not retried/bypassed.
+
 2026-10-18 SQLite declared-scalar/Country fix reused same project/cache/runtime/leased fixed DB;481native/session56828terminal0+5unitterminal0. Fixture DB/WAL/SHM absent afterward, regenerable by same tests. No schema drop/new environment/install/restore/download. Fixed compact reports retained, free86225715200bytes. UserDB/source/credentials/shared caches untouched; no broad reclamation or bypass of previous rejected bin cleanup.
 
 2026-10-18 SQLite/Core celestial-ID work reused same projects/cache/runtime/leased DB. Core4focused, SQLite479native/session51818terminal0+5unit terminal0; fixture DB/WAL/SHM absent. Legacy test dropped ONLY CelestialParentIdsJson in disposable fixture, never user DB. Same compact fixed reports, no restore/download/install/new environment. Free86220001280bytes; previous rejected bin cleanup not retried/bypassed, no broad reclamation claim.
