@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-17 Hedera retained failed-activation incident now has4durable original fee receipts via actual reader/shared Core recovery,0.247636testHBAR at original frozen syntheticquote, no paid native replay. Idempotent rerun preserves whole operation. Original pending journal retained; logical API outcome/settlement and full routed policy/native/hosted acceptance remain OPEN. Exact hashes/reproduction in fee accounting/release gate docs.
+
 2026-10-17 Hedera controlled failover safety2new sync/async cases/full137pass2m: explicit eligible/permitted alternate remains untouched when native activation reaches operation budget. Original budget cause/signed attempt/exposure preserved, no mutation/settlement. Distinguishes terminal allowance failure from availability failover; NOT real native outage/replication evidence. Paid routed journal unchanged; full hash in release gates.
 
 2026-10-17 Hedera actual routed-read attempt remains FAILED:4paid activation originals then budget/count refusal; full activation includes private namespace enumeration, not just3authority queries. Original-only recovery1/1pass3s verifies actual0.247636HBAR debit below0.28294688admitted max; ledger/journal retained unchanged. Underfunded future7attempt/0.75aggregate fixture not rerun. Existing successful direct prepared read is still scoped evidence, NOT V2/native-policy acceptance. Exact original hashes/fees/currentbalance/cleanup in release gates.
