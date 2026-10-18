@@ -2,6 +2,14 @@
 
 2026-10-18. Incomplete; not release certification.
 
+## Real public-provider account-read proof (2026-10-18)
+
+Existing integration project now contains opt-in PublicMastodonAccountTests: sync+async default provider HTTP transport against https://mastodon.social, public Mastodon handle. Independent native GET lookup captures id/acct/url; provider activates, reads by handle and native key, matches native identity/URL, yields same nonempty projected GUID and no private email/password. No token, signup, posting, deletion or other remote mutation. Two genuine live provider cases PASSED2s/zero skipped; report TestResults/ActivityPubCurrent/activitypub-public-current.trx SHA256C50956F70D17BD82A218BA2411F69D858052D649A9D5FAA0A071603BA42D89F0. This supersedes the previous 'no live provider account request' statement ONLY for these public reads; not OAuth/federation/storage/full-interface proof.
+
+Repeat with process variable OASIS_ACTIVITYPUB_PUBLIC_LIVE=1, existing integration csproj, dotnet test --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false --filter FullyQualifiedName~PublicMastodonAccountTests --logger 'trx;LogFileName=activitypub-public-current.trx' --results-directory TestResults/ActivityPubCurrent. Preserve/restore prior variable. Legacy skipped tests excluded, never counted as passes. Project lacked obj/assets; one bounded restore against existing package environment completed1.7s; subsequent runs must reuse it. No new runtime or project/environment clone. Sync provider calls retain existing HttpClient timeout; async tests add20s observation bounds, independent client15s.
+
+Generated integration bin45030820bytes; attempted exact validated native PowerShell cleanup AFTER test terminal was rejected by execution policy BEFORE execution. No removal or alternate bypass. Current free86646321152bytes; preserve source/obj assets/caches/report. Cleanup pending exact project bin only; rebuild from existing project/cache when needed. All other provider/API/release gaps remain OPEN.
+
 ## Native account ID and acct-handle reads (2026-10-18)
 
 LoadAvatarByProviderKey now means native instance account ID and uses GET/api/v1/accounts/{escaped-id}; LoadAvatarByUsername uses GET/api/v1/accounts/lookup?acct={escaped-handle}. Shared ReadMastodonAccountAsync validates selector/history before I/O, captures selector before await, preserves activation failures, disposes account responses, validates native id/username/acct/profile URL and requested native ID equality. Explicit public projection only: acct as Username, native ID in ProviderUniqueStorageKey, acct in ProviderUsername, scoped instance/profile/local-username/display-name metadata. Never deserialize native JSON as private Avatar, copy password/email/source/credential fields or fetch supplied profile URL. Notes/HTML and other unimplemented fields are not silently copied into private records.
