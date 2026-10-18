@@ -9,6 +9,21 @@ namespace NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.UnitTests;
 public class CosmosPreparationTests
 {
     [DataTestMethod]
+    [DataRow("put")] [DataRow("delete")] [DataRow("execute")] [DataRow("transfer")] [DataRow("upload")] [DataRow("instantiate")]
+    public async Task EveryNativeMutationInvocationHonorsAmbientPreparationBeforeProcessLaunch(string operation)
+    {
+        var flags=System.Reflection.BindingFlags.Instance|System.Reflection.BindingFlags.NonPublic;
+        var type=typeof(CosmosBlockChainOASIS).Assembly.GetType("NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.CosmosSdkBackend")!;
+        using var backend=(IDisposable)Activator.CreateInstance(type,new object[]{"http://127.0.0.1:1","chain","key","contract","cosmos","0.025uatom","node",Path.Combine(AppContext.BaseDirectory,"missing-owned-bridge.mjs")})!;
+        var expected=new InvalidOperationException("controlled admission refusal before SDK process");var calls=0;
+        Func<string,string,NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.PreparedSubmissionServer> factory=(op,_)=>{
+            Assert.AreEqual(operation,op);calls++;throw expected;
+        };
+        Func<Task<JsonElement>> invoke=()=>(Task<JsonElement>)type.GetMethod("InvokeAsync",flags)!.Invoke(backend,new object?[]{operation,new{},CancellationToken.None})!;
+        var scoped=(Task<JsonElement>)type.GetMethod("WithStoragePreparationAsync",flags)!.MakeGenericMethod(typeof(JsonElement)).Invoke(backend,new object[]{invoke,factory})!;
+        var actual=await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>scoped);Assert.AreSame(expected,actual);Assert.AreEqual(1,calls);
+    }
+    [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]
     public async Task RecoveryRejectsFeePayerDifferentFromVerifiedSignedAuthority(bool foreignPayer)

@@ -1,5 +1,11 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Cosmos asset ambient-admission bypass — 2026-10-17
+
+Real public C# token mint/burn probe found the SDK backend's generic InvokeAsync did not inherit an active preparation owner, even though IKeyValueBackend put/delete did. Both asset calls succeeded/returned balance and supply to zero, but durable count was2instead of4. Native test remains FAILED; retain journal `prepared-native-pending.json` and `usage_cosmos_live_prepared` for exact original reconciliation, with unique symbol recorded before execution. No replay/automatic cleanup.
+
+Fix is at the single InvokeCoreAsync mutation boundary: when no explicit server is supplied, active owner must create the preparation gate for put/delete/execute/transfer/upload/instantiate, before process launch. Reads still do not create mutation gates; explicit prepared server is reused, not duplicated. Six admission-refusal regressions failed before fix and pass afterward; full186/186offline suite passes. This is not evidence of retroactive admission/settlement for the two untracked native asset originals. Exact hashes in release journal. Keep provider sponsorship disabled.
+
 ## Hedera query ceiling correction — 2026-10-17
 
 Additional actual-SDK loopback contract-query test proves quote rejection precedes paid answer/admission, and accepted payment is durably admitted before transport with the configured signed fee cap. Controlled raw quote11173581 becomes12290939tinybar after SDK buffering; low1000000cap produces no paid answer, sufficient12290939cap produces exactly one. Full SDK162/162passed/0skip; current report hash in release journal. This explains the class of pre-payment rejection, but does not independently reconcile the failed live original or authorize replay.
