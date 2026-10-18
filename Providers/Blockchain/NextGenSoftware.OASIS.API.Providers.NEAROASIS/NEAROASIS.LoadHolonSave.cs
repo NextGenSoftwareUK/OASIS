@@ -36,12 +36,18 @@ public partial class NEAROASIS
     }
 
     private async Task<List<IHolon>> LoadChildTreeAsync(Guid parentId, HolonType type, bool recursive,
-        int maxChildDepth, int depth)
+        int maxChildDepth, int depth, int version = 0)
     {
         var all = await LoadAllHolonRecordsAsync();
         if (all.IsError) throw all.Exception ?? new InvalidOperationException(all.Message);
         var records = all.Result.ToList();
-        var direct = records.Where(item => item.ParentHolonId == parentId &&
+        var roots = all;
+        if (version != 0)
+        {
+            roots = await LoadAllHolonRecordsAsync(version);
+            if (roots.IsError) throw roots.Exception ?? new InvalidOperationException(roots.Message);
+        }
+        var direct = roots.Result.Where(item => item.ParentHolonId == parentId &&
             (type == HolonType.All || item.HolonType == type)).ToList();
         var project = HolonGraphProjection.Create(records, recursive, true, maxChildDepth, checked(depth + 1), true,
             item => OasisJson.Deserialize<Holon>(OasisJson.Serialize(item)));
@@ -57,7 +63,7 @@ public partial class NEAROASIS
         try
         {
             result.Result = await LoadChildTreeAsync(parentId, holonType, loadChildren && recursive,
-                maxChildDepth, loadChildrenRecursiveDepthInt);
+                maxChildDepth, loadChildrenRecursiveDepthInt, version);
             result.Message = "Child holons loaded from NEAR contract storage.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading NEAR child holons: {ex.Message}", ex); }
@@ -75,7 +81,7 @@ public partial class NEAROASIS
         int version = 0, bool continueOnError = true, bool loadChildrenRecursiveDepth = true,
         int loadChildrenRecursiveDepthInt = 0)
     {
-        var parent = await LoadHolonByProviderKeyAsync(parentProviderKey, version);
+        var parent = await LoadHolonByProviderKeyAsync(parentProviderKey);
         if (parent.IsError || parent.Result == null)
             return new OASISResult<IEnumerable<IHolon>>(Array.Empty<IHolon>()) { IsError = parent.IsError, Message = parent.Message, Exception = parent.Exception };
         return await LoadHolonsForParentAsync(parent.Result.Id, holonType, loadChildren, recursive, maxChildDepth,
@@ -130,10 +136,9 @@ public partial class NEAROASIS
 
     public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByEmailAsync(string email, int version = 0)
     {
-        var avatar = await LoadAvatarByEmailAsync(email, version);
-        if (avatar.IsError || avatar.Result == null)
-            return new OASISResult<IAvatarDetail>(null) { IsError = avatar.IsError, Message = avatar.Message, Exception = avatar.Exception };
-        return await LoadAvatarDetailRecordAsync(avatar.Result.Id);
+        var all = await LoadAllAvatarDetailRecordsAsync(version);
+        if (all.IsError) return new OASISResult<IAvatarDetail>(null) { IsError=true, Message=all.Message, Exception=all.Exception };
+        return new OASISResult<IAvatarDetail>(all.Result.FirstOrDefault(item => string.Equals(item.Email,email,StringComparison.OrdinalIgnoreCase)));
     }
 
     public override OASISResult<IAvatarDetail> LoadAvatarDetailByEmail(string email, int version = 0) =>
@@ -141,17 +146,16 @@ public partial class NEAROASIS
 
     public override async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailByUsernameAsync(string username, int version = 0)
     {
-        var avatar = await LoadAvatarByUsernameAsync(username, version);
-        if (avatar.IsError || avatar.Result == null)
-            return new OASISResult<IAvatarDetail>(null) { IsError = avatar.IsError, Message = avatar.Message, Exception = avatar.Exception };
-        return await LoadAvatarDetailRecordAsync(avatar.Result.Id);
+        var all = await LoadAllAvatarDetailRecordsAsync(version);
+        if (all.IsError) return new OASISResult<IAvatarDetail>(null) { IsError=true, Message=all.Message, Exception=all.Exception };
+        return new OASISResult<IAvatarDetail>(all.Result.FirstOrDefault(item => string.Equals(item.Username,username,StringComparison.OrdinalIgnoreCase)));
     }
 
     public override OASISResult<IAvatarDetail> LoadAvatarDetailByUsername(string username, int version = 0) =>
         LoadAvatarDetailByUsernameAsync(username, version).GetAwaiter().GetResult();
 
     public override Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailsAsync(int version = 0) =>
-        LoadAllAvatarDetailRecordsAsync();
+        LoadAllAvatarDetailRecordsAsync(version);
 
     public override OASISResult<IEnumerable<IAvatarDetail>> LoadAllAvatarDetails(int version = 0) =>
         LoadAllAvatarDetailsAsync(version).GetAwaiter().GetResult();

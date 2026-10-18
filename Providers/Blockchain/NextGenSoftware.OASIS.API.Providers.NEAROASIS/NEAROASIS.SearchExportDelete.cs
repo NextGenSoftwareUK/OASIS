@@ -28,9 +28,9 @@ public partial class NEAROASIS
             }
 
             var matches = new SearchResults();
-            var avatarsResult = await LoadAllAvatarRecordsAsync();
+            var avatarsResult = await LoadAllAvatarRecordsAsync(version);
             if (avatarsResult.IsError) throw avatarsResult.Exception ?? new InvalidOperationException(avatarsResult.Message);
-            var holonsResult = await LoadAllHolonRecordsAsync();
+            var holonsResult = await LoadAllHolonsAsync(HolonType.All,loadChildren,recursive,maxChildDepth,version,continueOnError,true);
             if (holonsResult.IsError) throw holonsResult.Exception ?? new InvalidOperationException(holonsResult.Message);
             var avatars = avatarsResult.Result.ToList();
             var holons = holonsResult.Result.ToList();
@@ -75,12 +75,12 @@ public partial class NEAROASIS
     }
 
     public override OASISResult<bool> Import(IEnumerable<IHolon> holons) => ImportAsync(holons).GetAwaiter().GetResult();
-    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => LoadAllHolonRecordsAsync();
+    public override Task<OASISResult<IEnumerable<IHolon>>> ExportAllAsync(int version = 0) => LoadAllHolonRecordsAsync(version);
     public override OASISResult<IEnumerable<IHolon>> ExportAll(int version = 0) => ExportAllAsync(version).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> ExportAllDataForAvatarByIdAsync(Guid avatarId, int version = 0)
     {
-        var all = await LoadAllHolonRecordsAsync();
+        var all = await LoadAllHolonRecordsAsync(version);
         if (!all.IsError) all.Result = all.Result.Where(holon => holon.CreatedByAvatarId == avatarId).ToList();
         return all;
     }

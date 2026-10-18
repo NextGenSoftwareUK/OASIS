@@ -13,6 +13,52 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS;
 
 public partial class NEAROASIS
 {
+    public bool IsVersionControlEnabled { get; set; }
+
+    private static string HistoryPrefix(string key) => $"history:{key}:";
+    private async Task<T> ReadStoredVersionAsync<T>(string key, Guid id, int version) where T : class, IHolonBase
+    {
+        if (version < 0) throw new ArgumentOutOfRangeException(nameof(version));
+        var json = await _sdk.GetAsync(key);
+        var current = string.IsNullOrWhiteSpace(json) ? null : OasisJson.Deserialize<T>(json);
+        return await StoredRecordVersions.ReadAsync(id, current, version, async selected =>
+        {
+            var archived = await _sdk.GetAsync($"{HistoryPrefix(key)}{selected:D10}");
+            return string.IsNullOrWhiteSpace(archived) ? null : OasisJson.Deserialize<T>(archived);
+        });
+    }
+
+    private async Task StampStoredVersionAsync<T>(string key, T entity) where T : class, IHolonBase
+    {
+        var previous = await ReadStoredVersionAsync<T>(key, entity.Id, 0);
+        await StoredRecordVersions.StampAsync(entity.Id, entity, previous, IsVersionControlEnabled
+            ? async stored => { await _sdk.PutAsync($"{HistoryPrefix(key)}{stored.Version:D10}", OasisJson.Serialize(stored)); }
+            : null);
+    }
+
+    private async Task DeleteStoredVersionsAsync(string key)
+    {
+        foreach (var entry in await _sdk.EntriesAsync(HistoryPrefix(key))) await _sdk.DeleteAsync(entry.Key);
+    }
+
+    private async Task<List<T>> ReadStoredVersionsAsync<T>(string prefix, int version) where T : class, IHolonBase
+    {
+        if (version < 0) throw new ArgumentOutOfRangeException(nameof(version));
+        var records = new List<T>();
+        foreach (var entry in await _sdk.EntriesAsync(prefix))
+        {
+            var current = OasisJson.Deserialize<T>(entry.Value);
+            var selected = await StoredRecordVersions.ReadAsync(Guid.Parse(entry.Key.Substring(prefix.Length)),
+                current, version, async requested =>
+                {
+                    var json = await _sdk.GetAsync($"{HistoryPrefix(entry.Key)}{requested:D10}");
+                    return string.IsNullOrWhiteSpace(json) ? null : OasisJson.Deserialize<T>(json);
+                });
+            if (selected != null && !selected.IsDeleted) records.Add(selected);
+        }
+        return records;
+    }
+
     private async Task<bool> EnsureSdkActiveAsync<T>(OASISResult<T> result)
     {
         if (_isActivated)
@@ -24,16 +70,15 @@ public partial class NEAROASIS
         return false;
     }
 
-    private async Task<OASISResult<IAvatar>> LoadAvatarRecordAsync(Guid id)
+    private async Task<OASISResult<IAvatar>> LoadAvatarRecordAsync(Guid id, int version = 0)
     {
         var result = new OASISResult<IAvatar>();
         try
         {
             if (!await EnsureSdkActiveAsync(result)) return result;
-            var json = await _sdk.GetAsync($"avatar:{id:D}");
-            if (string.IsNullOrWhiteSpace(json))
+            var avatar = await ReadStoredVersionAsync<Avatar>($"avatar:{id:D}", id, version);
+            if (avatar == null)
                 return new OASISResult<IAvatar>(null) { Message = $"Avatar {id} was not found on NEAR." };
-            var avatar = OasisJson.Deserialize<Avatar>(json);
             if (avatar?.IsDeleted == true)
                 return new OASISResult<IAvatar>(null) { Message = $"Avatar {id} is deleted on NEAR." };
             result.Result = avatar;
@@ -53,6 +98,7 @@ public partial class NEAROASIS
             if (!await EnsureSdkActiveAsync(result)) return result;
             avatar.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
             avatar.ProviderUniqueStorageKey[Core.Enums.ProviderType.NEAROASIS] = avatar.Id.ToString("D");
+            await StampStoredVersionAsync($"avatar:{avatar.Id:D}", avatar);
             var tx = await _sdk.PutAsync($"avatar:{avatar.Id:D}", OasisJson.Serialize(avatar));
             result.Result = avatar;
             result.Message = $"Avatar saved to NEAR contract storage in transaction {tx}.";
@@ -78,7 +124,11 @@ public partial class NEAROASIS
                 var saved = await SaveAvatarRecordAsync(loaded.Result);
                 if (saved.IsError) return new OASISResult<bool>(false) { IsError = true, Message = saved.Message, Exception = saved.Exception };
             }
-            else await _sdk.DeleteAsync($"avatar:{id:D}");
+            else
+            {
+                await DeleteStoredVersionsAsync($"avatar:{id:D}");
+                await _sdk.DeleteAsync($"avatar:{id:D}");
+            }
             result.Result = true;
             result.Message = softDelete ? "Avatar tombstone saved to NEAR contract storage." : "Avatar removed from NEAR contract storage.";
         }
@@ -86,31 +136,27 @@ public partial class NEAROASIS
         return result;
     }
 
-    private async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarRecordsAsync()
+    private async Task<OASISResult<IEnumerable<IAvatar>>> LoadAllAvatarRecordsAsync(int version = 0)
     {
         var result = new OASISResult<IEnumerable<IAvatar>>();
         try
         {
             if (!await EnsureSdkActiveAsync(result)) return result;
-            result.Result = (await _sdk.EntriesAsync("avatar:"))
-                .Select(item => OasisJson.Deserialize<Avatar>(item.Value))
-                .Where(avatar => avatar != null && !avatar.IsDeleted)
-                .Cast<IAvatar>().ToList();
+            result.Result = (await ReadStoredVersionsAsync<Avatar>("avatar:", version)).Cast<IAvatar>().ToList();
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatars from NEAR: {ex.Message}", ex); }
         return result;
     }
 
-    private async Task<OASISResult<IHolon>> LoadHolonRecordAsync(Guid id)
+    private async Task<OASISResult<IHolon>> LoadHolonRecordAsync(Guid id, int version = 0)
     {
         var result = new OASISResult<IHolon>();
         try
         {
             if (!await EnsureSdkActiveAsync(result)) return result;
-            var json = await _sdk.GetAsync($"holon:{id:D}");
-            if (string.IsNullOrWhiteSpace(json))
+            var holon = await ReadStoredVersionAsync<Holon>($"holon:{id:D}", id, version);
+            if (holon == null)
                 return new OASISResult<IHolon>(null) { Message = $"Holon {id} was not found on NEAR." };
-            var holon = OasisJson.Deserialize<Holon>(json);
             if (holon?.IsDeleted == true)
                 return new OASISResult<IHolon>(null) { Message = $"Holon {id} is deleted on NEAR." };
             result.Result = holon;
@@ -130,6 +176,7 @@ public partial class NEAROASIS
             if (!await EnsureSdkActiveAsync(result)) return result;
             holon.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
             holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.NEAROASIS] = holon.Id.ToString("D");
+            await StampStoredVersionAsync($"holon:{holon.Id:D}", holon);
             var tx = await _sdk.PutAsync($"holon:{holon.Id:D}", OasisJson.Serialize(holon));
             result.Result = holon;
             result.Message = $"Holon saved to NEAR contract storage in transaction {tx}.";
@@ -158,32 +205,28 @@ public partial class NEAROASIS
         return result;
     }
 
-    private async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonRecordsAsync()
+    private async Task<OASISResult<IEnumerable<IHolon>>> LoadAllHolonRecordsAsync(int version = 0)
     {
         var result = new OASISResult<IEnumerable<IHolon>>();
         try
         {
             if (!await EnsureSdkActiveAsync(result)) return result;
-            result.Result = (await _sdk.EntriesAsync("holon:"))
-                .Select(item => OasisJson.Deserialize<Holon>(item.Value))
-                .Where(holon => holon != null && !holon.IsDeleted)
-                .Cast<IHolon>().ToList();
+            result.Result = (await ReadStoredVersionsAsync<Holon>("holon:", version)).Cast<IHolon>().ToList();
             result.Message = "Holons loaded from NEAR contract storage.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading holons from NEAR: {ex.Message}", ex); }
         return result;
     }
 
-    private async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailRecordAsync(Guid id)
+    private async Task<OASISResult<IAvatarDetail>> LoadAvatarDetailRecordAsync(Guid id, int version = 0)
     {
         var result = new OASISResult<IAvatarDetail>();
         try
         {
             if (!await EnsureSdkActiveAsync(result)) return result;
-            var json = await _sdk.GetAsync($"avatar-detail:{id:D}");
-            if (string.IsNullOrWhiteSpace(json))
+            var detail = await ReadStoredVersionAsync<AvatarDetail>($"avatar-detail:{id:D}", id, version);
+            if (detail == null)
                 return new OASISResult<IAvatarDetail>(null) { Message = $"Avatar detail {id} was not found on NEAR." };
-            var detail = OasisJson.Deserialize<AvatarDetail>(json);
             if (detail?.IsDeleted == true)
                 return new OASISResult<IAvatarDetail>(null) { Message = $"Avatar detail {id} is deleted on NEAR." };
             result.Result = detail;
@@ -203,6 +246,7 @@ public partial class NEAROASIS
             if (!await EnsureSdkActiveAsync(result)) return result;
             detail.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType, string>();
             detail.ProviderUniqueStorageKey[Core.Enums.ProviderType.NEAROASIS] = detail.Id.ToString("D");
+            await StampStoredVersionAsync($"avatar-detail:{detail.Id:D}", detail);
             var tx = await _sdk.PutAsync($"avatar-detail:{detail.Id:D}", OasisJson.Serialize(detail));
             result.Result = detail;
             result.Message = $"Avatar detail saved to NEAR contract storage in transaction {tx}.";
@@ -211,16 +255,13 @@ public partial class NEAROASIS
         return result;
     }
 
-    private async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailRecordsAsync()
+    private async Task<OASISResult<IEnumerable<IAvatarDetail>>> LoadAllAvatarDetailRecordsAsync(int version = 0)
     {
         var result = new OASISResult<IEnumerable<IAvatarDetail>>();
         try
         {
             if (!await EnsureSdkActiveAsync(result)) return result;
-            result.Result = (await _sdk.EntriesAsync("avatar-detail:"))
-                .Select(item => OasisJson.Deserialize<AvatarDetail>(item.Value))
-                .Where(detail => detail != null && !detail.IsDeleted)
-                .Cast<IAvatarDetail>().ToList();
+            result.Result = (await ReadStoredVersionsAsync<AvatarDetail>("avatar-detail:", version)).Cast<IAvatarDetail>().ToList();
             result.Message = "Avatar details loaded from NEAR contract storage.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error loading avatar details from NEAR: {ex.Message}", ex); }
