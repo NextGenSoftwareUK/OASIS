@@ -1,4 +1,4 @@
-param([ValidateSet('Verify','InspectPending','IndependentPrepared','IndependentInspect','IndependentReconcile','IndependentRouting','RoutingInspect','RoutingReconcile')][string]$Mode = 'Verify')
+param([ValidateSet('Verify','InspectPending','IndependentPrepared','IndependentInspect','IndependentReconcile','IndependentRouting','RoutingInspect','RoutingReconcile','RoutingProbe')][string]$Mode = 'Verify')
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
 $fixtureRoot = Join-Path $taskRoot 'TestResults/HyperDriveCosmos'
@@ -11,14 +11,14 @@ if($Mode -in @('IndependentPrepared','IndependentRouting')){
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'independent-routing-pending.json')){throw 'Independent routing original requires reconciliation; no rerun allowed.'}
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'routing-cleanup-pending.json')){throw 'Original routing cleanup requires reconciliation; no rerun allowed.'}
 }
-if($Mode -in @('IndependentPrepared','IndependentReconcile','IndependentRouting','RoutingInspect','RoutingReconcile')){
+if($Mode -in @('IndependentPrepared','IndependentReconcile','IndependentRouting','RoutingInspect','RoutingReconcile','RoutingProbe')){
     if(Test-Path -LiteralPath (Join-Path $fixtureRoot 'prepared-native-cleanup-pending.json')){throw 'An original cleanup is pending; inspect without replay.'}
-    $nativeProject=Join-Path $taskRoot $(if($Mode -in @('IndependentRouting','RoutingInspect','RoutingReconcile')){'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'}else{'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests.csproj'})
+    $nativeProject=Join-Path $taskRoot $(if($Mode -in @('IndependentRouting','RoutingInspect','RoutingReconcile','RoutingProbe')){'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'}else{'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests.csproj'})
     foreach($project in @('Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.csproj','Providers/Storage/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj',$nativeProject)){
         & dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
         if($LASTEXITCODE -ne 0){throw 'Independent Cosmos current source build failed.'}
     }
-    $outputBridge=if($Mode -in @('IndependentRouting','RoutingInspect','RoutingReconcile')){'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/bin/Debug/net10.0/CosmosSdkBridge'}else{'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests/bin/Debug/net10.0/CosmosSdkBridge'}
+    $outputBridge=if($Mode -in @('IndependentRouting','RoutingInspect','RoutingReconcile','RoutingProbe')){'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/bin/Debug/net10.0/CosmosSdkBridge'}else{'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS.IntegrationTests/bin/Debug/net10.0/CosmosSdkBridge'}
     & (Join-Path $PSScriptRoot 'Use-ReusableHederaOutputDependencies.ps1') -Provider Cosmos -OutputBridge $outputBridge
 }
 $containerId = (& wsl -d Ubuntu -u root -- podman inspect oasis-wasmd --format '{{.Id}}').Trim()
@@ -51,11 +51,19 @@ try {
     $started = $true
     $deadline = [DateTime]::UtcNow.AddSeconds(30)
     $status = $null
+    $initialHeight = $null
+    $ready = $false
     while ([DateTime]::UtcNow -lt $deadline) {
-        try { $status = Invoke-RestMethod 'http://127.0.0.1:26657/status' -TimeoutSec 2; break }
-        catch { Start-Sleep -Milliseconds 250 }
+        try { $status = Invoke-RestMethod 'http://127.0.0.1:26657/status' -TimeoutSec 2 }
+        catch { Start-Sleep -Milliseconds 250; continue }
+        if($status.result.node_info.network -ne 'oasis-cosmos-local'){throw 'Unexpected chain identity at retained Cosmos RPC.'}
+        $height=[long]$status.result.sync_info.latest_block_height
+        if($null -eq $initialHeight){$initialHeight=$height}
+        # SDK0.54 simulation needs a fresh check-state block header, not merely a live RPC endpoint.
+        if($status.result.sync_info.catching_up -eq $false -and $height -gt $initialHeight){$ready=$true;break}
+        Start-Sleep -Milliseconds 250
     }
-    if ($status.result.node_info.network -ne 'oasis-cosmos-local' -or $status.result.sync_info.catching_up -ne $false) { throw 'Expected retained Cosmos chain is not ready.' }
+    if (!$ready) { throw 'Retained Cosmos chain did not commit a fresh ready block after startup.' }
     $contractsJson = & wsl -d Ubuntu -u root -- podman exec oasis-wasmd wasmd query wasm list-contract-by-code 1 --node http://127.0.0.1:26657 --output json
     if ($LASTEXITCODE -ne 0) { throw 'Existing contract inventory failed.' }
     $contracts = @((($contractsJson -join "`n") | ConvertFrom-Json).contracts)
@@ -71,7 +79,10 @@ try {
         & node (Join-Path $PSScriptRoot 'inspect-cosmos-pending-transactions.mjs')
         if ($LASTEXITCODE -ne 0) { throw 'Read-only Cosmos native transaction inspection failed; pending intent preserved.' }
     }
-    if($Mode -eq 'RoutingReconcile'){
+    if($Mode -eq 'RoutingProbe'){
+        & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CosmosPreparedOwners -CosmosRoutingInspect -CosmosRoutingProbe
+        if($LASTEXITCODE -ne 0){throw 'Zero-budget Cosmos probe failed; original incident remains fenced.'}
+    }elseif($Mode -eq 'RoutingReconcile'){
         & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CosmosPreparedOwners -CosmosRoutingInspect -CosmosRoutingReconcile
         if($LASTEXITCODE -ne 0){throw 'Reviewed routing cleanup failed; preserve original attempts and journals.'}
     }elseif($Mode -eq 'RoutingInspect'){
