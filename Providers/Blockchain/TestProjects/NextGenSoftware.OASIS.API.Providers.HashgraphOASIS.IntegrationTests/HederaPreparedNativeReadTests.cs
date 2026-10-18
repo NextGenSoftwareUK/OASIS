@@ -12,6 +12,51 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 public class HederaPreparedNativeReadTests
 {
     [TestMethod,TestCategory("ReadOnlyReconciliation")]
+    public async Task ArchiveExactReviewedPreExecutionReadFailureWithoutPayment()
+    {
+        await InspectRetainedFailedReadLedgerWithoutSigningOrMutation();
+        var root=new DirectoryInfo(AppContext.BaseDirectory);
+        while(root!=null&&!File.Exists(Path.Combine(root.FullName,"Scripts/TestHosts/inspect-reusable-hedera-store.mjs")))root=root.Parent;
+        Assert.IsNotNull(root);var work=Path.Combine(root!.FullName,"TestResults/HederaRuntime");
+        var journal=Path.Combine(work,"prepared-read-pending.json");var inspection=Path.Combine(work,"prepared-read-ledger-inspection.json");
+        string Hash(string file)=>Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(file)));
+        Assert.AreEqual("2E14523D7689895A3350989A001E2F02859ACD427749F66E6A9001589CC6C70B",Hash(inspection));
+        // Reviewed against failed-run parent76a6ead71: selected-request admission,
+        // query construction selection and transport tail are unchanged byte-for-byte after LF normalization.
+        var module=File.ReadAllText(Path.Combine(root.FullName,"Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/SdkBridge/paid-query-preparation.mjs")).Replace("\r\n","\n");
+        var tail=module[module.IndexOf("    async _executeRequestWithGrpcDeadline",StringComparison.Ordinal)..];
+        var admissionTailHash=Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(tail)));
+        Assert.AreEqual("911412B836BE8BE78CAF3DCF03FA57C105E47E67C360396D18ACD98BFE5AA9A0",admissionTailHash);
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(45));
+        using var http=new HttpClient(new HttpClientHandler{AllowAutoRedirect=false});
+        async Task<JsonDocument> Mirror(string route){
+            using var response=await http.GetAsync("https://testnet.mirrornode.hedera.com/api/v1/"+route,HttpCompletionOption.ResponseHeadersRead,deadline.Token);
+            response.EnsureSuccessStatusCode();using var input=await response.Content.ReadAsStreamAsync(deadline.Token);using var bytes=new MemoryStream();
+            var buffer=new byte[4096];int read;while((read=await input.ReadAsync(buffer,deadline.Token))>0){if(bytes.Length+read>262144)throw new InvalidDataException("Bounded mirror response required.");bytes.Write(buffer,0,read);}
+            return JsonDocument.Parse(bytes.ToArray());
+        }
+        using var account=await Mirror("transactions?account.id=0.0.10993779&timestamp=gte%3A1792281990&timestamp=lte%3A1792282020&limit=100&order=asc");
+        Assert.AreEqual(0,account.RootElement.GetProperty("transactions").GetArrayLength());Assert.AreEqual(JsonValueKind.Null,account.RootElement.GetProperty("links").GetProperty("next").ValueKind);
+        using var latest=await Mirror("transactions?limit=1&order=desc");
+        var indexed=latest.RootElement.GetProperty("transactions")[0].GetProperty("consensus_timestamp").GetString()!;
+        Assert.IsTrue(decimal.Parse(indexed,CultureInfo.InvariantCulture)>1792282020m);
+        using var original=JsonDocument.Parse(File.ReadAllBytes(journal));using var live=JsonDocument.Parse(File.ReadAllBytes(inspection));
+        var database="usage_hedera_native_read";var mongo=new MongoClient("mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000");
+        var collection=mongo.GetDatabase(database).GetCollection<MongoDB.Bson.BsonDocument>("subscription_usage_outbox_v1");
+        Assert.AreEqual(1L,await collection.CountDocumentsAsync(MongoDB.Bson.BsonDocument.Parse("{}"),cancellationToken:deadline.Token));
+        var archive=Path.Combine(work,"reviewed-pre-execution-read-failure.json");Assert.IsFalse(File.Exists(archive));
+        using(var file=new FileStream(archive,FileMode.CreateNew,FileAccess.Write,FileShare.None)){
+            await JsonSerializer.SerializeAsync(file,new{originalJournal=original.RootElement,liveInspection=live.RootElement,admissionTailHash,
+                reviewedFailedRunParent="76a6ead71",accountWindow=account.RootElement,latestIndexedConsensusTimestamp=indexed,
+                preExecutionReviewed=true,basis="Exact zero-attempt durable record plus unchanged mandatory persistence-before-paid-transport invariant; mirror absence is corroboration only.",
+                paidSdkQueries=0,signingKeyLoaded=false,settlementAuthorized=false,generalZeroAttemptRetryPolicy=false},cancellationToken:deadline.Token);file.Flush(true);
+        }
+        using(var proof=JsonDocument.Parse(File.ReadAllBytes(archive)))Assert.IsTrue(proof.RootElement.GetProperty("preExecutionReviewed").GetBoolean());
+        Assert.AreEqual("0BC4E16A8A7256708615F7C113F952664B475FC05294CCBDF8F87581ED58628F",Hash(journal));
+        Console.WriteLine("Exact pre-execution failure archived; no paid request or settlement. Archive SHA256="+Hash(archive));
+        await mongo.DropDatabaseAsync(database,deadline.Token);File.Delete(journal);
+    }
+    [TestMethod,TestCategory("ReadOnlyReconciliation")]
     public async Task InspectRetainedFailedReadLedgerWithoutSigningOrMutation()
     {
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";

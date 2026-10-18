@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-17 exact Hedera pre-execution case reviewed using unchanged mandatory admission/transport tail, exact live historical ledger comparison and fresh mirror corroboration. Archive `reviewed-pre-execution-read-failure.json` SHA2567BFC7FCF7854B2A3DDF68051EDEEA07A06F8B53242A394CE63887F747F8AFAEC retains original journal/full sole ledger document/proof hashes. After flush/readback/exact journal-hash check, removed only disposable `usage_hedera_native_read` DB and `prepared-read-pending.json`; recoverable evidence archive, not production restore. No generic auto-clear rule/signing/paid query/retry. OwnedMongo stopped, same existing SDK/environment, free C:85,194,215,424bytes. No broad deletion/reclaimed-space claim.
+
 2026-10-17 Hedera exact ledger inspection1/1passed263ms reuses existing owned Mongo/runtime/outputs, no signing/native query/install/download/new environment. Target `usage_hedera_native_read` only read, retained unchanged along with pending journal. Compact inspection JSON/TRX retained; hashes in release gates. Runner stopped ownedMongo27029, free C:85,195,440,128bytes. No material deletion/reclaimed-space claim.
 
 2026-10-17 Cosmos explicit-owner replacement regression/full187offline suite reused SDK/output/ownedMongo environment, no native node/transaction/install/download/new environment. Existing runner stopped owned Mongo; compact reports retained with hashes in release gates. Free C:85,168,758,784bytes; no material deletion/reclaimed-space claim.
