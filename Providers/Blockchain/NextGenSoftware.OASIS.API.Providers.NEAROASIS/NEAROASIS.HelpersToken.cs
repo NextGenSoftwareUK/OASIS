@@ -102,8 +102,7 @@ public partial class NEAROASIS
             if (string.IsNullOrWhiteSpace(request.FromTokenAddress) ||
                 string.Equals(request.FromTokenAddress, "NEAR", StringComparison.OrdinalIgnoreCase))
             {
-                var yocto = new BigInteger(decimal.Round(request.Amount * 1_000_000_000_000_000_000_000_000m,
-                    0, MidpointRounding.AwayFromZero)).ToString();
+                var yocto = NearNativeAmount.ToYocto(request.Amount);
                 tx = await _sdk.TransferAsync(request.ToWalletAddress, yocto,
                     string.IsNullOrWhiteSpace(request.FromWalletAddress) ? null : request.FromWalletAddress,
                     string.IsNullOrWhiteSpace(request.OwnerPrivateKey) ? null : request.OwnerPrivateKey);

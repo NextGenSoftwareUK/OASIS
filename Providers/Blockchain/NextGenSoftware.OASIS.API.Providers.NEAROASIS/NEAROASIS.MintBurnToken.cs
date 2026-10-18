@@ -135,8 +135,7 @@ public partial class NEAROASIS
             if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
                 throw new ArgumentException("Wallet address is required.");
             if (!await EnsureSdkActiveAsync(result)) return result;
-            var yocto = BigInteger.Parse(await _sdk.GetBalanceYoctoAsync(request.WalletAddress), CultureInfo.InvariantCulture);
-            result.Result = (double)((decimal)yocto / 1_000_000_000_000_000_000_000_000m);
+            result.Result = (double)NearNativeAmount.FromYocto(await _sdk.GetBalanceYoctoAsync(request.WalletAddress));
             result.Message = "Balance read through the official near-api-js SDK.";
         }
         catch (Exception ex) { OASISErrorHandling.HandleError(ref result, $"Error reading NEAR balance: {ex.Message}", ex); }
