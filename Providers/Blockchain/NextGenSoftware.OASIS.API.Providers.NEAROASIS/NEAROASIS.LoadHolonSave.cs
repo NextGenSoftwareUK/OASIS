@@ -15,24 +15,60 @@ public partial class NEAROASIS
     private async Task<OASISResult<IHolon>> SaveHolonTreeAsync(IHolon holon, bool saveChildren,
         bool recursive, int maxChildDepth, int depth, bool continueOnError)
     {
-        var saved = await SaveHolonRecordAsync(holon);
-        if (saved.IsError || !saveChildren || holon.Children == null)
-            return saved;
-
-        var reachedDepth = maxChildDepth > 0 && depth + 1 >= maxChildDepth;
-        if (reachedDepth) return saved;
-
-        foreach (var child in holon.Children)
+        var saved = await SaveHolonForestAsync(new[] { holon }, saveChildren, recursive, maxChildDepth, depth, continueOnError);
+        return new OASISResult<IHolon>(saved.Result?.FirstOrDefault())
         {
-            child.ParentHolonId = holon.Id;
-            var childSaved = recursive
-                ? await SaveHolonTreeAsync(child, true, true, maxChildDepth, depth + 1, continueOnError)
-                : await SaveHolonRecordAsync(child);
-            if (!childSaved.IsError) continue;
-            OASISErrorHandling.HandleError(ref saved, $"Error saving child holon {child.Id}: {childSaved.Message}", childSaved.Exception);
-            if (!continueOnError) break;
+            IsError = saved.IsError, IsSaved = saved.IsSaved, Message = saved.Message, Exception = saved.Exception
+        };
+    }
+
+    private async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonForestAsync(IEnumerable<IHolon> holons,
+        bool saveChildren, bool recursive, int maxChildDepth, int depth, bool continueOnError)
+    {
+        var result = new OASISResult<IEnumerable<IHolon>>();
+        (List<IHolon> Roots, List<PlannedHolonWrite> Nodes) plan;
+        try
+        {
+            if (maxChildDepth < 0 || depth < 0) throw new ArgumentOutOfRangeException(nameof(maxChildDepth));
+            var children = saveChildren && (depth == 0 || recursive) && (maxChildDepth == 0 || depth + 1 < maxChildDepth);
+            // OASIS save depth includes the root; the shared plan counts edges.
+            plan = HolonGraphWritePlan.Create(holons, children, recursive, maxChildDepth == 0 ? 0 : maxChildDepth - 1, depth);
         }
-        return saved;
+        catch (Exception ex)
+        {
+            OASISErrorHandling.HandleError(ref result, $"Invalid NEAR save graph: {ex.Message}", ex);
+            return result;
+        }
+        var blocked = new HashSet<Guid>();
+        var acknowledged = new HashSet<IHolon>(ReferenceEqualityComparer.Instance);
+        foreach (var node in plan.Nodes)
+        {
+            if (blocked.Contains(node.Snapshot.ParentHolonId))
+            {
+                blocked.Add(node.Snapshot.Id);
+                continue;
+            }
+            var saved = await SaveHolonRecordAsync(node.Snapshot);
+            if (saved.IsError)
+            {
+                blocked.Add(node.Snapshot.Id);
+                OASISErrorHandling.HandleError(ref result, saved.Message, saved.Exception);
+                if (!continueOnError) break;
+                continue;
+            }
+            // Publish only identities/stamps whose current-record write was acknowledged.
+            node.Source.Id = node.Snapshot.Id;
+            node.Source.ParentHolonId = node.Snapshot.ParentHolonId;
+            node.Source.ProviderUniqueStorageKey = node.Snapshot.ProviderUniqueStorageKey;
+            node.Source.Version = node.Snapshot.Version;
+            node.Source.VersionId = node.Snapshot.VersionId;
+            node.Source.PreviousVersionId = node.Snapshot.PreviousVersionId;
+            acknowledged.Add(node.Source);
+        }
+        result.Result = plan.Roots.Where(acknowledged.Contains).ToList();
+        result.IsSaved = !result.IsError;
+        result.Message = $"Acknowledged {acknowledged.Count} of {plan.Nodes.Count} selected NEAR graph writes. " + result.Message;
+        return result;
     }
 
     private async Task<List<IHolon>> LoadChildTreeAsync(Guid parentId, HolonType type, bool recursive,
@@ -96,36 +132,16 @@ public partial class NEAROASIS
             version, continueOnError, loadChildrenRecursiveDepth, loadChildrenRecursiveDepthInt).GetAwaiter().GetResult();
 
     public override async Task<OASISResult<IEnumerable<IHolon>>> SaveHolonsAsync(IEnumerable<IHolon> holons,
-        bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0,
+        bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
         bool continueOnError = true, bool loadChildrenRecursiveDepth = true)
     {
-        var result = new OASISResult<IEnumerable<IHolon>>();
-        if (holons == null)
-        {
-            OASISErrorHandling.HandleError(ref result, "Holons are required.");
-            return result;
-        }
-
-        var saved = new List<IHolon>();
-        foreach (var holon in holons)
-        {
-            var item = await SaveHolonTreeAsync(holon, saveChildren, recursive, maxChildDepth, 0, continueOnError);
-            if (item.IsError)
-            {
-                OASISErrorHandling.HandleError(ref result, item.Message, item.Exception);
-                if (!continueOnError) break;
-            }
-            else if (item.Result != null) saved.Add(item.Result);
-        }
-        result.Result = saved;
-        result.IsSaved = !result.IsError;
-        return result;
+        return await SaveHolonForestAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError);
     }
 
     public override OASISResult<IEnumerable<IHolon>> SaveHolons(IEnumerable<IHolon> holons,
-        bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int version = 0,
+        bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, int curentChildDepth = 0,
         bool continueOnError = true, bool loadChildrenRecursiveDepth = true) =>
-        SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, version, continueOnError,
+        SaveHolonsAsync(holons, saveChildren, recursive, maxChildDepth, curentChildDepth, continueOnError,
             loadChildrenRecursiveDepth).GetAwaiter().GetResult();
 
     public override Task<OASISResult<IAvatarDetail>> SaveAvatarDetailAsync(IAvatarDetail avatarDetail) =>

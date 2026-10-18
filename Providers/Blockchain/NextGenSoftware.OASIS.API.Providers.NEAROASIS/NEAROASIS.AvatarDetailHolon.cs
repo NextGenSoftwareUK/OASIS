@@ -91,13 +91,13 @@ public partial class NEAROASIS
         bool loadChildrenRecursiveDepth = true) =>
         SaveHolonTreeAsync(holon, saveChildren, recursive, maxChildDepth, 0, continueOnError);
 
-    public Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon) => SaveHolonRecordAsync(holon);
+    public Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon) => SaveHolonTreeAsync(holon, true, true, 0, 0, true);
 
     public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true,
         int maxChildDepth = 0, bool continueOnError = true, bool loadChildrenRecursiveDepth = true) =>
         SaveHolonAsync(holon, saveChildren, recursive, maxChildDepth, continueOnError, loadChildrenRecursiveDepth).GetAwaiter().GetResult();
 
-    public OASISResult<IHolon> SaveHolon(IHolon holon) => SaveHolonRecordAsync(holon).GetAwaiter().GetResult();
+    public OASISResult<IHolon> SaveHolon(IHolon holon) => SaveHolonAsync(holon).GetAwaiter().GetResult();
 
     public override Task<OASISResult<IHolon>> DeleteHolonAsync(Guid id) => DeleteHolonRecordAsync(id);
     public override OASISResult<IHolon> DeleteHolon(Guid id) => DeleteHolonAsync(id).GetAwaiter().GetResult();
