@@ -57,6 +57,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
         public string Email { get; set; }
         public string Image2D { get; set; }
         public string Model3D { get; set; }
+        public string Portrait { get; set; }
+        public string UmaJson { get; set; }
 
         public ConsoleColor FavouriteColour { get; set; }
         public ConsoleColor STARCLIColour { get; set; }
@@ -146,6 +148,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
             this.Username=source.Username;
             this.Email=source.Email;
             this.Model3D=source.Model3D;
+            this.Portrait=source.Portrait;
+            this.UmaJson=source.UmaJson;
 
             this.FavouriteColour=source.FavouriteColour;
             this.STARCLIColour=source.STARCLIColour;
@@ -264,6 +268,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Entities
             item.Username=this.Username;
             item.Email=this.Email;
             item.Model3D=this.Model3D;
+            item.Portrait=this.Portrait;
+            item.UmaJson=this.UmaJson;
 
             item.FavouriteColour=this.FavouriteColour;
             item.STARCLIColour=this.STARCLIColour;

@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-18 SQLite appearance persistence fix reused same leased fixed DB, project/cache/runtime;458native/session45311terminal0+5unitterminal0. Fixture DB/WAL/SHM absent afterward, regenerable from same tests. Legacy cases dropped ONLY Portrait/UmaJson fixture columns, not user databases; no source/user data/credentials/cache removal. No restore/download/install/new environment. Fixed compact reports retained, free86230970368bytes; prior rejected bin cleanup not retried/bypassed.
+
 2026-10-18 SQLite provider-link fix reused same project/runtime/assets/cache/leased fixed DB;454native/session88542terminal0+5unitterminal0. Fixture disposed contexts and removed only owned integration-current.db/-wal/-shm, post-run enumeration empty; regenerates from same fixture. Legacy-schema tests dropped ONLY ProviderLinksJson in disposable fixture, never user DB. No restore/download/install/new environment. Compact reports retained, free86211203072bytes observed; no broad reclamation claim or retry of policy-rejected artifact removal.
 
 2026-10-18 SQLite parent-ID persistence fix reused existing leased test DB/runtime/project/assets/cache. Full446native/session32028terminal0,5unitterminal0; fixture DB/WAL/SHM absent afterward. Legacy-schema tests dropped ONLY three columns in that owned disposable fixture, not user databases; same fixture regenerates schema. No restore/install/download/new environment. Compact reports retained, free86385577984bytes. No broad cleanup; previous rejected bin removal not retried/bypassed.

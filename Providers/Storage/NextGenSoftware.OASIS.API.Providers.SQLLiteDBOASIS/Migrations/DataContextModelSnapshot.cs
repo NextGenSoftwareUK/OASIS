@@ -305,6 +305,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SQLLiteDBOASIS.Migrations
                     b.Property<Guid>("ParentHolonId2").HasColumnType("TEXT");
                     b.Property<Guid>("ParentHolonId3").HasColumnType("TEXT");
                     b.Property<string>("ProviderLinksJson").IsRequired().HasColumnType("TEXT");
+                    b.Property<string>("Portrait").HasColumnType("TEXT");
+                    b.Property<string>("UmaJson").HasColumnType("TEXT");
                     b.Property<Guid>("VersionId").HasColumnType("TEXT");
                     b.Property<Guid>("PreviousVersionId").HasColumnType("TEXT");
                     b.Property<string>("CustomHolonType").HasColumnType("TEXT");
