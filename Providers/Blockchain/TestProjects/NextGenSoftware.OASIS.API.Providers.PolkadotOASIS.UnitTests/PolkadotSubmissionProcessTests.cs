@@ -9,6 +9,16 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.UnitTests;
 [TestClass][DoNotParallelize]
 public class PolkadotSubmissionProcessTests
 {
+    [DataTestMethod][DataRow("submitNativePreparation")][DataRow("submitAssetPreparation")]
+    public async Task AllWritableSdkOperationsRequireAnOwnedPreparationServer(string operation)
+    {
+        using var provider = new PolkadotOASIS("http://127.0.0.1:1");
+        var method = typeof(PolkadotOASIS).GetMethod("InvokePolkadotSdkAsync", BindingFlags.Instance | BindingFlags.NonPublic)!;
+        var pending = (Task<JsonElement>)method.Invoke(provider, new object?[] { new { operation }, CancellationToken.None, null })!;
+        var failure = await Assert.ThrowsExceptionAsync<InvalidOperationException>(async () => await pending);
+        StringAssert.Contains(failure.Message, "owned durable preparation server");
+    }
+
     [DataTestMethod][DataRow("accepted")][DataRow("error")][DataRow("wrong-hash")][DataRow("false-finality")]
     public async Task AcknowledgedOriginalCannotLoseIdentityOrBecomeFinalSuccess(string outcome)
     {

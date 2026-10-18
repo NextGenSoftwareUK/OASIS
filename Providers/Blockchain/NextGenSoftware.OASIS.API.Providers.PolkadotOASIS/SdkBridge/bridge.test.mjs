@@ -4,9 +4,9 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
 const valid = { operation: 'balance', endpoint: 'http://127.0.0.1:1', genesisHash: '0x' + 'a'.repeat(64), address: 'invalid' };
-test('submission cannot access RPC without an owned persistence channel', () => {
+for (const operation of ['submitNativePreparation', 'submitAssetPreparation']) test(`${operation} cannot access RPC without an owned persistence channel`, () => {
   const result = spawnSync(process.execPath, [fileURLToPath(new URL('./bridge.mjs', import.meta.url))], {
-    input: JSON.stringify({ ...valid, operation: 'submitNativePreparation' }), encoding: 'utf8', timeout: 10000,
+    input: JSON.stringify({ ...valid, operation }), encoding: 'utf8', timeout: 10000,
     env: { ...process.env, OASIS_NATIVE_PREPARATION_PIPE: '', OASIS_NATIVE_PREPARATION_MODULE: '' }
   });
   assert.equal(result.status, 1);
