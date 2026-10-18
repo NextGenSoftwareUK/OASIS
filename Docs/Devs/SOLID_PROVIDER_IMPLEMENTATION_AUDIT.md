@@ -2,6 +2,12 @@
 
 2026-10-18. Incomplete; no full-provider release certification.
 
+## Metadata and parent-query integration
+
+Metadata single/pair All/Any and parent GUID/string queries now select decrypted native collection records locally, reusing shared StoredRecordSearch and HolonGraphProjection rather than guessed Solid search endpoints. All-holon reads share the projector. Captures metadata dictionary before awaiting; rejects invalid mode/blank key/type/depth before HTTP. Supports provider-linked child projection and initial-depth limit through existing shared semantics. Root metadata filters do not suppress nonmatching child records.11newcontrolled cases/full78unitpass229ms; exact true red/green hashes in release gates.
+
+Fixed reversed continueOnError/loadChildrenFromProvider names/defaults on sync string-parent override. Core interface calls with distinct flags now project correctly. CLR signature unchanged; concrete-type callers compiled using old optional constants/order should rebuild. No native-server/live-pod proof from these tests. O(n)read/decrypt scan, not native index; limits and current-only history inherited. General partial-result/continueOnError behavior, graph writes/single-root child expansion, paging, delete/import/export/general search and hosted/auth/recovery remain unfinished. Runtime still absent after execution-policy denial; no alternate launch attempted.
+
 ## Native verification prerequisite: operator action
 
 One official CSS7.1.8 image now retained in existing root WSL Podman: amd64 manifest digest125727897fde6e2225239a0748bf47d8fa559cac065d5694dc10f6428799e9f2, local image58bee7c3f6a20498d72eb6f8334ba84299b6df2c8fca119ce805fe8614512d7a,336257823bytes unpacked. Downloaded once after existing-cache inventory; do not pull/clone/reinstall per run.
