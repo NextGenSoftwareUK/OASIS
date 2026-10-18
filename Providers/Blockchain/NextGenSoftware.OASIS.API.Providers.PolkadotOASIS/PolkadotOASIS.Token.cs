@@ -47,157 +47,19 @@ namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
         public OASISResult<ITransactionResponse> MintToken(IMintWeb3TokenRequest request)
         {
-            return MintTokenAsync(request).Result;
+            return Task.Run(() => MintTokenAsync(request)).GetAwaiter().GetResult();
         }
 
-        public async Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
-        {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Polkadot provider is not activated");
-                    return result;
-                }
-
-                if (request == null || request.MetaData == null || 
-                    !request.MetaData.ContainsKey("TokenAddress") || string.IsNullOrWhiteSpace(request.MetaData["TokenAddress"]?.ToString()) ||
-                    !request.MetaData.ContainsKey("MintToWalletAddress") || string.IsNullOrWhiteSpace(request.MetaData["MintToWalletAddress"]?.ToString()))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Token address and mint to wallet address are required in MetaData");
-                    return result;
-                }
-
-                var tokenAddress = request.MetaData["TokenAddress"].ToString();
-                var mintToWalletAddress = request.MetaData["MintToWalletAddress"].ToString();
-                var amount = request.MetaData?.ContainsKey("Amount") == true && decimal.TryParse(request.MetaData["Amount"]?.ToString(), out var amt) ? amt : 0m;
-
-                // Polkadot token minting via RPC call to Assets pallet or custom token pallet
-                var amountInPlanck = (long)(amount * 10000000000);
-                var rpcRequest = new
-                {
-                    id = 1,
-                    jsonrpc = "2.0",
-                    method = "author_submitExtrinsic",
-                    @params = new[]
-                    {
-                        new
-                        {
-                            call = new
-                            {
-                                module = "Assets",
-                                method = "mint",
-                                args = new
-                                {
-                                    id = tokenAddress,
-                                    beneficiary = mintToWalletAddress,
-                                    amount = amountInPlanck
-                                }
-                            }
-                        }
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(rpcRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync("", content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    var txHash = responseData.TryGetProperty("result", out var resultProp) ? resultProp.GetString() : string.Empty;
-                    result.Result.TransactionResult = txHash ?? string.Empty;
-                    result.IsError = false;
-                    result.Message = "Token minted successfully on Polkadot";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to mint token on Polkadot: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error minting token: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public Task<OASISResult<ITransactionResponse>> MintTokenAsync(IMintWeb3TokenRequest request)
+            => MintOwnedAssetAsync(request);
 
         public OASISResult<ITransactionResponse> BurnToken(IBurnWeb3TokenRequest request)
         {
-            return BurnTokenAsync(request).Result;
+            return Task.Run(() => BurnTokenAsync(request)).GetAwaiter().GetResult();
         }
 
-        public async Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
-        {
-            var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
-            try
-            {
-                if (!_isActivated)
-                {
-                    OASISErrorHandling.HandleError(ref result, "Polkadot provider is not activated");
-                    return result;
-                }
-
-                if (request == null || string.IsNullOrWhiteSpace(request.TokenAddress) || 
-                    string.IsNullOrWhiteSpace(request.OwnerPrivateKey))
-                {
-                    OASISErrorHandling.HandleError(ref result, "Token address and owner private key are required");
-                    return result;
-                }
-
-                // IBurnWeb3TokenRequest doesn't have Amount or BurnFromWalletAddress properties
-                // Use default amount for now (in production, query balance first)
-                var amountInPlanck = 10000000000L; // Default amount
-                var rpcRequest = new
-                {
-                    id = 1,
-                    jsonrpc = "2.0",
-                    method = "author_submitExtrinsic",
-                    @params = new[]
-                    {
-                        new
-                        {
-                            call = new
-                            {
-                                module = "Assets",
-                                method = "burn",
-                                args = new
-                                {
-                                    id = request.TokenAddress,
-                                    who = "", // Will be derived from private key in production
-                                    amount = amountInPlanck
-                                }
-                            }
-                        }
-                    }
-                };
-
-                var jsonContent = JsonSerializer.Serialize(rpcRequest);
-                var content = new StringContent(jsonContent, Encoding.UTF8, "application/json");
-                var response = await _httpClient.PostAsync("", content);
-
-                if (response.IsSuccessStatusCode)
-                {
-                    var responseContent = await response.Content.ReadAsStringAsync();
-                    var responseData = JsonSerializer.Deserialize<JsonElement>(responseContent);
-                    var txHash = responseData.TryGetProperty("result", out var resultProp) ? resultProp.GetString() : string.Empty;
-                    result.Result.TransactionResult = txHash ?? string.Empty;
-                    result.IsError = false;
-                    result.Message = "Token burned successfully on Polkadot";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref result, $"Failed to burn token on Polkadot: {response.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                OASISErrorHandling.HandleError(ref result, $"Error burning token: {ex.Message}", ex);
-            }
-            return result;
-        }
+        public Task<OASISResult<ITransactionResponse>> BurnTokenAsync(IBurnWeb3TokenRequest request)
+            => BurnOwnedAssetAsync(request);
 
         public OASISResult<ITransactionResponse> LockToken(ILockWeb3TokenRequest request)
         {

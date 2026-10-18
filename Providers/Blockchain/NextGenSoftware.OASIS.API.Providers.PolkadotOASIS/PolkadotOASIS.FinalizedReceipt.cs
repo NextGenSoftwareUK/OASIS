@@ -11,15 +11,24 @@ public partial class PolkadotOASIS
 {
     /// <summary>Read-only bounded recovery of the exact signed original. A missing result is unknown,
     /// never rejection/expiry/replay permission. Retain nextBlockNumber and resume without broadcasting.</summary>
-    public async Task<OASISResult<JsonElement>> ReadOriginalNativeOutcomeAsync(JsonElement preparation,
+    public Task<OASISResult<JsonElement>> ReadOriginalNativeOutcomeAsync(JsonElement preparation,
         string fromBlockNumber, int maximumBlocks = 16, CancellationToken cancellationToken = default)
+        => ReadOriginalOutcomeAsync(preparation, fromBlockNumber, maximumBlocks, false, cancellationToken);
+
+    /// <summary>Reads canonical finalized Assets effects for the original; no broadcast or full native-outlay certification.</summary>
+    public Task<OASISResult<JsonElement>> ReadOriginalAssetOutcomeAsync(JsonElement preparation,
+        string fromBlockNumber = null, int maximumBlocks = 16, CancellationToken cancellationToken = default)
+        => ReadOriginalOutcomeAsync(preparation, fromBlockNumber, maximumBlocks, true, cancellationToken);
+
+    private async Task<OASISResult<JsonElement>> ReadOriginalOutcomeAsync(JsonElement preparation,
+        string fromBlockNumber, int maximumBlocks, bool asset, CancellationToken cancellationToken)
     {
         var result = new OASISResult<JsonElement>();
         try
         {
             if (!_isActivated) throw new InvalidOperationException("Activate the verified network before original outcome recovery.");
             var original = preparation.Clone();
-            var response = await InvokePolkadotSdkAsync(new { operation = "originalOutcome", endpoint = _rpcEndpoint,
+            var response = await InvokePolkadotSdkAsync(new { operation = asset ? "assetOutcome" : "originalOutcome", endpoint = _rpcEndpoint,
                 genesisHash = ReportedGenesisHash, preparation = original, fromBlockNumber, maximumBlocks }, cancellationToken);
             var found = response.GetProperty("found").GetBoolean();
             var observed = found ? response.GetProperty("receipt") : response;

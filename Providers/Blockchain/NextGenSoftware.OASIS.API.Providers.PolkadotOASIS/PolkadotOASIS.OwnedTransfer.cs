@@ -16,7 +16,7 @@ public partial class PolkadotOASIS
 {
     private readonly AsyncLocal<NativeTransferExecution> _nativeTransferExecution = new();
 
-    /// <summary>Runs one ordinary native SendToken under an existing admitted execution owner.
+    /// <summary>Runs one ordinary chain mutation (native send or Assets mint/burn) under an existing admitted execution owner.
     /// Does not create an admission, choose prices or settle billing. Nested/reused scopes are rejected.</summary>
     public async Task<T> ExecutePreparedNativeOperationAsync<T>(Func<Task<T>> operation, UsageExecutionHandle execution,
         string clientRequestId, string expectedSender, CancellationToken token = default)
@@ -33,32 +33,40 @@ public partial class PolkadotOASIS
         finally { context.Close(); _nativeTransferExecution.Value = null; }
     }
 
-    private async Task<OASISResult<ITransactionResponse>> SendOwnedNativeTransferAsync(ISendWeb3TokenRequest request)
+    private Task<OASISResult<ITransactionResponse>> SendOwnedNativeTransferAsync(ISendWeb3TokenRequest request)
+        => ExecuteOwnedMutationAsync(owner => PrepareNativeTokenTransferAsync(request, owner.Token), false);
+
+    private async Task<OASISResult<ITransactionResponse>> ExecuteOwnedMutationAsync(
+        Func<NativeTransferExecution, Task<OASISResult<JsonElement>>> prepare, bool asset)
     {
         var result = new OASISResult<ITransactionResponse>(new TransactionResponse());
         string submittedOriginal = null;
         try
         {
             var owner = _nativeTransferExecution.Value ?? throw new InvalidOperationException(
-                "Polkadot SendToken requires ExecutePreparedNativeOperationAsync with an admitted execution owner; unsigned submission is not supported.");
+                "Polkadot mutations require ExecutePreparedNativeOperationAsync with an admitted execution owner; unsigned submission is not supported.");
             owner.Claim();
             owner.Token.ThrowIfCancellationRequested();
-            var preparation = await PrepareNativeTokenTransferAsync(request, owner.Token).ConfigureAwait(false);
+            if (!_isActivated) throw new InvalidOperationException("Activate the verified network before any wallet/signing mutation work.");
+            var preparation = await prepare(owner).ConfigureAwait(false);
             if (preparation.IsError) throw preparation.Exception ?? new InvalidOperationException(preparation.Message);
             var original = preparation.Result;
-            using var document = JsonDocument.Parse(Convert.FromBase64String(original.GetProperty("signDocBase64").GetString()));
-            var signingBlock = document.RootElement.GetProperty("signingPayload").GetProperty("blockNumber").GetString();
-            var cursor = Convert.ToUInt64(signingBlock.Substring(2), 16).ToString(CultureInfo.InvariantCulture);
+            string cursor = null; // Assets reader derives the real height from the cryptographically signed checkpoint hash.
+            if (!asset) {
+                using var document = JsonDocument.Parse(Convert.FromBase64String(original.GetProperty("signDocBase64").GetString()));
+                var signingBlock = document.RootElement.GetProperty("signingPayload").GetProperty("blockNumber").GetString();
+                cursor = Convert.ToUInt64(signingBlock.Substring(2), 16).ToString(CultureInfo.InvariantCulture);
+            }
             // Submission already joins its durable owner and marks any post-ACK uncertainty.
-            var accepted = await SubmitNativeTokenTransferPreparationAsync(original, owner.Execution,
-                owner.ClientRequestId, owner.ExpectedSender, owner.Token).ConfigureAwait(false);
+            var accepted = await SubmitOriginalPreparationAsync(original, owner.Execution,
+                owner.ClientRequestId, owner.ExpectedSender, asset, owner.Token).ConfigureAwait(false);
             submittedOriginal = accepted.GetProperty("transactionHash").GetString();
             using var deadline = CancellationTokenSource.CreateLinkedTokenSource(owner.Token);
             deadline.CancelAfter(TimeSpan.FromMinutes(2));
             while (true)
             {
                 deadline.Token.ThrowIfCancellationRequested();
-                var observed = await ReadOriginalNativeOutcomeAsync(original, cursor, 16, deadline.Token).ConfigureAwait(false);
+                var observed = await ReadOriginalOutcomeAsync(original, cursor, 16, asset, deadline.Token).ConfigureAwait(false);
                 if (observed.IsError) throw observed.Exception ?? new InvalidOperationException(observed.Message);
                 var outcome = observed.Result;
                 if (outcome.GetProperty("found").GetBoolean())
@@ -66,9 +74,19 @@ public partial class PolkadotOASIS
                     var receipt = outcome.GetProperty("receipt");
                     if (!receipt.GetProperty("dispatchSucceeded").GetBoolean())
                         throw new PolkadotNativeMutationReconciliationException(submittedOriginal,
-                            new InvalidOperationException("Finalized native transfer failed dispatch: " + receipt.GetProperty("dispatchError").GetString()));
+                            new InvalidOperationException("Finalized operation failed dispatch: " + receipt.GetProperty("dispatchError").GetString()));
+                    if (asset && (!receipt.GetProperty("assetEffectMatchesRequest").GetBoolean()
+                        || receipt.GetProperty("observedUnits").GetString() != original.GetProperty("units").GetString()
+                        || receipt.GetProperty("requestedUnits").GetString() != original.GetProperty("units").GetString()
+                        || receipt.GetProperty("assetId").GetString() != original.GetProperty("assetId").GetString()
+                        || receipt.GetProperty("recipient").GetString() != original.GetProperty("recipient").GetString()
+                        || receipt.GetProperty("action").GetString() != original.GetProperty("action").GetString()))
+                        throw new PolkadotNativeMutationReconciliationException(submittedOriginal,
+                            new InvalidOperationException("Finalized asset effects differ from the requested action/asset/account/amount; reconcile observed effects, never replay."));
                     result.Result.TransactionResult = submittedOriginal;
-                    result.Message = "Native transfer finalized with successful dispatch and verified native fee evidence; billing settlement is separate.";
+                    result.Message = asset
+                        ? "Asset mutation finalized with exact verified effects; gas-only fee evidence is not full asset native outlay or billing settlement."
+                        : "Native transfer finalized with successful dispatch and verified native fee evidence; billing settlement is separate.";
                     return result;
                 }
                 cursor = outcome.GetProperty("nextBlockNumber").GetString();
