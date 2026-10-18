@@ -363,9 +363,29 @@ public class SolanaHolonAdapterTests
         {
             Assert.IsTrue(result.IsDeleted);Assert.AreEqual(1,result.DeletedCount);
             Assert.AreEqual(6,result.Result.Version);Assert.AreEqual(stored.Id,result.Result.PreviousVersionId);
+            Assert.IsTrue(result.Result.IsDeleted);Assert.AreEqual(repository.TombstoneDate,result.Result.DeletedDate);
             Assert.AreEqual("owned-tombstone",result.Result.ProviderUniqueStorageKey[ProviderType.SolanaOASIS]);
         }
         Assert.AreEqual(1,repository.TombstoneCalls);
+    }
+
+    [DataTestMethod]
+    [DataRow(false,"failure")] [DataRow(true,"failure")]
+    [DataRow(false,"identity")] [DataRow(true,"identity")]
+    [DataRow(false,"date")] [DataRow(true,"date")]
+    public async Task TombstoneReadbackFailureRetainsReceiptAndNeverClaimsDeletion(bool sync,string scenario)
+    {
+        var source=new SolanaHolonDto {Id=Guid.NewGuid(),Version=3};
+        var repository=new RecordsRepository {Records=new[] {(source,"owned-source")},AllowTombstone=true,TombstoneReadScenario=scenario};
+        var provider=new ActiveProvider(repository);
+        var result=sync ? provider.DeleteHolon("owned-source"):await provider.DeleteHolonAsync("owned-source");
+        Assert.IsTrue(result.IsError);Assert.IsFalse(result.IsDeleted);Assert.AreEqual(0,result.DeletedCount);Assert.IsNull(result.Result);
+        Assert.IsInstanceOfType(result.Exception,typeof(SolanaTransactionReconciliationException));
+        Assert.AreEqual("owned-tombstone",((SolanaTransactionReconciliationException)result.Exception).OriginalTransactionId);
+        Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(result.Exception));
+        Assert.AreEqual(scenario=="failure" ? typeof(IOException):typeof(System.IO.InvalidDataException),result.Exception.InnerException!.GetType());
+        Assert.AreEqual(1,repository.TombstoneCalls);Assert.AreEqual(2,repository.Reads);
+        Assert.AreEqual(3,source.Version);Assert.IsFalse(source.IsDeleted);Assert.AreEqual(DateTime.MinValue,source.DeletedDate);
     }
 
     private sealed class ActiveProvider:SolanaOASIS
@@ -388,6 +408,8 @@ public class SolanaHolonAdapterTests
         public bool AllowPartialWrite;
         public bool AllowAllWrites;
         public bool AllowTombstone;public int TombstoneCalls;public Exception? TombstoneCause;
+        public DateTime TombstoneDate=new(2026,10,18,19,30,0,DateTimeKind.Utc);
+        public string TombstoneReadScenario="valid";
         public bool ContinueAfterOneFailure;
         public List<SolanaBaseDto> Written=new();
         public int WriteCalls;
@@ -401,7 +423,19 @@ public class SolanaHolonAdapterTests
         }
         public Task<T> GetAsync<T>(string reference) where T:SolanaBaseDto,new()
         {
-            Reads++; return Task.FromResult((T)(SolanaBaseDto)Records.Single(entry=>entry.Signature==reference).Record);
+            Reads++;
+            if(reference=="owned-tombstone" && AllowTombstone)
+            {
+                if(TombstoneReadScenario=="failure") throw new IOException("owned tombstone readback failure");
+                var original=Records.Single().Record;
+                return Task.FromResult((T)(SolanaBaseDto)new SolanaHolonDto
+                {
+                    Id=TombstoneReadScenario=="identity" ? Guid.NewGuid():original.Id,
+                    Version=original.Version+1,PreviousVersionId=original.Id,IsDeleted=true,
+                    DeletedDate=TombstoneReadScenario=="date" ? DateTime.MinValue:TombstoneDate
+                });
+            }
+            return Task.FromResult((T)(SolanaBaseDto)Records.Single(entry=>entry.Signature==reference).Record);
         }
         public Task<string> CreateAsync<T>(T entity) where T:SolanaBaseDto,new()
         {

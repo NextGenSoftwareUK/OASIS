@@ -75,6 +75,7 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
         if (!identity.HasValue || identity.Value == Guid.Empty || !version.HasValue || version.Value < 0)
             throw new InvalidOperationException("Stored Solana record has invalid identity/version.");
         deserializedEntity["IsDeleted"] = true;
+        deserializedEntity["DeletedDate"] = DateTime.UtcNow;
         deserializedEntity["Version"] = checked(version.Value + 1);
         deserializedEntity["PreviousVersionId"] = identity.Value;
         var serializedEntity = EncodeEntity(deserializedEntity);
