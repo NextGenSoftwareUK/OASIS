@@ -1,5 +1,7 @@
 # HyperDrive V2 provider-I/O coverage
 
+2026-10-17 Sui retained original escrow readback1/1pass52s now verifies both public sync/async wallet history and all4original status/fee correlations, exact signed SUI changes including actual burn rebatecredit. Read-only, existing retained node/ledger, no new originals; scope is this wallet/current original4, not every history option/bridge/nativefaultmatrix. Initial test assumed gasalwaysdebit; corrected to actual original signed fee semantics without productioncode change. Exact hashes in release journal/fee explanation in accounting doc.
+
 2026-10-17 Hedera retained failed-activation incident now has4durable original fee receipts via actual reader/shared Core recovery,0.247636testHBAR at original frozen syntheticquote, no paid native replay. Idempotent rerun preserves whole operation. Original pending journal retained; logical API outcome/settlement and full routed policy/native/hosted acceptance remain OPEN. Exact hashes/reproduction in fee accounting/release gate docs.
 
 2026-10-17 Hedera controlled failover safety2new sync/async cases/full137pass2m: explicit eligible/permitted alternate remains untouched when native activation reaches operation budget. Original budget cause/signed attempt/exposure preserved, no mutation/settlement. Distinguishes terminal allowance failure from availability failover; NOT real native outage/replication evidence. Paid routed journal unchanged; full hash in release gates.

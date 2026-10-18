@@ -75,6 +75,10 @@ public class SuiAdmittedNftFacadeTests
             CollectionAssert.AreEqual(new[]{"mint.storage.1","lock.storage.1","unlock.storage.1","burn.storage.1"},
                 originals.Select(row=>row.GetProperty("ClientRequestId").GetString()).ToArray());
             Assert.AreEqual(4,originals.Select(row=>row.GetProperty("ProviderRequestId").GetString()).Distinct().Count());
+            // Read retained ledger history through both public overloads; never mint new fixtures here.
+            var request=new GetWeb3TransactionsRequest{WalletAddress=ownerIdentity.Result.WalletAddressLegacy};
+            var asyncHistory=await owner.GetTransactionsAsync(request);Assert.IsFalse(asyncHistory.IsError,asyncHistory.Message);
+            var syncHistory=owner.GetTransactions(request);Assert.IsFalse(syncHistory.IsError,syncHistory.Message);
             foreach(var original in originals){
                 Assert.IsTrue(original.GetProperty("success").GetBoolean());
                 Assert.AreEqual(settings.GetProperty("chainId").GetString(),original.GetProperty("chainId").GetString());
@@ -85,8 +89,24 @@ public class SuiAdmittedNftFacadeTests
                 Assert.AreEqual(digest,fee.Result.GetProperty("transactionHash").GetString());
                 Assert.AreEqual(original.GetProperty("payer").GetString(),fee.Result.GetProperty("payer").GetString());
                 Assert.AreEqual(original.GetProperty("netUnits").GetString(),fee.Result.GetProperty("netUnits").GetString());
+                var status=await owner.GetTransactionStatusAsync(digest);Assert.IsFalse(status.IsError,status.Message);
+                Assert.AreEqual(Core.Managers.Bridge.Enums.BridgeTransactionStatus.Completed,status.Result);
+                foreach(var history in new[]{asyncHistory.Result,syncHistory.Result}){
+                    var gasRows=history.Where(row=>row.NativeTransactionId==digest
+                        && row.AmountUnit.EndsWith("::sui::SUI:base-unit",StringComparison.Ordinal)).ToArray();
+                    Assert.AreEqual(1,gasRows.Length,"Original escrow gas must appear exactly once in wallet history.");
+                    var gas=gasRows[0];Assert.AreEqual("Success",gas.NativeExecutionResult);
+                    Assert.AreEqual("WalletNetBalanceChange",gas.NativeOperation);
+                    var netFee=System.Numerics.BigInteger.Parse(fee.Result.GetProperty("netUnits").GetString()!,System.Globalization.CultureInfo.InvariantCulture);
+                    Assert.AreEqual((-netFee).ToString(System.Globalization.CultureInfo.InvariantCulture),gas.RawAmount);
+                    Assert.AreEqual(ownerIdentity.Result.WalletAddressLegacy,gas.FromWalletAddress);
+                    if(netFee.Sign>0){Assert.IsNull(gas.ToWalletAddress,"Gas debit must not invent a recipient.");
+                        Assert.AreEqual(Core.Enums.TransactionType.Debit,gas.TransactionType);}
+                    else {Assert.AreEqual(ownerIdentity.Result.WalletAddressLegacy,gas.ToWalletAddress);
+                        Assert.AreEqual(Core.Enums.TransactionType.Credit,gas.TransactionType);}
+                }
             }
-            Console.WriteLine("Retained CSharp escrow state and all4 original native fee receipts rechecked read-only; no signed mutation.");return;
+            Console.WriteLine("Retained CSharp escrow state/all4original native fee receipts/status and both sync/async wallet history rechecked read-only; no signed mutation.");return;
         }
         var database=idBound?"usage_sui_csharp_escrow_live":token?"usage_sui_csharp_token_live":"usage_sui_csharp_nft_live";var mongo=new MongoDB.Driver.MongoClient(connection);
         using(var names=await mongo.ListDatabaseNamesAsync())CollectionAssert.DoesNotContain(await MongoDB.Driver.IAsyncCursorExtensions.ToListAsync(names),database);

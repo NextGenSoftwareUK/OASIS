@@ -1,5 +1,9 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Wallet history versus billable fee — Sui storage rebates
+
+Do not floor individual historical wallet movements to zero. The retained Sui ID-bound escrow burn has original `netUnits=-282576`MIST: its wallet history must preserve a **+282576MIST credit** to the owner, while mint/lock/unlock retain their exact negative gas debits. Only the separate billing valuation nets fees/rebates within the same operation and floors that operation's charge at zero. A historical credit is neither a fabricated outgoing transfer nor an authorization to pay a subscription credit beyond that operation.
+
 ## Retained Hedera activation fees durably recovered — 2026-10-17
 
 Operation `222c0b6b-625a-8198-564d-08b7f55ff929` now has4durable original fee receipts via the existing shared PreparedNativeUsageRecoveryResolver and real Hedera original-fee reader. Total **24763600tinybar=0.247636testHBAR**, below0.28294688admitted exposure. Valuation retains original synthetic1USD/HBAR test quotes, not a current market/production tariff. Original signed attempts, provider/client request correlations and exposure are unchanged. No signing key loaded, activation, paid query, replay, inferred logical outcome or hosted settlement. Native payment success does not establish the failed API read's outcome.
