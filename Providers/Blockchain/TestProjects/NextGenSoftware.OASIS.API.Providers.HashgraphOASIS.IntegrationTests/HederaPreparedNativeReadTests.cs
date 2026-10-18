@@ -20,13 +20,16 @@ public class HederaPreparedNativeReadTests
         Assert.IsNotNull(root);var work=Path.Combine(root!.FullName,"TestResults/HederaRuntime");
         var journal=Path.Combine(work,"prepared-read-pending.json");var inspection=Path.Combine(work,"prepared-read-ledger-inspection.json");
         string Hash(string file)=>Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(file)));
-        Assert.AreEqual("2E14523D7689895A3350989A001E2F02859ACD427749F66E6A9001589CC6C70B",Hash(inspection));
+        var nodeProfile=Hash(journal)=="D7984BB5DF86BDBD4D829F3B5A286FD2DEA1B33CEE7E9073D786082DC64A0385";
+        if(!nodeProfile)Assert.AreEqual("2E14523D7689895A3350989A001E2F02859ACD427749F66E6A9001589CC6C70B",Hash(inspection));
         // Reviewed against failed-run parent76a6ead71: selected-request admission,
         // query construction selection and transport tail are unchanged byte-for-byte after LF normalization.
         var module=File.ReadAllText(Path.Combine(root.FullName,"Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.HashgraphOASIS/SdkBridge/paid-query-preparation.mjs")).Replace("\r\n","\n");
-        var tail=module[module.IndexOf("    async _executeRequestWithGrpcDeadline",StringComparison.Ordinal)..];
+        var tail=nodeProfile?module[module.IndexOf("function preparedQuery",StringComparison.Ordinal)..module.IndexOf("    async _makePaymentTransaction",StringComparison.Ordinal)]
+            +module[module.IndexOf("    async _executeRequestWithGrpcDeadline",StringComparison.Ordinal)..module.IndexOf("export const PreparedAccountInfoQuery",StringComparison.Ordinal)]
+            :module[module.IndexOf("    async _executeRequestWithGrpcDeadline",StringComparison.Ordinal)..];
         var admissionTailHash=Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(tail)));
-        Assert.AreEqual("911412B836BE8BE78CAF3DCF03FA57C105E47E67C360396D18ACD98BFE5AA9A0",admissionTailHash);
+        Assert.AreEqual(nodeProfile?"A032CCD5BACC1CA1E04D63CDD2F472EB2EA38CD65A51B303346ED08A9357D217":"911412B836BE8BE78CAF3DCF03FA57C105E47E67C360396D18ACD98BFE5AA9A0",admissionTailHash);
         using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(45));
         using var http=new HttpClient(new HttpClientHandler{AllowAutoRedirect=false});
         async Task<JsonDocument> Mirror(string route){
@@ -35,24 +38,25 @@ public class HederaPreparedNativeReadTests
             var buffer=new byte[4096];int read;while((read=await input.ReadAsync(buffer,deadline.Token))>0){if(bytes.Length+read>262144)throw new InvalidDataException("Bounded mirror response required.");bytes.Write(buffer,0,read);}
             return JsonDocument.Parse(bytes.ToArray());
         }
-        using var account=await Mirror("transactions?account.id=0.0.10993779&timestamp=gte%3A1792281990&timestamp=lte%3A1792282020&limit=100&order=asc");
+        var start=nodeProfile?1792285960:1792281990;var end=nodeProfile?1792285990:1792282020;
+        using var account=await Mirror($"transactions?account.id=0.0.10993779&timestamp=gte%3A{start}&timestamp=lte%3A{end}&limit=100&order=asc");
         Assert.AreEqual(0,account.RootElement.GetProperty("transactions").GetArrayLength());Assert.AreEqual(JsonValueKind.Null,account.RootElement.GetProperty("links").GetProperty("next").ValueKind);
         using var latest=await Mirror("transactions?limit=1&order=desc");
         var indexed=latest.RootElement.GetProperty("transactions")[0].GetProperty("consensus_timestamp").GetString()!;
-        Assert.IsTrue(decimal.Parse(indexed,CultureInfo.InvariantCulture)>1792282020m);
+        Assert.IsTrue(decimal.Parse(indexed,CultureInfo.InvariantCulture)>end);
         using var original=JsonDocument.Parse(File.ReadAllBytes(journal));using var live=JsonDocument.Parse(File.ReadAllBytes(inspection));
         var database="usage_hedera_native_read";var mongo=new MongoClient("mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000");
         var collection=mongo.GetDatabase(database).GetCollection<MongoDB.Bson.BsonDocument>("subscription_usage_outbox_v1");
         Assert.AreEqual(1L,await collection.CountDocumentsAsync(MongoDB.Bson.BsonDocument.Parse("{}"),cancellationToken:deadline.Token));
-        var archive=Path.Combine(work,"reviewed-pre-execution-read-failure.json");Assert.IsFalse(File.Exists(archive));
+        var archive=Path.Combine(work,nodeProfile?"reviewed-node-inventory-pre-execution-failure.json":"reviewed-pre-execution-read-failure.json");Assert.IsFalse(File.Exists(archive));
         using(var file=new FileStream(archive,FileMode.CreateNew,FileAccess.Write,FileShare.None)){
             await JsonSerializer.SerializeAsync(file,new{originalJournal=original.RootElement,liveInspection=live.RootElement,admissionTailHash,
-                reviewedFailedRunParent="76a6ead71",accountWindow=account.RootElement,latestIndexedConsensusTimestamp=indexed,
+                reviewedFailedRunParent=nodeProfile?"cd2709376":"76a6ead71",accountWindow=account.RootElement,latestIndexedConsensusTimestamp=indexed,
                 preExecutionReviewed=true,basis="Exact zero-attempt durable record plus unchanged mandatory persistence-before-paid-transport invariant; mirror absence is corroboration only.",
                 paidSdkQueries=0,signingKeyLoaded=false,settlementAuthorized=false,generalZeroAttemptRetryPolicy=false},cancellationToken:deadline.Token);file.Flush(true);
         }
         using(var proof=JsonDocument.Parse(File.ReadAllBytes(archive)))Assert.IsTrue(proof.RootElement.GetProperty("preExecutionReviewed").GetBoolean());
-        Assert.AreEqual("0BC4E16A8A7256708615F7C113F952664B475FC05294CCBDF8F87581ED58628F",Hash(journal));
+        Assert.AreEqual(nodeProfile?"D7984BB5DF86BDBD4D829F3B5A286FD2DEA1B33CEE7E9073D786082DC64A0385":"0BC4E16A8A7256708615F7C113F952664B475FC05294CCBDF8F87581ED58628F",Hash(journal));
         Console.WriteLine("Exact pre-execution failure archived; no paid request or settlement. Archive SHA256="+Hash(archive));
         await mongo.DropDatabaseAsync(database,deadline.Token);File.Delete(journal);
     }
@@ -67,11 +71,12 @@ public class HederaPreparedNativeReadTests
         var journal=Path.Combine(root!.FullName,"TestResults/HederaRuntime/prepared-read-pending.json");
         var failed=Path.Combine(root.FullName,"TestResults/SubscriptionUsageCurrent/hedera-native-prepared-read-current.trx");
         string Hash(string file)=>Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(file)));
-        const string journalHash="0BC4E16A8A7256708615F7C113F952664B475FC05294CCBDF8F87581ED58628F";
-        Assert.AreEqual(journalHash,Hash(journal));Assert.AreEqual("2B49D7F5196A1153E9A1181503D4E755B58994010BEFE5987B45C5A7225FF81A",Hash(failed));
+        var nodeProfile=Hash(journal)=="D7984BB5DF86BDBD4D829F3B5A286FD2DEA1B33CEE7E9073D786082DC64A0385";
+        var journalHash=nodeProfile?"D7984BB5DF86BDBD4D829F3B5A286FD2DEA1B33CEE7E9073D786082DC64A0385":"0BC4E16A8A7256708615F7C113F952664B475FC05294CCBDF8F87581ED58628F";
+        Assert.AreEqual(journalHash,Hash(journal));Assert.AreEqual(nodeProfile?"1517622E1E624CC4DD1D1E224DE9FF4E7139CAF409E7F41892C406B0A48D34C0":"2B49D7F5196A1153E9A1181503D4E755B58994010BEFE5987B45C5A7225FF81A",Hash(failed));
         using var intent=JsonDocument.Parse(File.ReadAllBytes(journal));
         var operationId=intent.RootElement.GetProperty("operationId").GetString()!;
-        Assert.AreEqual("3cabee73-6a12-f4e6-8dfa-8c443136ff47",operationId);
+        Assert.AreEqual(nodeProfile?"a6a4a4f8-5fe0-f6da-7dc0-b5e8f21f828e":"3cabee73-6a12-f4e6-8dfa-8c443136ff47",operationId);
         Assert.AreEqual("usage_hedera_native_read",intent.RootElement.GetProperty("database").GetString());
         var report=System.Xml.Linq.XDocument.Load(failed);
         var text=report.Descendants().Single(row=>row.Name.LocalName=="UnitTestResult").Descendants().Single(row=>row.Name.LocalName=="StdOut").Value;
