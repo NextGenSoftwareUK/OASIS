@@ -8,8 +8,8 @@ $results = Join-Path $taskRoot 'TestResults/HederaCurrent'
 & dotnet build $testProject --no-restore /m:2 /nr:false /p:UseSharedCompilation=false /p:BuildProjectReferences=false -v:q -clp:ErrorsOnly
 if ($LASTEXITCODE -ne 0) { throw 'Hedera test-project build failed.' }
 & (Join-Path $PSScriptRoot 'Use-ReusableHederaOutputDependencies.ps1') | Out-Host
-# Keep both funded classes explicit; a missing credential is a failure, not proof of a non-funded run.
-$testFilter = 'FullyQualifiedName!~HederaTestnetTransferTests&FullyQualifiedName!~HederaTestnetStorageTests'
+# Keep every funded class explicit; missing credentials are not proof of a non-funded run.
+$testFilter = 'FullyQualifiedName!~HederaTestnetTransferTests&FullyQualifiedName!~HederaTestnetStorageTests&FullyQualifiedName!~HederaPreparedNativeReadTests'
 $started=[DateTime]::UtcNow
 & dotnet test $testProject --no-build --no-restore -v:q --filter $testFilter --logger 'trx;LogFileName=hedera-nonfunded-current.trx' --results-directory $results
 if ($LASTEXITCODE -ne 0) { throw 'Hedera non-funded regression failed. Inspect the retained TRX.' }
@@ -26,6 +26,6 @@ if(!$counters -or ($summary.outcome -ne 'Completed' -and $summary.outcome -ne 'P
     @($executed|Where-Object outcome -ne 'Passed').Count -gt 0 -or $definitions.Count -eq 0){
     throw 'Hedera non-funded verification must actually execute and pass every selected case without skips.'
 }
-if(@($definitions|Where-Object {$_.className -match '\.(HederaTestnetTransferTests|HederaTestnetStorageTests)(,|$)'}).Count -gt 0){
+if(@($definitions|Where-Object {$_.className -match '\.(HederaTestnetTransferTests|HederaTestnetStorageTests|HederaPreparedNativeReadTests)(,|$)'}).Count -gt 0){
     throw 'Funded Hedera classes appeared in non-funded evidence; inspect before claiming safe verification.'
 }

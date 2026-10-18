@@ -1,14 +1,13 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {Client,AccountId,AccountInfoQuery,PrivateKey,TransactionId,Transaction,Hbar} from '@hiero-ledger/sdk';
+import {Client,AccountId,AccountInfoQuery,PrivateKey,TransactionId,Transaction,TransferTransaction,Hbar} from '@hiero-ledger/sdk';
 import {proto} from '@hiero-ledger/proto';
 import grpc from '@grpc/grpc-js';
 import {execute} from './bridge.mjs';
 import {PreparedAccountInfoQuery,PreparedContractInfoQuery,PreparedContractByteCodeQuery,PreparedContractCallQuery,
   PreparedFileContentsQuery,PreparedTokenInfoQuery,PreparedTokenNftInfoQuery,verifyPreparedQueryIdentity} from './paid-query-preparation.mjs';
 
-// Offline contract probes against the retained pinned SDK. The protected payment-builder
-// call is test instrumentation only, NOT a proposed production interception API.
+// Baseline SDK probes. Candidate construction/signing is NOT the durable admission boundary.
 for(const algorithm of ['ED25519','ECDSA']) {
   test(`official ${algorithm} query payment is observable through the supported operator signer before release`,async()=>{
     const key=algorithm==='ED25519'?PrivateKey.generateED25519():PrivateKey.generateECDSA();
@@ -42,6 +41,27 @@ for(const algorithm of ['ED25519','ECDSA']) {
     }finally{client.close();}
   });
 }
+
+for(const algorithm of ['ED25519','ECDSA'])test(`prepared ${algorithm} query constructs explicit signed fee ceiling without SDK one-HBAR default`,async()=>{
+ const key=algorithm==='ED25519'?PrivateKey.generateED25519():PrivateKey.generateECDSA();
+ const client=Client.forNetwork({'127.0.0.1:50211':'0.0.3'});client.setOperator('0.0.1001',key);
+ let admissions=0;
+ try{
+  const query=new PreparedAccountInfoQuery({network:'offline-test',payer:'0.0.1001',publicKey:key.publicKey.toStringDer(),nodes:['0.0.3'],
+   maxPaymentTinybars:'123',maxTransactionFeeTinybars:'1000000',persistenceTimeoutMs:1000,persist:async()=>{admissions++;}})
+   .setAccountId('0.0.1001').setNodeAccountIds([AccountId.fromString('0.0.3')]).setQueryPayment(Hbar.fromTinybars('123'));
+  await query._beforeExecute(client);const request=await query._makeRequestAsync();
+  const payment=request.cryptoGetInfo.header.payment;
+  const original=Transaction.fromBytes(proto.Transaction.encode(payment).finish());
+  assert.equal(key.publicKey.verifyTransaction(original),true);
+  assert.equal(original.transactionId.accountId.toString(),'0.0.1001');
+  const body=proto.TransactionBody.decode(proto.SignedTransaction.decode(payment.signedTransactionBytes).bodyBytes);
+  assert.equal(body.transactionFee.toString(),'1000000');assert.equal(admissions,0);
+  assert.equal(body.cryptoTransfer.transfers.accountAmounts.length,2);
+  assert.deepEqual(Object.fromEntries(body.cryptoTransfer.transfers.accountAmounts.map(row=>[
+    AccountId.fromBytes(proto.AccountID.encode(row.accountID).finish()).toString(),row.amount.toString()])),{'0.0.1001':'-123','0.0.3':'123'});
+ }finally{client.close();}
+});
 
 test('rejecting the supported operator signer prevents release of a paid query payment',async()=>{
   const key=PrivateKey.generateED25519();
@@ -100,6 +120,13 @@ for(const mode of ['accepted','rejected','timeout','wrong-key','payment-limit','
       await query._beforeExecute(client);
       assert.equal(observed,undefined,'Unused candidate preparation must not invoke admission');
       const request=await query._makeRequestAsync();
+      if(mode==='fee-limit'){
+        const id=Transaction.fromBytes(proto.Transaction.encode(request.cryptoGetInfo.header.payment).finish()).transactionId;
+        const over=new TransferTransaction().setTransactionId(id).setNodeAccountIds([node]).setMaxTransactionFee(Hbar.fromTinybars('100000000'))
+          .addHbarTransfer(payer,Hbar.fromTinybars('-123')).addHbarTransfer(node,Hbar.fromTinybars('123')).freeze();
+        await over.sign(key);
+        request.cryptoGetInfo.header.payment=proto.TransactionList.decode(over.toBytes()).transactionList[0];
+      }
       const attempt=query._executeRequestWithGrpcDeadline(channel,request);
       // Attach rejection handling immediately: timeout mode intentionally races admission.
       const stopped=assert.rejects(attempt);

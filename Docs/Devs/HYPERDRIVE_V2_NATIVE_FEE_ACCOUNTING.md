@@ -1,5 +1,11 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Hedera query ceiling correction — 2026-10-17
+
+Prepared payment construction now uses the explicit signed transaction-fee ceiling through the real SDK, replacing its hardcoded 1 HBAR ceiling. Maximum exposure still includes query payment plus signed transaction-fee ceiling; unused node candidates are not admitted. Selected-request durable admission precedes transport; ordinary SDK query behavior is unchanged.
+
+The retained testnet read failed with zero recorded attempts and remains fenced (operation `3cabee73-6a12-f4e6-8dfa-8c443136ff47`, database `usage_hedera_native_read`). Subsequent COST_ANSWER-only quote was **0.12290939 test HBAR**, including the SDK buffer, versus fixture payment cap 0.01 and aggregate cap 0.1. This is a time-specific quote, not an actual charged fee or tariff. SDK160/unit135/non-funded297 passing cases do not prove successful paid-read/settlement acceptance. Do not raise budgets and replay until exact pre-execution reconciliation. Preserve the journal/database and protected identity. Full hashes and open gates are in the release-gates evidence journal.
+
 2026-10-17 retained Hedera storage resource is positively reusable without another deployment: read-only public mirror runtime equals existing pinned-compiler output with exact immutable owner, contract0.0.11017885/source/runtime fingerprints unchanged. Current C# getter verifies its historical original creation fee1259196297tinybars (12.59196297testHBAR). This historical charge is neither a fresh estimate nor permission to spend remaining0.69513926indexed testHBAR. New bounded prepared operations should use this contract/identity and a separately reviewed all-in budget; do not redeploy or replay old originals. Full funded CRUD/three-policy/fee/hosted acceptance still open. Read-only script and exact reports are recorded in release gates; no signing key/paid query/new transaction used for inspection.
 
 ## Concrete priced storage composition — 2026-10-17
