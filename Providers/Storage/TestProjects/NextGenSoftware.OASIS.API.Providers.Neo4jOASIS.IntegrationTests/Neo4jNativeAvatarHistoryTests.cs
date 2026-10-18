@@ -42,7 +42,7 @@ public partial class Neo4jNativeAvatarTests
             Assert.IsTrue((await provider.LoadAvatarAsync(avatar.Id,-1)).IsError);
             Assert.AreEqual(1L,(await(await inspection.RunAsync("MATCH (v:OasisRecordVersion {Kind:'Avatar',RecordId:$id}) RETURN count(v) AS count",new{id=avatar.Id.ToString()})).SingleAsync())["count"].As<long>());
             var archiveJson=(await(await inspection.RunAsync("MATCH (v:OasisRecordVersion {Kind:'Avatar',RecordId:$id,Version:1}) RETURN v.SnapshotJson AS snapshot",new{id=avatar.Id.ToString()})).SingleAsync())["snapshot"].As<string>();
-            foreach(var bad in new object[]{"not-json",42,null!})
+            foreach(var bad in new object[]{"not-json","null",42,null!})
             {
                 await(await inspection.RunAsync("MATCH (v:OasisRecordVersion {Kind:'Avatar',RecordId:$id,Version:1}) SET v.SnapshotJson=$bad",new{id=avatar.Id.ToString(),bad})).ConsumeAsync();
                 try

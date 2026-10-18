@@ -16,46 +16,68 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 public partial class Neo4jOASIS
 {
     // Caller owns the transaction: archive and current replacement commit or roll back together.
-    private async Task<string> StampAvatarHistoryAsync(IAsyncTransaction transaction, Avatar staged)
+    private static string HistoryRecordKind(string kind) => kind is "Avatar" or "AvatarDetail" ? kind
+        : throw new ArgumentException("Unknown Neo4j versioned record kind.",nameof(kind));
+
+    private static string SnapshotWritePrefix(string kind,bool history)
     {
-        var rows=await (await transaction.RunAsync("MATCH (a:Avatar {Id:$id}) "
+        HistoryRecordKind(kind);
+        return history ? "MERGE (a:"+kind+" {Id:$id}) ON CREATE SET a.__oasisCreatedBy=$writeId "
+            + "SET a.__oasisAvatarLock=true REMOVE a.__oasisAvatarLock WITH a "
+            + "WHERE ($expected IS NULL AND a.__oasisCreatedBy=$writeId) OR a.SnapshotJson=$expected REMOVE a.__oasisCreatedBy "
+            : "MERGE (a:"+kind+" {Id:$id}) ";
+    }
+
+    private async Task<string> StampRecordHistoryAsync<T>(IAsyncTransaction transaction,string kind,T staged,Func<INode,T> readCurrent)
+        where T:class,IHolonBase
+    {
+        HistoryRecordKind(kind);
+        var rows=await (await transaction.RunAsync("MATCH (a:"+kind+" {Id:$id}) "
             + "SET a.__oasisAvatarLock=true REMOVE a.__oasisAvatarLock RETURN a",new{id=staged.Id.ToString()})).ToListAsync();
         if(rows.Count>1)throw new StorageIdentityAmbiguousException();
-        var previous=rows.Count==0 ? null:ReadAvatarNode(rows[0]["a"].As<INode>());
+        var previous=rows.Count==0 ? null:readCurrent(rows[0]["a"].As<INode>());
         var expected=rows.Count==0 ? null:(string)rows[0]["a"].As<INode>()["SnapshotJson"];
         await StoredRecordVersions.StampAsync(staged.Id,staged,previous,async stored=>
         {
-            var archived=await (await transaction.RunAsync("MERGE (v:OasisRecordVersion {Kind:'Avatar',RecordId:$id,Version:$version}) "
+            var archived=await (await transaction.RunAsync("MERGE (v:OasisRecordVersion {Kind:$kind,RecordId:$id,Version:$version}) "
                 + "ON CREATE SET v.SnapshotJson=$snapshot WITH v WHERE v.SnapshotJson=$snapshot RETURN v",
-                new{id=stored.Id.ToString(),version=stored.Version,snapshot=OasisJson.Serialize(stored)})).ToListAsync();
-            if(archived.Count!=1)throw new StorageLifecycleConflictException("Neo4j archived avatar version conflicts with its original snapshot.");
+                new{kind,id=stored.Id.ToString(),version=stored.Version,snapshot=OasisJson.Serialize(stored)})).ToListAsync();
+            if(archived.Count!=1)throw new StorageLifecycleConflictException("Neo4j archived record version conflicts with its original snapshot.");
         });
         return expected;
     }
 
-    private async Task<OASISResult<IEnumerable<IAvatar>>> ReadHistoricalAvatarsAsync(int version)
+    private Task<OASISResult<IEnumerable<IAvatar>>> ReadHistoricalAvatarsAsync(int version)
+        => ReadHistoricalRecordsAsync<IAvatar>("Avatar",version,node=>ReadAvatarNode(node),json=>OasisJson.DeserializeStored<Avatar>(json));
+
+    private async Task<OASISResult<IEnumerable<T>>> ReadHistoricalRecordsAsync<T>(string kind,int version,
+        Func<INode,T> readCurrent,Func<string,T> readArchive) where T:class,IHolonBase
     {
-        var result=new OASISResult<IEnumerable<IAvatar>>();
+        var result=new OASISResult<IEnumerable<T>>();
         try
         {
             if(version<=0)throw new ArgumentOutOfRangeException(nameof(version));
+            HistoryRecordKind(kind);
             if(!IsProviderActivated || _driver==null)throw new InvalidOperationException("Neo4j provider is not activated.");
             using var session=_driver.AsyncSession();
-            var rows=await (await session.RunAsync("MATCH (a:Avatar) RETURN a")).ToListAsync();
-            var selected=new List<IAvatar>();var ids=new HashSet<Guid>();
+            var rows=await (await session.RunAsync("MATCH (a:"+kind+") RETURN a")).ToListAsync();
+            var selected=new List<T>();var ids=new HashSet<Guid>();
             foreach(var row in rows)
             {
-                var current=ReadAvatarNode(row["a"].As<INode>());
+                var current=readCurrent(row["a"].As<INode>());
                 if(!ids.Add(current.Id))throw new StorageIdentityAmbiguousException();
                 var stored=await StoredRecordVersions.ReadAsync(current.Id,current,version,async requested=>
                 {
-                    var history=await (await session.RunAsync("MATCH (v:OasisRecordVersion {Kind:'Avatar',RecordId:$id,Version:$version}) RETURN v",
-                        new{id=current.Id.ToString(),version=requested})).ToListAsync();
+                    var history=await (await session.RunAsync("MATCH (v:OasisRecordVersion {Kind:$kind,RecordId:$id,Version:$version}) RETURN v",
+                        new{kind,id=current.Id.ToString(),version=requested})).ToListAsync();
                     if(history.Count==0)return null;
-                    if(history.Count!=1)throw new InvalidDataException("Neo4j archived avatar identity/version is not unique.");
+                    if(history.Count!=1)throw new InvalidDataException("Neo4j archived record identity/version is not unique.");
                     var node=history[0]["v"].As<INode>();
                     node.Properties.TryGetValue("SnapshotJson",out var json);
-                    return ReadAvatarSnapshot(json as string,current.Id.ToString());
+                    if(json is not string text || string.IsNullOrWhiteSpace(text))throw new InvalidDataException("Neo4j archived canonical snapshot is missing.");
+                    var archived=readArchive(text);
+                    if(archived==null)throw new InvalidDataException("Neo4j archived canonical snapshot is null.");
+                    return archived;
                 });
                 if(stored!=null)selected.Add(stored);
             }
