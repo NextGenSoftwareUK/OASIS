@@ -301,9 +301,9 @@ namespace NextGenSoftware.OASIS.API.Providers.GoogleCloudOASIS.UnitTests
         public async Task FirestoreWriteAttemptRetainsCauseWithoutInventingCommitIdentity()
         {
             var cause=new System.IO.IOException("owned lost reply");
-            System.Func<Task<int>> operation=()=>Task.FromException<int>(cause);
-            var method=typeof(GoogleCloudOASIS).GetMethod("ObserveFirestoreMutationAsync",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!.MakeGenericMethod(typeof(int));
-            var task=(Task<int>)method.Invoke(null,new object[] {operation,"projects/owned/databases/(default)/documents/avatarDetails/owned"})!;
+            System.Func<Task<Google.Cloud.Firestore.WriteResult>> operation=()=>Task.FromException<Google.Cloud.Firestore.WriteResult>(cause);
+            var method=typeof(GoogleCloudOASIS).GetMethod("ObserveFirestoreMutationAsync",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!;
+            var task=(Task<Google.Cloud.Firestore.WriteResult>)method.Invoke(null,new object[] {operation,"projects/owned/databases/(default)/documents/avatarDetails/owned"})!;
             var error=await Assert.ThrowsExceptionAsync<GoogleFirestoreMutationReconciliationException>(async()=>await task);
             Assert.AreSame(cause,error.InnerException);Assert.AreEqual(string.Empty,error.OriginalTransactionId);
             Assert.IsTrue(NextGenSoftware.OASIS.API.Core.Helpers.NativeMutationReconciliation.IsRequired(error));
