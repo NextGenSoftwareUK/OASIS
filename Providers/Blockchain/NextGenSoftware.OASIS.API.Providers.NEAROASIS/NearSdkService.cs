@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
+using System.Security.Cryptography;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS;
 
@@ -40,30 +42,50 @@ internal sealed class NearSdkService
 
     public async Task<string> GetAsync(string key)
     {
+        using var codec=OpenStorageCodec();
+        var context=StorageContext(key);
         using var response = await InvokeAsync("get", new { key });
-        return response.RootElement.ValueKind == JsonValueKind.Null ? null : response.RootElement.GetString();
+        return response.RootElement.ValueKind == JsonValueKind.Null ? null : codec.Decrypt(context,response.RootElement.GetString());
     }
 
     public async Task<IReadOnlyList<KeyValuePair<string, string>>> EntriesAsync(string prefix)
     {
+        using var codec=OpenStorageCodec();
         using var response = await InvokeAsync("entries", new { prefix = prefix ?? string.Empty });
         return response.RootElement.EnumerateArray()
-            .Select(pair => new KeyValuePair<string, string>(pair[0].GetString(), pair[1].GetString()))
+            .Select(pair => new KeyValuePair<string, string>(pair[0].GetString(), codec.Decrypt(StorageContext(pair[0].GetString()),pair[1].GetString())))
             .ToList();
     }
 
     public async Task<string> PutAsync(string key, string value)
     {
+        using var codec=OpenStorageCodec();
+        var encrypted=codec.Encrypt(StorageContext(key),value);
         EnsureWritable();
-        using var response = await InvokeAsync("put", new { key, value });
+        using var response = await InvokeAsync("put", new { key, value=encrypted });
         return response.RootElement.GetProperty("transactionHash").GetString();
     }
 
     public async Task<string> DeleteAsync(string key)
     {
+        using var codec=OpenStorageCodec();
+        _=StorageContext(key);
         EnsureWritable();
         using var response = await InvokeAsync("delete", new { key });
         return response.RootElement.GetProperty("transactionHash").GetString();
+    }
+
+    private static EncryptedRecordCodec OpenStorageCodec()
+    {
+        var key=PersistedPrivateKeyValueBackend.ResolveEnvironmentKey("OASIS_NEAR_STORAGE_ENCRYPTION_KEY");
+        try { return new EncryptedRecordCodec(key,compress:true); }
+        finally { CryptographicOperations.ZeroMemory(key); }
+    }
+
+    private string StorageContext(string key)
+    {
+        if(string.IsNullOrWhiteSpace(key))throw new ArgumentException("A nonempty NEAR storage key is required.",nameof(key));
+        return "oasis/near/storage/v1/"+_networkId+"/"+_contractId+"/"+key;
     }
 
     public async Task<NearKeyPair> GenerateKeyPairAsync()
