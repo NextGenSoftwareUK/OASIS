@@ -1,7 +1,9 @@
 import { CosmWasmClient, SigningCosmWasmClient, wasmTypes } from "@cosmjs/cosmwasm";
 import { DirectSecp256k1Wallet, DirectSecp256k1HdWallet, decodeTxRaw, Registry } from "@cosmjs/proto-signing";
 import { verifiedBankTransfer, verifiedContractExecution, verifiedUpload, verifiedInstantiation, verifiedNftCustodyReceipt, cosmosNativeFeeReceipt, bankTransferLegs, cosmosErrorEnvelope, guardCosmosSigningClient, withCosmosNativeEvidence, indexedHistorySnapshot } from './transaction-results.mjs';
-import { GasPrice, defaultRegistryTypes } from "@cosmjs/stargate";
+import { GasPrice, calculateFee, defaultRegistryTypes } from "@cosmjs/stargate";
+import { pubkeyToAddress } from '@cosmjs/amino';
+import { createHash } from 'node:crypto';
 import { fromHex, toHex, fromBech32 } from "@cosmjs/encoding";
 import { pathToFileURL } from 'node:url';
 import { captureCosmosDirectSigning, verifyCosmosPreparedIdentity } from './transaction-results.mjs';
@@ -23,6 +25,44 @@ async function walletFor(input) {
     : DirectSecp256k1Wallet.fromKey(fromHex(input.privateKey.replace(/^0x/, "")), prefix);
 }
 
+// Diagnostic simulation only. The public-key signer cannot sign; this estimate
+// neither authorizes spending nor replaces verified signed fee maxima.
+async function estimateUpload(input) {
+  if(input.privateKey)throw new Error('Upload estimation must not receive a private key');
+  const wasm=Buffer.from(input.wasmBase64??'','base64');
+  if(!wasm.length||wasm.length>1048576||wasm.toString('base64')!==input.wasmBase64
+    || !/^[0-9a-f]{64}$/.test(input.expectedWasmSha256??'')
+    ||createHash('sha256').update(wasm).digest('hex')!==input.expectedWasmSha256)
+    throw new Error('Exact bounded canonical WASM and expected checksum required');
+  const prefix=fromBech32(input.sender,90).prefix;
+  if(prefix!==input.addressPrefix)throw new Error('Exact sender address prefix required');
+  const gasPrice=GasPrice.fromString(input.gasPrice);
+  const reader=await CosmWasmClient.connect(input.rpcEndpoint);let client;
+  try{
+    const chainId=await reader.getChainId();
+    if(!input.chainId||chainId!==input.chainId)throw new Error('Exact simulation chain required');
+    const account=await reader.getAccount(input.sender);
+    if(account?.address!==input.sender||account.pubkey?.type!=='tendermint/PubKeySecp256k1'
+      ||pubkeyToAddress(account.pubkey,prefix)!==input.sender)throw new Error('Registered public account key must match sender');
+    const pubkey=Buffer.from(account.pubkey.value,'base64');
+    if(pubkey.length!==33||pubkey.toString('base64')!==account.pubkey.value)throw new Error('Canonical compressed public key required');
+    const signer={getAccounts:async()=>[{address:input.sender,algo:'secp256k1',pubkey}],
+      signDirect:async()=>{throw new Error('Read-only upload simulation cannot sign');}};
+    client=await SigningCosmWasmClient.connectWithSigner(input.rpcEndpoint,signer);
+    const before=await reader.getBalance(input.sender,gasPrice.denom);
+    const compressed=new Uint8Array(await new Response(new Blob([wasm]).stream().pipeThrough(new CompressionStream('gzip'))).arrayBuffer());
+    const gasUsed=await client.simulate(input.sender,[{typeUrl:'/cosmwasm.wasm.v1.MsgStoreCode',
+      value:{sender:input.sender,wasmByteCode:compressed}}],'');
+    if(!Number.isSafeInteger(gasUsed)||gasUsed<=0||!Number.isSafeInteger(Math.round(gasUsed*1.1)))throw new Error('Exact SDK-safe positive gas estimate required');
+    const after=await reader.getBalance(input.sender,gasPrice.denom);
+    if(before.denom!==gasPrice.denom||after.denom!==before.denom||after.amount!==before.amount)
+      throw new Error('Simulation wallet balance changed; do not treat it as spending proof');
+    return {chainId,sender:input.sender,wasmSha256:input.expectedWasmSha256,originalSize:wasm.length,compressedSize:compressed.length,
+      gasUsed,gasMultiplier:1.1,feeEstimate:calculateFee(Math.round(gasUsed*1.1),gasPrice),balanceBefore:before,balanceAfter:after,
+      signed:false,broadcast:false,basis:'sdk-upload-simulation-not-a-fee-maximum'};
+  }finally{client?.disconnect();reader.disconnect();}
+}
+
 async function execute(input, persistPreparedSubmission) {
   const feeLimits=snapshotCosmosFeeLimits(input.maximumFeeUnitsByDenomination);
   snapshotCosmosReviewedHeight(input.reviewedMaximumHeight);
@@ -37,6 +77,7 @@ async function execute(input, persistPreparedSubmission) {
     return { address: account.address, publicKey: toHex(account.pubkey), mnemonic: wallet.mnemonic ?? "" };
   }
   if (!input.rpcEndpoint) throw new Error("Cosmos rpcEndpoint is required");
+  if(input.operation==='estimateUpload')return estimateUpload(input);
   const isSigned = ["put", "delete", "execute", "transfer", "upload", "instantiate"].includes(input.operation);
   const wallet = isSigned || input.operation === 'probe' ? await walletFor(input) : null;
   const originalSigning = isSigned && persistPreparedSubmission ? captureCosmosDirectSigning(wallet) : null;

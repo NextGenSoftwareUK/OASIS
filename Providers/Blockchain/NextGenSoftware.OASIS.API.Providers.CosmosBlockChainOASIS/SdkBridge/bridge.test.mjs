@@ -8,6 +8,28 @@ import { verifyCosmosPreparedIdentity } from './transaction-results.mjs';
 import { invoke as invokeTrusted } from './bridge.mjs';
 import { CosmWasmClient, SigningCosmWasmClient } from '@cosmjs/cosmwasm';
 import { createHash } from 'node:crypto';
+import { gunzipSync } from 'node:zlib';
+
+for(const mode of ['valid','private-key','chain','public-key','balance','unexpected-sign'])test('read-only upload simulation never receives signing authority: '+mode,async()=>{
+ const wallet=await DirectSecp256k1Wallet.fromKey(new Uint8Array(32).fill(7),'wasm');const [account]=await wallet.getAccounts();
+ const wasm=Buffer.from('controlled-bytecode');const input={operation:'estimateUpload',rpcEndpoint:'http://controlled',chainId:'controlled-chain',
+   sender:account.address,addressPrefix:'wasm',gasPrice:'0.025stake',wasmBase64:wasm.toString('base64'),expectedWasmSha256:createHash('sha256').update(wasm).digest('hex')};
+ if(mode==='private-key')input.privateKey='must-not-be-used';
+ const connect=CosmWasmClient.connect,signingConnect=SigningCosmWasmClient.connectWithSigner;let closed=0,reads=0,simulations=0;
+ CosmWasmClient.connect=async()=>({getChainId:async()=>mode==='chain'?'wrong-chain':'controlled-chain',
+   getAccount:async()=>({address:account.address,pubkey:{type:'tendermint/PubKeySecp256k1',value:Buffer.from(mode==='public-key'?new Uint8Array(33).fill(2):account.pubkey).toString('base64')}}),
+   getBalance:async()=>({denom:'stake',amount:mode==='balance'&&reads++>0?'99':'100'}),disconnect:()=>{closed++;}});
+ SigningCosmWasmClient.connectWithSigner=async(_,signer)=>({simulate:async(sender,messages,memo)=>{
+   simulations++;assert.equal(sender,account.address);assert.equal(memo,'');assert.equal(messages[0].typeUrl,'/cosmwasm.wasm.v1.MsgStoreCode');
+   assert.deepEqual(gunzipSync(messages[0].value.wasmByteCode),wasm);assert.equal((await signer.getAccounts())[0].address,account.address);
+   if(mode==='unexpected-sign')await signer.signDirect();return 1234567;
+ },disconnect:()=>{closed++;}});
+ try{
+   if(mode==='valid'){const result=await invokeTrusted(input);assert.equal(result.feeEstimate.amount[0].amount,'33951');assert.equal(result.signed,false);assert.equal(result.broadcast,false);assert.equal(simulations,1);}
+   else await assert.rejects(invokeTrusted(input),/private key|chain|public|sender|balance|cannot sign/i);
+   assert.equal(closed,mode==='private-key'?0:mode==='chain'||mode==='public-key'?1:2);
+ }finally{CosmWasmClient.connect=connect;SigningCosmWasmClient.connectWithSigner=signingConnect;}
+});
 
 for(const mode of ['valid','admin','address','checksum','code-id','protocol'])test('escrow protocol pins immutable exact contract/code through SDK query boundary: '+mode,async()=>{
  const connect=CosmWasmClient.connect;let closed=0,queries=0;
