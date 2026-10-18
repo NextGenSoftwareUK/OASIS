@@ -36,7 +36,7 @@ public partial class Neo4jNativeAvatarTests
             for(var kind=0;kind<5;kind++)
             {
                 Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",(await Read(kind," ")).ErrorCode);
-                var history=await Read(kind,key,1);Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",history.ErrorCode);Assert.IsInstanceOfType(history.Exception,typeof(NotSupportedException));
+                var invalidVersion=await Read(kind,key,-1);Assert.AreEqual("HYPERDRIVE_PAYLOAD_INVALID",invalidVersion.ErrorCode);Assert.IsInstanceOfType(invalidVersion.Exception,typeof(ArgumentOutOfRangeException));
             }
             Assert.IsFalse((await neo.ActivateProviderAsync()).IsError);
             foreach(var avatar in new[] {first,second})
