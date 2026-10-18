@@ -13,7 +13,7 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS;
 
 public partial class Neo4jOASIS
 {
-    private async Task<OASISResult<IHolon>> ReadHolonRootAsync(string field, string value, bool children, bool recursive, int maximumDepth, bool continueOnError)
+    private async Task<OASISResult<IHolon>> ReadHolonRootAsync(string field, string value, bool children, bool recursive, int maximumDepth, bool continueOnError,int version)
     {
         var result = new OASISResult<IHolon>();
         var failures = new List<string>();
@@ -21,6 +21,7 @@ public partial class Neo4jOASIS
         {
             if (field != "Id" && field != "ProviderKey") throw new ArgumentException("Unknown holon selector.");
             if (maximumDepth < 0) throw new ArgumentOutOfRangeException(nameof(maximumDepth));
+            if (version < 0) throw new ArgumentOutOfRangeException(nameof(version));
             if (!IsProviderActivated || _driver == null) throw new InvalidOperationException("Neo4j provider is not activated.");
             using (var session = _driver.AsyncSession())
             {
@@ -28,6 +29,8 @@ public partial class Neo4jOASIS
                 if (rows.Count == 0) return new OASISResult<IHolon> { IsError = true, ErrorCode = OASISResultErrorCodes.RecordNotFound, Message = "Holon not found in Neo4j." };
                 if (rows.Count != 1) throw new Core.Helpers.StorageLifecycleConflictException("Neo4j holon identity is not unique.");
                 var root = ReadHolonNode(rows[0]["h"].As<Neo4j.Driver.INode>());
+                root=await ReadStoredVersionAsync(session,"Holon",root,version,json=>OasisJson.DeserializeStored<Holon>(json));
+                if(root==null)return new OASISResult<IHolon>{IsError=true,ErrorCode=OASISResultErrorCodes.RecordNotFound,Message="Requested Neo4j holon version was not found."};
                 if (children) await HydrateNativeChildrenAsync(session, root, recursive, maximumDepth, 0, new HashSet<Guid> { root.Id }, continueOnError, failures);
                 result.Result = root;
             }
@@ -106,6 +109,7 @@ public partial class Neo4jOASIS
     {
         var result = new OASISResult<IEnumerable<IHolon>>();
         var dispatched = false;
+        var archiveVersions = IsVersionControlEnabled;
         try
         {
             ArgumentNullException.ThrowIfNull(holons);
@@ -135,9 +139,23 @@ public partial class Neo4jOASIS
             using (var session = _driver.AsyncSession())
             {
                 using var transaction = await session.BeginTransactionAsync();
-                const string query = "UNWIND $rows AS row MERGE (h:Holon {Id:row.id}) "
-                    + "SET h.ProviderKey=row.id, h.Name=row.name, h.Description=row.description, h.HolonType=row.type, h.SnapshotJson=row.snapshot, h.MetaLookupTokens=row.metadataTokens RETURN h";
                 dispatched = true;
+                if(archiveVersions)
+                {
+                    var byId=rows.ToDictionary(row=>(string)row["id"]);
+                    foreach(var record in staged.OrderBy(record=>record.Id))
+                    {
+                        var row=byId[record.Id.ToString()];
+                        row["expected"]=await StampRecordHistoryAsync(transaction,"Holon",record,ReadHolonNode);
+                        row["writeId"]=Guid.NewGuid().ToString("N");
+                        row["snapshot"]=OasisJson.Serialize(record);
+                    }
+                }
+                var query="UNWIND $rows AS row MERGE (h:Holon {Id:row.id}) ";
+                if(archiveVersions)query+="ON CREATE SET h.__oasisCreatedBy=row.writeId "
+                    + "SET h.__oasisHolonLock=true REMOVE h.__oasisHolonLock WITH h,row "
+                    + "WHERE (row.expected IS NULL AND h.__oasisCreatedBy=row.writeId) OR h.SnapshotJson=row.expected REMOVE h.__oasisCreatedBy ";
+                query+="SET h.ProviderKey=row.id, h.Name=row.name, h.Description=row.description, h.HolonType=row.type, h.SnapshotJson=row.snapshot, h.MetaLookupTokens=row.metadataTokens RETURN h";
                 var records = await (await transaction.RunAsync(query, new { rows })).ToListAsync();
                 acknowledged = records.Select(row => ReadHolonNode(row["h"].As<Neo4j.Driver.INode>())).ToDictionary(record => record.Id);
                 if (acknowledged.Count != staged.Count || ids.Any(id => !acknowledged.ContainsKey(id)))
@@ -159,6 +177,7 @@ public partial class Neo4jOASIS
                 sources[index].ProviderUniqueStorageKey[Core.Enums.ProviderType.Neo4jOASIS] = staged[index].Id.ToString();
                 sources[index].IsNewHolon = false;
                 sources[index].ParentHolonId = staged[index].ParentHolonId;
+                if(archiveVersions){sources[index].Version=staged[index].Version;sources[index].VersionId=staged[index].VersionId;sources[index].PreviousVersionId=staged[index].PreviousVersionId;}
             }
             result.Result = rootIds.Select(id => (IHolon)acknowledged[id]).ToList();
             foreach (var record in acknowledged.Values)
