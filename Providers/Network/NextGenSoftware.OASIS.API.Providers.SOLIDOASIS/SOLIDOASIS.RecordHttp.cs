@@ -67,6 +67,8 @@ public partial class SOLIDOASIS
         if(!_isActivated)throw new InvalidOperationException("Provider not activated.");
     }
     private async Task<T> ReadPrivateRecordAsync<T>(Guid id) where T:class,IHolonBase
+        => (await ReadPrivateRecordStateAsync<T>(id)).Record;
+    private async Task<(T Record,System.Net.Http.Headers.EntityTagHeaderValue ETag)> ReadPrivateRecordStateAsync<T>(Guid id) where T:class,IHolonBase
     {
         var resource=_privateRecords.Resource<T>(id);
         using var request=new HttpRequestMessage(HttpMethod.Get,resource);
@@ -75,7 +77,42 @@ public partial class SOLIDOASIS
         response.EnsureSuccessStatusCode();
         if(!string.Equals(response.Content.Headers.ContentType?.MediaType,"text/turtle",StringComparison.OrdinalIgnoreCase))
             throw new InvalidDataException("SOLID private record response must be text/turtle.");
-        return _privateRecords.Decode<T>(await response.Content.ReadAsStringAsync(),id);
+        return (_privateRecords.Decode<T>(await response.Content.ReadAsStringAsync(),id),response.Headers.ETag);
+    }
+    private async Task<OASISResult<IHolon>> DeletePrivateHolonAsync(string key)
+    {
+        var result=new OASISResult<IHolon>();
+        try{return await DeletePrivateHolonAsync(ParsePrivateRecordKey(key));}
+        catch(Exception error){OASISErrorHandling.HandleError(ref result,"Invalid SOLID deletion key.",error);return result;}
+    }
+    private async Task<OASISResult<IHolon>> DeletePrivateHolonAsync(Guid id)
+    {
+        var result=new OASISResult<IHolon>();
+        try{
+            RequirePrivateStorage();
+            var state=await ReadPrivateRecordStateAsync<IHolon>(id);
+            if(state.ETag==null||state.ETag.IsWeak)throw new InvalidDataException("A strong resource ETag is required for conditional SOLID deletion.");
+            var resource=_privateRecords.Resource<IHolon>(id);
+            bool acknowledged=false;
+            try{
+                using var request=new HttpRequestMessage(HttpMethod.Delete,resource);
+                request.Headers.IfMatch.Add(state.ETag);
+                using var response=await _httpClient.SendAsync(request);
+                if((int)response.StatusCode>=500||(int)response.StatusCode==408)
+                    throw new SolidRecordReconciliationException(resource,false,new HttpRequestException("Uncertain SOLID DELETE status: "+(int)response.StatusCode));
+                response.EnsureSuccessStatusCode();acknowledged=true;
+                using var verification=await _httpClient.GetAsync(resource);
+                if(verification.StatusCode!=System.Net.HttpStatusCode.NotFound)
+                    throw new InvalidDataException("SOLID deletion has not been independently confirmed absent.");
+                result.Result=state.Record;
+            }catch(SolidRecordReconciliationException){throw;}
+            catch(HttpRequestException error)when(!acknowledged&&error.StatusCode.HasValue){throw;}
+            catch(Exception error){throw new SolidRecordReconciliationException(resource,acknowledged,error);}
+        }catch(Exception error){
+            OASISErrorHandling.HandleError(ref result,"SOLID conditional holon deletion failed.",error);
+            if(error is HttpRequestException http&&http.StatusCode==System.Net.HttpStatusCode.NotFound)result.ErrorCode=OASISResultErrorCodes.RecordNotFound;
+        }
+        return result;
     }
     private async Task<OASISResult<T>> LoadPrivateRecordAsync<T>(Guid id,int version) where T:class,IHolonBase
     {
