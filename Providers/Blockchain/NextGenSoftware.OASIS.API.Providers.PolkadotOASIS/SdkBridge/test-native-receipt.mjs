@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { ApiPromise } from '@polkadot/api';
 import { ReadOnlyHttpProvider } from './read-only-provider.mjs';
 import { readFinalizedReceipt } from './finalized-receipt.mjs';
+import { readVerifiedOriginalRange } from './original-outcome.mjs';
 
 if (process.env.OASIS_POLKADOT_READONLY_NATIVE !== '1') throw new Error('Explicit read-only native opt-in required.');
 const api = await ApiPromise.create({ provider: new ReadOnlyHttpProvider('https://rpc.polkadot.io'), noInitWarn: true });
@@ -25,5 +26,11 @@ try {
     } else hash = block.block.header.parentHash;
   }
   assert.ok(receipt, 'No paid native extrinsic found in the bounded fixture discovery window.');
-  console.log(JSON.stringify({ network: 'Polkadot', submitted: false, receipt }));
+  // Native range reader proof using public block identity; NOT independent signed-original verification.
+  const ranged = await readVerifiedOriginalRange(api, { transactionHash: receipt.transactionHash,
+    sender: api.createType('AccountId32', receipt.payer).toHex() }, { fromBlockNumber: receipt.blockNumber, maximumBlocks: 1 });
+  assert.equal(ranged.found, true);
+  assert.equal(ranged.receipt.transactionHash, receipt.transactionHash);
+  assert.equal(ranged.receipt.actualFeeUnits, receipt.actualFeeUnits);
+  console.log(JSON.stringify({ network: 'Polkadot', submitted: false, nativeRangeReaderFound: true, receipt }));
 } finally { await api.disconnect(); }

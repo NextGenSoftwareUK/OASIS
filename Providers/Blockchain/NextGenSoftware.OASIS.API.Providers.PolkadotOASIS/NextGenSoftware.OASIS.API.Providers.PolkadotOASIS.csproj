@@ -62,6 +62,7 @@
     <None Include="SdkBridge\verify-preparation.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\verify-preparation.mjs" />
     <None Include="SdkBridge\finalized-receipt.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\finalized-receipt.mjs" />
     <None Include="SdkBridge\original-submission.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\original-submission.mjs" />
+    <None Include="SdkBridge\original-outcome.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\original-outcome.mjs" />
     <None Include="..\..\Shared\NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage\prepared-submission.mjs" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\prepared-submission.mjs" />
     <None Include="SdkBridge\package.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\package.json" />
     <None Include="SdkBridge\package-lock.json" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" Link="PolkadotSdkBridge\package-lock.json" />

@@ -4,6 +4,7 @@ import { ReadOnlyHttpProvider } from './read-only-provider.mjs';
 import { prepareNativeTransfer } from './native-transfer.mjs';
 import { verifyNativePreparation } from './verify-preparation.mjs';
 import { submitOriginalPreparation } from './original-submission.mjs';
+import { readOriginalOutcome } from './original-outcome.mjs';
 
 if (process.env.OASIS_POLKADOT_READONLY_NATIVE !== '1') throw new Error('Explicit read-only native opt-in required.');
 const genesis = '0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3';
@@ -65,7 +66,16 @@ try {
   mutable.transactionHash = '0x' + '00'.repeat(32);
   mutable.signedTransactionBase64 = 'AQID';
   assert.equal((await captured).transactionHash, original.transactionHash);
+  const finalizedHead = await api.rpc.chain.getFinalizedHead();
+  const finalizedHeader = await api.rpc.chain.getHeader(finalizedHead);
+  const unknown = await readOriginalOutcome(api, { preparation: original,
+    fromBlockNumber: finalizedHeader.number.toString(), maximumBlocks: 1 });
+  assert.equal(unknown.found, false);
+  assert.equal(unknown.finalized, false);
+  assert.equal(unknown.reconciliationRequired, true);
+  assert.equal(unknown.inspectedBlocks, 1);
+  assert.equal(BigInt(unknown.nextBlockNumber), finalizedHeader.number.toBigInt() + 1n);
   console.log(JSON.stringify({ network: 'Polkadot', submitted: false, originalVerified: true,
     maximumUtf8MemoBytes: 256, rejectedTamperCases: mutations.length, alteredEstimateNotFeeAuthorization: true,
-    controlledSubmissionCases: 5, publicBroadcasts: 0 }));
+    controlledSubmissionCases: 5, nativeOriginalUnknownRangeVerified: true, publicBroadcasts: 0 }));
 } finally { await api.disconnect(); }
