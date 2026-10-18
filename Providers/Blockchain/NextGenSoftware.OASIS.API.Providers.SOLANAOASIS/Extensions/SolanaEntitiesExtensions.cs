@@ -6,7 +6,7 @@ public static class SolanaEntitiesExtensions
     {
         if (avatarDetailDto == null)
             throw new ArgumentNullException(nameof(avatarDetailDto));
-        return new AvatarDetail()
+        return SolanaProviderLinkMapping.Restore(new AvatarDetail()
         {
             Id = avatarDetailDto.Id,
             VersionId = avatarDetailDto.VersionId,
@@ -66,14 +66,14 @@ public static class SolanaEntitiesExtensions
             Version = avatarDetailDto.Version,
             IsActive = !avatarDetailDto.IsDeleted,
             PreviousVersionId = avatarDetailDto.PreviousVersionId
-        };
+        },avatarDetailDto);
     }
 
     public static IAvatar GetAvatar(this SolanaAvatarDto avatarDto)
     {
         if (avatarDto == null)
             throw new ArgumentNullException(nameof(avatarDto));
-        return new Avatar()
+        return SolanaProviderLinkMapping.Restore(new Avatar()
         {
             Id = avatarDto.Id,
             VersionId = avatarDto.VersionId,
@@ -128,7 +128,7 @@ public static class SolanaEntitiesExtensions
             Version = avatarDto.Version,
             IsActive = !avatarDto.IsDeleted,
             PreviousVersionId = avatarDto.PreviousVersionId
-        };
+        },avatarDto);
     }
 
     private static NextGenSoftware.Utilities.EnumValue<Core.Enums.AvatarType> ParseStoredAvatarType(string stored)
@@ -144,7 +144,7 @@ public static class SolanaEntitiesExtensions
         if (holonDto == null)
             throw new ArgumentNullException(nameof(holonDto));
 
-        return new Holon()
+        return SolanaProviderLinkMapping.Restore(new Holon()
         {
             Id = holonDto.Id,
             VersionId = holonDto.VersionId,
@@ -195,6 +195,6 @@ public static class SolanaEntitiesExtensions
             Version = holonDto.Version,
             IsActive = !holonDto.IsDeleted,
             PreviousVersionId = holonDto.PreviousVersionId
-        };
+        },holonDto);
     }
 }

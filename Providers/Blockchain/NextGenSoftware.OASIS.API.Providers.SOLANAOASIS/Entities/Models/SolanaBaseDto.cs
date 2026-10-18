@@ -20,6 +20,9 @@ public abstract class SolanaBaseDto
     public DateTime DeletedDate { get; set; }
     public Guid ParentHolonId { get; set; }
     public string CustomHolonType { get; set; }
+    public Dictionary<NextGenSoftware.OASIS.API.Core.Enums.ProviderType,string> ProviderUniqueStorageKey { get; set; } = new();
+    public Dictionary<NextGenSoftware.OASIS.API.Core.Enums.ProviderType,string> PreviousVersionProviderUniqueStorageKey { get; set; } = new();
+    public Dictionary<NextGenSoftware.OASIS.API.Core.Enums.ProviderType,Dictionary<string,string>> ProviderMetaData { get; set; } = new();
     public NextGenSoftware.OASIS.API.Core.Enums.ProviderType? CreatedProviderType { get; set; }
     public NextGenSoftware.OASIS.API.Core.Enums.OASISType? CreatedOASISType { get; set; }
     public int Version { get; set; }
