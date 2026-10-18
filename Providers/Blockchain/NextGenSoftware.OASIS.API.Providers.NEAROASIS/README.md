@@ -30,6 +30,12 @@ Provider adapters require their respective service configuration and credentials
 
 ## Errors and security
 
+Avatar, avatar-detail and holon contract storage now requires `OASIS_NEAR_STORAGE_ENCRYPTION_KEY`: a separately generated, persistently retained Base64-encoded 32-byte key. Configure it through protected host secrets; do not derive it from the account signing key, commit it, print it, or generate a replacement on every startup. Losing it prevents reading existing encrypted records. Back it up securely alongside the deployment's network and contract identity.
+
+The existing shared authenticated-encryption codec protects storage values before SDK dispatch and binds them to network, contract and record key. Views decrypt locally, including collection queries. Plaintext records, incorrect keys and swapped ciphertext fail closed; there is no plaintext fallback or automatic migration. Generic storage get/list/put/delete requires key configuration before starting the SDK process. Token/NFT contract calls and their intentionally public metadata are separate from this record-storage boundary.
+
+The encryption boundary has focused codec/preflight tests, but a fresh official-SDK sandbox roundtrip with the retained environment is still required. The older NEAR evidence runner needs its lifecycle/configuration updated for the new key requirement before use; do not repeatedly restore packages or create duplicate sandboxes to obtain a passing run. This is not full provider, historical-version or hosted release certification.
+
 For APIs returning `OASISResult<T>`, check `IsError`, `ErrorCode` and `Message`; do not treat a failed result as success. Preserve useful diagnostics without logging access tokens, passwords or private keys. Keep secrets in the host's appropriate protected configuration or platform storage.
 
 ## Platform requirements
