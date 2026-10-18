@@ -11,6 +11,36 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.UnitTests;
 public class CosmosStreamOwnershipTests
 {
     [DataTestMethod]
+    [DataRow("create",false)][DataRow("create",true)]
+    [DataRow("upsert",false)][DataRow("upsert",true)]
+    [DataRow("replace",false)][DataRow("replace",true)]
+    public async Task AcknowledgedBodyFailureRetainsMutationMarkerAndDisposesResponse(string operation,bool missing)
+    {
+        var id=Guid.NewGuid();var cause=new IOException("owned body read failure");
+        var response=new TrackedResponse(HttpStatusCode.OK);
+        if(!missing)response.Content=new FaultingReadStream(cause);
+        var container=new Mock<Container>();
+        container.Setup(c=>c.CreateItemStreamAsync(It.IsAny<Stream>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(response);
+        container.Setup(c=>c.UpsertItemStreamAsync(It.IsAny<Stream>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(response);
+        container.Setup(c=>c.ReplaceItemStreamAsync(It.IsAny<Stream>(),It.IsAny<string>(),It.IsAny<PartitionKey>(),It.IsAny<ItemRequestOptions>(),It.IsAny<CancellationToken>())).ReturnsAsync(response);
+        var client=new CosmosDbClient(container.Object);
+        var failed=await Assert.ThrowsExceptionAsync<CosmosMutationReconciliationException>(async()=>{
+            if(operation=="create")await client.CreateDocumentAsync(new{Id=id},null);
+            else if(operation=="upsert")await client.UpsertDocumentAsync(new{Id=id},null);
+            else await client.ReplaceDocumentAsync(id.ToString(),new{Id=id},null);
+        });
+        Assert.IsTrue(failed.Acknowledged);Assert.AreEqual(id.ToString(),failed.DocumentId);Assert.IsTrue(response.Disposed);
+        if(missing)Assert.IsInstanceOfType<InvalidDataException>(failed.InnerException);else Assert.AreSame(cause,failed.InnerException);
+    }
+
+    private sealed class FaultingReadStream(IOException cause):MemoryStream
+    {
+        public override int Read(byte[] buffer,int offset,int count)=>throw cause;
+        public override Task<int> ReadAsync(byte[] buffer,int offset,int count,CancellationToken token)=>Task.FromException<int>(cause);
+        public override ValueTask<int> ReadAsync(Memory<byte> buffer,CancellationToken token=default)=>ValueTask.FromException<int>(cause);
+    }
+
+    [DataTestMethod]
     [DataRow("read")] [DataRow("query")] [DataRow("mutation")]
     public async Task ServiceErrorsRetainActualSubstatusAndActivity(string operation)
     {

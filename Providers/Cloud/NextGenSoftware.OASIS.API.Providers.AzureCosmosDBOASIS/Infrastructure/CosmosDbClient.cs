@@ -127,6 +127,17 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             }
         }
 
+        private static async Task<string> ReadAcknowledgedPayloadAsync(ResponseMessage response,string id)
+        {
+            try
+            {
+                if(response.Content==null)throw new InvalidDataException("Acknowledged Cosmos mutation response lacks content.");
+                using var reader=new StreamReader(response.Content);
+                return await reader.ReadToEndAsync();
+            }
+            catch(Exception cause){throw new CosmosMutationReconciliationException(id,cause,acknowledged:true);}
+        }
+
         public async Task<string> CreateDocumentAsync(object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
         {
             var jsonDocument = JObject.Parse(OasisJson.Serialize(document));
@@ -137,8 +148,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             using var response = await ObserveMutationAsync(()=>_container.CreateItemStreamAsync(stream, pk, null, cancellationToken),jsonDocument["id"].ToString());
             if (!response.IsSuccessStatusCode)
                 throw CreateServiceException(response,"Create failed");
-            using var reader = new StreamReader(response.Content);
-            return await reader.ReadToEndAsync();
+            return await ReadAcknowledgedPayloadAsync(response,jsonDocument["id"].ToString());
         }
 
         public async Task<string> UpsertDocumentAsync(object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
@@ -150,11 +160,10 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             using var response = await ObserveMutationAsync(()=>_container.UpsertItemStreamAsync(stream, partitionKey ?? PartitionKey.None, null, cancellationToken),jsonDocument["id"].ToString());
             if (!response.IsSuccessStatusCode)
                 throw CreateServiceException(response,"Upsert failed");
-            using var reader = new StreamReader(response.Content);
-            return await reader.ReadToEndAsync();
+            return await ReadAcknowledgedPayloadAsync(response,jsonDocument["id"].ToString());
         }
 
-        public async Task ReplaceDocumentAsync(string documentId, object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
+        public async Task<string> ReplaceDocumentAsync(string documentId, object document, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
         {
             var pk = partitionKey ?? PartitionKey.None;
             var jsonDocument = JObject.Parse(OasisJson.Serialize(document));
@@ -164,6 +173,7 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             using var response = await ObserveMutationAsync(()=>_container.ReplaceItemStreamAsync(stream, documentId, pk, null, cancellationToken),documentId);
             if (!response.IsSuccessStatusCode)
                 throw CreateServiceException(response,"Replace failed");
+            return await ReadAcknowledgedPayloadAsync(response,documentId);
         }
 
         public async Task DeleteDocumentAsync(string documentId, PartitionKey? partitionKey, CancellationToken cancellationToken = default)
