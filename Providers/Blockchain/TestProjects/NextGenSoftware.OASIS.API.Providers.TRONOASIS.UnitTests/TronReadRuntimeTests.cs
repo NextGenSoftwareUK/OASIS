@@ -20,6 +20,7 @@ public sealed class TronReadRuntimeTests
     public async Task NativeReadUsesSdkWithoutStorageOrSigningCredentials(string mode)
     {
         var genesis = ByteString.CopyFrom(new byte[32]); var reads = 0;
+        var nativeOwner=NBitcoin.DataEncoders.Encoders.Base58Check.DecodeData(new TronNet.TronECKey(new string('1',64),TronNet.TronNetwork.MainNet).GetPublicAddress());
         var service = ServerServiceDefinition.CreateBuilder()
             .AddMethod(TronPermissionRpcTests.Rpc(Wallet.Descriptor.FullName,"GetBlockByNum2",NumberMessage.Parser,BlockExtention.Parser),
                 (NumberMessage _,ServerCallContext _) => Task.FromResult(new BlockExtention { Blockid = genesis }))
@@ -34,8 +35,9 @@ public sealed class TronReadRuntimeTests
             .AddMethod(TronPermissionRpcTests.Rpc(Wallet.Descriptor.FullName,"TriggerConstantContract",TriggerSmartContract.Parser,TransactionExtention.Parser),
                 (TriggerSmartContract request,ServerCallContext _) => {
                     reads++; var selector = Convert.ToHexString(request.Data.ToByteArray()[..4]); byte[] encoded;
-                    if (selector == "6352211E") { encoded = new byte[32]; encoded[31] = 1; }
-                    else if (selector == "70A08231") encoded = new byte[32];
+                    if (selector == "6352211E") { encoded = new byte[32]; nativeOwner.AsSpan(1).CopyTo(encoded.AsSpan(12)); }
+                    else if (selector == "70A08231") {encoded = new byte[32];if(mode=="collection")encoded[31]=1;}
+                    else if (selector == "2F745C59") {encoded = new byte[32];encoded[31]=1;}
                     else {
                         Assert.Equal("C87B56DD",selector);
                         encoded = ((byte[])typeof(TronStorageBackend).GetMethod("Encode",System.Reflection.BindingFlags.Static|System.Reflection.BindingFlags.NonPublic)!
@@ -69,11 +71,13 @@ public sealed class TronReadRuntimeTests
             } else if (mode == "nft") {
                 var result = await provider.LoadOnChainNFTDataAsync(address + "/1");
                 Assert.False(result.IsError,result.Message); Assert.Equal("https://example.invalid/nft/1",result.Result.JSONMetaDataURL);
+                Assert.Equal("TRC721",result.Result.NFTStandardType?.Value.ToString());
                 var sync = provider.LoadOnChainNFTData(address + "/1");
-                Assert.False(sync.IsError,sync.Message); Assert.Equal(4,reads);
+                Assert.False(sync.IsError,sync.Message); Assert.Equal(4,reads);Assert.Equal("TRC721",sync.Result.NFTStandardType?.Value.ToString());
             } else if (mode == "collection") {
                 var result = await provider.LoadNFTsForCollectionOwnerAsync(address,address);
-                Assert.False(result.IsError,result.Message); Assert.Empty(result.Result); Assert.Equal(2,reads);
+                Assert.False(result.IsError,result.Message); Assert.Equal(6,reads);
+                Assert.Equal("TRC721",Assert.Single(result.Result).NFTStandardType?.Value.ToString());
             } else if (mode == "history") {
                 var result = await provider.GetTransactionsAsync(new Core.Objects.Wallet.Requests.GetWeb3TransactionsRequest { WalletAddress = address });
                 Assert.False(result.IsError,result.Message); Assert.Empty(result.Result);

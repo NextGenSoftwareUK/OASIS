@@ -8,6 +8,56 @@ namespace NextGenSoftware.OASIS.API.Providers.TRONOASIS.UnitTests;
 
 public sealed class TronNftMintSafetyTests
 {
+    [Theory]
+    [InlineData(Core.Enums.ProviderType.EthereumOASIS,false)] [InlineData(Core.Enums.ProviderType.EthereumOASIS,true)]
+    [InlineData(Core.Enums.ProviderType.SolanaOASIS,false)] [InlineData(Core.Enums.ProviderType.SolanaOASIS,true)]
+    [InlineData(Core.Enums.ProviderType.None,false)] [InlineData(Core.Enums.ProviderType.None,true)]
+    public async Task MintRejectsContradictoryExplicitChainBeforeWalletLookup(Core.Enums.ProviderType chain,bool synchronous)
+    {
+        var provider=new TRONOASIS();
+        var request=new Core.Objects.NFT.Requests.MintWeb3NFTRequest {Amount=1,NFTStandardType=Core.Enums.NFTStandardType.TRC721,OnChainProvider=chain};
+        var result=synchronous?provider.MintNFT(request):await provider.MintNFTAsync(request);
+        Assert.True(result.IsError);Assert.Null(result.Result);
+        Assert.Equal("OnChainProvider",Assert.IsType<ArgumentException>(result.Exception).ParamName);
+        Assert.False(provider.IsProviderActivated);
+    }
+
+    [Theory]
+    [InlineData(Core.Enums.ProviderType.TRONOASIS,false)] [InlineData(Core.Enums.ProviderType.TRONOASIS,true)]
+    [InlineData(Core.Enums.ProviderType.Default,false)] [InlineData(Core.Enums.ProviderType.Default,true)]
+    public async Task NativeAndDefaultChainContinueToExistingMinterValidation(Core.Enums.ProviderType chain,bool synchronous)
+    {
+        var provider=new TRONOASIS();
+        var request=new Core.Objects.NFT.Requests.MintWeb3NFTRequest {Amount=1,NFTStandardType=Core.Enums.NFTStandardType.TRC721,OnChainProvider=chain};
+        var result=synchronous?provider.MintNFT(request):await provider.MintNFTAsync(request);
+        Assert.True(result.IsError);Assert.Null(result.Result);Assert.Contains("MintedByAvatarId",result.Message);
+        Assert.False(provider.IsProviderActivated);
+    }
+
+    public static IEnumerable<object[]> IncompatibleStandards()=>from standard in new[]{0,1,2,3,4,5,999}
+        from synchronous in new[]{false,true} select new object[]{standard,synchronous};
+    [Theory][MemberData(nameof(IncompatibleStandards))]
+    public async Task MintRejectsIncompatibleExplicitStandardBeforeWalletLookup(int standard,bool synchronous)
+    {
+        var provider=new TRONOASIS();
+        var request=new Core.Objects.NFT.Requests.MintWeb3NFTRequest {NFTStandardType=(Core.Enums.NFTStandardType)standard};
+        var result=synchronous?provider.MintNFT(request):await provider.MintNFTAsync(request);
+        Assert.True(result.IsError);Assert.Null(result.Result);Assert.False(provider.IsProviderActivated);
+        Assert.Equal("NFTStandardType",Assert.IsType<ArgumentException>(result.Exception).ParamName);
+    }
+
+    [Theory]
+    [InlineData(false,false)] [InlineData(false,true)] [InlineData(true,false)] [InlineData(true,true)]
+    public async Task OmittedAndNativeStandardContinueToExistingMinterValidation(bool explicitStandard,bool synchronous)
+    {
+        var provider=new TRONOASIS();
+        var request=new Core.Objects.NFT.Requests.MintWeb3NFTRequest {
+            Amount=1,NFTStandardType=explicitStandard?Core.Enums.NFTStandardType.TRC721:null};
+        var result=synchronous?provider.MintNFT(request):await provider.MintNFTAsync(request);
+        Assert.True(result.IsError);Assert.Null(result.Result);
+        Assert.Contains("MintedByAvatarId",result.Message);Assert.False(provider.IsProviderActivated);
+    }
+
     private static byte[] Encode(BigInteger id, string uri)
     {
         var address = new byte[21];
