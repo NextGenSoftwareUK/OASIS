@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-18 Sui NFT pre-read diagnostics fix reused existing cached builds, controlled process fixture and Mongo full-unit environment. No restore/download/install/native node/new ledger/worktree. Full-unit3279 terminal0,198passed; reusable outputs/credentials/source/compact reports retained. No broad filesystem deletion or alternate cleanup bypass. Native asset originals retained; no replay.
+
 2026-10-18 Sui five-case asset refresh reused same node/ledger/SDK/package/wallets/Mongo/cache; no restore/download/install/clone/new environment. Session30086 terminal0,5passed; owned27029/9000/9123 absent after runner. Test NFTs burned and token supply restored by fixture, compact original financial reports preserved before current refresh. Free87567343616before→87569342464after observed, no attribution/reclaim claim. Original uncertain ledgers/credentials/unrelated source untouched. No broad deletion.
 
 2026-10-18 Sui native refresh reused SAME retained node/ledger/wallets/package/SDK/cache and Mongo replica; no install/download/clone/environment duplication. Bounded existing cached producer/consumer builds, no restore. Session30084 completed0; owned27029/9000/9123 no longer listening after runner cleanup. Two test NFTs burned, compact financial receipts preserved; no uncertain original replay/reset. Free87562293248before→87561658368after observed bytes, not net-reclaim attribution. Retained reusable binaries/ledger and all credentials preserved; no new broad deletion.

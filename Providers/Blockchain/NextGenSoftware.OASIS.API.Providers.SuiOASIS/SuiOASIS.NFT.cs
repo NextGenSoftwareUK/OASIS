@@ -42,7 +42,8 @@ public partial class SuiOASIS
                 suppliedKey = wallet.Result.PrivateKey;
             }
             var loaded = await LoadOnChainNFTDataAsync(tokenId);
-            if (loaded.IsError) throw new InvalidOperationException(loaded.Message);
+            if (loaded.IsError)
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IWeb3NFT,IWeb3NFTTransactionResponse>(loaded);
             if (expectedId != Guid.Empty && expectedId != loaded.Result.Id)
                 throw new ArgumentException("OASIS NFT ID does not match the on-chain metadata.");
             var committed = await InvokeSdkAsync("nftLock", new { tokenId,
@@ -353,7 +354,8 @@ public partial class SuiOASIS
                 suppliedKey = wallet.Result.PrivateKey;
             }
             var loaded = await LoadOnChainNFTDataAsync(tokenId);
-            if (loaded.IsError) throw new InvalidOperationException(loaded.Message);
+            if (loaded.IsError)
+                return OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IWeb3NFT,IWeb3NFTTransactionResponse>(loaded);
             if (expectedId != Guid.Empty && expectedId != loaded.Result.Id)
                 throw new ArgumentException("OASIS NFT ID does not match the on-chain metadata.");
             var key = await TokenSigningKeyAsync(actor, suppliedKey, seed, publicKey);

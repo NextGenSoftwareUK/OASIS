@@ -128,6 +128,7 @@ switch(request.operation){
     ||request.recipient?.toLowerCase()!=='0x'+'ab'.repeat(32)))throw new Error('Original NFT transfer wallet intent changed across signer await');
   result={transactionHash:'1'.repeat(32)};break;
  case 'nftGet':
+  if(request.tokenId==='fixture-read-failure'){process.stdout.write('invalid JSON');break;}
   if(request.tokenId.startsWith('identity:')) {
    const [,mode,id,firstId,original]=request.tokenId.split(':');
    const metadata=JSON.parse(Buffer.from(original,'base64url').toString());
