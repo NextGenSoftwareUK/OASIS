@@ -38,7 +38,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             this.ProviderType = new EnumValue<ProviderType>(Core.Enums.ProviderType.SOLIDOASIS);
             this.ProviderCategory = new EnumValue<ProviderCategory>(Core.Enums.ProviderCategory.StorageAndNetwork);
 
-            _podServerUrl = (podServerUrl ?? "https://solidcommunity.net").TrimEnd('/');
+            _podServerUrl = (podServerUrl ?? throw new ArgumentNullException(nameof(podServerUrl))).TrimEnd('/');
             _httpClient = new HttpClient { Timeout = TimeSpan.FromSeconds(30) };
             _httpClient.DefaultRequestHeaders.Add("Accept", "text/turtle, application/ld+json;q=0.9, */*;q=0.8");
 
@@ -941,75 +941,32 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
         #region RDF helpers
 
         private IAvatar ParseRDFToAvatar(string turtle)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(turtle)) return null;
-                var avatar = new Avatar();
-                avatar.Id = ExtractTtlGuid(turtle, "oasis:id") ?? Guid.Empty;
-                avatar.Username = ExtractTtlString(turtle, "foaf:nick") ?? ExtractTtlString(turtle, "schema:name");
-                avatar.Email = ExtractTtlString(turtle, "schema:email");
-                avatar.FirstName = ExtractTtlString(turtle, "foaf:firstName") ?? ExtractTtlString(turtle, "schema:givenName");
-                avatar.LastName = ExtractTtlString(turtle, "foaf:familyName") ?? ExtractTtlString(turtle, "schema:familyName");
-                return avatar;
-            }
-            catch { return null; }
-        }
+            => AvatarFromRdf(SolidRdfRecord.Read(turtle).Single());
+
+        private static IAvatar AvatarFromRdf(SolidRdfRecord record)=>new Avatar{
+            Id=record.Id,Username=record.Get("http://xmlns.com/foaf/0.1/nick")??record.Get("https://schema.org/name"),
+            Email=record.Get("https://schema.org/email"),
+            FirstName=record.Get("http://xmlns.com/foaf/0.1/firstName")??record.Get("https://schema.org/givenName"),
+            LastName=record.Get("http://xmlns.com/foaf/0.1/familyName")??record.Get("https://schema.org/familyName")};
 
         private IEnumerable<IAvatar> ParseRDFToAvatars(string turtle)
-        {
-            // SOLID LDP container responses list member resources; a real implementation would
-            // follow ldp:contains links. Here we parse any embedded avatar blocks.
-            var result = new List<IAvatar>();
-            if (string.IsNullOrWhiteSpace(turtle)) return result;
-            var avatar = ParseRDFToAvatar(turtle);
-            if (avatar != null) result.Add(avatar);
-            return result;
-        }
+            => SolidRdfRecord.Read(turtle).Select(AvatarFromRdf).ToArray();
 
         private IAvatarDetail ParseRDFToAvatarDetail(string turtle)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(turtle)) return null;
-                var detail = new AvatarDetail();
-                detail.Id = ExtractTtlGuid(turtle, "oasis:id") ?? Guid.Empty;
-                return detail;
-            }
-            catch { return null; }
-        }
+            => new AvatarDetail{Id=SolidRdfRecord.Read(turtle).Single().Id};
 
         private IEnumerable<IAvatarDetail> ParseRDFToAvatarDetails(string turtle)
-        {
-            var result = new List<IAvatarDetail>();
-            if (string.IsNullOrWhiteSpace(turtle)) return result;
-            var detail = ParseRDFToAvatarDetail(turtle);
-            if (detail != null) result.Add(detail);
-            return result;
-        }
+            => SolidRdfRecord.Read(turtle).Select(record=>(IAvatarDetail)new AvatarDetail{Id=record.Id}).ToArray();
 
         private IHolon ParseRDFToHolon(string turtle)
-        {
-            try
-            {
-                if (string.IsNullOrWhiteSpace(turtle)) return null;
-                var holon = new Holon();
-                holon.Id = ExtractTtlGuid(turtle, "oasis:id") ?? Guid.Empty;
-                holon.Name = ExtractTtlString(turtle, "rdfs:label") ?? ExtractTtlString(turtle, "schema:name");
-                holon.Description = ExtractTtlString(turtle, "schema:description");
-                return holon;
-            }
-            catch { return null; }
-        }
+            => HolonFromRdf(SolidRdfRecord.Read(turtle).Single());
+
+        private static IHolon HolonFromRdf(SolidRdfRecord record)=>new Holon{Id=record.Id,
+            Name=record.Get("http://www.w3.org/2000/01/rdf-schema#label")??record.Get("https://schema.org/name"),
+            Description=record.Get("https://schema.org/description")};
 
         private IEnumerable<IHolon> ParseRDFToHolons(string turtle)
-        {
-            var result = new List<IHolon>();
-            if (string.IsNullOrWhiteSpace(turtle)) return result;
-            var holon = ParseRDFToHolon(turtle);
-            if (holon != null) result.Add(holon);
-            return result;
-        }
+            => SolidRdfRecord.Read(turtle).Select(HolonFromRdf).ToArray();
 
         private ISearchResults ParseSearchResults(string response)
         {
@@ -1090,22 +1047,6 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
                 sb.AppendLine();
             }
             return sb.ToString();
-        }
-
-        private static Guid? ExtractTtlGuid(string turtle, string predicate)
-        {
-            var val = ExtractTtlString(turtle, predicate);
-            return val != null && Guid.TryParse(val, out var g) ? g : (Guid?)null;
-        }
-
-        private static string ExtractTtlString(string turtle, string predicate)
-        {
-            var marker = $"{predicate} \"";
-            var start = turtle.IndexOf(marker, StringComparison.OrdinalIgnoreCase);
-            if (start < 0) return null;
-            start += marker.Length;
-            var end = turtle.IndexOf('"', start);
-            return end > start ? turtle.Substring(start, end - start) : null;
         }
 
         private static string EscapeTtlString(string value)
