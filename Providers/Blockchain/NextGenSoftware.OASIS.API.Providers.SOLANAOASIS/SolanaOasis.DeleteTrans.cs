@@ -108,13 +108,21 @@ public partial class SolanaOASIS
                 if(activation.IsError) throw new InvalidOperationException(activation.Message,activation.Exception);
             }
             var stored = await _solanaRepository.GetAsync<SolanaHolonDto>(providerKey);
-            var snapshot=NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Deserialize<SolanaHolonDto>(
-                NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(stored));
-            snapshot.IsDeleted = true;
-            snapshot.Version = checked(stored.Version + 1);
-            snapshot.PreviousVersionId = stored.Id;
-            var deleted = snapshot.GetHolon();
+            var expectedVersion=checked(stored.Version+1);
             var tombstone = await _solanaRepository.CreateTombstoneAsync(providerKey);
+            IHolon deleted;
+            try
+            {
+                var confirmed=await _solanaRepository.GetAsync<SolanaHolonDto>(tombstone);
+                if(confirmed.Id!=stored.Id || confirmed.Version!=expectedVersion || confirmed.PreviousVersionId!=stored.Id
+                    || !confirmed.IsDeleted || confirmed.DeletedDate==DateTime.MinValue || confirmed.DeletedDate.Kind!=DateTimeKind.Utc)
+                    throw new InvalidDataException("Finalized Solana tombstone does not match the requested deletion.");
+                deleted=confirmed.GetHolon();
+            }
+            catch(Exception cause)
+            {
+                throw new SolanaTransactionReconciliationException(tombstone,cause);
+            }
             deleted.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS] = tombstone;
             result.Result = deleted;
             result.IsDeleted = true;
