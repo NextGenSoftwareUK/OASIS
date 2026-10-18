@@ -51,9 +51,30 @@ public class SolanaTombstoneWireTests
         CryptographicOperations.ZeroMemory(key);
     }
 
+    [DataTestMethod]
+    [DataRow("avatar",false)] [DataRow("avatar",true)]
+    [DataRow("detail",false)] [DataRow("detail",true)]
+    [DataRow("holon",false)] [DataRow("holon",true)]
+    public async Task KnownStaleOrAlreadyDeletedSignaturesCannotSubmitAnotherTombstone(string kind,bool deleted)
+    {
+        var owner=new Account();var key=RandomNumberGenerator.GetBytes(32);
+        var rpc=DispatchProxy.Create<IRpcClient,TombstoneProxy>();var proxy=(TombstoneProxy)(object)rpc;proxy.Writer=owner.PublicKey.Key;
+        var repository=new SolanaRepository(owner,rpc,()=> (byte[])key.Clone());
+        SolanaBaseDto source=kind switch {"avatar"=>new SolanaAvatarDto(),"detail"=>new SolanaAvatarDetailDto(),_=>new SolanaHolonDto()};
+        source.Id=Guid.NewGuid();source.Version=6;
+        var encoder=typeof(SolanaRepository).GetMethod("EncodeEntity",BindingFlags.Instance|BindingFlags.NonPublic)!.MakeGenericMethod(source.GetType());
+        proxy.Memo=(string)encoder.Invoke(repository,new object[] {source})!;
+        source.Version=7;source.IsDeleted=deleted;
+        proxy.NewMemo=(string)encoder.Invoke(repository,new object[] {source})!;
+        if(deleted) await Assert.ThrowsExceptionAsync<KeyNotFoundException>(()=>repository.CreateTombstoneAsync("original"));
+        else await Assert.ThrowsExceptionAsync<InvalidOperationException>(()=>repository.CreateTombstoneAsync("original"));
+        Assert.AreEqual(0,proxy.Sends);Assert.AreEqual(0,proxy.StatusReads);Assert.IsNull(proxy.Signed);Assert.AreEqual(2,proxy.Pages);
+        CryptographicOperations.ZeroMemory(key);
+    }
+
     public class TombstoneProxy:DispatchProxy
     {
-        public string Writer="",Memo="",Signature="";public byte[]? Signed;public int Sends,StatusReads;
+        public string Writer="",Memo="",NewMemo="",Signature="";public byte[]? Signed;public int Sends,StatusReads,Pages;
         protected override object? Invoke(MethodInfo? method,object?[]? args)
         {
             var resultType=method!.ReturnType.GetGenericArguments()[0];var valueType=resultType.GetGenericArguments()[0];
@@ -61,10 +82,14 @@ public class SolanaTombstoneWireTests
             switch(method.Name)
             {
                 case "GetTransactionAsync":
-                    Assert.AreEqual("original",args![0]);
-                    json=JsonConvert.SerializeObject(new {Meta=new {},Transaction=new {Signatures=new[] {"original"},Message=new {
+                    var requested=(string)args![0]!;
+                    Assert.IsTrue(requested is "original" or "newer");
+                    json=JsonConvert.SerializeObject(new {Meta=new {},Transaction=new {Signatures=new[] {requested},Message=new {
                         AccountKeys=new[] {Writer,"MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr"},
-                        Instructions=new[] {new {ProgramIdIndex=1,Data=Encoders.Base58.EncodeData(Encoding.UTF8.GetBytes(Memo))}}}}});break;
+                        Instructions=new[] {new {ProgramIdIndex=1,Data=Encoders.Base58.EncodeData(Encoding.UTF8.GetBytes(requested=="newer" ? NewMemo:Memo))}}}}});break;
+                case "GetSignaturesForAddressAsync":
+                    Pages++;json=Pages==1 ? JsonConvert.SerializeObject((NewMemo.Length>0 ? new[] {"newer","original"}:new[] {"original"})
+                        .Select(signature=>new {signature,slot=5,confirmationStatus="finalized"})) : "[]";break;
                 case "GetLatestBlockHashAsync":
                     json=JsonConvert.SerializeObject(new {Value=new {Blockhash=Encoders.Base58.EncodeData(new byte[32])}});break;
                 case "SendTransactionAsync":
