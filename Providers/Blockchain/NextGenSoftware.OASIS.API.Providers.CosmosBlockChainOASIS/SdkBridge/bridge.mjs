@@ -132,7 +132,7 @@ async function execute(input, persistPreparedSubmission) {
           throw new Error('Escrow code checksum differs from reviewed contract');
         const protocol = await client.queryContractSmart(address, { asset: { message: { token_escrow_protocol: {} } } });
         if (protocol !== 1) throw new Error('Exact token escrow protocol1 required');
-        return { contractAddress: address, codeSha256: code.checksum, protocol };
+        return { contractAddress: address, codeSha256: code.checksum, protocol,codeId:contract.codeId,immutable:true };
       }
       case "put":
       case "delete":

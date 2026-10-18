@@ -46,7 +46,7 @@ for(const mode of ['valid','admin','address','checksum','code-id','protocol'])te
  try{
   const call=invokeTrusted({operation:'tokenEscrowInfo',rpcEndpoint:'http://controlled',chainId:'fixture-chain',
    targetContractAddress:'fixture-contract',codeSha256:'c'.repeat(64)});
-  if(mode==='valid')assert.deepEqual(await call,{contractAddress:'fixture-contract',codeSha256:'c'.repeat(64),protocol:1});
+  if(mode==='valid')assert.deepEqual(await call,{contractAddress:'fixture-contract',codeSha256:'c'.repeat(64),protocol:1,codeId:7,immutable:true});
   else await assert.rejects(call,/Escrow|escrow/);
   assert.equal(queries,['valid','protocol'].includes(mode)?1:0);assert.equal(closed,1);
  }finally{CosmWasmClient.connect=connect;}
