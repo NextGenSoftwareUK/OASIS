@@ -17,6 +17,7 @@ public partial class Neo4jOASIS
 
     private async Task<OASISResult<IAvatar>> ReadOneAvatarAsync(string field,string value,int version)
     {
+        if(version>0)return await ReadHistoricalAvatarAsync(field,value,version);
         var result=new OASISResult<IAvatar>();
         try
         {
