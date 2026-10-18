@@ -258,10 +258,12 @@ public partial class SolanaOASIS
                 return result;
             }
             if(avatar.Result==null) throw new InvalidOperationException("Solana avatar signature read returned no authenticated avatar.");
-            var deleteResult = await _solanaRepository.DeleteAsync(providerKey);
-            if(!deleteResult) throw new InvalidOperationException("Solana avatar tombstone was not acknowledged.");
-            result.IsSaved = deleteResult;
-            result.Result = deleteResult;
+            await CreateVerifiedTombstoneAsync<SolanaAvatarDto,IAvatar>(providerKey,
+                avatar.Result.Id,avatar.Result.Version,record=>record.GetAvatar());
+            result.IsSaved = true;
+            result.IsDeleted = true;
+            result.DeletedCount = 1;
+            result.Result = true;
         }
         catch (Exception e)
         {
