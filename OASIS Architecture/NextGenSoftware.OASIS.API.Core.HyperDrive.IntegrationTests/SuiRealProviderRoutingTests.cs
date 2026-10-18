@@ -423,31 +423,9 @@ public sealed class SuiRealProviderRoutingTests
             replicated.Result.Name.Should().Be(holon.Name);
             (await local.LoadHolonAsync(holon.Id)).Result.Name.Should().Be(holon.Name);
             var nearby=(IOASISNETProvider)sui;
-            void AssertNearby(bool present)
-            {
-                // API coordinates are microdegrees; persisted metadata is degrees. The
-                // date-line query is ~0.11m away, while exact radius zero includes only
-                // the same coordinate. This exercises real decrypted native records.
-                foreach(var point in new[]{(Longitude:179999999L,Radius:0,Match:present),
-                    (Longitude:-180000000L,Radius:1,Match:present),
-                    (Longitude:-180000000L,Radius:0,Match:false),
-                    (Longitude:0L,Radius:1,Match:false)}){
-                    var avatars=nearby.GetAvatarsNearMe(0,point.Longitude,point.Radius);
-                    avatars.IsError.Should().BeFalse(avatars.Message);
-                    avatars.Result.Any(value=>value.Id==avatar.Id).Should().Be(point.Match);
-                    var holons=nearby.GetHolonsNearMe(0,point.Longitude,point.Radius,HolonType.All);
-                    holons.IsError.Should().BeFalse(holons.Message);
-                    holons.Result.Any(value=>value.Id==holon.Id).Should().Be(point.Match);
-                }
-                var wrongType=nearby.GetHolonsNearMe(0,179999999,0,HolonType.Avatar);
-                wrongType.IsError.Should().BeFalse(wrongType.Message);
-                wrongType.Result.Any(value=>value.Id==holon.Id).Should().BeFalse();
-            }
+            void AssertNearby(bool present)=>NativeNearbyAcceptance.Verify(nearby,avatar.Id,holon.Id,present);
             AssertNearby(true);
-            nearby.GetAvatarsNearMe(90000001,0,1).IsError.Should().BeTrue();
-            nearby.GetAvatarsNearMe(0,180000001,1).IsError.Should().BeTrue();
-            nearby.GetAvatarsNearMe(0,0,-1).IsError.Should().BeTrue();
-            nearby.GetHolonsNearMe(0,0,1,(HolonType)int.MaxValue).IsError.Should().BeTrue();
+            NativeNearbyAcceptance.RejectInvalidInputs(nearby);
             Console.WriteLine("Verified9 nearby native avatar/holon reads: exact zero-radius/date-line/radius/type boundaries;4invalid inputs rejected.");
             foreach (var providerType in new[] { ProviderType.LocalFileOASIS, ProviderType.SuiOASIS })
             {

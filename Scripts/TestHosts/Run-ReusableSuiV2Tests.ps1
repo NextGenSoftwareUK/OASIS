@@ -19,8 +19,10 @@ if ($LASTEXITCODE -ne 0) { throw 'Existing Sui ledger configuration missing; ref
 if ($LASTEXITCODE -eq 0) { throw 'Existing Sui runtime is in use; refusing to take ownership.' }
 $project = Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
 if($Mode -in @('Prepared','Fee','InspectPrepared','ArchivePrepared','CSharpNFT','CSharpAssets','CSharpEscrow','History')){$project=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests.csproj'}
-& dotnet build $project --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
-if ($LASTEXITCODE -ne 0) { throw 'Current V2 integration consumer build failed.' }
+foreach($sourceProject in @((Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/NextGenSoftware.OASIS.API.Providers.SuiOASIS.csproj'),(Join-Path $taskRoot 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj'),$project)){
+    & dotnet build $sourceProject --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
+    if ($LASTEXITCODE -ne 0) { throw 'Current Sui producer/consumer build failed; do not substitute stale assemblies.' }
+}
 $outputBridge=if($Mode -in @('Prepared','Fee','InspectPrepared','ArchivePrepared','CSharpNFT','CSharpAssets','CSharpEscrow','History')){'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/bin/Debug/net10.0/SuiSdkBridge'}else{'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/bin/Debug/net10.0/SuiSdkBridge'}
 & (Join-Path $PSScriptRoot 'Use-ReusableHederaOutputDependencies.ps1') -Provider Sui -OutputBridge $outputBridge
 $names = @('OASIS_SUI_TEST_RPC','OASIS_SUI_TEST_DEPLOYMENT','OASIS_SUI_TEST_OWNED_PID','OASIS_SUI_TEST_STOP_SCRIPT','OASIS_HYPERDRIVE_TEST_ROOT','OASIS_SUI_SDK_BRIDGE','OASIS_SUI_SUCCESSFUL_FEE_RECEIPT','OASIS_SUI_TEST_NFT_JOURNAL','OASIS_SUI_TEST_FAUCET','OASIS_SUI_TEST_TOKEN_JOURNAL','OASIS_SUI_TEST_ESCROW_JOURNAL','OASIS_SUI_TEST_ESCROW_CACHE')
@@ -112,6 +114,14 @@ try {
         & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -SuiPreparedLedger -SuiCSharpNft:($Mode -in @('CSharpNFT','CSharpAssets')) -SuiCSharpAssets:($Mode -eq 'CSharpAssets') -SuiCSharpEscrow:($Mode -eq 'CSharpEscrow')
     }else{
         $method = if ($Mode -eq 'ArchiveReplication') {'ArchiveExactSearchValidationFixtureAfterReadback'} elseif ($Mode -eq 'ArchiveWalletSearch') {'ArchiveExactWalletSearchFixtureAfterReadback'} elseif ($Mode -eq 'Healthy') { 'V2ReplicatesToSuiAndSelectsFromMeasuredRealProviderReads' } else { 'V2FailsOverToRealStoreAfterSuiFailure' }
+        $priorReport=Join-Path $fixtureRoot "sui-retained-v2-$($Mode.ToLowerInvariant())-current.trx"
+        if(Test-Path -LiteralPath $priorReport){
+            if((Get-Item -LiteralPath $priorReport).Length -gt 1MB){throw 'Review oversized prior Sui evidence before copying.'}
+            $priorHash=(Get-FileHash -LiteralPath $priorReport -Algorithm SHA256).Hash
+            $archive=Join-Path $fixtureRoot "sui-routing-proof-$priorHash.trx"
+            if(!(Test-Path -LiteralPath $archive)){[IO.File]::Copy($priorReport,$archive,$false)}
+            if((Get-FileHash -LiteralPath $archive -Algorithm SHA256).Hash -ne $priorHash){throw 'Prior Sui proof archive mismatch; refusing overwrite.'}
+        }
         $testStarted=[DateTime]::UtcNow
         & dotnet test $project --no-build --no-restore --filter "FullyQualifiedName~IntegrationTests.SuiRealProviderRoutingTests.$method" --logger "trx;LogFileName=sui-retained-v2-$($Mode.ToLowerInvariant())-current.trx" --results-directory $fixtureRoot -v:q
         if ($LASTEXITCODE -ne 0) { throw 'Current real Sui V2 verification failed; preserve ownership journal.' }
