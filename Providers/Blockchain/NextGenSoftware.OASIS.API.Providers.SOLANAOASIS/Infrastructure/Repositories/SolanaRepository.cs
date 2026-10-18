@@ -182,11 +182,20 @@ public partial class SolanaRepository(Account oasisAccount, IRpcClient rpcClient
 
     private async Task<string> SubmitAndConfirmAsync(byte[] signedTransaction)
     {
-        // This repository builds one-signer transactions; preserve its actual native
-        // identity before broadcast, including when the RPC response is lost.
-        if (signedTransaction == null || signedTransaction.Length < 65 || signedTransaction[0] != 1)
-            throw new ArgumentException("Expected a one-signature Solana transaction.");
-        var signature = Encoders.Base58.EncodeData(signedTransaction.AsSpan(1,64).ToArray());
+        // The first (fee-payer) signature is the native transaction identity, including
+        // multisigner mint transactions. Decode canonical Solana compact-u16 first.
+        if(signedTransaction==null) throw new ArgumentNullException(nameof(signedTransaction));
+        var prefix=0;var count=0;var shift=0;byte tag;
+        do
+        {
+            if(prefix>=signedTransaction.Length || prefix==3) throw new ArgumentException("Invalid Solana signature-count encoding.");
+            tag=signedTransaction[prefix++];
+            if(prefix==3 && tag>3) throw new ArgumentException("Solana signature count exceeds compact-u16.");
+            count|=(tag&127)<<shift;shift+=7;
+        } while((tag&128)!=0);
+        if(count==0 || (prefix>1 && (tag&127)==0) || signedTransaction.Length<=prefix+count*64)
+            throw new ArgumentException("Solana transaction has a noncanonical or incomplete signature section.");
+        var signature = Encoders.Base58.EncodeData(signedTransaction.AsSpan(prefix,64).ToArray());
         try
         {
             var submitted = await rpcClient.SendTransactionAsync(signedTransaction);
