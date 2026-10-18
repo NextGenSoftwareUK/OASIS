@@ -1,6 +1,16 @@
 # NextGenSoftware.OASIS.API.Providers.PolkadotOASIS
 
-Connects the OASIS to Polkadot -- the leading cross-chain interoperability protocol enabling sovereign blockchains (parachains) to communicate via XCM. Stores OASIS holons, avatars, and data on the relay chain or any connected parachain, enabling true multi-chain deployments. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one
+Polkadot adapter under implementation. RPC connectivity is verified; storage, signing, token/NFT and bridge capabilities are not production-certified.
+
+## Current implementation and verification limits
+
+Activation uses HTTP JSON-RPC `system_chain` and `chain_getBlockHash(0)`, validates response version/correlation/result and configured network before publishing activation. Constructor `chainId` accepts the exact reported chain name (case-insensitive) or a `0x` genesis hash. Use a genesis hash for stronger network identity; a human-readable name is not globally unique. Deactivation preserves the reusable HTTP client; `Dispose` releases it. Each activation RPC has a ten-second deadline. Connection activation is not proof that every advertised capability works.
+
+Two explicit opt-in read-only tests use `https://rpc.polkadot.io`, checking both name and genesis configuration without keys, signing, transfers or transaction fees. Controlled tests cover malformed/failed/miscorrelated replies, wrong networks and reuse. These are not full-provider tests.
+
+OPEN: existing storage methods assume REST routes that are not standard node RPC; transaction methods construct unsigned JSON-shaped extrinsics rather than supported signed SCALE submissions; bridge payloads and NFT/storage runtime assumptions require replacement and native proof. Private on-chain record encryption/queryability, real SDK signing, exact amounts/fees/finality/reconciliation and all relevant interfaces remain unfinished. Do not use this adapter for production storage/minting or claim full XCM/relay/parachain support from a successful activation.
+
+Official references: [Polkadot transaction SDKs](https://docs.polkadot.com/chain-interactions/send-transactions/with-sdks/), [maintained SDK guidance](https://docs.polkadot.com/reference/tools/polkadot-js-api/). The latter recommends PAPI or Dedot for new work rather than the maintenance-only Polkadot.js API. No SDK/runtime was installed in this connectivity audit.
 
 ## Installation
 
