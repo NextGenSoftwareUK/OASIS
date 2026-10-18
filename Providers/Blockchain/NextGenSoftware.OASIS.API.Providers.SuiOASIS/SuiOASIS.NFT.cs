@@ -331,15 +331,17 @@ public partial class SuiOASIS
             if (tokenIds.Length == 0) throw new ArgumentException("Sui NFT object ID is required.");
             if (tokenIds.Length != 1) throw new ArgumentException("Sui NFT token selectors identify different objects.");
             var tokenId = tokenIds[0];
+            var sender = request.FromWalletAddress;
+            var recipient = request.ToWalletAddress;
             var key = await TokenSigningKeyAsync(key: request.OwnerPrivateKey, seed: request.OwnerSeedPhrase, publicKey: request.OwnerPublicKey);
-            var committed = await InvokeSdkAsync("nftSend", new { tokenId, privateKey = key, fromWalletAddress = request.FromWalletAddress, recipient = request.ToWalletAddress });
+            var committed = await InvokeSdkAsync("nftSend", new { tokenId, privateKey = key, fromWalletAddress = sender, recipient });
             var hash = committed.GetProperty("transactionHash").GetString();
             if (string.IsNullOrWhiteSpace(hash)) throw new InvalidOperationException("Sui NFT transfer returned no committed digest.");
             result.Result = new Web3NFTTransactionResponse { TransactionResult = hash, SendNFTTransactionResult = hash };
             var loaded = await LoadOnChainNFTDataAsync(tokenId);
             if (loaded.IsError || loaded.Result == null)
                 throw new SuiNativeMutationReconciliationException("NFT transfer committed as " + hash + " but readback failed; reconcile before retrying: " + loaded.Message, hash, true, loaded.Exception);
-            if (!string.Equals(loaded.Result.SendToAddressAfterMinting, request.ToWalletAddress, StringComparison.OrdinalIgnoreCase))
+            if (!string.Equals(loaded.Result.SendToAddressAfterMinting, recipient, StringComparison.OrdinalIgnoreCase))
                 throw new SuiNativeMutationReconciliationException("NFT transfer committed as " + hash + " but current owner does not match the requested recipient; reconcile before retrying.",
                     hash, true, new InvalidDataException("Post-transfer NFT ownership differs from the requested delivery."));
             loaded.Result.SendNFTTransactionHash = hash;

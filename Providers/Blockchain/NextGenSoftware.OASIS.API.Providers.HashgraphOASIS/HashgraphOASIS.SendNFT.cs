@@ -72,6 +72,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
             try
             {
                 ArgumentNullException.ThrowIfNull(transation);
+                var recipient = transation.ToWalletAddress;
                 var address = string.IsNullOrWhiteSpace(transation.FromNFTTokenAddress)
                     ? transation.TokenAddress + "/" + transation.TokenId : transation.FromNFTTokenAddress;
                 var asset = ParseHederaNftAddress(address);
@@ -86,7 +87,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                 var transactionResult = await HederaSdkClient.InvokeAsync("nftTransfer", new
                 {
                     network = _hederaNetwork, nodes = _consensusNodes,
-                    sender = transation.FromWalletAddress, recipient = transation.ToWalletAddress,
+                    sender = transation.FromWalletAddress, recipient,
                     tokenId = asset.TokenId, serials = new[] { asset.Serial }, memo = transation.MemoText,
                     privateKey = transation.OwnerPrivateKey, publicKey = transation.OwnerPublicKey, keyType = "der",
                     transactionId = HederaSdkClient.CreateTransactionId(transation.FromWalletAddress)
@@ -98,7 +99,7 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS
                         TransactionResult = transactionResult.GetProperty("transactionId").GetString(),
                         Web3NFT = new Web3NFT { NFTTokenAddress = address, CollectionPublicKey = asset.TokenId }
                     };
-                    RecordHederaNftDelivery(result.Result, result.Result.TransactionResult, transation.ToWalletAddress);
+                    RecordHederaNftDelivery(result.Result, result.Result.TransactionResult, recipient);
                     result.IsError = false;
                     result.Message = "HTS NFT transfer confirmed by consensus receipt.";
                 }

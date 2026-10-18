@@ -6,6 +6,21 @@ namespace NextGenSoftware.OASIS.API.Providers.HashgraphOASIS.IntegrationTests;
 [TestClass, DoNotParallelize]
 public class HederaNftSendValidationTests
 {
+    [TestMethod]
+    public async Task ConfirmedDeliveryUsesOriginalRecipientAfterRequestMutation()
+    {
+        var previous=Environment.GetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE");
+        Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",Path.Combine(AppContext.BaseDirectory,"Fixtures","hedera-process-boundary.mjs"));
+        try{
+            var request=Valid();request.OwnerPrivateKey="test-only-delivery-key";
+            var pending=new HashgraphOASIS().SendNFTAsync(request);Assert.IsFalse(pending.IsCompleted);
+            request.ToWalletAddress="0.0.9999";request.FromNFTTokenAddress="0.0.9999/8";
+            var result=await pending;Assert.IsFalse(result.IsError,result.Message);
+            Assert.AreEqual("0.0.1002",result.Result.Web3NFT.SendToAddressAfterMinting);
+            Assert.AreEqual("0.0.1234/7",result.Result.Web3NFT.NFTTokenAddress);
+        }finally{Environment.SetEnvironmentVariable("OASIS_HEDERA_SDK_BRIDGE",previous);}
+    }
+
     [DataTestMethod]
     [DataRow(false)]
     [DataRow(true)]
