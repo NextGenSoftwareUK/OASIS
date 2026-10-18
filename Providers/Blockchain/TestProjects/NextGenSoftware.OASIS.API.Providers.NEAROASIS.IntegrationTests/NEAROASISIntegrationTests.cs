@@ -36,11 +36,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
         public async Task SaveAvatar_ShouldReturnSuccessResult()
         {
             // Arrange
+            var marker = Guid.NewGuid().ToString("N");
             var avatar = new Avatar
             {
                 Id = Guid.NewGuid(),
-                Username = "TestUser",
-                Email = "test@example.com",
+                Username = $"near-user-{marker}",
+                Email = $"{marker}@near.test",
                 FirstName = "Test",
                 LastName = "User"
             };
@@ -202,6 +203,9 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
                 { WalletAddress = Required("NEAROASIS_ACCOUNTID") });
             Assert.IsFalse(balance.IsError, balance.Message);
             Assert.IsTrue(balance.Result > 0);
+            var preciseBalance = await _provider.GetAccountBalanceAsync(Required("NEAROASIS_ACCOUNTID"));
+            Assert.IsFalse(preciseBalance.IsError, preciseBalance.Message);
+            Assert.AreEqual(balance.Result, (double)preciseBalance.Result);
             var sent = await _provider.SendTokenAsync(new SendWeb3TokenRequest
                 { ToWalletAddress = generated.Result.WalletAddressLegacy, Amount = 0.00000001m });
             Assert.IsFalse(sent.IsError, sent.Message);
