@@ -129,6 +129,12 @@ namespace NextGenSoftware.OASIS.API.Providers.NEAROASIS.IntegrationTests
                 Required("NEAROASIS_CONTRACTADDRESS"), Required("NEAROASIS_ACCOUNTID"), Required("NEAROASIS_PRIVATEKEY"));
             var result = await wrong.ActivateProviderAsync();
             Assert.IsTrue(result.IsError || !result.Result, "Activation must reject a mismatched NEAR network.");
+            var conflicting = new NEAROASIS(Required("NEAROASIS_RPCENDPOINT"),Required("NEAROASIS_NETWORKID"),
+                "different-chain",Required("NEAROASIS_CONTRACTADDRESS"),Required("NEAROASIS_ACCOUNTID"),Required("NEAROASIS_PRIVATEKEY"));
+            var rejected = await conflicting.ActivateProviderAsync();
+            Assert.IsTrue(rejected.IsError);
+            StringAssert.Contains(rejected.Message,"networkId and chainId");
+            Assert.IsFalse(conflicting.IsProviderActivated);
         }
 
         [TestMethod]

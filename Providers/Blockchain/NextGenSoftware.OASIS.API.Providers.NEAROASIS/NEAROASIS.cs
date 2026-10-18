@@ -12,6 +12,7 @@ public partial class NEAROASIS : OASISStorageProviderBase, IOASISStorageProvider
 {
     private readonly string _rpcEndpoint;
     private readonly string _networkId;
+    private readonly string _chainId;
     private readonly string _privateKey;
     private readonly string _accountId;
     private readonly string _contractAddress;
@@ -33,6 +34,7 @@ public partial class NEAROASIS : OASISStorageProviderBase, IOASISStorageProvider
 
         _rpcEndpoint = rpcEndpoint ?? throw new ArgumentNullException(nameof(rpcEndpoint));
         _networkId = networkId ?? throw new ArgumentNullException(nameof(networkId));
+        _chainId = chainId ?? throw new ArgumentNullException(nameof(chainId));
         _contractAddress = contractAddress ?? throw new ArgumentNullException(nameof(contractAddress));
         _accountId = accountId ?? string.Empty;
         _privateKey = privateKey ?? string.Empty;

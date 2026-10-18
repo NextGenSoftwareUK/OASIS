@@ -14,6 +14,10 @@ public partial class NEAROASIS
         var result = new OASISResult<bool>();
         try
         {
+            // near-api-js derives network identity from this RPC chain, not an independent alias.
+            if(string.IsNullOrWhiteSpace(_networkId) || string.IsNullOrWhiteSpace(_chainId)
+                || !string.Equals(_networkId,_chainId,StringComparison.Ordinal))
+                throw new InvalidOperationException("NEAR networkId and chainId must identify the same RPC chain.");
             if (!_isActivated)
                 await _sdk.ProbeAsync();
 
