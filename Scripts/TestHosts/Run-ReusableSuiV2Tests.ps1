@@ -1,4 +1,4 @@
-param([ValidateSet('Healthy','Outage','Prepared','Fee','NFT','Token','Assets','Escrow','CSharpEscrow','InspectPrepared','ArchivePrepared','ArchiveReplication','ArchiveWalletSearch','CSharpNFT','CSharpAssets','History')][string]$Mode = 'Healthy')
+param([ValidateSet('Healthy','Outage','Prepared','Fee','NFT','Token','Assets','Escrow','CSharpEscrow','InspectPrepared','ArchivePrepared','ArchiveReplication','ArchiveWalletSearch','CSharpNFT','CSharpAssets','History','Balance')][string]$Mode = 'Healthy')
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
 $fixtureRoot = Join-Path $taskRoot 'TestResults/HyperDriveSui'
@@ -18,12 +18,12 @@ if ($LASTEXITCODE -ne 0) { throw 'Existing Sui ledger configuration missing; ref
 & wsl -d Ubuntu -u root -- pgrep -x sui *> $null
 if ($LASTEXITCODE -eq 0) { throw 'Existing Sui runtime is in use; refusing to take ownership.' }
 $project = Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
-if($Mode -in @('Prepared','Fee','InspectPrepared','ArchivePrepared','CSharpNFT','CSharpAssets','CSharpEscrow','History')){$project=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests.csproj'}
+if($Mode -in @('Prepared','Fee','InspectPrepared','ArchivePrepared','CSharpNFT','CSharpAssets','CSharpEscrow','History','Balance')){$project=Join-Path $taskRoot 'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests.csproj'}
 foreach($sourceProject in @((Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/NextGenSoftware.OASIS.API.Providers.SuiOASIS.csproj'),(Join-Path $taskRoot 'Providers/Storage/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS/NextGenSoftware.OASIS.API.Providers.LocalFileOASIS.csproj'),$project)){
     & dotnet build $sourceProject --no-restore /p:BuildProjectReferences=false /m:2 /nr:false /p:UseSharedCompilation=false -v:q -clp:ErrorsOnly
     if ($LASTEXITCODE -ne 0) { throw 'Current Sui producer/consumer build failed; do not substitute stale assemblies.' }
 }
-$outputBridge=if($Mode -in @('Prepared','Fee','InspectPrepared','ArchivePrepared','CSharpNFT','CSharpAssets','CSharpEscrow','History')){'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/bin/Debug/net10.0/SuiSdkBridge'}else{'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/bin/Debug/net10.0/SuiSdkBridge'}
+$outputBridge=if($Mode -in @('Prepared','Fee','InspectPrepared','ArchivePrepared','CSharpNFT','CSharpAssets','CSharpEscrow','History','Balance')){'Providers/Blockchain/TestProjects/NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests/bin/Debug/net10.0/SuiSdkBridge'}else{'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/bin/Debug/net10.0/SuiSdkBridge'}
 & (Join-Path $PSScriptRoot 'Use-ReusableHederaOutputDependencies.ps1') -Provider Sui -OutputBridge $outputBridge
 $names = @('OASIS_SUI_TEST_RPC','OASIS_SUI_TEST_DEPLOYMENT','OASIS_SUI_TEST_OWNED_PID','OASIS_SUI_TEST_STOP_SCRIPT','OASIS_HYPERDRIVE_TEST_ROOT','OASIS_SUI_SDK_BRIDGE','OASIS_SUI_SUCCESSFUL_FEE_RECEIPT','OASIS_SUI_TEST_NFT_JOURNAL','OASIS_SUI_TEST_FAUCET','OASIS_SUI_TEST_TOKEN_JOURNAL','OASIS_SUI_TEST_ESCROW_JOURNAL','OASIS_SUI_TEST_ESCROW_CACHE')
 $prior = @{}
@@ -89,6 +89,16 @@ try {
         $env:OASIS_SUI_TEST_NFT_JOURNAL=Join-Path $taskRoot 'TestResults/SuiCurrent/nft-live-pending.jsonl'
         & node --test --test-reporter=tap (Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/nft-runtime.test.mjs') 2>&1 | Tee-Object -FilePath (Join-Path $taskRoot 'TestResults/SuiCurrent/nft-live-current.tap')
         if($LASTEXITCODE -ne 0){throw 'Real NFT fixture failed; retain any pending journal and inspect original outcomes.'}
+    }elseif($Mode -eq 'Balance'){
+        $env:OASIS_SUI_SDK_BRIDGE=Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.SuiOASIS/SdkBridge/bridge.mjs'
+        $started=[DateTime]::UtcNow
+        & dotnet test $project --no-build --no-restore --filter 'FullyQualifiedName~RetainedNativeBalanceSurfacesAgreeWithExactSdkUnitsWithoutMutation' --logger 'trx;LogFileName=sui-native-balance-current.trx' --results-directory (Join-Path $taskRoot 'TestResults/SuiCurrent') -v:q
+        if($LASTEXITCODE -ne 0){throw 'Read-only Sui balance verification failed.'}
+        $report=Get-Item -LiteralPath (Join-Path $taskRoot 'TestResults/SuiCurrent/sui-native-balance-current.trx')
+        if($report.LastWriteTimeUtc -lt $started){throw 'Sui balance report is stale.'}
+        [xml]$evidence=Get-Content -LiteralPath $report.FullName -Raw
+        $counts=$evidence.TestRun.ResultSummary.Counters
+        if([int]$counts.total -ne 2 -or [int]$counts.passed -ne 2 -or [int]$counts.notExecuted -ne 0){throw 'Both retained native balance cases must execute and pass.'}
     }elseif($Mode -eq 'Fee'){
         $reportPath=Join-Path $taskRoot 'TestResults/SuiCurrent/sui-prepared-ledger-current.trx'
         [xml]$report=[IO.File]::ReadAllText($reportPath)

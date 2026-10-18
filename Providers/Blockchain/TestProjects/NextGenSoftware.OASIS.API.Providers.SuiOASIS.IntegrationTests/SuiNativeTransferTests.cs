@@ -8,6 +8,38 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS.IntegrationTests;
 [TestClass]
 public class SuiNativeTransferTests
 {
+    [DataTestMethod]
+    [DataRow(false)] [DataRow(true)]
+    public async Task RetainedNativeBalanceSurfacesAgreeWithExactSdkUnitsWithoutMutation(bool recipient)
+    {
+        var rpc=Required("OASIS_SUI_TEST_RPC");Assert.IsTrue(new Uri(rpc).IsLoopback);
+        var deploymentPath=Required("OASIS_SUI_TEST_DEPLOYMENT");
+        using var deployment=System.Text.Json.JsonDocument.Parse(File.ReadAllText(deploymentPath));
+        using var wallet=System.Text.Json.JsonDocument.Parse(File.ReadAllText(deploymentPath+".token-wallet.json"));
+        var chain=deployment.RootElement.GetProperty("chainId").GetString()!;
+        Assert.AreEqual(chain,wallet.RootElement.GetProperty("chainId").GetString());
+        var address=recipient?wallet.RootElement.GetProperty("wallet").GetProperty("address").GetString()!
+            :deployment.RootElement.GetProperty("address").GetString()!;
+        // No signing key supplied: the entire test must remain read-only.
+        using var provider=new SuiOASIS(rpc,"localnet",chainId:chain);
+        var invoke=typeof(SuiOASIS).GetMethod("InvokeSdkAsync",System.Reflection.BindingFlags.NonPublic|System.Reflection.BindingFlags.Instance)!;
+        var raw=await (Task<System.Text.Json.JsonElement>)invoke.Invoke(provider,new object[]{"balance",new{walletAddress=address},CancellationToken.None})!;
+        var units=raw.GetProperty("balance").GetString()!;
+        StringAssert.Matches(units,new System.Text.RegularExpressions.Regex(@"\A(?:0|[1-9][0-9]*)\z"));
+        Assert.IsTrue(System.Numerics.BigInteger.Parse(units,System.Globalization.CultureInfo.InvariantCulture)<=ulong.MaxValue);
+        var exact=decimal.Parse(units,System.Globalization.CultureInfo.InvariantCulture)/1000000000m;
+        var request=new GetWeb3WalletBalanceRequest{WalletAddress=address};
+        var account=await provider.GetAccountBalanceAsync(address);Assert.IsFalse(account.IsError,account.Message);Assert.AreEqual(exact,account.Result);
+        foreach(var legacy in new[]{provider.GetBalance(request),await provider.GetBalanceAsync(request)}){
+            Assert.IsFalse(legacy.IsError,legacy.Message);Assert.AreEqual((double)exact,legacy.Result);
+        }
+        using var foreign=new SuiOASIS(rpc,"localnet",chainId:"not-this-genesis");
+        Assert.IsTrue((await foreign.GetAccountBalanceAsync(address)).IsError);
+        Assert.IsTrue(foreign.GetBalance(request).IsError);
+        Assert.IsTrue((await foreign.GetBalanceAsync(request)).IsError);
+        Console.WriteLine($"Retained wallet recipient={recipient}: exact native MIST={units}; decimal and sync/async legacy double surfaces agree; three wrong-chain reads rejected, no signing or mutation.");
+    }
+
     [TestMethod]
     public async Task ConfirmedMoveAbortIsFailedNotLookupError()
     {

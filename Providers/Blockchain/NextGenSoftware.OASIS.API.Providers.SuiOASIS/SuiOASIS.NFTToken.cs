@@ -74,9 +74,7 @@ namespace NextGenSoftware.OASIS.API.Providers.SuiOASIS
                 if (request == null || string.IsNullOrWhiteSpace(request.WalletAddress))
                     throw new ArgumentException("Sui wallet address is required.");
                 var balance = await InvokeSdkAsync("balance", new { walletAddress = request.WalletAddress });
-                var units = System.Numerics.BigInteger.Parse(balance.GetProperty("balance").GetString(),
-                    System.Globalization.CultureInfo.InvariantCulture);
-                result.Result = (double)units / 1000000000d;
+                result.Result = (double)TokenBalanceFromUnits(balance.GetProperty("balance").GetString());
             }
             catch (Exception ex) { OASISErrorHandling.HandleError(ref result, ex.Message, ex); }
             return result;
