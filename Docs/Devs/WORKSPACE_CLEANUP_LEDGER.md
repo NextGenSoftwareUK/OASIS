@@ -1,5 +1,7 @@
 # Workspace cleanup ledger and repeatable checks
 
+2026-10-18 ActivityPub existing unit project lacked assets; one bounded RestoreRecursive=false restore reused same project/cache, no cloned environment/runtime/server install. Cached provider built without restore/references; unit tests21pass and loopback server disposed. Before free87564783616→after87275745280bytes observed (~289MB reduction, not fully attributed; newly materialized existing unit outputs/dependencies retained for reuse). No broad deletion, no live federation/accounts/credentials/remote writes. Test evidence fixed ActivityPubCurrent directory. No duplicate per-run setup.
+
 2026-10-18 Sui NFT pre-read diagnostics fix reused existing cached builds, controlled process fixture and Mongo full-unit environment. No restore/download/install/native node/new ledger/worktree. Full-unit3279 terminal0,198passed; reusable outputs/credentials/source/compact reports retained. No broad filesystem deletion or alternate cleanup bypass. Native asset originals retained; no replay.
 
 2026-10-18 Sui five-case asset refresh reused same node/ledger/SDK/package/wallets/Mongo/cache; no restore/download/install/clone/new environment. Session30086 terminal0,5passed; owned27029/9000/9123 absent after runner. Test NFTs burned and token supply restored by fixture, compact original financial reports preserved before current refresh. Free87567343616before→87569342464after observed, no attribution/reclaim claim. Original uncertain ledgers/credentials/unrelated source untouched. No broad deletion.
