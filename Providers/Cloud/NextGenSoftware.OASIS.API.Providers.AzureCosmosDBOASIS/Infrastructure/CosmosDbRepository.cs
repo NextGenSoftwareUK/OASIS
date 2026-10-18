@@ -97,7 +97,8 @@ namespace NextGenSoftware.OASIS.API.Providers.AzureCosmosDBOASIS.Infrastructure
             snapshot.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
             snapshot.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=key;
             var client=_cosmosDbClientFactory.GetClient(CollectionName);
-            await client.ReplaceDocumentAsync(key,snapshot,ResolvePartitionKey(key));
+            var json=await client.ReplaceDocumentAsync(key,snapshot,ResolvePartitionKey(key));
+            DecodeAcknowledgedEntity(json,snapshot,key);
             if(entity.Id!=originalId) throw new CosmosMutationReconciliationException(key,new InvalidDataException("Caller identity changed during acknowledged Cosmos replacement."),acknowledged:true);
             entity.ProviderUniqueStorageKey ??= new Dictionary<Core.Enums.ProviderType,string>();
             entity.ProviderUniqueStorageKey[Core.Enums.ProviderType.AzureCosmosDBOASIS]=key;
