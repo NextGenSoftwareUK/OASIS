@@ -41,7 +41,7 @@ public sealed partial class SolanaService
 
     public async Task<OASISResult<MintNftResult>> MintNftAsync(MintWeb3NFTRequest mintNftRequest)
     {
-        string acknowledgedMint=null;
+        FinalizedSolanaRpc submissionState=null;
         try
         {
             string verifyTransaction = null;
@@ -63,13 +63,17 @@ public sealed partial class SolanaService
             {
                 Console.SetOut(new NullTextWriter());
 
-                RequestResult<string> createNftResult = await MetadataClient.CreateNFT(
+                var finalized=FinalizedSolanaRpc.Wrap(rpcClient,oasisAccount);
+                submissionState=finalized.State;
+                RequestResult<string> createNftResult = await new MetadataClient(finalized.Client).CreateNFT(
                     ownerAccount: oasisAccount,
                     mintAccount: mintAccount,
                     TokenStandard.NonFungible,
                     tokenMetadata,
                     isMasterEdition: true,
                     isMutable: mintNftRequest.FreezeMetadata != true);
+
+                if(submissionState.SubmissionFailure!=null) throw submissionState.SubmissionFailure;
 
                 if (!createNftResult.WasSuccessful)
                 {
@@ -81,12 +85,13 @@ public sealed partial class SolanaService
                         log.Contains("insufficient lamports", StringComparison.OrdinalIgnoreCase)) == true;
 
                     if (isBalanceError || isLamportError)
-                        return HandleError<MintNftResult>($"{createNftResult.Reason}.\n Insufficient SOL to cover the transaction fee or rent.");
+                        throw new InvalidOperationException($"{createNftResult.Reason}.\n Insufficient SOL to cover the transaction fee or rent.");
 
-                    return HandleError<MintNftResult>(createNftResult.Reason);
+                    throw new InvalidOperationException(createNftResult.Reason);
                 }
+                if(!submissionState.FinalizedSignatures.Contains(createNftResult.Result))
+                    throw new InvalidOperationException("Metaplex SDK mint returned no independently finalized native receipt.");
 
-                acknowledgedMint=createNftResult.Result;
                 if (!string.IsNullOrEmpty(mintNftRequest.CollectionPublicKey))
                 {
                     if (mintNftRequest.WaitTillNFTVerified == true)
@@ -165,8 +170,9 @@ public sealed partial class SolanaService
         }
         catch (Exception ex)
         {
-            var evidence=!string.IsNullOrWhiteSpace(acknowledgedMint)
-                ? new NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories.SolanaTransactionReconciliationException(acknowledgedMint,ex):ex;
+            var cause=submissionState?.SubmissionFailure ?? ex;
+            var evidence=submissionState?.FinalizedSignatures.Count>0
+                ? new NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories.SolanaPartialMutationException(submissionState.FinalizedSignatures,cause):cause;
             return HandleError<MintNftResult>(evidence.Message,evidence);
         }
     }
