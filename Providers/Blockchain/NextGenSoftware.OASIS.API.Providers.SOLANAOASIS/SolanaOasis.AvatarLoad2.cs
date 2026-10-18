@@ -364,9 +364,17 @@ public partial class SolanaOASIS
         var result = new OASISResult<bool>();
         try
         {
+            // Immutable signature must authenticate as an avatar before generic tombstoning.
+            var avatar=await LoadAvatarByProviderKeyAsync(providerKey);
+            if(avatar.IsError)
+            {
+                OASISErrorHandling.HandleError(ref result,avatar.Message,avatar.Exception);
+                result.ErrorCode=avatar.ErrorCode;
+                return result;
+            }
+            if(avatar.Result==null) throw new InvalidOperationException("Solana avatar signature read returned no authenticated avatar.");
             var deleteResult = await _solanaRepository.DeleteAsync(providerKey);
-
-            result.IsError = !deleteResult;
+            if(!deleteResult) throw new InvalidOperationException("Solana avatar tombstone was not acknowledged.");
             result.IsSaved = deleteResult;
             result.Result = deleteResult;
         }
