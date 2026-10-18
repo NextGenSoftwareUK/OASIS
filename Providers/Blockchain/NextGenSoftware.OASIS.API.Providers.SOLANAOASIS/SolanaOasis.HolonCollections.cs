@@ -43,24 +43,32 @@ public partial class SolanaOASIS
         var result=new OASISResult<IEnumerable<IHolon>>();
         try
         {
-            if(version!=0) throw new NotSupportedException("Solana collection reads currently require latest version (0).");
+            if(version<0) throw new ArgumentOutOfRangeException(nameof(version));
             if(maxDepth<0 || initialDepth<0) throw new ArgumentOutOfRangeException(nameof(maxDepth));
             if(!IsProviderActivated)
             {
                 var activation=await ActivateProviderAsync();
                 if(activation.IsError) throw new InvalidOperationException(activation.Message,activation.Exception);
             }
-            var stored=await _solanaRepository.GetAllAsync<SolanaHolonDto>();
-            var records=new List<IHolon>();
-            foreach(var entry in stored)
+            List<IHolon> Map(IReadOnlyList<(SolanaHolonDto Record,string Signature)> stored)
             {
-                var holon=entry.Record.GetHolon();
-                holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS]=entry.Signature;
-                records.Add(holon);
+                var mapped=new List<IHolon>();
+                foreach(var entry in stored)
+                {
+                    var holon=entry.Record.GetHolon();
+                    holon.ProviderUniqueStorageKey[Core.Enums.ProviderType.SolanaOASIS]=entry.Signature;
+                    mapped.Add(holon);
+                }
+                return mapped;
             }
-            var project=HolonGraphProjection.Create(records,loadChildren,recursive,maxDepth,initialDepth,fromProvider,
+            var roots=Map(await _solanaRepository.GetAllAsync<SolanaHolonDto>(version));
+            // Version selects roots only. Independently versioned descendants use current records.
+            // These bounded finalized scans are not a cross-record point-in-time snapshot.
+            var descendants=version>0 && loadChildren && fromProvider
+                ? Map(await _solanaRepository.GetAllAsync<SolanaHolonDto>()) : roots;
+            var project=HolonGraphProjection.Create(descendants,loadChildren,recursive,maxDepth,initialDepth,fromProvider,
                 source=>OasisJson.Deserialize<Core.Holons.Holon>(OasisJson.Serialize(source)));
-            result.Result=records.Where(select).Select(project).ToList();
+            result.Result=roots.Where(select).Select(project).ToList();
             result.IsLoaded=true;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,"Solana finalized holon collection failed: "+cause.Message,cause);}

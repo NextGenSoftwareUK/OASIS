@@ -63,7 +63,7 @@ public class SolanaHolonAdapterTests
         var repository=new RecordsRepository {Records=new[] {(root,"root-receipt"),(child,"child-receipt"),(linked,"linked-receipt"),(unrelated,"unrelated-receipt")}};
         var provider=new ActiveProvider(repository);
         Assert.IsTrue(provider.ExportAllDataForAvatarById(Guid.Empty).IsError);
-        Assert.IsTrue(provider.ExportAll(version:1).IsError);
+        Assert.IsTrue(provider.ExportAll(version:-1).IsError);
         Assert.IsTrue((await provider.ExportAllDataForAvatarByUsernameAsync(" ")).IsError);
         Assert.IsTrue((await provider.ExportAllDataForAvatarByEmailAsync("email",version:1)).IsError);
         Assert.AreEqual(0,repository.Reads);
@@ -274,7 +274,7 @@ public class SolanaHolonAdapterTests
     public async Task InvalidDepthOrVersionFailsBeforeRepositoryRead()
     {
         var repository=new RecordsRepository(); var provider=new ActiveProvider(repository);
-        Assert.IsTrue((await provider.LoadAllHolonsAsync(version:1)).IsError);
+        Assert.IsTrue((await provider.LoadAllHolonsAsync(version:-1)).IsError);
         Assert.IsTrue((await provider.LoadAllHolonsAsync(maxChildDepth:-1)).IsError);
         Assert.IsTrue((await provider.LoadAllHolonsAsync(curentChildDepth:-1)).IsError);
         Assert.IsTrue((await provider.LoadHolonAsync("signature",maxChildDepth:-1)).IsError);
@@ -284,6 +284,37 @@ public class SolanaHolonAdapterTests
         Assert.IsTrue((await provider.LoadHolonsByMetaDataAsync(new Dictionary<string,string> {{"key","value"}},(MetaKeyValuePairMatchMode)999)).IsError);
         Assert.IsTrue((await provider.SearchAsync(new SearchParams {SearchOnlyForCurrentAvatar=false,SearchGroups=new List<ISearchGroupBase> {new SearchTextGroup {SearchQuery=" "}}})).IsError);
         Assert.AreEqual(0,repository.Reads);
+    }
+
+    [DataTestMethod]
+    [DataRow(false,false)]
+    [DataRow(true,false)]
+    [DataRow(false,true)]
+    [DataRow(true,true)]
+    public async Task HistoricalRootsUseIndependentCurrentProviderChildren(bool synchronous,bool flat)
+    {
+        var rootId=Guid.NewGuid();
+        var childId=Guid.NewGuid();
+        var oldRoot=new SolanaHolonDto {Id=rootId,Version=2,Name="historical root"};
+        var currentRoot=new SolanaHolonDto {Id=rootId,Version=7,Name="current root"};
+        var child=new SolanaHolonDto {Id=childId,ParentHolonId=rootId,Version=11,Name="current child"};
+        var repository=new RecordsRepository
+        {
+            HistoricalRecords=new[] {(oldRoot,"old-root-signature")},
+            Records=new[] {(currentRoot,"new-root-signature"),(child,"child-signature")}
+        };
+        var provider=new ActiveProvider(repository);
+        var result=synchronous
+            ? provider.LoadAllHolons(loadChildren:!flat,loadChildrenFromProvider:true,version:2)
+            : await provider.LoadAllHolonsAsync(loadChildren:!flat,loadChildrenFromProvider:true,version:2);
+        Assert.IsFalse(result.IsError,result.Message);
+        var root=result.Result.Single();
+        Assert.AreEqual(2,root.Version);
+        Assert.AreEqual("historical root",root.Name);
+        Assert.AreEqual("old-root-signature",root.ProviderUniqueStorageKey[ProviderType.SolanaOASIS]);
+        Assert.AreEqual(flat ? 0:1,root.Children.Count);
+        if(!flat){Assert.AreEqual(childId,root.Children.Single().Id);Assert.AreEqual(11,root.Children.Single().Version);}
+        CollectionAssert.AreEqual(flat ? new[] {2}:new[] {2,0},repository.RequestedVersions);
     }
 
     private sealed class ActiveProvider:SolanaOASIS
@@ -299,6 +330,8 @@ public class SolanaHolonAdapterTests
     private sealed class RecordsRepository:ISolanaRepository
     {
         public (SolanaHolonDto Record,string Signature)[] Records=Array.Empty<(SolanaHolonDto,string)>();
+        public (SolanaHolonDto Record,string Signature)[] HistoricalRecords=Array.Empty<(SolanaHolonDto,string)>();
+        public List<int> RequestedVersions=new();
         public int Reads;
         public Exception? ReadCause;
         public bool AllowPartialWrite;
@@ -310,8 +343,9 @@ public class SolanaHolonAdapterTests
         public Task<IReadOnlyList<(T Record,string Signature)>> GetAllAsync<T>(int version=0) where T:SolanaBaseDto,new()
         {
             Reads++;
+            RequestedVersions.Add(version);
             if(ReadCause!=null) throw ReadCause;
-            return Task.FromResult<IReadOnlyList<(T Record,string Signature)>>(Records.Select(entry=>((T)(SolanaBaseDto)entry.Record,entry.Signature)).ToList());
+            return Task.FromResult<IReadOnlyList<(T Record,string Signature)>>((version==0 ? Records:HistoricalRecords).Select(entry=>((T)(SolanaBaseDto)entry.Record,entry.Signature)).ToList());
         }
         public Task<T> GetAsync<T>(string reference) where T:SolanaBaseDto,new()
         {
