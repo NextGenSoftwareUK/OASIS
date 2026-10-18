@@ -100,7 +100,7 @@ try{
         if($CosmosRoutingInspect){
             $cosmosProject=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
             $nativeReport=if($CosmosRoutingReconcile){'cosmos-routing-profile-reconciliation-current.trx'}else{'cosmos-routing-profile-inspection-current.trx'}
-            $incidentMethod=if($CosmosRoutingReconcile){'ReconcileExactFailedProfileWithNewAdmittedCleanupWithoutReplay'}else{'InspectExactFailedProfileOriginalsWithoutMutation'}
+            $incidentMethod=if($CosmosRoutingReconcile){'ReconcileExactFailedProfileWithNewAdmittedCleanupWithoutReplay'}else{'InspectCurrentFailedProfileOriginalsWithoutMutation'}
             & dotnet test $cosmosProject --no-build --no-restore --filter "FullyQualifiedName~CosmosRoutingInspectionTests.$incidentMethod" --logger "trx;LogFileName=$nativeReport" --results-directory $work -v:q
         }elseif($CosmosRouting){
             $cosmosProject=Join-Path $taskRoot 'OASIS Architecture/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests/NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests.csproj'
@@ -141,6 +141,8 @@ try{
                 if($caseData.strategyReadCount -ne 16 -or $caseData.roundRobinReadCount -ne 6 -or $caseData.freeReadCount -ne 8){throw 'Full current strategy/distribution/free-plan matrix evidence is missing.'}
                 $originals=$caseData.originals
                 if(@($originals).Count -ne 10 -or $caseData.profileMatchingReadCount -ne 28 -or $caseData.profileAbsenceReadCount -ne 28){throw 'Expected full profile/detail/leaf native attempts and matching/absence read coverage per routing case.'}
+                $expectedOutageReads=if(!$caseData.nativePrimary -and $caseData.synchronous){14}else{0}
+                if($caseData.outageProfileReadCount -ne $expectedOutageReads){throw 'Exact real stopped-node profile failover coverage is missing.'}
                 foreach($original in $originals){
                     if(!$original.attempt.NativePreparation.SignedTransactionBase64 -or !$original.attempt.NativePreparation.SignDocBase64 -or $original.anteFeeReceipt.transactionHash -ne $original.attempt.ProviderRequestId){throw 'Original signed bytes/SignDoc or matching native fee receipt absent.'}
                 }

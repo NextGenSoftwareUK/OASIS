@@ -13,6 +13,60 @@ namespace NextGenSoftware.OASIS.API.Core.HyperDrive.IntegrationTests;
 public sealed class CosmosRoutingInspectionTests(Xunit.Abstractions.ITestOutputHelper output)
 {
     [Fact]
+    public async Task InspectCurrentFailedProfileOriginalsWithoutMutation()
+    {
+        var root=Environment.GetEnvironmentVariable("OASIS_HYPERDRIVE_TEST_ROOT")!;
+        var journal=Path.Combine(root,"independent-routing-pending.json");
+        var hash=Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(journal)));
+        if(hash=="F901B2959830F84882BBC338992EF734612D7009BBF318E36F178E279CE98BC1"){
+            await InspectExactFailedProfileOriginalsWithoutMutation();return;
+        }
+        Assert.Equal("CE9E54E7E52BC2F8C734A37E4FB84E081D3AC686739C8FE8798EF37C26CE6A48",hash);
+        using var intent=JsonDocument.Parse(File.ReadAllText(journal));
+        const string operationId="366bd44d-a0f6-ba07-b9f4-b79f5f1d2bbe";
+        Assert.Equal(operationId,intent.RootElement.GetProperty("operationId").GetString());
+        const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
+        Assert.Equal(connection,Environment.GetEnvironmentVariable("SUBSCRIPTION_TEST_MONGODB_URI"));
+        Assert.Equal("http://127.0.0.1:26657",Environment.GetEnvironmentVariable("OASIS_COSMOS_TEST_RPC"));
+        Assert.Equal("oasis-cosmos-local",Environment.GetEnvironmentVariable("OASIS_COSMOS_TEST_CHAIN"));
+        Assert.Equal(intent.RootElement.GetProperty("contract").GetString(),Environment.GetEnvironmentVariable("OASIS_COSMOS_TEST_CONTRACT"));
+        using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(90));var token=deadline.Token;
+        var store=new MongoUsageOutboxStore(connection,"usage_cosmos_independent_routing");
+        var operation=await store.GetAsync(operationId,token);Assert.NotNull(operation);
+        var before=JsonSerializer.Serialize(operation);Assert.Null(operation.Settlement);
+        using var cosmos=new CosmosBlockChainOASIS(rpcEndpoint:"http://127.0.0.1:26657",chainId:"oasis-cosmos-local",
+            contractAddress:intent.RootElement.GetProperty("contract").GetString()!,addressPrefix:"wasm",gasPrice:"0.025stake",nativeDenom:"stake",nativeDecimals:0,
+            storageEncryptionKeyResolver:()=>SHA256.HashData(Encoding.UTF8.GetBytes("oasis-cosmos-local-storage-fixture-v1")));
+        var originals=operation.ProviderAttempts.Where(attempt=>attempt.Provider=="CosmosBlockChainOASIS").ToArray();
+        Assert.InRange(originals.Length,5,6);
+        var receipts=new List<object>();
+        foreach(var original in originals){
+            var receipt=await cosmos.GetPreparedNativeFeeReceiptAsync(original,token);
+            receipts.Add(new{original,feeAvailable=!receipt.IsError,error=receipt.Message,receipt=receipt.IsError?(JsonElement?)null:receipt.Result});
+        }
+        var backend=(IKeyValueBackend)typeof(CosmosBlockChainOASIS).GetField("_privateStorage",BindingFlags.NonPublic|BindingFlags.Instance)!.GetValue(cosmos)!;
+        var avatarId=intent.RootElement.GetProperty("avatarId").GetGuid();var leafId=intent.RootElement.GetProperty("holonId").GetGuid();
+        var states=new List<object>();
+        foreach(var key in new[]{"oasis/avatar/"+avatarId.ToString("N"),"oasis/avatardetail/"+avatarId.ToString("N"),"oasis/holon/"+leafId.ToString("N")}){
+            var record=await backend.GetAsync(key,token);
+            states.Add(new{key,present=record!=null});
+        }
+        var local=new LocalFileOASIS(storageDirectory:Path.Combine(root,"files"));
+        bool localAvatarPresent,localDetailPresent,localLeafPresent;
+        try{
+            localAvatarPresent=(await local.LoadAvatarAsync(avatarId)).Result!=null;
+            localDetailPresent=(await local.LoadAvatarDetailAsync(avatarId)).Result!=null;
+            localLeafPresent=(await local.LoadHolonAsync(leafId,loadChildren:false)).Result!=null;
+        }finally{await local.DeActivateProviderAsync();}
+        Assert.Equal(before,JsonSerializer.Serialize(await store.GetAsync(operationId,token)));
+        Assert.Equal(hash,Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(journal))));
+        Assert.False(cosmos.IsProviderActivated);
+        var report=JsonSerializer.Serialize(new{operationId,originalJournalSha256=hash,originals=receipts,nativeStates=states,
+            localAvatarPresent,localDetailPresent,localLeafPresent,readOnly=true,ledgerUnchanged=true,replacementAuthorized=false,logicalOutcomeResolved=false});
+        await File.WriteAllTextAsync(Path.Combine(root,"routing-outage-original-inspection-current.json"),report,token);output.WriteLine(report);
+    }
+
+    [Fact]
     public async Task ReconcileExactFailedProfileWithNewAdmittedCleanupWithoutReplay()
     {
         // Revalidate original signatures, native state and exact local failure before authorizing any cleanup.

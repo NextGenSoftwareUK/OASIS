@@ -1,4 +1,6 @@
 using System.Reflection;
+using System.Diagnostics;
+using System.Runtime.ExceptionServices;
 using System.Text.Json;
 using MongoDB.Driver;
 using NextGenSoftware.OASIS.API.Core.Enums;
@@ -70,7 +72,7 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
                 encryptionKeyLabel=keyLabel,database,operationId=execution.OperationId,preservedOriginalJournalSha256=oldHash,
                 recovery="Inspect exact new profile/detail/leaf and original attempts; never replay unknown routing or alter replication-pending.json."},cancellationToken:token);file.Flush(true);
             var policy=new PreparedStorageExecution(execution,"independent",new Dictionary<ProviderType,string>{{ProviderType.CosmosBlockChainOASIS,sender}},new[]{ProviderType.LocalFileOASIS});
-            var nonNativeReads=0;
+            var nonNativeReads=0;var outageProfileReadCount=0;
             await policy.RunAsync(async()=>{
                 var profileWrite=new StorageOperationRequest{Operation="SaveAvatar",Payload=avatar,PreferredProvider=preferred};
                 var savedProfile=synchronous?router.RouteRequest<IAvatar>(profileWrite):await router.RouteRequestAsync<IAvatar>(profileWrite);
@@ -161,9 +163,63 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
                 }finally{
                     dna.OASIS.SubscriptionConfig.PlanType="Gold";manager.IsAutoLoadBalanceEnabled=false;manager.IsAutoReplicationEnabled=true;
                 }
+                if(!nativePrimary&&synchronous){
+                    Assert.False(manager.SetAndReplaceAutoFailOverListForProviders(providers.Select(type=>new EnumValue<ProviderType>(type))).IsError);
+                    manager.IsAutoFailOverEnabled=true;
+                    async Task ControlNode(string script){
+                        var start=new ProcessStartInfo("wsl.exe"){UseShellExecute=false,CreateNoWindow=true};
+                        foreach(var argument in new[]{"-d","Ubuntu","-u","root","--","bash","/mnt/c/Source/OASIS-hyperdrive-v2-gaps/Scripts/TestHosts/"+script})start.ArgumentList.Add(argument);
+                        using var process=Process.Start(start)!;
+                        await process.WaitForExitAsync().WaitAsync(TimeSpan.FromSeconds(30));Assert.Equal(0,process.ExitCode);
+                    }
+                    var nativeBefore=manager.PerformanceMonitor.GetMetrics(ProviderType.CosmosBlockChainOASIS).TotalRequests;
+                    var localBefore=manager.PerformanceMonitor.GetMetrics(ProviderType.LocalFileOASIS).TotalRequests;
+                    await ControlNode("stop-owned-cosmos-test-node.sh");
+                    Exception? outageFailure=null;
+                    try{
+                        void CheckFailover(){
+                            var diagnostic=manager.LastFailoverDiagnostic;
+                            Assert.True(diagnostic.Succeeded);Assert.False(diagnostic.Exhausted);Assert.False(diagnostic.WasQuotaBlocked);
+                            Assert.Equal(ProviderType.CosmosBlockChainOASIS,diagnostic.OriginalProvider);
+                            Assert.Equal(ProviderType.LocalFileOASIS,diagnostic.SelectedProvider);
+                            Assert.Equal(2,diagnostic.Attempts.Count);
+                            Assert.Equal(ProviderType.CosmosBlockChainOASIS,diagnostic.Attempts[0].Provider);Assert.False(diagnostic.Attempts[0].Succeeded);
+                            Assert.Equal(ProviderType.LocalFileOASIS,diagnostic.Attempts[1].Provider);Assert.True(diagnostic.Attempts[1].Succeeded);
+                            outageProfileReadCount++;nonNativeReads++;
+                        }
+                        foreach(var suffix in new[]{"","ByProviderKey","ByUsername","ByEmail"})foreach(var sync in new[]{false,true}){
+                            var request=new StorageOperationRequest{Operation="LoadAvatar"+suffix,AvatarId=avatarId,ProviderKey=avatarId.ToString(),Username=avatar.Username,Email=avatar.Email,PreferredProvider=ProviderType.CosmosBlockChainOASIS};
+                            var read=sync?router.RouteRequest<IAvatar>(request):await router.RouteRequestAsync<IAvatar>(request);
+                            Assert.False(read.IsError,read.Message);Assert.Equal(avatarId,read.Result?.Id);Assert.Equal(avatar.Username,read.Result?.Username);CheckFailover();
+                            if(suffix=="ByProviderKey")continue;
+                            request.Operation="LoadAvatarDetail"+suffix;
+                            var profile=sync?router.RouteRequest<IAvatarDetail>(request):await router.RouteRequestAsync<IAvatarDetail>(request);
+                            Assert.False(profile.IsError,profile.Message);Assert.Equal(avatarId,profile.Result?.Id);Assert.Equal(avatar.Email,profile.Result?.Email);CheckFailover();
+                        }
+                        Assert.Equal(14,outageProfileReadCount);
+                        Assert.Equal(nativeBefore+14,manager.PerformanceMonitor.GetMetrics(ProviderType.CosmosBlockChainOASIS).TotalRequests);
+                        Assert.Equal(localBefore+14,manager.PerformanceMonitor.GetMetrics(ProviderType.LocalFileOASIS).TotalRequests);
+                    }catch(Exception failure){outageFailure=failure;}
+                    try{
+                        await ControlNode("resume-owned-cosmos-test-node.sh");
+                        using var http=new HttpClient{Timeout=TimeSpan.FromSeconds(2)};
+                        var readyDeadline=DateTime.UtcNow.AddSeconds(30);var ready=false;
+                        while(DateTime.UtcNow<readyDeadline){
+                            try{
+                                using var response=JsonDocument.Parse(await http.GetStringAsync(rpc+"/status",token));
+                                Assert.Equal(chain,response.RootElement.GetProperty("result").GetProperty("node_info").GetProperty("network").GetString());
+                                if(!response.RootElement.GetProperty("result").GetProperty("sync_info").GetProperty("catching_up").GetBoolean()){ready=true;break;}
+                            }catch(HttpRequestException){}catch(TaskCanceledException)when(!token.IsCancellationRequested){}
+                            await Task.Delay(200,token);
+                        }
+                        Assert.True(ready,"Retained Cosmos node must be ready before prepared cleanup.");
+                    }catch(Exception restoreFailure){if(outageFailure!=null)throw new AggregateException(outageFailure,restoreFailure);throw;}
+                    finally{manager.IsAutoFailOverEnabled=false;}
+                    if(outageFailure!=null)ExceptionDispatchInfo.Capture(outageFailure).Throw();
+                }
                 var remove=new StorageOperationRequest{Operation="DeleteHolon",HolonId=id,SoftDelete=false,PreferredProvider=preferred,LoadChildren=false};
                 var deleted=synchronous?router.RouteRequest<IHolon>(remove):await router.RouteRequestAsync<IHolon>(remove);
-                Assert.False(deleted.IsError,deleted.Message);Assert.False(deleted.IsWarning,deleted.Message);
+                Assert.False(deleted.IsError,deleted.Message);Assert.False(deleted.IsWarning,string.Join("\n",deleted.InnerMessages));
                 Assert.Equal(1,manager.LastReplicationDiagnostic.SucceededCount);Assert.Equal(0,manager.LastReplicationDiagnostic.FailedCount);
                 Assert.Null((await cosmos.LoadHolonAsync(id,loadChildren:false)).Result);
                 Assert.Null((await local.LoadHolonAsync(id,loadChildren:false)).Result);
@@ -184,8 +240,11 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
                 originals.Add(new{attempt,anteFeeReceipt=fee.Result});
             }
             output.WriteLine(JsonSerializer.Serialize(new{nativePrimary,synchronous,holonId=id,avatarId,operation.NativeFeeExposureUsd,originals,
-                profileMatchingReadCount=28,profileAbsenceReadCount=28,selectorReadCount=16,strategyReadCount=2*Enum.GetValues<LoadBalancingStrategy>().Length,roundRobinReadCount=6,freeReadCount=Enum.GetValues<LoadBalancingStrategy>().Length,nonNativeReads,hostedSettlementVerified=false}));
+                profileMatchingReadCount=28,profileAbsenceReadCount=28,outageProfileReadCount,selectorReadCount=16,strategyReadCount=2*Enum.GetValues<LoadBalancingStrategy>().Length,roundRobinReadCount=6,freeReadCount=Enum.GetValues<LoadBalancingStrategy>().Length,nonNativeReads,hostedSettlementVerified=false}));
             Assert.Equal(oldHash,Hash(oldPath));Assert.Null(operation.Settlement);complete=true;
+        }catch(Exception){
+            output.WriteLine(JsonSerializer.Serialize(new{lastReplication=manager.LastReplicationDiagnostic,lastFailover=manager.LastFailoverDiagnostic}));
+            throw;
         }finally{
             if(complete){file.Dispose();File.Delete(journal);}
             else Console.WriteLine("Preserved independent routing journal/outbox: "+journal);
