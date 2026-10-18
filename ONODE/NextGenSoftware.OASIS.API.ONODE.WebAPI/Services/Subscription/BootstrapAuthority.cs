@@ -64,6 +64,29 @@ public sealed class MongoBootstrapAuthority
         await _records.InsertOneAsync(verified, cancellationToken: token);
     }
 
+    /// <summary>
+    /// One logical canonical mutation, outside provider failover/replication attempts.
+    /// Callback must return independently verified canonical state, not a requested update.
+    /// Any failure/cancellation after invalidation deliberately leaves authority unavailable.
+    /// Never retries a callback or re-enables authority from the previous projection.
+    /// </summary>
+    public async Task<T> MutateVerifiedAsync<T>(Guid avatarId, long expectedRevision,
+        Func<long, CancellationToken, Task<(T Result, BootstrapAuthorityRecord Verified)>> mutateAndVerify,
+        CancellationToken token = default)
+    {
+        ArgumentNullException.ThrowIfNull(mutateAndVerify);
+        token.ThrowIfCancellationRequested();
+        var revision = await InvalidateAsync(avatarId, expectedRevision, token);
+        token.ThrowIfCancellationRequested();
+        var completed = await mutateAndVerify(revision, token);
+        token.ThrowIfCancellationRequested();
+        if (completed.Verified == null || completed.Verified.Id != avatarId.ToString("D")
+            || completed.Verified.Revision != revision)
+            throw new InvalidOperationException("Canonical verification returned a different bootstrap mutation identity.");
+        await PublishAsync(completed.Verified, token);
+        return completed.Result;
+    }
+
     // No upsert: invalidation cannot create authority or recover an uncertain provisioning operation.
     public async Task<long> InvalidateAsync(Guid avatarId, long expectedRevision, CancellationToken token = default)
     {

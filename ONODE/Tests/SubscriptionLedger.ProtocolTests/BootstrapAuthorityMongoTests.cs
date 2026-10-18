@@ -148,4 +148,53 @@ public sealed class BootstrapAuthorityMongoTests : IAsyncLifetime
         await Assert.ThrowsAnyAsync<ArgumentException>(()=>_authority.ProvisionVerifiedAsync(Record(revision)));
         Assert.Equal(0,await _records.CountDocumentsAsync(x=>x.Id==_id.ToString("D")));
     }
+
+    [Fact] public async Task LogicalMutationRunsOnceOnlyAfterDurableInvalidation()
+    {
+        var calls=0;
+        var result=await _authority.MutateVerifiedAsync(_id,1,async (revision,token)=>
+        {
+            calls++;
+            await Assert.ThrowsAsync<InvalidOperationException>(()=>_authority.ReadAsync(_id,2,token));
+            var persisted=await _records.Find(x=>x.Id==_id.ToString("D")).SingleAsync(token);
+            Assert.False(persisted.Ready);Assert.Equal(revision,persisted.Revision);
+            var next=Record(revision);next.KarmaVersion=4;next.Karma=456;
+            return ("canonical-success",next);
+        });
+        Assert.Equal("canonical-success",result);Assert.Equal(1,calls);
+        Assert.Equal(456,(await _authority.ReadAsync(_id,2)).Karma);
+    }
+
+    [Fact] public async Task InvalidationConflictNeverStartsCanonicalMutation()
+    {
+        var calls=0;
+        await Assert.ThrowsAsync<InvalidOperationException>(()=>_authority.MutateVerifiedAsync(_id,2,(revision,token)=>
+        { calls++;return Task.FromResult((true,Record(revision))); }));
+        Assert.Equal(0,calls);Assert.Equal(123,(await _authority.ReadAsync(_id,2)).Karma);
+    }
+
+    [Fact] public async Task CanonicalFailureNeverRetriesOrRestoresOldAuthority()
+    {
+        var calls=0;var failure=new InvalidOperationException("controlled uncertain canonical outcome");
+        var thrown=await Assert.ThrowsAsync<InvalidOperationException>(()=>_authority.MutateVerifiedAsync<bool>(_id,1,(revision,token)=>
+        { calls++;throw failure; }));
+        Assert.Same(failure,thrown);Assert.Equal(1,calls);
+        await Assert.ThrowsAsync<InvalidOperationException>(()=>_authority.ReadAsync(_id,2));
+    }
+
+    [Theory][InlineData(true)][InlineData(false)] public async Task WrongVerifiedMutationIdentityCannotPublish(bool wrongAvatar)
+    {
+        await Assert.ThrowsAsync<InvalidOperationException>(()=>_authority.MutateVerifiedAsync(_id,1,(revision,token)=>
+        {var next=Record(revision);if(wrongAvatar)next.Id=Guid.NewGuid().ToString("D");else next.Revision++;return Task.FromResult((true,next));}));
+        await Assert.ThrowsAsync<InvalidOperationException>(()=>_authority.ReadAsync(_id,2));
+    }
+
+    [Fact] public async Task CancellationAfterCanonicalMutationKeepsAuthorityUnavailable()
+    {
+        using var cancellation=new CancellationTokenSource();var calls=0;
+        await Assert.ThrowsAnyAsync<OperationCanceledException>(()=>_authority.MutateVerifiedAsync(_id,1,(revision,token)=>
+        {calls++;cancellation.Cancel();return Task.FromResult((true,Record(revision)));},cancellation.Token));
+        Assert.Equal(1,calls);
+        await Assert.ThrowsAsync<InvalidOperationException>(()=>_authority.ReadAsync(_id,2));
+    }
 }
