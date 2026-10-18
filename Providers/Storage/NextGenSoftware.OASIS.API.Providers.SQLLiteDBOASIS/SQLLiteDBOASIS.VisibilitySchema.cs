@@ -24,6 +24,7 @@ public partial class SQLLiteDBOASIS
         await EnsureColumnsAsync(connection,transaction.GetDbTransaction(),"AvatarDetail",
             new Dictionary<string,string> {{"ActiveQuestId","TEXT NULL"},{"ActiveObjectiveId","TEXT NULL"},
                 {"ProviderLinksJson","TEXT NOT NULL DEFAULT '{}'"},
+                {"Portrait","TEXT NULL"},{"UmaJson","TEXT NULL"},
                 {"ParentHolonId","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"},
                 {"ParentHolonId2","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"},
                 {"ParentHolonId3","TEXT NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000'"}}).ConfigureAwait(false);
