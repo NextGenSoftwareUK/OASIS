@@ -138,12 +138,6 @@ public partial class SolanaOASIS
     }
 
     private static Account ExplicitTokenSigner(string key,string address)
-    {
-        if(string.IsNullOrWhiteSpace(key) || string.IsNullOrWhiteSpace(address)) throw new ArgumentException("An explicit signing key and its public address are required.");
-        var signer=new Account(key,address);
-        var challenge=System.Text.Encoding.UTF8.GetBytes("oasis/solana/token-signer/v1");
-        if(!signer.Verify(challenge,signer.Sign(challenge))) throw new ArgumentException("Signing key does not match its public address.");
-        return signer;
-    }
+        => Infrastructure.SolanaSigningIdentity.FromPrivateKey(key,address);
 
 }

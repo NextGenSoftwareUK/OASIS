@@ -77,15 +77,8 @@ public sealed partial class SolanaService
             ArgumentNullException.ThrowIfNull(mintNftRequest);
             var mint=new PublicKey(mintNftRequest.NFTTokenAddress);
             if(mint.KeyBytes.Length!=32) throw new ArgumentException("A valid NFT mint address is required.");
-            var signer=oasisAccount;
-            if(!string.IsNullOrWhiteSpace(mintNftRequest.OwnerSeedPhrase))
-                signer=new Wallet(mintNftRequest.OwnerSeedPhrase).GetAccount(0);
-            else if(!string.IsNullOrWhiteSpace(mintNftRequest.OwnerPrivateKey))
-                signer=new Account(mintNftRequest.OwnerPrivateKey,mintNftRequest.OwnerPublicKey);
-            if(!string.IsNullOrWhiteSpace(mintNftRequest.OwnerPublicKey) && signer.PublicKey.Key!=mintNftRequest.OwnerPublicKey)
-                throw new ArgumentException("NFT burn signer does not match requested owner.");
-            var challenge=System.Text.Encoding.UTF8.GetBytes("oasis/solana/nft-burn-signer/v1");
-            if(!signer.Verify(challenge,signer.Sign(challenge))) throw new ArgumentException("NFT burn signing key does not match owner.");
+            var signer=Infrastructure.SolanaSigningIdentity.ResolveNftOwner(mintNftRequest.OwnerPrivateKey,
+                mintNftRequest.OwnerPublicKey,mintNftRequest.OwnerSeedPhrase,oasisAccount);
             var metadataProgram=MetadataProgram.ProgramIdKey;
             var metadataPda=DeriveMetadataPda(mint,metadataProgram);
             var edition=DeriveMasterEditionPda(mint,metadataProgram);

@@ -63,12 +63,36 @@ public class SolanaNftBurnTests
         else Assert.AreEqual(proxy.Signature,result.Result.TransactionResult);
     }
 
+    [DataTestMethod]
+    [DataRow("seed")] [DataRow("service-owner")] [DataRow("dual-sources")]
+    [DataRow("seed-mismatch")] [DataRow("missing-public-key")]
+    public async Task BurnSignerSourcesAreExplicitAndValidatedBeforeRpc(string scenario)
+    {
+        const string syntheticSeed="abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
+        var owner=new Wallet(syntheticSeed).GetAccount(0);
+        var rpc=DispatchProxy.Create<IRpcClient,BurnProxy>();var proxy=(BurnProxy)(object)rpc;
+        proxy.Owner=owner.PublicKey;proxy.Scenario="finalized";
+        var expectedFailure=scenario is "dual-sources" or "seed-mismatch" or "missing-public-key";
+        var result=await new SolanaService(owner,rpc).BurnNftAsync(new BurnWeb3NFTRequest
+        {
+            NFTTokenAddress=proxy.Mint.Key,
+            OwnerSeedPhrase=scenario is "seed" or "dual-sources" or "seed-mismatch" ? syntheticSeed:"",
+            OwnerPrivateKey=scenario is "dual-sources" or "missing-public-key" ? owner.PrivateKey.Key:"",
+            OwnerPublicKey=scenario=="seed-mismatch" ? new Account().PublicKey.Key:scenario=="missing-public-key" ? "":owner.PublicKey.Key
+        });
+        Assert.AreEqual(expectedFailure,result.IsError,result.Message);
+        Assert.AreEqual(expectedFailure ? 0:1,proxy.MetadataReads);Assert.AreEqual(expectedFailure ? 0:1,proxy.Sends);
+        if(expectedFailure) Assert.IsInstanceOfType(result.Exception,typeof(ArgumentException));
+        else Assert.IsTrue(owner.Verify(proxy.Signed!.AsSpan(65).ToArray(),proxy.Signed.AsSpan(1,64).ToArray()));
+    }
+
     public class BurnProxy:SolanaCollectionSizeTests.CollectionProxy
     {
-        public PublicKey Owner=null!,Mint=new Account().PublicKey;public bool Collection;public string Mode="";
+        public PublicKey Owner=null!,Mint=new Account().PublicKey;public bool Collection;public string Mode="";public int MetadataReads;
         protected override object? Invoke(MethodInfo? method,object?[]? args)
         {
             if(method!.Name!="GetAccountInfoAsync") return base.Invoke(method,args);
+            MetadataReads++;
             using var stream=new MemoryStream();using var writer=new BinaryWriter(stream);
             writer.Write((byte)4);writer.Write(Owner.KeyBytes);writer.Write((Mode=="mint" ? new Account().PublicKey:Mint).KeyBytes);
             writer.Write(0U);writer.Write(0U);writer.Write(0U);writer.Write((ushort)0);
