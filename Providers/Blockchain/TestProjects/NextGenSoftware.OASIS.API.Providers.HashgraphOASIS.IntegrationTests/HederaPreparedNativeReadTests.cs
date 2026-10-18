@@ -132,19 +132,19 @@ public class HederaPreparedNativeReadTests
         var provider=new HashgraphOASIS("https://testnet.mirrornode.hedera.com","testnet","296",storageConfiguration:new(){
             ContractId="0.0.11017885",OperatorAccountId="0.0.10993779",SigningKeyType="der",SigningKeyResolver=()=>key!,
             EncryptionKeyResolver=()=>SHA256.HashData(Encoding.UTF8.GetBytes("oasis-hedera-testnet-storage-fixture-v1")),GasLimit=100000,MaxFeeTinybars=1000000,
-            QueryPreparation=new(){AuthorizedNodeAccountIds=Enumerable.Range(3,7).Select(number=>"0.0."+number).ToArray(),MaxPaymentTinybars=1000000,MaxTransactionFeeTinybars=1000000,MaximumRequestsPerInvocation=6}});
+            QueryPreparation=new(){AuthorizedNodeAccountIds=Enumerable.Range(3,7).Select(number=>"0.0."+number).ToArray(),MaxPaymentTinybars=15000000,MaxTransactionFeeTinybars=1000000,MaximumRequestsPerInvocation=1}});
         try{
             var user=Guid.NewGuid().ToString("D");using var transport=new HttpClient(new Authority(user));
             var execution=await new Web4UsageExecution(new Web4SubscriptionAuthorizationClient(transport,"https://controlled-authority.invalid","WEB6","test-only"),store,new(){Service="WEB6"})
-                .BeginAsync("test-only",user,"retained-native-read",new string('a',64),"GET /native-read-fixture",new(){MeterCategory="api.request",ReservedUnits=1,EstimatedCostUsd=.1m,MaximumNativeFeeCostUsd=.1m,MaximumProviderAttempts=6},token);
+                .BeginAsync("test-only",user,"retained-native-read",new string('a',64),"GET /native-read-fixture",new(){MeterCategory="api.request",ReservedUnits=1,EstimatedCostUsd=.2m,MaximumNativeFeeCostUsd=.2m,MaximumProviderAttempts=1},token);
             operationId=execution.OperationId;var time=DateTime.UtcNow.AddSeconds(-1);
             execution=execution.WithNativePrices(new[]{new NativeFeePriceQuote(Guid.Parse(operationId),"HashgraphOASIS","testnet","tinybar","hedera-hashgraph",8,1m,
                 "synthetic-testnet-price","fixture-v1","fixture-v1",time,time,time,time.AddMinutes(5))});
-            var holonId=Guid.NewGuid();await JsonSerializer.SerializeAsync(file,new{database,operationId,holonId,contractId="0.0.11017885",payer="0.0.10993779",maximumTestHbar=.1m,
+            var holonId=Guid.NewGuid();await JsonSerializer.SerializeAsync(file,new{database,operationId,holonId,contractId="0.0.11017885",payer="0.0.10993779",maximumTestHbar=.2m,
                 recovery="Read original query payments only; never retry an uncertain paid read or remove this fence without reconciliation."},cancellationToken:token);file.Flush(true);
             var read=await provider.ExecutePreparedStorageAsync(()=>provider.LoadHolonAsync(holonId,loadChildren:false),execution,"native-read","0.0.10993779",token);
             Assert.IsNull(read.Result);Assert.IsTrue(!read.IsError||read.ErrorCode==NextGenSoftware.OASIS.Common.OASISResultErrorCodes.RecordNotFound,read.Message);
-            var operation=await store.GetAsync(operationId,token);Assert.IsTrue(operation.ProviderAttempts.Count>0&&operation.ProviderAttempts.Count<=6);
+            var operation=await store.GetAsync(operationId,token);Assert.AreEqual(1,operation.ProviderAttempts.Count);
             decimal maximum=0;var originals=new List<object>();
             foreach(var attempt in operation.ProviderAttempts){
                 Assert.AreEqual("hedera-query-payment-v1",attempt.NativePreparation.SigningAuthority.Scheme);Assert.IsNull(attempt.AcknowledgedAtUtc);
@@ -155,10 +155,10 @@ public class HederaPreparedNativeReadTests
                 Assert.IsTrue(System.Numerics.BigInteger.Parse(fee.Result.GetProperty("netUnits").GetString()!,CultureInfo.InvariantCulture)>0);
                 originals.Add(new{attempt,actualFee=fee.Result});
             }
-            Assert.IsTrue(maximum>0&&maximum<=.1m);Assert.AreEqual(maximum,operation.NativeFeeExposureUsd);
+            Assert.IsTrue(maximum>0&&maximum<=.2m);Assert.AreEqual(maximum,operation.NativeFeeExposureUsd);
             var owner=new PreparedNativeUsageRecoveryResolver(store,new[]{(NextGenSoftware.OASIS.API.Core.Interfaces.IPreparedNativeFeeEvidenceReader)provider});
             Assert.IsNull(await owner.ResolveAsync(operation,token));var measured=await store.GetAsync(operationId,token);Assert.AreEqual(operation.ProviderAttempts.Count,measured.Receipts.Count);Assert.IsNull(measured.Settlement);
-            Console.WriteLine(JsonSerializer.Serialize(new{originals,measured.Receipts,maximumTestHbar=.1m,measured.NativeFeeExposureUsd,hostedSettlementVerified=false,storageMutations=0}));
+            Console.WriteLine(JsonSerializer.Serialize(new{originals,measured.Receipts,maximumTestHbar=.2m,measured.NativeFeeExposureUsd,hostedSettlementVerified=false,storageMutations=0}));
             CollectionAssert.AreEqual(stateHash,SHA256.HashData(File.ReadAllBytes(statePath)));complete=true;
         }catch(Exception error){
             Console.WriteLine("Native read failed; original journal retained: "+error.Message);

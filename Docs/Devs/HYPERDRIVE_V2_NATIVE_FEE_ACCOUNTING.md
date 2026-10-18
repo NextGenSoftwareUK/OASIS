@@ -1,5 +1,11 @@
 # HyperDrive V2 native-chain fees and recovery
 
+## Hedera logical node inventory and calibrated read — 2026-10-17
+
+Real SDK can return several transport endpoints for one consensus-node account. Prepared query adapter now deduplicates canonical SDK-discovered node IDs before constructing strict authority context; host authority duplicates still reject. Real SDK regression red-before/full164green-after; post-fix testnet candidate reaches admission callback and is deliberately refused before paid transport. Exact new native probe remains failed/fenced0attempts, not successful consensus acceptance.
+
+Missing-holon read uses one query. Fresh100000gas COST_ANSWER quote12147334tinybar includes SDK buffer. Separate fixture now caps one payment0.15HBAR plus transactionfee0.01 (<=0.16all-in), aggregate0.20 at synthetic1USD/HBAR; no production pricing change or generic retry policy. Indexed0.69513926balance/0.30runnerbuffer are not a full-provider test funding proof. Exact failed-original hashes and diagnostic boundaries in release journal.
+
 ## Hedera failed-read pre-execution investigation — 2026-10-17
 
 Exact-case review now archived (1/1pass685ms): unchanged selected-request mandatory durable-ack/paid-transport code tail verified against failed-run parent76a6ead71, exact zero-attempt live record and fresh later-indexed/no-account-transaction mirror window. This supports a specific pre-execution inference, NOT a generic zero-attempt or mirror-absence retry rule. Archive7BFC7FCF… retains full original record/journal and proof hashes; reviewed disposable DB/journal removed only after archive readback. No key/paid SDK query/retry/settlement occurred. A separately identified native probe still needs calibrated explicit limits; prior failure is not native success evidence. Full hashes in release journal.

@@ -137,7 +137,10 @@ export function createPaidQuery(Query,request,client,key,persist,ordinaryLimit) 
   }
   const Owned=ownedQueries.get(Query);
   if(!Owned||typeof persist!=='function')throw new Error('Explicit supported paid-query preparation ownership is required.');
-  return new Owned({network:request.network,payer:request.sender,publicKey:key.publicKey.toStringDer(),nodes:Object.values(client.network).map(value=>value.toString()),
+  // The real SDK can expose several transport endpoints per logical node account.
+  // Canonicalize its discovered inventory, not the host's strict authorization input.
+  const nodes=[...new Set(Object.values(client.network).map(value=>AccountId.fromString(value.toString()).toString()))];
+  return new Owned({network:request.network,payer:request.sender,publicKey:key.publicKey.toStringDer(),nodes,
     maxPaymentTinybars:request.queryMaxPaymentTinybars,maxTransactionFeeTinybars:request.queryMaxTransactionFeeTinybars,
     persistenceTimeoutMs:request.queryPersistenceTimeoutMs,persist}).setMaxQueryPayment(Hbar.fromTinybars(request.queryMaxPaymentTinybars));
 }
