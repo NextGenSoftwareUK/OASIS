@@ -1,4 +1,4 @@
-param([ValidateSet('Verify','InspectPending','IndependentPrepared','IndependentInspect','IndependentReconcile','IndependentRouting','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT')][string]$Mode = 'Verify')
+param([ValidateSet('Verify','InspectPending','IndependentPrepared','IndependentInspect','IndependentReconcile','IndependentRouting','RoutingInspect','RoutingReconcile','RoutingProbe','ReviewedFees','RoutingFeeRecovery','ReviewedBank','ReviewedToken','ReviewedNFT','EscrowInspect')][string]$Mode = 'Verify')
 $ErrorActionPreference = 'Stop'
 $taskRoot = [IO.Path]::GetFullPath((Split-Path (Split-Path $PSScriptRoot -Parent) -Parent))
 $fixtureRoot = Join-Path $taskRoot 'TestResults/HyperDriveCosmos'
@@ -48,7 +48,7 @@ try {
         $containerStarted = $true
     }
     # The existing local development key stays in process memory and is never printed or persisted.
-    if($Mode -notin @('RoutingInspect','RoutingFeeRecovery')){
+    if($Mode -notin @('RoutingInspect','RoutingFeeRecovery','EscrowInspect')){
         $signingKey = ((& wsl -d Ubuntu -u root -- podman exec oasis-wasmd wasmd keys export owner --keyring-backend test --unarmored-hex --unsafe --yes 2>$null) -join "`n").Trim()
         if ($LASTEXITCODE -ne 0 -or $signingKey -notmatch '^[0-9a-fA-F]{64}$') { throw 'Existing local Cosmos signing key unavailable.' }
     }
@@ -85,7 +85,26 @@ try {
         & node (Join-Path $PSScriptRoot 'inspect-cosmos-pending-transactions.mjs')
         if ($LASTEXITCODE -ne 0) { throw 'Read-only Cosmos native transaction inspection failed; pending intent preserved.' }
     }
-    if($Mode -eq 'ReviewedNFT'){
+    if($Mode -eq 'EscrowInspect'){
+        $escrowFence=Join-Path $fixtureRoot 'replication-pending.json'
+        $escrowFenceHash=(Get-FileHash -LiteralPath $escrowFence -Algorithm SHA256).Hash
+        if($escrowFenceHash -ne '9B5A15110B0F21FEF8FCA6D2CE215859EEBC8944E9F1F83733CACE90892DEA81'){throw 'Original Cosmos fence changed; inspect before continuing.'}
+        $probeRequest=@{operation='query';rpcEndpoint='http://127.0.0.1:26657';chainId='oasis-cosmos-local';contractAddress=$contracts[0];
+            message=@{asset=@{message=@{token_escrow_protocol=@{}}}}} | ConvertTo-Json -Depth 8 -Compress
+        $probeRaw=$probeRequest | & node (Join-Path $taskRoot 'Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.CosmosBlockChainOASIS/SdkBridge/bridge.mjs')
+        $probeExit=$LASTEXITCODE
+        $probe=($probeRaw -join "`n") | ConvertFrom-Json
+        $codeRaw=& wsl -d Ubuntu -u root -- podman exec oasis-wasmd wasmd query wasm code-info 1 --node http://127.0.0.1:26657 --output json
+        if($LASTEXITCODE -ne 0){throw 'Existing public contract code metadata query failed.'}
+        if((Get-FileHash -LiteralPath $escrowFence -Algorithm SHA256).Hash -ne $escrowFenceHash){throw 'Read-only inspection detected a changed original fence.'}
+        $evidence=@{chain='oasis-cosmos-local';contract=$contracts[0];sdkQuery=$probe;codeInfo=(($codeRaw -join "`n") | ConvertFrom-Json);
+            container=$containerId;image=$image;checkedAtUtc=[DateTime]::UtcNow.ToString('O');originalFenceSha256=$escrowFenceHash;
+            signingKeyExported=$false;nativeSubmissions=0;verifiedProtocol=($probeExit -eq 0 -and $probe.ok -eq $true -and $probe.result -eq 1)}
+        $escrowEvidenceJson=$evidence | ConvertTo-Json -Depth 12
+        [IO.File]::WriteAllText((Join-Path $fixtureRoot 'escrow-protocol-inspection-current.json'),$escrowEvidenceJson)
+        Write-Output $escrowEvidenceJson
+        if(!$evidence.verifiedProtocol){throw 'Retained contract does not establish escrow protocol1; inspect evidence before any escrow mutation.'}
+    }elseif($Mode -eq 'ReviewedNFT'){
         & (Join-Path $PSScriptRoot 'Run-ReusableUsageRecoveryTests.ps1') -CosmosPreparedOwners -CosmosReviewedNFT
         if($LASTEXITCODE -ne 0){throw 'Actual NFT interface verification failed; preserve originals and ownership journal.'}
     }elseif($Mode -eq 'ReviewedToken'){
