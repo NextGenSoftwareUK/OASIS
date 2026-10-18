@@ -67,6 +67,11 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 return;
             }
 
+            // Validate the next stamp before any paid/durable history mutation.
+            int nextVersion;
+            try { nextVersion=checked(previous.Version+1); }
+            catch (OverflowException cause)
+            { throw new System.IO.InvalidDataException("Stored record version is exhausted; refusing rollover or another-provider retry.",cause); }
             if (IsVersionControlEnabled)
             {
                 var historyKey=VersionKey(recordKey,previous.Version);
@@ -74,7 +79,7 @@ namespace NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage
                 acknowledged?.Add(historyKey);
             }
 
-            entity.Version = previous.Version + 1;
+            entity.Version = nextVersion;
             entity.PreviousVersionId = previous.VersionId;
             entity.VersionId = Guid.NewGuid();
         }
