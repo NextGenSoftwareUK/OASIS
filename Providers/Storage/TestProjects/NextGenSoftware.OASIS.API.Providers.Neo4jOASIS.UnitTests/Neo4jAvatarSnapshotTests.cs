@@ -9,6 +9,19 @@ namespace NextGenSoftware.OASIS.API.Providers.Neo4jOASIS.UnitTests;
 [TestClass]
 public class Neo4jAvatarSnapshotTests
 {
+    private sealed class ExtendedAvatar : Avatar { public string CallerOnlyNote { get; set; } = "not part of IAvatar"; }
+
+    [TestMethod]
+    public void TrustedExtendedAvatarProjectsToCanonicalContractWithoutOpeningStoredTypeBinder()
+    {
+        var source=new ExtendedAvatar{Id=Guid.NewGuid(),Username="extended",Email="extended@example.invalid",Version=7};
+        source.MetaData["extension-data"]="preserve";
+        var staged=Provider.StageAvatar(source);
+        Assert.AreEqual(source.Id,staged.Id);Assert.AreEqual(source.Username,staged.Username);
+        Assert.AreEqual(source.Email,staged.Email);Assert.AreEqual(7,staged.Version);
+        Assert.AreEqual("preserve",staged.MetaData["extension-data"]);
+        Assert.IsFalse(source.ProviderUniqueStorageKey.ContainsKey(ProviderType.Neo4jOASIS));
+    }
     [DataTestMethod]
     [DataRow("malformed")] [DataRow("typed")] [DataRow("type-name")]
     public void StoredSnapshotJsonErrorsAreTerminalIntegrityFailures(string kind)
