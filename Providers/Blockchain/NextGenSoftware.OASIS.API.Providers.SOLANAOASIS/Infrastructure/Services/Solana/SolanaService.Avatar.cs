@@ -72,53 +72,50 @@ public sealed partial class SolanaService
     {
         var response = new OASISResult<BurnNftResult>();
 
-        // Save the original Console.Out
-        var originalConsoleOut = Console.Out;
-
         try
         {
-            //PublicKey mintAccount = new(mintNftRequest.MintWalletAddress);
-            PublicKey mintAccount = oasisAccount;
-            PublicKey NFTTokenAddress = new(mintNftRequest.NFTTokenAddress);
-
-            RequestResult<ResponseValue<LatestBlockHash>> blockHash =
-                await rpcClient.GetLatestBlockHashAsync();
-
-            byte[] tx = new TransactionBuilder()
-                .SetRecentBlockHash(blockHash.Result.Value.Blockhash)
-                .SetFeePayer(mintAccount)
-                .AddInstruction(TokenProgram.Burn(
-                mintAccount,
-                NFTTokenAddress,
-                1,
-                mintAccount))
-                .Build(oasisAccount);
-
-            // Redirect Console.Out to a NullTextWriter to stop the SolNET Logger from outputting to the console (messes up STAR CLI!)
-            Console.SetOut(new NullTextWriter());
-
-            RequestResult<string> sendTransactionResult = await rpcClient.SendTransactionAsync(tx);
-            if (!sendTransactionResult.WasSuccessful)
-            {
-                response.IsError = true;
-                response.Message = sendTransactionResult.Reason;
-                OASISErrorHandling.HandleError(ref response, response.Message);
-                return response;
-            }
-
-            response.Result = new BurnNftResult(sendTransactionResult.Result);
+            ArgumentNullException.ThrowIfNull(mintNftRequest);
+            var mint=new PublicKey(mintNftRequest.NFTTokenAddress);
+            if(mint.KeyBytes.Length!=32) throw new ArgumentException("A valid NFT mint address is required.");
+            var signer=oasisAccount;
+            if(!string.IsNullOrWhiteSpace(mintNftRequest.OwnerSeedPhrase))
+                signer=new Wallet(mintNftRequest.OwnerSeedPhrase).GetAccount(0);
+            else if(!string.IsNullOrWhiteSpace(mintNftRequest.OwnerPrivateKey))
+                signer=new Account(mintNftRequest.OwnerPrivateKey,mintNftRequest.OwnerPublicKey);
+            if(!string.IsNullOrWhiteSpace(mintNftRequest.OwnerPublicKey) && signer.PublicKey.Key!=mintNftRequest.OwnerPublicKey)
+                throw new ArgumentException("NFT burn signer does not match requested owner.");
+            var challenge=System.Text.Encoding.UTF8.GetBytes("oasis/solana/nft-burn-signer/v1");
+            if(!signer.Verify(challenge,signer.Sign(challenge))) throw new ArgumentException("NFT burn signing key does not match owner.");
+            var metadataProgram=MetadataProgram.ProgramIdKey;
+            var metadataPda=DeriveMetadataPda(mint,metadataProgram);
+            var edition=DeriveMasterEditionPda(mint,metadataProgram);
+            var metadataReply=await rpcClient.GetAccountInfoAsync(metadataPda.Key,Solnet.Rpc.Types.Commitment.Finalized);
+            if(!metadataReply.WasSuccessful || metadataReply.Result?.Value==null || metadataReply.Result.Value.Owner!=metadataProgram.Key)
+                throw new InvalidOperationException("NFT metadata is missing or not owned by the Metaplex program.");
+            var rawMetadata=metadataReply.Result.Value;
+            if(rawMetadata.Executable || rawMetadata.Data?.Count!=2 || rawMetadata.Data[1]!="base64")
+                throw new System.IO.InvalidDataException("Invalid Metaplex metadata account encoding.");
+            var verifiedCollection=MetaplexBurnMetadata.ReadVerifiedCollection(Convert.FromBase64String(rawMetadata.Data[0]),mint);
+            var token=AssociatedTokenAccountProgram.DeriveAssociatedTokenAccount(signer.PublicKey,mint);
+            // Official mpl-token-metadata BurnNft ABI: discriminator29 and six required accounts.
+            var accounts=new List<AccountMeta> {AccountMeta.Writable(metadataPda,false),AccountMeta.Writable(signer.PublicKey,true),
+                AccountMeta.Writable(mint,false),AccountMeta.Writable(token,false),AccountMeta.Writable(edition,false),AccountMeta.ReadOnly(TokenProgram.ProgramIdKey,false)};
+            if(verifiedCollection!=null)
+                accounts.Add(AccountMeta.Writable(DeriveMetadataPda(verifiedCollection,metadataProgram),false));
+            var instruction=new TransactionInstruction {ProgramId=metadataProgram.KeyBytes,Keys=accounts,Data=new byte[] {29}};
+            var blockHash=await rpcClient.GetLatestBlockHashAsync();
+            if(!blockHash.WasSuccessful || blockHash.Result?.Value==null) throw new InvalidOperationException("NFT burn blockhash lookup failed.");
+            var tx=new TransactionBuilder().SetRecentBlockHash(blockHash.Result.Value.Blockhash).SetFeePayer(signer).AddInstruction(instruction).Build(signer);
+            var simulation=await rpcClient.SimulateTransactionAsync(tx);
+            if(simulation==null || !simulation.WasSuccessful || simulation.Result?.Value==null || simulation.Result.Value.Error!=null)
+                throw new InvalidOperationException("NFT burn simulation failed; no transaction submitted: "+simulation?.Result?.Value?.Error);
+            var signature=await new NextGenSoftware.OASIS.API.Providers.SOLANAOASIS.Infrastructure.Repositories.SolanaRepository(signer,rpcClient).SubmitSignedTransactionAsync(tx);
+            response.Result = new BurnNftResult(signature);
+            response.IsSaved=true;
         }
         catch (Exception e)
         {
-            response.Exception = e;
-            response.Message = e.Message;
-            response.IsError = true;
-            OASISErrorHandling.HandleError(ref response, e.Message);
-        }
-        finally
-        {
-            // Restore the original Console.Out
-            Console.SetOut(originalConsoleOut);
+            OASISErrorHandling.HandleError(ref response, e.Message,e);
         }
 
         return response;

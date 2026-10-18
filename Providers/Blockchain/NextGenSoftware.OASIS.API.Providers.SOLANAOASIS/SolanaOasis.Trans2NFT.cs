@@ -211,14 +211,19 @@ public partial class SolanaOASIS
     public async Task<OASISResult<IWeb3NFTTransactionResponse>> BurnNFTAsync(IBurnWeb3NFTRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        OASISResult<IWeb3NFTTransactionResponse> result = new(new Web3NFTTransactionResponse());
+        OASISResult<IWeb3NFTTransactionResponse> result = new();
 
         try
         {
+            if(!IsProviderActivated)
+            {
+                var activation=await ActivateProviderAsync();
+                if(activation.IsError) throw new InvalidOperationException(activation.Message,activation.Exception);
+            }
             OASISResult<BurnNftResult> solanaNftTransactionResult = await _solanaService.BurnNftAsync(request);
 
             if (solanaNftTransactionResult.IsError ||
-                string.IsNullOrEmpty(solanaNftTransactionResult.Result.TransactionHash))
+                string.IsNullOrEmpty(solanaNftTransactionResult.Result?.TransactionHash))
             {
                 OASISErrorHandling.HandleError(ref result,
                     solanaNftTransactionResult.Message,
@@ -228,6 +233,7 @@ public partial class SolanaOASIS
 
             result.IsError = false;
             result.IsSaved = true;
+            result.Result=new Web3NFTTransactionResponse();
 
             //Web3NFT Web3NFT = new Web3NFT()
             //{
