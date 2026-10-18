@@ -184,47 +184,8 @@ namespace NextGenSoftware.OASIS.API.Providers.ActivityPubOASIS
             return LoadAllHolonsAsync(type, loadChildren, recursive, maxChildDepth, curentChildDepth, continueOnError, loadChildrenFromProvider, version).Result;
         }
 
-        public override async Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
-        {
-            var response = new OASISResult<IHolon>();
-
-            try
-            {
-                if (!_isActivated)
-                {
-                    var activateResult = await ActivateProviderAsync();
-                    if (activateResult.IsError)
-                    {
-                        OASISErrorHandling.HandleError(ref response, $"Failed to activate ActivityPub provider: {activateResult.Message}");
-                        return response;
-                    }
-                }
-
-                // Save holon to ActivityPub instance
-                var apiUrl = $"{_instanceUrl}/api/v1/statuses";
-                var activityPubJson = ConvertHolonToActivityPub(holon);
-                
-                var content = new StringContent(activityPubJson, Encoding.UTF8, "application/json");
-                var httpResponse = await _httpClient.PostAsync(apiUrl, content);
-                
-                if (httpResponse.IsSuccessStatusCode)
-                {
-                    response.Result = holon;
-                    response.Message = "Holon saved to ActivityPub instance successfully";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to save holon to ActivityPub instance: {httpResponse.StatusCode}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error saving holon to ActivityPub: {ex.Message}");
-            }
-
-            return response;
-        }
+        public override Task<OASISResult<IHolon>> SaveHolonAsync(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
+            => Task.FromResult(RejectPrivateRecordStorage<IHolon>());
 
         public override OASISResult<IHolon> SaveHolon(IHolon holon, bool saveChildren = true, bool recursive = true, int maxChildDepth = 0, bool continueOnError = true, bool saveChildrenOnProvider = false)
         {
