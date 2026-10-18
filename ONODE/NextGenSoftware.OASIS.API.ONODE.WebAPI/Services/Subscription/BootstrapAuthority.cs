@@ -26,21 +26,25 @@ public sealed class BootstrapAuthorityRecord
 public sealed class MongoBootstrapAuthority
 {
     private readonly IMongoCollection<BootstrapAuthorityRecord> _records;
-    public MongoBootstrapAuthority(IMongoDatabase database)
+    private readonly TimeProvider _clock;
+    public MongoBootstrapAuthority(IMongoDatabase database, TimeProvider clock = null)
     {
         ArgumentNullException.ThrowIfNull(database);
+        _clock = clock ?? TimeProvider.System;
         _records = database.GetCollection<BootstrapAuthorityRecord>("private_bootstrap_authority")
             .WithReadConcern(ReadConcern.Majority).WithReadPreference(ReadPreference.Primary)
             .WithWriteConcern(WriteConcern.WMajority);
     }
 
     public async Task<BootstrapAuthorityRecord> ReadAsync(Guid avatarId, long tokenVersion,
-        DateTime utcNow, CancellationToken token = default)
+        CancellationToken token = default)
     {
         RequireId(avatarId);
         var record = await _records.Find(x => x.Id == avatarId.ToString("D"))
             .SingleOrDefaultAsync(token);
-        Validate(record, avatarId, tokenVersion, utcNow);
+        token.ThrowIfCancellationRequested();
+        // Never reuse a timestamp captured before a slow database read.
+        Validate(record, avatarId, tokenVersion, _clock.GetUtcNow().UtcDateTime);
         return record;
     }
 
@@ -59,13 +63,13 @@ public sealed class MongoBootstrapAuthority
         return expectedRevision + 1;
     }
 
-    public async Task PublishAsync(BootstrapAuthorityRecord verified, DateTime utcNow,
+    public async Task PublishAsync(BootstrapAuthorityRecord verified,
         CancellationToken token = default)
     {
         ArgumentNullException.ThrowIfNull(verified);
         if (!Guid.TryParseExact(verified.Id, "D", out var id) || id == Guid.Empty)
             throw new ArgumentException("A canonical avatar ID is required.", nameof(verified));
-        ValidateShape(verified, utcNow);
+        ValidateShape(verified, _clock.GetUtcNow().UtcDateTime);
         if (!verified.Ready) throw new ArgumentException("Published authority must be ready.", nameof(verified));
         var result = await _records.ReplaceOneAsync(
             x => x.Id == verified.Id && x.Revision == verified.Revision && !x.Ready
