@@ -34,42 +34,10 @@ public override Task<OASISResult<IHolon>> DeleteHolonAsync(string providerKey)
 
         public override async Task<OASISResult<bool>> ImportAsync(IEnumerable<IHolon> holons)
         {
-            var response = new OASISResult<bool>();
-            try
-            {
-                // REAL Neo4j implementation for importing holons
-                if (string.IsNullOrEmpty(Host) || string.IsNullOrEmpty(Username) || string.IsNullOrEmpty(Password))
-                {
-                    OASISErrorHandling.HandleError(ref response, "Neo4j connection parameters not configured");
-                    return response;
-                }
-
-                if (holons == null || !holons.Any())
-                {
-                    OASISErrorHandling.HandleError(ref response, "Holons collection cannot be null or empty");
-                    return response;
-                }
-
-                // Use SaveHolonsAsync to import holons (it already handles batch saving)
-                var saveResult = await SaveHolonsAsync(holons, true, true, 0, 0, true, false);
-                
-                if (!saveResult.IsError && saveResult.Result != null)
-                {
-                    response.Result = true;
-                    response.IsError = false;
-                    response.Message = $"Successfully imported {saveResult.Result.Count()} holons to Neo4j";
-                }
-                else
-                {
-                    OASISErrorHandling.HandleError(ref response, $"Failed to import holons: {saveResult.Message}");
-                }
-            }
-            catch (Exception ex)
-            {
-                response.Exception = ex;
-                OASISErrorHandling.HandleError(ref response, $"Error importing holons to Neo4j: {ex.Message}");
-            }
-            return response;
+            var saved=await SaveHolonsAsync(holons,continueOnError:false);
+            var result=OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,bool>(saved);
+            result.Result=!saved.IsError && saved.IsSaved;
+            return result;
         }
 
         public override OASISResult<bool> Import(IEnumerable<IHolon> holons)
