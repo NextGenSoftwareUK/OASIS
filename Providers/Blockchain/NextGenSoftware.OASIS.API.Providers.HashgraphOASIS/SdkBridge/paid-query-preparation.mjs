@@ -72,6 +72,22 @@ function preparedQuery(Base,field) {
       if(value!==1)throw new Error('Prepared paid queries require exactly one transport attempt.');
       return super.setMaxAttempts(value);
     }
+    async _makePaymentTransaction(transactionId,nodeAccountId,operator,amount) {
+      // Construction only: the SDK also builds unused per-node candidates here.
+      // Admission remains at the actual selected-request transport boundary below.
+      if(!operator?.publicKey||typeof operator.transactionSigner!=='function')
+        throw new Error('A configured SDK operator is required for prepared query payment construction.');
+      const units=amount.toTinybars().toString();
+      if(!/^(0|[1-9][0-9]*)$/.test(units))throw new Error('Canonical nonnegative query payment required.');
+      const payment=new TransferTransaction().setTransactionId(transactionId).setNodeAccountIds([nodeAccountId])
+        .setMaxTransactionFee(Hbar.fromTinybars(this.#context.maxTransactionFeeTinybars))
+        .addHbarTransfer(transactionId.accountId,Hbar.fromTinybars(units==='0'?'0':'-'+units))
+        .addHbarTransfer(nodeAccountId,Hbar.fromTinybars(units)).freeze();
+      await payment.signWith(operator.publicKey,operator.transactionSigner);
+      const list=proto.TransactionList.decode(payment.toBytes()).transactionList;
+      if(list.length!==1)throw new Error('One SDK-built query payment required.');
+      return list[0];
+    }
     async _executeRequestWithGrpcDeadline(channel,request) {
       if(this.#issued)throw new Error('This prepared paid query was already issued; original outcome requires reconciliation.');
       const context=this.#context;
