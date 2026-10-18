@@ -61,7 +61,7 @@ public static class OasisEntitiesExtensions
             Version = avatar.Version,
             IsDeleted = !avatar.IsActive,
             PreviousVersionId = avatar.PreviousVersionId
-        });
+        },avatar);
     }
 
     public static SolanaAvatarDetailDto GetSolanaAvatarDetailDto(this IAvatarDetail avatarDetail)
@@ -126,7 +126,7 @@ public static class OasisEntitiesExtensions
             Version = avatarDetail.Version,
             IsDeleted = !avatarDetail.IsActive,
             PreviousVersionId = avatarDetail.PreviousVersionId
-        });
+        },avatarDetail);
     }
 
     public static SolanaHolonDto GetSolanaHolonDto(this IHolon holon)
@@ -175,12 +175,13 @@ public static class OasisEntitiesExtensions
             IsActive = holon.IsActive,
             IsDeleted = !holon.IsActive,
             PreviousVersionId = holon.PreviousVersionId,
-        });
+        },holon);
     }
 
-    private static T CheckedStorageRecord<T>(T record) where T : SolanaBaseDto
+    private static T CheckedStorageRecord<T>(T record,IHolonBase source) where T : SolanaBaseDto
     {
         if(!record.HasValidCreationOrigin()) throw new SolanaOriginValidationException();
+        SolanaProviderLinkMapping.Capture(record,source);
         return record;
     }
 
