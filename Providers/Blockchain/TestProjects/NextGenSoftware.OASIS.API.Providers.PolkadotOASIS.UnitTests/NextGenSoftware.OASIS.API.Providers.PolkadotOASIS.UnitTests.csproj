@@ -16,6 +16,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Update="submission-process-fixture.mjs" CopyToOutputDirectory="PreserveNewest" />
     <ProjectReference Include="..\..\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS\NextGenSoftware.OASIS.API.Providers.PolkadotOASIS.csproj" />
   </ItemGroup>
 

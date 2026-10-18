@@ -3,6 +3,7 @@ import { ApiPromise } from '@polkadot/api';
 import { ReadOnlyHttpProvider } from './read-only-provider.mjs';
 import { prepareNativeTransfer } from './native-transfer.mjs';
 import { verifyNativePreparation } from './verify-preparation.mjs';
+import { submitOriginalPreparation } from './original-submission.mjs';
 
 if (process.env.OASIS_POLKADOT_READONLY_NATIVE !== '1') throw new Error('Explicit read-only native opt-in required.');
 const genesis = '0x91b171bb158e2d3848fa23a9f1c25182fb8e20313b2c1eb49219da7a70ce90c3';
@@ -38,6 +39,33 @@ try {
   for (const [name, fields] of mutations) await assert.rejects(verifyNativePreparation(api, { ...original, ...fields }), undefined, name);
   const estimateChanged = await verifyNativePreparation(api, { ...original, partialFeeUnits: '0' });
   assert.equal(estimateChanged.feeCoverage, 'identity-only-not-a-fee-cap-or-receipt');
+  // Real SDK cryptographic validation, controlled owner/submission capabilities: NO public broadcast.
+  let submissions = 0;
+  const ownerFailure = new Error('controlled durable owner rejection');
+  await assert.rejects(submitOriginalPreparation(api, original, async () => { throw ownerFailure; }, async () => { submissions++; }),
+    error => error === ownerFailure);
+  assert.equal(submissions, 0);
+  const order = [];
+  const accepted = await submitOriginalPreparation(api, original,
+    async evidence => { assert.equal(evidence.signedTransactionBase64, original.signedTransactionBase64); order.push('persisted'); },
+    async () => { order.push('submit'); return original.transactionHash; });
+  assert.deepEqual(order, ['persisted', 'submit']);
+  assert.equal(accepted.finalized, false);
+  assert.equal(accepted.reconciliationRequired, true);
+  const lostResponse = new Error('controlled lost submission response');
+  await assert.rejects(submitOriginalPreparation(api, original, async () => {}, async () => { throw lostResponse; }),
+    error => error.reconciliationRequired === true && error.originalTransactionId === original.transactionHash && error.cause === lostResponse);
+  await assert.rejects(submitOriginalPreparation(api, original, async () => {}, async () => '0x' + '00'.repeat(32)),
+    error => error.reconciliationRequired === true && error.originalTransactionId === original.transactionHash);
+  const mutable = structuredClone(original);
+  const captured = submitOriginalPreparation(api, mutable, async evidence => {
+    assert.equal(evidence.transactionHash, original.transactionHash);
+    assert.equal(evidence.signedTransactionBase64, original.signedTransactionBase64);
+  }, async () => original.transactionHash);
+  mutable.transactionHash = '0x' + '00'.repeat(32);
+  mutable.signedTransactionBase64 = 'AQID';
+  assert.equal((await captured).transactionHash, original.transactionHash);
   console.log(JSON.stringify({ network: 'Polkadot', submitted: false, originalVerified: true,
-    maximumUtf8MemoBytes: 256, rejectedTamperCases: mutations.length, alteredEstimateNotFeeAuthorization: true }));
+    maximumUtf8MemoBytes: 256, rejectedTamperCases: mutations.length, alteredEstimateNotFeeAuthorization: true,
+    controlledSubmissionCases: 5, publicBroadcasts: 0 }));
 } finally { await api.disconnect(); }
