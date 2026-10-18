@@ -1448,3 +1448,7 @@ Recovered existing completed native71/unit76 reports without restarting tests. S
 
 Same fixed outputs and retained pinned oasis-neo4j container/volume/caches used for native71pass36s and unit76pass319ms; no downloads/restores/installations/new environment/reset. Runner21242 terminal0; container exited independently. Free90399440896→90398617600bytes observed, not a disk-reclamation claim. Current native TRX overwritten in place (preceding hash recorded, original not separately retained this turn); compact current native/unit reports retained. Test-owned acknowledged records cleaned by normal scoped hard-delete, acknowledged corruption restored; unrelated data/source/credentials/uncertain journals untouched.
 
+# 2026-10-18 Neo4j search/export verification
+
+Reused same pinned container/volume/SDK/cache/fixed output for71native37s/76unit298ms. Native runner44281 terminal0; container independently exited. No install/download/restore/reset/new environment/public gas. Prior native report preserved once neo4j-native-before-search-export.trx, obsolete two-expectation unit failure preserved neo4j-unit-search-obsolete-expectations.trx, current compact reports retained. Test-owned acknowledged corruption restored and scoped records hard-deleted normally; uncertain journals/source/credentials/unrelated files untouched. Free90229673984→90228555776bytes observed; no reclaim claim.
+
