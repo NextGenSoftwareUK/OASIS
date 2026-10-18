@@ -40,6 +40,8 @@ Owned test credentials pass from the Linux SDK host to Windows through stdin, no
 
 ## Record history and costs
 
+Network configuration is explicit: `networkId` and `chainId` must both be nonempty and identify the same RPC chain. The installed official SDK's `getNetworkId()` returns node-status `chain_id`; activation checks the matching configuration and then probes that identity. The constructor retains `chainId` rather than ignoring it. Mainnet remains the default for both fields. For a custom/test chain, set BOTH DNA Network and ChainId (BootLoader already forwards them); changing only Network while leaving the mainnet ChainId default now rejects activation. No hosted DNA variables are changed automatically.
+
 Transaction-status lookup distinguishes execution finality from execution success. The SDK bridge returns the native outcome; its transaction ID must match the requested hash. Only FINAL+SuccessValue maps to Completed; FINAL+Failure maps to Failed, while nonfinal execution remains Pending. Unknown finality or malformed final outcomes return explicit lookup errors, not fabricated successful completion. Always check IsError before reading a status result. These statuses describe the native transaction, not cross-chain settlement or fee recovery.
 
 The retained evidence host requires `failed-status-original.json`, created by the bounded read-only `find-failed-status.mjs` helper from an already-existing finalized failed transaction. It never signs, submits, resets or replaces an original. Existing evidence is reconciled read-only; a pruned/unavailable original is a verification failure, not permission to replay it. The host forwards only its public hash to the native test and restores the prior process environment afterward.
