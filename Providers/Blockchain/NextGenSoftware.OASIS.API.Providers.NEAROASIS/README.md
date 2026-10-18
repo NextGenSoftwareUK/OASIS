@@ -1,6 +1,12 @@
 # NextGenSoftware.OASIS.API.Providers.NEAROASIS
 
-Connects the OASIS to NEAR Protocol -- a sharded, developer-friendly blockchain with human-readable account names, near-zero fees, and Nightshade sharding for unlimited throughput. Stores OASIS holons, avatars, and tokens. Part of the OASIS HOT-Swappable Provider Architecture. Ecosystem: https://oasisomniverse.one
+NEAR adapter using a pinned official near-api-js SDK through a Node bridge. Native account/key/balance/transfer operations and configured-contract storage/token/NFT/bridge paths have scoped retained-local-chain tests. Those custom-contract fixtures do not certify general NEP-standard interoperability, every provider option, hosted APIs, fee settlement or full HyperDrive V2 policy behavior.
+
+## Process encoding and native verification limits
+
+SDK stdin/stdout/stderr explicitly use strict UTF8, independent of the host console code page. Controlled echo-process tests reproduce the former non-ASCII decoding defect and verify accented text, emoji and Japanese text after the fix; they are not SDK/native-chain tests. The retained native fixture separately checks Unicode NFT metadata through the deployed contract and official SDK. This fixes client transport decoding, not stored-record schema or on-chain state; no record/key migration or re-encoding was performed.
+
+Reuse the configured SDK/runtime and persisted private storage key. The native evidence runner reconnects to the existing retained ledger and checks deployed contract identity; it must not initialize/reset/redeploy a chain per run. Native gas is not a fixed retail/USD price or fee-free guarantee. Durable unknown-outcome recovery, complete fee accounting, hosted authorization, standard-contract interoperability and full interface/V2 certification remain open; see repository release gates for current report scope and hashes.
 
 ## Installation
 
