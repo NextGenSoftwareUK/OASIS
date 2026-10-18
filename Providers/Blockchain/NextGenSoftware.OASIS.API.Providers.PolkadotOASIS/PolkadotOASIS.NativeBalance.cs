@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
+using NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage;
 
 namespace NextGenSoftware.OASIS.API.Providers.PolkadotOASIS;
 
@@ -18,7 +19,8 @@ public partial class PolkadotOASIS
         return ParseNativeBalance(result);
     }
 
-    private async Task<JsonElement> InvokePolkadotSdkAsync(object request)
+    private async Task<JsonElement> InvokePolkadotSdkAsync(object request, CancellationToken cancellationToken = default,
+        PreparedSubmissionServer preparationServer = null)
     {
         var input = JsonSerializer.Serialize(request);
         var bridge = Environment.GetEnvironmentVariable("OASIS_POLKADOT_SDK_BRIDGE")
@@ -34,8 +36,16 @@ public partial class PolkadotOASIS
             UseShellExecute = false, CreateNoWindow = true
         };
         start.ArgumentList.Add(bridge);
+        // Never inherit another operation's persistence channel.
+        start.Environment.Remove("OASIS_NATIVE_PREPARATION_PIPE");
+        start.Environment.Remove("OASIS_NATIVE_PREPARATION_MODULE");
+        preparationServer?.ConfigureChild(start,Path.Combine(AppContext.BaseDirectory,"PolkadotSdkBridge","prepared-submission.mjs"));
+        cancellationToken.ThrowIfCancellationRequested();
         using var process = Process.Start(start) ?? throw new InvalidOperationException("Cannot start Polkadot SDK bridge.");
-        using var deadline = new CancellationTokenSource(TimeSpan.FromSeconds(45));
+        using var deadline = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        deadline.CancelAfter(TimeSpan.FromSeconds(45));
+        var serving=preparationServer?.ServeAsync(deadline.Token);
+        var servingObserved=false;
         var stdout = process.StandardOutput.ReadToEndAsync();
         var stderr = process.StandardError.ReadToEndAsync();
         try
@@ -43,20 +53,44 @@ public partial class PolkadotOASIS
             await process.StandardInput.WriteAsync(input.AsMemory(), deadline.Token);
             process.StandardInput.Close();
             await process.WaitForExitAsync(deadline.Token);
+            var output = await stdout;
+            _ = await stderr; // Drain diagnostics without exposing SDK request/credential material.
+            using var envelope = JsonDocument.Parse(output);
+            if (process.ExitCode != 0 || !envelope.RootElement.GetProperty("ok").GetBoolean()) {
+                if(serving!=null){
+                    // Join the owner, not a racy Task-status snapshot. Only our cancellation of an
+                    // unused channel may yield to the SDK error; owner cancellation/failure survives.
+                    deadline.Cancel();
+                    try {await serving;}
+                    catch(OperationCanceledException cancelled) when(cancelled.CancellationToken==deadline.Token&&!cancellationToken.IsCancellationRequested) { }
+                    finally {servingObserved=true;}
+                }
+                throw new InvalidOperationException(envelope.RootElement.GetProperty("error").GetString());
+            }
+            var result=envelope.RootElement.GetProperty("result");
+            if(serving!=null){
+                await serving;servingObserved=true;
+                if(preparationServer.PreparedTransactionId==null
+                    ||result.GetProperty("transactionHash").GetString()!=preparationServer.PreparedTransactionId
+                    ||!result.GetProperty("persisted").GetBoolean()||result.GetProperty("submitted").GetBoolean())
+                    throw new InvalidDataException("SDK persistence reply does not bind the acknowledged original preparation.");
+            }
+            return result.Clone();
         }
-        catch
+        finally
         {
+            deadline.Cancel();
             if (!process.HasExited) process.Kill(entireProcessTree: true);
             await process.WaitForExitAsync();
-            await Task.WhenAll(stdout, stderr);
-            throw;
+            // The primary failure remains authoritative; observe readers after the owned process exits.
+            try { await Task.WhenAll(stdout, stderr); }
+            catch(Exception error) when(error is IOException or DecoderFallbackException) { }
+            if(serving!=null){
+                try {await serving;}
+                catch(OperationCanceledException) when(deadline.IsCancellationRequested) { }
+                catch(Exception) when(servingObserved) { }
+            }
         }
-        var output = await stdout;
-        _ = await stderr; // SDK diagnostics are not echoed: upstream errors may contain endpoint credentials.
-        using var envelope = JsonDocument.Parse(output);
-        if (process.ExitCode != 0 || !envelope.RootElement.GetProperty("ok").GetBoolean())
-            throw new InvalidOperationException(envelope.RootElement.GetProperty("error").GetString());
-        return envelope.RootElement.GetProperty("result").Clone();
     }
 
     private static double ParseNativeBalance(JsonElement result)
