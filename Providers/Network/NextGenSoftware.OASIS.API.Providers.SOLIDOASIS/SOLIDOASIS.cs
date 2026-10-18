@@ -293,9 +293,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             var result = new OASISResult<IEnumerable<IAvatar>>();
             try
             {
+                ValidateNearbyCoordinates(geoLat,geoLong,radiusInMeters);
                 if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
                 var avatarsResult = LoadAllAvatars();
-                if (avatarsResult.IsError || avatarsResult.Result == null)
+                if (avatarsResult.IsError)
+                    return NextGenSoftware.OASIS.API.Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IAvatar>,IEnumerable<IAvatar>>(avatarsResult);
+                if (avatarsResult.Result == null)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading avatars: {avatarsResult.Message}");
                     return result;
@@ -308,8 +311,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
                     if (avatar.MetaData != null
                         && avatar.MetaData.TryGetValue("Latitude", out var latObj)
                         && avatar.MetaData.TryGetValue("Longitude", out var lngObj)
-                        && double.TryParse(latObj?.ToString(), out var lat)
-                        && double.TryParse(lngObj?.ToString(), out var lng)
+                        && TryReadCoordinate(latObj,90,out var lat)
+                        && TryReadCoordinate(lngObj,180,out var lng)
                         && HaversineDistanceMeters(centerLat, centerLng, lat, lng) <= radiusInMeters)
                     {
                         nearby.Add(avatar);
@@ -327,9 +330,12 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             var result = new OASISResult<IEnumerable<IHolon>>();
             try
             {
+                ValidateNearbyCoordinates(geoLat,geoLong,radiusInMeters);
                 if (!_isActivated) { OASISErrorHandling.HandleError(ref result, "Provider not activated"); return result; }
-                var holonsResult = LoadAllHolons(type);
-                if (holonsResult.IsError || holonsResult.Result == null)
+                var holonsResult = LoadAllHolons(type,loadChildren:false);
+                if (holonsResult.IsError)
+                    return NextGenSoftware.OASIS.API.Core.Helpers.OASISResultHelper.CopyOASISResultOnlyWithNoInnerResult<IEnumerable<IHolon>,IEnumerable<IHolon>>(holonsResult);
+                if (holonsResult.Result == null)
                 {
                     OASISErrorHandling.HandleError(ref result, $"Error loading holons: {holonsResult.Message}");
                     return result;
@@ -342,8 +348,8 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
                     if (holon.MetaData != null
                         && holon.MetaData.TryGetValue("Latitude", out var latObj)
                         && holon.MetaData.TryGetValue("Longitude", out var lngObj)
-                        && double.TryParse(latObj?.ToString(), out var lat)
-                        && double.TryParse(lngObj?.ToString(), out var lng)
+                        && TryReadCoordinate(latObj,90,out var lat)
+                        && TryReadCoordinate(lngObj,180,out var lng)
                         && HaversineDistanceMeters(centerLat, centerLng, lat, lng) <= radiusInMeters)
                     {
                         nearby.Add(holon);
@@ -454,8 +460,20 @@ namespace NextGenSoftware.OASIS.API.Providers.SOLIDOASIS
             double a = Math.Sin(dLat / 2) * Math.Sin(dLat / 2)
                      + Math.Cos(ToRad(lat1)) * Math.Cos(ToRad(lat2))
                      * Math.Sin(dLon / 2) * Math.Sin(dLon / 2);
+            a=Math.Clamp(a,0d,1d);
             return R * 2 * Math.Atan2(Math.Sqrt(a), Math.Sqrt(1 - a));
         }
+
+        private static void ValidateNearbyCoordinates(long latitude,long longitude,int radius)
+        {
+            if(latitude < -90000000L || latitude > 90000000L)throw new ArgumentOutOfRangeException(nameof(latitude));
+            if(longitude < -180000000L || longitude > 180000000L)throw new ArgumentOutOfRangeException(nameof(longitude));
+            if(radius < 0)throw new ArgumentOutOfRangeException(nameof(radius));
+        }
+
+        private static bool TryReadCoordinate(object value,double bound,out double coordinate)
+            => double.TryParse(Convert.ToString(value,System.Globalization.CultureInfo.InvariantCulture),System.Globalization.NumberStyles.Float,
+                System.Globalization.CultureInfo.InvariantCulture,out coordinate)&&double.IsFinite(coordinate)&&Math.Abs(coordinate)<=bound;
 
         private static double ToRad(double deg) => deg * Math.PI / 180.0;
 
