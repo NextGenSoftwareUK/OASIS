@@ -303,9 +303,7 @@ namespace NextGenSoftware.OASIS.API.Providers.MongoDBOASIS
         {
             // Owned inventory is a complete value, not a projection. Reuse the canonical
             // storage codec so transfer does not silently discard inherited holon fields.
-            var moved = NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson
-                .Deserialize<NextGenSoftware.OASIS.API.Core.Objects.InventoryItem>(
-                    NextGenSoftware.OASIS.Providers.Shared.KeyValueStorage.OasisJson.Serialize(item));
+            var moved = Helpers.DataHelper.CopyInventoryItem(item);
             moved.Quantity = quantity;
             return moved;
         }
