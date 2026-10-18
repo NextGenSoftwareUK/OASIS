@@ -1,38 +1,60 @@
 import { spawnSync } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, realpathSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { Worker } from "near-workspaces";
+import { Worker, KeyPair } from "near-workspaces";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repoRoot = process.env.OASIS_REPO_ROOT_WSL ?? resolve(here, "../../..");
 const toWindows = path => path.replace(/^\/mnt\/([a-z])/i, (_, drive) => `${drive.toUpperCase()}:`).replaceAll("/", "\\");
+const rpcAddr=process.env.OASIS_NEAR_REUSABLE_RPC_URL;
+const expectedChain=process.env.OASIS_NEAR_REUSABLE_CHAIN_ID;
+const contractId=process.env.OASIS_NEAR_REUSABLE_CONTRACT_ID;
+const signerPath=process.env.OASIS_NEAR_REUSABLE_SIGNER_PATH;
+if(!rpcAddr || !expectedChain || !contractId || !signerPath)
+  throw new Error("Explicit retained NEAR RPC, chain, contract and signer-path configuration is required; no sandbox initialization/reset/download is permitted.");
+const endpoint=new URL(rpcAddr);
+if(endpoint.protocol!=="http:" || endpoint.hostname!=="127.0.0.1" || endpoint.username || endpoint.password)
+  throw new Error("NEAR evidence requires an explicit loopback HTTP endpoint.");
+const signerResolved=realpathSync(signerPath);
+if(!signerResolved.startsWith("/var/tmp/oasis-near-evidence/"))
+  throw new Error("NEAR evidence signer must belong to the retained test environment.");
 const wasm = readFileSync(resolve(here, "build/oasis_storage.wasm"));
-const worker = await Worker.init();
+const statusResponse=await fetch(rpcAddr,{method:"POST",headers:{"content-type":"application/json"},
+  body:JSON.stringify({jsonrpc:"2.0",id:"near-retained-status",method:"status",params:[]})});
+if(!statusResponse.ok)throw new Error("Retained NEAR status request failed.");
+const status=await statusResponse.json();
+if(status.result?.chain_id!==expectedChain)throw new Error("Retained NEAR chain identity differs; refusing signed operations.");
+let signer;
+let key;
+try{
+  signer=JSON.parse(readFileSync(signerResolved,"utf8"));
+  if(signer.account_id!==contractId)throw new Error("signer account differs");
+  key=KeyPair.fromString(signer.secret_key);
+}catch{throw new Error("Retained NEAR signer configuration is invalid; no replacement is generated.");}
+// CustomnetWorker connects only. SandboxWorker.init deletes an existing home and is forbidden here.
+const worker = await Worker.init({network:"custom",rpcAddr,rootAccountId:contractId});
+await worker.manager.setKey(contractId,key);
 
 try {
-  const contract = await worker.rootAccount.createSubAccount("oasis");
-  await contract.deploy(wasm);
-  await contract.call(contract, "init", { owner_id: contract.accountId });
-  const key = await contract.getKey();
-  if (!key) throw new Error("NEAR sandbox did not provide the contract account key");
-  const statusResponse = await fetch(worker.provider.connection.url, {
+  const contract = worker.rootAccount;
+  const codeResponse = await fetch(rpcAddr, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ jsonrpc: "2.0", id: "oasis-near-evidence", method: "status", params: [] }),
+    body: JSON.stringify({ jsonrpc: "2.0", id: "oasis-near-code", method: "query", params: {request_type:"view_code",account_id:contractId,finality:"final"} }),
   });
-  if (!statusResponse.ok) throw new Error(`NEAR sandbox status failed with HTTP ${statusResponse.status}`);
-  const status = await statusResponse.json();
-  const networkId = status?.result?.chain_id;
-  if (!networkId) throw new Error("NEAR sandbox status did not contain chain_id");
+  if (!codeResponse.ok) throw new Error("Retained NEAR code lookup failed.");
+  const code=await codeResponse.json();
+  if(typeof code.result?.code_base64!=="string" || createHash("sha256").update(Buffer.from(code.result.code_base64,"base64")).digest("hex")
+      !==createHash("sha256").update(wasm).digest("hex"))
+    throw new Error("Retained NEAR contract bytecode differs; no automatic redeployment or initialization is permitted.");
+  const networkId=expectedChain;
 
   // WSL does not propagate arbitrary environment variables to Windows executables.
-  // Pass the disposable sandbox credentials through a temporary JSON file instead
-  // of exposing the private key in the process command line.
-  const settingsPath = process.env.OASIS_NEAR_SETTINGS_PATH_WSL;
-  if (!settingsPath) throw new Error("OASIS_NEAR_SETTINGS_PATH_WSL is required");
-  writeFileSync(settingsPath, JSON.stringify({
-    NEAROASIS_RPCENDPOINT: worker.provider.connection.url,
+  // Pass owned test credentials through stdin, never a command line or plaintext file.
+  const settings = {
+    NEAROASIS_RPCENDPOINT: rpcAddr,
     NEAROASIS_NETWORKID: networkId,
     NEAROASIS_CHAINID: networkId,
     NEAROASIS_CONTRACTADDRESS: contract.accountId,
@@ -40,14 +62,14 @@ try {
     NEAROASIS_PRIVATEKEY: key.toString(),
     OASIS_NEAR_NODE: "C:\\Program Files\\nodejs\\node.exe",
     OASIS_NEAR_SDK_BRIDGE: toWindows(resolve(repoRoot, "Providers/Blockchain/NextGenSoftware.OASIS.API.Providers.NEAROASIS/SdkBridge/bridge.mjs")),
-  }), { mode: 0o600 });
+  };
 
   const result = spawnSync("/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe", [
     "-NoProfile", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File",
     toWindows(resolve(repoRoot, "Scripts/TestHosts/near-local/run-dotnet-evidence.ps1")),
-    "-SettingsPath", toWindows(settingsPath),
+    "-SettingsFromStdin",
     "-RepositoryRoot", toWindows(repoRoot),
-  ], { stdio: "inherit" });
+  ], { stdio: ["pipe","inherit","inherit"], input: JSON.stringify(settings) });
   if (result.error) throw result.error;
   if (result.status !== 0) process.exitCode = result.status ?? 1;
 } finally {
