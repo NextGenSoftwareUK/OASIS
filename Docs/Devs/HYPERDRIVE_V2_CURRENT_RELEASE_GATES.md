@@ -1,13 +1,13 @@
 # HyperDrive V2 current release gates
 
-## Current completion checklist — 2026-10-17
+## Current completion checklist — 2026-10-18
 
 **The full goal is NOT complete.** Passing a scoped SDK test does not certify an entire provider. The detailed entries below retain exact evidence and limitations; this checklist identifies what still prevents release.
 
 | Required gate | Current evidence/status | Remaining work |
 |---|---|---|
 | Real SDK/API implementations for all four providers | Implemented adapters and scoped SDK/process/preparation suites; no blanket interface certification | Finish requirement-by-requirement interface/native acceptance audit; controlled transport is not consensus |
-| Cosmos real V2 failover/LB/replication | Current reviewed four-case avatar/detail/leaf matrix:40native originals/40durable audited NetFinal receipts/422routed reads incl14actual stopped-node failovers;170936localteststake exactly matches wallet debits | Older9B5A1511… original intent unresolved. Remaining interfaces/options/hosted/unreviewed fee models and HTTP policy proof open; no replay/reset |
+| Cosmos real V2 failover/LB/replication | Current four-case avatar/detail/leaf matrix:40native originals/40durable audited NetFinal receipts/422routed reads incl14actual stopped-node failovers, plus72nearby reads/16invalid checks;171263localteststake exactly matches wallet debits. Separate actual avatar-wallet ID-bound escrow sync/async10originals/10receipts/41502stake exact debit | Older9B5A1511… original intent unresolved. Remaining interfaces/options/hosted/unreviewed fee models and HTTP policy proof open; no replay/reset |
 | Hedera real V2/native operations | Real SDK controlled suites plus current testnet prepared missing-root read:1paid original admitted and actual indexed debit verified | Native writes/assets/V2policy/interface/hosted matrix still open; scoped paid read does not certify those gates or their funding |
 | Sui real V2/native operations | Scoped retained-localnet routing/prepared storage/assets and real checkpoint-bounded read-only history for4originals; configured transaction cap tested natively | Complete current-source all-interface/all-policy acceptance; native pruning/large history and hosted auth/pricing remain open |
 | TRON real V2/native operations | Signed SDK/localgRPC/preparation checks pass | Original live outcome unresolved; live native/replication certification remains open. Preserve journal; no replay/reset |
@@ -18,6 +18,27 @@
 Operator dependencies are in [Pending user actions](#pending-user-actions). Reuse the existing environments. Do not resolve a missing gate by weakening tests, hiding errors, replacing a ledger or treating an absent transaction as proof of non-submission.
 
 ## Evidence journal — newest first
+
+2026-10-18 **Sui shared nearby-helper regression PASSED1/1,0skip,7m03s/full runnerexit0.** Rebuilt actual Sui producer, LocalFile producer, then integration consumer serially with retained dependencies/no restore. Runner previously built consumer only; it now cannot silently use a stale producer DLL. Producer/consumer Sui DLL SHA256 both `2EAB42255F1B52C0A32235ED3B2274EB185C444E23DE4DD30AAA56F199453E36`. SAME retained node/ledger/deployment; test confirms24 routed profile/detail selector reads,18 real nearby position/date-line/radius/type/hard-deletion checks and4invalid inputs using the helper also verified by Cosmos. Existing healthy replication/strategy checks still execute. This is NOT a new exhaustive interface/outage/hosted or exact native-fee reconciliation proof; this test does not provide newly admitted original fee receipts or market pricing. Longer duration than previous4m18s is observed, cause unproven.
+
+Current3778byte TRX SHA256 `00637076B0073D39E4497291380BE8F15FC935D0F659EE172B97C8161464122E`; earlier3778byte proof `FD6F7EEB3FC9D564D492A08B4FBC2A5C942CF6B24CA050EE71DAD8819BC6C075` retained once by content hash before fixed-path reuse. Archive cap1MiB/manual review; no per-run directory/download. Owned Sui/testhost absent, successful intent removed, logs7567bytes, C free83958910976bytes. No runtime/install/clone/new wallet/ledger reset/public funds/merge/deploy. Unrelated subscription source and strict release-source failures remain untouched.
+
+2026-10-18 **Cosmos native nearby + complete current routing matrix PASSED: 4/4, 0 skips, 15m56s, full runner exit0.** Shared `NativeNearbyAcceptance` now serves Cosmos and Sui tests; it does not introduce another provider backend. Existing real profile/holon records gain degree metadata; API requests use microdegrees. Each case verifies9 nearby reads while records exist and9 after hard deletion, plus4 invalid requests:72 actual nearby reads/16 invalid-input checks total. Exact position, zero-radius exclusion, ~0.11m date-line crossing and holon-type exclusion covered. These checks do NOT certify inactive/soft-deleted/malformed stored records, public-response masking, scale or hosted authorization.
+
+| Primary | API mode | Original transactions / durable receipts | Exact wallet debit (local test stake) |
+|---|---|---|---|
+| LocalFile | Sync | 10 / 10 | 42872 |
+| LocalFile | Async | 10 / 10 | 42867 |
+| Cosmos | Sync | 10 / 10 | 42765 |
+| Cosmos | Async | 10 / 10 | 42759 |
+
+Total **171263stake** exactly matches independently read wallet deltas and all40 audited reviewed NetFinal receipts. Existing422 routed reads,8 balancing strategies, round-robin3:3 selection, Free-plan native exclusion, two-way replication and14 actual stopped-node profile/detail failovers remain checked. Nearby reads are additional direct-provider reads, NOT422 extra routed calls. Native transaction count/cap unchanged; test deadline480s and frozen SYNTHETIC quote validity10min accommodate bounded native scans, not production pricing or retries. No logical API outcome/settlement/market quote/sponsorship/hosted or full-provider certification.
+
+Current TRX SHA256 `D7EC345FE94CAD03636BD58934FD1AEAD6FA76F1FED3E6115134BF53D3267A52`. Previous264562byte financial TRX `090925B7F0B5904C93399ABA3D29C1D4F310911001FC9906ED655FF37FC94B4E` retained once by content hash before fixed report reuse; bounded1MiB archive guard applies to successes as well as failures. Completed intent removed only after original fee recovery; old9B5A1511… fence unchanged. Owned Mongo/Cosmos node/container stopped on terminal runner exit. Same environment/runtime/ledger; no restore/download/new funded identity.
+
+Strict `--require-gitlinks --require-checkouts` still FAILS: unrelated parent/Core dirt, uninitialized task ONODEManager/OGEngineClient, Libraries/Holochain pin mismatch and Holochain dirt. Existing original ONODEManager/OGEngineClient checkouts are clean but at789df4c6…/63a337ac… rather than required479e5a8b…/998d654d…; neither was switched/copied/substituted. Diagnostic native success is not clean-source/hosted release proof. No merge/deploy.
+
+2026-10-18 07:25:57UTC free/read-only official Hedera testnet Mirror account lookup still reports32485764tinybar (0.32485764testHBAR), balance timestamp1792286959.639631104. This is indexed balance evidence, not a new paid consensus call or a new receipt. Funded consensus acceptance remains OPEN; no transaction, account creation, top-up request, secrets or spending initiated. Continue other provider gates rather than retrying known underfunded native work.
 
 2026-10-18 **actual Cosmos ID-bound token escrow sync/async acceptance PASSED2/2/2m52s/full runnerexit0.** SAME retained immutable code3/FCAE1521… protocol1 contract; no redeployment. Public LockToken/UnlockToken use real WalletManager default-wallet lookup through V2 ProviderManager + persisted LocalFile wallet, decrypting ONLY detached credentials. Known byte07 local-only test actor reused; encrypted stored credential verified unchanged after use (fixture encryption key is public/test-only, never production security). Each case mints1.25, sends to existing secondary, locks exact125000000units under SHA256(original LockId N-format), verifies owner/symbol/amount/released=false, releases SAME ID via wallet lookup, verifies released=true/returned balance, then burns to zero supply. Five original transactions/five durable audited NetFinal receipts per mode; original native status verified after reload. Both modes cost **20751localteststake each**: primary8294+secondary12457, each exact before/after wallet debit; total41502. Synthetic .000001USD/stake quote, .4syntheticUSD aggregate/8attempt policy and50000stake/transaction unchanged. No API logical outcome, settlement, approved market quote, generic CW20/native-bank escrow, bridge orchestration, rejected/fault cases or hosted/all-provider certification inferred.
 

@@ -142,13 +142,15 @@ try{
             $nativeReport='cosmos-independent-routing-current.trx'
             $priorRoutingReport=Join-Path $work $nativeReport
             if(Test-Path -LiteralPath $priorRoutingReport){
+                if((Get-Item -LiteralPath $priorRoutingReport).Length -gt 1MB){throw 'Review oversized routing financial evidence before copying.'}
                 [xml]$priorRoutingEvidence=Get-Content -LiteralPath $priorRoutingReport
-                if([int]$priorRoutingEvidence.TestRun.ResultSummary.Counters.failed -gt 0){
-                    $failedHash=(Get-FileHash -LiteralPath $priorRoutingReport -Algorithm SHA256).Hash
-                    $failureArchive=Join-Path $taskRoot "TestResults/HyperDriveCosmos/routing-failure-$failedHash.trx"
-                    if(!(Test-Path -LiteralPath $failureArchive)){[IO.File]::Copy($priorRoutingReport,$failureArchive,$false)}
-                    if((Get-FileHash -LiteralPath $failureArchive -Algorithm SHA256).Hash -ne $failedHash){throw 'Failed routing report archive mismatch; refusing overwrite.'}
-                }
+                if(!$priorRoutingEvidence.TestRun.ResultSummary.Counters){throw 'Prior routing evidence is malformed; inspect before overwrite.'}
+                # Successful native reports also contain unique wallet baselines and originals.
+                # Preserve once by content hash, not a fresh per-run directory.
+                $priorRoutingHash=(Get-FileHash -LiteralPath $priorRoutingReport -Algorithm SHA256).Hash
+                $routingArchive=Join-Path $taskRoot "TestResults/HyperDriveCosmos/routing-financial-proof-$priorRoutingHash.trx"
+                if(!(Test-Path -LiteralPath $routingArchive)){[IO.File]::Copy($priorRoutingReport,$routingArchive,$false)}
+                if((Get-FileHash -LiteralPath $routingArchive -Algorithm SHA256).Hash -ne $priorRoutingHash){throw 'Routing financial report archive mismatch; refusing overwrite.'}
             }
             & dotnet test $cosmosProject --no-build --no-restore --filter 'FullyQualifiedName~CosmosIndependentRoutingTests.' --logger "trx;LogFileName=$nativeReport" --results-directory $work -v:q
         }elseif($CosmosNative){
@@ -190,6 +192,7 @@ try{
                 $caseData=$line.Trim()|ConvertFrom-Json
                 if(!$routingCombinations.Add("$($caseData.nativePrimary):$($caseData.synchronous)")){throw 'Duplicate routing combination cannot substitute for the complete primary/sync matrix.'}
                 if($caseData.strategyReadCount -ne 16 -or $caseData.roundRobinReadCount -ne 6 -or $caseData.freeReadCount -ne 8){throw 'Full current strategy/distribution/free-plan matrix evidence is missing.'}
+                if($caseData.nearbyNativeReadCount -ne 18 -or $caseData.nearbyInvalidInputCount -ne 4){throw 'Native nearby boundaries/deletion and invalid-input acceptance are missing.'}
                 $originals=$caseData.originals
                 if(@($originals).Count -ne 10 -or $caseData.profileMatchingReadCount -ne 28 -or $caseData.profileAbsenceReadCount -ne 28){throw 'Expected full profile/detail/leaf native attempts and matching/absence read coverage per routing case.'}
                 $expectedOutageReads=if(!$caseData.nativePrimary -and $caseData.synchronous){14}else{0}
@@ -197,7 +200,7 @@ try{
                 foreach($original in $originals){
                     if(!$original.attempt.NativePreparation.SignedTransactionBase64 -or !$original.attempt.NativePreparation.SignDocBase64 -or $original.receipt.ProviderRequestId -ne $original.attempt.ProviderRequestId -or !$original.receipt.NativeFeeAudit){throw 'Original signed bytes/SignDoc or matching audited native fee receipt absent.'}
                     $audit=$original.receipt.NativeFeeAudit.PayloadJson|ConvertFrom-Json
-                    if(!$audit.NativeExecutionSucceeded -or $audit.NativeExecutionCode -ne 0 -or $original.receipt.CostSource -ne $caseData.review.EvidenceBasis){throw 'Exact reviewed native success/fee basis evidence missing.'}
+                    if($original.receipt.NativeExecutionSucceeded -ne $true -or !$audit.NativeExecutionSucceeded -or $audit.NativeExecutionCode -ne 0 -or $original.receipt.CostSource -ne $caseData.review.EvidenceBasis){throw 'Exact typed/audited reviewed native success/fee basis evidence missing.'}
                 }
                 if($caseData.netFinalNativeReceiptCount -ne 10){throw 'Expected ten durable final-fee receipts per real V2 routing case.'}
             }

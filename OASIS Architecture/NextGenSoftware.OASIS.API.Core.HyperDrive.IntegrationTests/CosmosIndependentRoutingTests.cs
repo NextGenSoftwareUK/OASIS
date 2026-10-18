@@ -33,12 +33,13 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
         var id=Guid.NewGuid();Assert.NotEqual(old.RootElement.GetProperty("holonId").GetGuid(),id);
         var avatarId=Guid.NewGuid();Assert.NotEqual(old.RootElement.GetProperty("avatarId").GetGuid(),avatarId);
         var avatar=new Avatar{Id=avatarId,Username="cosmos-independent-"+avatarId.ToString("N"),Email=avatarId.ToString("N")+"@example.invalid"};
+        avatar.MetaData=new(){{"Latitude",0d},{"Longitude",179.999999d}};
         var detail=new AvatarDetail{Id=avatarId,Username=avatar.Username,Email=avatar.Email};
         var journal=Path.Combine(root,"independent-routing-pending.json");Assert.False(File.Exists(journal));
         const string connection="mongodb://127.0.0.1:27029/?replicaSet=oasisRecoveryRs&serverSelectionTimeoutMS=3000";
         Assert.Equal(connection,Required("SUBSCRIPTION_TEST_MONGODB_URI"));
         const string database="usage_cosmos_independent_routing";
-        var mongo=new MongoClient(connection);using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(240));var token=deadline.Token;
+        var mongo=new MongoClient(connection);using var deadline=new CancellationTokenSource(TimeSpan.FromSeconds(480));var token=deadline.Token;
         // Keep compact original-attempt evidence across cases; never discard a previous incident's ledger.
         var rpc=Required("OASIS_COSMOS_TEST_RPC");Assert.Equal("http://127.0.0.1:26657",rpc);
         var chain=Required("OASIS_COSMOS_TEST_CHAIN");Assert.Equal("oasis-cosmos-local",chain);
@@ -70,7 +71,7 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
                 "POST /independent-native-routing",new UsageEndpointPolicy{MeterCategory="api.request",ReservedUnits=1,EstimatedCostUsd=0.75m,MaximumNativeFeeCostUsd=0.75m,MaximumProviderAttempts=128},token);
             var time=DateTime.UtcNow.AddSeconds(-1);
             execution=execution.WithNativePrices(new[]{new NativeFeePriceQuote(Guid.Parse(execution.OperationId),"CosmosBlockChainOASIS",chain,"stake","local-test-stake",0,0.000001m,
-                "synthetic-local-price","fixture-v1","fixture-v1",time,time,time,time.AddMinutes(5))});
+                "synthetic-local-price","fixture-v1","fixture-v1",time,time,time,time.AddMinutes(10))});
             await JsonSerializer.SerializeAsync(file,new{holonId=id,avatarId,avatar.Username,avatar.Email,chain,contract=Required("OASIS_COSMOS_TEST_CONTRACT"),nativePrimary,synchronous,
                 encryptionKeyLabel=keyLabel,database,operationId=execution.OperationId,review,walletBefore=walletBefore.ToString(System.Globalization.CultureInfo.InvariantCulture),preservedOriginalJournalSha256=oldHash,
                 recovery="Inspect exact new profile/detail/leaf and original attempts; never replay unknown routing or alter replication-pending.json."},cancellationToken:token);file.Flush(true);
@@ -85,13 +86,15 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
                 var savedDetail=synchronous?router.RouteRequest<IAvatarDetail>(detailWrite):await router.RouteRequestAsync<IAvatarDetail>(detailWrite);
                 Assert.False(savedDetail.IsError,savedDetail.Message);Assert.False(savedDetail.IsWarning,savedDetail.Message);
                 Assert.Equal(1,manager.LastReplicationDiagnostic.SucceededCount);Assert.Equal(0,manager.LastReplicationDiagnostic.FailedCount);
-                var holon=new Holon{Id=id,Name="independent-cosmos-v2-leaf",MetaData=new Dictionary<string,object>{{"owned-routing-fixture",id.ToString()}}};
+                var holon=new Holon{Id=id,Name="independent-cosmos-v2-leaf",MetaData=new Dictionary<string,object>{{"owned-routing-fixture",id.ToString()},{"Latitude",0d},{"Longitude",179.999999d}}};
                 var write=new StorageOperationRequest{Operation="SaveHolon",Payload=holon,SaveChildren=false,PreferredProvider=preferred};
                 var saved=synchronous?router.RouteRequest<IHolon>(write):await router.RouteRequestAsync<IHolon>(write);
                 Assert.False(saved.IsError,saved.Message);Assert.False(saved.IsWarning,saved.Message);
                 Assert.Equal(1,manager.LastReplicationDiagnostic.SucceededCount);Assert.Equal(0,manager.LastReplicationDiagnostic.FailedCount);
                 Assert.Equal(holon.Name,(await cosmos.LoadHolonAsync(id,loadChildren:false)).Result?.Name);
                 Assert.Equal(holon.Name,(await local.LoadHolonAsync(id,loadChildren:false)).Result?.Name);
+                NativeNearbyAcceptance.Verify((IOASISNETProvider)cosmos,avatarId,id,true);
+                NativeNearbyAcceptance.RejectInvalidInputs((IOASISNETProvider)cosmos);
                 var providers=new[]{ProviderType.LocalFileOASIS,ProviderType.CosmosBlockChainOASIS};
                 async Task ReadProfiles(bool absent){
                     foreach(var providerType in providers){
@@ -213,7 +216,9 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
                 var deletedProfile=synchronous?router.RouteRequest<bool>(removeProfile):await router.RouteRequestAsync<bool>(removeProfile);
                 Assert.False(deletedProfile.IsError,deletedProfile.Message);Assert.False(deletedProfile.IsWarning,deletedProfile.Message);Assert.True(deletedProfile.Result);
                 Assert.Equal(1,manager.LastReplicationDiagnostic.SucceededCount);Assert.Equal(0,manager.LastReplicationDiagnostic.FailedCount);
-                await ReadProfiles(true);return true;
+                await ReadProfiles(true);
+                NativeNearbyAcceptance.Verify((IOASISNETProvider)cosmos,avatarId,id,false);
+                return true;
             });
             // Recovery gets its own bounded lifetime after execution; an expired scenario
             // token must not prevent accounting for transactions already submitted.
@@ -241,7 +246,7 @@ public sealed class CosmosIndependentRoutingTests(Xunit.Abstractions.ITestOutput
             }
             Assert.Equal(netUnits,walletBefore-await Balance(recoveryToken));Assert.False(resolver.CanResolve(operation));Assert.Null(operation.ObservedOutcome);
             output.WriteLine(JsonSerializer.Serialize(new{nativePrimary,synchronous,holonId=id,avatarId,operation.NativeFeeExposureUsd,originals,netFinalNativeReceiptCount=10,walletDebit=netUnits.ToString(),review,
-                profileMatchingReadCount=28,profileAbsenceReadCount=28,outageProfileReadCount,selectorReadCount=16,strategyReadCount=2*Enum.GetValues<LoadBalancingStrategy>().Length,roundRobinReadCount=6,freeReadCount=Enum.GetValues<LoadBalancingStrategy>().Length,nonNativeReads,hostedSettlementVerified=false}));
+                nearbyNativeReadCount=18,nearbyInvalidInputCount=4,profileMatchingReadCount=28,profileAbsenceReadCount=28,outageProfileReadCount,selectorReadCount=16,strategyReadCount=2*Enum.GetValues<LoadBalancingStrategy>().Length,roundRobinReadCount=6,freeReadCount=Enum.GetValues<LoadBalancingStrategy>().Length,nonNativeReads,hostedSettlementVerified=false}));
             Assert.Equal(oldHash,Hash(oldPath));Assert.Null(operation.Settlement);complete=true;
         }catch(Exception){
             output.WriteLine(JsonSerializer.Serialize(new{lastReplication=manager.LastReplicationDiagnostic,lastFailover=manager.LastFailoverDiagnostic}));
