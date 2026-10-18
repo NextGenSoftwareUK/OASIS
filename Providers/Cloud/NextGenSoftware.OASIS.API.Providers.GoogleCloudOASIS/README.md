@@ -4,6 +4,8 @@ GoogleCloudOASIS uses the Google Cloud SDKs. Canonical OASIS avatar/detail/holon
 
 ## Current direct verification
 
+Avatar export roots are selected by CreatedByAvatarId, not merely ParentHolonId. Native regressions cover ID, username and email routes synchronously and asynchronously. Existing descendant projection is unchanged; this does not establish an authorization policy for graph descendants.
+
 Use the retained local runner `Scripts/TestHosts/Run-ReusableGoogleTests.ps1`. It requires the already-installed Firestore emulator, reuses cached dependencies/fixed outputs, takes an exclusive environment lease and stops its owned Java process afterward. No implicit installation or production credentials. Test results are scoped to native Firestore SDK calls, not hosted cloud authorization, charges or complete provider/interface certification.
 
 Trusted application subclasses are projected into canonical Core DTOs before saving, including selected recursive graph nodes through the shared planner. Stored JSON continues to use the restricted type binder; consumer-only CLR type names are not a persistence contract. Avatar-detail provider keys are stored and published only after acknowledgement. Arbitrary explicit-interface/proxy implementations and extra application-specific fields are not certified by these subclass tests.

@@ -58,7 +58,7 @@ public partial class GoogleCloudOASIS
             if(loaded.IsError) return loaded;
             var records=loaded.Result.ToList();
             var project=HolonGraphProjection.Create(records,true,true,0,0,true,source=>OasisJson.Deserialize<Holon>(OasisJson.Serialize(source)));
-            result.Result=records.Where(row=>row.CreatedByAvatarId==owner || row.ParentHolonId==owner).Select(project).ToList();
+            result.Result=records.Where(row=>row.CreatedByAvatarId==owner).Select(project).ToList();
             result.IsLoaded=true;
         }
         catch(Exception cause) {OASISErrorHandling.HandleError(ref result,cause.Message,cause);}
